@@ -25,7 +25,6 @@ inline path GetStashPath()
     return path;
 }
 
-
 inline path GetLogsPath()
 {
     return GetStashPath() / "Logs";

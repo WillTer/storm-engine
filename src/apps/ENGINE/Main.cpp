@@ -62,7 +62,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     // Init FS
     FILE_SERVICE File_Service;
     fio = &File_Service;
-    
+
     // Init diagnostics
     const auto lifecycleDiagnosticsGuard = lifecycleDiagnostics.initialize(true);
     if (!lifecycleDiagnosticsGuard)
@@ -99,13 +99,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         {
             spdlog::set_level(spdlog::level::off);
         }
-<<<<<<< HEAD
         width = ini->GetLong(nullptr, "screen_x", 1024);
         height = ini->GetLong(nullptr, "screen_y", 768);
         fullscreen = ini->GetLong(nullptr, "full_screen", false) ? true : false;
-=======
         bSteam = ini->GetLong(nullptr, "Steam", 1) != 0;
->>>>>>> 0dcb65a0 (- Overhauling of logging and crash handling)
     }
 
     // evaluate SteamApi singleton
@@ -133,30 +130,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         {
             if (dwMaxFPS)
             {
-<<<<<<< HEAD
                 const auto dwMS = 1000u / dwMaxFPS;
                 const auto dwNewTime = GetTickCount();
                 if (dwNewTime - dwOldTime < dwMS)
                     continue;
                 dwOldTime = dwNewTime;
-=======
-                if (dwMaxFPS)
-                {
-                    const auto dwMS = 1000u / dwMaxFPS;
-                    const auto dwNewTime = GetTickCount();
-                    if (dwNewTime - dwOldTime < dwMS)
-                        continue;
-                    dwOldTime = dwNewTime;
-                }
-                const auto runResult = core.Run();
-                if (!isHold && !runResult)
-                {
-                    isHold = true;
-                    SendMessage(hwnd, WM_CLOSE, 0, 0L);
-                }
-
-                lifecycleDiagnostics.notifyAfterRun();
->>>>>>> 0dcb65a0 (- Overhauling of logging and crash handling)
             }
             const auto runResult = core.Run();
             if (!isHold && !runResult)
