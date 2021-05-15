@@ -1,9 +1,11 @@
 [requires]
 zlib/1.2.11
-spdlog/1.8.2
+spdlog/1.8.5
+#sentry-native/0.4.9
 
 sdl2/2.0.14@bincrafters/stable
 sentry-native/0.4.9@storm/src
+
 
 # Development dependencies
 catch2/2.13.4
@@ -13,3 +15,6 @@ cmake
 
 [imports]
 bin, crashpad_handler.exe -> ./bin
+
+[options]
+spdlog:header_only=True
