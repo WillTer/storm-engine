@@ -4,9 +4,9 @@ spdlog/1.8.5
 
 sdl2/2.0.14@bincrafters/stable
 sentry-native/0.4.9@storm/ports
+7za/19.00@storm/bin
 
-
-# Development dependencies
+[build_requires]
 catch2/2.13.4
 
 [generators]
@@ -18,3 +18,4 @@ sentry-native:transport=winhttp
 
 [imports]
 bin, crashpad_handler.exe -> ./bin
+bin, 7za.exe -> ./bin
