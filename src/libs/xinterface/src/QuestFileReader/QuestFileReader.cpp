@@ -497,7 +497,7 @@ void QUEST_FILE_READER::SetQuestTextFileName(const char *pcFileName)
         return;
     }
     // create a buffer for it
-    char *pBuf = new char[filesize + 1];
+    auto pBuf = new char[filesize + 1];
     Assert(pBuf);
     // read into this buffer from a file
     if (!fio->_ReadFile(fileS, pBuf, filesize))

@@ -6,7 +6,7 @@
 
 class QUEST_FILE_READER
 {
-  public:
+public:
     struct UserData
     {
         std::string id;
@@ -30,7 +30,7 @@ class QUEST_FILE_READER
         }
     };
 
-  protected:
+protected:
     std::vector<std::string> m_aQuestFileName;
     char *m_pFileBuf;
 
@@ -44,7 +44,7 @@ class QUEST_FILE_READER
     long m_nCurTextIndex;
     long m_nCurLineIndex;
 
-  public:
+public:
     QUEST_FILE_READER();
     ~QUEST_FILE_READER();
 
@@ -64,7 +64,7 @@ class QUEST_FILE_READER
     static void WriteToString(std::string &sDst, const char *pcStart, const char *pcEnd);
     static void FillUserDataList(char *sStrData, std::vector<UserData> &aUserData);
 
-  private:
+private:
     void ReadUserData(const char *sQuestName, long nRecordIndex);
 
     void AddQuestFromBuffer(const char *pcSrcBuffer);
