@@ -9,8 +9,8 @@
 //============================================================================================
 
 #include "window.h"
-#include "entity.h"
 #include "core.h"
+#include "entity.h"
 #include "shared/messages.h"
 #include <cstdint>
 
@@ -258,6 +258,9 @@ void Window::InitList(LighterLights &ls)
             ls[i].isMark = true;
         }
         break;
+        case Light::t_point:
+            // TODO?
+            break;
         }
     }
     selected = 0;
@@ -673,7 +676,6 @@ void Window::Reset(bool isActive)
 {
     isList = false;
     isVisible = isActive;
-    entid_t loc;
     core.Send_Message(core.GetEntityId("location"), "ll", MSG_LOCATION_PAUSE, static_cast<int32_t>(isActive));
     slidID = -1;
     isPikerActive = false;
@@ -733,7 +735,8 @@ void Window::DrawLRect(float x1, float y1, float x2, float y2, uint32_t bkgColor
     }
 }
 
-void Window::Print(int32_t color, float xleft, float xright, float y, float scale, bool isAlign, const char *format, ...)
+void Window::Print(int32_t color, float xleft, float xright, float y, float scale, bool isAlign, const char *format,
+                   ...)
 {
     va_list args;
     va_start(args, format);
@@ -1220,6 +1223,8 @@ void Window::SavePreset(int32_t prs)
             ini->WriteDouble(sect, GenerateName(list[i].name, "_range"), *list[i].range);
             ini->WriteLong(sect, GenerateName(list[i].name, "_isOn"), static_cast<int32_t>(*list[i].isOn));
             break;
+        default:
+            break;
         }
     }
 }
@@ -1299,6 +1304,8 @@ void Window::LoadPreset(int32_t prs)
             *list[i].isOn =
                 ini->GetInt(sect, GenerateName(list[i].name, "_isOn"), static_cast<int32_t>(*list[i].isOn)) != 0;
             break;
+        default:
+            break;
         }
     }
     UpdateColors();
@@ -1326,6 +1333,8 @@ void Window::UpdateColors()
         case ListElement::t_glight:
             //*list[i].color = list[i].c*(2.0f*powf(list[i].st, 2.0f));
             *list[i].color = list[i].c * (list[i].st * 2.0f);
+            break;
+        default:
             break;
         }
     }

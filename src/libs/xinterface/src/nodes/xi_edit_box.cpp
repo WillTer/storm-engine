@@ -294,7 +294,6 @@ void CXI_EDITBOX::ChangePosition(XYRECT &rNewPos)
     m_rect = rNewPos;
 
     // fills this buffers
-    auto fBottomOff = static_cast<float>(m_nTopOffset);
     m_nTopStringPos = m_rect.top + m_nTopOffset;
     auto *pv = static_cast<XI_NOTEX_VERTEX *>(m_rs->LockVertexBuffer(m_idVBRect));
     pv[0].color = pv[1].color = pv[2].color = pv[3].color = m_dwBorderColor;
@@ -308,7 +307,7 @@ void CXI_EDITBOX::ChangePosition(XYRECT &rNewPos)
     pv[6].pos.x = pv[7].pos.x = static_cast<float>(m_rect.right) - m_nLeftOffset;
     pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_nTopStringPos);
     m_nTopOffset = static_cast<int32_t>(pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top) + m_nTopOffset +
-                                                                 m_rs->CharHeight(m_nStrFontNum) * 1.06f) +
+                                                                    m_rs->CharHeight(m_nStrFontNum) * 1.06f) +
                    4;
     m_rs->UnLockVertexBuffer(m_idVBRect);
 
@@ -458,7 +457,7 @@ void CXI_EDITBOX::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, const
     pv[6].pos.x = pv[7].pos.x = static_cast<float>(m_rect.right) - m_nLeftOffset;
     pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_nTopStringPos);
     m_nTopOffset = static_cast<int32_t>(pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top) + m_nTopOffset +
-                                                                 m_rs->CharHeight(m_nStrFontNum) * 1.06f) +
+                                                                    m_rs->CharHeight(m_nStrFontNum) * 1.06f) +
                    4;
     m_rs->UnLockVertexBuffer(m_idVBRect);
 

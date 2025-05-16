@@ -19,8 +19,7 @@ const char *INVALID_STRING = {"Invalid string"};
 
 extern void DumpError(const char *data_PTR, ...);
 
-DATA::DATA()
-    : pValue(0), object_id(0)
+DATA::DATA() : pValue(0), object_id(0)
 {
     Data_type = UNKNOWN;
     Number_of_elements = 0;
@@ -41,8 +40,7 @@ DATA::DATA(const DATA &data)
     *this = data;
 }
 
-DATA::DATA(DATA &&data) noexcept(false)
-    : pValue(0)
+DATA::DATA(DATA &&data) noexcept(false) : pValue(0)
 {
     Data_type = data.Data_type;
     Number_of_elements = data.Number_of_elements;
@@ -62,7 +60,7 @@ DATA::DATA(DATA &&data) noexcept(false)
     data.AttributesClass = nullptr;
 }
 
-DATA & DATA::operator=(const DATA &data)
+DATA &DATA::operator=(const DATA &data)
 {
     if (this == &data)
     {
@@ -96,8 +94,7 @@ DATA & DATA::operator=(const DATA &data)
     return *this;
 }
 
-DATA::DATA(S_TOKEN_TYPE _element_type)
-    : pValue(0), object_id(0)
+DATA::DATA(S_TOKEN_TYPE _element_type) : pValue(0), object_id(0)
 {
     Data_type = _element_type;
     Number_of_elements = 0;
@@ -113,8 +110,7 @@ DATA::DATA(S_TOKEN_TYPE _element_type)
     nGlobalVarTableIndex = 0xffffffff;
 }
 
-DATA::DATA(uint32_t _num_of_elements, S_TOKEN_TYPE _element_type)
-    : pValue(0), object_id(0)
+DATA::DATA(uint32_t _num_of_elements, S_TOKEN_TYPE _element_type) : pValue(0), object_id(0)
 {
     nGlobalVarTableIndex = 0xffffffff;
     Number_of_elements = _num_of_elements;
@@ -375,7 +371,7 @@ void DATA::Set(const char *value)
     }
 }
 
-void DATA::Set(const char *attribute_name, const char *attribute_value)
+void DATA::Set(const std::string_view &attribute_name, const std::string_view &attribute_value)
 {
     // if(bRef)
     if (Data_type == VAR_REFERENCE)
@@ -402,10 +398,10 @@ void DATA::Set(const char *attribute_name, const char *attribute_value)
             return;
         }
 
-        AttributesClass = new ATTRIBUTES(pVCompiler->GetVSC());
+        auto *codec = pVCompiler->GetVSC();
+        AttributesClass = new ATTRIBUTES(*codec);
     }
     AttributesClass->SetAttribute(attribute_name, attribute_value);
-    // Attributes.SetAttribute(attribute_name,attribute_value);
 }
 
 void DATA::Set(entid_t eid)
@@ -818,7 +814,7 @@ bool DATA::Set(const char *value, uint32_t index)
       return true;    */
 }
 
-bool DATA::Set(const char *attribute_name, const char *attribute_value, uint32_t index)
+bool DATA::Set(const std::string_view &attribute_name, const std::string_view &attribute_value, uint32_t index)
 {
     // if(bRef)
     if (Data_type == VAR_REFERENCE)
@@ -1110,6 +1106,8 @@ bool DATA::Convert(S_TOKEN_TYPE type)
         {
         case VAR_OBJECT:
             return true;
+        default:
+            break;
         }
 
         break;
@@ -1151,6 +1149,8 @@ bool DATA::Convert(S_TOKEN_TYPE type)
             fValue = 0.0f;
             fast_float::from_chars(sValue.data(), sValue.data() + sValue.length(), fValue);
             return true;
+        default:
+            break;
         }
         break;
     case VAR_PTR:
@@ -1166,6 +1166,8 @@ bool DATA::Convert(S_TOKEN_TYPE type)
             Error(INVALID_CONVERSATION);
             return false;
         }
+    default:
+        break;
     }
     return false;
 }
@@ -1329,6 +1331,8 @@ bool DATA::Inverse()
     case VAR_FLOAT:
         fValue = -fValue;
         break;
+    default:
+        break;
     }
     return true;
 }
@@ -1406,6 +1410,8 @@ bool DATA::Power(int32_t Deg)
                 fValue = 1.0f / fBase;
         }
 
+        break;
+    default:
         break;
     }
     return true;
@@ -1950,7 +1956,7 @@ bool DATA::Compare(DATA *pV, char opA, char opB)
                 return sValue == pV->sValue;
 
             case '!':
-                return sValue!= pV->sValue;
+                return sValue != pV->sValue;
 
             case '>':
                 if (opB == '=')
@@ -2101,11 +2107,11 @@ bool DATA::Copy(DATA *pV)
                     pVV->AttributesClass = new ATTRIBUTES(*pVCompiler->GetVSC());
                 }
             }
-            else if (pV->AttributesClass != nullptr) {
+            else if (pV->AttributesClass != nullptr)
+            {
                 Assert(&pV->AttributesClass->GetStringCodec() == pVCompiler->GetVSC());
                 *pVV->AttributesClass = pV->AttributesClass->Copy();
             }
-
         }
         else
         {
@@ -2115,16 +2121,20 @@ bool DATA::Copy(DATA *pV)
             }
             else
             {
-                if (AttributesClass == nullptr) {
-                    if (pV->AttributesClass != nullptr) {
+                if (AttributesClass == nullptr)
+                {
+                    if (pV->AttributesClass != nullptr)
+                    {
                         Assert(&pV->AttributesClass->GetStringCodec() == pVCompiler->GetVSC());
                         AttributesClass = new ATTRIBUTES(pV->AttributesClass->Copy());
                     }
-                    else {
+                    else
+                    {
                         AttributesClass = new ATTRIBUTES(*pVCompiler->GetVSC());
                     }
                 }
-                else if (pV->AttributesClass != nullptr) {
+                else if (pV->AttributesClass != nullptr)
+                {
                     Assert(&pV->AttributesClass->GetStringCodec() == pVCompiler->GetVSC());
                     *AttributesClass = pV->AttributesClass->Copy();
                 }
@@ -2357,7 +2367,8 @@ ATTRIBUTES *DATA::GetAClass()
             return nullptr;
         }
 
-        AttributesClass = new ATTRIBUTES(pVCompiler->GetVSC());
+        auto *codec = pVCompiler->GetVSC();
+        AttributesClass = new ATTRIBUTES(*codec);
     }
     return AttributesClass;
 }
@@ -2431,7 +2442,8 @@ DATA *DATA::GetVarPointer()
     // if(!bRef) return this;
     if (Data_type != VAR_REFERENCE)
         return this;
-    if (pReference == this) {
+    if (pReference == this)
+    {
         Error("ref points to itself");
         return this;
     }
@@ -2543,6 +2555,8 @@ bool DATA::CompareAndSetResult(DATA *pV, S_TOKEN_TYPE op)
                 else
                     Set(0);
                 break;
+            default:
+                break;
             }
             break;
 
@@ -2596,6 +2610,8 @@ bool DATA::CompareAndSetResult(DATA *pV, S_TOKEN_TYPE op)
                     Set(1);
                 else
                     Set(0);
+                break;
+            default:
                 break;
             }
             break;
@@ -2658,6 +2674,8 @@ bool DATA::CompareAndSetResult(DATA *pV, S_TOKEN_TYPE op)
                 else
                     Set(0);
                 break;
+            default:
+                break;
             }
             break;
         case VAR_FLOAT:
@@ -2711,6 +2729,8 @@ bool DATA::CompareAndSetResult(DATA *pV, S_TOKEN_TYPE op)
                 else
                     Set(0);
                 break;
+            default:
+                break;
             }
             break;
         default:
@@ -2746,6 +2766,8 @@ bool DATA::CompareAndSetResult(DATA *pV, S_TOKEN_TYPE op)
             case OP_BOOL_OR:
                 Error("bool operation on string");
                 return false;
+            default:
+                break;
             }
 
             break;

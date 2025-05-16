@@ -72,8 +72,7 @@ void GetQuotedString(char *inBuf, char *outBuf, int32_t bufSize)
     *outBuf = 0;
 }
 
-TMPTELEPORT::TMPTELEPORT()
-    : m_leftPos(0), m_topPos(0), m_deltaPos(0), m_showStrQuantity(0), m_nShowType(0)
+TMPTELEPORT::TMPTELEPORT() : m_leftPos(0), m_topPos(0), m_deltaPos(0), m_showStrQuantity(0), m_nShowType(0)
 {
     rs = nullptr;
     m_descrArray = nullptr;
@@ -142,10 +141,16 @@ void TMPTELEPORT::Execute(uint32_t Delta_Time)
         if (m_nStrQuantity > 0)
         {
             if (m_nCurStr + m_nCurShowPos < m_nStrQuantity - 1)
+            {
                 if (m_nCurShowPos < m_showStrQuantity - 1)
+                {
                     m_nCurShowPos++;
+                }
                 else
+                {
                     m_nCurStr++;
+                }
+            }
         }
     }
     core.Controls->GetControlState("TeleportSelect", cs);
@@ -302,9 +307,8 @@ bool FINDFILESINTODIRECTORY::Init()
         const auto vFilenames = fio->_GetPathsOrFilenamesByMask(dirName, curMask, false);
         for (std::string filename : vFilenames)
         {
-            char sname[32];
-            sprintf(sname, "id%d", file_idx);
-            pA->SetAttribute(sname, filename.c_str());
+            const std::string sname = "id" + std::to_string(file_idx);
+            pA->SetAttribute(sname, filename);
             file_idx++;
         }
         return true;

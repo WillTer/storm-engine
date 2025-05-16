@@ -505,7 +505,8 @@ void *CoreImpl::GetService(const char *service_name)
     const auto class_code = MakeHashValue(service_name);
     pClass->SetHash(class_code);
 
-    if (!service_PTR->Init()) {
+    if (!service_PTR->Init())
+    {
         CheckAutoExceptions(0);
         return nullptr;
     }
@@ -531,8 +532,6 @@ void CoreImpl::Trace(const char *format, ...)
 //
 void CoreImpl::ProcessExecute()
 {
-    uint64_t ticks;
-
     ProcessRunStart(SECTION_EXECUTE);
 
     const auto deltatime = Timer.GetDeltaTime();
@@ -550,7 +549,6 @@ void CoreImpl::ProcessExecute()
 
 void CoreImpl::ProcessRealize()
 {
-    uint64_t ticks;
     ProcessRunStart(SECTION_REALIZE);
 
     const auto deltatime = Timer.GetDeltaTime();

@@ -380,7 +380,6 @@ void COMPILER::SetError(const char *data_PTR, ...)
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
-    uint32_t bytes;
     FindErrorSource();
 
     switch (CompilerStage)
@@ -419,7 +418,6 @@ void COMPILER::SetWarning(const char *data_PTR, ...)
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
-    uint32_t bytes;
     FindErrorSource();
 
     sprintf_s(ErrorBuffer, "WARNING in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer);
@@ -599,6 +597,8 @@ void COMPILER::FindErrorSource()
             index += file_name_size;
             DebugSourceFileName[file_name_size] = 0;
             DebugSourceLine = DSL_INI_VALUE;
+            break;
+        default:
             break;
         }
         ip += token_data_size; // step to next instruction
@@ -1286,11 +1286,8 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     uint32_t var_code;
     uint32_t def_code;
     uint32_t inout;
-    uint32_t bracket_inout;
     uint32_t n;
-    uint32_t file_code;
     ptrdiff_t Control_offset;
-    uint32_t Current_line;
     uint32_t Append_file_size;
     STRINGS_LIST BlockTable;
     S_TOKEN_TYPE Token_type;
@@ -1313,7 +1310,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     if (pInternalCode == nullptr)
     {
         auto is_new = Segment.Files_list->AddUnicalString(file_name);
-        file_code = Segment.Files_list->GetStringCode(file_name);
         pProgram = nullptr;
         Program_size = 0;
         pSegmentSource = LoadFile(file_name, SegmentSize);
@@ -1342,7 +1338,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     // register functions and variables ---------
     strcpy_s(func_name, "null");
     inout = 0;
-    bracket_inout = 0;
     bFunctionBlock = false;
     // pProgram = Segment.pData;
     Token.SetProgram(pProgram, pProgram);
@@ -1355,16 +1350,12 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     bool bImport;
     bExtern = false;
     bImport = false;
-    bool bDotFlag;
-    bDotFlag = false;
     do
     {
         Token_type = Token.Get();
-        bDotFlag = false;
         if (Token_type == DOT)
         {
             Token_type = Token.Get();
-            bDotFlag = true;
         }
         switch (Token_type)
         {
@@ -1444,7 +1435,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
         case INCLIDE_FILE:
             if (Segment.Files_list->AddUnicalString(Token.GetData()))
             {
-                file_code = Segment.Files_list->GetStringCode(Token.GetData());
                 Control_offset = Token.GetProgramControl() - Token.GetProgramBase(); // store program scan point
                 pApend_file = LoadFile(Token.GetData(), Append_file_size);
                 if (pApend_file == nullptr)
@@ -1506,12 +1496,14 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                     break;
                 case STRING: {
                     const auto len = strlen(Token.GetData()) + 1;
-                    di.data4b = (uintptr_t) new char[len];
+                    di.data4b = (uintptr_t)new char[len];
                     memcpy((void *)di.data4b, Token.GetData(), len);
                     break;
                 }
                 case OP_MINUS:
 
+                    break;
+                default:
                     break;
                 }
                 def_code = DefTab.AddDef(di);
@@ -1949,8 +1941,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
 
     //-----------------------------------------
 
-    Current_line = 1;
-    // Current_line = DSL_INI_VALUE;
     DebugSourceLine = DSL_INI_VALUE;
     uint32_t fnsize;
 
@@ -1964,10 +1954,7 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
         // DebugSourceLine++;
     }
 
-    uint32_t block_io_code;
-    block_io_code = 0;
     inout = 0;
-    bracket_inout = 0;
     bFunctionBlock = false;
     pProgram = Segment.pData;
     Token.SetProgram(pProgram, pProgram);
@@ -1989,8 +1976,7 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
         delete[] Segment.pData;
         Segment.pData = nullptr;
     }
-    HANDLE fh;
-    uint32_t dwR;
+
     if (bWriteCodeFile)
     {
         auto fName = std::filesystem::path(Segment.name.c_str()).filename().string();
@@ -2169,6 +2155,8 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         break;
     case BLOCK_OUT:
         balance_block = 1;
+        break;
+    default:
         break;
     }
 
@@ -4610,6 +4598,8 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             case OP_DIVIDEEQ:
                 pV->Divide(pVV);
                 break;
+            default:
+                break;
             }
 
             break; //*/
@@ -5700,6 +5690,8 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 }
                 rAP = pVV->GetAClass();
                 break;
+            default:
+                break;
             }
             break;
         case VERIFY_AP:
@@ -6341,7 +6333,7 @@ bool COMPILER::ReadVariable(char *name, /* DWORD code,*/ bool bDim, uint32_t a_i
                 else if (eType == S_TOKEN_TYPE::VAR_OBJECT)
                 {
                     ReadData(nullptr, sizeof(uint64_t));
-                    ATTRIBUTES TA(&SCodec);
+                    ATTRIBUTES TA(SCodec);
                     ReadAttributesData(&TA, nullptr);
                 }
                 else
@@ -6391,12 +6383,12 @@ bool COMPILER::ReadVariable(char *name, /* DWORD code,*/ bool bDim, uint32_t a_i
             pV->Set(eid);
 
             if (pV->AttributesClass == nullptr)
-                pV->AttributesClass = new ATTRIBUTES(&SCodec);
+                pV->AttributesClass = new ATTRIBUTES(SCodec);
             ReadAttributesData(pV->AttributesClass, nullptr);
         }
         else
         {
-            ATTRIBUTES *pTA = new ATTRIBUTES(&SCodec);
+            ATTRIBUTES *pTA = new ATTRIBUTES(SCodec);
             ReadAttributesData(pTA, nullptr);
             delete pTA;
         }
@@ -6450,7 +6442,7 @@ bool COMPILER::ReadVariable(char *name, /* DWORD code,*/ bool bDim, uint32_t a_i
         }
 
         if (pVRef->AttributesClass == nullptr)
-            pVRef->AttributesClass = new ATTRIBUTES(&SCodec);
+            pVRef->AttributesClass = new ATTRIBUTES(SCodec);
         if (pString)
         {
             pA = pVRef->AttributesClass->CreateSubAClass(pVRef->AttributesClass, pString);
@@ -6589,6 +6581,8 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
         WriteVDword(array_index);
         SaveString(pString);
         delete[] pString;
+        break;
+    default:
         break;
     }
 }
@@ -6794,8 +6788,6 @@ void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
     uint32_t nSubClassesNum;
     uint32_t n;
     uint32_t nNameCode;
-    // char * pName;
-    char *pValue;
 
     if (pRoot == nullptr)
     {
@@ -6803,10 +6795,9 @@ void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
         nNameCode = ReadVDword();
 
         // DTrace(SCodec.Convert(nNameCode));
-        pValue = ReadString();
+        const std::string pValue = ReadString();
         pParent->SetAttribute(nNameCode, pValue);
         pRoot = pParent->GetAttributeClassByCode(nNameCode);
-        delete[] pValue;
         for (n = 0; n < nSubClassesNum; n++)
         {
             ReadAttributesData(nullptr, pRoot);
@@ -6817,7 +6808,7 @@ void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
 
     nSubClassesNum = ReadVDword();
     nNameCode = ReadVDword();
-    pValue = ReadString();
+    const std::string pValue = ReadString();
     // pRoot->SetAttribute(nNameCode,pValue);
 
     pRoot->SetNameCode(nNameCode);
@@ -6828,9 +6819,6 @@ void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
         // ReadAttributesData(pRoot->GetAttributeClass(n));
         ReadAttributesData(nullptr, pRoot);
     }
-
-    // if(pName) delete pName;
-    delete[] pValue;
 }
 
 void COMPILER::SaveAttributesData(ATTRIBUTES *pRoot)
@@ -7782,7 +7770,6 @@ void COMPILER::FormatDialog(const char *file_name)
     }
 
     uint32_t nTxt = 0;
-    uint32_t nLnk = 0;
 
     // sprintf_s(sFileName,"PROGRAM\\%sc",file_name);
     strcpy_s(sFileName, file_name);

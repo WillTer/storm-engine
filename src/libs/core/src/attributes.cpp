@@ -3,10 +3,6 @@
 #include "platform/platform.hpp"
 #include "string_compare.hpp"
 
-ATTRIBUTES::ATTRIBUTES(VSTRING_CODEC *p) : ATTRIBUTES(*p)
-{
-}
-
 ATTRIBUTES::ATTRIBUTES(ATTRIBUTES &&other) noexcept
     : stringCodec_(other.stringCodec_), nameCode_(other.stringCodec_.Convert("root")), value_(std::move(other.value_)),
       attributes_(std::move(other.attributes_)), break_(other.break_)
@@ -71,21 +67,6 @@ ATTRIBUTES::LegacyProxy ATTRIBUTES::GetThisAttr() const
 void ATTRIBUTES::SetName(const std::string_view &new_name)
 {
     nameCode_ = stringCodec_.Convert(new_name.data());
-}
-
-void ATTRIBUTES::SetValue(const char *new_value)
-{
-    if (new_value == nullptr)
-    {
-        value_.reset();
-    }
-    else
-    {
-        value_ = new_value;
-    }
-
-    if (break_)
-        stringCodec_.VariableChanged();
 }
 
 void ATTRIBUTES::SetValue(const std::string_view &new_value)
@@ -247,11 +228,6 @@ ATTRIBUTES *ATTRIBUTES::CreateAttribute(const std::string_view &name, const char
     return attr.get();
 }
 
-size_t ATTRIBUTES::SetAttribute(const std::string_view &name, const char *attribute)
-{
-    return SetAttribute(stringCodec_.Convert(name.data()), attribute);
-}
-
 size_t ATTRIBUTES::SetAttribute(const std::string_view &name, const std::string_view &attribute)
 {
     return SetAttribute(stringCodec_.Convert(name.data()), attribute);
@@ -370,55 +346,18 @@ ATTRIBUTES *ATTRIBUTES::VerifyAttributeClassByCode(uint32_t name_code)
     return CreateAttribute(name_code, "");
 }
 
-ATTRIBUTES *ATTRIBUTES::CreateAttribute(uint32_t name_code, const char *attribute)
+ATTRIBUTES *ATTRIBUTES::CreateAttribute(uint32_t name_code, const std::string_view &attribute)
 {
     const auto &attr = attributes_.emplace_back(new ATTRIBUTES(stringCodec_, this, name_code));
-
-    if (attribute)
-    {
-        attr->value_ = attribute;
-    }
+    attr->value_ = attribute;
 
     return attr.get();
 }
 
-size_t ATTRIBUTES::SetAttribute(uint32_t name_code, const char *attribute)
-{
-    size_t n;
-    for (n = 0; n < attributes_.size(); n++)
-    {
-        if (attributes_[n]->nameCode_ == name_code)
-        {
-            if (attribute)
-            {
-                attributes_[n]->value_ = attribute;
-            }
-            else
-            {
-                attributes_[n]->value_.reset();
-            }
-            return n;
-        }
-    }
-
-    auto &attr = attributes_.emplace_back(new ATTRIBUTES(stringCodec_, this, name_code));
-
-    if (attribute)
-    {
-        attributes_[n]->value_ = attribute;
-    }
-    else
-    {
-        attributes_[n]->value_.reset();
-    }
-
-    return attributes_.size() - 1;
-}
-
 size_t ATTRIBUTES::SetAttribute(uint32_t name_code, const std::string_view &attribute)
 {
-    size_t n;
-    for (n = 0; n < attributes_.size(); n++)
+    size_t n = 0;
+    for (; n < attributes_.size(); n++)
     {
         if (attributes_[n]->nameCode_ == name_code)
         {
@@ -427,9 +366,9 @@ size_t ATTRIBUTES::SetAttribute(uint32_t name_code, const std::string_view &attr
         }
     }
 
-    auto &attr = attributes_.emplace_back(new ATTRIBUTES(stringCodec_, this, name_code));
-
-    attributes_[n]->value_ = attribute;
+    // No attribute found - create a new one
+    const auto &attr = attributes_.emplace_back(new ATTRIBUTES(stringCodec_, this, name_code));
+    attr->value_ = attribute;
 
     return attributes_.size() - 1;
 }

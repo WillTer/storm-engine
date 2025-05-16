@@ -8,6 +8,7 @@ class NODE;
 class SAILONE_BASE
 {
   public:
+    virtual ~SAILONE_BASE() = default;
     virtual void SetAllHole(uint32_t holeData) = 0;
     virtual void CalculateMirrorSailIndex() = 0;
 };

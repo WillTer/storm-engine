@@ -618,7 +618,7 @@ int32_t STRSERVICE::OpenUsersStringFile(const char *fileName)
     {
         core.Trace("Can`t read strings file: %s", fileName);
         fio->_CloseFile(fileS);
-        STORM_DELETE(fileBuf);
+        delete[] fileBuf;
         return -1;
     }
     fio->_CloseFile(fileS);
@@ -663,7 +663,7 @@ int32_t STRSERVICE::OpenUsersStringFile(const char *fileName)
         }
     }
 
-    STORM_DELETE(fileBuf);
+    delete[] fileBuf;
 
     const int32_t block_id = pUSB->blockID;
     pUSB->next = nullptr;
@@ -1079,7 +1079,7 @@ uint32_t _LanguageGetFaderPic(VS_STACK *pS)
     auto *pVR = (VDATA *)pS->Push();
     if (!pVR)
         return IFUNCRESULT_FAILED;
-    if (newPicName)
+    if (newPicName[0] != 0)
         pVR->Set(newPicName);
     else
         pVR->Set("\0");
@@ -1172,7 +1172,7 @@ uint32_t _ControlMakeInvert(VS_STACK *pS)
 
 uint32_t _InterfaceMakeNode(VS_STACK *pS)
 {
-    VDATA* pDat = (VDATA *)pS->Pop();
+    VDATA *pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
     const int32_t nPriority = pDat->GetInt();
@@ -1190,7 +1190,7 @@ uint32_t _InterfaceMakeNode(VS_STACK *pS)
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sFileName = pDat->GetString();
+    const char *sFileName = pDat->GetString();
 
     if (XINTERFACE::pThis != nullptr)
         XINTERFACE::pThis->CreateNode(sFileName, sNodeType, sNodeName, nPriority);
@@ -1219,7 +1219,7 @@ uint32_t _InterfaceWindowShow(VS_STACK *pS)
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sWindowName = pDat->GetString();
+    const char *sWindowName = pDat->GetString();
 
     if (XINTERFACE::pThis != nullptr)
         XINTERFACE::pThis->ShowWindow(sWindowName, nShow != 0);
@@ -1229,7 +1229,7 @@ uint32_t _InterfaceWindowShow(VS_STACK *pS)
 
 uint32_t _InterfaceWindowDisable(VS_STACK *pS)
 {
-    VDATA * pDat = (VDATA *)pS->Pop();
+    VDATA *pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
     int32_t nShow = pDat->GetInt();
@@ -1237,7 +1237,7 @@ uint32_t _InterfaceWindowDisable(VS_STACK *pS)
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sWindowName = pDat->GetString();
+    const char *sWindowName = pDat->GetString();
 
     if (XINTERFACE::pThis != nullptr)
         XINTERFACE::pThis->DisableWindow(sWindowName, nShow != 0);
@@ -1250,7 +1250,7 @@ uint32_t _InterfaceIsWindowEnable(VS_STACK *pS)
     VDATA *pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sWindowName = pDat->GetString();
+    const char *sWindowName = pDat->GetString();
 
     bool bActive = true;
     if (XINTERFACE::pThis != nullptr)
@@ -1273,12 +1273,12 @@ uint32_t _InterfaceWindowAddNode(VS_STACK *pS)
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sNodeName = pDat->GetString();
+    const char *sNodeName = pDat->GetString();
 
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
         return IFUNCRESULT_FAILED;
-    const char* sWindowName = pDat->GetString();
+    const char *sWindowName = pDat->GetString();
 
     if (XINTERFACE::pThis != nullptr)
         XINTERFACE::pThis->AddNodeToWindow(sNodeName, sWindowName);
@@ -1357,7 +1357,7 @@ uint32_t _InterfaceFindFolders(VS_STACK *pS)
         return IFUNCRESULT_FAILED;
     }
     const char *sFindTemplate = pDat->GetString();
-    std::filesystem::path p = std::filesystem::u8path(fio->ConvertPathResource(sFindTemplate));
+    std::filesystem::path p = std::filesystem::path(fio->ConvertPathResource(sFindTemplate));
     const auto mask = p.filename().string();
     const auto vFilenames =
         fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
@@ -1366,7 +1366,7 @@ uint32_t _InterfaceFindFolders(VS_STACK *pS)
     {
         char pctmp[64];
         sprintf_s(pctmp, "f%d", n++);
-        pA->SetAttribute(pctmp, curName.c_str());
+        pA->SetAttribute(pctmp, curName);
     }
     pDat = (VDATA *)pS->Push();
     if (!pDat)

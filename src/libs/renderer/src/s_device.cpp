@@ -11,10 +11,8 @@
 #include "texture.h"
 #include "v_s_stack.h"
 
-
 #include <SDL_timer.h>
 #include <algorithm>
-
 
 #include <fmt/chrono.h>
 
@@ -2831,15 +2829,6 @@ int32_t DX9RENDER::Print(int32_t nFontNum, uint32_t color, int32_t x, int32_t y,
     const int32_t retVal = FontList[nFontNum].font->Print(x, y, Buff_4k, {.color = color});
     return retVal;
     // UNGUARD
-}
-
-int32_t DX9RENDER::StringWidth(const char *string, int32_t nFontNum, float fScale, int32_t scrWidth)
-{
-    if (string == nullptr)
-    {
-        return 0;
-    }
-    return StringWidth(std::string_view(string), nFontNum, fScale, scrWidth);
 }
 
 int32_t DX9RENDER::StringWidth(const std::string_view &string, int32_t nFontNum, float fScale, int32_t scrWidth)

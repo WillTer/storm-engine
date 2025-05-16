@@ -1,10 +1,10 @@
 #include "dialog.hpp"
 
-#include <dialog/dialog_utils.hpp>
 #include <core.h>
+#include <dialog/dialog_utils.hpp>
 #include <string_compare.hpp>
-#include <v_sound_service.h>
 #include <v_file_service.h>
+#include <v_sound_service.h>
 
 CREATE_CLASS(DIALOG)
 
@@ -79,7 +79,8 @@ void DIALOG::DlgTextDescribe::ChangeText(const std::string_view text)
                 current_span = current_span.substr(next_break + 2);
                 forced_page_breaks.push_back(asText.size());
             }
-            else {
+            else
+            {
                 current_offset = next_break + 1;
             }
         }
@@ -896,11 +897,11 @@ uint64_t DIALOG::ProcessMessage(MESSAGE &message)
         charId = message.EntityID();
         charMdl = message.EntityID();
         const char *attr = nullptr;
-        if (attr = core.Entity_GetAttribute(charId, "name"))
+        if (attr = core.Entity_GetAttribute(charId, "name"); attr != nullptr)
         {
             m_sTalkPersName = attr;
         }
-        if (attr = core.Entity_GetAttribute(charId, "lastname"))
+        if (attr = core.Entity_GetAttribute(charId, "lastname"); attr != nullptr)
         {
             if (m_sTalkPersName.size() > 0 && *attr != '\0')
             {

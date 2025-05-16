@@ -7,9 +7,9 @@ class DATA;
 class VDATA
 {
   public:
-    VDATA(){};
+    VDATA() {};
 
-    virtual ~VDATA(){};
+    virtual ~VDATA() {};
 
     virtual DATA *GetReference() = 0;
     virtual void SetReference(DATA *pRef) = 0;
@@ -20,7 +20,7 @@ class VDATA
     virtual void Set(float value) = 0;
     virtual void Set(std::string value) = 0;
     virtual void Set(const char *value) = 0;
-    virtual void Set(const char *attribute_name, const char *attribute_value) = 0;
+    virtual void Set(const std::string_view &attribute_name, const std::string_view &attribute_value) = 0;
     virtual bool Get(int32_t &value) = 0;
     virtual bool Get(float &value) = 0;
     virtual bool Get(const char *&value) = 0;
@@ -31,7 +31,8 @@ class VDATA
     virtual bool Get(int32_t &value, uint32_t index) = 0;
     virtual bool Get(float &value, uint32_t index) = 0;
     virtual bool Get(const char *&value, uint32_t index) = 0;
-    virtual bool Set(const char *attribute_name, const char *attribute_value, uint32_t index) = 0;
+    virtual bool Set(const std::string_view &attribute_name, const std::string_view &attribute_value,
+                     uint32_t index) = 0;
     virtual bool Get(const char *attribute_name, const char *&value, uint32_t index) = 0;
     virtual void Set(entid_t eid) = 0;
     virtual bool Set(entid_t eid, uint32_t index) = 0;

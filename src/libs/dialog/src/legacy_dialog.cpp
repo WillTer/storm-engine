@@ -199,7 +199,8 @@ void LegacyDialog::Realize(uint32_t deltaTime)
 
     UpdateScreenSize();
 
-    if (dialogNeedsUpdate_) {
+    if (dialogNeedsUpdate_)
+    {
         UpdateLinks();
         UpdateDialogText();
         dialogNeedsUpdate_ = false;
@@ -406,7 +407,8 @@ void LegacyDialog::UpdateBackBuffers()
     {
         const size_t text_lines = formattedDialogText_.size();
         textureLines_ = static_cast<int32_t>(
-            std::floor(static_cast<double>((text_lines * lineHeight_ + linkDescribe_.GetShowHeight()) / vScale) / DIALOG_LINE_HEIGHT));
+            std::floor(static_cast<double>((text_lines * lineHeight_ + linkDescribe_.GetShowHeight()) / vScale) /
+                       DIALOG_LINE_HEIGHT));
 
         if (linkDescribe_.GetShowHeight() != 0)
         {
@@ -635,11 +637,9 @@ void LegacyDialog::UpdateDialogText()
 
         const int32_t text_width_limit = static_cast<int32_t>(570.f * (vp.Width / 640.f));
 
-        storm::dialog::AddToStringArrayLimitedByWidth(dialogText_, text_width_limit,
-                                                      formattedDialogText_,
-                                                      [this](const std::string_view &text) {
-                                                          return RenderService->StringWidth(text, mainFont_, fontScale_);
-                                                      });
+        storm::dialog::AddToStringArrayLimitedByWidth(
+            dialogText_, text_width_limit, formattedDialogText_,
+            [this](const std::string_view &text) { return RenderService->StringWidth(text, mainFont_, fontScale_); });
     }
 
     if (previous_lines != formattedDialogText_.size())
@@ -679,7 +679,8 @@ void LegacyDialog::ProcessControls()
         bDoUp = true;
     }
 
-    if (!linkDescribe_.IsInEditMode()) {
+    if (!linkDescribe_.IsInEditMode())
+    {
         core.Controls->GetControlState("DlgUp2", cs);
         if (cs.state == CST_ACTIVATED)
         {
@@ -726,7 +727,8 @@ void LegacyDialog::ProcessControls()
         linkDescribe_.MoveDown();
     }
 
-    if (!linkDescribe_.IsInEditMode()) {
+    if (!linkDescribe_.IsInEditMode())
+    {
         core.Controls->GetControlState("DlgAction", cs);
         if (cs.state == CST_ACTIVATED)
         {

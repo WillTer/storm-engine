@@ -230,8 +230,6 @@ class VDX9RENDER : public SERVICE
     virtual int32_t ExtPrint(int32_t nFontNum, uint32_t foreColor, uint32_t backColor, int wAlignment, bool bShadow,
                              float fScale, int32_t scrWidth, int32_t scrHeight, int32_t x, int32_t y,
                              const char *format, ...) = 0;
-    [[deprecated("Pass string as string_view instead")]]
-    virtual int32_t StringWidth(const char *string, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) = 0;
     virtual int32_t StringWidth(const std::string_view &string, int32_t nFontNum = 0, float fScale = 1.f,
                                 int32_t scrWidth = 0) = 0;
     virtual int32_t CharWidth(utf8::u8_char ucVKey, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) = 0;

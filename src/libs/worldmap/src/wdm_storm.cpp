@@ -10,11 +10,11 @@
 
 #include "wdm_storm.h"
 
+#include "platform/platform.hpp"
 #include "wdm_camera.h"
 #include "wdm_cloud.h"
 #include "wdm_render_model.h"
 #include "world_map.h"
-#include "platform/platform.hpp"
 
 //============================================================================================
 
@@ -311,7 +311,7 @@ void WdmStorm::SetSaveAttribute(ATTRIBUTES *save)
 
     num = saveAttribute->GetAttributeAsDword("num", num);
 
-    for (char i = 0; i < 8; i++)
+    for (uint8_t i = 0; i < 8; i++)
     {
         cloudPosName[8] = '0' + i;
         cloudPosName[9] = 'x';
@@ -359,7 +359,7 @@ void WdmStorm::UpdateSaveData()
 
     saveAttribute->SetAttributeUseDword("num", num);
 
-    for (char i = 0; i < 8; i++)
+    for (uint8_t i = 0; i < 8; i++)
     {
         cloudPosName[8] = '0' + i;
         cloudPosName[9] = 'x';

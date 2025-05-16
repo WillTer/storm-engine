@@ -6,15 +6,16 @@
 
 #include "core.h"
 #include "math3d.h"
-#include "sse.h"
 #include "math_inlines.h"
 #include "shared/sea_ai/script_defines.h"
+#include "sse.h"
 #include "tga.h"
 #include "v_file_service.h"
 
+
 CREATE_CLASS(SEA)
 
-//#define OLD_WORLD_POS
+// #define OLD_WORLD_POS
 
 #define NUM_VERTEXS 65500
 #define NUM_INDICES 165000
@@ -25,7 +26,7 @@ CREATE_CLASS(SEA)
 
 #define MIPSLVLS 4
 
-#define GC_CONSTANT 0 // Global constants = {0.0, 1.0, 0.5, 0.0000152590218967 = (0.5 / 32767.5)}
+#define GC_CONSTANT 0  // Global constants = {0.0, 1.0, 0.5, 0.0000152590218967 = (0.5 / 32767.5)}
 #define GC_CONSTANT2 1 // Global constants 2 = {2.0, -1.0, 0.00036621652552071 = (12 / 32767.5), fog}
 #define GC_ANIMATION 2 // Animation frames(0.0-1.0) for 4 stages = {stage0, stage1, stage2, stage3}
 #define GC_SHADOW_CONST1 3
@@ -35,9 +36,9 @@ CREATE_CLASS(SEA)
 #define GC_LIGHT2 15
 #define GC_LIGHT1 17
 #define GC_LIGHT0 19
-#define GC_MATERIAL 21 //
+#define GC_MATERIAL 21   //
 #define GC_CAMERA_POS 23 // Local Camera position = {x, y, z, 0.0}
-#define GC_MTX_WVP 24 // c[0] = mWorld * mView * mProjection
+#define GC_MTX_WVP 24    // c[0] = mWorld * mView * mProjection
 
 #define GC_FREE 28
 
@@ -468,10 +469,12 @@ void SEA::BuildVolumeTexture()
                 for (uint32_t y = 0; y < (YWIDTH >> j); y++)
                     for (uint32_t x = 0; x < (XWIDTH >> j); x++)
                     {
-                        int32_t red = fftol((pVectors[x + y * (XWIDTH >> j)].x * 0.5f + 0.5f) * 255.0f); // FIX-ME no ftol
+                        int32_t red =
+                            fftol((pVectors[x + y * (XWIDTH >> j)].x * 0.5f + 0.5f) * 255.0f); // FIX-ME no ftol
                         int32_t green = fftol((pVectors[x + y * (XWIDTH >> j)].y * 0.5f + 0.5f) * 255.0f);
                         // FIX-ME no ftol
-                        int32_t blue = fftol((pVectors[x + y * (XWIDTH >> j)].z * 0.5f + 0.5f) * 255.0f); // FIX-ME no ftol
+                        int32_t blue =
+                            fftol((pVectors[x + y * (XWIDTH >> j)].z * 0.5f + 0.5f) * 255.0f); // FIX-ME no ftol
 
                         if (bSimpleSea)
                             *(uint32_t *)&(static_cast<char *>(
@@ -1175,64 +1178,6 @@ void SEA::SSE_WaveXZBlock(SeaBlock &pB)
     pB.bDone = true;
 }
 
-void SEA::WaveXZBlock(SeaBlock &pB)
-{
-    float cx, cz, fStep = fGridStep * static_cast<float>(1 << pB.iLOD);
-    float fSize = fGridStep * pB.iSize;
-    int32_t x, y, size0 = pB.iSize >> pB.iLOD;
-
-    float x1 = static_cast<float>(pB.iTX * pB.iSize) * fGridStep;
-    float y1 = static_cast<float>(pB.iTY * pB.iSize) * fGridStep;
-    float x2 = x1 + static_cast<float>(size0) * fStep;
-    float y2 = y1 + static_cast<float>(size0) * fStep;
-
-    pB.iX1 = fftoi(x1 / fGridStep);
-    pB.iX2 = fftoi(x2 / fGridStep);
-    pB.iY1 = fftoi(y1 / fGridStep);
-    pB.iY2 = fftoi(y2 / fGridStep);
-
-    x1 += vSeaCenterPos.x;
-    x2 += vSeaCenterPos.x;
-    y1 += vSeaCenterPos.z;
-    y2 += vSeaCenterPos.z;
-
-    CVECTOR vNormal, vTmp;
-
-    int32_t iIStart1 = pB.iIStart;
-    const int32_t iIFirst = pB.iIFirst;
-    const int32_t iILast = pB.iILast;
-
-    // calculate
-    for (cz = y1, y = 0; y <= size0; y++, cz += fStep)
-    {
-        for (cx = x1, x = 0; x <= size0; x++, cx += fStep)
-        {
-            const uint32_t dwVIndex = pIndices[iIStart1];
-
-            if (static_cast<int32_t>(dwVIndex) < iIFirst || static_cast<int32_t>(dwVIndex) > iILast)
-            {
-                iIStart1++;
-                continue;
-            }
-
-            vTmp.y = WaveXZ(cx, cz, &vNormal);
-
-            vTmp.x = cx - vNormal.x * fPosShift * 3.0f - vWorldOffset.x;
-            vTmp.z = cz - vNormal.z * fPosShift * 3.0f - vWorldOffset.z;
-
-            pVSea[dwVIndex].vPos = vTmp;
-            pVSea[dwVIndex].vNormal = vNormal;
-            pVSea[dwVIndex].tu = (cx - vNormal.x * 5.3f) * fBumpScale;
-            pVSea[dwVIndex].tv = (cz - vNormal.z * 5.3f) * fBumpScale;
-
-            iIStart1++;
-        }
-    }
-
-    pB.bDone = true;
-
-}
-
 SEA::SeaBlock *SEA::GetUndoneBlock()
 {
     SeaBlock *pB = nullptr;
@@ -1375,8 +1320,9 @@ void SEA::Realize(uint32_t dwDeltaTime)
 
     float fBlockSize = 256.0f * fGridStep;
     int32_t iNumBlocks = static_cast<int32_t>(dwMaxDim) / (256 * 2);
-    vSeaCenterPos = CVECTOR(fBlockSize * (static_cast<int32_t>(vCamPos.x / fBlockSize) - iNumBlocks), fMaxSeaHeight * 0.5f,
-                            fBlockSize * (static_cast<int32_t>(vCamPos.z / fBlockSize) - iNumBlocks));
+    vSeaCenterPos =
+        CVECTOR(fBlockSize * (static_cast<int32_t>(vCamPos.x / fBlockSize) - iNumBlocks), fMaxSeaHeight * 0.5f,
+                fBlockSize * (static_cast<int32_t>(vCamPos.z / fBlockSize) - iNumBlocks));
 
     iVStart = 0;
     iTStart = 0;
@@ -1457,7 +1403,8 @@ void SEA::Realize(uint32_t dwDeltaTime)
     auto pVSea2 = static_cast<SeaVertex *>(rs->LockVertexBuffer(iVSeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
     pTriangles = static_cast<uint16_t *>(rs->LockIndexBuffer(iISeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
 
-    for (i = 0; i < aBlocks.size(); i++) {
+    for (i = 0; i < aBlocks.size(); i++)
+    {
         PrepareIndicesForBlock(i);
     }
 
@@ -1989,8 +1936,16 @@ uint32_t SEA::AttributeChanged(ATTRIBUTES *pAttribute)
         fAmp2 = _fAmp2 * fScale;
     }
 
-    if (*pAttribute == "MaxDim")        { dwMaxDim = pAttribute->GetAttributeAsDword(); return 0; }
-    if (*pAttribute == "MinDim")        { dwMinDim = pAttribute->GetAttributeAsDword(); return 0; }
+    if (*pAttribute == "MaxDim")
+    {
+        dwMaxDim = pAttribute->GetAttributeAsDword();
+        return 0;
+    }
+    if (*pAttribute == "MinDim")
+    {
+        dwMinDim = pAttribute->GetAttributeAsDword();
+        return 0;
+    }
 
     if (*pAttribute == "MaxSeaDistance")
     {

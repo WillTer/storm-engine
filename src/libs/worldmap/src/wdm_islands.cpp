@@ -13,10 +13,10 @@
 #include "core.h"
 #include "math_inlines.h"
 
+#include "string_compare.hpp"
 #include "wdm_camera.h"
 #include "wdm_ship.h"
 #include "world_map.h"
-#include "string_compare.hpp"
 
 // ============================================================================================
 // Collision data
@@ -464,7 +464,7 @@ void WdmIslands::SetIslandsData(ATTRIBUTES *apnt, bool isChange)
         }
 
         // Store locator position as label attribute
-        auto* position_attr = a->VerifyAttributeClass("position");
+        auto *position_attr = a->VerifyAttributeClass("position");
         position_attr->SetAttributeUseFloat("x", pos.x);
         position_attr->SetAttributeUseFloat("y", pos.y);
         position_attr->SetAttributeUseFloat("z", pos.z);
@@ -614,7 +614,7 @@ void WdmIslands::Update(float dltTime)
             {
                 if (wdmObjects->wm->AttributesPointer)
                 {
-                    wdmObjects->wm->AttributesPointer->SetAttribute("island", (char *)islands[i].modelName.c_str());
+                    wdmObjects->wm->AttributesPointer->SetAttribute("island", islands[i].modelName);
                     ATTRIBUTES *a =
                         wdmObjects->wm->AttributesPointer->FindAClass(wdmObjects->wm->AttributesPointer, "island");
                     if (a)
@@ -733,8 +733,8 @@ void WdmIslands::LRender(VDX9RENDER *rs)
         Label &label = labels[labelSort[i]];
         // writing a text
         const uint32_t color = (static_cast<int32_t>(label.alpha) << 24) | 0xffffff;
-        rs->Print(label.font, color, static_cast<int32_t>(label.l + label.textX), static_cast<int32_t>(label.t + label.textY),
-                  (char *)label.text.c_str());
+        rs->Print(label.font, color, static_cast<int32_t>(label.l + label.textX),
+                  static_cast<int32_t>(label.t + label.textY), (char *)label.text.c_str());
         // Draw a picture
         if (label.icon < 0)
             continue;

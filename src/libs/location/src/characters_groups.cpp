@@ -1307,7 +1307,7 @@ void CharactersGroups::LoadDataRelations()
 // Establish relationships for active groups
 void CharactersGroups::RestoreStates()
 {
-    for (int32_t i = 0, cnt = 0; i < numGroups; i++)
+    for (int32_t i = 0; i < numGroups; i++)
     {
         for (int32_t j = 0; j < i; j++)
         {
@@ -1376,6 +1376,8 @@ const char *CharactersGroups::GetTextState(RelState state)
         return "neitral";
     case rs_enemy:
         return "enemy";
+    default:
+        break;
     }
     return "unknow value";
 }

@@ -5234,7 +5234,8 @@ void Character::FindNearCharacters(MESSAGE &message)
         // Array element
         auto *e = (VDATA *)array->GetArrayElement(i);
         // Setting fields
-        e->Set("index", fc.c->AttributesPointer->GetAttribute("index"));
+        const std::string attr = fc.c->AttributesPointer->GetAttribute("index");
+        e->Set("index", attr);
         sprintf_s(buf, "%f", sqrtf(fc.d2));
         e->Set("dist", buf);
         sprintf_s(buf, "%f", fc.dx);

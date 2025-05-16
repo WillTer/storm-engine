@@ -12,9 +12,12 @@
 
 #include <chrono>
 
-#include "shared/messages.h"
 #include "core.h"
+#include "shared/messages.h"
 
+#include "entity.h"
+#include "math_inlines.h"
+#include "string_compare.hpp"
 #include "wdm_camera_std_ctrl.h"
 #include "wdm_clouds.h"
 #include "wdm_follow_ship.h"
@@ -26,9 +29,6 @@
 #include "wdm_storm.h"
 #include "wdm_warring_ship.h"
 #include "wdm_wind_ui.h"
-#include "entity.h"
-#include "math_inlines.h"
-#include "string_compare.hpp"
 
 #ifdef GetObject
 #undef GetObject
@@ -38,8 +38,8 @@ CREATE_CLASS(WorldMap)
 
 //============================================================================================
 
-//#define EVENTS_OFF
-//#define ENCS_OFF
+// #define EVENTS_OFF
+// #define ENCS_OFF
 
 #define WDM_MAX_STORMS 4
 
@@ -690,7 +690,7 @@ uint32_t WorldMap::AttributeChanged(ATTRIBUTES *apnt)
                 sprintf_s(buf, "%i", es->type);
                 pa->SetAttribute("type", buf);
                 pa->SetAttributeUseDword("select", es->isSelect);
-                pa->SetAttribute("id", (char *)static_cast<WdmEnemyShip *>(wdmObjects->ships[i])->GetAttributeName());
+                pa->SetAttribute("id", static_cast<WdmEnemyShip *>(wdmObjects->ships[i])->GetAttributeName());
                 // If there is an attacker, get his index
                 if (es->attack)
                 {
@@ -995,7 +995,7 @@ bool WorldMap::CreateMerchantShip(const char *modelName, const char *locNameStar
         save = GetEncSaveData("Merchant", "EncounterID1");
     if (save)
     {
-        save->SetAttribute("modelName", (char *)modelName);
+        save->SetAttribute("modelName", modelName);
     }
     static_cast<WdmEnemyShip *>(ship)->SetSaveAttribute(save);
     return true;
@@ -1038,7 +1038,7 @@ bool WorldMap::CreateMerchantShipXZ(const char *modelName, float x1, float z1, f
         save = GetEncSaveData("Merchant", "EncounterID1");
     if (save)
     {
-        save->SetAttribute("modelName", (char *)modelName);
+        save->SetAttribute("modelName", modelName);
     }
     static_cast<WdmEnemyShip *>(ship)->SetSaveAttribute(save);
     return true;
@@ -1080,7 +1080,7 @@ bool WorldMap::CreateFollowShip(const char *modelName, float kSpeed, float time,
         save = GetEncSaveData("Follow", "EncounterID1");
     if (save)
     {
-        save->SetAttribute("modelName", (char *)modelName);
+        save->SetAttribute("modelName", modelName);
     }
     static_cast<WdmEnemyShip *>(ship)->SetSaveAttribute(save);
     return true;
@@ -1144,11 +1144,11 @@ bool WorldMap::CreateWarringShips(const char *modelName1, const char *modelName2
     }
     if (save1)
     {
-        save1->SetAttribute("modelName", (char *)modelName1);
+        save1->SetAttribute("modelName", modelName1);
     }
     if (save2)
     {
-        save2->SetAttribute("modelName", (char *)modelName2);
+        save2->SetAttribute("modelName", modelName2);
     }
     ship1->SetSaveAttribute(save1);
     ship2->SetSaveAttribute(save2);
@@ -1236,11 +1236,11 @@ ATTRIBUTES *WorldMap::GetEncSaveData(const char *type, const char *retName)
     if (!a)
         return nullptr;
     // Set the type
-    a->SetAttribute("type", (char *)type);
+    a->SetAttribute("type", type);
     // Save the name
     if (AttributesPointer)
     {
-        AttributesPointer->SetAttribute((char *)retName, atrName);
+        AttributesPointer->SetAttribute(retName, atrName);
     }
     return a;
 }

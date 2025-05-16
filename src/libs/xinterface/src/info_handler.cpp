@@ -28,7 +28,7 @@ bool InfoHandler::Init()
         m_rs->MakePostProcess();
     }
 
-    if(!DoPreOut())
+    if (!DoPreOut())
     {
         core.Trace("DoPreOut failed");
         return false;
@@ -99,7 +99,7 @@ void InfoHandler::Realize(uint32_t delta_time) const
     // keep the screen constant
     m_rs->SetTexture(0, tex);
     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2, 2, drawbuf_base,
-                        sizeof(drawbuf_base[0]), "Fader");
+                          sizeof(drawbuf_base[0]), "Fader");
 }
 
 uint64_t InfoHandler::ProcessMessage(MESSAGE &message)
@@ -163,7 +163,7 @@ bool InfoHandler::DoPreOut()
     {
         return false;
     }
-    
+
     if (pRenderTarget->GetDesc(&desc) != D3D_OK)
     {
         m_rs->Release(pRenderTarget);
@@ -182,7 +182,7 @@ bool InfoHandler::DoPreOut()
             nInsideRectWidth = desc.Width;
 
         nRowQ = 0;
-        for (const auto * ps = inStrStart; ps != nullptr && *ps;)
+        for (const auto *ps = inStrStart; ps != nullptr && *ps;)
         {
             ps = GetCutString(ps, nOutWidth, fScale);
             nRowQ++;
@@ -310,7 +310,7 @@ bool InfoHandler::DoPreOut()
             // show strings
             auto ntmp = 0;
             const int topY = (desc.Height - nRowQ * nOutOffset) / 2;
-            for (auto * ps = inStrStart; ps != nullptr && *ps;)
+            for (auto *ps = inStrStart; ps != nullptr && *ps;)
             {
                 auto *const oldps = ps;
                 ps = GetCutString(ps, nOutWidth, fScale);

@@ -5,11 +5,12 @@
 #else
 #include "technique.h"
 #endif
-#include "font.h"
-#include "video_texture.h"
 #include "dx9render.h"
-#include "vma.hpp"
+#include "font.h"
 #include "platform/platform.hpp"
+#include "video_texture.h"
+#include "vma.hpp"
+
 
 #include "d3d9types.h"
 #include "script_libriary.h"
@@ -87,9 +88,9 @@ extern uint32_t dwSoundBytesCached;
 class DX9RENDER_SCRIPT_LIBRIARY : public SCRIPT_LIBRIARY
 {
   public:
-    DX9RENDER_SCRIPT_LIBRIARY(){};
+    DX9RENDER_SCRIPT_LIBRIARY() {};
 
-    ~DX9RENDER_SCRIPT_LIBRIARY() override{};
+    ~DX9RENDER_SCRIPT_LIBRIARY() override {};
     bool Init() override;
 };
 
@@ -109,8 +110,8 @@ class DX9RENDER : public VDX9RENDER
     bool ReleaseDevice() override;
 
     // DX9Render: Animation
-    void RenderAnimation(int32_t ib, void *src, int32_t numVrts, int32_t minv, int32_t numv, int32_t startidx, int32_t numtrg,
-                         bool isUpdateVB) override;
+    void RenderAnimation(int32_t ib, void *src, int32_t numVrts, int32_t minv, int32_t numv, int32_t startidx,
+                         int32_t numtrg, bool isUpdateVB) override;
 
     // DX9Render: Return d3d9 device
     virtual void *GetDevice()
@@ -156,7 +157,8 @@ class DX9RENDER : public VDX9RENDER
 
     // DX9Render: Textures Section
     int32_t TextureCreate(const char *fname) override;
-    int32_t TextureCreate(UINT width, UINT height, UINT levels, uint32_t usage, D3DFORMAT format, D3DPOOL pool) override;
+    int32_t TextureCreate(UINT width, UINT height, UINT levels, uint32_t usage, D3DFORMAT format,
+                          D3DPOOL pool) override;
     bool TextureSet(int32_t stage, int32_t texid) override;
     bool TextureRelease(int32_t texid) override;
     bool TextureIncReference(int32_t texid) override;
@@ -164,18 +166,19 @@ class DX9RENDER : public VDX9RENDER
     // DX9Render: Fonts Section
     int32_t Print(int32_t x, int32_t y, const char *format, ...) override;
     int32_t Print(int32_t nFontNum, uint32_t color, int32_t x, int32_t y, const char *format, ...) override;
-    int32_t ExtPrint(int32_t nFontNum, uint32_t foreColor, uint32_t backColor, int wAlignment, bool bShadow, float fScale,
-                  int32_t scrWidth, int32_t scrHeight, int32_t x, int32_t y, const char *format, ...) override;
-    int32_t StringWidth(const char *string, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) override;
-    int32_t StringWidth(const std::string_view &string, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) override;
+    int32_t ExtPrint(int32_t nFontNum, uint32_t foreColor, uint32_t backColor, int wAlignment, bool bShadow,
+                     float fScale, int32_t scrWidth, int32_t scrHeight, int32_t x, int32_t y, const char *format,
+                     ...) override;
+    int32_t StringWidth(const std::string_view &string, int32_t nFontNum = 0, float fScale = 1.f,
+                        int32_t scrWidth = 0) override;
     int32_t CharWidth(utf8::u8_char, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) override;
     int32_t CharHeight(int32_t fontID) override;
-    int32_t LoadFont(const char *fontName) override;   // returns the number \ font id, or -1 on error
-    bool UnloadFont(const char *fontName) override; // returns true if the font is still in use
-    bool UnloadFont(int32_t fontID) override;          // returns true if the font is still in use
-    bool IncRefCounter(int32_t fontID) override;       // increase reference counter if object is being copied
-    bool SetCurFont(const char *fontName) override; // returns true if the given font is installed
-    bool SetCurFont(int32_t fontID) override;          // returns true if the given font is installed
+    int32_t LoadFont(const char *fontName) override; // returns the number \ font id, or -1 on error
+    bool UnloadFont(const char *fontName) override;  // returns true if the font is still in use
+    bool UnloadFont(int32_t fontID) override;        // returns true if the font is still in use
+    bool IncRefCounter(int32_t fontID) override;     // increase reference counter if object is being copied
+    bool SetCurFont(const char *fontName) override;  // returns true if the given font is installed
+    bool SetCurFont(int32_t fontID) override;        // returns true if the given font is installed
     int32_t GetCurFont() override;
     char *GetFontIniFileName() override;
     bool SetFontIniFileName(const char *iniName) override;
@@ -191,13 +194,13 @@ class DX9RENDER : public VDX9RENDER
     void DrawLines(RS_LINE *pRSL, uint32_t dwLinesNum, const char *cBlockName = nullptr) override;
     void DrawLines2D(RS_LINE2D *pRSL2D, size_t dwLinesNum, const char *cBlockName = nullptr) override;
 
-    void DrawBuffer(int32_t vbuff, int32_t stride, int32_t ibuff, int32_t minv, size_t numv, size_t startidx, size_t numtrg,
-                    const char *cBlockName = nullptr) override;
-    void DrawIndexedPrimitiveNoVShader(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iIBuff,
-                                       int32_t iMinV, int32_t iNumV, int32_t iStartIdx, int32_t iNumTrg,
+    void DrawBuffer(int32_t vbuff, int32_t stride, int32_t ibuff, int32_t minv, size_t numv, size_t startidx,
+                    size_t numtrg, const char *cBlockName = nullptr) override;
+    void DrawIndexedPrimitiveNoVShader(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride,
+                                       int32_t iIBuff, int32_t iMinV, int32_t iNumV, int32_t iStartIdx, int32_t iNumTrg,
                                        const char *cBlockName = nullptr) override;
-    void DrawPrimitive(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iStartV, int32_t iNumPT,
-                       const char *cBlockName = nullptr) override;
+    void DrawPrimitive(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iStartV,
+                       int32_t iNumPT, const char *cBlockName = nullptr) override;
     void DrawPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwVertexBufferFormat, uint32_t dwNumPT,
                          const void *pVerts, uint32_t dwStride, const char *cBlockName = nullptr) override;
     void DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwMinIndex, uint32_t dwNumVertices,
@@ -443,7 +446,7 @@ class DX9RENDER : public VDX9RENDER
 
     void RecompileEffects();
 
-private:
+  private:
     struct RECT_VERTEX
     {
         CVECTOR pos;
@@ -465,7 +468,7 @@ private:
     CVECTOR Pos, Ang;
     float Fov;
 
-    float FovMultiplier{ 1.0f };
+    float FovMultiplier{1.0f};
 
 #ifdef _WIN32 // Effects
     Effects effects_;

@@ -6,9 +6,9 @@
 class VIRTUAL_COMPILER
 {
   public:
-    virtual void SetError(const char *data_PTR, ...){};
+    virtual void SetError(const char *data_PTR, ...) {};
 
-    virtual void SetWarning(const char *data_PTR, ...){};
+    virtual void SetWarning(const char *data_PTR, ...) {};
 
     virtual VSTRING_CODEC *GetVSC()
     {
@@ -79,8 +79,8 @@ class DATA : public VDATA
 
     void Set(float value) override;
     void Set(std::string value) override;
-    void Set(const char* value) override;
-    void Set(const char *attribute_name, const char *attribute_value) override;
+    void Set(const char *value) override;
+    void Set(const std::string_view &attribute_name, const std::string_view &attribute_value) override;
     bool Get(int32_t &value) override;
     bool Get(float &value) override;
     bool Get(const char *&value) override;
@@ -94,7 +94,7 @@ class DATA : public VDATA
     bool Get(float &value, uint32_t index) override;
     bool Get(const char *&value, uint32_t index) override;
 
-    bool Set(const char *attribute_name, const char *attribute_value, uint32_t index) override;
+    bool Set(const std::string_view &attribute_name, const std::string_view &attribute_value, uint32_t index) override;
     bool Get(const char *attribute_name, const char *&value, uint32_t index) override;
 
     void Set(entid_t eid) override;

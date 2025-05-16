@@ -246,8 +246,8 @@ void WdmPlayerShip::LRender(VDX9RENDER *rs)
     WdmShip::LRender(rs);
     if (wdmObjects->isDebug)
     {
-        CMatrix mtx(CVECTOR(0.0f), mtx.Pos());
-        wdmObjects->DrawCircle(mtx, actionRadius, 0x4f0000ff);
+        CMatrix mat(CVECTOR(0.0f), mtx.Pos());
+        wdmObjects->DrawCircle(mat, actionRadius, 0x4f0000ff);
     }
 }
 

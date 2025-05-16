@@ -12,8 +12,8 @@
 
 #include <chrono>
 
-#include "core.h"
 #include "character.h"
+#include "core.h"
 #include "grass.h"
 #include "lights.h"
 
@@ -600,7 +600,6 @@ bool Location::LoadGrass(const char *modelName, const char *texture)
     strcat_s(nm, model.modelspath.c_str());
     strcat_s(nm, modelName);
     strcat_s(nm, ".grs");
-    int32_t ll = strlen(nm);
     if (grs->LoadData(nm))
         return true;
     core.Trace("Can't load grass data file: %s", nm);
@@ -715,7 +714,6 @@ bool Location::MessageEx(const char *name, MESSAGE &message)
     else if (storm::iEquals(name, "ShowLocationModel"))
     {
         const std::string &modelname = message.String();
-        int32_t layer = message.Long();
         const int32_t n = model.FindModel(modelname.c_str());
         if (n >= 0)
             // core.AddToLayer(realize, model.RealizerID(n), layer);
@@ -1036,7 +1034,7 @@ void Location::Print(const CVECTOR &pos3D, float rad, int32_t line, float alpha,
     // print to the buffer
     va_list args;
     va_start(args, format);
-    int32_t len = vsnprintf(buf, sizeof(buf) - 1, format, args);
+    auto _ = vsnprintf(buf, sizeof(buf) - 1, format, args);
     va_end(args);
     buf[sizeof(buf) - 1] = 0;
     // Find a position of a point on the screen
@@ -1100,8 +1098,8 @@ void Location::AddDamageMessage(const CVECTOR &pos3D, float hit, float curhp, fl
     const float r = r2 + (r1 - r2) * k;
     const float g = g2 + (g1 - g2) * k;
     const float b = b2 + (b1 - b2) * k;
-    message[curMessage].c =
-        (static_cast<int32_t>(r * 255.0f) << 16) | (static_cast<int32_t>(g * 255.0f) << 8) | static_cast<int32_t>(b * 255.0f);
+    message[curMessage].c = (static_cast<int32_t>(r * 255.0f) << 16) | (static_cast<int32_t>(g * 255.0f) << 8) |
+                            static_cast<int32_t>(b * 255.0f);
 }
 
 // Draw bars above the enemy in this frame

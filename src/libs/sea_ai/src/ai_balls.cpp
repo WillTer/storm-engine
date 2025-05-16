@@ -148,7 +148,7 @@ void AIBalls::AddBall(ATTRIBUTES *pABall)
     if (aBallTypes[i].sParticleName.size())
     {
         entid_t eidParticle;
-        if (eidParticle = core.GetEntityId("particles"))
+        if (eidParticle = core.GetEntityId("particles"); eidParticle != 0)
         {
             pBall->pParticle = (VPARTICLE_SYSTEM *)core.Send_Message(
                 eidParticle, "lsffffffl", PS_CREATE_RIC, (char *)aBallTypes[i].sParticleName.c_str(), pBall->vPos.x,

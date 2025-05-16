@@ -3,11 +3,10 @@
 // ************************************************************************
 #pragma once
 
-#include "sea_base.h"
 #include "c_vector4.h"
 #include "dx9render.h"
+#include "sea_base.h"
 #include "vma.hpp"
-
 
 class SEA : public SEA_BASE
 {
@@ -159,7 +158,6 @@ class SEA : public SEA_BASE
     bool isVisibleBBox(const CVECTOR &vCenter, const CVECTOR &v1, const CVECTOR &v2);
     void CalculateLOD(const CVECTOR &v1, const CVECTOR &v2, int32_t &iMaxLOD, int32_t &iMinLOD);
     inline float CalcLod(const float &x, const float &y, const float &z);
-    [[deprecated]] void WaveXZBlock(SeaBlock &pB);
     void SSE_WaveXZBlock(SeaBlock &pB);
     SeaBlock *GetUndoneBlock();
     void PrepareIndicesForBlock(uint32_t dwBlockIndex);
@@ -189,7 +187,8 @@ class SEA : public SEA_BASE
     float Trace(const CVECTOR &vSrc, const CVECTOR &vDst) override;
     float Cannon_Trace(int32_t iBallOwner, const CVECTOR &src, const CVECTOR &dst) override;
 
-    bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &center, float radius, ADD_POLYGON_FUNC addpoly) override
+    bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &center, float radius,
+              ADD_POLYGON_FUNC addpoly) override
     {
         return false;
     }

@@ -54,7 +54,7 @@ void parseOptions(const std::string_view &str, ATTRIBUTES &attribute)
         const auto value = std::string(str.substr(value_offset, value_length));
 
         ATTRIBUTES *pA = attribute.CreateSubAClass(&attribute, name.c_str());
-        pA->SetValue(value.c_str());
+        pA->SetValue(value);
 
         option_offset = value_offset + value_length;
     }

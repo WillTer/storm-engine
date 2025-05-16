@@ -2,7 +2,6 @@
 
 #include "core.h"
 
-#include "weather_base.h"
 #include "entity.h"
 #include "math3d.h"
 #include "math_inlines.h"
@@ -13,6 +12,7 @@
 #include "ship_base.h"
 #include "string_compare.hpp"
 #include "v_file_service.h"
+#include "weather_base.h"
 
 #define WIND_SPEED_MAX 12.f
 
@@ -36,8 +36,7 @@ float GetSailSpeed(int holeQ, int holeMax, float maxSpeed, float fSailHoleDepend
     return curSpeed;
 }
 
-SAIL::SAIL()
-    : LastTraceGroup(0), tm()
+SAIL::SAIL() : LastTraceGroup(0), tm()
 {
     // setting all general data to initial values
     // then rewritten from INI file
@@ -285,7 +284,7 @@ void SAIL::Execute(uint32_t Delta_Time)
                 if (auto *nod = pTmpMdl->FindNode(pcTmpMastName))
                 {
                     entid_t eiMastTmp;
-                    if (eiMastTmp = core.CreateEntity("MAST"))
+                    if (eiMastTmp = core.CreateEntity("MAST"); eiMastTmp != 0)
                     {
                         core.AddToLayer(SEA_EXECUTE, eiMastTmp, 2 + 1);
                         core.AddToLayer(SEA_REALIZE, eiMastTmp, 31 + 1);
@@ -310,12 +309,10 @@ void SAIL::Execute(uint32_t Delta_Time)
 
     auto fMaxTurnAngl = Delta_Time * TURNSTEPANGL;
 
-    auto bSailUpdate = false;
     m_nLastUpdate -= Delta_Time;
     if (m_nLastUpdate <= 0)
     {
         m_nLastUpdate = GROUP_UPDATE_TIME;
-        bSailUpdate = true;
     }
 
     if (bUse)
@@ -397,8 +394,6 @@ void SAIL::Execute(uint32_t Delta_Time)
         RenderService->GetCamera(pos, ang, perspect);
         CMatrix tmpMtx;
         tmpMtx.BuildMatrix(ang);
-        CVECTOR vCamDirect = tmpMtx * CVECTOR(0, 0, 1.f);
-        float minCos = cosf(atanf(perspect));
 
         for (i = 0; i < sailQuantity; i++)
         {
@@ -618,8 +613,7 @@ void SAIL::Realize(uint32_t Delta_Time)
                     RenderService->UnLockIndexBuffer(sg.indxBuf);
                     if (gdata[j].bYesShip)
                     {
-                        static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))
-                            ->SetLightAndFog(true);
+                        static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))->SetLightAndFog(true);
                         static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))->SetLights();
                     }
                     if (slist[i]->ss.nholeIndx != 0)
@@ -637,8 +631,7 @@ void SAIL::Realize(uint32_t Delta_Time)
                     if (gdata[j].bYesShip)
                     {
                         static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))->UnSetLights();
-                        static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))
-                            ->RestoreLightAndFog();
+                        static_cast<SHIP_BASE *>(core.GetEntityPointer(gdata[j].shipEI))->RestoreLightAndFog();
                     }
                 }
                 RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTextureFactor);
@@ -775,7 +768,9 @@ uint64_t SAIL::ProcessMessage(MESSAGE &message)
 
                 CVECTOR epos;
                 if (so->ss.turningSail && posNum != 0) // setting for turning sails only
-                    if (tmpEI = core.GetEntityId("rope"))
+                {
+                    if (tmpEI = core.GetEntityId("rope"); tmpEI != 0)
+                    {
                         if (so->sailtrope.rrs[0] == nullptr)
                         {
                             so->sailtrope.rrs[0] = new ROTATEROPEDSAIL;
@@ -841,6 +836,8 @@ uint64_t SAIL::ProcessMessage(MESSAGE &message)
                                 so->sailtrope.rrs[1]->b = tmpv;
                             }
                         }
+                    }
+                }
             }
         }
         break;
@@ -936,10 +933,16 @@ uint64_t SAIL::ProcessMessage(MESSAGE &message)
                 break;
         // write the value for it by the parameter pointer
         if (pMaxSpeed)
+        {
             if (gn < groupQuantity)
+            {
                 *pMaxSpeed = gdata[gn].maxSpeed;
+            }
             else
+            {
                 *pMaxSpeed = 0.f;
+            }
+        }
     }
     break;
 
@@ -1209,15 +1212,15 @@ void SAIL::SetAllSails(int groupNum)
             // start installing textures on the sails
             if (pACh != nullptr)
             {
-                SetSailTextures(groupNum, core.Event("GetSailTextureData", "l", pACh->GetAttributeAsDword("index", -1)));
+                SetSailTextures(groupNum,
+                                core.Event("GetSailTextureData", "l", pACh->GetAttributeAsDword("index", -1)));
                 pA = pACh->FindAClass(pA, "ship.sails");
                 if (pA == nullptr)
                     pA = pACh->CreateSubAClass(pACh, "ship.sails");
             }
             if (pA != nullptr)
             {
-                char param[256];
-                sprintf_s(param, "%d", gdata[groupNum].maxHole);
+                const std::string param = std::to_string(gdata[groupNum].maxHole);
                 pA->SetValue(param);
                 for (int i = 0; i < static_cast<int>(pA->GetAttributesNum()); i++)
                 {
@@ -1521,6 +1524,7 @@ float SAIL::Trace(const CVECTOR &src, const CVECTOR &dst)
         {
             tmp = slist[gdata[i].sailIdx[j]]->Trace(src, dst, bCannonTrace);
             if (tmp <= 1.f)
+            {
                 if (bCannonTrace)
                 {
                     if (retVal > tmp)
@@ -1535,6 +1539,7 @@ float SAIL::Trace(const CVECTOR &src, const CVECTOR &dst)
                     traceSail = gdata[i].sailIdx[j];
                     break;
                 }
+            }
         }
 
         if (retVal <= 1.f)
@@ -1569,14 +1574,17 @@ void SAIL::FirstRun()
         SetAllSails();
 
     entid_t ropeEI;
-    if (ropeEI = core.GetEntityId("rope"))
+    if (ropeEI = core.GetEntityId("rope"); ropeEI != 0)
+    {
         // position calculation according to the position of the ropes
         for (sn = wFirstIndx; sn < sailQuantity; sn++)
         {
             bool bChange = false;
             if (slist[sn]->sroll == nullptr && !slist[sn]->bRolling)
+            {
                 // recalculate the rope tension if the sail is not in lifting mode
                 for (i = 0; i < 2; i++)
+                {
                     if (slist[sn]->sailtrope.rrs[i])
                     {
                         const int tieNum = slist[sn]->sailtrope.rrs[i]->tiePoint;
@@ -1618,6 +1626,8 @@ void SAIL::FirstRun()
 
                         bChange = true;
                     }
+                }
+            }
             if (bChange)
             {
                 slist[sn]->SetGeometry();
@@ -1627,6 +1637,7 @@ void SAIL::FirstRun()
                     slist[sn]->sailHeight = sqrtf(~(slist[sn]->ss.hardPoints[0] - slist[sn]->ss.hardPoints[2]));
             }
         }
+    }
 
     bFirstRun = false;
     wFirstIndx = sailQuantity;
@@ -1648,8 +1659,7 @@ float SAIL::Cannon_Trace(int32_t iBallOwner, const CVECTOR &src, const CVECTOR &
         if (!slist[traceSail]->bFreeSail && !gdata[slist[traceSail]->HostNum].bDeleted)
         {
             const CVECTOR damagePoint = src + (dst - src) * retVal;
-            auto *pvai =
-                static_cast<VAI_OBJBASE *>(core.GetEntityPointer(gdata[slist[traceSail]->HostNum].shipEI));
+            auto *pvai = static_cast<VAI_OBJBASE *>(core.GetEntityPointer(gdata[slist[traceSail]->HostNum].shipEI));
             ATTRIBUTES *pA = nullptr;
             if (pvai != nullptr)
                 pA = pvai->GetACharacter();
@@ -2049,7 +2059,7 @@ void sailPrint(VDX9RENDER *rs, const CVECTOR &pos3D, float rad, int32_t line, co
     // print to the buffer
     va_list args;
     va_start(args, format);
-    int32_t len = vsnprintf(buf, sizeof(buf) - 1, format, args);
+    auto _ = vsnprintf(buf, sizeof(buf) - 1, format, args);
     va_end(args);
     buf[sizeof(buf) - 1] = 0;
     // Looking for a point position on the screen
@@ -2308,9 +2318,9 @@ void SAIL::GetSailStatus(int chrIdx, int gn)
     for (int i = 0; i < gdata[gn].sailQuantity; i++)
     {
         int sn = gdata[gn].sailIdx[i];
-        VDATA *pvd = core.Event("evntGetSailStatus", "lslfll", chrIdx, slist[sn]->hostNode->GetName(),
-                                slist[sn]->groupNum, (float)slist[sn]->maxSpeed / gdata[gn].speed_m,
-                                slist[sn]->ss.holeCount, slist[sn]->GetMaxHoleCount());
+        auto _ = core.Event("evntGetSailStatus", "lslfll", chrIdx, slist[sn]->hostNode->GetName(), slist[sn]->groupNum,
+                            (float)slist[sn]->maxSpeed / gdata[gn].speed_m, slist[sn]->ss.holeCount,
+                            slist[sn]->GetMaxHoleCount());
     }
 }
 

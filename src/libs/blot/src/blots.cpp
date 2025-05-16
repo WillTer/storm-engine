@@ -29,8 +29,7 @@ CVECTOR Blots::dir, Blots::normal;
 // Construction, destruction
 // ============================================================================================
 
-Blots::Blots()
-    : model(0), vrt{}
+Blots::Blots() : model(0), vrt{}
 {
     for (int32_t i = 0; i < BLOTS_MAX; i++)
         blot[i].isUsed = 0;
@@ -76,8 +75,7 @@ uint64_t Blots::ProcessMessage(MESSAGE &message)
         if (pCharAttributeRoot)
         {
             blotsInfo = pCharAttributeRoot->CreateSubAClass(pCharAttributeRoot, "ship.blots");
-            char buf[32];
-            sprintf_s(buf, "%i", BLOTS_MAX);
+            const std::string buf = std::to_string(BLOTS_MAX);
             blotsInfo->SetValue(buf);
             for (int32_t i = 0; i < BLOTS_MAX; i++)
                 LoadBlot(i);
