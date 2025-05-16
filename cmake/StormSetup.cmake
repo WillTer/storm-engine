@@ -160,7 +160,7 @@ endmacro()
 macro(STORM_SETUP)
   set(options SHARED)
   set(oneValueArgs TARGET_NAME TYPE)
-  set(multiValueArgs DEPENDENCIES TEST_DEPENDENCIES LINKER_FLAGS)
+  set(multiValueArgs DEPENDENCIES TEST_DEPENDENCIES LINKER_FLAGS DEFINES)
   cmake_parse_arguments(_SETUP "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN})
 
@@ -246,6 +246,11 @@ macro(STORM_SETUP)
 
   if(_SETUP_LINKER_FLAGS)
     list(APPEND target_link_flags ${_SETUP_LINKER_FLAGS})
+  endif()
+
+  if(_SETUP_DEFINES)
+    target_compile_definitions("${_SETUP_TARGET_NAME}" ${lib_scope}
+                          ${_SETUP_DEFINES})
   endif()
 
   if(target_link_flags)
