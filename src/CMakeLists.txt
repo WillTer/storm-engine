@@ -33,7 +33,7 @@ if (MSVC)
     add_compile_options(/std:c++20) # Language Standard Version
     add_compile_options(/MP) # Build with Multiple Processes
     add_compile_options(/fp:fast) # Build with Multiple Processes
-    add_compile_options(/utf-8) # Build with Multiple Processes
+    add_compile_options(/utf-8) # UTF-8 support
 
 
     add_compile_options("$<$<CONFIG:Release>:/Gy>") # Enable Function-Level Linking

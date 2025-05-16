@@ -49,6 +49,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: storm-engine.${{ matrix.configuration }}
-        path: build/${{ matrix.configuration }}
+        path: build/${{ matrix.configuration }}/bin
 
 permissions: write-all
