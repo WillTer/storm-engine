@@ -46,7 +46,6 @@ endif()
 # TODO
 find_package(FastFloat CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
-find_package(mimalloc CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(sentry CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)

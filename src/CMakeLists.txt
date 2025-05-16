@@ -35,7 +35,6 @@ if (MSVC)
     add_compile_options(/fp:fast) # Build with Multiple Processes
     add_compile_options(/utf-8) # UTF-8 support
 
-
     add_compile_options("$<$<CONFIG:Release>:/Gy>") # Enable Function-Level Linking
     add_compile_options("$<$<CONFIG:Release>:/Oi>") # Generate intrinsic functions
     add_compile_options("$<$<CONFIG:Release>:/Ot>") # Favor fast code, should be implied by /O2 though

@@ -3,7 +3,6 @@
     "dependencies": [
         "catch2",
         "fast-float",
-        "mimalloc",
         "sentry-native",
         "spdlog",
         "zlib",
