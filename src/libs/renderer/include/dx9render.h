@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <directxsdk/d3d9.h>
+#include <d3d9.h>
 #ifdef _WIN32
-#include <directxsdk/d3dx9.h>
+#include <d3dx9.h>
 #endif
 #include <string_view>
 
@@ -79,7 +79,6 @@ struct RS_LINE2D
     uint32_t dwColor;
 };
 
-
 struct IPOINT
 {
     int32_t x, y;
@@ -115,8 +114,7 @@ struct FRECT
     };
 };
 
-
-//TODO: remove
+// TODO: remove
 #define COLOR2VECTOR(a) CVECTOR(float((a & 0xFF0000) >> 0x10), float((a & 0xFF00) >> 0x8), float(a & 0xFF));
 #define COLOR2VECTOR4(a)                                                                                               \
     CVECTOR4(float((a & 0xFF0000) >> 0x10) / 255.0f, float((a & 0xFF00) >> 0x8) / 255.0f, float(a & 0xFF) / 255.0f,    \
@@ -173,15 +171,15 @@ class VDX9RENDER : public SERVICE
 {
   public:
     // DX9Render: Construct/Destruct
-    ~VDX9RENDER() override{};
+    ~VDX9RENDER() override {};
 
     // DX9Render: Init/Release
     virtual bool InitDevice(bool windowed, HWND hwnd, int32_t width, int32_t height) = 0;
     virtual bool ReleaseDevice() = 0;
 
     // DX9Render: Animation
-    virtual void RenderAnimation(int32_t ib, void *src, int32_t numVrts, int32_t minv, int32_t numv, int32_t startidx, int32_t numtrg,
-                                 bool isUpdateVB) = 0;
+    virtual void RenderAnimation(int32_t ib, void *src, int32_t numVrts, int32_t minv, int32_t numv, int32_t startidx,
+                                 int32_t numtrg, bool isUpdateVB) = 0;
 
     // DX9Render: Return d3d9 device
     // virtual void * GetDevice() = 0;            // (very bad function/don't use!!!)
@@ -220,7 +218,8 @@ class VDX9RENDER : public SERVICE
 
     // DX9Render: Textures Section
     virtual int32_t TextureCreate(const char *fname) = 0;
-    virtual int32_t TextureCreate(UINT width, UINT height, UINT levels, uint32_t usage, D3DFORMAT format, D3DPOOL pool) = 0;
+    virtual int32_t TextureCreate(UINT width, UINT height, UINT levels, uint32_t usage, D3DFORMAT format,
+                                  D3DPOOL pool) = 0;
     virtual bool TextureSet(int32_t stage, int32_t texid) = 0;
     virtual bool TextureRelease(int32_t texid) = 0;
     virtual bool TextureIncReference(int32_t texid) = 0;
@@ -229,18 +228,20 @@ class VDX9RENDER : public SERVICE
     virtual int32_t Print(int32_t x, int32_t y, const char *format, ...) = 0;
     virtual int32_t Print(int32_t nFontNum, uint32_t color, int32_t x, int32_t y, const char *format, ...) = 0;
     virtual int32_t ExtPrint(int32_t nFontNum, uint32_t foreColor, uint32_t backColor, int wAlignment, bool bShadow,
-                          float fScale, int32_t scrWidth, int32_t scrHeight, int32_t x, int32_t y, const char *format, ...) = 0;
+                             float fScale, int32_t scrWidth, int32_t scrHeight, int32_t x, int32_t y,
+                             const char *format, ...) = 0;
     [[deprecated("Pass string as string_view instead")]]
     virtual int32_t StringWidth(const char *string, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) = 0;
-    virtual int32_t StringWidth(const std::string_view &string, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) = 0;
+    virtual int32_t StringWidth(const std::string_view &string, int32_t nFontNum = 0, float fScale = 1.f,
+                                int32_t scrWidth = 0) = 0;
     virtual int32_t CharWidth(utf8::u8_char ucVKey, int32_t nFontNum = 0, float fScale = 1.f, int32_t scrWidth = 0) = 0;
     virtual int32_t CharHeight(int32_t fontID) = 0;
-    virtual int32_t LoadFont(const char *fontName) = 0;   // returns the number \ font id, or -1 on error
-    virtual bool UnloadFont(const char *fontName) = 0; // returns true if the font is still in use
-    virtual bool UnloadFont(int32_t fontID) = 0;          // returns true if the font is still in use
-    virtual bool IncRefCounter(int32_t fontID) = 0;       // increase reference counter if object is being copied
-    virtual bool SetCurFont(const char *fontName) = 0; // returns true if the given font is installed
-    virtual bool SetCurFont(int32_t fontID) = 0;          // returns true if the given font is installed
+    virtual int32_t LoadFont(const char *fontName) = 0; // returns the number \ font id, or -1 on error
+    virtual bool UnloadFont(const char *fontName) = 0;  // returns true if the font is still in use
+    virtual bool UnloadFont(int32_t fontID) = 0;        // returns true if the font is still in use
+    virtual bool IncRefCounter(int32_t fontID) = 0;     // increase reference counter if object is being copied
+    virtual bool SetCurFont(const char *fontName) = 0;  // returns true if the given font is installed
+    virtual bool SetCurFont(int32_t fontID) = 0;        // returns true if the given font is installed
     virtual int32_t GetCurFont() = 0;
     virtual char *GetFontIniFileName() = 0;
     virtual bool SetFontIniFileName(const char *iniName) = 0;
@@ -259,13 +260,13 @@ class VDX9RENDER : public SERVICE
                             const char *pTechniqueName = "DXVector") = 0;
     virtual void DrawLines2D(RS_LINE2D *pRSL2D, size_t dwLinesNum, const char *cBlockName = nullptr) = 0;
 
-    virtual void DrawBuffer(int32_t vbuff, int32_t stride, int32_t ibuff, int32_t minv, size_t numv, size_t startidx, size_t numtrg,
-                            const char *cBlockName = nullptr) = 0;
-    virtual void DrawIndexedPrimitiveNoVShader(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iIBuff,
-                                               int32_t iMinV, int32_t iNumV, int32_t iStartIdx, int32_t iNumTrg,
-                                               const char *cBlockName = nullptr) = 0;
-    virtual void DrawPrimitive(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iStartV, int32_t iNumPT,
-                               const char *cBlockName = nullptr) = 0;
+    virtual void DrawBuffer(int32_t vbuff, int32_t stride, int32_t ibuff, int32_t minv, size_t numv, size_t startidx,
+                            size_t numtrg, const char *cBlockName = nullptr) = 0;
+    virtual void DrawIndexedPrimitiveNoVShader(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride,
+                                               int32_t iIBuff, int32_t iMinV, int32_t iNumV, int32_t iStartIdx,
+                                               int32_t iNumTrg, const char *cBlockName = nullptr) = 0;
+    virtual void DrawPrimitive(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iStartV,
+                               int32_t iNumPT, const char *cBlockName = nullptr) = 0;
     virtual void DrawPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwVertexBufferFormat, uint32_t dwNumPT,
                                  const void *pVerts, uint32_t dwStride, const char *cBlockName = nullptr) = 0;
     virtual void DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwMinIndex, uint32_t dwNumVertices,

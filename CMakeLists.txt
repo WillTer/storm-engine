@@ -48,6 +48,8 @@ if (WIN32)
         ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3d9.lib
         ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3dx9.lib
         ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/DxErr.lib)
+    # FIXME: Remove global include declarations
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/include/directxsdk")
 endif(WIN32)
 
 ### Set up build scripts

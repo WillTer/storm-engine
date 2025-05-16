@@ -3,7 +3,7 @@
 #include "effects.h"
 
 #include "core.h"
-#include <directxsdk/DxErr.h>
+#include <DxErr.h>
 #include <iterator>
 
 #define CHECKD3DERR(expr) ErrorHandler(expr, __FILE__, __LINE__, __func__, #expr)
