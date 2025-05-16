@@ -26,6 +26,16 @@ endif(GENERATOR_IS_MULTI_CONFIG)
 
 set(STORM_WATERMARK_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/watermark.hpp CACHE FILEPATH "Include file containing build revision, etc." FORCE)
 
+# Get git commit for watermark
+execute_process(COMMAND
+    git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE STORM_BUILD_WATERMARK
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message("STORM_BUILD_WATERMARK=${STORM_BUILD_WATERMARK}")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/watermark.hpp.in" "${STORM_WATERMARK_FILE}" @ONLY)
+
 if (WIN32)
     set(SDL2_LIBRARIES "$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>")
 else()

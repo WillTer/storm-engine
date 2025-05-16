@@ -8,9 +8,10 @@
 #include <spdlog/spdlog.h>
 
 #include "fs.h"
-#include "v_file_service.h"
 #include "spdlog_sinks/syncable_sink.hpp"
+#include "v_file_service.h"
 #include "watermark.hpp"
+
 
 #if defined(_UNICODE) && defined(_WIN32)
 #include <tchar.h>
@@ -30,7 +31,7 @@
 
 namespace
 {
-auto& getExecutableDir()
+auto &getExecutableDir()
 {
     static const auto executableDir = std::filesystem::path{std::filesystem::u8path(fio->_GetExecutableDirectory())};
     return executableDir;
@@ -80,7 +81,7 @@ void log_sentry(sentry_level_t level, const char *message, va_list args, void *)
     }*/
 }
 
-}
+} // namespace
 
 namespace storm::diag
 {
@@ -100,9 +101,7 @@ class LoggingService final
             terminate_ = false;
 
             static auto terminate_handler = std::get_terminate();
-            std::set_terminate([] {
-                terminate_handler();
-            });
+            std::set_terminate([] { terminate_handler(); });
 
             create_directories(fs::GetLogsPath());
 
@@ -200,7 +199,7 @@ LifecycleDiagnosticsService::Guard LifecycleDiagnosticsService::initialize(const
 #endif
         sentry_options_set_logger(options, log_sentry, nullptr);
         sentry_options_set_dsn(options, "https://1798a1bcfb654cbd8ce157b381964525@o572138.ingest.sentry.io/5721165");
-        sentry_options_set_release(options, STORM_BUILD_WATERMARK_STRING);
+        sentry_options_set_release(options, STORM_BUILD_WATERMARK);
         sentry_options_set_database_path(options, (fs::GetStashPath() / "sentry-db").c_str());
 #ifdef _WIN32
         sentry_options_set_handler_path(options, (getExecutableDir() / "crashpad_handler.exe").c_str());
@@ -259,7 +258,7 @@ sentry_value_t LifecycleDiagnosticsService::beforeCrash(const sentry_ucontext_t 
     // collect exception data
     if (uctx != nullptr)
     {
-        if(const seh_extractor seh(&uctx->exception_ptrs); seh.is_abnormal())
+        if (const seh_extractor seh(&uctx->exception_ptrs); seh.is_abnormal())
         {
             static auto logger = logging::getOrCreateLogger("exceptions");
             logger->set_pattern("%v");
@@ -267,7 +266,7 @@ sentry_value_t LifecycleDiagnosticsService::beforeCrash(const sentry_ucontext_t 
         }
     }
 #endif
-    
+
     // terminate logging
     self->loggingService_->terminate();
 

@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 
     // Init logging
     spdlog::set_default_logger(storm::logging::getOrCreateLogger(defaultLoggerName));
-    spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK_STRING);
+    spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
     spdlog::info("mimalloc-redirect status: {}", mi_is_redirected());
 
     // Init core
