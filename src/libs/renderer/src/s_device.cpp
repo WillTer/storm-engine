@@ -17,7 +17,7 @@
 #include <fmt/chrono.h>
 
 #ifdef _WIN32
-#include <DxErr.h>
+#include <directxsdk/DxErr.h>
 #include <corecrt_io.h>
 #else
 #include <unistd.h>

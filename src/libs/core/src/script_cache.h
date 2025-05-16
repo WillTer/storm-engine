@@ -3,6 +3,7 @@
 
 #include "data.h"
 #include <stdexcept>
+#include <iterator>
 #include <vector>
 
 namespace storm

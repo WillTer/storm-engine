@@ -9,7 +9,7 @@
 #include "sound_defines.h"
 #include "v_sound_service.h"
 
-#include <fmod.hpp>
+// #include <fmod.hpp>
 
 #define MAX_SOUNDS_SLOTS 4095
 
@@ -28,21 +28,21 @@ class SoundService : public VSoundService
     bool bShowDebugInfo;
     bool initialized;
 
-    FMOD::System *system;
-    FMOD::Sound *OGG_sound[2];
+    // FMOD::System *system;
+    // FMOD::Sound *OGG_sound[2];
 
     struct tSoundCache
     {
         uint32_t dwNameHash;
         std::string Name;
-        FMOD::Sound *sound;
+        // FMOD::Sound *sound;
         float fTimeFromLastPlay;
         eSoundType type;
 
         tSoundCache() : type()
         {
             dwNameHash = 0;
-            sound = nullptr;
+            // sound = nullptr;
             fTimeFromLastPlay = 0.0f;
         }
     };
@@ -53,7 +53,7 @@ class SoundService : public VSoundService
         float fFaderCurrentVolume;
         float fFaderDeltaInSec;
 
-        FMOD::Channel *channel;
+        // FMOD::Channel *channel;
         eVolumeType type;
         eSoundType sound_type;
         float fSoundVolume;
@@ -66,7 +66,7 @@ class SoundService : public VSoundService
 
         tPlayedSound() : sound_type(), fSoundVolume(0)
         {
-            channel = nullptr;
+            // channel = nullptr;
             type = VOLUME_FX;
 
             fFaderNeedVolume = 0;
@@ -101,9 +101,9 @@ class SoundService : public VSoundService
 
     bool FaderParity;
 
-    FMOD_VECTOR vListenerPos;
-    FMOD_VECTOR vListenerForward;
-    FMOD_VECTOR vListenerTop;
+    // FMOD_VECTOR vListenerPos;
+    // FMOD_VECTOR vListenerForward;
+    // FMOD_VECTOR vListenerTop;
 
     void CreateEntityIfNeed();
 
@@ -112,7 +112,7 @@ class SoundService : public VSoundService
     {
         std::string Name;
         uint32_t dwNameHash;
-        
+
         float fMinDistance;
         float fMaxDistance;
         int32_t iPrior;

@@ -1,6 +1,6 @@
 #include "probability_table.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch.hpp>
 
 using namespace storm;
 

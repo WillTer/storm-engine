@@ -1,0 +1,13 @@
+{
+    "name": "storm-engine",
+    "dependencies": [
+        "catch2",
+        "fast-float",
+        "directxsdk",
+        "mimalloc",
+        "sdl2",
+        "sentry-native",
+        "spdlog",
+        "zlib"
+    ]
+}

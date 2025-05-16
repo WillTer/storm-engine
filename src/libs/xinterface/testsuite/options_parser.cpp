@@ -1,6 +1,6 @@
 #include "options_parser.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch.hpp>
 
 namespace
 {
@@ -123,7 +123,7 @@ TEST_CASE("Parse options", "[xinterface]")
         REQUIRE(text_attribute != nullptr);
         CHECK(text_attribute->GetAttributesNum() == 2);
 
-       const char *t1 = text_attribute->GetAttribute("t1");
+        const char *t1 = text_attribute->GetAttribute("t1");
         REQUIRE(t1 != nullptr);
         CHECK(
             t1 ==

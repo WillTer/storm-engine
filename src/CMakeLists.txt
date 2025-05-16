@@ -30,9 +30,10 @@ if (MSVC)
 
     add_compile_options(/W2) # Warning level
     add_compile_options(/WX) # Treats compiler warnings as errors
-    add_compile_options(/std:c++latest) # Language Standard Version
+    add_compile_options(/std:c++20) # Language Standard Version
     add_compile_options(/MP) # Build with Multiple Processes
     add_compile_options(/fp:fast) # Build with Multiple Processes
+    add_compile_options(/utf-8) # Build with Multiple Processes
 
 
     add_compile_options("$<$<CONFIG:Release>:/Gy>") # Enable Function-Level Linking

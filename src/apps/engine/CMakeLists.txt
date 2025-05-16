@@ -31,9 +31,9 @@ STORM_SETUP(
 
     # external
     mimalloc
-    sentry-native
+    sentry::sentry
     ${SDL2_LIBRARIES}
-    zlib
+    ZLIB::ZLIB
 
     # system
     ${SYSTEM_DEPS}

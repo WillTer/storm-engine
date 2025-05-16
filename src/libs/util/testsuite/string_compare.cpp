@@ -6,7 +6,7 @@
 #define CATCH_CONFIG_WINDOWS_CRTDBG
 #endif
 
-#include <catch2/catch.hpp>
+#include <catch.hpp>
 
 TEST_CASE("Case-insensitive string comparison", "[utils]")
 {
@@ -52,7 +52,6 @@ TEST_CASE("Case-insensitive string comparison", "[utils]")
 
             const char string_array[] = "myString";
             CHECK(iEquals(string_array, str_lowercase));
-
         }
 
         SECTION("Compare only count number of character at most")

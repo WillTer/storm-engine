@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
+
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to vcpkg toolchain file")
+
 project(storm-engine)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(conan)
 include(StormSetup)
 
 option(STORM_ENABLE_CRASH_REPORTS "Enable automatic crash reports" OFF)
@@ -21,35 +23,28 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug
 set(STORM_WATERMARK_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/watermark.hpp CACHE FILEPATH "Include file containing build revision, etc." FORCE)
 
 if (WIN32)
-    set(SDL2_LIBRARIES "sdl")
+    set(SDL2_LIBRARIES "$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>")
 else()
     include(linux)
 endif()
 
 ### Set up third-party dependencies
-set(ENV{CONAN_REVISIONS_ENABLED} 1)
-conan_add_remote(NAME storm
-    URL https://storm.jfrog.io/artifactory/api/conan/conan-remote
-    VERIFY_SSL True
-)
-normalize_booleans(STORM_ENABLE_CRASH_REPORTS STORM_ENABLE_STEAM STORM_USE_CONAN_SDL)
-conan_cmake_run(CONANFILE conanfile.py
-    BASIC_SETUP CMAKE_TARGETS
-    BUILD missing
-    OPTIONS
-        output_directory=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        watermark_file=${STORM_WATERMARK_FILE}
-        crash_reports=${STORM_ENABLE_CRASH_REPORTS}
-        steam=${STORM_ENABLE_STEAM}
-        conan_sdl=${STORM_USE_CONAN_SDL}
-)
+# TODO
+find_package(FastFloat CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
+find_package(mimalloc CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+find_package(sentry CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
 
-### Define library ALIASes for use without CONAN_PKG:: prefix
-foreach (conan_target ${CONAN_TARGETS})
-    string(REPLACE "CONAN_PKG::" "" unprefixed_target ${conan_target})
-	add_library(${unprefixed_target} ALIAS ${conan_target})
-endforeach()
-###
+set(SDK_D3D9_LIBS)
+if (WIN32)
+    set(SDK_D3D9_LIBS
+        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3d9.lib
+        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3dx9.lib
+        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/DxErr.lib)
+endif(WIN32)
 
 ### Set up build scripts
 set(SRC_DIRS "src" CACHE STRING "File locations for public header files" FORCE)

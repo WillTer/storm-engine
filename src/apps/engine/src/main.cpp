@@ -6,12 +6,12 @@
 #include <spdlog/spdlog.h>
 
 #include "core_private.h"
+#include "fs.h"
 #include "lifecycle_diagnostics_service.hpp"
 #include "logging.hpp"
 #include "os_window.hpp"
 #include "steam_api.hpp"
 #include "v_sound_service.h"
-#include "fs.h"
 #include "watermark.hpp"
 
 namespace
@@ -134,11 +134,11 @@ int main(int argc, char *argv[])
     mi_option_set(mi_option_show_stats, 0);
     mi_option_set(mi_option_eager_commit, 1);
     mi_option_set(mi_option_eager_region_commit, 1);
-    mi_option_set(mi_option_large_os_pages, 1);
-    mi_option_set(mi_option_page_reset, 0);
-    mi_option_set(mi_option_segment_reset, 0);
+    mi_option_set(mi_option_allow_large_os_pages, 1);
+    mi_option_set(mi_option_deprecated_page_reset, 0);
+    mi_option_set(mi_option_deprecated_segment_reset, 0);
     mi_option_set(mi_option_reserve_huge_os_pages, 1);
-    mi_option_set(mi_option_segment_cache, 16);
+    mi_option_set(mi_option_deprecated_segment_cache, 16);
 #ifdef _DEBUG
     mi_option_set(mi_option_verbose, 4);
 #endif
@@ -199,10 +199,12 @@ int main(int argc, char *argv[])
         fullscreen = ini->GetInt(nullptr, "full_screen", false);
         show_borders = ini->GetInt(nullptr, "window_borders", false);
         run_in_background = ini->GetInt(nullptr, "run_in_background", false);
-        if (run_in_background) {
+        if (run_in_background)
+        {
             bSoundInBackground = ini->GetInt(nullptr, "sound_in_background", true);
         }
-        else {
+        else
+        {
             bSoundInBackground = false;
         }
         bSteam = ini->GetInt(nullptr, "Steam", 1) != 0;
@@ -256,7 +258,8 @@ int main(int argc, char *argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
-        if (core.Controls && core.Controls->GetDebugAsyncKeyState(VK_F1) && core.Controls->GetDebugAsyncKeyState(VK_SHIFT))
+        if (core.Controls && core.Controls->GetDebugAsyncKeyState(VK_F1) &&
+            core.Controls->GetDebugAsyncKeyState(VK_SHIFT))
         {
             mi_stats_print_out(mimalloc_fun, nullptr);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
