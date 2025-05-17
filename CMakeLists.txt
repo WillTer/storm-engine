@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to vcpkg toolchain file")
-
 project(storm-engine)
 
 set(CMAKE_CXX_STANDARD 20)

@@ -51,17 +51,11 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt)
 
-set(SDK_D3D9_LIBS)
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)
-
     set(SDL2_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
-    set(SDK_D3D9_LIBS
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3d9.lib
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3dx9.lib
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/DxErr.lib)
-    # FIXME: Remove global include declarations
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/include/directxsdk")
+
+    include(directxsdk)
 else()
     include(linux)
 endif()

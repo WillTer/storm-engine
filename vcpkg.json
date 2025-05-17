@@ -1,9 +1,0 @@
-{
-    "name": "storm-engine",
-    "dependencies": [
-        {
-            "name": "directxsdk",
-            "platform": "windows"
-        }
-    ]
-}

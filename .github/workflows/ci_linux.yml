@@ -42,8 +42,6 @@ jobs:
     - name: Install libs
       run: |
         sudo apt-get update && sudo apt-get install meson libstdc++-10-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev libcurlpp-dev zlib1g-dev
-    - name: Bootstrap vcpkg
-      run: vcpkg/bootstrap-vcpkg.sh
     - name: Configure with CMake
       run: |
         export CC=clang-15
