@@ -49,11 +49,11 @@ FetchContent_Declare(
     GIT_SHALLOW     ON
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog zlib fmt)
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt)
 
 set(SDK_D3D9_LIBS)
 if (WIN32)
-    FetchContent_MakeAvailable(SDL2)
+    FetchContent_MakeAvailable(SDL2 zlib)
 
     set(SDL2_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
     set(SDK_D3D9_LIBS
