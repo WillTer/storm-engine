@@ -3,7 +3,7 @@ message(STATUS "SDL2_LIBRARIES="${SDL2_LIBRARIES})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${SDL2_INCLUDE_DIRS} -fsigned-char")
 message(STATUS "CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS})
 
-find_package(zlib REQUIRED)
+find_package(ZLIB REQUIRED)
 
 if (STORM_MESA_NINE)
     message("Using Gallium Nine from Mesa for native D3D9 API")
