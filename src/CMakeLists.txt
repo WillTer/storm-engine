@@ -1,15 +1,13 @@
-if (WIN32)
-    set(SYSTEM_DEPS
-        "amstrmid"
-        "comctl32"
-        "dbghelp"
-        "ddraw"
-        "legacy_stdio_definitions"
-        "winhttp"
-    )
-else()
-    set(SYSTEM_DEPS "ffi ${NATIVE_D3D9_LIBS}")
-endif()
+set(SYSTEM_DEPS_WIN
+    amstrmid
+    comctl32
+    dbghelp
+    ddraw
+    legacy_stdio_definitions
+    winhttp
+)
+
+set(SYSTEM_DEPS_LINUX ffi)
 
 storm_exe(
     NAME engine
@@ -18,10 +16,10 @@ storm_exe(
         fmt
         sentry::sentry
         spdlog::spdlog
-        zlib
-        ${SDK_D3D9_LIBS}
-        ${SDL2_LIBRARIES}
-        ${SYSTEM_DEPS}
+        SDL2-storm
+        Zlib-storm
+        $<$<PLATFORM_ID:Windows>:${SDK_D3D9_LIBS} ${SYSTEM_DEPS_WIN}>
+        $<$<PLATFORM_ID:Linux>:${NATIVE_D3D9_LIBS} ${SYSTEM_DEPS_LINUX}>
 )
 
 add_custom_command(TARGET engine POST_BUILD

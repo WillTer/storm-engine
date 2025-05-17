@@ -24,10 +24,7 @@ set_property(TARGET dxerr PROPERTY
     IMPORTED_IMPLIB "${directxsdk_SOURCE_DIR}/Lib/x64/DxErr.lib"
 )
 
-file(GLOB DX_HDRS CONFIGURE_DEPENDS ${directxsdk_SOURCE_DIR}/Include/*.h)
-add_library(
-    directx-headers INTERFACE ${DX_HDRS}
-)
+add_library(directx-headers INTERFACE)
 target_include_directories(directx-headers
 INTERFACE
     "${directxsdk_SOURCE_DIR}/Include"

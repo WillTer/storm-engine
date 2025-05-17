@@ -53,9 +53,32 @@ FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)
-    set(SDL2_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
-
     include(directxsdk)
-else()
-    include(linux)
+elseif(LINUX)
+    # On Linux use SDL2 and zlib from package manager
+    find_package(SDL2 REQUIRED)
+    find_package(ZLIB REQUIRED)
+    include(linux_d3d9)
 endif()
+
+add_library(SDL2-storm INTERFACE)
+target_link_libraries(SDL2-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Windows>:SDL2::SDL2 SDL2::SDL2main>
+        $<$<PLATFORM_ID:Linux>:${SDL2_LIBRARIES}>
+)
+target_include_directories(SDL2-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Linux>:${SDL2_INCLUDE_DIRS}>
+)
+
+add_library(Zlib-storm INTERFACE)
+target_link_libraries(Zlib-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Windows>:zlib>
+        $<$<PLATFORM_ID:Linux>:${ZLIB_LIBRARIES}>
+)
+target_include_directories(Zlib-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Linux>:${ZLIB_INCLUDE_DIRS}>
+)
