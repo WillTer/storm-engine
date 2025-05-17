@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(StormSetup)
 
 option(STORM_ENABLE_CRASH_REPORTS "Enable automatic crash reports" OFF)
 option(STORM_ENABLE_STEAM "Enable Steam integration" OFF)
@@ -27,6 +26,7 @@ else()
 endif(GENERATOR_IS_MULTI_CONFIG)
 
 set(STORM_WATERMARK_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/watermark.hpp CACHE FILEPATH "Include file containing build revision, etc." FORCE)
+include(storm_target)
 
 # Get git commit for watermark
 execute_process(COMMAND
@@ -40,16 +40,6 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/watermark.hpp.in" "${STORM_WATER
 
 ### Set up third-party dependencies
 include(3rd_party)
-
-### Set up build scripts
-set(SRC_DIRS "src" CACHE STRING "File locations for public header files" FORCE)
-set(PUBLIC_INCLUDE_DIRS "include" CACHE STRING "File locations for source files" FORCE)
-set(TESTSUITE_DIRS "testsuite" CACHE STRING "File locations for tests" FORCE)
-set(RESOURCE_DIRS "rsrc" CACHE STRING "File locations for tests" FORCE)
-
-set(SOURCE_FILE_EXTENSIONS "*.cpp" CACHE STRING "File extensions for source files" FORCE)
-set(HEADER_FILE_EXTENSIONS "*.h" "*.hpp" CACHE STRING "File extensions for header files" FORCE)
-###
 
 add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT engine)

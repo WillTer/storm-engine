@@ -1,59 +1,30 @@
-add_definitions(-DUNICODE -D_UNICODE) # Use Unicode
-add_definitions(-DNOMINMAX) # Use std::max()/std::min()
-add_definitions(-D_CRT_SECURE_NO_WARNINGS) # Disable deprecation of unsafe functions
-
-if (STORM_ENABLE_STEAM)
-    add_definitions(-DSTORM_ENABLE_STEAM=1)
-endif()
-
-if(STORM_ENABLE_CRASH_REPORTS)
-	add_definitions(-DSTORM_ENABLE_CRASH_REPORTS=1)
-endif()
-
-if(STORM_WATERMARK_FILE)
-  add_definitions(-DSTORM_WATERMARK_FILE="${STORM_WATERMARK_FILE}")
-endif()
-
-if(STORM_ENABLE_SAFE_MODE)
-  add_definitions(-DSTORM_ENABLE_SAFE_MODE=1)
-endif()
-
-if (MSVC)
-    # Ignore warnings about missing pdb
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
-    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4099")
-
-    # Always generate PDBs
-    add_compile_options(/Zi)
-    add_link_options(/DEBUG)
-
-    add_compile_options(/W2) # Warning level
-    add_compile_options(/WX) # Treats compiler warnings as errors
-    add_compile_options(/MP) # Build with Multiple Processes
-    add_compile_options(/fp:fast) # Build with Multiple Processes
-    add_compile_options(/utf-8) # UTF-8 support
-
-    add_compile_options("$<$<CONFIG:Release>:/Gy>") # Enable Function-Level Linking
-    add_compile_options("$<$<CONFIG:Release>:/Oi>") # Generate intrinsic functions
-    add_compile_options("$<$<CONFIG:Release>:/Ot>") # Favor fast code, should be implied by /O2 though
-    add_compile_options("$<$<CONFIG:Release>:/GL>") # Whole program optimization
-
-    add_link_options("$<$<CONFIG:Release>:/OPT:REF>") # Eliminate functions and data that are never referenced, needs to be explicitly specified with /DEBUG
-    add_link_options("$<$<CONFIG:Release>:/OPT:ICF>") # Perform identical COMDAT folding, needs to be explicitly specified with /DEBUG
-    add_link_options("$<$<CONFIG:Release>:/LTCG>") # Enable link-time code generation
+if (WIN32)
+    set(SYSTEM_DEPS
+        "amstrmid"
+        "comctl32"
+        "dbghelp"
+        "ddraw"
+        "legacy_stdio_definitions"
+        "winhttp"
+    )
 else()
-    # Verbose output
-    add_compile_options(-v)
-    add_link_options(-v)
-
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
-
-    # Add _DEBUG flag
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+    set(SYSTEM_DEPS "ffi ${NATIVE_D3D9_LIBS}")
 endif()
 
-# this is crucial to include libs first
-add_subdirectory(libs)
-add_subdirectory(apps)
+storm_exe(
+    NAME engine
+    LINK_DEPENDENCIES
+        FastFloat::fast_float
+        fmt
+        sentry::sentry
+        spdlog::spdlog
+        zlib
+        ${SDK_D3D9_LIBS}
+        ${SDL2_LIBRARIES}
+        ${SYSTEM_DEPS}
+)
+
+add_custom_command(TARGET engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/src/libs/shared_headers" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resource/shared"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/src/techniques" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resource/techniques"
+)

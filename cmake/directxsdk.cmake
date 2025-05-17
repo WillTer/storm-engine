@@ -9,28 +9,33 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(directxsdk)
 
-function(import_directx_lib)
-    set(options)
-    set(oneValueArgs NAME)
-    set(multiValueArgs)
-    cmake_parse_arguments(DX_LIB "${options}" "${oneValueArgs}"
-                        "${multiValueArgs}" ${ARGN} )
-    add_library(${DX_LIB_NAME} SHARED IMPORTED)
-    set_property(TARGET ${DX_LIB_NAME} PROPERTY
-        IMPORTED_IMPLIB "${directxsdk_SOURCE_DIR}/Lib/x64/${DX_LIB_NAME}.lib"
-    )
-    target_include_directories(${DX_LIB_NAME}
-    INTERFACE
-        "${directxsdk_SOURCE_DIR}/Include"
-    )
-endfunction()
+add_library(d3d9 SHARED IMPORTED)
+set_property(TARGET d3d9 PROPERTY
+    IMPORTED_IMPLIB "${directxsdk_SOURCE_DIR}/Lib/x64/d3d9.lib"
+)
 
-import_directx_lib(NAME d3d9)
-import_directx_lib(NAME d3dx9)
-import_directx_lib(NAME DxErr)
+add_library(d3dx9 SHARED IMPORTED)
+set_property(TARGET d3dx9 PROPERTY
+    IMPORTED_IMPLIB "${directxsdk_SOURCE_DIR}/Lib/x64/d3dx9.lib"
+)
+
+add_library(dxerr SHARED IMPORTED)
+set_property(TARGET dxerr PROPERTY
+    IMPORTED_IMPLIB "${directxsdk_SOURCE_DIR}/Lib/x64/DxErr.lib"
+)
+
+file(GLOB DX_HDRS CONFIGURE_DEPENDS ${directxsdk_SOURCE_DIR}/Include/*.h)
+add_library(
+    directx-headers INTERFACE ${DX_HDRS}
+)
+target_include_directories(directx-headers
+INTERFACE
+    "${directxsdk_SOURCE_DIR}/Include"
+)
 
 set(SDK_D3D9_LIBS
     d3d9
     d3dx9
-    DxErr
+    dxerr
+    directx-headers
 )
