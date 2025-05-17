@@ -1,5 +1,5 @@
 STORM_SETUP(
     TARGET_NAME geometry
     TYPE storm_module
-    DEPENDENCIES core renderer
+    DEPENDENCIES core renderer fmt
 )

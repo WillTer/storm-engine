@@ -1,15 +1,6 @@
 {
     "name": "storm-engine",
     "dependencies": [
-        "catch2",
-        "fast-float",
-        "sentry-native",
-        "spdlog",
-        "zlib",
-        {
-            "name": "sdl2",
-            "platform": "windows"
-        },
         {
             "name": "directxsdk",
             "platform": "windows"

@@ -7,5 +7,5 @@ endif()
 STORM_SETUP(
     TARGET_NAME renderer
     TYPE storm_module
-    DEPENDENCIES core ${SDK_D3D9_LIBS} util ${SYSTEM_DEPS}
+    DEPENDENCIES core ${SDK_D3D9_LIBS} util ${SYSTEM_DEPS} fmt
 )

@@ -184,7 +184,7 @@ macro(STORM_SETUP)
   endif()
 
   if(${_SETUP_TYPE} STREQUAL "executable")
-    add_executable("${_SETUP_TARGET_NAME}" WIN32 ${SRCS})
+    add_executable("${_SETUP_TARGET_NAME}" ${SRCS})
     _set_ide_folder("${_SETUP_TARGET_NAME}" "Executables")
   elseif(${_SETUP_TYPE} STREQUAL "library")
     add_library("${_SETUP_TARGET_NAME}" ${lib_mode} ${SRCS})

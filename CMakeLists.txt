@@ -4,13 +4,17 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems
 
 project(storm-engine)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(StormSetup)
 
 option(STORM_ENABLE_CRASH_REPORTS "Enable automatic crash reports" OFF)
 option(STORM_ENABLE_STEAM "Enable Steam integration" OFF)
 option(STORM_ENABLE_SAFE_MODE "Enable additional runtime checks" OFF)
-option(STORM_USE_CONAN_SDL "Use sdl from conan" ON)
+option(STORM_USE_ASAN "Enable address sanitizer" OFF) # For future
 if (NOT WIN32)
     option(STORM_MESA_NINE "Use Gallium Nine from Mesa for native D3D9 API" OFF)
 endif()
@@ -36,30 +40,8 @@ execute_process(COMMAND
 message("STORM_BUILD_WATERMARK=${STORM_BUILD_WATERMARK}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/watermark.hpp.in" "${STORM_WATERMARK_FILE}" @ONLY)
 
-if (WIN32)
-    set(SDL2_LIBRARIES "$<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>")
-else()
-    include(linux)
-endif()
-
 ### Set up third-party dependencies
-# TODO
-find_package(FastFloat CONFIG REQUIRED)
-find_package(Catch2 CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
-find_package(sentry CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(ZLIB REQUIRED)
-
-set(SDK_D3D9_LIBS)
-if (WIN32)
-    set(SDK_D3D9_LIBS
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3d9.lib
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/d3dx9.lib
-        ${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/lib/DxErr.lib)
-    # FIXME: Remove global include declarations
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/x64-windows/include/directxsdk")
-endif(WIN32)
+include(3rd_party)
 
 ### Set up build scripts
 set(SRC_DIRS "src" CACHE STRING "File locations for public header files" FORCE)

@@ -22,7 +22,7 @@ STORM_SETUP(
     # external
     sentry::sentry
     ${SDL2_LIBRARIES}
-    ZLIB::ZLIB
+    zlib
 
     # system
     ${SYSTEM_DEPS}

@@ -4,4 +4,4 @@
 #define CATCH_CONFIG_WINDOWS_CRTDBG
 #endif
 
-#include <catch.hpp>
+#include <catch2/catch_all.hpp>
