@@ -40,7 +40,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: lukka/get-cmake@latest
     - name: Configure CMake
-      run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -S . -B build/${{ matrix.configuration }}
+      run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -S . -B build/${{ matrix.configuration }}
     - name: Build
       run: cmake --build build/${{ matrix.configuration }}
     - name: Upload artifact
