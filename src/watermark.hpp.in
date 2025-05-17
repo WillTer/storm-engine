@@ -1,0 +1,2 @@
+#pragma once
+#define STORM_BUILD_WATERMARK "@STORM_BUILD_WATERMARK@"

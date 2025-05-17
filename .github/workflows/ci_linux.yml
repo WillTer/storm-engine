@@ -36,29 +36,20 @@ jobs:
         configuration: [Debug]
     name: 'linux [${{ matrix.configuration}}]'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - name: Install libs
       run: |
-        sudo apt-get update && sudo apt-get install meson libstdc++-10-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev
-        # fix for conan ci
-        sudo apt-get install libx11-dev libx11-xcb-dev libfontenc-dev libice-dev libsm-dev libxau-dev libxaw7-dev libxcomposite-dev libxcursor-dev libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxkbfile-dev libxmu-dev libxmuu-dev libxpm-dev libxrandr-dev libxrender-dev libxres-dev libxss-dev libxt-dev libxtst-dev libxv-dev libxvmc-dev libxxf86vm-dev xtrans-dev libxcb-render0-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev xkb-data libxcb-dri3-dev uuid-dev libxcb-util-dev
-    - name: Install Conan
-      run: pip install conan==1.59.0
-    - name: Configure with cmake
+        sudo apt-get update && sudo apt-get install meson libstdc++-10-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev libcurlpp-dev zlib1g-dev
+    - name: Configure with CMake
       run: |
         export CC=clang-15
         export CXX=clang++-15
         ${CXX} --version
-        mkdir build && cd build
-        conan profile new default --detect
-        conan profile update conf.tools.system.package_manager:mode=install default
-        conan profile update conf.tools.system.package_manager:sudo=True default
-        cmake .. -DSTORM_USE_CONAN_SDL=OFF -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.configuration}}
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.configuration}} -S . -B build/${{ matrix.configuration }}
     - name: Build dependencies
       run: ninja dependencies
-      working-directory: build
-    - name: Build project
-      run: ninja
-      working-directory: build
+      working-directory: build/${{ matrix.configuration }}
+    - name: Build
+      run: cmake --build build/${{ matrix.configuration }}

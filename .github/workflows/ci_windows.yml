@@ -31,33 +31,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [debug, release]
+        configuration: [Debug, Release]
     name: 'Windows [${{ matrix.configuration }}]'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
     - uses: ilammy/msvc-dev-cmd@v1
-    - name: Install Conan
-      run: pip install conan==1.60.0
     - uses: lukka/get-cmake@latest
-    - name: Configure CMake w/ Conan
-      run: |
-        conan profile new default --detect
-        conan profile update conf.tools.system.package_manager:mode=install default
-        conan profile update conf.tools.system.package_manager:sudo=True default
-        cmake --preset=default
+    - name: Configure CMake
+      run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -S . -B build/${{ matrix.configuration }}
     - name: Build
-      run: cmake --build --preset=${{ matrix.configuration }}
-#    - name: Configure and build
-#      uses: lukka/run-cmake@v10.2
-#      with:
-#        configurePreset: default
-#        buildPreset: '${{ matrix.configuration }}'
+      run: cmake --build build/${{ matrix.configuration }}
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: storm-engine.${{ matrix.configuration }}
-        path: build/default/${{ matrix.configuration }}
+        path: build/${{ matrix.configuration }}/bin
 
 permissions: write-all
