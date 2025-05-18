@@ -18,6 +18,7 @@ storm_exe(
         spdlog::spdlog
         SDL2-storm
         Zlib-storm
+        OpenAL
         $<$<PLATFORM_ID:Windows>:${SDK_D3D9_LIBS} ${SYSTEM_DEPS_WIN}>
         $<$<PLATFORM_ID:Linux>:${NATIVE_D3D9_LIBS} ${SYSTEM_DEPS_LINUX}>
 )

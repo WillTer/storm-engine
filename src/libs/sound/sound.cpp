@@ -1,7 +1,6 @@
-#include <libs/shared_headers/messages.h>
-#include <libs/sound_service/v_sound_service.h>
-
 #include "sound.h"
+
+#include <libs/shared_headers/messages.h>
 
 #include <libs/core/core.h>
 #include <libs/core/vma.hpp>

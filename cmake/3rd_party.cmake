@@ -49,7 +49,14 @@ FetchContent_Declare(
     GIT_SHALLOW     ON
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt)
+FetchContent_Declare(
+    openal
+    GIT_REPOSITORY  https://github.com/kcat/openal-soft.git
+    GIT_TAG         1.24.3
+    GIT_SHALLOW     ON
+)
+
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt openal)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)

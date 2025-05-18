@@ -2,7 +2,7 @@
 
 #include <libs/core/entity.h>
 #include <libs/renderer/dx9render.h>
-
+#include <libs/sound_service/v_sound_service.h>
 
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
@@ -40,10 +40,12 @@ class SOUND : public Entity
         case Stage::realize:
             Realize(delta);
             break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        /*case Stage::lost_render:
+            LostRender(delta); break;
+        case Stage::restore_render:
+            RestoreRender(delta); break;*/
+        default:
+            break;
         }
     }
 

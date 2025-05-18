@@ -1,13 +1,19 @@
 #pragma once
 
+#include <array>
 #include <stack>
 #include <string>
 
-#include "sound_defines.h"
-#include "v_sound_service.h"
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
+
+#include <AL/al.h>
+#include <AL/alc.h>
+
+#include "ogg_player.h"
+#include "sound_defines.h"
+#include "v_sound_service.h"
 
 // #include <fmod.hpp>
 
@@ -28,21 +34,24 @@ class SoundService : public VSoundService
     bool bShowDebugInfo;
     bool initialized;
 
-    // FMOD::System *system;
-    // FMOD::Sound *OGG_sound[2];
+    ALCdevice *m_device;
+    ALCcontext *m_context;
+
+    std::unique_ptr<storm::OggPlayer> m_musicPlayer;
+    // std::array<unsigned, 2> OGG_sound;
 
     struct tSoundCache
     {
         uint32_t dwNameHash;
         std::string Name;
-        // FMOD::Sound *sound;
+        unsigned source;
         float fTimeFromLastPlay;
         eSoundType type;
 
         tSoundCache() : type()
         {
             dwNameHash = 0;
-            // sound = nullptr;
+            source = 0;
             fTimeFromLastPlay = 0.0f;
         }
     };
@@ -54,6 +63,7 @@ class SoundService : public VSoundService
         float fFaderDeltaInSec;
 
         // FMOD::Channel *channel;
+        unsigned source;
         eVolumeType type;
         eSoundType sound_type;
         float fSoundVolume;
@@ -101,9 +111,9 @@ class SoundService : public VSoundService
 
     bool FaderParity;
 
-    // FMOD_VECTOR vListenerPos;
-    // FMOD_VECTOR vListenerForward;
-    // FMOD_VECTOR vListenerTop;
+    std::array<float, 3> listenerPos; // Position
+    std::array<float, 3> listenerVel; // Velocity
+    std::array<float, 6> listenerOri; // Orientation
 
     void CreateEntityIfNeed();
 

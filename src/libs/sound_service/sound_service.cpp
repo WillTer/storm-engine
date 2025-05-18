@@ -13,6 +13,7 @@
 #include <libs/util/rands.h>
 
 // for debugging
+#include "al_utils.h"
 #include "debug_entity.h"
 
 CREATE_SERVICE(SoundService)
@@ -20,22 +21,16 @@ CREATE_SERVICE(SoundService)
 CREATE_CLASS(SoundVisualisationEntity)
 
 #define DISTANCEFACTOR 1.0f
-#define CHECKFMODERR(expr) ErrorHandler(expr, __FILE__, __LINE__, __func__, #expr)
-
-// namespace
-// {
-
-// FMOD_RESULT ErrorHandler(const FMOD_RESULT result, const char *file, unsigned line, const char *func, const char
-// *expr)
-// {
-//     if (result != FMOD_OK)
-//     {
-//         core.Trace("[%s:%s:%d] %s (%s)", file, func, line, FMOD_ErrorString(result), expr);
-//     }
-//     return result;
-// }
-
-// } // namespace
+#define CHECK_ALC_CALL(expr)                                                                                           \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if ((expr) == ALC_FALSE)                                                                                       \
+        {                                                                                                              \
+            const auto err = alcGetError(m_device);                                                                    \
+            core.Trace("[%s:%s:%d] (%s) ALC Error, code: %x", __FILE__, __func__, __LINE__, #expr, err);               \
+            return false;                                                                                              \
+        }                                                                                                              \
+    } while (false)
 
 SoundService::SoundService()
 {
@@ -50,6 +45,9 @@ SoundService::SoundService()
     // OGG_sound[1] = nullptr;
     // system = nullptr;
     initialized = false;
+    m_device = nullptr;
+    m_context = nullptr;
+    m_musicPlayer = std::make_unique<storm::OggPlayer>();
 
     // vListenerPos.x = 0.0f;
     // vListenerPos.y = 0.0f;
@@ -68,11 +66,14 @@ SoundService::SoundService()
 
 SoundService::~SoundService()
 {
-    // if (initialized)
-    // {
-    //     CHECKFMODERR(system->close());
-    //     CHECKFMODERR(system->release());
-    // }
+    if (initialized)
+    {
+        m_musicPlayer.reset();
+
+        alcMakeContextCurrent(nullptr);
+        alcDestroyContext(m_context);
+        alcCloseDevice(m_device);
+    }
 }
 
 bool SoundService::Init()
@@ -86,20 +87,22 @@ bool SoundService::Init()
         return false;
     }
 
-    // CHECKFMODERR(FMOD::System_Create(&system));
-    // unsigned version;
-    // CHECKFMODERR(system->getVersion(&version));
+    m_device = alcOpenDevice(nullptr); // Default device
+    if (m_device)
+    {
+        m_context = alcCreateContext(m_device, nullptr);
+        CHECK_ALC_CALL(alcMakeContextCurrent(m_context));
+    }
+    else
+    {
+        core.Trace("Error: unable to open sound device, error: \n");
+        return false;
+    }
 
-    // if (version < FMOD_VERSION)
-    // {
-    //     core.Trace("Error : You are using old FMOD version %08x !\n", version);
-    //     return false;
-    // }
-    // core.Trace("Using FMOD %08x", FMOD_VERSION);
-    // CHECKFMODERR(system->setSoftwareChannels(MAX_SOUNDS_SLOTS));
-    // CHECKFMODERR(system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT));
-    // CHECKFMODERR(system->init(MAX_SOUNDS_SLOTS, FMOD_INIT_NORMAL, nullptr));
-    // CHECKFMODERR(system->set3DSettings(1.0, DISTANCEFACTOR, 1.0f));
+    if (!m_musicPlayer->Init())
+    {
+        return false;
+    }
 
     if (const auto ini = fio->OpenIniFile(core.EngineIniFileName()))
     {
@@ -118,8 +121,7 @@ bool SoundService::Init()
 void SoundService::RunEnd()
 {
     CreateEntityIfNeed();
-    // Internal FMOD update
-    // CHECKFMODERR(system->update());
+    m_musicPlayer->Update();
 }
 
 void SoundService::ProcessFader(uint16_t idx)
@@ -339,23 +341,8 @@ TSD_ID SoundService::SoundPlay(const char *_name, eSoundType _type, eVolumeType 
     TSD_ID id;
     if (_type == MP3_STEREO)
     {
-        // play streamed immediately, without caching and always in 0 slot ...
-        try
+        if (!m_musicPlayer->OpenFileStream(SoundName))
         {
-            // uint32_t dwMode = FMOD_LOOP_OFF;
-            // if (_looped)
-            //     dwMode = FMOD_LOOP_NORMAL;
-            // const auto status = CHECKFMODERR(
-            //     system->createStream(SoundName.c_str(), FMOD_CREATESAMPLE | FMOD_2D | dwMode, nullptr, &sound));
-            // if (status != FMOD_OK)
-            // {
-            //     core.Trace("system->createStream(%s, FMOD_HARDWARE | FMOD_2D | dwMode, 0, &sound)",
-            //     SoundName.c_str()); return 0;
-            // }
-        }
-        catch (...)
-        {
-            core.Trace("Internal FMOD error, when create stream. File '%s'", SoundName.c_str());
             return 0;
         }
 
@@ -368,14 +355,9 @@ TSD_ID SoundService::SoundPlay(const char *_name, eSoundType _type, eVolumeType 
         }
         FaderParity = !FaderParity;
 
-        // if (OGG_sound[OldMusicIdx])
-        // {
-        //     SoundStop(OldMusicIdx + 1, _time);
-        // }
-
         SoundIdx = MusicIdx;
         id = SoundIdx + 1;
-        // OGG_sound[SoundIdx] = sound;
+        PlayingSounds[SoundIdx].source = m_musicPlayer->GetSourceId();
         PlayingSounds[SoundIdx].fFaderNeedVolume = _volume * fMusicVolume;
         PlayingSounds[SoundIdx].fFaderCurrentVolume = 0.0f;
         PlayingSounds[SoundIdx].fFaderDeltaInSec = (_volume * fMusicVolume) / (_time * 0.001f);
@@ -480,14 +462,17 @@ TSD_ID SoundService::SoundPlay(const char *_name, eSoundType _type, eVolumeType 
     PlayingSounds[SoundIdx].sound_type = _type;
 
     // If not just caching ... then unpause ...
-    // if (!_simpleCache)
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(false));
-    // }
-    // else
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(true));
-    // }
+    // FIXME: not only mp3
+    if (!_simpleCache && _type == MP3_STEREO)
+    {
+        m_musicPlayer->Play();
+        // CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(false));
+    }
+    else if (_simpleCache && _type == MP3_STEREO)
+    {
+        m_musicPlayer->Pause();
+        // CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(true));
+    }
 
     PlayingSounds[SoundIdx].bFree = false;
     // set the looping ..
@@ -501,18 +486,18 @@ TSD_ID SoundService::SoundPlay(const char *_name, eSoundType _type, eVolumeType 
     // }
 
     // ---------- loop through all sounds looking for the one with the same channel --------------
-    for (uint16_t j = 0; j < numActiveSounds; j++)
-    {
-        if (j == SoundIdx)
-            continue;
+    // for (uint16_t j = 0; j < numActiveSounds; j++)
+    // {
+    //     if (j == SoundIdx)
+    //         continue;
 
-        // if (PlayingSounds[j].channel == PlayingSounds[SoundIdx].channel)
-        // {
-        //     // note that the sound is thrown out ...
-        //     // so as not to stop him ...
-        //     j = FreeSound(j);
-        // }
-    }
+    //     if (PlayingSounds[j].source == PlayingSounds[SoundIdx].source)
+    //     {
+    //         // note that the sound is thrown out ...
+    //         // so as not to stop him ...
+    //         j = FreeSound(j);
+    //     }
+    // }
     // Returning the sound ID ...
 
     return id;
@@ -671,6 +656,7 @@ void SoundService::SoundResume(TSD_ID _id, int32_t _time /* = 0*/)
 
             // CHECKFMODERR(PlayingSounds[i].channel->setPaused(false));
         }
+        m_musicPlayer->Play(); // FIXME:
         return;
     }
 
@@ -682,7 +668,11 @@ void SoundService::SoundResume(TSD_ID _id, int32_t _time /* = 0*/)
     if (_id.stamp() != sound.stamp)
         return;
 
-    // CHECKFMODERR(sound.channel->setPaused(false));
+    if (_id.index() <= 1)
+    {
+        m_musicPlayer->Play(); // FIXME:
+        // CHECKFMODERR(sound.channel->setPaused(false));
+    }
 }
 
 float SoundService::SoundGetPosition(TSD_ID _id)
@@ -914,6 +904,7 @@ void SoundService::SoundStop(TSD_ID _id, int32_t _time)
 
             if (PlayingSounds[1].fFaderDeltaInSec <= 0.00001f)
             {
+                m_musicPlayer->Stop();
                 // if (OGG_sound[1])
                 // {
                 //     CHECKFMODERR(OGG_sound[1]->release());
@@ -932,12 +923,13 @@ void SoundService::SoundStop(TSD_ID _id, int32_t _time)
             if (PlayingSounds[i].bFree)
                 continue;
 
-            // if (i <= 1)
-            // {
-            //     unsigned int OGGpos;
-            //     PlayingSounds[i].channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
-            //     SetOGGPosition(PlayingSounds[i].Name.c_str(), OGGpos);
-            // }
+            if (i <= 1)
+            {
+                // unsigned int OGGpos;
+                // PlayingSounds[i].channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
+                // SetOGGPosition(PlayingSounds[i].Name.c_str(), OGGpos);
+                m_musicPlayer->Stop();
+            }
 
             // FMOD_RESULT status = PlayingSounds[i].channel->isPlaying(&is_playing);
             // if (!is_playing || status != FMOD_OK) // boal fix

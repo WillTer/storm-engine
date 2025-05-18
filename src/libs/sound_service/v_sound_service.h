@@ -1,10 +1,9 @@
 #pragma once
 
-#include "sound_defines.h"
-#include "v_sound_service.h"
 #include <libs/core/service.h>
 #include <libs/math/c_vector.h>
-#include <vector>
+
+#include "sound_defines.h"
 
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
