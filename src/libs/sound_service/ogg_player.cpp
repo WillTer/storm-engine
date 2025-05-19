@@ -4,7 +4,6 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
-
 #include <libs/core/core.h>
 
 #include "al_utils.h"
@@ -12,72 +11,66 @@
 
 using namespace storm;
 
-#define CHECK_INITIALIZED()                                                                                            \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        if (!m_isInitialized)                                                                                          \
-        {                                                                                                              \
-            std::stringstream ss;                                                                                      \
-            ss << "[" << __FILE__ << ":" << __LINE__ << "] OGG Player is not initialized";                             \
-            throw std::runtime_error(ss.str());                                                                        \
-        }                                                                                                              \
+#define CHECK_INITIALIZED() \
+    do { \
+        if (!m_is_initialized) { \
+            std::stringstream ss; \
+            ss << "[" << __FILE__ << ":" << __LINE__ << "] OGG Player is not initialized"; \
+            throw std::runtime_error(ss.str()); \
+        } \
     } while (false)
-#define CHECK_ACTIVE_FILE_OPENED()                                                                                     \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        if (!m_activeFile.has_value())                                                                                 \
-        {                                                                                                              \
-            std::stringstream ss;                                                                                      \
-            ss << "[" << __FILE__ << ":" << __LINE__ << "] No file streams opened";                                    \
-            throw std::runtime_error(ss.str());                                                                        \
-        }                                                                                                              \
+#define CHECK_ACTIVE_FILE_OPENED() \
+    do { \
+        if (!m_active_file.has_value()) { \
+            std::stringstream ss; \
+            ss << "[" << __FILE__ << ":" << __LINE__ << "] No file streams opened"; \
+            throw std::runtime_error(ss.str()); \
+        } \
     } while (false)
 
 namespace
 {
 
-constexpr size_t AUDIO_STREAM_SOURCE_COUNT = 2; // 2 sources: one currently playing and the second is loading
+constexpr size_t AUDIO_STREAM_SOURCE_COUNT = 2;  // 2 sources: one currently playing and the second is loading
 constexpr size_t AUDIO_STREAM_BUFFER_COUNT = 4;
 
 class OggFile
 {
-    enum class UpdateStreamResult
-    {
-        Updated,
-        NoData
-    };
+    enum class UpdateStreamResult { Updated, NoData };
 
-  public:
-    OggFile(const std::filesystem::path &path, unsigned source,
-            const std::array<unsigned, AUDIO_STREAM_BUFFER_COUNT> &buffers, size_t bufferSampleCountByChannel)
-        : m_source{source}
+public:
+    OggFile(
+        std::filesystem::path const&                           path,
+        unsigned                                               source,
+        std::array<unsigned, AUDIO_STREAM_BUFFER_COUNT> const& buffers,
+        size_t                                                 bufferSampleCountByChannel)
+        : m_source {source}
     {
         std::ifstream file(path, std::ios::binary);
-        if (!file)
-        {
-            throw std::runtime_error("Unable to open OGG file: " + path.string());
+        if (!file) { throw std::runtime_error("Unable to open OGG file: " + path.string()); }
+
+        m_file_data = std::vector((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+        int err  = 0;
+        m_stream = stb_vorbis_open_memory(
+            reinterpret_cast<unsigned char const*>(m_file_data.data()), static_cast<int>(m_file_data.size()), &err, nullptr);
+        if (m_stream == nullptr) {
+            throw std::runtime_error("Unable to decode OGG file " + path.string() + ", code: " + std::to_string(err));
         }
 
-        m_fileData = std::vector((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        auto const info = stb_vorbis_get_info(m_stream);
 
-        int err = 0;
-        m_stream = stb_vorbis_open_memory(reinterpret_cast<const unsigned char *>(m_fileData.data()),
-                                          static_cast<int>(m_fileData.size()), &err, nullptr);
-
-        const auto info = stb_vorbis_get_info(m_stream);
-
-        m_channels = info.channels;
-        m_sampleRate = info.sample_rate;
-        m_format = m_channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-        m_offset = 0;
-        m_intermediateBuffer.resize(bufferSampleCountByChannel * info.channels);
+        m_channels    = info.channels;
+        m_sample_rate = info.sample_rate;
+        m_format      = m_channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+        m_offset      = 0;
+        m_intermediate_buffer.resize(bufferSampleCountByChannel * info.channels);
 
         static_assert(sizeof(buffers) == sizeof(m_buffers));
         std::memcpy(m_buffers.data(), buffers.data(), m_buffers.size() * sizeof(unsigned));
 
-        for (auto &buffer : m_buffers)
-        {
-            UpdateStream(buffer);
+        for (auto& buffer: m_buffers) {
+            update_stream(buffer);
         }
 
         AL_CHECKED_CALL(alSourceQueueBuffers, m_source, static_cast<int>(m_buffers.size()), m_buffers.data());
@@ -88,354 +81,274 @@ class OggFile
         stb_vorbis_close(m_stream);
     }
 
-    void Play()
+    void play()
     {
-        if (GetState() == AudioState::Playing)
-        {
-            return;
-        }
+        if (get_state() == AudioState::Playing) { return; }
 
         AL_CHECKED_CALL(alSourcePlay, m_source);
     }
 
-    void Pause()
+    void pause()
     {
-        if (GetState() != AudioState::Playing)
-        {
-            return;
-        }
+        if (get_state() != AudioState::Playing) { return; }
 
         AL_CHECKED_CALL(alSourcePause, m_source);
     }
 
-    void Stop()
+    void stop()
     {
-        if (GetState() != AudioState::Playing && GetState() != AudioState::Paused)
-        {
-            return;
-        }
+        if (get_state() != AudioState::Playing && get_state() != AudioState::Paused) { return; }
 
         AL_CHECKED_CALL(alSourceStop, m_source);
     }
 
-    void SetLooped(bool isLooped)
+    void set_looped(bool isLooped)
     {
-        m_isPlaybackLooped = isLooped;
+        m_is_playback_looped = isLooped;
     }
 
-    AudioState GetState() const
+    AudioState get_state() const
     {
         ALint state = 0;
         AL_CHECKED_CALL(alGetSourcei, m_source, AL_SOURCE_STATE, &state);
 
-        switch (state)
-        {
-        case AL_PLAYING:
-            return AudioState::Playing;
-        case AL_PAUSED:
-            return AudioState::Paused;
-        case AL_STOPPED:
-            return AudioState::Stopped;
-        default:
-            break;
+        switch (state) {
+        case AL_PLAYING: return AudioState::Playing;
+        case AL_PAUSED: return AudioState::Paused;
+        case AL_STOPPED: return AudioState::Stopped;
+        default: break;
         }
 
         return AudioState::None;
     }
 
-    void Update()
+    void update()
     {
-        if (GetState() != AudioState::Playing)
-        {
-            return;
-        }
+        if (get_state() != AudioState::Playing) { return; }
 
         ALint processed = 0;
         AL_CHECKED_CALL(alGetSourcei, m_source, AL_BUFFERS_PROCESSED, &processed);
-        for (ALint i = 0; i < processed; ++i)
-        {
+        for (ALint i = 0; i < processed; ++i) {
             ALuint buffer = 0;
             AL_CHECKED_CALL(alSourceUnqueueBuffers, m_source, 1, &buffer);
 
-            auto res = UpdateStream(buffer);
-            if (res == UpdateStreamResult::NoData && m_isPlaybackLooped)
-            {
+            auto res = update_stream(buffer);
+            if (res == UpdateStreamResult::NoData && m_is_playback_looped) {
                 stb_vorbis_seek_start(m_stream);
                 m_offset = 0;
-                res = UpdateStream(buffer);
+                res      = update_stream(buffer);
             }
 
-            if (res == UpdateStreamResult::Updated)
-            {
-                AL_CHECKED_CALL(alSourceQueueBuffers, m_source, 1, &buffer);
-            }
+            if (res == UpdateStreamResult::Updated) { AL_CHECKED_CALL(alSourceQueueBuffers, m_source, 1, &buffer); }
         }
     }
 
-  private:
-    UpdateStreamResult UpdateStream(unsigned buffer)
+private:
+    UpdateStreamResult update_stream(unsigned buffer)
     {
-        auto &pcm = m_intermediateBuffer;
+        auto& pcm = m_intermediate_buffer;
         std::memset(pcm.data(), 0, pcm.size() * sizeof(short));
 
         size_t samplesCount = 0;
-        while (samplesCount < pcm.size())
-        {
-            const int converted = stb_vorbis_get_samples_short_interleaved(
+        while (samplesCount < pcm.size()) {
+            int const converted = stb_vorbis_get_samples_short_interleaved(
                 m_stream, m_channels, pcm.data() + samplesCount, static_cast<int>(pcm.size() - samplesCount));
-            if (converted == 0)
-            {
-                break;
-            }
+            if (converted == 0) { break; }
 
             samplesCount += converted * m_channels;
         }
 
-        if (samplesCount == 0)
-        {
-            return UpdateStreamResult::NoData;
-        }
+        if (samplesCount == 0) { return UpdateStreamResult::NoData; }
 
         m_offset += samplesCount;
 
-        AL_CHECKED_CALL(alBufferData, buffer, m_format, pcm.data(), samplesCount * sizeof(ALshort), m_sampleRate);
+        AL_CHECKED_CALL(alBufferData, buffer, m_format, pcm.data(), samplesCount * sizeof(ALshort), m_sample_rate);
 
         return UpdateStreamResult::Updated;
     }
 
-  private:
-    stb_vorbis *m_stream;
-    std::vector<char> m_fileData;
-    std::vector<short> m_intermediateBuffer; // Buffer for transferring data from decoder to OpenAL
-    size_t m_offset;
+private:
+    stb_vorbis*        m_stream;
+    std::vector<char>  m_file_data;
+    std::vector<short> m_intermediate_buffer;  // Buffer for transferring data from decoder to OpenAL
+    size_t             m_offset;
 
     int m_format;
     int m_channels;
-    int m_sampleRate;
+    int m_sample_rate;
 
-    bool m_isPlaybackLooped;
+    bool m_is_playback_looped;
 
-    unsigned m_source;
+    unsigned                                        m_source;
     std::array<unsigned, AUDIO_STREAM_BUFFER_COUNT> m_buffers;
 };
 
-} // namespace
+}  // namespace
 
-struct OggPlayer::Impl
-{
-  public:
+struct OggPlayer::Impl {
+public:
     Impl() = default;
 
     ~Impl()
     {
-        if (m_isInitialized)
-        {
-            for (auto &file : m_activeSounds)
-            {
-                alDeleteSources(1, &file.source); // Delete source to free buffers
+        if (m_is_initialized) {
+            for (auto& file: m_active_sounds) {
+                alDeleteSources(1, &file.source);  // Delete source to free buffers
                 alDeleteBuffers(static_cast<int>(file.buffers.size()), file.buffers.data());
             }
         }
     }
 
-    void Init(size_t samplesBufferSize)
+    void init(size_t samples_buffer_size)
     {
-        if (m_isInitialized)
-        {
-            return;
-        }
+        if (m_is_initialized) { return; }
 
-        alGetError(); // clear error code
-        for (auto &file : m_activeSounds)
-        {
+        alGetError();  // clear error code
+        for (auto& file: m_active_sounds) {
             AL_CHECKED_CALL(alGenBuffers, static_cast<int>(file.buffers.size()), file.buffers.data());
             AL_CHECKED_CALL(alGenSources, 1, &file.source);
         }
 
-        m_bufferSampleCountByChannel = samplesBufferSize;
-        m_isInitialized = true;
+        m_buffer_sample_count_by_channel = samples_buffer_size;
+        m_is_initialized                 = true;
     }
 
-    void OpenFileStream(const std::filesystem::path &path)
+    void open_file_stream(std::filesystem::path const& path)
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            m_activeSounds[m_activeSound].file->Stop();
-            AL_CHECKED_CALL(alSourcei, m_activeSounds[m_activeSound].source, AL_BUFFER, 0); // Detach all queued buffers
+        if (m_active_sounds[m_active_sound].file) {
+            m_active_sounds[m_active_sound].file->stop();
+            AL_CHECKED_CALL(alSourcei, m_active_sounds[m_active_sound].source, AL_BUFFER, 0);  // Detach all queued buffers
         }
 
-        m_activeSound = !m_activeSound;
-        m_activeSounds[m_activeSound].file =
-            std::make_unique<OggFile>(path, m_activeSounds[m_activeSound].source, m_activeSounds[m_activeSound].buffers,
-                                      m_bufferSampleCountByChannel);
-        m_activeSounds[m_activeSound].file->SetLooped(true);
+        m_active_sound                       = !m_active_sound;
+        m_active_sounds[m_active_sound].file = std::make_unique<OggFile>(
+            path, m_active_sounds[m_active_sound].source, m_active_sounds[m_active_sound].buffers, m_buffer_sample_count_by_channel);
+        m_active_sounds[m_active_sound].file->set_looped(true);
     }
 
-    void Play()
+    void play()
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            m_activeSounds[m_activeSound].file->Play();
-        }
+        if (m_active_sounds[m_active_sound].file) { m_active_sounds[m_active_sound].file->play(); }
     }
 
-    void Pause()
+    void pause()
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            m_activeSounds[m_activeSound].file->Pause();
-        }
+        if (m_active_sounds[m_active_sound].file) { m_active_sounds[m_active_sound].file->pause(); }
     }
 
-    void Stop()
+    void stop()
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            m_activeSounds[m_activeSound].file->Stop();
-        }
+        if (m_active_sounds[m_active_sound].file) { m_active_sounds[m_active_sound].file->stop(); }
     }
 
-    void Update()
+    void update()
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            m_activeSounds[m_activeSound].file->Update();
-        }
+        if (m_active_sounds[m_active_sound].file) { m_active_sounds[m_active_sound].file->update(); }
     }
 
-    AudioState GetState() const
+    AudioState get_state() const
     {
         CHECK_INITIALIZED();
 
-        if (m_activeSounds[m_activeSound].file)
-        {
-            return m_activeSounds[m_activeSound].file->GetState();
-        }
+        if (m_active_sounds[m_active_sound].file) { return m_active_sounds[m_active_sound].file->get_state(); }
 
         return AudioState::None;
     }
 
-    unsigned GetSourceId() const
+    unsigned get_source_id() const
     {
         CHECK_INITIALIZED();
 
-        return m_activeSounds[m_activeSound].source;
+        return m_active_sounds[m_active_sound].source;
     }
 
-  private:
-    bool m_isInitialized;
-    size_t m_bufferSampleCountByChannel;
-    size_t m_activeSound;
+private:
+    bool   m_is_initialized;
+    size_t m_buffer_sample_count_by_channel;
+    size_t m_active_sound;
 
-    struct Sound
-    {
+    struct Sound {
         std::unique_ptr<OggFile> file;
 
-        unsigned source;
+        unsigned                                        source;
         std::array<unsigned, AUDIO_STREAM_BUFFER_COUNT> buffers;
     };
 
-    std::array<Sound, AUDIO_STREAM_SOURCE_COUNT> m_activeSounds;
+    std::array<Sound, AUDIO_STREAM_SOURCE_COUNT> m_active_sounds;
 };
 
-OggPlayer::OggPlayer() : m_impl(std::make_unique<Impl>())
-{
-}
+OggPlayer::OggPlayer() : m_impl(std::make_unique<Impl>()) {}
 
 OggPlayer::~OggPlayer() = default;
 
-bool OggPlayer::Init(size_t samplesBufferSize /*= 1024*/)
-try
-{
-    m_impl->Init(samplesBufferSize);
+bool OggPlayer::init(size_t samplesBufferSize /*= 1024*/)
+try {
+    m_impl->init(samplesBufferSize);
     return true;
-}
-catch (const std::runtime_error &e)
-{
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
     return false;
 }
 
-bool OggPlayer::OpenFileStream(const std::filesystem::path &path)
-try
-{
-    m_impl->OpenFileStream(path);
+bool OggPlayer::open_file_stream(std::filesystem::path const& path)
+try {
+    m_impl->open_file_stream(path);
     return true;
-}
-catch (const std::runtime_error &e)
-{
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
     return false;
 }
 
-void OggPlayer::Play()
-try
-{
-    m_impl->Play();
-}
-catch (const std::runtime_error &e)
-{
+void OggPlayer::play()
+try {
+    m_impl->play();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
 }
 
-void OggPlayer::Pause()
-try
-{
-    m_impl->Pause();
-}
-catch (const std::runtime_error &e)
-{
+void OggPlayer::pause()
+try {
+    m_impl->pause();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
 }
 
-void OggPlayer::Stop()
-try
-{
-    m_impl->Stop();
-}
-catch (const std::runtime_error &e)
-{
+void OggPlayer::stop()
+try {
+    m_impl->stop();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
 }
 
-void OggPlayer::Update()
-try
-{
-    m_impl->Update();
-}
-catch (const std::runtime_error &e)
-{
+void OggPlayer::update()
+try {
+    m_impl->update();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
 }
 
-AudioState OggPlayer::GetState() const
-try
-{
-    return m_impl->GetState();
-}
-catch (const std::runtime_error &e)
-{
+AudioState OggPlayer::get_state() const
+try {
+    return m_impl->get_state();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
     return AudioState::None;
 }
 
-unsigned OggPlayer::GetSourceId() const
-try
-{
-    return m_impl->GetSourceId();
-}
-catch (const std::runtime_error &e)
-{
+unsigned OggPlayer::get_source_id() const
+try {
+    return m_impl->get_source_id();
+} catch (std::runtime_error const& e) {
     core.Trace("%s\n", e.what());
     return 0;
 }

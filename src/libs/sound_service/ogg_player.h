@@ -6,8 +6,7 @@
 namespace storm
 {
 
-enum class AudioState
-{
+enum class AudioState {
     None,
     Initial,
     Playing,
@@ -17,27 +16,27 @@ enum class AudioState
 
 class OggPlayer
 {
-  public:
+public:
     OggPlayer();
     ~OggPlayer();
 
-    bool Init(size_t samplesBufferSize = 1024);
+    bool init(size_t samples_buffer_size = 1024);
 
-    bool OpenFileStream(const std::filesystem::path &path);
+    bool open_file_stream(std::filesystem::path const& path);
 
-    void Play();
-    void Pause();
-    void Stop();
+    void play();
+    void pause();
+    void stop();
 
-    void Update();
+    void update();
 
-    AudioState GetState() const;
+    AudioState get_state() const;
 
-    unsigned GetSourceId() const;
+    unsigned get_source_id() const;
 
-  private:
+private:
     struct Impl;
     std::unique_ptr<Impl> m_impl;
 };
 
-} // namespace storm
+}  // namespace storm
