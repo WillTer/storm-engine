@@ -1,34 +1,28 @@
 #include "sound.h"
 
-#include <libs/shared_headers/messages.h>
-
 #include <libs/core/core.h>
 #include <libs/core/vma.hpp>
+#include <libs/shared_headers/messages.h>
 
 CREATE_CLASS(SOUND)
 
-#define MSG_SOUND_ALIAS_ADD 77017 //"s"          alias_name
+#define MSG_SOUND_ALIAS_ADD 77017  //"s"          alias_name
 
 //--------------------------------------------------------------------
-SOUND::SOUND() : soundService(nullptr), renderer(nullptr)
-{
-}
+SOUND::SOUND() : soundService(nullptr), renderer(nullptr) {}
 
 //--------------------------------------------------------------------
-SOUND::~SOUND()
-{
-}
+SOUND::~SOUND() {}
 
 //--------------------------------------------------------------------
 bool SOUND::Init()
 {
     // GUARD(SOUND::Init)
 
-    soundService = static_cast<VSoundService *>(core.GetService("SoundService"));
-    if (!soundService)
-        core.Trace("!SOUND: Can`t create sound service");
+    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    if (!soundService) core.Trace("!SOUND: Can`t create sound service");
 
-    renderer = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     core.AddToLayer(REALIZE, GetId(), -1);
 
     return true;
@@ -36,28 +30,26 @@ bool SOUND::Init()
 }
 
 //--------------------------------------------------------------------
-uint64_t SOUND::ProcessMessage(MESSAGE &message)
+uint64_t SOUND::ProcessMessage(MESSAGE& message)
 {
     ////GUARD(SOUND::ProcessMessage)
 
-    if (!soundService)
-        return 0;
+    if (!soundService) return 0;
 
-    auto code = message.Long();
-    CVECTOR vector, vector2;
-    int32_t temp, temp2, temp3, temp4, vt;
-    int32_t id, tempLong;
-    float minD, maxD;
-    int32_t loopPauseTime;
-    float v1, v2, v3;
-    float pitch;
-    float volume;
-    VDATA *vd1, *vd2, *vd3;
-    VDATA *pd;
+    auto     code = message.Long();
+    CVECTOR  vector, vector2;
+    int32_t  temp, temp2, temp3, temp4, vt;
+    int32_t  id, tempLong;
+    float    minD, maxD;
+    int32_t  loopPauseTime;
+    float    v1, v2, v3;
+    float    pitch;
+    float    volume;
+    VDATA *  vd1, *vd2, *vd3;
+    VDATA*   pd;
     uint32_t outValue = 0;
 
-    switch (code)
-    {
+    switch (code) {
     case MSG_SOUND_SET_MASTER_VOLUME:
         v1 = message.Float();
         v2 = message.Float();
@@ -79,7 +71,7 @@ uint64_t SOUND::ProcessMessage(MESSAGE &message)
         break;
     case MSG_SOUND_GET_PITCH:
         pitch = soundService->GetPitch();
-        pd = message.ScriptVariablePointer();
+        pd    = message.ScriptVariablePointer();
         pd->Set(pitch);
         break;
     case MSG_SOUND_SET_CAMERA_POSITION:
@@ -89,75 +81,70 @@ uint64_t SOUND::ProcessMessage(MESSAGE &message)
         soundService->SetCameraPosition(vector);
         break;
     case MSG_SOUND_SET_CAMERA_ORIENTATION:
-        vector.x = message.Float();
-        vector.y = message.Float();
-        vector.z = message.Float();
+        vector.x  = message.Float();
+        vector.y  = message.Float();
+        vector.z  = message.Float();
         vector2.x = message.Float();
         vector2.y = message.Float();
         vector2.z = message.Float();
         soundService->SetCameraOrientation(vector, vector2);
         break;
     case MSG_SOUND_PLAY: {
-        const std::string &tempString = message.String(); // filename
+        std::string const& tempString = message.String();  // filename
 
-        temp = message.Long(); // type
+        temp = message.Long();  // type
         // defaults
-        vt = static_cast<int>(VOLUME_FX); // volume type
-        temp2 = 0;
-        temp3 = 0;
-        temp4 = 0;
-        tempLong = 0;
-        vector.x = 0;
-        vector.y = 0;
-        vector.z = 0;
-        minD = -1.0f;
-        maxD = -1.0f;
+        vt            = static_cast<int>(VOLUME_FX);  // volume type
+        temp2         = 0;
+        temp3         = 0;
+        temp4         = 0;
+        tempLong      = 0;
+        vector.x      = 0;
+        vector.y      = 0;
+        vector.z      = 0;
+        minD          = -1.0f;
+        maxD          = -1.0f;
         loopPauseTime = 0;
-        volume = 1.f;
+        volume        = 1.f;
         // try to read as many parameters   as we can
-        if (message.GetCurrentFormatType())
-            vt = message.Long(); // volume_type
-        if (message.GetCurrentFormatType())
-            temp2 = message.Long(); // simple_cache
-        if (message.GetCurrentFormatType())
-            temp3 = message.Long(); // looped
-        if (message.GetCurrentFormatType())
-            temp4 = message.Long(); // cached
-        if (message.GetCurrentFormatType())
-            tempLong = message.Long(); // fade_in_time
+        if (message.GetCurrentFormatType()) vt = message.Long();        // volume_type
+        if (message.GetCurrentFormatType()) temp2 = message.Long();     // simple_cache
+        if (message.GetCurrentFormatType()) temp3 = message.Long();     // looped
+        if (message.GetCurrentFormatType()) temp4 = message.Long();     // cached
+        if (message.GetCurrentFormatType()) tempLong = message.Long();  // fade_in_time
         // boal fix 28.10.06
-        if (temp == SOUND_MP3_STEREO)
-        {
-            if (temp3) // stereo OGG, looped
+        if (temp == SOUND_MP3_STEREO) {
+            if (temp3)  // stereo OGG, looped
             {
-                if (message.GetCurrentFormatType())
-                    loopPauseTime = message.Long();
-                if (message.GetCurrentFormatType())
-                    volume = message.Float();
+                if (message.GetCurrentFormatType()) loopPauseTime = message.Long();
+                if (message.GetCurrentFormatType()) volume = message.Float();
             }
-        }
-        else
-        {
-            if (message.GetCurrentFormatType())
-                vector.x = message.Float();
-            if (message.GetCurrentFormatType())
-                vector.y = message.Float();
-            if (message.GetCurrentFormatType())
-                vector.z = message.Float();
-            if (message.GetCurrentFormatType())
-                minD = message.Float();
-            if (message.GetCurrentFormatType())
-                maxD = message.Float();
+        } else {
+            if (message.GetCurrentFormatType()) vector.x = message.Float();
+            if (message.GetCurrentFormatType()) vector.y = message.Float();
+            if (message.GetCurrentFormatType()) vector.z = message.Float();
+            if (message.GetCurrentFormatType()) minD = message.Float();
+            if (message.GetCurrentFormatType()) maxD = message.Float();
         }
 
         outValue = static_cast<uint32_t>(soundService->SoundPlay(
-            tempString.c_str(), static_cast<eSoundType>(temp), static_cast<eVolumeType>(vt), (temp2 != 0), (temp3 != 0),
-            (temp4 != 0), tempLong, &vector, minD, maxD, loopPauseTime, volume));
+            tempString.c_str(),
+            static_cast<eSoundType>(temp),
+            static_cast<eVolumeType>(vt),
+            (temp2 != 0),
+            (temp3 != 0),
+            (temp4 != 0),
+            tempLong,
+            &vector,
+            minD,
+            maxD,
+            loopPauseTime,
+            volume));
 
         break;
     }
     case MSG_SOUND_STOP:
-        id = message.Long();
+        id       = message.Long();
         tempLong = message.Long();
         soundService->SoundStop(id, tempLong);
         break;
@@ -166,14 +153,13 @@ uint64_t SOUND::ProcessMessage(MESSAGE &message)
         soundService->SoundRelease(id);
         break;
     case MSG_SOUND_DUPLICATE:
-        id = message.Long();
+        id       = message.Long();
         outValue = static_cast<uint32_t>(soundService->SoundDuplicate(id));
         break;
     case MSG_SOUND_SET_3D_PARAM:
-        id = message.Long();
+        id       = message.Long();
         tempLong = message.Long();
-        switch (tempLong)
-        {
+        switch (tempLong) {
         case SOUND_PARAM_MAX_DISTANCE:
             vector.x = message.Float();
             // memcpy(&(vector.x) ,message.Pointer(), sizeof(float));
@@ -196,47 +182,43 @@ uint64_t SOUND::ProcessMessage(MESSAGE &message)
         }
         break;
     case MSG_SOUND_SET_VOLUME:
-        id = message.Long();
+        id       = message.Long();
         vector.x = message.Float();
         soundService->SoundSetVolume(id, vector.x);
         break;
     case MSG_SOUND_IS_PLAYING:
-        id = message.Long();
-        outValue = soundService->SoundIsPlaying(id);
+        id       = message.Long();
+        outValue = static_cast<uint32_t>(soundService->SoundIsPlaying(id));
         break;
     case MSG_SOUND_GET_POSITION:
-        id = message.Long();
-        outValue = static_cast<uint32_t>(soundService->SoundGetPosition(id) * 100.0f);
+        id       = message.Long();
+        outValue = soundService->SoundGetPosition(id);
         break;
     case MSG_SOUND_RESTART:
         id = message.Long();
         soundService->SoundRestart(id);
         break;
     case MSG_SOUND_RESUME:
-        id = message.Long();
+        id   = message.Long();
         temp = message.Long();
         soundService->SoundResume(id, temp);
         break;
-    case MSG_SOUND_SCHEME_RESET:
-        soundService->ResetScheme();
-        break;
+    case MSG_SOUND_SCHEME_RESET: soundService->ResetScheme(); break;
     case MSG_SOUND_SCHEME_SET: {
-        const std::string &tempString = message.String();
+        std::string const& tempString = message.String();
         soundService->SetScheme(tempString.c_str());
         break;
     }
     case MSG_SOUND_SCHEME_ADD: {
-        const std::string &tempString = message.String();
+        std::string const& tempString = message.String();
         soundService->AddScheme(tempString.c_str());
         break;
     }
 
-    case MSG_SOUND_SET_ENABLED:
-        soundService->SetEnabled(message.Long() != 0);
-        break;
+    case MSG_SOUND_SET_ENABLED: soundService->SetEnabled(message.Long() != 0); break;
 
     case MSG_SOUND_ALIAS_ADD: {
-        const std::string &tempString = message.String();
+        std::string const& tempString = message.String();
         soundService->LoadAliasFile(tempString.c_str());
         break;
     }
@@ -249,8 +231,7 @@ uint64_t SOUND::ProcessMessage(MESSAGE &message)
 //--------------------------------------------------------------------
 void SOUND::Realize(uint32_t dTime)
 {
-    if (!soundService)
-        return;
+    if (!soundService) return;
 }
 
 //--------------------------------------------------------------------
