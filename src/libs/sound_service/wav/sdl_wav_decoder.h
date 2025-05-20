@@ -7,11 +7,11 @@
 namespace storm::audio
 {
 
-class VorbisDecoder: virtual public IDecoder
+class SDLWavDecoder: virtual public IDecoder
 {
 public:
-    VorbisDecoder();
-    ~VorbisDecoder() override;
+    SDLWavDecoder();
+    ~SDLWavDecoder() override;
 
     Result init(std::filesystem::path const& file_path) override;
 

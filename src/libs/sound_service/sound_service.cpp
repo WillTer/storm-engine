@@ -37,9 +37,7 @@ constexpr float FADE_DEFAULT   = 0.5F;
 
 Result error_handler(Result const result, char const* file, unsigned line, char const* func, char const* expr)
 {
-    if (result != Result::Ok) {
-        core.Trace("[%s:%d][%s][%s] IChannel call error, code: %d\n", file, line, func, expr, static_cast<int>(result));
-    }
+    if (result != Result::Ok) { core.Trace("[%s:%d][%s][%s] Call error, code: %d", file, line, func, expr, static_cast<int>(result)); }
     return result;
 }
 
@@ -89,7 +87,15 @@ SoundService::SoundService()
 
 SoundService::~SoundService()
 {
-    if (initialized) { m_backend.reset(); }
+    if (initialized) {
+        for (auto& music: m_music_sounds) {
+            if (music) { music.reset(); }
+        }
+        for (auto& cache: SoundCache) {
+            if (cache.sound) { cache.sound.reset(); }
+        }
+        m_backend.reset();
+    }
 }
 
 bool SoundService::Init()
@@ -277,7 +283,7 @@ TSD_ID SoundService::SoundPlay(
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        if (m_backend->create_sound(sound_name, SoundMode::Stream, sound) != Result::Ok) {
+        if (m_backend->create_sound(sound_name, SoundMode::WholeFile, sound) != Result::Ok) {
             core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
             return 0;
         }
@@ -316,7 +322,7 @@ TSD_ID SoundService::SoundPlay(
     PlayingSounds[sound_idx].fSoundVolume = _volume;
 
     // Get channel for sound but do not start to play
-    CHECK_RESULT(m_backend->bind_sound(sound, PlayingSounds[sound_idx].channel));
+    CHECK_RESULT(m_backend->bind_sound_to_empty_channel(sound, PlayingSounds[sound_idx].channel));
 
     if (sound_idx <= 1) {
         auto const music_pos = GetOGGPosition(sound_name.c_str());
@@ -365,8 +371,10 @@ TSD_ID SoundService::SoundPlay(
     PlayingSounds[sound_idx].Name       = std::move(sound_name);
     PlayingSounds[sound_idx].sound_type = _type;
 
-    // If not just caching ... then unpause ...
-    if (!_simpleCache) { PlayingSounds[sound_idx].channel->play(); }
+    if (!_simpleCache) {
+        // If we're not caching just start to play
+        PlayingSounds[sound_idx].channel->play();
+    }
 
     PlayingSounds[sound_idx].bFree = false;
     PlayingSounds[sound_idx].channel->set_looping(_looped);
@@ -965,8 +973,8 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
     CHECK_RESULT(m_backend->create_sound(name, SoundMode::WholeFile, cache_value.sound));
 
     if (cache_value.sound == nullptr) {
-        core.Trace("Problem with sound loading !!! '%s'", name);
-        return -1;
+        core.Trace("Problem with sound loading !!! '%s'", name.data());
+        return std::numeric_limits<size_t>::max();
     }
 
     cache_value.type              = sound_type;

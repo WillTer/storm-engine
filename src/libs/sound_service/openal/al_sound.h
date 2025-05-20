@@ -1,9 +1,14 @@
 #pragma once
 
+#include <array>
+#include <memory>
+
 #include <libs/sound_service/i_audio_backend.h>
 
 namespace storm::audio
 {
+
+class ALChannel;
 
 class ALSound: virtual public ISound
 {
@@ -11,10 +16,19 @@ public:
     ALSound(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode);
     ~ALSound() override;
 
-private:
-    std::shared_ptr<IDecoder> m_decoder;
+    Result get_sound_mode(SoundMode& mode) override;
 
-    SoundMode m_sound_mode;
+private:
+    friend class ALChannel;
+
+    Result bind_buffers_to_source(unsigned source, bool looping);
+    Result set_looping(unsigned source, bool looping);
+
+    bool push_next_data(unsigned buffer) const;
+    void reset_buffers();
+
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
 };
 
 }  // namespace storm::audio

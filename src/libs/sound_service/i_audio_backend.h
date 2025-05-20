@@ -8,13 +8,16 @@ namespace storm::audio
 {
 
 enum class Result : int32_t {
-    Ok                     = 0,
-    ErrNotInitialized      = -1,
-    ErrFileNotFound        = -2,
-    ErrFileOpenFailed      = -3,
-    ErrChannelIsEmpty      = -4,
-    ErrDecoderNotSupported = -5,
-    ErrInternal            = -6,
+    Ok                        = 0,
+    ErrNotInitialized         = -1,
+    ErrInvalidArgument        = -2,
+    ErrFileNotFound           = -3,
+    ErrFileOpenFailed         = -4,
+    ErrFileFormatInvalid      = -5,
+    ErrFileFormatNotSupported = -6,
+    ErrChannelIsEmpty         = -7,
+    ErrNoEmptyChannels        = -8,
+    ErrInternal               = -9,
 
     ErrUnknown = std::numeric_limits<int32_t>::min(),
 };
@@ -22,6 +25,13 @@ enum class Result : int32_t {
 enum class ChannelState { None, Playing, Paused, Stopped };
 
 enum class SoundMode { WholeFile, Stream };
+
+enum class SoundFormat {
+    Mono8,
+    Mono16,
+    Stereo8,
+    Stereo16,
+};
 
 class IChannel
 {
@@ -60,14 +70,21 @@ public:
 
     virtual Result init(std::filesystem::path const& file_path) = 0;
 
-    virtual Result get_channels(int& channels)       = 0;
-    virtual Result get_sample_rate(int& sample_rate) = 0;
+    virtual Result get_channels(int& channels)           = 0;
+    virtual Result get_sample_rate(int& sample_rate)     = 0;
+    virtual Result get_sound_format(SoundFormat& format) = 0;
+
+    virtual Result get_pcm_data(std::vector<uint8_t>& data, bool read_until_end) = 0;
+
+    virtual Result seek_start() = 0;
 };
 
 class ISound
 {
 public:
     virtual ~ISound() = default;
+
+    virtual Result get_sound_mode(SoundMode& mode) = 0;
 };
 
 class IBackend
@@ -79,7 +96,8 @@ public:
 
     virtual Result create_sound(std::filesystem::path const& file_path, SoundMode mode, std::shared_ptr<ISound>& out) = 0;
 
-    virtual Result bind_sound(std::shared_ptr<ISound> const& sound, std::shared_ptr<IChannel>& out) = 0;
+    virtual Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::shared_ptr<IChannel>& out) = 0;
+    virtual Result release_channel(std::shared_ptr<IChannel> const& channel)                                         = 0;
 
     virtual Result set_listener_position_3d(std::array<float, 3> const& position)       = 0;
     virtual Result set_listener_velocity_3d(std::array<float, 3> const& velocity)       = 0;

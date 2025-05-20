@@ -1,9 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <libs/sound_service/i_audio_backend.h>
 
 namespace storm::audio
 {
+
+class ALSound;
 
 class ALChannel: virtual public IChannel
 {
@@ -34,6 +38,17 @@ public:
     Result get_pitch(float& pitch_level) override;
 
     Result set_looping(bool flag) override;
+
+private:
+    friend class ALBackend;
+
+    Result bind_sound(std::shared_ptr<ALSound> const& sound);
+    Result unbind_sound();
+
+    bool internal_update();
+
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
 };
 
 }  // namespace storm::audio
