@@ -8,8 +8,13 @@ namespace storm::audio
 class ALSound: virtual public ISound
 {
 public:
-    ALSound();
+    ALSound(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode);
     ~ALSound() override;
+
+private:
+    std::shared_ptr<IDecoder> m_decoder;
+
+    SoundMode m_sound_mode;
 };
 
 }  // namespace storm::audio

@@ -15,7 +15,7 @@ public:
     Result pause() override;
     Result stop() override;
 
-    Result get_state(AudioState& state) const override;
+    Result get_state(ChannelState& state) const override;
 
     Result set_playback_position(std::chrono::milliseconds const& pos) override;
     Result get_playback_position(std::chrono::milliseconds& pos) const override;

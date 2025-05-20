@@ -4,8 +4,6 @@
 #include <stack>
 #include <string>
 
-#include <AL/al.h>
-#include <AL/alc.h>
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
@@ -47,9 +45,6 @@ private:
 
     bool bShowDebugInfo;
     bool initialized;
-
-    ALCdevice*  m_device;
-    ALCcontext* m_context;
 
     std::unique_ptr<storm::audio::IBackend>              m_backend;
     std::array<std::shared_ptr<storm::audio::ISound>, 2> m_music_sounds;

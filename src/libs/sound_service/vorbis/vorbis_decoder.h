@@ -1,0 +1,26 @@
+#pragma once
+
+#include <memory>
+
+#include <libs/sound_service/i_audio_backend.h>
+
+namespace storm::audio
+{
+
+class VorbisDecoder: virtual public IDecoder
+{
+public:
+    VorbisDecoder();
+    ~VorbisDecoder() override;
+
+    Result init(std::filesystem::path const& file_path) override;
+
+    Result get_channels(int& channels) override;
+    Result get_sample_rate(int& sample_rate) override;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
+};
+
+}  // namespace storm::audio

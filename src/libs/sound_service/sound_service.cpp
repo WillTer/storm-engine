@@ -16,7 +16,6 @@
 // for debugging
 #include "openal/al_backend.h"
 
-#include "al_utils.h"
 #include "debug_entity.h"
 
 using namespace storm::audio;
@@ -26,14 +25,6 @@ CREATE_SERVICE(SoundService)
 CREATE_CLASS(SoundVisualisationEntity)
 
 #define DISTANCEFACTOR 1.0F
-#define CHECK_ALC_CALL(expr) \
-    do { \
-        if ((expr) == ALC_FALSE) { \
-            const auto err = alcGetError(m_device); \
-            core.Trace("[%s:%s:%d] (%s) ALC Error, code: %x", __FILE__, __func__, __LINE__, #expr, err); \
-            return false; \
-        } \
-    } while (false)
 
 #define CHECK_RESULT(expr) error_handler(expr, __FILE__, __LINE__, __func__, #expr)
 
@@ -86,13 +77,8 @@ SoundService::SoundService()
     fPitch = PITCH_DEFAULT;
 
     bShowDebugInfo = false;
-    // OGG_sound[0] = nullptr;
-    // OGG_sound[1] = nullptr;
-    // system = nullptr;
-    initialized = false;
-    m_device    = nullptr;
-    m_context   = nullptr;
-    m_backend   = nullptr;
+    initialized    = false;
+    m_backend      = nullptr;
 
     listenerPos = {0.0F, 0.0F, 0.0F};
     listenerVel = {0.0F, 0.0F, 0.0F};
@@ -103,14 +89,7 @@ SoundService::SoundService()
 
 SoundService::~SoundService()
 {
-    if (initialized) {
-        m_backend.reset();
-
-        // TODO: move to backend
-        alcMakeContextCurrent(nullptr);
-        alcDestroyContext(m_context);
-        alcCloseDevice(m_device);
-    }
+    if (initialized) { m_backend.reset(); }
 }
 
 bool SoundService::Init()
@@ -120,15 +99,6 @@ bool SoundService::Init()
     m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
 
     if (m_renderer == nullptr) { return false; }
-
-    m_device = alcOpenDevice(nullptr);  // Default device
-    if (m_device != nullptr) {
-        m_context = alcCreateContext(m_device, nullptr);
-        CHECK_ALC_CALL(alcMakeContextCurrent(m_context));
-    } else {
-        core.Trace("Error: unable to open sound device, error: \n");
-        return false;
-    }
 
     m_backend = std::make_unique<ALBackend>();
     if (!m_backend || CHECK_RESULT(m_backend->init()) != Result::Ok) { return false; }
@@ -215,14 +185,14 @@ void SoundService::RunStart()
     for (uint16_t i = 0; i < numActiveSounds; i++) {
         if (PlayingSounds[i].bFree) continue;
 
-        IChannel::AudioState state = {};
+        ChannelState state = {};
 
         CHECK_RESULT(PlayingSounds[i].channel->get_state(state));
 
         // If it's just paused, don't need to touch it
-        if (state == IChannel::AudioState::Paused) { continue; }
+        if (state == ChannelState::Paused) { continue; }
 
-        if (state != IChannel::AudioState::Playing) {
+        if (state != ChannelState::Playing) {
             PlayingSounds[i].channel = nullptr;
 
             if (i <= 1 && m_music_sounds[i]) { m_music_sounds[i].reset(); }
@@ -286,7 +256,7 @@ TSD_ID SoundService::SoundPlay(
     if (strchr(_name, '\\') == nullptr) {
         // Trying to find in aliases
         auto const alias_idx = get_alias_index_by_name(_name);
-        if (alias_idx >= 0 && !Aliases[alias_idx].soundFiles.empty()) {
+        if (alias_idx != std::numeric_limits<decltype(alias_idx)>::max() && !Aliases[alias_idx].soundFiles.empty()) {
             // play sound from the alias ...
             file_name = get_random_name(Aliases[alias_idx]);
             if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", file_name.c_str()); }
@@ -302,12 +272,12 @@ TSD_ID SoundService::SoundPlay(
     std::string sound_name = "resource\\sounds\\" + file_name;
     sound_name             = fio->ConvertPathResource(sound_name.c_str());
 
-    std::shared_ptr<storm::audio::ISound> sound     = nullptr;
-    uint16_t                              sound_idx = 0;
+    std::shared_ptr<ISound> sound     = nullptr;
+    uint16_t                sound_idx = 0;
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        if (m_backend->create_sound_stream(sound_name, sound) != storm::audio::Result::Ok) {
+        if (m_backend->create_sound(sound_name, SoundMode::Stream, sound) != Result::Ok) {
             core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
             return 0;
         }
@@ -328,7 +298,10 @@ TSD_ID SoundService::SoundPlay(
     } else {
         // For all other sounds, take from the cache
         auto const cache_idx = GetFromCache(sound_name, _type);
-        if (cache_idx < 0) { return 0; }
+        if (cache_idx == std::numeric_limits<decltype(cache_idx)>::max()) {
+            core.Trace("No sound \"%s\" in cache", sound_name.c_str());
+            return 0;
+        }
 
         if (!AllocateSound(id)) { return 0; }
 
@@ -684,6 +657,8 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
         // --------- remove all sounds -----------------------------------------
         int start = 0;
         for (; time > 0 && start < 2; ++start) {
+            if (PlayingSounds[start].bFree) { continue; }
+
             float vol = 0.0F;
             CHECK_RESULT(PlayingSounds[start].channel->get_volume(vol));
             PlayingSounds[start].fFaderNeedVolume    = 0.0F;
@@ -704,9 +679,9 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
                 SetOGGPosition(PlayingSounds[i].Name.c_str(), music_pos);
             }
 
-            IChannel::AudioState state = IChannel::AudioState::None;
+            ChannelState state = ChannelState::None;
             CHECK_RESULT(PlayingSounds[i].channel->get_state(state));
-            if (state != IChannel::AudioState::Playing) {
+            if (state != ChannelState::Playing) {
                 if constexpr (TRACE_INFORMATION) {
                     core.Trace(
                         "PlayingSounds[%d].channel 0x%08X %s state %d",
@@ -735,7 +710,7 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
 
     auto& sound = PlayingSounds[id.index()];
 
-    if (id.stamp() != sound.stamp) { return; }
+    if (id.stamp() != sound.stamp || !sound.channel) { return; }
 
     if (time > 0) {
         float vol = 0.0F;
@@ -750,10 +725,10 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
             SetOGGPosition(sound.Name.c_str(), music_pos);
         }
 
-        IChannel::AudioState state = IChannel::AudioState::None;
+        ChannelState state = ChannelState::None;
         CHECK_RESULT(sound.channel->get_state(state));
         if (!sound.bFree) {
-            if (state != IChannel::AudioState::Playing) {
+            if (state != ChannelState::Playing) {
                 FreeSound(id.index());
             } else {
                 CHECK_RESULT(sound.channel->stop());
@@ -987,7 +962,7 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
     // if (_type == PCM_STEREO) { mode = mode | FMOD_2D; }
 
     tSoundCache cache_value;
-    CHECK_RESULT(m_backend->create_sound(name, cache_value.sound));
+    CHECK_RESULT(m_backend->create_sound(name, SoundMode::WholeFile, cache_value.sound));
 
     if (cache_value.sound == nullptr) {
         core.Trace("Problem with sound loading !!! '%s'", name);

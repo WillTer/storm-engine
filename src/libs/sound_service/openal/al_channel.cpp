@@ -20,9 +20,9 @@ Result ALChannel::stop()
     return Result::Ok;
 }
 
-Result ALChannel::get_state(AudioState& state) const
+Result ALChannel::get_state(ChannelState& state) const
 {
-    state = AudioState::Paused;
+    // state = ChannelState::Paused
     return Result::Ok;
 }
 
