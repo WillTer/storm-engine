@@ -7,8 +7,15 @@
 
 using namespace storm::audio;
 
+namespace
+{
+
+constexpr size_t BUFFER_SIZE = 2048;
+
+}
+
 struct SDLWavDecoder::Impl {
-    Impl() : is_initialized {false}, channels {0}, sample_rate {0} {}
+    Impl(bool force_stereo) : is_initialized {false}, force_stereo {force_stereo}, channels {0}, sample_rate {0}, offset {0} {}
 
     ~Impl() = default;
 
@@ -35,14 +42,16 @@ struct SDLWavDecoder::Impl {
 
         pcm_data = std::vector<uint8_t>(pcm_buffer, pcm_buffer + pcm_buffer_size);
 
-        channels    = audio_spec.channels;
+        channels    = force_stereo ? 2 : audio_spec.channels;
         sample_rate = audio_spec.freq;
 
-        bool const is_8bit  = (audio_spec.format & (AUDIO_S8 | AUDIO_U8)) != 0;
-        bool const is_16bit = (audio_spec.format & (AUDIO_S16 | AUDIO_U16)) != 0;
-        if (!is_8bit && !is_16bit) { return Result::ErrFileFormatNotSupported; }  // TODO: use SDL_AudioStream
+        stream = SDL_NewAudioStream(audio_spec.format, audio_spec.channels, audio_spec.freq, audio_spec.format, channels, audio_spec.freq);
+        seek_start();
 
-        switch (audio_spec.channels) {
+        bool const is_8bit  = (audio_spec.format & AUDIO_S8) == AUDIO_S8 || (audio_spec.format & AUDIO_U8) == AUDIO_U8;
+        bool const is_16bit = (audio_spec.format & AUDIO_S16) == AUDIO_S16 || (audio_spec.format & AUDIO_U16) == AUDIO_U16;
+        if (!is_8bit && !is_16bit) { return Result::ErrFileFormatNotSupported; }  // TODO: use SDL_AudioStream
+        switch (channels) {
         case 1: format = is_8bit ? SoundFormat::Mono8 : SoundFormat::Mono16; break;
         case 2: format = is_8bit ? SoundFormat::Stereo8 : SoundFormat::Stereo16; break;
         default: return Result::ErrFileFormatNotSupported;
@@ -55,28 +64,44 @@ struct SDLWavDecoder::Impl {
 
     Result get_pcm_data(std::vector<uint8_t>& data, bool read_until_end)
     {
-        data.resize(0);
-        // std::memset(data.data(), 0, data.size());
+        size_t buffer_size = SDL_AudioStreamAvailable(stream);
+        if (!read_until_end) { buffer_size = std::min(BUFFER_SIZE, buffer_size); }
+
+        data.resize(buffer_size);
+        SDL_AudioStreamGet(stream, data.data(), static_cast<int>(data.size()));
+
+        offset += buffer_size;
 
         return Result::Ok;
     }
 
     Result seek_start()
     {
+        offset = 0;
+
+        SDL_AudioStreamClear(stream);
+        SDL_AudioStreamPut(stream, pcm_data.data(), static_cast<int>(pcm_data.size()));
+        SDL_AudioStreamFlush(stream);
+
         return Result::Ok;
     }
 
     bool is_initialized;
 
+    bool force_stereo;
+
+    SDL_AudioStream*     stream;
     std::vector<uint8_t> pcm_data;
 
     int channels;
     int sample_rate;
 
+    size_t offset;
+
     SoundFormat format;
 };
 
-SDLWavDecoder::SDLWavDecoder() : m_impl {std::make_unique<Impl>()} {}
+SDLWavDecoder::SDLWavDecoder(bool force_stereo) : m_impl {std::make_unique<Impl>(force_stereo)} {}
 
 SDLWavDecoder::~SDLWavDecoder() = default;
 

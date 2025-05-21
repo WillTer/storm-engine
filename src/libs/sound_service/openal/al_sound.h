@@ -21,10 +21,12 @@ public:
 private:
     friend class ALChannel;
 
-    Result bind_buffers_to_source(unsigned source, bool looping);
-    Result set_looping(unsigned source, bool looping);
+    Result bind_buffers_to_source(unsigned source, bool is_looping);
+    Result unbind_source(unsigned source);
 
-    bool push_next_data(unsigned buffer) const;
+    Result set_looping(unsigned source, bool is_looping);
+
+    bool push_next_data(unsigned buffer, bool is_looping) const;
     void reset_buffers();
 
     struct Impl;

@@ -10,7 +10,7 @@ namespace storm::audio
 class VorbisDecoder: virtual public IDecoder
 {
 public:
-    VorbisDecoder();
+    VorbisDecoder(bool force_stereo);
     ~VorbisDecoder() override;
 
     Result init(std::filesystem::path const& file_path) override;

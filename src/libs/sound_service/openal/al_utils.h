@@ -13,6 +13,7 @@ inline void al_trace_errors(std::string const& filename, int line, std::string c
 {
     if (auto err = alGetError(); err != AL_NO_ERROR) {
         core.Trace("[%s:%d][%s] AL Error, code: %x", filename.c_str(), line, function.c_str(), err);
+        __debugbreak();
     }
 }
 

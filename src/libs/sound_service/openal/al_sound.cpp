@@ -7,12 +7,12 @@ using namespace storm::audio;
 namespace
 {
 
-constexpr size_t STREAM_BUFFER_COUNT = 4;
+constexpr size_t STREAM_BUFFER_COUNT = 2;
 
 }
 
 struct ALSound::Impl {
-    Impl(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode) : decoder {decoder}, sound_mode {sound_mode}, is_looping {false}
+    Impl(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode) : decoder {decoder}, sound_mode {sound_mode}
     {
         buffers.resize(sound_mode == SoundMode::Stream ? STREAM_BUFFER_COUNT : 1);
 
@@ -29,10 +29,14 @@ struct ALSound::Impl {
         }
 
         decoder->get_sample_rate(sample_rate);
+
+        reset_buffers();
     }
 
     ~Impl()
     {
+        unbind_sources();
+
         alDeleteBuffers(static_cast<int>(buffers.size()), buffers.data());
         AL_TRACE_ERRORS();
     }
@@ -40,7 +44,6 @@ struct ALSound::Impl {
     Result bind_buffers_to_source(unsigned source, bool looping)
     {
         set_looping(source, looping);
-        reset_buffers();
 
         if (sound_mode == SoundMode::WholeFile) {
             alSourcei(source, AL_BUFFER, buffers[0]);
@@ -48,14 +51,29 @@ struct ALSound::Impl {
             alSourceQueueBuffers(source, static_cast<int>(buffers.size()), buffers.data());
         }
 
+        sources.push_back(source);
+
         AL_TRACE_ERRORS();
 
         return Result::Ok;
     }
 
-    Result set_looping(unsigned source, bool looping)
+    Result unbind_source(unsigned source)
     {
-        is_looping = looping;
+        auto it = std::find_if(sources.begin(), sources.end(), [&source](unsigned const s) { return s == source; });
+
+        if (it == sources.end()) { return Result::ErrInvalidArgument; }
+
+        alSourcei(*it, AL_BUFFER, 0);
+        AL_TRACE_ERRORS();
+
+        sources.erase(it);
+
+        return Result::Ok;
+    }
+
+    Result set_looping(unsigned source, bool looping) const
+    {
         if (sound_mode == SoundMode::WholeFile) {
             alSourcei(source, AL_LOOPING, looping ? AL_TRUE : AL_FALSE);
         } else {
@@ -87,7 +105,7 @@ struct ALSound::Impl {
         }
     }
 
-    bool push_next_data(unsigned buffer) const
+    bool push_next_data(unsigned buffer, bool is_looping) const
     {
         std::vector<uint8_t> data = {};
         decoder->get_pcm_data(data, false);
@@ -107,6 +125,9 @@ struct ALSound::Impl {
 
     void reset_buffers()
     {
+        // Unbind buffers from all binded sources
+        unbind_sources();
+
         decoder->seek_start();
 
         if (sound_mode == SoundMode::WholeFile) {
@@ -116,6 +137,20 @@ struct ALSound::Impl {
         }
     }
 
+    void unbind_sources()
+    {
+        for (auto const source: sources) {
+            alSourceStop(source);
+            AL_TRACE_ERRORS();
+
+            alSourcei(source, AL_BUFFER, 0);
+            AL_TRACE_ERRORS();
+        }
+
+        // Clear sources list, as we're not binded to them anymore
+        sources.clear();
+    }
+
     std::shared_ptr<IDecoder> decoder;
 
     SoundMode sound_mode;
@@ -123,9 +158,8 @@ struct ALSound::Impl {
     ALenum format;
     int    sample_rate;
 
-    bool is_looping;
-
     std::vector<unsigned> buffers;
+    std::vector<unsigned> sources;
 };
 
 ALSound::ALSound(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode) : m_impl {std::make_unique<Impl>(decoder, sound_mode)} {}
@@ -138,19 +172,24 @@ Result ALSound::get_sound_mode(SoundMode& mode)
     return Result::Ok;
 }
 
-Result ALSound::bind_buffers_to_source(unsigned source, bool looping)
+Result ALSound::bind_buffers_to_source(unsigned source, bool is_looping)
 {
-    return m_impl->bind_buffers_to_source(source, looping);
+    return m_impl->bind_buffers_to_source(source, is_looping);
 }
 
-Result ALSound::set_looping(unsigned source, bool looping)
+Result ALSound::unbind_source(unsigned source)
 {
-    return m_impl->set_looping(source, looping);
+    return m_impl->unbind_source(source);
 }
 
-bool ALSound::push_next_data(unsigned buffer) const
+Result ALSound::set_looping(unsigned source, bool is_looping)
 {
-    return m_impl->push_next_data(buffer);
+    return m_impl->set_looping(source, is_looping);
+}
+
+bool ALSound::push_next_data(unsigned buffer, bool is_looping) const
+{
+    return m_impl->push_next_data(buffer, is_looping);
 }
 
 void ALSound::reset_buffers()

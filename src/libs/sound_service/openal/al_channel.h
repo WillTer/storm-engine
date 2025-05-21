@@ -29,7 +29,7 @@ public:
 
     Result set_position_3d(std::array<float, 3> const& position) override;
     Result set_velocity_3d(std::array<float, 3> const& velocity) override;
-    Result set_orientation_3d(std::array<float, 3> const& orientation) override;
+    Result set_direction_3d(std::array<float, 3> const& orientation) override;
 
     Result set_volume(float volume_level) override;
     Result get_volume(float& volume_level) override;
@@ -45,7 +45,7 @@ private:
     Result bind_sound(std::shared_ptr<ALSound> const& sound);
     Result unbind_sound();
 
-    bool internal_update();
+    void internal_update();
 
     struct Impl;
     std::unique_ptr<Impl> m_impl;

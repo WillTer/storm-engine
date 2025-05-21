@@ -10,12 +10,20 @@ using namespace storm::audio;
 namespace
 {
 
-constexpr size_t BUFFER_SIZE = 4096;
+constexpr size_t BUFFER_SIZE = 2048;
 
 }
 
 struct VorbisDecoder::Impl {
-    Impl() : is_initialized {false}, stream {nullptr}, channels {0}, sample_rate {0}, offset {0} {}
+    Impl(bool force_stereo)
+        : is_initialized {false}
+        , force_stereo {force_stereo}
+        , stream {nullptr}
+        , channels {0}
+        , sample_rate {0}
+        , offset {0}
+    {
+    }
 
     ~Impl()
     {
@@ -103,6 +111,8 @@ struct VorbisDecoder::Impl {
 
     bool is_initialized;
 
+    bool force_stereo;  // FIXME: is it really needed here?
+
     stb_vorbis* stream;
 
     std::vector<char> m_file_data;
@@ -115,7 +125,7 @@ struct VorbisDecoder::Impl {
     SoundFormat format;
 };
 
-VorbisDecoder::VorbisDecoder() : m_impl {std::make_unique<Impl>()} {}
+VorbisDecoder::VorbisDecoder(bool force_stereo) : m_impl {std::make_unique<Impl>(force_stereo)} {}
 
 VorbisDecoder::~VorbisDecoder() = default;
 

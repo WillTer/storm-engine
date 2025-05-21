@@ -14,9 +14,11 @@ struct ALChannel::Impl {
 
     ~Impl()
     {
-        // Unbind all buffers from source
-        alSourcei(source, AL_BUFFER, 0);
+        alSourceStop(source);
         AL_TRACE_ERRORS();
+
+        // Unbind all buffers from source
+        unbind_sound();
 
         alDeleteSources(1, &source);
         AL_TRACE_ERRORS();
@@ -56,15 +58,21 @@ struct ALChannel::Impl {
 
     Result get_state(ChannelState& state) const
     {
-        if (!sound) { return Result::ErrChannelIsEmpty; }
-
         ALint al_state = 0;
         alGetSourcei(source, AL_SOURCE_STATE, &al_state);
+        AL_TRACE_ERRORS();
 
         switch (al_state) {
         case AL_PLAYING: state = ChannelState::Playing; break;
         case AL_PAUSED: state = ChannelState::Paused; break;
-        case AL_STOPPED: state = ChannelState::Stopped; break;
+        case AL_STOPPED: {
+            SoundMode mode = {};
+            if (sound && sound->get_sound_mode(mode) == Result::Ok && mode == SoundMode::Stream) {
+                state = ChannelState::Paused;
+            } else {
+                state = ChannelState::Stopped;
+            }
+        } break;
         default: state = ChannelState::None; break;
         }
 
@@ -92,41 +100,65 @@ struct ALChannel::Impl {
 
     Result set_max_distance(float distance)
     {
+        alSourcef(source, AL_MAX_DISTANCE, distance);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result set_position_3d(std::array<float, 3> const& position)
     {
+        alSource3f(source, AL_POSITION, position[0], position[1], -position[2]);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result set_velocity_3d(std::array<float, 3> const& velocity)
     {
+        alSource3f(source, AL_VELOCITY, velocity[0], velocity[1], -velocity[2]);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
-    Result set_orientation_3d(std::array<float, 3> const& orientation)
+    Result set_direction_3d(std::array<float, 3> const& orientation)
     {
+        alSource3f(source, AL_DIRECTION, orientation[0], orientation[1], -orientation[2]);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result set_volume(float volume_level)
     {
+        alSourcef(source, AL_GAIN, volume_level);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result get_volume(float& volume_level)
     {
+        alGetSourcef(source, AL_GAIN, &volume_level);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result set_pitch(float pitch_level)
     {
+        alSourcef(source, AL_PITCH, pitch_level);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
     Result get_pitch(float& pitch_level)
     {
+        alGetSourcef(source, AL_PITCH, &pitch_level);
+        AL_TRACE_ERRORS();
+
         return Result::Ok;
     }
 
@@ -143,6 +175,11 @@ struct ALChannel::Impl {
         this->sound = sound;
         sound->bind_buffers_to_source(source, is_looping);
 
+        // Reset 3D parameters on source
+        set_position_3d({});
+        set_velocity_3d({});
+        set_direction_3d({});
+
         return Result::Ok;
     }
 
@@ -151,21 +188,26 @@ struct ALChannel::Impl {
         alSourcei(source, AL_BUFFER, 0);
         AL_TRACE_ERRORS();
 
-        sound.reset();
+        if (sound) {
+            sound->unbind_source(source);
+            sound.reset();
+        }
+
         return Result::Ok;
     }
 
-    bool internal_update() const
+    void internal_update() const
     {
-        ChannelState state = {};
-        get_state(state);
-        if (!sound || state == ChannelState::Stopped) { return false; }
+        if (!sound) { return; }
 
         SoundMode mode = {};
         sound->get_sound_mode(mode);
 
+        ChannelState state = {};
+        get_state(state);
+
         // No need to update buffer if stream is on pause or there is no stream at all
-        if (state == ChannelState::Paused || mode == SoundMode::WholeFile) { return true; }
+        if (state == ChannelState::Paused || mode == SoundMode::WholeFile) { return; }
 
         ALint processed = 0;
         alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
@@ -176,13 +218,11 @@ struct ALChannel::Impl {
             alSourceUnqueueBuffers(source, 1, &buffer);
             AL_TRACE_ERRORS();
 
-            if (sound->push_next_data(buffer)) {
+            if (sound->push_next_data(buffer, is_looping)) {
                 alSourceQueueBuffers(source, 1, &buffer);
                 AL_TRACE_ERRORS();
             }
         }
-
-        return true;
     }
 
     unsigned source;
@@ -246,9 +286,9 @@ Result ALChannel::set_velocity_3d(std::array<float, 3> const& velocity)
     return m_impl->set_velocity_3d(velocity);
 }
 
-Result ALChannel::set_orientation_3d(std::array<float, 3> const& orientation)
+Result ALChannel::set_direction_3d(std::array<float, 3> const& orientation)
 {
-    return m_impl->set_orientation_3d(orientation);
+    return m_impl->set_direction_3d(orientation);
 }
 
 Result ALChannel::set_volume(float volume_level)
@@ -286,7 +326,7 @@ Result ALChannel::unbind_sound()
     return m_impl->unbind_sound();
 }
 
-bool ALChannel::internal_update()
+void ALChannel::internal_update()
 {
-    return m_impl->internal_update();
+    m_impl->internal_update();
 }

@@ -2,7 +2,10 @@
 
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
+#include <limits>
+#include <vector>
 
 namespace storm::audio
 {
@@ -50,9 +53,9 @@ public:
     virtual Result set_min_distance(float distance) = 0;
     virtual Result set_max_distance(float distance) = 0;
 
-    virtual Result set_position_3d(std::array<float, 3> const& position)       = 0;
-    virtual Result set_velocity_3d(std::array<float, 3> const& velocity)       = 0;
-    virtual Result set_orientation_3d(std::array<float, 3> const& orientation) = 0;
+    virtual Result set_position_3d(std::array<float, 3> const& position)     = 0;
+    virtual Result set_velocity_3d(std::array<float, 3> const& velocity)     = 0;
+    virtual Result set_direction_3d(std::array<float, 3> const& orientation) = 0;
 
     virtual Result set_volume(float volume_level)  = 0;
     virtual Result get_volume(float& volume_level) = 0;
@@ -94,14 +97,15 @@ public:
 
     virtual Result init() = 0;
 
-    virtual Result create_sound(std::filesystem::path const& file_path, SoundMode mode, std::shared_ptr<ISound>& out) = 0;
+    virtual Result
+    create_sound(std::filesystem::path const& file_path, SoundMode mode, bool force_stereo, std::shared_ptr<ISound>& out) = 0;
 
-    virtual Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::shared_ptr<IChannel>& out) = 0;
-    virtual Result release_channel(std::shared_ptr<IChannel> const& channel)                                         = 0;
+    virtual Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out) = 0;
+    virtual Result release_channel(std::shared_ptr<IChannel> const& channel)                                       = 0;
 
     virtual Result set_listener_position_3d(std::array<float, 3> const& position)       = 0;
     virtual Result set_listener_velocity_3d(std::array<float, 3> const& velocity)       = 0;
-    virtual Result set_listener_orientation_3d(std::array<float, 3> const& orientation) = 0;
+    virtual Result set_listener_orientation_3d(std::array<float, 6> const& orientation) = 0;
 
     virtual void update() = 0;
 };

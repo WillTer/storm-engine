@@ -10,7 +10,7 @@ namespace storm::audio
 class SDLWavDecoder: virtual public IDecoder
 {
 public:
-    SDLWavDecoder();
+    SDLWavDecoder(bool force_stereo);
     ~SDLWavDecoder() override;
 
     Result init(std::filesystem::path const& file_path) override;
