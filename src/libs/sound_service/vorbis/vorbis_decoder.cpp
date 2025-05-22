@@ -10,19 +10,14 @@ using namespace storm::audio;
 namespace
 {
 
-constexpr size_t BUFFER_SIZE = 2048;
+constexpr size_t INTERMEDIATE_BUFFER_SIZE = 2048;
 
 }
 
 struct VorbisDecoder::Impl {
-    Impl(bool force_stereo)
-        : is_initialized {false}
-        , force_stereo {force_stereo}
-        , stream {nullptr}
-        , channels {0}
-        , sample_rate {0}
-        , offset {0}
+    Impl(ISound::Flags flags) : is_initialized {false}, flags {flags}, stream {nullptr}, channels {0}, sample_rate {0}, offset {0}
     {
+        m_intermediate_buffer.reserve(INTERMEDIATE_BUFFER_SIZE);
     }
 
     ~Impl()
@@ -53,69 +48,65 @@ struct VorbisDecoder::Impl {
         return Result::Ok;
     }
 
-    Result get_pcm_data(std::vector<uint8_t>& data, bool read_until_end)
+    size_t get_pcm_data(std::vector<uint8_t>& buffer)
     {
-        if (read_until_end) {
-            data.clear();
+        if (buffer.size() == 0) {
+            m_intermediate_buffer.resize(INTERMEDIATE_BUFFER_SIZE);
 
-            size_t               sample_count = 0;
-            std::vector<uint8_t> buffer       = {};
-
-            while ((sample_count = decode_part(buffer)) > 0) {
-                size_t const bytes_count = sample_count * sizeof(short);
-                if (buffer.size() != bytes_count) { buffer.resize(bytes_count); }  // Shrink buffer to actual size
-
-                data.insert(data.end(), buffer.begin(), buffer.end());
+            // Read everything
+            size_t bytes_count = 0;
+            while ((bytes_count = decode_part(m_intermediate_buffer)) > 0) {
+                buffer.insert(buffer.end(), m_intermediate_buffer.begin(), m_intermediate_buffer.end());
                 offset += bytes_count;
             }
         } else {
-            auto sample_count = decode_part(data);
-
-            size_t const bytes_count = sample_count * sizeof(short);
-            if (data.size() != bytes_count) { data.resize(bytes_count); }  // Shrink buffer to actual size
-
-            offset += bytes_count;
+            offset += decode_part(buffer);
         }
 
-        return Result::Ok;
+        return buffer.size();
     }
 
-    Result seek_start()
+    void seek_start()
     {
         if (offset > 0) {
             stb_vorbis_seek_start(stream);
             offset = 0;
         }
-
-        return Result::Ok;
     }
 
-    size_t decode_part(std::vector<uint8_t>& data)
+    size_t decode_part(std::vector<uint8_t>& buffer)
     {
-        data.resize(BUFFER_SIZE);
-        std::memset(data.data(), 0, data.size());
+        assert(buffer.size() % sizeof(short) == 0);
+        std::memset(buffer.data(), 0, buffer.size());
 
-        size_t const max_samples_count = data.size() / sizeof(short);
+        size_t const max_samples_count = buffer.size() / sizeof(short);
 
         size_t sample_count = 0;
-        while (sample_count < data.size()) {
+        while (sample_count < buffer.size()) {
             int const converted = stb_vorbis_get_samples_short_interleaved(
-                stream, channels, reinterpret_cast<short*>(data.data()) + sample_count, static_cast<int>(max_samples_count - sample_count));
+                stream,
+                channels,
+                reinterpret_cast<short*>(buffer.data()) + sample_count,
+                static_cast<int>(max_samples_count - sample_count));
             if (converted == 0) { break; }
 
             sample_count += converted * channels;
         }
 
-        return sample_count;
+        size_t const bytes_count = sample_count * sizeof(short);
+        if (buffer.size() != bytes_count) { buffer.resize(bytes_count); }  // Shrink buffer to actual size
+
+        return bytes_count;
     }
 
     bool is_initialized;
 
-    bool force_stereo;  // FIXME: is it really needed here?
+    ISound::Flags flags;
 
     stb_vorbis* stream;
 
-    std::vector<char> m_file_data;
+    std::vector<char>    m_file_data;
+    std::vector<uint8_t> m_intermediate_buffer;
 
     int channels;
     int sample_rate;
@@ -125,7 +116,7 @@ struct VorbisDecoder::Impl {
     SoundFormat format;
 };
 
-VorbisDecoder::VorbisDecoder(bool force_stereo) : m_impl {std::make_unique<Impl>(force_stereo)} {}
+VorbisDecoder::VorbisDecoder(ISound::Flags flags) : m_impl {std::make_unique<Impl>(flags)} {}
 
 VorbisDecoder::~VorbisDecoder() = default;
 
@@ -158,14 +149,14 @@ Result VorbisDecoder::get_sound_format(SoundFormat& format)
     return Result::Ok;
 }
 
-Result VorbisDecoder::get_pcm_data(std::vector<uint8_t>& data, bool read_until_end)
+size_t VorbisDecoder::get_pcm_data(std::vector<uint8_t>& buffer)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
-    return m_impl->get_pcm_data(data, read_until_end);
+    if (!m_impl->is_initialized) { return 0; }
+    return m_impl->get_pcm_data(buffer);
 }
 
-Result VorbisDecoder::seek_start()
+void VorbisDecoder::seek_start()
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
-    return m_impl->seek_start();
+    if (!m_impl->is_initialized) { return; }
+    m_impl->seek_start();
 }

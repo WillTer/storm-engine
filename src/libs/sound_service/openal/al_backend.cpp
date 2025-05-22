@@ -21,15 +21,15 @@ using namespace storm::audio;
 namespace
 {
 
-Result get_decoder(std::filesystem::path const& file_path, bool force_stereo, std::shared_ptr<IDecoder>& out)
+Result get_decoder(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<IDecoder>& out)
 {
     std::string ext = file_path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) { return std::tolower(ch); });
 
     if (ext == ".ogg") {
-        out = std::make_shared<VorbisDecoder>(force_stereo);
+        out = std::make_shared<VorbisDecoder>(flags);
     } else if (ext == ".wav") {
-        out = std::make_shared<SDLWavDecoder>(force_stereo);
+        out = std::make_shared<SDLWavDecoder>(flags);
     } else {
         return Result::ErrFileFormatNotSupported;
     }
@@ -76,16 +76,16 @@ struct ALBackend::Impl {
         return Result::Ok;
     }
 
-    Result create_sound(std::filesystem::path const& file_path, SoundMode sound_mode, bool force_stereo, std::shared_ptr<ISound>& out)
+    Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out)
     {
         if (!std::filesystem::exists(file_path)) { return Result::ErrFileNotFound; }
 
         std::shared_ptr<IDecoder> decoder = nullptr;
 
-        if (auto res = get_decoder(file_path, force_stereo, decoder); res != Result::Ok) { return res; }
+        if (auto res = get_decoder(file_path, flags, decoder); res != Result::Ok) { return res; }
         if (auto res = decoder->init(file_path); res != Result::Ok) { return res; }
 
-        auto sound = std::make_shared<ALSound>(decoder, sound_mode);
+        auto sound = std::make_shared<ALSound>(decoder, flags);
         out        = sound;
 
         // get address of interface ptr as we will compare later with it
@@ -201,12 +201,11 @@ Result ALBackend::init()
     return m_impl->init();
 }
 
-Result
-ALBackend::create_sound(std::filesystem::path const& file_path, SoundMode sound_mode, bool force_stereo, std::shared_ptr<ISound>& out)
+Result ALBackend::create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out)
 {
     if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
 
-    return m_impl->create_sound(file_path, sound_mode, force_stereo, out);
+    return m_impl->create_sound(file_path, flags, out);
 }
 
 Result ALBackend::bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out)

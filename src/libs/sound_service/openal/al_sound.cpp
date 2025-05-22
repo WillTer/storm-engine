@@ -7,28 +7,29 @@ using namespace storm::audio;
 namespace
 {
 
-constexpr size_t STREAM_BUFFER_COUNT = 2;
+constexpr size_t STREAM_BUFFER_COUNT      = 2;
+constexpr size_t INTERMEDIATE_BUFFER_SIZE = 2048;
 
-}
+}  // namespace
 
 struct ALSound::Impl {
-    Impl(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode) : decoder {decoder}, sound_mode {sound_mode}
+    Impl(std::shared_ptr<IDecoder> const& decoder, ISound::Flags flags) : decoder {decoder}, flags {flags}
     {
-        buffers.resize(sound_mode == SoundMode::Stream ? STREAM_BUFFER_COUNT : 1);
+        buffers.resize(is_flag_enabled(flags, ISound::Flags::Stream) ? STREAM_BUFFER_COUNT : 1);
 
         alGenBuffers(static_cast<int>(buffers.size()), buffers.data());
         AL_TRACE_ERRORS();
 
-        SoundFormat sound_format = {};
         decoder->get_sound_format(sound_format);
         switch (sound_format) {
-        case SoundFormat::Mono8: format = AL_FORMAT_MONO8; break;
-        case SoundFormat::Mono16: format = AL_FORMAT_MONO16; break;
-        case SoundFormat::Stereo8: format = AL_FORMAT_STEREO8; break;
-        case SoundFormat::Stereo16: format = AL_FORMAT_STEREO16; break;
+        case SoundFormat::Mono8: al_format = AL_FORMAT_MONO8; break;
+        case SoundFormat::Mono16: al_format = AL_FORMAT_MONO16; break;
+        case SoundFormat::Stereo8: al_format = AL_FORMAT_STEREO8; break;
+        case SoundFormat::Stereo16: al_format = AL_FORMAT_STEREO16; break;
         }
 
         decoder->get_sample_rate(sample_rate);
+        decoder->get_channels(channels);
 
         reset_buffers();
     }
@@ -45,10 +46,10 @@ struct ALSound::Impl {
     {
         set_looping(source, looping);
 
-        if (sound_mode == SoundMode::WholeFile) {
-            alSourcei(source, AL_BUFFER, buffers[0]);
-        } else {
+        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
             alSourceQueueBuffers(source, static_cast<int>(buffers.size()), buffers.data());
+        } else {
+            alSourcei(source, AL_BUFFER, buffers[0]);
         }
 
         sources.push_back(source);
@@ -74,10 +75,10 @@ struct ALSound::Impl {
 
     Result set_looping(unsigned source, bool looping) const
     {
-        if (sound_mode == SoundMode::WholeFile) {
-            alSourcei(source, AL_LOOPING, looping ? AL_TRUE : AL_FALSE);
-        } else {
+        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
             alSourcei(source, AL_LOOPING, AL_FALSE);
+        } else {
+            alSourcei(source, AL_LOOPING, looping ? AL_TRUE : AL_FALSE);
         }
 
         AL_TRACE_ERRORS();
@@ -85,39 +86,35 @@ struct ALSound::Impl {
         return Result::Ok;
     }
 
-    void bind_buffer_data_whole()
+    void bind_buffer_data()
     {
         std::vector<uint8_t> data = {};
-        decoder->get_pcm_data(data, true);
+        decoder->get_pcm_data(data);
 
-        alBufferData(buffers[0], format, data.data(), static_cast<int>(data.size()), sample_rate);
+        alBufferData(buffers[0], al_format, data.data(), static_cast<int>(data.size()), sample_rate);
         AL_TRACE_ERRORS();
     }
 
     void bind_buffer_data_stream()
     {
-        for (auto& buffer: buffers) {
-            std::vector<uint8_t> data = {};
-            decoder->get_pcm_data(data, false);
-
-            alBufferData(buffer, format, data.data(), static_cast<int>(data.size()), sample_rate);
-            AL_TRACE_ERRORS();
+        for (auto const buffer: buffers) {
+            push_next_data(buffer, false);
         }
     }
 
-    bool push_next_data(unsigned buffer, bool is_looping) const
+    bool push_next_data(unsigned buffer, bool is_looping)
     {
-        std::vector<uint8_t> data = {};
-        decoder->get_pcm_data(data, false);
+        intermediate_buffer.resize(INTERMEDIATE_BUFFER_SIZE);
+        auto size = decoder->get_pcm_data(intermediate_buffer);
 
-        if (data.empty() && is_looping) {
+        if (size == 0 && is_looping) {
             decoder->seek_start();
-            decoder->get_pcm_data(data, false);
+            size = decoder->get_pcm_data(intermediate_buffer);
         }
 
-        if (data.empty()) { return false; }
+        if (size == 0) { return false; }
 
-        alBufferData(buffer, format, data.data(), static_cast<int>(data.size()), sample_rate);
+        alBufferData(buffer, al_format, intermediate_buffer.data(), static_cast<int>(intermediate_buffer.size()), sample_rate);
         AL_TRACE_ERRORS();
 
         return true;
@@ -130,10 +127,10 @@ struct ALSound::Impl {
 
         decoder->seek_start();
 
-        if (sound_mode == SoundMode::WholeFile) {
-            bind_buffer_data_whole();
-        } else {
+        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
             bind_buffer_data_stream();
+        } else {
+            bind_buffer_data();
         }
     }
 
@@ -153,24 +150,22 @@ struct ALSound::Impl {
 
     std::shared_ptr<IDecoder> decoder;
 
-    SoundMode sound_mode;
+    ISound::Flags flags;
+    SoundFormat   sound_format;
 
-    ALenum format;
+    ALenum al_format;
+    int    channels;
     int    sample_rate;
+
+    std::vector<uint8_t> intermediate_buffer;
 
     std::vector<unsigned> buffers;
     std::vector<unsigned> sources;
 };
 
-ALSound::ALSound(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode) : m_impl {std::make_unique<Impl>(decoder, sound_mode)} {}
+ALSound::ALSound(std::shared_ptr<IDecoder> const& decoder, ISound::Flags flags) : m_impl {std::make_unique<Impl>(decoder, flags)} {}
 
 ALSound::~ALSound() = default;
-
-Result ALSound::get_sound_mode(SoundMode& mode)
-{
-    mode = m_impl->sound_mode;
-    return Result::Ok;
-}
 
 Result ALSound::bind_buffers_to_source(unsigned source, bool is_looping)
 {
@@ -195,4 +190,24 @@ bool ALSound::push_next_data(unsigned buffer, bool is_looping) const
 void ALSound::reset_buffers()
 {
     m_impl->reset_buffers();
+}
+
+ISound::Flags ALSound::get_flags() const
+{
+    return m_impl->flags;
+}
+
+int ALSound::get_channels() const
+{
+    return m_impl->channels;
+}
+
+int ALSound::get_sample_rate() const
+{
+    return m_impl->sample_rate;
+}
+
+SoundFormat ALSound::get_sound_format() const
+{
+    return m_impl->sound_format;
 }

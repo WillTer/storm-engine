@@ -15,8 +15,7 @@ public:
 
     Result init() override;
 
-    Result
-    create_sound(std::filesystem::path const& file_path, SoundMode sound_mode, bool force_stereo, std::shared_ptr<ISound>& out) override;
+    Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out) override;
 
     Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out) override;
     Result release_channel(std::shared_ptr<IChannel> const& channel) override;

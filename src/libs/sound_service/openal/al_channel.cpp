@@ -65,14 +65,7 @@ struct ALChannel::Impl {
         switch (al_state) {
         case AL_PLAYING: state = ChannelState::Playing; break;
         case AL_PAUSED: state = ChannelState::Paused; break;
-        case AL_STOPPED: {
-            SoundMode mode = {};
-            if (sound && sound->get_sound_mode(mode) == Result::Ok && mode == SoundMode::Stream) {
-                state = ChannelState::Paused;
-            } else {
-                state = ChannelState::Stopped;
-            }
-        } break;
+        case AL_STOPPED: state = ChannelState::Stopped; break;
         default: state = ChannelState::None; break;
         }
 
@@ -200,14 +193,13 @@ struct ALChannel::Impl {
     {
         if (!sound) { return; }
 
-        SoundMode mode = {};
-        sound->get_sound_mode(mode);
+        auto const flags = sound->get_flags();
 
         ChannelState state = {};
         get_state(state);
 
         // No need to update buffer if stream is on pause or there is no stream at all
-        if (state == ChannelState::Paused || mode == SoundMode::WholeFile) { return; }
+        if (state == ChannelState::Paused || !is_flag_enabled(flags, ISound::Flags::Stream)) { return; }
 
         ALint processed = 0;
         alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);

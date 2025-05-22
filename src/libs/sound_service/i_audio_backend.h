@@ -7,6 +7,8 @@
 #include <limits>
 #include <vector>
 
+#include "enum_flags.h"
+
 namespace storm::audio
 {
 
@@ -26,8 +28,6 @@ enum class Result : int32_t {
 };
 
 enum class ChannelState { None, Playing, Paused, Stopped };
-
-enum class SoundMode { WholeFile, Stream };
 
 enum class SoundFormat {
     Mono8,
@@ -77,17 +77,28 @@ public:
     virtual Result get_sample_rate(int& sample_rate)     = 0;
     virtual Result get_sound_format(SoundFormat& format) = 0;
 
-    virtual Result get_pcm_data(std::vector<uint8_t>& data, bool read_until_end) = 0;
+    virtual size_t get_pcm_data(std::vector<uint8_t>& buffer) = 0;
 
-    virtual Result seek_start() = 0;
+    virtual void seek_start() = 0;
 };
 
 class ISound
 {
 public:
+    enum class Flags : uint8_t {
+        None      = 0,
+        Stream    = 1 << 0,
+        Stereo2D  = 1 << 1,
+        Spatial3D = 1 << 2,
+    };
+
     virtual ~ISound() = default;
 
-    virtual Result get_sound_mode(SoundMode& mode) = 0;
+    virtual Flags get_flags() const = 0;
+
+    virtual int         get_channels() const     = 0;
+    virtual int         get_sample_rate() const  = 0;
+    virtual SoundFormat get_sound_format() const = 0;
 };
 
 class IBackend
@@ -97,8 +108,7 @@ public:
 
     virtual Result init() = 0;
 
-    virtual Result
-    create_sound(std::filesystem::path const& file_path, SoundMode mode, bool force_stereo, std::shared_ptr<ISound>& out) = 0;
+    virtual Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out) = 0;
 
     virtual Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out) = 0;
     virtual Result release_channel(std::shared_ptr<IChannel> const& channel)                                       = 0;
@@ -111,3 +121,12 @@ public:
 };
 
 }  // namespace storm::audio
+
+namespace storm::type_traits
+{
+
+template <>
+struct is_flag<audio::ISound::Flags>: std::true_type {
+};
+
+}  // namespace storm::type_traits

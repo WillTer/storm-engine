@@ -13,10 +13,14 @@ class ALChannel;
 class ALSound: virtual public ISound
 {
 public:
-    ALSound(std::shared_ptr<IDecoder> const& decoder, SoundMode sound_mode);
+    ALSound(std::shared_ptr<IDecoder> const& decoder, ISound::Flags flags);
     ~ALSound() override;
 
-    Result get_sound_mode(SoundMode& mode) override;
+    ISound::Flags get_flags() const override;
+
+    int         get_channels() const override;
+    int         get_sample_rate() const override;
+    SoundFormat get_sound_format() const override;
 
 private:
     friend class ALChannel;

@@ -10,7 +10,7 @@ namespace storm::audio
 class SDLWavDecoder: virtual public IDecoder
 {
 public:
-    SDLWavDecoder(bool force_stereo);
+    SDLWavDecoder(ISound::Flags flags);
     ~SDLWavDecoder() override;
 
     Result init(std::filesystem::path const& file_path) override;
@@ -20,8 +20,8 @@ public:
 
     Result get_sound_format(SoundFormat& format) override;
 
-    Result get_pcm_data(std::vector<uint8_t>& data, bool read_until_end) override;
-    Result seek_start() override;
+    size_t get_pcm_data(std::vector<uint8_t>& buffer) override;
+    void   seek_start() override;
 
 private:
     struct Impl;

@@ -289,7 +289,7 @@ TSD_ID SoundService::SoundPlay(
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        if (m_backend->create_sound(sound_name, SoundMode::Stream, false, sound) != Result::Ok) {
+        if (m_backend->create_sound(sound_name, ISound::Flags::Stream | ISound::Flags::Stereo2D, sound) != Result::Ok) {
             core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
             return 0;
         }
@@ -1007,12 +1007,12 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
         }
     }
 
-    // FMOD_MODE mode = FMOD_DEFAULT;
-    // if (_type == PCM_3D) { mode = mode | FMOD_3D | FMOD_3D_LINEARROLLOFF; }
-    // if (_type == PCM_STEREO) { mode = mode | FMOD_2D; }
+    auto flags = ISound::Flags::None;
+    if (sound_type == PCM_3D) { flags = flags | ISound::Flags::Spatial3D; }
+    if (sound_type == PCM_STEREO) { flags = flags | ISound::Flags::Stereo2D; }
 
     tSoundCache cache_value;
-    CHECK_RESULT(m_backend->create_sound(name, SoundMode::WholeFile, sound_type == PCM_STEREO, cache_value.sound));
+    CHECK_RESULT(m_backend->create_sound(name, flags, cache_value.sound));
 
     if (cache_value.sound == nullptr) {
         core.Trace("Problem with sound loading !!! '%s'", name.data());
