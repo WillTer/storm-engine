@@ -9,248 +9,250 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <libs/core/core.h>
-#include <libs/sound_service/vorbis/vorbis_decoder.h>
-#include <libs/sound_service/wav/sdl_wav_decoder.h>
+
+#include "vorbis/vorbis_decoder.h"
+#include "wav/sdl_wav_decoder.h"
 
 #include "al_channel.h"
 #include "al_sound.h"
 #include "al_utils.h"
+#include "converted_data_stream.h"
+#include "format_helpers.h"
 
 using namespace storm::audio;
 
 namespace
 {
 
-Result get_decoder(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<IDecoder>& out)
+std::unique_ptr<IDecoder> create_compatible_decoder(std::filesystem::path const& file_path)
 {
     std::string ext = file_path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) { return std::tolower(ch); });
 
-    if (ext == ".ogg") {
-        out = std::make_shared<VorbisDecoder>(flags);
-    } else if (ext == ".wav") {
-        out = std::make_shared<SDLWavDecoder>(flags);
-    } else {
-        return Result::ErrFileFormatNotSupported;
-    }
+    if (ext == ".ogg") { return std::make_unique<VorbisDecoder>(); }
+    if (ext == ".wav") { return std::make_unique<SDLWavDecoder>(); }
 
-    return Result::Ok;
+    return nullptr;
 }
 
 }  // namespace
 
 struct ALBackend::Impl {
-    Impl() : is_initialized {false}, device {nullptr}, context {nullptr} {}
+    Impl() : m_is_initialized {false}, m_out_format {IDataStream::Format::Unknown}, m_device {nullptr}, m_context {nullptr} {}
 
     ~Impl()
     {
-        if (is_initialized) {
+        if (m_is_initialized) {
             // Remove channels before deinitializing openal
-            channels.clear();
+            m_channels.clear();
 
             alcMakeContextCurrent(nullptr);
-            ALC_TRACE_ERRORS(device);
+            ALC_TRACE_ERRORS(m_device);
 
-            alcDestroyContext(context);
-            ALC_TRACE_ERRORS(device);
+            alcDestroyContext(m_context);
+            ALC_TRACE_ERRORS(m_device);
 
-            alcCloseDevice(device);
+            alcCloseDevice(m_device);
         }
     }
 
-    Result init()
+    bool init()
     {
-        if (is_initialized) { return Result::Ok; }
+        if (m_is_initialized) { return true; }
 
-        device = alcOpenDevice(nullptr);  // Default device
-        if (device == nullptr) { return Result::ErrInternal; }
+        m_device = alcOpenDevice(nullptr);  // Default device
+        if (m_device == nullptr) { return false; }
 
-        context = alcCreateContext(device, nullptr);
-        ALC_TRACE_ERRORS(device);
-        if (context == nullptr) { return Result::ErrInternal; }
+        m_context = alcCreateContext(m_device, nullptr);
+        ALC_TRACE_ERRORS(m_device);
+        if (m_context == nullptr) { return false; }
 
-        alcMakeContextCurrent(context);
-        ALC_TRACE_ERRORS(device);
+        alcMakeContextCurrent(m_context);
+        ALC_TRACE_ERRORS(m_device);
 
-        is_initialized = true;
-        return Result::Ok;
+        m_out_format = convert_format_compatible(IDataStream::Format::Float32);
+
+        m_is_initialized = true;
+        return true;
     }
 
-    Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out)
+    std::shared_ptr<ISound> create_sound(std::filesystem::path const& file_path, ISound::Flags flags)
     {
-        if (!std::filesystem::exists(file_path)) { return Result::ErrFileNotFound; }
+        if (!std::filesystem::exists(file_path)) { return nullptr; }
 
-        std::shared_ptr<IDecoder> decoder = nullptr;
+        auto decoder = create_compatible_decoder(file_path);
+        if (!decoder) { return nullptr; }
 
-        if (auto res = get_decoder(file_path, flags, decoder); res != Result::Ok) { return res; }
-        if (auto res = decoder->init(file_path); res != Result::Ok) { return res; }
+        auto stream = decoder->decode_file(file_path, m_out_format);
+        if (!stream || !stream->is_valid()) { return nullptr; }
 
-        auto sound = std::make_shared<ALSound>(decoder, flags);
-        out        = sound;
+        auto const channels = is_flag_enabled(flags, ISound::Flags::Spatial3D) ? 1 : stream->get_channels();
+
+        auto stream_wrapper = std::make_unique<ConvertedDataStream>(std::move(stream), channels, m_out_format);
+        if (!stream_wrapper || !stream_wrapper->is_valid()) { return nullptr; }
+
+        auto                    sound = std::make_shared<ALSound>(std::move(stream_wrapper), flags);
+        std::shared_ptr<ISound> out   = sound;
 
         // get address of interface ptr as we will compare later with it
-        sounds.emplace(reinterpret_cast<uintptr_t>(out.get()), sound);
+        m_sounds.emplace(reinterpret_cast<uintptr_t>(out.get()), sound);
 
-        return Result::Ok;
+        return out;
     }
 
-    Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out)
+    std::weak_ptr<IChannel> bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound)
     {
-        if (!sound) { return Result::ErrInvalidArgument; }
+        if (!sound) { return {}; }
 
         std::shared_ptr<ALChannel> channel = nullptr;
 
-        auto free_channel = std::find_if(channels.begin(), channels.end(), [](auto channel) {
+        auto free_channel = std::find_if(m_channels.begin(), m_channels.end(), [](auto channel) {
             ChannelState state = {};
             channel->get_state(state);
             return state == ChannelState::Stopped;
         });
 
-        if (free_channel != channels.end()) {
+        if (free_channel != m_channels.end()) {
             channel = *free_channel;
             channel->unbind_sound();
         } else {
-            core.Trace("Add new channel, current channels count: %zd", channels.size());
+            core.Trace("Add new channel, current channels count: %zd", m_channels.size());
             channel = std::make_shared<ALChannel>();
-            channels.push_back(channel);
+            m_channels.push_back(channel);
         }
 
         auto sound_id = reinterpret_cast<uintptr_t>(sound.get());
-        if (!sounds.contains(sound_id)) { return Result::ErrInvalidArgument; }
+        if (!m_sounds.contains(sound_id)) { return {}; }
 
-        auto al_sound = sounds.at(sound_id).lock();
+        auto al_sound = m_sounds.at(sound_id).lock();
         if (!al_sound) {
             // Remove sound from dictionary if it's not existing anymore
             // TODO: garbage collection (check on update?)
-            sounds.erase(sound_id);
-            return Result::ErrInvalidArgument;
+            m_sounds.erase(sound_id);
+            return {};
         }
 
-        if (auto res = channel->bind_sound(al_sound); res != Result::Ok) { return res; }
+        if (auto res = channel->bind_sound(al_sound); res != Result::Ok) { return {}; }
 
-        out = channel;
-
-        return Result::Ok;
+        return channel;
     }
 
-    Result release_channel(std::shared_ptr<IChannel> const& channel)
+    void release_channel(std::weak_ptr<IChannel> const& channel)
     {
-        if (!channel) { return Result::ErrInvalidArgument; }
+        auto channel_lock = channel.lock();
+        if (!channel_lock) { return; }
 
-        auto it = std::find_if(channels.begin(), channels.end(), [&channel](std::shared_ptr<IChannel> const& ch) { return ch == channel; });
+        auto it = std::find_if(
+            m_channels.begin(), m_channels.end(), [&channel_lock](std::shared_ptr<IChannel> const& ch) { return ch == channel_lock; });
 
-        if (it == channels.end()) { return Result::ErrInvalidArgument; }
+        if (it == m_channels.end()) { return; }
 
-        return release_channel(std::distance(channels.begin(), it));
+        release_channel(std::distance(m_channels.begin(), it));
     }
 
-    Result set_listener_position_3d(std::array<float, 3> const& position)
+    void set_listener_position_3d(std::array<float, 3> const& position)
     {
         alListenerfv(AL_POSITION, position.data());
         AL_TRACE_ERRORS();
-
-        return Result::Ok;
     }
 
-    Result set_listener_velocity_3d(std::array<float, 3> const& velocity)
+    void set_listener_velocity_3d(std::array<float, 3> const& velocity)
     {
         alListenerfv(AL_VELOCITY, velocity.data());
         AL_TRACE_ERRORS();
-
-        return Result::Ok;
     }
 
-    Result set_listener_orientation_3d(std::array<float, 6> const& orientation)
+    void set_listener_orientation_3d(std::array<float, 6> const& orientation)
     {
         alListenerfv(AL_ORIENTATION, orientation.data());
         AL_TRACE_ERRORS();
-
-        return Result::Ok;
     }
 
     void update()
     {
-        for (auto& channel: channels) {
+        for (auto& channel: m_channels) {
             channel->internal_update();
         }
     }
 
-    Result release_channel(size_t idx)
+    void release_channel(size_t idx)
     {
-        if (idx == channels.size()) { return Result::ErrChannelIsEmpty; }
+        if (idx == m_channels.size()) { return; }
 
-        channels[idx]->stop();
-        return channels[idx]->unbind_sound();
+        m_channels[idx]->stop();
+        m_channels[idx]->unbind_sound();
     }
 
-    bool is_initialized;
+    bool m_is_initialized;
 
-    std::vector<std::shared_ptr<ALChannel>>     channels;
-    std::map<uintptr_t, std::weak_ptr<ALSound>> sounds;
+    std::vector<std::shared_ptr<ALChannel>>     m_channels;
+    std::map<uintptr_t, std::weak_ptr<ALSound>> m_sounds;
 
-    ALCdevice*  device;
-    ALCcontext* context;
+    IDataStream::Format m_out_format;
+
+    ALCdevice*  m_device;
+    ALCcontext* m_context;
 };
 
 ALBackend::ALBackend() : m_impl {std::make_unique<Impl>()} {}
 
 ALBackend::~ALBackend() = default;
 
-Result ALBackend::init()
+bool ALBackend::init()
 {
     return m_impl->init();
 }
 
-Result ALBackend::create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out)
+std::shared_ptr<ISound> ALBackend::create_sound(std::filesystem::path const& file_path, ISound::Flags flags)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return nullptr; }
 
-    return m_impl->create_sound(file_path, flags, out);
+    return m_impl->create_sound(file_path, flags);
 }
 
-Result ALBackend::bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out)
+std::weak_ptr<IChannel> ALBackend::bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return {}; }
 
-    return m_impl->bind_sound_to_empty_channel(sound, out);
+    return m_impl->bind_sound_to_empty_channel(sound);
 }
 
-Result ALBackend::release_channel(std::shared_ptr<IChannel> const& channel)
+void ALBackend::release_channel(std::weak_ptr<IChannel> const& channel)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return; }
 
-    return m_impl->release_channel(channel);
+    m_impl->release_channel(channel);
 }
 
-Result ALBackend::set_listener_position_3d(std::array<float, 3> const& position)
+void ALBackend::set_listener_position_3d(std::array<float, 3> const& position)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return; }
 
     std::array<float, 3> position_lh = position;
     // flip z coordinate
     position_lh[2] = -position_lh[2];
-    return m_impl->set_listener_position_3d(position_lh);
+    m_impl->set_listener_position_3d(position_lh);
 }
 
-Result ALBackend::set_listener_velocity_3d(std::array<float, 3> const& velocity)
+void ALBackend::set_listener_velocity_3d(std::array<float, 3> const& velocity)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return; }
 
     std::array<float, 3> velocity_lh = velocity;
     // flip z coordinate
     velocity_lh[2] = -velocity_lh[2];
-    return m_impl->set_listener_velocity_3d(velocity_lh);
+    m_impl->set_listener_velocity_3d(velocity_lh);
 }
 
-Result ALBackend::set_listener_orientation_3d(std::array<float, 6> const& orientation)
+void ALBackend::set_listener_orientation_3d(std::array<float, 6> const& orientation)
 {
-    if (!m_impl->is_initialized) { return Result::ErrNotInitialized; }
+    if (!m_impl->m_is_initialized) { return; }
 
     std::array<float, 6> orientation_lh = orientation;
     // flip z coordinate
     orientation_lh[2] = -orientation_lh[2];
     orientation_lh[5] = -orientation_lh[5];
-    return m_impl->set_listener_orientation_3d(orientation_lh);
+    m_impl->set_listener_orientation_3d(orientation_lh);
 }
 
 void ALBackend::update()

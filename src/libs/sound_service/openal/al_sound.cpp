@@ -1,6 +1,9 @@
 #include "al_sound.h"
 
+#include <alext.h>
+
 #include "al_utils.h"
+#include "format_helpers.h"
 
 using namespace storm::audio;
 
@@ -13,23 +16,17 @@ constexpr size_t INTERMEDIATE_BUFFER_SIZE = 2048;
 }  // namespace
 
 struct ALSound::Impl {
-    Impl(std::shared_ptr<IDecoder> const& decoder, ISound::Flags flags) : decoder {decoder}, flags {flags}
+    Impl(std::unique_ptr<IDataStream>&& stream, Flags flags) : m_stream {std::move(stream)}, m_flags {flags}
     {
-        buffers.resize(is_flag_enabled(flags, ISound::Flags::Stream) ? STREAM_BUFFER_COUNT : 1);
+        m_buffers.resize(is_flag_enabled(flags, Flags::Stream) ? STREAM_BUFFER_COUNT : 1);
 
-        alGenBuffers(static_cast<int>(buffers.size()), buffers.data());
+        alGenBuffers(static_cast<int>(m_buffers.size()), m_buffers.data());
         AL_TRACE_ERRORS();
 
-        decoder->get_sound_format(sound_format);
-        switch (sound_format) {
-        case SoundFormat::Mono8: al_format = AL_FORMAT_MONO8; break;
-        case SoundFormat::Mono16: al_format = AL_FORMAT_MONO16; break;
-        case SoundFormat::Stereo8: al_format = AL_FORMAT_STEREO8; break;
-        case SoundFormat::Stereo16: al_format = AL_FORMAT_STEREO16; break;
-        }
-
-        decoder->get_sample_rate(sample_rate);
-        decoder->get_channels(channels);
+        m_sample_rate = m_stream->get_sample_rate();
+        m_channels    = m_stream->get_channels();
+        m_data_format = m_stream->get_data_format();
+        m_al_format   = convert_to_al_format(m_data_format, m_channels);
 
         reset_buffers();
     }
@@ -38,83 +35,75 @@ struct ALSound::Impl {
     {
         unbind_sources();
 
-        alDeleteBuffers(static_cast<int>(buffers.size()), buffers.data());
+        alDeleteBuffers(static_cast<int>(m_buffers.size()), m_buffers.data());
         AL_TRACE_ERRORS();
     }
 
-    Result bind_buffers_to_source(unsigned source, bool looping)
+    void bind_buffers_to_source(unsigned source, bool looping)
     {
         set_looping(source, looping);
 
-        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
-            alSourceQueueBuffers(source, static_cast<int>(buffers.size()), buffers.data());
+        if (is_flag_enabled(m_flags, ISound::Flags::Stream)) {
+            alSourceQueueBuffers(source, static_cast<int>(m_buffers.size()), m_buffers.data());
         } else {
-            alSourcei(source, AL_BUFFER, buffers[0]);
+            alSourcei(source, AL_BUFFER, m_buffers[0]);
         }
-
-        sources.push_back(source);
-
         AL_TRACE_ERRORS();
 
-        return Result::Ok;
+        m_binded_sources.push_back(source);
     }
 
-    Result unbind_source(unsigned source)
+    void unbind_source(unsigned source)
     {
-        auto it = std::find_if(sources.begin(), sources.end(), [&source](unsigned const s) { return s == source; });
+        auto it = std::find_if(m_binded_sources.begin(), m_binded_sources.end(), [&source](unsigned const s) { return s == source; });
 
-        if (it == sources.end()) { return Result::ErrInvalidArgument; }
+        if (it == m_binded_sources.end()) { return; }
 
         alSourcei(*it, AL_BUFFER, 0);
         AL_TRACE_ERRORS();
 
-        sources.erase(it);
-
-        return Result::Ok;
+        m_binded_sources.erase(it);
     }
 
-    Result set_looping(unsigned source, bool looping) const
+    void set_looping(unsigned source, bool looping) const
     {
-        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
+        if (is_flag_enabled(m_flags, ISound::Flags::Stream)) {
             alSourcei(source, AL_LOOPING, AL_FALSE);
         } else {
             alSourcei(source, AL_LOOPING, looping ? AL_TRUE : AL_FALSE);
         }
-
         AL_TRACE_ERRORS();
-
-        return Result::Ok;
     }
 
     void bind_buffer_data()
     {
         std::vector<uint8_t> data = {};
-        decoder->get_pcm_data(data);
+        m_stream->get_pcm_data(data);
 
-        alBufferData(buffers[0], al_format, data.data(), static_cast<int>(data.size()), sample_rate);
+        alBufferData(m_buffers[0], m_al_format, data.data(), static_cast<int>(data.size()), m_sample_rate);
         AL_TRACE_ERRORS();
     }
 
     void bind_buffer_data_stream()
     {
-        for (auto const buffer: buffers) {
+        for (auto const buffer: m_buffers) {
             push_next_data(buffer, false);
         }
     }
 
     bool push_next_data(unsigned buffer, bool is_looping)
     {
-        intermediate_buffer.resize(INTERMEDIATE_BUFFER_SIZE);
-        auto size = decoder->get_pcm_data(intermediate_buffer);
+        m_intermediate_buffer.resize(INTERMEDIATE_BUFFER_SIZE);
+        auto size = m_stream->get_pcm_data(m_intermediate_buffer);
 
         if (size == 0 && is_looping) {
-            decoder->seek_start();
-            size = decoder->get_pcm_data(intermediate_buffer);
+            m_stream->seek_start();
+            size = m_stream->get_pcm_data(m_intermediate_buffer);
         }
 
         if (size == 0) { return false; }
 
-        alBufferData(buffer, al_format, intermediate_buffer.data(), static_cast<int>(intermediate_buffer.size()), sample_rate);
+        alBufferData(buffer, m_al_format, m_intermediate_buffer.data(), static_cast<int>(m_intermediate_buffer.size()), m_sample_rate);
         AL_TRACE_ERRORS();
 
         return true;
@@ -125,9 +114,9 @@ struct ALSound::Impl {
         // Unbind buffers from all binded sources
         unbind_sources();
 
-        decoder->seek_start();
+        m_stream->seek_start();
 
-        if (is_flag_enabled(flags, ISound::Flags::Stream)) {
+        if (is_flag_enabled(m_flags, ISound::Flags::Stream)) {
             bind_buffer_data_stream();
         } else {
             bind_buffer_data();
@@ -136,7 +125,7 @@ struct ALSound::Impl {
 
     void unbind_sources()
     {
-        for (auto const source: sources) {
+        for (auto const source: m_binded_sources) {
             alSourceStop(source);
             AL_TRACE_ERRORS();
 
@@ -145,41 +134,46 @@ struct ALSound::Impl {
         }
 
         // Clear sources list, as we're not binded to them anymore
-        sources.clear();
+        m_binded_sources.clear();
     }
 
-    std::shared_ptr<IDecoder> decoder;
+    std::unique_ptr<IDataStream> m_stream;
 
-    ISound::Flags flags;
-    SoundFormat   sound_format;
+    Flags               m_flags;
+    IDataStream::Format m_data_format;
 
-    ALenum al_format;
-    int    channels;
-    int    sample_rate;
+    ALenum m_al_format;
+    int    m_channels;
+    int    m_sample_rate;
 
-    std::vector<uint8_t> intermediate_buffer;
+    std::vector<uint8_t> m_intermediate_buffer;
 
-    std::vector<unsigned> buffers;
-    std::vector<unsigned> sources;
+    std::vector<unsigned> m_buffers;
+    std::vector<unsigned> m_binded_sources;
 };
 
-ALSound::ALSound(std::shared_ptr<IDecoder> const& decoder, ISound::Flags flags) : m_impl {std::make_unique<Impl>(decoder, flags)} {}
+ALSound::ALSound(std::unique_ptr<IDataStream>&& stream, ISound::Flags flags) : m_impl {std::make_unique<Impl>(std::move(stream), flags)} {}
 
 ALSound::~ALSound() = default;
 
-Result ALSound::bind_buffers_to_source(unsigned source, bool is_looping)
+void ALSound::bind_buffers_to_source(unsigned source, bool is_looping)
 {
-    return m_impl->bind_buffers_to_source(source, is_looping);
+    m_impl->bind_buffers_to_source(source, is_looping);
 }
 
-Result ALSound::unbind_source(unsigned source)
+void ALSound::unbind_source(unsigned source)
 {
-    return m_impl->unbind_source(source);
+    m_impl->unbind_source(source);
 }
 
-Result ALSound::set_looping(unsigned source, bool is_looping)
+void ALSound::set_looping(unsigned source, bool is_looping)
 {
-    return m_impl->set_looping(source, is_looping);
+    m_impl->set_looping(source, is_looping);
+}
+
+int ALSound::get_channels() const
+{
+    return m_impl->m_channels;
 }
 
 bool ALSound::push_next_data(unsigned buffer, bool is_looping) const
@@ -194,20 +188,5 @@ void ALSound::reset_buffers()
 
 ISound::Flags ALSound::get_flags() const
 {
-    return m_impl->flags;
-}
-
-int ALSound::get_channels() const
-{
-    return m_impl->channels;
-}
-
-int ALSound::get_sample_rate() const
-{
-    return m_impl->sample_rate;
-}
-
-SoundFormat ALSound::get_sound_format() const
-{
-    return m_impl->sound_format;
+    return m_impl->m_flags;
 }

@@ -29,13 +29,6 @@ enum class Result : int32_t {
 
 enum class ChannelState { None, Playing, Paused, Stopped };
 
-enum class SoundFormat {
-    Mono8,
-    Mono16,
-    Stereo8,
-    Stereo16,
-};
-
 class IChannel
 {
 public:
@@ -66,20 +59,39 @@ public:
     virtual Result set_looping(bool flag) = 0;
 };
 
+class IDataStream
+{
+public:
+    enum class Format {
+        Unknown,
+        Int8,
+        Int16,
+        Int32,
+        UInt8,
+        UInt16,
+        Float32,
+    };
+
+    virtual ~IDataStream() = default;
+
+    virtual bool is_valid() = 0;
+
+    virtual int get_channels() const    = 0;
+    virtual int get_sample_rate() const = 0;
+
+    virtual IDataStream::Format get_data_format() const = 0;
+
+    virtual size_t get_pcm_data(std::vector<uint8_t>& buffer) = 0;
+
+    virtual void seek_start() = 0;
+};
+
 class IDecoder
 {
 public:
     virtual ~IDecoder() = default;
 
-    virtual Result init(std::filesystem::path const& file_path) = 0;
-
-    virtual Result get_channels(int& channels)           = 0;
-    virtual Result get_sample_rate(int& sample_rate)     = 0;
-    virtual Result get_sound_format(SoundFormat& format) = 0;
-
-    virtual size_t get_pcm_data(std::vector<uint8_t>& buffer) = 0;
-
-    virtual void seek_start() = 0;
+    virtual std::unique_ptr<IDataStream> decode_file(std::filesystem::path const& file_path, IDataStream::Format output_format) = 0;
 };
 
 class ISound
@@ -95,10 +107,6 @@ public:
     virtual ~ISound() = default;
 
     virtual Flags get_flags() const = 0;
-
-    virtual int         get_channels() const     = 0;
-    virtual int         get_sample_rate() const  = 0;
-    virtual SoundFormat get_sound_format() const = 0;
 };
 
 class IBackend
@@ -106,16 +114,16 @@ class IBackend
 public:
     virtual ~IBackend() = default;
 
-    virtual Result init() = 0;
+    virtual bool init() = 0;
 
-    virtual Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out) = 0;
+    virtual std::shared_ptr<ISound> create_sound(std::filesystem::path const& file_path, ISound::Flags flags) = 0;
 
-    virtual Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out) = 0;
-    virtual Result release_channel(std::shared_ptr<IChannel> const& channel)                                       = 0;
+    virtual std::weak_ptr<IChannel> bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound) = 0;
+    virtual void                    release_channel(std::weak_ptr<IChannel> const& channel)           = 0;
 
-    virtual Result set_listener_position_3d(std::array<float, 3> const& position)       = 0;
-    virtual Result set_listener_velocity_3d(std::array<float, 3> const& velocity)       = 0;
-    virtual Result set_listener_orientation_3d(std::array<float, 6> const& orientation) = 0;
+    virtual void set_listener_position_3d(std::array<float, 3> const& position)       = 0;
+    virtual void set_listener_velocity_3d(std::array<float, 3> const& velocity)       = 0;
+    virtual void set_listener_orientation_3d(std::array<float, 6> const& orientation) = 0;
 
     virtual void update() = 0;
 };

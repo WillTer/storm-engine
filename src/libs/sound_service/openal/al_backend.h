@@ -13,16 +13,16 @@ public:
     ALBackend();
     ~ALBackend() override;
 
-    Result init() override;
+    bool init() override;
 
-    Result create_sound(std::filesystem::path const& file_path, ISound::Flags flags, std::shared_ptr<ISound>& out) override;
+    std::shared_ptr<ISound> create_sound(std::filesystem::path const& file_path, ISound::Flags flags) override;
 
-    Result bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound, std::weak_ptr<IChannel>& out) override;
-    Result release_channel(std::shared_ptr<IChannel> const& channel) override;
+    std::weak_ptr<IChannel> bind_sound_to_empty_channel(std::shared_ptr<ISound> const& sound) override;
+    void                    release_channel(std::weak_ptr<IChannel> const& channel) override;
 
-    Result set_listener_position_3d(std::array<float, 3> const& position) override;
-    Result set_listener_velocity_3d(std::array<float, 3> const& velocity) override;
-    Result set_listener_orientation_3d(std::array<float, 6> const& orientation) override;
+    void set_listener_position_3d(std::array<float, 3> const& position) override;
+    void set_listener_velocity_3d(std::array<float, 3> const& velocity) override;
+    void set_listener_orientation_3d(std::array<float, 6> const& orientation) override;
 
     void update() override;
 

@@ -107,7 +107,7 @@ bool SoundService::Init()
     if (m_renderer == nullptr) { return false; }
 
     m_backend = std::make_unique<ALBackend>();
-    if (!m_backend || CHECK_RESULT(m_backend->init()) != Result::Ok) { return false; }
+    if (!m_backend || !m_backend->init()) { return false; }
 
     if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
         fadeTimeInSeconds = ini->GetFloat("sound", "fade_time", FADE_DEFAULT);
@@ -289,7 +289,8 @@ TSD_ID SoundService::SoundPlay(
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        if (m_backend->create_sound(sound_name, ISound::Flags::Stream | ISound::Flags::Stereo2D, sound) != Result::Ok) {
+        sound = m_backend->create_sound(sound_name, /*ISound::Flags::Stream | */ ISound::Flags::Stereo2D);
+        if (!sound) {
             core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
             return 0;
         }
@@ -329,7 +330,7 @@ TSD_ID SoundService::SoundPlay(
     PlayingSounds[sound_idx].fSoundVolume = _volume;
 
     // Get channel for sound but do not start to play
-    CHECK_RESULT(m_backend->bind_sound_to_empty_channel(sound, PlayingSounds[sound_idx].channel));
+    PlayingSounds[sound_idx].channel = m_backend->bind_sound_to_empty_channel(sound);
 
     auto const channel_lock = PlayingSounds[sound_idx].channel.lock();
     if (!channel_lock) { return 0; }
@@ -553,7 +554,7 @@ uint32_t SoundService::SoundGetPosition(TSD_ID id)
 
 void SoundService::SetCameraPosition(const CVECTOR& camera_pos)
 {
-    CHECK_RESULT(m_backend->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, camera_pos.z}));
+    m_backend->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, camera_pos.z});
 }
 
 void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head)
@@ -561,8 +562,8 @@ void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head
     auto const nose_normalized = !nose;
     auto const head_normalized = !head;
 
-    CHECK_RESULT(m_backend->set_listener_orientation_3d(std::array<float, 6> {
-        nose_normalized.x, nose_normalized.y, nose_normalized.z, head_normalized.x, head_normalized.y, head_normalized.z}));
+    m_backend->set_listener_orientation_3d(std::array<float, 6> {
+        nose_normalized.x, nose_normalized.y, nose_normalized.z, head_normalized.x, head_normalized.y, head_normalized.z});
 }
 
 void SoundService::SetMasterVolume(float fx_volume, float music_volume, float speech_volume)
@@ -1012,7 +1013,7 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
     if (sound_type == PCM_STEREO) { flags = flags | ISound::Flags::Stereo2D; }
 
     tSoundCache cache_value;
-    CHECK_RESULT(m_backend->create_sound(name, flags, cache_value.sound));
+    cache_value.sound = m_backend->create_sound(name, flags);
 
     if (cache_value.sound == nullptr) {
         core.Trace("Problem with sound loading !!! '%s'", name.data());
