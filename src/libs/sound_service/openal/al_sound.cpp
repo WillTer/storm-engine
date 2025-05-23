@@ -3,6 +3,7 @@
 #include <alext.h>
 
 #include "al_utils.h"
+#include "const.h"
 #include "format_helpers.h"
 
 using namespace storm::audio;
@@ -10,8 +11,7 @@ using namespace storm::audio;
 namespace
 {
 
-constexpr size_t STREAM_BUFFER_COUNT      = 2;
-constexpr size_t INTERMEDIATE_BUFFER_SIZE = 2048;
+constexpr size_t STREAM_BUFFER_COUNT = 2;
 
 }  // namespace
 
@@ -27,6 +27,7 @@ struct ALSound::Impl {
         m_channels    = m_stream->get_channels();
         m_data_format = m_stream->get_data_format();
         m_al_format   = convert_to_al_format(m_data_format, m_channels);
+        m_sample_size = get_format_sample_size(m_data_format);
 
         reset_buffers();
     }
@@ -77,33 +78,35 @@ struct ALSound::Impl {
 
     void bind_buffer_data()
     {
-        std::vector<uint8_t> data = {};
-        m_stream->get_pcm_data(data);
+        std::vector<uint8_t> buffer = {};
 
-        alBufferData(m_buffers[0], m_al_format, data.data(), static_cast<int>(data.size()), m_sample_rate);
+        auto const samples = m_stream->get_samples_all(buffer);
+        if (samples == 0) { return; }
+
+        alBufferData(m_buffers[0], m_al_format, buffer.data(), static_cast<int>(buffer.size()), m_sample_rate);
         AL_TRACE_ERRORS();
     }
 
     void bind_buffer_data_stream()
     {
         for (auto const buffer: m_buffers) {
-            push_next_data(buffer, false);
+            fetch_samples_for_buffer(buffer, false);
         }
     }
 
-    bool push_next_data(unsigned buffer, bool is_looping)
+    bool fetch_samples_for_buffer(unsigned buffer, bool is_looping)
     {
-        m_intermediate_buffer.resize(INTERMEDIATE_BUFFER_SIZE);
-        auto size = m_stream->get_pcm_data(m_intermediate_buffer);
+        m_buffer_data.resize(BUFFER_SAMPLE_COUNT * m_sample_size);
+        auto samples = m_stream->get_samples(m_buffer_data, BUFFER_SAMPLE_COUNT);
 
-        if (size == 0 && is_looping) {
+        if (samples == 0 && is_looping) {
             m_stream->seek_start();
-            size = m_stream->get_pcm_data(m_intermediate_buffer);
+            samples = m_stream->get_samples(m_buffer_data, BUFFER_SAMPLE_COUNT);
         }
 
-        if (size == 0) { return false; }
+        if (samples == 0) { return false; }
 
-        alBufferData(buffer, m_al_format, m_intermediate_buffer.data(), static_cast<int>(m_intermediate_buffer.size()), m_sample_rate);
+        alBufferData(buffer, m_al_format, m_buffer_data.data(), static_cast<int>(m_buffer_data.size()), m_sample_rate);
         AL_TRACE_ERRORS();
 
         return true;
@@ -146,7 +149,9 @@ struct ALSound::Impl {
     int    m_channels;
     int    m_sample_rate;
 
-    std::vector<uint8_t> m_intermediate_buffer;
+    size_t m_sample_size;
+
+    std::vector<uint8_t> m_buffer_data;
 
     std::vector<unsigned> m_buffers;
     std::vector<unsigned> m_binded_sources;
@@ -178,7 +183,7 @@ int ALSound::get_channels() const
 
 bool ALSound::push_next_data(unsigned buffer, bool is_looping) const
 {
-    return m_impl->push_next_data(buffer, is_looping);
+    return m_impl->fetch_samples_for_buffer(buffer, is_looping);
 }
 
 void ALSound::reset_buffers()

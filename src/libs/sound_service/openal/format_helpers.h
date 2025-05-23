@@ -8,7 +8,7 @@
 namespace storm::audio
 {
 
-constexpr SDL_AudioFormat convert_to_sdl_format(IDataStream::Format format)
+constexpr SDL_AudioFormat convert_to_sdl_format(IDataStream::Format const format)
 {
     switch (format) {
     case IDataStream::Format::Unknown: return 0;
@@ -23,7 +23,7 @@ constexpr SDL_AudioFormat convert_to_sdl_format(IDataStream::Format format)
     return 0;
 }
 
-constexpr SDL_AudioFormat convert_to_sdl_format_compatible(IDataStream::Format format)
+constexpr SDL_AudioFormat convert_to_sdl_format_compatible(IDataStream::Format const format)
 {
     switch (format) {
     case IDataStream::Format::Unknown: return 0;
@@ -40,7 +40,7 @@ constexpr SDL_AudioFormat convert_to_sdl_format_compatible(IDataStream::Format f
     return 0;
 }
 
-constexpr IDataStream::Format convert_format_compatible(IDataStream::Format format)
+constexpr IDataStream::Format convert_format_compatible(IDataStream::Format const format)
 {
     switch (format) {
     case IDataStream::Format::Unknown: return IDataStream::Format::Unknown;
@@ -57,7 +57,7 @@ constexpr IDataStream::Format convert_format_compatible(IDataStream::Format form
     return IDataStream::Format::Unknown;
 }
 
-constexpr IDataStream::Format convert_from_sdl_format(SDL_AudioFormat format)
+constexpr IDataStream::Format convert_from_sdl_format(SDL_AudioFormat const format)
 {
     switch (format) {
     case AUDIO_S8: return IDataStream::Format::Int8;
@@ -71,7 +71,7 @@ constexpr IDataStream::Format convert_from_sdl_format(SDL_AudioFormat format)
     return IDataStream::Format::Unknown;
 }
 
-constexpr ALenum convert_to_al_format(IDataStream::Format format, int channels)
+constexpr ALenum convert_to_al_format(IDataStream::Format const format, int const channels)
 {
     switch (format) {
     case IDataStream::Format::Unknown: return 0; break;
@@ -91,6 +91,21 @@ constexpr ALenum convert_to_al_format(IDataStream::Format format, int channels)
             return channels == 1 ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
         }
         break;
+    }
+
+    return 0;
+}
+
+constexpr size_t get_format_sample_size(IDataStream::Format const format)
+{
+    switch (format) {
+    case IDataStream::Format::Unknown: return 0;
+    case IDataStream::Format::Int8: return sizeof(int8_t);
+    case IDataStream::Format::Int16: return sizeof(int16_t);
+    case IDataStream::Format::Int32: return sizeof(int32_t);
+    case IDataStream::Format::UInt8: return sizeof(uint8_t);
+    case IDataStream::Format::UInt16: return sizeof(uint16_t);
+    case IDataStream::Format::Float32: return sizeof(float);
     }
 
     return 0;

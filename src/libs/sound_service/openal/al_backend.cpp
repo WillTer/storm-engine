@@ -24,12 +24,12 @@ using namespace storm::audio;
 namespace
 {
 
-std::unique_ptr<IDecoder> create_compatible_decoder(std::filesystem::path const& file_path)
+std::unique_ptr<IDataStream> create_compatible_stream(std::filesystem::path const& file_path, IDataStream::Format output_format)
 {
     std::string ext = file_path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) { return std::tolower(ch); });
 
-    if (ext == ".ogg") { return std::make_unique<VorbisDecoder>(); }
+    if (ext == ".ogg") { return std::make_unique<VorbisDecoder>(output_format); }
     if (ext == ".wav") { return std::make_unique<SDLWavDecoder>(); }
 
     return nullptr;
@@ -80,11 +80,8 @@ struct ALBackend::Impl {
     {
         if (!std::filesystem::exists(file_path)) { return nullptr; }
 
-        auto decoder = create_compatible_decoder(file_path);
-        if (!decoder) { return nullptr; }
-
-        auto stream = decoder->decode_file(file_path, m_out_format);
-        if (!stream || !stream->is_valid()) { return nullptr; }
+        auto stream = create_compatible_stream(file_path, m_out_format);
+        if (!stream || !stream->load_file(file_path)) { return nullptr; }
 
         auto const channels = is_flag_enabled(flags, ISound::Flags::Spatial3D) ? 1 : stream->get_channels();
 

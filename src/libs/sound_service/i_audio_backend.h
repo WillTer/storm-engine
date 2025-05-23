@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <limits>
+#include <memory>
 #include <vector>
 
 #include "enum_flags.h"
@@ -74,6 +75,9 @@ public:
 
     virtual ~IDataStream() = default;
 
+    virtual bool load_file(std::filesystem::path const& file_path) = 0;
+    virtual bool load_memory(std::vector<uint8_t> const& mem)      = 0;
+
     virtual bool is_valid() = 0;
 
     virtual int get_channels() const    = 0;
@@ -81,17 +85,10 @@ public:
 
     virtual IDataStream::Format get_data_format() const = 0;
 
-    virtual size_t get_pcm_data(std::vector<uint8_t>& buffer) = 0;
+    virtual size_t get_samples(std::vector<uint8_t>& buffer, size_t sample_count) = 0;
+    virtual size_t get_samples_all(std::vector<uint8_t>& buffer)                  = 0;
 
     virtual void seek_start() = 0;
-};
-
-class IDecoder
-{
-public:
-    virtual ~IDecoder() = default;
-
-    virtual std::unique_ptr<IDataStream> decode_file(std::filesystem::path const& file_path, IDataStream::Format output_format) = 0;
 };
 
 class ISound
