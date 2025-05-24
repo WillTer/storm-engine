@@ -14,11 +14,9 @@
 #include <libs/util/rands.h>
 
 // for debugging
-#include "openal/al_backend.h"
-
 #include "debug_entity.h"
 
-using namespace storm::audio;
+using namespace storm;
 
 CREATE_SERVICE(SoundService)
 
@@ -106,8 +104,8 @@ bool SoundService::Init()
 
     if (m_renderer == nullptr) { return false; }
 
-    m_backend = std::make_unique<ALBackend>();
-    if (!m_backend || !m_backend->init()) { return false; }
+    m_backend = std::make_unique<storm::AudioBackend>();
+    if (!m_backend) { return false; }
 
     if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
         fadeTimeInSeconds = ini->GetFloat("sound", "fade_time", FADE_DEFAULT);
@@ -144,21 +142,18 @@ void SoundService::ProcessFader(uint16_t const idx)
         PlayingSounds[idx].fFaderCurrentVolume = std::min(PlayingSounds[idx].fFaderCurrentVolume, PlayingSounds[idx].fFaderNeedVolume);
     }
 
-    auto const channel_lock = PlayingSounds[idx].channel.lock();
-    if (!channel_lock) { return; }
-
     // FADE OUT
     if (PlayingSounds[idx].fFaderDeltaInSec < 0) {
         if (fabsf(PlayingSounds[idx].fFaderCurrentVolume - PlayingSounds[idx].fFaderNeedVolume) < std::numeric_limits<float>::epsilon()) {
             PlayingSounds[idx].fFaderCurrentVolume = PlayingSounds[idx].fFaderNeedVolume;
             std::chrono::milliseconds ogg_pos      = {};
-            CHECK_RESULT(channel_lock->get_playback_position(ogg_pos));
+            CHECK_RESULT(PlayingSounds[idx].channel->get_playback_position(ogg_pos));
             SetOGGPosition(PlayingSounds[idx].Name.c_str(), ogg_pos);
-            CHECK_RESULT(channel_lock->stop());
+            CHECK_RESULT(PlayingSounds[idx].channel->stop());
         }
     }
 
-    CHECK_RESULT(channel_lock->set_volume(PlayingSounds[idx].fFaderCurrentVolume));
+    CHECK_RESULT(PlayingSounds[idx].channel->set_volume(PlayingSounds[idx].fFaderCurrentVolume));
 }
 
 uint16_t SoundService::FreeSound(uint16_t const idx)
@@ -201,14 +196,8 @@ void SoundService::RunStart()
     for (uint16_t i = 0; i < numActiveSounds; i++) {
         if (PlayingSounds[i].bFree) { continue; }
 
-        auto const channel_lock = PlayingSounds[i].channel.lock();
-        if (!channel_lock) {
-            release_sound(i);
-            continue;
-        }
-
         ChannelState state = {};
-        CHECK_RESULT(channel_lock->get_state(state));
+        CHECK_RESULT(PlayingSounds[i].channel->get_state(state));
 
         if (state == ChannelState::Stopped) { release_sound(i); }
     }
@@ -284,12 +273,12 @@ TSD_ID SoundService::SoundPlay(
     std::string sound_name = "resource\\sounds\\" + file_name;
     sound_name             = fio->ConvertPathResource(sound_name.c_str());
 
-    std::shared_ptr<ISound> sound     = nullptr;
-    uint16_t                sound_idx = 0;
+    std::shared_ptr<Sound> sound     = nullptr;
+    uint16_t               sound_idx = 0;
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        sound = m_backend->create_sound(sound_name, /*ISound::Flags::Stream | */ ISound::Flags::Stereo2D);
+        sound = m_backend->create_sound(sound_name, static_cast<Sound::Flags>(Sound::Flags::Stream | Sound::Flags::Stereo2D));
         if (!sound) {
             core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
             return 0;
@@ -330,14 +319,13 @@ TSD_ID SoundService::SoundPlay(
     PlayingSounds[sound_idx].fSoundVolume = _volume;
 
     // Get channel for sound but do not start to play
-    PlayingSounds[sound_idx].channel = m_backend->bind_sound_to_empty_channel(sound);
+    PlayingSounds[sound_idx].channel = m_backend->attach_sound(sound);
 
-    auto const channel_lock = PlayingSounds[sound_idx].channel.lock();
-    if (!channel_lock) { return 0; }
+    if (PlayingSounds[sound_idx].channel == nullptr) { return 0; }
 
     if (sound_idx <= 1) {
         auto const music_pos = GetOGGPosition(sound_name.c_str());
-        channel_lock->set_playback_position(music_pos);
+        PlayingSounds[sound_idx].channel->set_playback_position(music_pos);
 
         _prior = 0;
     }
@@ -349,8 +337,8 @@ TSD_ID SoundService::SoundPlay(
 
     // Adjust parameters for 3D channel ...
     if (_type == PCM_3D) {
-        channel_lock->set_min_distance(std::max(_minDistance, 0.0F) * DISTANCEFACTOR);
-        channel_lock->set_max_distance(std::max(_maxDistance, 0.0F) * DISTANCEFACTOR);
+        PlayingSounds[sound_idx].channel->set_min_distance(std::max(_minDistance, 0.0F) * DISTANCEFACTOR);
+        PlayingSounds[sound_idx].channel->set_max_distance(std::max(_maxDistance, 0.0F) * DISTANCEFACTOR);
 
         std::array<float, 3> position = {};
         if (_startPosition != nullptr) {
@@ -359,7 +347,7 @@ TSD_ID SoundService::SoundPlay(
             position[2] = _startPosition->z;
         }
 
-        channel_lock->set_position_3d(position);
+        PlayingSounds[sound_idx].channel->set_position_3d(position);
     }
 
     switch (_volumeType) {
@@ -370,29 +358,29 @@ TSD_ID SoundService::SoundPlay(
     }
 
     if (_time <= 0) {
-        channel_lock->set_volume(_volume);
+        PlayingSounds[sound_idx].channel->set_volume(_volume);
     } else {
-        channel_lock->set_volume(0);
+        PlayingSounds[sound_idx].channel->set_volume(0);
     }
 
-    channel_lock->set_pitch(fPitch);
+    PlayingSounds[sound_idx].channel->set_pitch(fPitch);
 
     PlayingSounds[sound_idx].Name       = std::move(sound_name);
     PlayingSounds[sound_idx].sound_type = _type;
 
     if (!_simpleCache) {
         // If we're not caching just start to play
-        channel_lock->play();
+        PlayingSounds[sound_idx].channel->play();
     }
 
     PlayingSounds[sound_idx].bFree = false;
-    channel_lock->set_looping(_looped);
+    PlayingSounds[sound_idx].channel->set_looping(_looped);
 
     // ---------- loop through all sounds looking for the one with the same channel --------------
     for (uint16_t j = 0; j < numActiveSounds; j++) {
         if (j == sound_idx) { continue; }
 
-        if (PlayingSounds[j].channel.lock() == channel_lock) {
+        if (PlayingSounds[j].channel == PlayingSounds[sound_idx].channel) {
             // note that the sound is thrown out ...
             // so as not to stop him ...
             j = FreeSound(j);
@@ -411,25 +399,22 @@ void SoundService::SoundSet3DParam(TSD_ID id, eSoundMessage message_type, void c
 
     if (id.stamp() != sound.stamp) return;
 
-    auto const channel_lock = sound.channel.lock();
-    if (!channel_lock) { return; }
-
     switch (message_type) {
     case SM_MAX_DISTANCE: {
         float const distance = *reinterpret_cast<float const*>(data);
-        CHECK_RESULT(channel_lock->set_max_distance(distance));
+        CHECK_RESULT(sound.channel->set_max_distance(distance));
     } break;
 
     case SM_MIN_DISTANCE: {
         float const distance = *reinterpret_cast<float const*>(data);
-        CHECK_RESULT(channel_lock->set_min_distance(distance));
+        CHECK_RESULT(sound.channel->set_min_distance(distance));
     } break;
 
     case SM_POSITION: {
         auto        pos   = std::array<float, 3> {};
         auto const* array = reinterpret_cast<float const*>(data);
         std::memcpy(pos.data(), array, sizeof(pos));
-        CHECK_RESULT(channel_lock->set_position_3d(pos));
+        CHECK_RESULT(sound.channel->set_position_3d(pos));
     } break;
     }
 }
@@ -468,9 +453,7 @@ void SoundService::SoundSetVolume(TSD_ID id, float const volume)
                 PlayingSounds[i].fFaderCurrentVolume = PlayingSounds[i].fFaderNeedVolume;
             }
 
-            auto const channel_lock = PlayingSounds[i].channel.lock();
-            if (!channel_lock) { continue; }
-            CHECK_RESULT(channel_lock->set_volume(actual_volume));
+            CHECK_RESULT(PlayingSounds[i].channel->set_volume(actual_volume));
         }
         return;
     }
@@ -492,9 +475,7 @@ void SoundService::SoundSetVolume(TSD_ID id, float const volume)
     default: break;
     }
 
-    auto const channel_lock = sound.channel.lock();
-    if (!channel_lock) { return; }
-    CHECK_RESULT(channel_lock->set_volume(actual_volume));
+    CHECK_RESULT(sound.channel->set_volume(actual_volume));
 }
 
 bool SoundService::SoundIsPlaying(TSD_ID id)
@@ -516,9 +497,7 @@ void SoundService::SoundResume(TSD_ID id, int32_t time /* = 0*/)
         for (uint16_t i = 0; i < numActiveSounds; i++) {
             if (PlayingSounds[i].bFree) { continue; }
 
-            auto const channel_lock = PlayingSounds[i].channel.lock();
-            if (!channel_lock) { continue; }
-            CHECK_RESULT(channel_lock->play());
+            CHECK_RESULT(PlayingSounds[i].channel->play());
         }
         return;
     }
@@ -529,11 +508,7 @@ void SoundService::SoundResume(TSD_ID id, int32_t time /* = 0*/)
 
     if (id.stamp() != sound.stamp) return;
 
-    if (id.index() <= 1) {
-        auto const channel_lock = sound.channel.lock();
-        if (!channel_lock) { return; }
-        CHECK_RESULT(channel_lock->play());
-    }
+    if (id.index() <= 1) { CHECK_RESULT(sound.channel->play()); }
 }
 
 uint32_t SoundService::SoundGetPosition(TSD_ID id)
@@ -544,11 +519,8 @@ uint32_t SoundService::SoundGetPosition(TSD_ID id)
 
     if (id.stamp() != sound.stamp) return 0;
 
-    auto const channel_lock = sound.channel.lock();
-    if (!channel_lock) { return 0; }
-
     std::chrono::milliseconds pos = {};
-    CHECK_RESULT(channel_lock->get_playback_position(pos));
+    CHECK_RESULT(sound.channel->get_playback_position(pos));
     return static_cast<uint32_t>(pos.count());
 }
 
@@ -586,8 +558,7 @@ void SoundService::SetMasterVolume(float fx_volume, float music_volume, float sp
         default: break;
         }
 
-        if (auto const channel_lock = PlayingSounds[i].channel.lock();
-            !channel_lock || CHECK_RESULT(channel_lock->set_volume(actual_volume)) != Result::Ok) {
+        if (PlayingSounds[i].channel == nullptr || CHECK_RESULT(PlayingSounds[i].channel->set_volume(actual_volume)) != Result::Ok) {
             i = FreeSound(i);
         }
     }
@@ -611,8 +582,7 @@ void SoundService::SetPitch(float pitch)
     for (uint16_t i = 0; i < numActiveSounds; i++) {
         if (PlayingSounds[i].bFree) continue;
 
-        if (auto const channel_lock = PlayingSounds[i].channel.lock();
-            !channel_lock || CHECK_RESULT(channel_lock->set_pitch(fPitch)) != Result::Ok) {
+        if (PlayingSounds[i].channel == nullptr || CHECK_RESULT(PlayingSounds[i].channel->set_pitch(fPitch)) != Result::Ok) {
             i = FreeSound(i);
         }
     }
@@ -657,14 +627,11 @@ void SoundService::SetActiveWithFade(bool const active)
     for (auto const& sound: PlayingSounds) {
         if (sound.bFree) { continue; }
 
-        auto const channel_lock = sound.channel.lock();
-        if (!channel_lock) { continue; }
-
         // TODO
         if (active) {
-            channel_lock->play();
+            sound.channel->play();
         } else {
-            channel_lock->pause();
+            sound.channel->pause();
         }
 
         // if (active)
@@ -697,11 +664,8 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
         for (; time > 0 && start < 2; ++start) {
             if (PlayingSounds[start].bFree) { continue; }
 
-            auto const channel_lock = PlayingSounds[start].channel.lock();
-            if (!channel_lock) { continue; }
-
             float vol = 0.0F;
-            CHECK_RESULT(channel_lock->get_volume(vol));
+            CHECK_RESULT(PlayingSounds[start].channel->get_volume(vol));
             PlayingSounds[start].fFaderNeedVolume    = 0.0F;
             PlayingSounds[start].fFaderCurrentVolume = vol;
             PlayingSounds[start].fFaderDeltaInSec    = -vol;
@@ -715,33 +679,27 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
         for (uint16_t i = start; i < numActiveSounds; i++) {
             if (PlayingSounds[i].bFree) { continue; }
 
-            auto const channel_lock = PlayingSounds[i].channel.lock();
-            if (!channel_lock) {
-                i = FreeSound(i);
-                continue;
-            }
-
             if (i <= 1) {
                 std::chrono::milliseconds music_pos = {};
-                CHECK_RESULT(channel_lock->get_playback_position(music_pos));
+                CHECK_RESULT(PlayingSounds[i].channel->get_playback_position(music_pos));
                 SetOGGPosition(PlayingSounds[i].Name.c_str(), music_pos);
             }
 
             ChannelState state = ChannelState::None;
-            CHECK_RESULT(channel_lock->get_state(state));
+            CHECK_RESULT(PlayingSounds[i].channel->get_state(state));
             if (state != ChannelState::Playing) {
                 if constexpr (TRACE_INFORMATION) {
                     core.Trace(
                         "PlayingSounds[%d].channel 0x%08X %s state %d",
                         i,
-                        channel_lock,
+                        PlayingSounds[i].channel,
                         PlayingSounds[i].Name.c_str(),
                         static_cast<int>(state));
                 }
 
                 i = FreeSound(i);
             } else {
-                CHECK_RESULT(channel_lock->stop());
+                CHECK_RESULT(PlayingSounds[i].channel->stop());
             }
         }
 
@@ -758,13 +716,11 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
 
     auto& sound = PlayingSounds[id.index()];
 
-    auto const channel_lock = sound.channel.lock();
-
-    if (id.stamp() != sound.stamp || !channel_lock) { return; }
+    if (id.stamp() != sound.stamp) { return; }
 
     if (time > 0) {
         float vol = 0.0F;
-        CHECK_RESULT(channel_lock->get_volume(vol));
+        CHECK_RESULT(sound.channel->get_volume(vol));
         sound.fFaderNeedVolume    = 0.0F;
         sound.fFaderCurrentVolume = vol;
         sound.fFaderDeltaInSec    = -vol;
@@ -772,17 +728,17 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
     } else {
         if (id.index() <= 1) {
             std::chrono::milliseconds music_pos = {};
-            CHECK_RESULT(channel_lock->get_playback_position(music_pos));
+            CHECK_RESULT(sound.channel->get_playback_position(music_pos));
             SetOGGPosition(sound.Name.c_str(), music_pos);
         }
 
         ChannelState state = ChannelState::None;
-        CHECK_RESULT(channel_lock->get_state(state));
+        CHECK_RESULT(sound.channel->get_state(state));
         if (!sound.bFree) {
             if (state != ChannelState::Playing) {
                 FreeSound(id.index());
             } else {
-                CHECK_RESULT(channel_lock->stop());
+                CHECK_RESULT(sound.channel->stop());
             }
         }
 
@@ -1008,9 +964,9 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
         }
     }
 
-    auto flags = ISound::Flags::None;
-    if (sound_type == PCM_3D) { flags = flags | ISound::Flags::Spatial3D; }
-    if (sound_type == PCM_STEREO) { flags = flags | ISound::Flags::Stereo2D; }
+    auto flags = Sound::Flags::None;
+    if (sound_type == PCM_3D) { flags = static_cast<Sound::Flags>(flags | Sound::Flags::Spatial3D); }
+    if (sound_type == PCM_STEREO) { flags = static_cast<Sound::Flags>(flags | Sound::Flags::Stereo2D); }
 
     tSoundCache cache_value;
     cache_value.sound = m_backend->create_sound(name, flags);
