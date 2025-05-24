@@ -7,7 +7,7 @@
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
-#include <storm_audio/audio_backend.h>
+#include <storm_audio/backend.h>
 
 #include "sound_defines.h"
 #include "v_sound_service.h"
@@ -46,8 +46,8 @@ private:
     bool bShowDebugInfo;
     bool initialized;
 
-    std::unique_ptr<storm::AudioBackend>         m_backend;
-    std::array<std::shared_ptr<storm::Sound>, 2> m_music_sounds;
+    std::unique_ptr<storm::audio::Backend>              m_backend;
+    std::array<std::shared_ptr<storm::audio::Sound>, 2> m_music_sounds;
 
     struct tSoundCache {
         uint32_t    dwNameHash;
@@ -55,7 +55,7 @@ private:
         float       fTimeFromLastPlay;
         eSoundType  type;
 
-        std::shared_ptr<storm::Sound> sound;
+        std::shared_ptr<storm::audio::Sound> sound;
 
         tSoundCache() : type()
         {
@@ -70,7 +70,7 @@ private:
         float fFaderCurrentVolume;
         float fFaderDeltaInSec;
 
-        storm::AudioChannel* channel;
+        storm::audio::Channel* channel;
 
         eVolumeType type;
         eSoundType  sound_type;
