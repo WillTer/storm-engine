@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <thread>
 
-// #include <fmod_errors.h>
-
 #include <libs/core/core.h>
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
@@ -80,10 +78,6 @@ SoundService::SoundService()
     bShowDebugInfo = false;
     initialized    = false;
     m_backend      = nullptr;
-
-    listenerPos = {0.0F, 0.0F, 0.0F};
-    listenerVel = {0.0F, 0.0F, 0.0F};
-    listenerOri = {0.0F, 0.0F, 0.0F};
 
     m_fader_parity = false;
 }
@@ -278,9 +272,9 @@ TSD_ID SoundService::SoundPlay(
 
     TSD_ID id;
     if (_type == MP3_STEREO) {
-        sound = m_backend->create_sound(sound_name, static_cast<Sound::Flags>(Sound::Flags::Stream | Sound::Flags::Stereo2D));
+        sound = m_backend->create_sound(sound_name, Sound::Flags::Stream | Sound::Flags::Stereo2D);
         if (!sound) {
-            core.Trace("Error creating sound stream for file %s\n", sound_name.c_str());
+            core.Trace("Error creating sound stream for file %s", sound_name.c_str());
             return 0;
         }
 
@@ -337,13 +331,14 @@ TSD_ID SoundService::SoundPlay(
 
     // Adjust parameters for 3D channel ...
     if (_type == PCM_3D) {
+        PlayingSounds[sound_idx].channel->set_min_distance(std::max(_minDistance, 0.0F) * DISTANCEFACTOR);
         PlayingSounds[sound_idx].channel->set_max_distance(std::max(_maxDistance, 0.0F) * DISTANCEFACTOR);
 
         std::array<float, 3> position = {};
         if (_startPosition != nullptr) {
             position[0] = _startPosition->x;
             position[1] = _startPosition->y;
-            position[2] = _startPosition->z;
+            position[2] = -_startPosition->z;
         }
 
         PlayingSounds[sound_idx].channel->set_position_3d(position);
@@ -404,12 +399,15 @@ void SoundService::SoundSet3DParam(TSD_ID id, eSoundMessage message_type, void c
         sound.channel->set_max_distance(distance);
     } break;
 
-    case SM_MIN_DISTANCE: break;
+    case SM_MIN_DISTANCE: {
+        float const distance = *reinterpret_cast<float const*>(data);
+        sound.channel->set_min_distance(distance);
+    } break;
 
     case SM_POSITION: {
-        auto        pos   = std::array<float, 3> {};
-        auto const* array = reinterpret_cast<float const*>(data);
-        std::memcpy(pos.data(), array, sizeof(pos));
+        auto pos = std::array<float, 3> {};
+        std::memcpy(pos.data(), reinterpret_cast<float const*>(data), sizeof(pos));
+        pos[2] = -pos[2];  // Invert Z
         sound.channel->set_position_3d(pos);
     } break;
     }
@@ -521,7 +519,7 @@ uint32_t SoundService::SoundGetPosition(TSD_ID id)
 
 void SoundService::SetCameraPosition(const CVECTOR& camera_pos)
 {
-    m_backend->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, camera_pos.z});
+    m_backend->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, -camera_pos.z});
 }
 
 void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head)
@@ -530,7 +528,7 @@ void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head
     auto const head_normalized = !head;
 
     m_backend->set_listener_orientation_3d(std::array<float, 6> {
-        nose_normalized.x, nose_normalized.y, nose_normalized.z, head_normalized.x, head_normalized.y, head_normalized.z});
+        nose_normalized.x, nose_normalized.y, -nose_normalized.z, head_normalized.x, head_normalized.y, -head_normalized.z});
 }
 
 void SoundService::SetMasterVolume(float fx_volume, float music_volume, float speech_volume)
@@ -678,20 +676,18 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
             }
 
             auto const state = PlayingSounds[i].channel->get_state();
-            if (state != ChannelState::Playing) {
-                if constexpr (TRACE_INFORMATION) {
-                    core.Trace(
-                        "PlayingSounds[%d].channel 0x%08X %s state %d",
-                        i,
-                        PlayingSounds[i].channel,
-                        PlayingSounds[i].Name.c_str(),
-                        static_cast<int>(state));
-                }
+            if (state == ChannelState::Playing) { PlayingSounds[i].channel->stop(); }
 
-                i = FreeSound(i);
-            } else {
-                PlayingSounds[i].channel->stop();
+            if constexpr (TRACE_INFORMATION) {
+                core.Trace(
+                    "PlayingSounds[%d].channel 0x%08X %s state %d",
+                    i,
+                    PlayingSounds[i].channel,
+                    PlayingSounds[i].Name.c_str(),
+                    static_cast<int>(state));
             }
+
+            i = FreeSound(i);
         }
 
         if (time <= 0) {
@@ -722,13 +718,9 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
             SetOGGPosition(sound.Name.c_str(), music_pos);
         }
 
-        auto const state = sound.channel->get_state();
         if (!sound.bFree) {
-            if (state != ChannelState::Playing) {
-                FreeSound(id.index());
-            } else {
-                sound.channel->stop();
-            }
+            if (sound.channel->get_state() == ChannelState::Playing) { sound.channel->stop(); }
+            FreeSound(id.index());
         }
 
         if (id.index() <= 1 && m_music_sounds[id.index()]) { m_music_sounds[id.index()].reset(); }
@@ -954,8 +946,8 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
     }
 
     auto flags = Sound::Flags::None;
-    if (sound_type == PCM_3D) { flags = static_cast<Sound::Flags>(flags | Sound::Flags::Spatial3D); }
-    if (sound_type == PCM_STEREO) { flags = static_cast<Sound::Flags>(flags | Sound::Flags::Stereo2D); }
+    if (sound_type == PCM_3D) { flags = flags | Sound::Flags::Spatial3D; }
+    if (sound_type == PCM_STEREO) { flags = flags | Sound::Flags::Stereo2D; }
 
     tSoundCache cache_value;
     cache_value.sound = m_backend->create_sound(name, flags);
