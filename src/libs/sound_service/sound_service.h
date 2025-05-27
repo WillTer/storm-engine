@@ -70,7 +70,7 @@ private:
         float fFaderCurrentVolume;
         float fFaderDeltaInSec;
 
-        storm::audio::Channel* channel;
+        std::shared_ptr<storm::audio::Source> source;
 
         eVolumeType type;
         eSoundType  sound_type;
