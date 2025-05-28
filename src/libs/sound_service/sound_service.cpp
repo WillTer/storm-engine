@@ -30,6 +30,9 @@ constexpr float VOLUME_DEFAULT = 0.5F;
 constexpr float PITCH_DEFAULT  = 1.0F;
 constexpr float FADE_DEFAULT   = 0.5F;
 
+constexpr size_t STREAM_BUFFER_COUNT = 2;
+constexpr size_t BUFFER_SAMPLE_COUNT = 16384;
+
 void analyse_name_string_and_add_to_alias(SoundService::tAlias& alias, std::string_view const& name)
 {
     static char file_name[COMMON_STRING_LENGTH];
@@ -90,10 +93,6 @@ SoundService::~SoundService()
             PlayingSounds[i].source.reset();
         }
 
-        for (auto& music: m_music_sounds) {
-            music.reset();
-        }
-
         SoundCache.clear();
     }
 }
@@ -106,7 +105,7 @@ bool SoundService::Init()
 
     if (m_renderer == nullptr) { return false; }
 
-    m_backend = std::make_unique<Backend>(std::make_shared<Tracer>());
+    m_backend = std::make_unique<Backend>(std::make_shared<Tracer>(), STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_backend) { return false; }
 
     if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
@@ -149,7 +148,7 @@ void SoundService::ProcessFader(uint16_t const idx)
         if (fabsf(PlayingSounds[idx].fFaderCurrentVolume - PlayingSounds[idx].fFaderNeedVolume) < std::numeric_limits<float>::epsilon()) {
             PlayingSounds[idx].fFaderCurrentVolume = PlayingSounds[idx].fFaderNeedVolume;
             auto const ogg_pos                     = PlayingSounds[idx].source->get_playback_position();
-            SetOGGPosition(PlayingSounds[idx].Name.c_str(), ogg_pos);
+            m_ogg_pos[PlayingSounds[idx].Name]     = ogg_pos;
             PlayingSounds[idx].source->stop();
         }
     }
@@ -160,6 +159,8 @@ void SoundService::ProcessFader(uint16_t const idx)
 uint16_t SoundService::FreeSound(uint16_t const idx)
 {
     PlayingSounds[idx].bFree = true;
+    PlayingSounds[idx].source.reset();
+
     if (idx >= 2 && idx < numActiveSounds) { freeSounds.push(idx); }
 
     return idx;
@@ -169,9 +170,11 @@ void SoundService::RunStart()
 {
     CreateEntityIfNeed();
 
-    if (m_renderer) {
-        static CVECTOR pos, nose, head;
-        static CMatrix view;
+    if (m_renderer != nullptr) {
+        static CVECTOR pos  = {};
+        static CVECTOR nose = {};
+        static CVECTOR head = {};
+        static CMatrix view = {};
 
         m_renderer->GetTransform(D3DTS_VIEW, view);
         view.Transposition();
@@ -189,14 +192,7 @@ void SoundService::RunStart()
     // release the sounds that have played
     for (uint16_t i = 0; i < numActiveSounds; i++) {
         if (PlayingSounds[i].bFree) { continue; }
-
-        if (PlayingSounds[i].source->get_state() == SourceState::Stopped) {
-            if (i <= 1 && m_music_sounds[i]) { m_music_sounds[i].reset(); }
-            PlayingSounds[i].source.reset();
-
-            FreeSound(i);
-            core.Event("SoundEnded", "l", i + 2);
-        }
+        if (PlayingSounds[i].source->get_state() == SourceState::Free) { FreeSound(i); }
     }
 
     ProcessSoundSchemes();
@@ -219,20 +215,6 @@ bool SoundService::AllocateSound(TSD_ID& id)
     return true;
 }
 
-std::string SoundService::get_random_name(tAlias const& alias) const
-{
-    return alias.soundFiles.pickRandom();
-}
-
-size_t SoundService::get_alias_index_by_name(std::string_view const& name) const
-{
-    uint32_t const dwSearchHash = MakeHashValue(name.data());
-    for (size_t i = 0; i < Aliases.size(); i++) {
-        if (Aliases[i].dwNameHash == dwSearchHash && Aliases[i].Name == name) { return i; }
-    }
-    return std::numeric_limits<size_t>::max();
-}
-
 TSD_ID SoundService::SoundPlay(
     char const*    _name,
     eSoundType     _type,
@@ -253,31 +235,32 @@ TSD_ID SoundService::SoundPlay(
     // aliases don`t contain `\`
     if (strchr(_name, '\\') == nullptr) {
         // Trying to find in aliases
-        auto const alias_idx = get_alias_index_by_name(_name);
-        if (alias_idx != std::numeric_limits<decltype(alias_idx)>::max() && !Aliases[alias_idx].soundFiles.empty()) {
+        if (Aliases.contains(_name)) {
+            auto& alias = Aliases[_name];
+
             // play sound from the alias ...
-            file_name = get_random_name(Aliases[alias_idx]);
+            file_name = alias.soundFiles.pickRandom();
             if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", file_name.c_str()); }
 
-            _minDistance = Aliases[alias_idx].fMinDistance;
-            _maxDistance = Aliases[alias_idx].fMaxDistance;
-            _prior       = Aliases[alias_idx].iPrior;
+            _minDistance = alias.fMinDistance;
+            _maxDistance = alias.fMaxDistance;
+            _prior       = alias.iPrior;
 
-            if (Aliases[alias_idx].fVolume > std::numeric_limits<float>::epsilon()) { _volume = Aliases[alias_idx].fVolume; }
+            if (alias.fVolume > std::numeric_limits<float>::epsilon()) { _volume = alias.fVolume; }
         }
     }
 
-    std::string sound_name = "resource\\sounds\\" + file_name;
-    sound_name             = fio->ConvertPathResource(sound_name.c_str());
+    std::string sound_path = "resource\\sounds\\" + file_name;
+    sound_path             = fio->ConvertPathResource(sound_path.c_str());
 
     std::shared_ptr<Sound> sound     = nullptr;
     uint16_t               sound_idx = 0;
 
     TSD_ID id = 0;
     if (_type == MP3_STEREO) {
-        sound = m_backend->create_sound(sound_name, Sound::Flags::Stream | Sound::Flags::Stereo2D);
+        sound = m_backend->create_sound(sound_path, Sound::Flags::Stream | Sound::Flags::Stereo2D);
         if (!sound) {
-            core.Trace("Error creating sound stream for file %s", sound_name.c_str());
+            core.Trace("Error creating sound stream for file %s", sound_path.c_str());
             return 0;
         }
 
@@ -285,21 +268,21 @@ TSD_ID SoundService::SoundPlay(
         m_fader_parity     = !m_fader_parity;
         auto old_music_idx = static_cast<uint16_t>(m_fader_parity);
 
-        if (m_music_sounds[old_music_idx]) { SoundStop(old_music_idx + 1, _time); }
+        SoundStop(old_music_idx + 1, _time);
 
         sound_idx = music_idx;
         id        = sound_idx + 1;
+        _prior    = 0;
 
-        m_music_sounds[sound_idx]                    = sound;
         PlayingSounds[sound_idx].fFaderNeedVolume    = _volume * fMusicVolume;
         PlayingSounds[sound_idx].fFaderCurrentVolume = 0.0F;
-        PlayingSounds[sound_idx].fFaderDeltaInSec    = _volume * fMusicVolume;
-        if (_time != 0) { PlayingSounds[sound_idx].fFaderDeltaInSec /= (_time * 0.001F); }
+        PlayingSounds[sound_idx].fFaderDeltaInSec    = std::numeric_limits<float>::max();
+        if (_time != 0) { PlayingSounds[sound_idx].fFaderDeltaInSec = (_volume * fMusicVolume) / (_time * 0.001F); }
     } else {
         // For all other sounds, take from the cache
-        auto const cache_idx = GetFromCache(sound_name, _type);
+        auto const cache_idx = GetFromCache(sound_path, _type);
         if (cache_idx == std::numeric_limits<decltype(cache_idx)>::max()) {
-            core.Trace("No sound \"%s\" in cache", sound_name.c_str());
+            core.Trace("No sound \"%s\" in cache", sound_path.c_str());
             return 0;
         }
 
@@ -329,14 +312,11 @@ TSD_ID SoundService::SoundPlay(
             PlayingSounds[sound_idx].source->get_state());
     }
 
-    if (sound_idx <= 1) {
-        auto const music_pos = GetOGGPosition(sound_name.c_str());
-        PlayingSounds[sound_idx].source->set_playback_position(music_pos);
-
-        _prior = 0;
+    if (sound_idx <= 1 && m_ogg_pos.contains(sound_path)) {
+        PlayingSounds[sound_idx].source->set_playback_position(m_ogg_pos.at(sound_path));
     }
 
-    _prior = std::clamp(_prior, 0, 255);
+    _prior = std::clamp<uint8_t>(_prior, 0, std::numeric_limits<uint8_t>::max());
 
     // put priority ...
     // PlayingSounds[sound_idx].channel->setPriority(_prior);
@@ -363,15 +343,10 @@ TSD_ID SoundService::SoundPlay(
     default: _volume *= 1.0F; break;
     }
 
-    if (_time <= 0) {
-        PlayingSounds[sound_idx].source->set_volume(_volume);
-    } else {
-        PlayingSounds[sound_idx].source->set_volume(0);
-    }
-
+    PlayingSounds[sound_idx].source->set_volume(_time <= 0 ? _volume : 0);
     PlayingSounds[sound_idx].source->set_pitch(fPitch);
 
-    PlayingSounds[sound_idx].Name       = std::move(sound_name);
+    PlayingSounds[sound_idx].Name       = std::move(sound_path);
     PlayingSounds[sound_idx].sound_type = _type;
 
     if (!_simpleCache) {
@@ -384,14 +359,8 @@ TSD_ID SoundService::SoundPlay(
 
     // ---------- loop through all sounds looking for the one with the same channel --------------
     for (uint16_t j = 0; j < numActiveSounds; j++) {
-        if (j == sound_idx) { continue; }
-
-        if (PlayingSounds[j].source == PlayingSounds[sound_idx].source) {
-            // note that the sound is thrown out ...
-            // so as not to stop him ...
-            j = FreeSound(j);
-            break;
-        }
+        if (j == sound_idx || PlayingSounds[j].bFree) { continue; }
+        if (PlayingSounds[j].source == PlayingSounds[sound_idx].source) { j = FreeSound(j); }
     }
 
     return id;
@@ -399,11 +368,11 @@ TSD_ID SoundService::SoundPlay(
 
 void SoundService::SoundSet3DParam(TSD_ID id, eSoundMessage message_type, void const* data)
 {
-    if (id.master() || id.index() > numActiveSounds) return;
+    if (id.master() || id.index() > numActiveSounds) { return; }
 
     auto& sound = PlayingSounds[id.index()];
 
-    if (id.stamp() != sound.stamp) return;
+    if (id.stamp() != sound.stamp || !sound.source) { return; }
 
     switch (message_type) {
     case SM_MAX_DISTANCE: {
@@ -464,10 +433,10 @@ void SoundService::SoundSetVolume(TSD_ID id, float const volume)
         return;
     }
 
-    if (id.index() >= numActiveSounds) return;
+    if (id.index() >= numActiveSounds) { return; }
 
     auto& sound = PlayingSounds[id.index()];
-    if (id.stamp() != sound.stamp) return;
+    if (id.stamp() != sound.stamp || sound.bFree) { return; }
 
     if (id.index() <= 1 && (sound.fFaderCurrentVolume - sound.fFaderNeedVolume) > std::numeric_limits<float>::epsilon()) { return; }
 
@@ -560,7 +529,6 @@ void SoundService::SetMasterVolume(float fx_volume, float music_volume, float sp
         default: break;
         }
 
-        if (PlayingSounds[i].source == nullptr) { i = FreeSound(i); }
         PlayingSounds[i].source->set_volume(actual_volume);
     }
 }
@@ -582,7 +550,6 @@ void SoundService::SetPitch(float pitch)
 
     for (uint16_t i = 0; i < numActiveSounds; i++) {
         if (PlayingSounds[i].bFree) { continue; }
-        if (PlayingSounds[i].source == nullptr) { i = FreeSound(i); }
 
         PlayingSounds[i].source->set_pitch(fPitch);
     }
@@ -668,21 +635,14 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
 
             PlayingSounds[start].fFaderNeedVolume    = 0.0F;
             PlayingSounds[start].fFaderCurrentVolume = vol;
-            PlayingSounds[start].fFaderDeltaInSec    = -vol;
-            if (time != 0) { PlayingSounds[start].fFaderDeltaInSec /= (time * 0.001F); }
-
-            if (PlayingSounds[start].fFaderDeltaInSec < std::numeric_limits<float>::epsilon() && m_music_sounds[start]) {
-                m_music_sounds[start].reset();
-            }
+            PlayingSounds[start].fFaderDeltaInSec    = -std::numeric_limits<float>::max();
+            if (time != 0) { PlayingSounds[start].fFaderDeltaInSec = -vol / (time * 0.001F); }
         }
 
         for (uint16_t i = start; i < numActiveSounds; i++) {
             if (PlayingSounds[i].bFree) { continue; }
 
-            if (i <= 1) {
-                auto const music_pos = PlayingSounds[i].source->get_playback_position();
-                SetOGGPosition(PlayingSounds[i].Name.c_str(), music_pos);
-            }
+            if (i <= 1) { m_ogg_pos[PlayingSounds[i].Name] = PlayingSounds[i].source->get_playback_position(); }
 
             auto const state = PlayingSounds[i].source->get_state();
             if (state == SourceState::Playing) { PlayingSounds[i].source->stop(); }
@@ -699,10 +659,6 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
             i = FreeSound(i);
         }
 
-        if (time <= 0) {
-            m_music_sounds[0].reset();
-            m_music_sounds[1].reset();
-        }
         // --------- remove all sounds -----------------------------------------
         return;
     }
@@ -724,19 +680,12 @@ void SoundService::SoundStop(TSD_ID id, int32_t time)
 
         sound.fFaderNeedVolume    = 0.0F;
         sound.fFaderCurrentVolume = vol;
-        sound.fFaderDeltaInSec    = -vol;
-        if (time != 0) { sound.fFaderDeltaInSec /= (time * 0.001F); }
+        sound.fFaderDeltaInSec    = -vol / (time * 0.001F);
     } else {
-        if (id.index() <= 1) {
-            auto const music_pos = sound.source->get_playback_position();
-            SetOGGPosition(sound.Name.c_str(), music_pos);
-            m_music_sounds[id.index()].reset();
-        }
+        if (id.index() <= 1) { m_ogg_pos[sound.Name] = sound.source->get_playback_position(); }
+        sound.source->stop();
 
-        if (!sound.bFree) {
-            if (sound.source->get_state() == SourceState::Playing) { sound.source->stop(); }
-            FreeSound(id.index());
-        }
+        FreeSound(id.index());
     }
 }
 
@@ -748,15 +697,18 @@ void SoundService::AddAlias(INIFILE& ini_file, std::string_view const& section_n
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.data()); }
 
-    Aliases.push_back(tAlias {});
-    tAlias& alias      = Aliases.back();
-    alias.Name         = section_name;
-    alias.dwNameHash   = MakeHashValue(alias.Name.c_str());
-    alias.fMaxDistance = ini_file.GetFloat(section_name.data(), "maxDistance", -1.0F);
-    alias.fMinDistance = ini_file.GetFloat(section_name.data(), "minDistance", -1.0F);
-    alias.fVolume      = ini_file.GetFloat(section_name.data(), "volume", -1.0F);
-    alias.iPrior       = ini_file.GetInt(section_name.data(), "prior", 128);
+    Aliases.emplace(
+        section_name,
+        tAlias {
+            .Name         = std::string(section_name),
+            .dwNameHash   = MakeHashValue(section_name.data()),
+            .fMinDistance = ini_file.GetFloat(section_name.data(), "minDistance", -1.0F),
+            .fMaxDistance = ini_file.GetFloat(section_name.data(), "maxDistance", -1.0F),
+            .iPrior       = ini_file.GetInt(section_name.data(), "prior", 128),
+            .fVolume      = ini_file.GetFloat(section_name.data(), "volume", -1.0F),
+        });
 
+    tAlias& alias = Aliases[std::string(section_name)];
     if (ini_file.ReadString(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH, "")) {
         analyse_name_string_and_add_to_alias(alias, temp_string);
         while (ini_file.ReadStringNext(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH)) {
@@ -1267,39 +1219,4 @@ void SoundService::ProcessSoundSchemes()
             }
         }  // looped
     }
-}
-
-int SoundService::GetOGGPositionIndex(char const* sz_name)
-{
-    uint32_t const dw_hash = MakeHashValue(sz_name);
-
-    for (size_t i = 0; i < OGGPosition.size(); i++) {
-        if (OGGPosition[i].dwHash == dw_hash) {
-            if (OGGPosition[i].Name == sz_name) { return i; }
-        }
-    }
-    return -1;
-}
-
-std::chrono::milliseconds SoundService::GetOGGPosition(char const* sz_name)
-{
-    int const idx = GetOGGPositionIndex(sz_name);
-    if (idx >= 0) { return OGGPosition[idx].position; }
-    return std::chrono::milliseconds(0);
-}
-
-void SoundService::SetOGGPosition(char const* sz_name, std::chrono::milliseconds const& pos)
-{
-    int const idx = GetOGGPositionIndex(sz_name);
-    if (idx >= 0) {
-        OGGPosition[idx].position = pos;
-        return;
-    }
-
-    PlayedOGG ogg;
-    ogg.dwHash   = MakeHashValue(sz_name);
-    ogg.Name     = sz_name;
-    ogg.position = pos;
-
-    OGGPosition.push_back(ogg);
 }

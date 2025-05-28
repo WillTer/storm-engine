@@ -3,6 +3,7 @@
 #include <array>
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
@@ -36,8 +37,6 @@ public:
         int32_t                              iPrior;
         float                                fVolume;
         storm::ProbabilityTable<std::string> soundFiles;
-
-        tAlias() {}
     };
 
 private:
@@ -46,8 +45,7 @@ private:
     bool bShowDebugInfo;
     bool initialized;
 
-    std::unique_ptr<storm::audio::Backend>              m_backend;
-    std::array<std::shared_ptr<storm::audio::Sound>, 2> m_music_sounds;
+    std::unique_ptr<storm::audio::Backend> m_backend;
 
     struct tSoundCache {
         uint32_t    dwNameHash;
@@ -100,18 +98,7 @@ private:
     std::stack<uint16_t> freeSounds;
     uint16_t             numActiveSounds {};
 
-    struct PlayedOGG {
-        std::string Name;
-        uint32_t    dwHash;
-
-        std::chrono::milliseconds position;
-    };
-
-    std::vector<PlayedOGG> OGGPosition;
-
-    std::chrono::milliseconds GetOGGPosition(char const* sz_name);
-    void                      SetOGGPosition(char const* sz_name, std::chrono::milliseconds const& pos);
-    int                       GetOGGPositionIndex(char const* sz_name);
+    std::unordered_map<std::string, std::chrono::milliseconds> m_ogg_pos;
 
     std::vector<tSoundCache> SoundCache;
 
@@ -126,13 +113,11 @@ private:
     void CreateEntityIfNeed();
 
     // Aliases ------------------------------------------------------------
-    std::vector<tAlias> Aliases;
+    std::unordered_map<std::string, tAlias> Aliases;
 
-    std::string get_random_name(tAlias const& alias) const;
-    size_t      get_alias_index_by_name(std::string_view const& name) const;
-    void        AddAlias(INIFILE& ini_file, std::string_view const& section_name);
-    void        LoadAliasFile(char const* _filename) override;
-    void        InitAliases();
+    void AddAlias(INIFILE& ini_file, std::string_view const& section_name);
+    void LoadAliasFile(char const* _filename) override;
+    void InitAliases();
 
     // Sound Schemes------------------------------------------------------------
     struct tSoundSchemeChannel {
