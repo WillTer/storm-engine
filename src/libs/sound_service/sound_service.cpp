@@ -81,7 +81,7 @@ SoundService::SoundService()
 
     bShowDebugInfo = false;
     initialized    = false;
-    m_backend      = nullptr;
+    m_device       = nullptr;
 
     m_fader_parity = false;
 }
@@ -105,8 +105,8 @@ bool SoundService::Init()
 
     if (m_renderer == nullptr) { return false; }
 
-    m_backend = std::make_unique<Backend>(std::make_shared<Tracer>(), STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
-    if (!m_backend) { return false; }
+    m_device = std::make_unique<Device>(std::make_shared<Tracer>(), STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
+    if (!m_device) { return false; }
 
     if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
         fadeTimeInSeconds = ini->GetFloat("sound", "fade_time", FADE_DEFAULT);
@@ -126,7 +126,7 @@ void SoundService::RunEnd()
 {
     CreateEntityIfNeed();
 
-    m_backend->update();
+    m_device->update();
 }
 
 // TODO: move to backend
@@ -153,7 +153,7 @@ void SoundService::ProcessFader(uint16_t const idx)
         }
     }
 
-    PlayingSounds[idx].source->set_volume(PlayingSounds[idx].fFaderCurrentVolume);
+    PlayingSounds[idx].source->set_volume_max(PlayingSounds[idx].fFaderCurrentVolume);
 }
 
 uint16_t SoundService::FreeSound(uint16_t const idx)
@@ -253,12 +253,11 @@ TSD_ID SoundService::SoundPlay(
     std::string sound_path = "resource\\sounds\\" + file_name;
     sound_path             = fio->ConvertPathResource(sound_path.c_str());
 
-    std::shared_ptr<Sound> sound     = nullptr;
-    uint16_t               sound_idx = 0;
+    uint16_t sound_idx = 0;
 
     TSD_ID id = 0;
     if (_type == MP3_STEREO) {
-        sound = m_backend->create_sound(sound_path, Sound::Flags::Stream | Sound::Flags::Stereo2D);
+        auto sound = m_device->create_sound_stream(sound_path, Sound::Flags::Stereo2D);
         if (!sound) {
             core.Trace("Error creating sound stream for file %s", sound_path.c_str());
             return 0;
@@ -274,6 +273,7 @@ TSD_ID SoundService::SoundPlay(
         id        = sound_idx + 1;
         _prior    = 0;
 
+        PlayingSounds[sound_idx].source              = m_device->attach_sound_stream(sound);
         PlayingSounds[sound_idx].fFaderNeedVolume    = _volume * fMusicVolume;
         PlayingSounds[sound_idx].fFaderCurrentVolume = 0.0F;
         PlayingSounds[sound_idx].fFaderDeltaInSec    = std::numeric_limits<float>::max();
@@ -288,20 +288,16 @@ TSD_ID SoundService::SoundPlay(
 
         if (!AllocateSound(id)) { return 0; }
 
-        sound_idx                      = id.index();
-        PlayingSounds[sound_idx].stamp = id.stamp();
-
-        sound = SoundCache[cache_idx].sound;
+        sound_idx                       = id.index();
+        PlayingSounds[sound_idx].stamp  = id.stamp();
+        PlayingSounds[sound_idx].source = m_device->attach_sound(SoundCache[cache_idx].sound);
     }
+
+    if (!PlayingSounds[sound_idx].source) { return 0; }
 
     //--------
     PlayingSounds[sound_idx].type         = _volumeType;
     PlayingSounds[sound_idx].fSoundVolume = _volume;
-
-    // Get source for sound but do not start to play
-    PlayingSounds[sound_idx].source = m_backend->attach_sound(sound);
-
-    if (!PlayingSounds[sound_idx].source) { return 0; }
 
     if constexpr (TRACE_INFORMATION) {
         core.Trace(
@@ -343,7 +339,9 @@ TSD_ID SoundService::SoundPlay(
     default: _volume *= 1.0F; break;
     }
 
-    PlayingSounds[sound_idx].source->set_volume(_time <= 0 ? _volume : 0);
+    PlayingSounds[sound_idx].source->set_volume(1.0F);  // Volume level is multiplicated before calculating attenutation
+    PlayingSounds[sound_idx].source->set_volume_min(0.0F);
+    PlayingSounds[sound_idx].source->set_volume_max(_time <= 0 ? _volume : 0);  // Volume max is maximum volume after attenutation
     PlayingSounds[sound_idx].source->set_pitch(fPitch);
 
     PlayingSounds[sound_idx].Name       = std::move(sound_path);
@@ -428,7 +426,7 @@ void SoundService::SoundSetVolume(TSD_ID id, float const volume)
                 PlayingSounds[i].fFaderCurrentVolume = PlayingSounds[i].fFaderNeedVolume;
             }
 
-            PlayingSounds[i].source->set_volume(actual_volume);
+            PlayingSounds[i].source->set_volume_max(actual_volume);
         }
         return;
     }
@@ -450,7 +448,7 @@ void SoundService::SoundSetVolume(TSD_ID id, float const volume)
     default: break;
     }
 
-    sound.source->set_volume(actual_volume);
+    sound.source->set_volume_max(actual_volume);
 }
 
 bool SoundService::SoundIsPlaying(TSD_ID id)
@@ -497,7 +495,7 @@ uint32_t SoundService::SoundGetPosition(TSD_ID id)
 
 void SoundService::SetCameraPosition(const CVECTOR& camera_pos)
 {
-    m_backend->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, -camera_pos.z});
+    m_device->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, -camera_pos.z});
 }
 
 void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head)
@@ -505,8 +503,9 @@ void SoundService::SetCameraOrientation(const CVECTOR& nose, const CVECTOR& head
     auto const nose_normalized = !nose;
     auto const head_normalized = !head;
 
-    m_backend->set_listener_orientation_3d(std::array<float, 6> {
-        nose_normalized.x, nose_normalized.y, -nose_normalized.z, head_normalized.x, head_normalized.y, -head_normalized.z});
+    m_device->set_listener_orientation_3d(
+        std::array<float, 3> {nose_normalized.x, nose_normalized.y, -nose_normalized.z},
+        std::array<float, 3> {head_normalized.x, head_normalized.y, -head_normalized.z});
 }
 
 void SoundService::SetMasterVolume(float fx_volume, float music_volume, float speech_volume)
@@ -529,7 +528,7 @@ void SoundService::SetMasterVolume(float fx_volume, float music_volume, float sp
         default: break;
         }
 
-        PlayingSounds[i].source->set_volume(actual_volume);
+        PlayingSounds[i].source->set_volume_max(actual_volume);
     }
 }
 
@@ -575,7 +574,7 @@ void SoundService::SetActiveWithFade(bool const active)
 {
     if (fadeTimeInSeconds == 0.0F) { return; }
 
-    if (m_backend == nullptr) { return; }
+    if (m_device == nullptr) { return; }
 
     // if (active) { system->mixerResume(); }
 
@@ -915,7 +914,7 @@ size_t SoundService::GetFromCache(std::string_view const& name, eSoundType sound
     if (sound_type == PCM_STEREO) { flags = flags | Sound::Flags::Stereo2D; }
 
     tSoundCache cache_value;
-    cache_value.sound = m_backend->create_sound(name, flags);
+    cache_value.sound = m_device->create_sound(name, flags);
 
     if (cache_value.sound == nullptr) {
         core.Trace("Problem with sound loading !!! '%s'", name.data());

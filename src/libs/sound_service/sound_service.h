@@ -8,7 +8,7 @@
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
-#include <storm_audio/backend.h>
+#include <storm_audio/device.h>
 
 #include "sound_defines.h"
 #include "v_sound_service.h"
@@ -45,7 +45,7 @@ private:
     bool bShowDebugInfo;
     bool initialized;
 
-    std::unique_ptr<storm::audio::Backend> m_backend;
+    std::unique_ptr<storm::audio::Device> m_device;
 
     struct tSoundCache {
         uint32_t    dwNameHash;
