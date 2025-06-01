@@ -53,6 +53,11 @@ public:
         }
     };
 
+    struct CacheEntry {
+        eSoundType                           sound_type;
+        std::shared_ptr<storm::audio::Sound> sound;
+    };
+
     SoundService();
     ~SoundService() override;
     bool Init() override;
@@ -106,6 +111,8 @@ public:
 private:
     float get_volume_by_type(PlayingSound const& sound) const;
 
+    std::shared_ptr<storm::audio::Sound> get_from_cache(std::string const& sound_path, eSoundType sound_type);
+
     // Aliases ------------------------------------------------------------
 
     void add_alias(INIFILE& ini_file, std::string_view const& section_name);
@@ -128,9 +135,10 @@ private:
     std::vector<PlayingSound>       m_playing_sounds;
     std::vector<SoundSchemeChannel> m_sound_scheme_channels;
 
-    std::unordered_map<std::string, Alias>                                m_aliases;
-    std::unordered_map<std::string, std::chrono::milliseconds>            m_ogg_pos;
-    std::unordered_map<std::string, std::shared_ptr<storm::audio::Sound>> m_sound_cache;
+    std::unordered_map<std::string, Alias>                     m_aliases;
+    std::unordered_map<std::string, std::chrono::milliseconds> m_ogg_pos;
+
+    std::unordered_multimap<std::string, CacheEntry> m_sound_cache;
 
     float m_fx_volume;
     float m_music_volume;

@@ -105,7 +105,7 @@ bool SoundService::Init()
     if (m_renderer == nullptr) { return false; }
 
     m_device =
-        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Exponent, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
+        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Inverse, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
     constexpr float sec_to_ms_mult = 1000.0F;
@@ -149,12 +149,7 @@ void SoundService::RunStart()
     // release the sounds that have played
     for (auto& sound: m_playing_sounds) {
         if (sound.is_free) { continue; }
-        if (sound.source->get_state() == SourceState::Free) {
-            free_sound(sound);
-        } else if (sound.source->get_volume_max() <= std::numeric_limits<float>::epsilon()) {
-            // Pause muted sounds
-            sound.source->pause();
-        }
+        if (sound.source->get_state() == SourceState::Free) { free_sound(sound); }
     }
 
     process_sound_schemes();
@@ -230,13 +225,7 @@ TSD_ID SoundService::play(
 
         m_playing_sounds[sound_idx].source = m_device->attach_sound_stream(sound);
     } else {
-        // For non-music sounds use cache
-        if (!m_sound_cache.contains(sound_path)) {
-            auto sound = m_device->create_sound(sound_path, sound_type == PCM_3D ? Sound::Flags::Spatial3D : Sound::Flags::Stereo2D);
-            m_sound_cache.emplace(sound_path, sound);
-        }
-
-        auto const sound = m_sound_cache.at(sound_path);
+        auto const sound = get_from_cache(sound_path, sound_type);
         if (sound == nullptr) {
             core.Trace("Problem with sound loading !!! '%s'", sound_path.c_str());
             return 0;
@@ -259,6 +248,7 @@ TSD_ID SoundService::play(
     m_playing_sounds[sound_idx].volume      = volume;
 
     if (sound_type == MP3_STEREO && fade_time > 0) {
+        m_playing_sounds[sound_idx].source->set_volume_max(0.0F);
         m_playing_sounds[sound_idx].source->fade(
             0.0F, get_volume_by_type(m_playing_sounds[sound_idx]), std::chrono::milliseconds(fade_time));
     } else {
@@ -523,12 +513,14 @@ void SoundService::stop(TSD_ID id, int32_t time)
     if (id.master()) {
         // --------- remove all sounds -----------------------------------------
         int start = 0;
-        for (; time > 0 && start < 2; ++start) {
-            if (m_playing_sounds[start].is_free) { continue; }
 
-            float const vol = m_playing_sounds[start].source->get_volume();
-            m_playing_sounds[start].source->fade(vol, 0.0F, std::chrono::milliseconds(time));
-        }
+        // FIXME:
+        // for (; time > 0 && start < 2; ++start) {
+        //     if (m_playing_sounds[start].is_free) { continue; }
+
+        //     float const vol = m_playing_sounds[start].source->get_volume();
+        //     m_playing_sounds[start].source->fade(vol, 0.0F, std::chrono::milliseconds(time));
+        // }
 
         for (uint16_t i = start; i < m_playing_sounds.size(); i++) {
             if (m_playing_sounds[i].is_free) { continue; }
@@ -566,15 +558,15 @@ void SoundService::stop(TSD_ID id, int32_t time)
         return;
     }
 
-    if (time > 0) {
-        float const vol = sound.source->get_volume();
-        sound.source->fade(vol, 0.0F, std::chrono::milliseconds(time));
-    } else {
-        if (id.index() <= 1) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
-        sound.source->stop();
+    // if (time > 0) {
+    //     float const vol = sound.source->get_volume();
+    //     sound.source->fade(vol, 0.0F, std::chrono::milliseconds(time));
+    // } else {
+    if (id.index() <= 1) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
+    sound.source->stop();
 
-        free_sound(sound);
-    }
+    free_sound(sound);
+    // }
 }
 
 void SoundService::add_alias(INIFILE& ini_file, std::string_view const& section_name)
@@ -642,6 +634,25 @@ float SoundService::get_volume_by_type(PlayingSound const& sound) const
     }
 
     return volume;
+}
+
+std::shared_ptr<storm::audio::Sound> SoundService::get_from_cache(std::string const& sound_path, eSoundType sound_type)
+{
+    auto [begin, end] = m_sound_cache.equal_range(sound_path);
+    auto entry        = std::find_if(begin, end, [sound_type](auto const& p) { return p.second.sound_type == sound_type; });
+    if (entry == end || entry == m_sound_cache.end()) {
+        auto sound = m_device->create_sound(sound_path, sound_type == PCM_3D ? Sound::Flags::Spatial3D : Sound::Flags::Stereo2D);
+        m_sound_cache.emplace(
+            sound_path,
+            CacheEntry {
+                .sound_type = sound_type,
+                .sound      = sound,
+            });
+
+        return sound;
+    }
+
+    return entry->second.sound;
 }
 
 //--------------------------------------------------------------------
