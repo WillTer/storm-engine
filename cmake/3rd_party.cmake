@@ -52,7 +52,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     storm-audio
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
-    GIT_TAG         0144b7c5c475aa0f3085c850e75d4087f0709197
+    GIT_TAG         4396895992072545689d0b9fb8458bdf30c1c8d7
     GIT_SHALLOW     ON
 )
 

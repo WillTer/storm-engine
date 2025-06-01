@@ -74,7 +74,7 @@ void HandleWindowEvent(const storm::OSWindow::Event &event)
             if (const auto soundService = static_cast<VSoundService *>(core.GetService("SoundService"));
                 soundService && !bSoundInBackground)
             {
-                soundService->SetActiveWithFade(true);
+                soundService->set_active_with_fade(true);
             }
         }
     }
@@ -87,7 +87,7 @@ void HandleWindowEvent(const storm::OSWindow::Event &event)
             if (const auto soundService = static_cast<VSoundService *>(core.GetService("SoundService"));
                 soundService && !bSoundInBackground)
             {
-                soundService->SetActiveWithFade(false);
+                soundService->set_active_with_fade(false);
             }
         }
     }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <limits>
+#include <string>
+#include <string_view>
 
 #include <libs/core/service.h>
 #include <libs/math/c_vector.h>
@@ -55,10 +57,6 @@ private:
     uint32_t m_id;
 };
 
-using tSoundStatistics = struct {
-    int32_t soundsCount, maxSoundsCount, bytesInBuffers, maxBytesInBuffers, bytesCached, maxBytesCached, totalMem, freeMem;
-};
-
 ///////////////////////////////////////////////////////////////////
 // INTERFACE DEFINITION
 ///////////////////////////////////////////////////////////////////
@@ -76,49 +74,44 @@ public:
     // + play assumes _name a plain file name
     // + for now loop_pause_time works only for OGG-STEREO sounds
     ///////////////////////////////////////////////////////////////
-    virtual TSD_ID SoundPlay(
-        char const*    _name,
-        eSoundType     _type,                   // sound type
-        eVolumeType    _volumeType,             // volume type
-        bool           _simpleCache   = false,  // cache only, not play
-        bool           _looped        = false,  // looped?
-        bool           _cached        = false,  // unload after stoppping?
-        int32_t        _time          = 0,      // fade in, if _time > 0
-        const CVECTOR* _startPosition = nullptr,
-        float          _minDistance   = -1.0f,
-        float          _maxDistance   = -1.0f,
-        int32_t        _loopPauseTime = 0,
-        float          _volume        = 1.0f,
-        int32_t        _prior         = 128) = 0;
+    virtual TSD_ID play(
+        std::string const& name,
+        eSoundType         sound_type,              // sound type
+        eVolumeType        volume_type,             // volume type
+        bool               is_paused      = false,  // cache only, not play
+        bool               is_looped      = false,  // looped?
+        int32_t            fade_time      = 0,      // fade in, if fade_time > 0
+        const CVECTOR*     start_position = nullptr,
+        float              min_distance   = -1.0F,
+        float              max_distance   = -1.0F,
+        float              volume         = 1.0F) = 0;
 
-    virtual TSD_ID   SoundDuplicate(TSD_ID _sourceID)                                     = 0;
-    virtual void     SoundSet3DParam(TSD_ID _id, eSoundMessage _message, void const* _op) = 0;
-    virtual void     SoundStop(TSD_ID _id, int32_t _time = 0)                             = 0;
-    virtual void     SoundRelease(TSD_ID _id)                                             = 0;
-    virtual void     SoundSetVolume(TSD_ID _id, float _volume)                            = 0;
-    virtual bool     SoundIsPlaying(TSD_ID _id)                                           = 0;
-    virtual uint32_t SoundGetPosition(TSD_ID _id)                                         = 0;
-    virtual void     SoundRestart(TSD_ID _id)                                             = 0;
-    virtual void     SoundResume(TSD_ID _id, int32_t _time = 0)                           = 0;
+    virtual TSD_ID   duplicate(TSD_ID id)                                         = 0;
+    virtual void     set_3d_param(TSD_ID id, eSoundMessage msg, void const* data) = 0;
+    virtual void     stop(TSD_ID id, int32_t fade_time = 0)                       = 0;
+    virtual void     sound_release(TSD_ID id)                                     = 0;
+    virtual void     set_volume(TSD_ID id, float volume)                          = 0;
+    virtual bool     is_playing(TSD_ID id)                                        = 0;
+    virtual uint32_t get_position(TSD_ID id)                                      = 0;
+    virtual void     sound_restart(TSD_ID id)                                     = 0;
+    virtual void     resume(TSD_ID id, int32_t fade_time = 0)                     = 0;
 
     // Service functions
-    virtual void  SetMasterVolume(float _fxVolume, float _musicVolume, float _speechVolume)    = 0;
-    virtual void  GetMasterVolume(float* _fxVolume, float* _musicVolume, float* _speechVolume) = 0;
-    virtual void  SetPitch(float _pitch)                                                       = 0;
-    virtual float GetPitch()                                                                   = 0;
-    virtual void  SetCameraPosition(const CVECTOR& _cameraPosition)                            = 0;
-    virtual void  SetCameraOrientation(const CVECTOR& _nose, const CVECTOR& _head)             = 0;
+    virtual void  set_master_volume(float fx_volume, float music_volume, float speech_volume)    = 0;
+    virtual void  get_master_volume(float& fx_volume, float& music_volume, float& speech_volume) = 0;
+    virtual void  set_pitch(float pitch)                                                         = 0;
+    virtual float get_pitch()                                                                    = 0;
+    virtual void  set_camera_position(const CVECTOR& camera_position)                            = 0;
+    virtual void  set_camera_orientation(const CVECTOR& nose, const CVECTOR& head)               = 0;
 
-    virtual void ResetScheme()                      = 0;
-    virtual bool SetScheme(char const* _schemeName) = 0;
-    virtual bool AddScheme(char const* _schemeName) = 0;
+    virtual void reset_scheme()                                  = 0;
+    virtual bool set_scheme(std::string_view const& scheme_name) = 0;
+    virtual bool add_scheme(std::string_view const& scheme_name) = 0;
 
-    virtual void SetEnabled(bool _enabled)            = 0;
-    virtual void LoadAliasFile(char const* _filename) = 0;
+    virtual void set_enabled(bool is_enabled)                 = 0;
+    virtual void load_alias_file(std::string const& filename) = 0;
 
-    virtual void SetActiveWithFade(bool active) = 0;
-
-    tSoundStatistics soundStatistics;
+    virtual void set_active_with_fade(bool active) = 0;
 };
 
 /*

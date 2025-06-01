@@ -674,7 +674,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     // play speech
     if (play == 0 && soundName[0] && snd)
     {
-        curSnd = snd->SoundPlay(soundName, PCM_STEREO, VOLUME_SPEECH);
+        curSnd = snd->play(soundName, PCM_STEREO, VOLUME_SPEECH);
         play = 1;
     }
 
@@ -733,7 +733,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     {
         // play click of the pressed key
         if (snd)
-            snd->SoundPlay(TICK_SOUND, PCM_STEREO, VOLUME_FX);
+            snd->play(TICK_SOUND, PCM_STEREO, VOLUME_FX);
 
         if (m_DlgText.IsLastPage())
         {
@@ -749,7 +749,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     {
         // play click of the pressed key
         if (snd)
-            snd->SoundPlay(TICK_SOUND, PCM_STEREO, VOLUME_FX);
+            snd->play(TICK_SOUND, PCM_STEREO, VOLUME_FX);
 
         if (m_DlgText.IsLastPage())
         {
@@ -765,7 +765,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     if (cs.state == CST_ACTIVATED)
     {
         if (snd)
-            snd->SoundPlay(TICK_SOUND, PCM_STEREO, VOLUME_FX);
+            snd->play(TICK_SOUND, PCM_STEREO, VOLUME_FX);
         if (m_DlgText.currentLine_ > 0)
         {
             m_DlgText.PrevPage();
@@ -779,7 +779,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     if (cs.state == CST_ACTIVATED)
     {
         if (snd)
-            snd->SoundPlay(TICK_SOUND, PCM_STEREO, VOLUME_FX);
+            snd->play(TICK_SOUND, PCM_STEREO, VOLUME_FX);
         if (!m_DlgText.IsLastPage())
         {
             m_DlgText.NextPage();
@@ -800,7 +800,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     {
         // play click of the pressed key
         if (snd)
-            snd->SoundPlay(TICK_SOUND, PCM_STEREO, VOLUME_FX);
+            snd->play(TICK_SOUND, PCM_STEREO, VOLUME_FX);
 
         if (m_DlgText.IsLastPage())
         {
@@ -847,7 +847,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
         linkDescribe_.Show(
             static_cast<int32_t>(textViewport.Y + m_BackParams.nDividerOffsetY + m_BackParams.nDividerHeight));
 
-    if (snd && !snd->SoundIsPlaying(curSnd))
+    if (snd && !snd->is_playing(curSnd))
     {
         // stop animation
         if (play == 1) // if person speech

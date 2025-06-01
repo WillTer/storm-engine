@@ -7,12 +7,12 @@
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
 ///////////////////////////////////////////////////////////////////
-// SoundPlay (..., type, ...)
+// play (..., type, ...)
 #define SOUND_WAV_3D 1
 #define SOUND_MP3_STEREO 2
 #define SOUND_MP3_3D 3
 #define SOUND_WAV_STEREO 4
-// SoundSet3DParam(..., type, ...)
+// set_3d_param(..., type, ...)
 #define SOUND_PARAM_MAX_DISTANCE 1
 #define SOUND_PARAM_MIN_DISTANCE 2
 #define SOUND_PARAM_POSITION 3
