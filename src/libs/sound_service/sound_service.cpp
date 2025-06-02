@@ -105,7 +105,7 @@ bool SoundService::Init()
     if (m_renderer == nullptr) { return false; }
 
     m_device =
-        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Inverse, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
+        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
     constexpr float sec_to_ms_mult = 1000.0F;
@@ -173,6 +173,7 @@ bool SoundService::allocate_sound(TSD_ID& id)
     return true;
 }
 
+// TODO: separate method
 TSD_ID SoundService::play(
     std::string const& name,
     eSoundType         sound_type,
@@ -239,6 +240,7 @@ TSD_ID SoundService::play(
         auto& playing_sound  = m_playing_sounds[sound_idx];
         playing_sound.stamp  = id.stamp();
         playing_sound.source = m_device->attach_sound(sound);
+        fade_time            = 0;  // No fade for non-music
     }
 
     if (!m_playing_sounds[sound_idx].source) { return 0; }
@@ -246,14 +248,6 @@ TSD_ID SoundService::play(
     //--------
     m_playing_sounds[sound_idx].volume_type = volume_type;
     m_playing_sounds[sound_idx].volume      = volume;
-
-    if (sound_type == MP3_STEREO && fade_time > 0) {
-        m_playing_sounds[sound_idx].source->set_volume_max(0.0F);
-        m_playing_sounds[sound_idx].source->fade(
-            0.0F, get_volume_by_type(m_playing_sounds[sound_idx]), std::chrono::milliseconds(fade_time));
-    } else {
-        m_playing_sounds[sound_idx].source->set_volume_max(get_volume_by_type(m_playing_sounds[sound_idx]));
-    }
 
     if constexpr (TRACE_INFORMATION) {
         core.Trace(
@@ -283,14 +277,18 @@ TSD_ID SoundService::play(
         m_playing_sounds[sound_idx].source->set_position_3d(position);
     }
 
-    m_playing_sounds[sound_idx].source->set_volume(1.0F);  // Volume level is multiplicated before calculating attenuation
-    m_playing_sounds[sound_idx].source->set_volume_min(0.0F);
     m_playing_sounds[sound_idx].source->set_pitch(m_pitch);
 
     m_playing_sounds[sound_idx].name       = std::move(sound_path);
     m_playing_sounds[sound_idx].sound_type = sound_type;
 
-    if (!is_paused) { m_playing_sounds[sound_idx].source->play(); }
+    if (is_paused) {
+        m_playing_sounds[sound_idx].source->set_volume(get_volume_by_type(m_playing_sounds[sound_idx]));
+    } else {
+        // play() call will set volume itself so we don't need to do it manually
+        m_playing_sounds[sound_idx].source->play(
+            0.0F, get_volume_by_type(m_playing_sounds[sound_idx]), std::chrono::milliseconds(fade_time));
+    }
 
     m_playing_sounds[sound_idx].is_free = false;
     m_playing_sounds[sound_idx].source->set_looping(is_looped);
@@ -352,9 +350,7 @@ void SoundService::set_volume(TSD_ID id, float const volume)
             if (m_playing_sounds[i].is_free) { continue; }
 
             m_playing_sounds[i].volume = volume;
-
-            float const actual_volume = get_volume_by_type(m_playing_sounds[i]);
-            m_playing_sounds[i].source->set_volume_max(actual_volume);
+            m_playing_sounds[i].source->set_volume(get_volume_by_type(m_playing_sounds[i]));
         }
         return;
     }
@@ -365,9 +361,7 @@ void SoundService::set_volume(TSD_ID id, float const volume)
     if (id.stamp() != sound.stamp || sound.is_free) { return; }
 
     sound.volume = volume;
-
-    float const actual_volume = get_volume_by_type(sound);
-    sound.source->set_volume_max(actual_volume);
+    sound.source->set_volume(get_volume_by_type(sound));
 }
 
 bool SoundService::is_playing(TSD_ID id)
@@ -385,15 +379,17 @@ void SoundService::resume(TSD_ID id, int32_t time /* = 0*/)
 {
     if constexpr (TRACE_INFORMATION) { core.Trace("Resume sound %d", id.index()); }
 
-    if (id.master() || id.index() == 0) {
+    // TODO: separate
+    if (id.master()) {
         for (uint16_t i = 0; i < m_playing_sounds.size(); i++) {
             if (m_playing_sounds[i].is_free) { continue; }
             if (i <= 1) {
-                m_playing_sounds[i].source->fade(0.0F, get_volume_by_type(m_playing_sounds[i]), std::chrono::milliseconds(time));
+                m_playing_sounds[i].source->play(0.0F, get_volume_by_type(m_playing_sounds[i]), std::chrono::milliseconds(time));
+            } else {
+                m_playing_sounds[i].source->play();
             }
-
-            m_playing_sounds[i].source->play();
         }
+
         return;
     }
 
@@ -402,7 +398,8 @@ void SoundService::resume(TSD_ID id, int32_t time /* = 0*/)
     auto& sound = m_playing_sounds[id.index()];
     if (id.stamp() != sound.stamp) { return; }
     if (id.index() <= 1) {
-        sound.source->fade(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(time));
+        sound.source->play(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(time));
+    } else {
         sound.source->play();
     }
 }
@@ -444,8 +441,7 @@ void SoundService::set_master_volume(float fx_volume, float music_volume, float 
     for (uint16_t i = 0; i < m_playing_sounds.size(); ++i) {
         if (m_playing_sounds[i].is_free) { continue; }
 
-        float const actual_volume = get_volume_by_type(m_playing_sounds[i]);
-        m_playing_sounds[i].source->set_volume_max(actual_volume);
+        m_playing_sounds[i].source->set_volume(get_volume_by_type(m_playing_sounds[i]));
     }
 }
 
@@ -489,18 +485,15 @@ void SoundService::set_enabled(bool is_enabled) {}
 
 void SoundService::set_active_with_fade(bool const is_active)
 {
-    if (m_fade_time == std::chrono::milliseconds(0)) { return; }
-
     if (m_device == nullptr) { return; }
 
     for (auto const& sound: m_playing_sounds) {
         if (sound.is_free) { continue; }
 
         if (is_active) {
-            sound.source->fade(0.0F, get_volume_by_type(sound), m_fade_time);
-            sound.source->play();
+            sound.source->play(0.0F, get_volume_by_type(sound), m_fade_time);
         } else {
-            sound.source->pause();
+            sound.source->pause();  // No fade on pause
         }
     }
 }
@@ -514,13 +507,12 @@ void SoundService::stop(TSD_ID id, int32_t time)
         // --------- remove all sounds -----------------------------------------
         int start = 0;
 
-        // FIXME:
-        // for (; time > 0 && start < 2; ++start) {
-        //     if (m_playing_sounds[start].is_free) { continue; }
+        for (; time > 0 && start < 2; ++start) {
+            if (m_playing_sounds[start].is_free) { continue; }
 
-        //     float const vol = m_playing_sounds[start].source->get_volume();
-        //     m_playing_sounds[start].source->fade(vol, 0.0F, std::chrono::milliseconds(time));
-        // }
+            float const vol = m_playing_sounds[start].source->get_volume();
+            m_playing_sounds[start].source->stop(vol, 0.0F, std::chrono::milliseconds(time));
+        }
 
         for (uint16_t i = start; i < m_playing_sounds.size(); i++) {
             if (m_playing_sounds[i].is_free) { continue; }
@@ -558,15 +550,15 @@ void SoundService::stop(TSD_ID id, int32_t time)
         return;
     }
 
-    // if (time > 0) {
-    //     float const vol = sound.source->get_volume();
-    //     sound.source->fade(vol, 0.0F, std::chrono::milliseconds(time));
-    // } else {
-    if (id.index() <= 1) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
-    sound.source->stop();
+    if (time > 0) {
+        float const vol = sound.source->get_volume();
+        sound.source->stop(vol, 0.0F, std::chrono::milliseconds(time));
+    } else {
+        if (id.index() <= 1) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
+        sound.source->stop();
 
-    free_sound(sound);
-    // }
+        free_sound(sound);
+    }
 }
 
 void SoundService::add_alias(INIFILE& ini_file, std::string_view const& section_name)
