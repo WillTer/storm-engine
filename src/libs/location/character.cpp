@@ -23,7 +23,6 @@
 #include "characters_groups.h"
 #include "lights.h"
 
-
 //============================================================================================
 
 #define CHARACTER_WAIT_AFTER_DEAD 6.0f  //
@@ -2384,7 +2383,7 @@ int32_t Character::PlaySound(char const* soundName, bool isLoop, bool isCached)
 {
     if (!soundService) return SOUND_INVALID_ID;
     CVECTOR       pos = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
-    int32_t const sID = soundService->play(soundName, PCM_3D, VOLUME_FX, false, false, 0, &pos);
+    int32_t const sID = soundService->play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
     return sID;
 }
 
@@ -2487,7 +2486,7 @@ void Character::SetSoundPosition(int32_t id)
             view.MulToInv(CVECTOR(pos), pos);
         }
     }
-    soundService->set_3d_param(id, SM_POSITION, &pos);
+    soundService->set_3d_param(id, SoundMessageType::Position, &pos);
 }
 
 void Character::ReleaseSound(int32_t id)

@@ -13,14 +13,14 @@
 // DEFINES & TYPES
 ///////////////////////////////////////////////////////////////////
 
-class TSD_ID
+class SoundID final
 {
 public:
-    TSD_ID() : m_id(std::numeric_limits<uint32_t>::max()) {}
+    SoundID() : m_id(std::numeric_limits<uint32_t>::max()) {}
 
-    TSD_ID(uint32_t id) : m_id(id) {}
+    SoundID(uint32_t id) : m_id(id) {}
 
-    TSD_ID(int32_t id) : m_id(id) {}
+    SoundID(int32_t id) : m_id(id) {}
 
     bool master() const
     {
@@ -42,7 +42,7 @@ public:
         return (m_id >> 16) & std::numeric_limits<uint16_t>::max();
     }
 
-    static TSD_ID createId(uint16_t index)
+    static SoundID create_id(uint16_t index)
     {
         static uint16_t stamp_counter;
         return (index + 1) | (static_cast<uint32_t>(++stamp_counter) << 16);
@@ -70,14 +70,13 @@ public:
     // Sound entries functions
     //
     // + play returns id of new loaded sound
-    // + in most functions _id = 0 equals "apply to all"
-    // + play assumes _name a plain file name
-    // + for now loop_pause_time works only for OGG-STEREO sounds
+    // + in most functions id = 0 equals "apply to all"
+    // + play assumes name a plain file name
     ///////////////////////////////////////////////////////////////
-    virtual TSD_ID play(
+    virtual SoundID play(
         std::string const& name,
-        eSoundType         sound_type,              // sound type
-        eVolumeType        volume_type,             // volume type
+        SoundType          sound_type,              // sound type
+        VolumeType         volume_type,             // volume type
         bool               is_paused      = false,  // cache only, not play
         bool               is_looped      = false,  // looped?
         int32_t            fade_time      = 0,      // fade in, if fade_time > 0
@@ -86,15 +85,15 @@ public:
         float              max_distance   = -1.0F,
         float              volume         = 1.0F) = 0;
 
-    virtual TSD_ID   duplicate(TSD_ID id)                                         = 0;
-    virtual void     set_3d_param(TSD_ID id, eSoundMessage msg, void const* data) = 0;
-    virtual void     stop(TSD_ID id, int32_t fade_time = 0)                       = 0;
-    virtual void     sound_release(TSD_ID id)                                     = 0;
-    virtual void     set_volume(TSD_ID id, float volume)                          = 0;
-    virtual bool     is_playing(TSD_ID id)                                        = 0;
-    virtual uint32_t get_position(TSD_ID id)                                      = 0;
-    virtual void     sound_restart(TSD_ID id)                                     = 0;
-    virtual void     resume(TSD_ID id, int32_t fade_time = 0)                     = 0;
+    virtual SoundID  duplicate(SoundID id)                                            = 0;
+    virtual void     set_3d_param(SoundID id, SoundMessageType msg, void const* data) = 0;
+    virtual void     stop(SoundID id, int32_t fade_time = 0)                          = 0;
+    virtual void     sound_release(SoundID id)                                        = 0;
+    virtual void     set_volume(SoundID id, float volume)                             = 0;
+    virtual bool     is_playing(SoundID id)                                           = 0;
+    virtual uint32_t get_position(SoundID id)                                         = 0;
+    virtual void     sound_restart(SoundID id)                                        = 0;
+    virtual void     resume(SoundID id, int32_t fade_time = 0)                        = 0;
 
     // Service functions
     virtual void  set_master_volume(float fx_volume, float music_volume, float speech_volume)    = 0;

@@ -40,11 +40,24 @@ extern int32_t lg[100];
 #define SCHEME_MIN_DELAY 0
 #define SCHEME_MAX_DELAY 0x7FFFFFFF
 
-enum eSoundType { PCM_3D = 1, MP3_STEREO = 2, MP3_3D = 3, PCM_STEREO = 4 };
+enum class SoundType {
+    Sound3D     = 1,
+    MusicStereo = 2,
+    Music3D     = 3,
+    SoundStereo = 4,
+};
 
-enum eVolumeType { VOLUME_FX = 1, VOLUME_MUSIC = 2, VOLUME_SPEECH = 3 };
+enum class VolumeType {
+    Fx     = 1,
+    Music  = 2,
+    Speech = 3,
+};
 
-enum eSoundMessage { SM_MAX_DISTANCE = 1, SM_MIN_DISTANCE = 2, SM_POSITION = 3 };
+enum class SoundMessageType {
+    MaxDistance = 1,
+    MinDistance = 2,
+    Position    = 3,
+};
 
 ///////////////////////////////////////////////////////////////////
 // DEFINES

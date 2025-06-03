@@ -27,9 +27,9 @@ public:
     struct PlayingSound {
         std::shared_ptr<storm::audio::Source> source;
 
-        eVolumeType volume_type {VOLUME_FX};
-        eSoundType  sound_type {};
-        float       volume {1.0F};
+        VolumeType volume_type {VolumeType::Fx};
+        SoundType  sound_type {};
+        float      volume {1.0F};
 
         // temp
         std::string name;
@@ -39,22 +39,16 @@ public:
     };
 
     struct SoundSchemeChannel {
-        TSD_ID      id;
         std::string name;
         int32_t     min_delay_time;
         int32_t     max_delay_time;
         float       volume;
         int32_t     time_to_next_play;
         bool        is_looped;  // not working
-
-        SoundSchemeChannel()
-        {
-            id = 0;
-        }
     };
 
     struct CacheEntry {
-        eSoundType                           sound_type;
+        SoundType                            sound_type;
         std::shared_ptr<storm::audio::Sound> sound;
     };
 
@@ -70,10 +64,10 @@ public:
     void RunStart() override;
     void RunEnd() override;
 
-    TSD_ID play(
+    SoundID play(
         std::string const& name,
-        eSoundType         sound_type,
-        eVolumeType        volume_type,
+        SoundType          sound_type,
+        VolumeType         volume_type,
         bool               is_paused      = false,
         bool               is_looped      = false,
         int32_t            fade_time      = 0,
@@ -82,15 +76,15 @@ public:
         float              max_distance   = -1.0F,
         float              volume         = 1.0F) override;
 
-    TSD_ID   duplicate(TSD_ID id) override;
-    void     set_3d_param(TSD_ID id, eSoundMessage msg, void const* data) override;
-    void     stop(TSD_ID id, int32_t fade_time = 0) override;
-    void     sound_release(TSD_ID id) override;
-    void     set_volume(TSD_ID id, float volume) override;
-    bool     is_playing(TSD_ID id) override;
-    uint32_t get_position(TSD_ID id) override;
-    void     sound_restart(TSD_ID id) override;
-    void     resume(TSD_ID id, int32_t fade_time = 0) override;
+    SoundID  duplicate(SoundID id) override;
+    void     set_3d_param(SoundID id, SoundMessageType msg, void const* data) override;
+    void     stop(SoundID id, int32_t fade_time = 0) override;
+    void     sound_release(SoundID id) override;
+    void     set_volume(SoundID id, float volume) override;
+    bool     is_playing(SoundID id) override;
+    uint32_t get_position(SoundID id) override;
+    void     sound_restart(SoundID id) override;
+    void     resume(SoundID id, int32_t fade_time = 0) override;
 
     // Service functions
     void  set_master_volume(float fx_volume, float music_volume, float speech_volume) override;
@@ -109,9 +103,32 @@ public:
     void set_active_with_fade(bool is_active) override;
 
 private:
+    SoundID prepare_music(std::string const& name, int32_t fade_time = 0);
+
+    SoundID prepare_sound(
+        std::string const& name,
+        SoundType          sound_type,
+        const CVECTOR*     start_position = nullptr,
+        float              min_distance   = -1.0F,
+        float              max_distance   = -1.0F);
+
+    void free_playing_on_source(std::shared_ptr<storm::audio::Source> const& source);
+    void update_playing_list();
+
+    void set_volume_all(float volume);
+    void set_volume_for_sound(PlayingSound& sound, float volume);
+
+    void resume_all(int32_t fade_time = 0);
+    void resume_sound(PlayingSound& sound, int32_t fade_time = 0);
+
+    void stop_all(int32_t fade_time = 0);
+    void stop_sound(PlayingSound& sound, int32_t fade_time = 0);
+
+    bool is_id_valid(SoundID id);
+
     float get_volume_by_type(PlayingSound const& sound) const;
 
-    std::shared_ptr<storm::audio::Sound> get_from_cache(std::string const& sound_path, eSoundType sound_type);
+    std::shared_ptr<storm::audio::Sound> get_from_cache(std::string const& sound_path, SoundType sound_type);
 
     // Aliases ------------------------------------------------------------
 
@@ -121,9 +138,9 @@ private:
 
     // Sound Schemes------------------------------------------------------------
 
-    bool add_sound_scheme_channel(std::string_view const& in_string, bool is_looped = false);
+    bool add_sound_scheme_channel(std::string const& in_string, bool is_looped = false);
     void process_sound_schemes();
-    bool allocate_sound(TSD_ID& id);
+    bool allocate_sound(SoundID& id);
 
     std::unique_ptr<storm::audio::Device> m_device;
 

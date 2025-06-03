@@ -174,7 +174,7 @@ void LegacyDialog::Realize(uint32_t deltaTime)
     Unfade();
 
     if (soundState_ == SOUND_STARTING && !soundName_.empty() && soundService_) {
-        currentSound_ = soundService_->play(soundName_, PCM_STEREO, VOLUME_SPEECH);
+        currentSound_ = soundService_->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
         if (currentSound_) {
             SetAction("dialog_all");
             soundState_ = SOUND_PLAYING;
@@ -695,7 +695,7 @@ void LegacyDialog::ProcessControls()
 
 void LegacyDialog::PlayTick()
 {
-    if (soundService_) { soundService_->play(TICK_SOUND, PCM_STEREO, VOLUME_FX); }
+    if (soundService_) { soundService_->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx); }
 }
 
 void LegacyDialog::Unfade()

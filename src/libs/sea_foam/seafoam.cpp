@@ -6,7 +6,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
-
 CREATE_CLASS(SEAFOAM)
 
 // entid_t arrowModel;
@@ -394,9 +393,9 @@ void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _
         pos.y    = sea->WaveXZ(pos.x, pos.z);
 
         if (!_shipFoamInfo.sound || !soundService->is_playing(_shipFoamInfo.sound)) {
-            _shipFoamInfo.sound = soundService->play("ship_bow", PCM_3D, VOLUME_FX, false, false, 0, &pos);
+            _shipFoamInfo.sound = soundService->play("ship_bow", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
         } else if (_shipFoamInfo.sound) {
-            soundService->set_3d_param(_shipFoamInfo.sound, SM_POSITION, &pos);
+            soundService->set_3d_param(_shipFoamInfo.sound, SoundMessageType::Position, &pos);
         }
     }
 

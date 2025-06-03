@@ -78,7 +78,7 @@ bool Tornado::Init()
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
     if (soundService) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        sID            = soundService->play("tornado", PCM_3D, VOLUME_FX, false, true, 0, &pos);
+        sID            = soundService->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
     }
     return true;
 }
@@ -105,7 +105,7 @@ void Tornado::Execute(uint32_t delta_time)
         liveTime -= dltTime;
     if (soundService && sID != SOUND_INVALID_ID) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        soundService->set_3d_param(sID, SM_POSITION, &pos);
+        soundService->set_3d_param(sID, SoundMessageType::Position, &pos);
     }
 }
 

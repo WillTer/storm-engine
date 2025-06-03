@@ -93,7 +93,7 @@ uint64_t SOUND::ProcessMessage(MESSAGE& message)
 
         temp = message.Long();  // type
         // defaults
-        vt       = static_cast<int>(VOLUME_FX);  // volume type
+        vt       = static_cast<int>(VolumeType::Fx);  // volume type
         temp2    = 0;
         temp3    = 0;
         tempLong = 0;
@@ -126,8 +126,8 @@ uint64_t SOUND::ProcessMessage(MESSAGE& message)
 
         outValue = static_cast<uint32_t>(soundService->play(
             tempString,
-            static_cast<eSoundType>(temp),
-            static_cast<eVolumeType>(vt),
+            static_cast<SoundType>(temp),
+            static_cast<VolumeType>(vt),
             (temp2 != 0),
             (temp3 != 0),
             tempLong,
@@ -157,22 +157,17 @@ uint64_t SOUND::ProcessMessage(MESSAGE& message)
         switch (tempLong) {
         case SOUND_PARAM_MAX_DISTANCE:
             vector.x = message.Float();
-            // memcpy(&(vector.x) ,message.Pointer(), sizeof(float));
-            soundService->set_3d_param(id, SM_MAX_DISTANCE, &(vector.x));
+            soundService->set_3d_param(id, SoundMessageType::MaxDistance, &(vector.x));
             break;
         case SOUND_PARAM_MIN_DISTANCE:
             vector.x = message.Float();
-            // memcpy(&(vector.x) ,message.Pointer(), sizeof(float));
-            soundService->set_3d_param(id, SM_MIN_DISTANCE, &(vector.x));
+            soundService->set_3d_param(id, SoundMessageType::MinDistance, &(vector.x));
             break;
         case SOUND_PARAM_POSITION:
             vector.x = message.Float();
             vector.y = message.Float();
             vector.z = message.Float();
-            // memcpy(&(vector.x) ,message.Pointer(), sizeof(float));
-            // memcpy(&(vector.y) ,message.Pointer()+sizeof(float), sizeof(float));
-            // memcpy(&(vector.z) ,message.Pointer()+(sizeof(float) << 1), sizeof(float));
-            soundService->set_3d_param(id, SM_POSITION, &vector);
+            soundService->set_3d_param(id, SoundMessageType::Position, &vector);
             break;
         }
         break;
