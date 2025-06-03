@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////////
 // CONSTANTS
 ///////////////////////////////////////////////////////////////////
-#define TRACE_INFORMATION 0
+#define TRACE_INFORMATION 1
 #define FIO(a) fio->_##a
 #define MAX_CACHED_DATA (4 * 1024 * 1024)
 
@@ -20,8 +20,8 @@ extern int32_t lg[100];
 
 #define MAX_SOUNDS 150
 #define MAX_QUEUE_SOUNDS 30
-#define MAX_DISTANCE 500.0f // distance beyond which 3D-sound isn`t created
-#define MAX_NAMES_PER_ALIAS 50 // random-chosen names within alias
+#define MAX_DISTANCE 500.0f     // distance beyond which 3D-sound isn`t created
+#define MAX_NAMES_PER_ALIAS 50  // random-chosen names within alias
 #define MAX_LOOP_PAUSE_TIME 0
 
 #define LOOP_DISABLED -54321
@@ -40,26 +40,23 @@ extern int32_t lg[100];
 #define SCHEME_MIN_DELAY 0
 #define SCHEME_MAX_DELAY 0x7FFFFFFF
 
-enum eSoundType
-{
-    PCM_3D = 1,
-    MP3_STEREO = 2,
-    MP3_3D = 3,
-    PCM_STEREO = 4
+enum class SoundType {
+    Sound3D     = 1,
+    MusicStereo = 2,
+    Music3D     = 3,
+    SoundStereo = 4,
 };
 
-enum eVolumeType
-{
-    VOLUME_FX = 1,
-    VOLUME_MUSIC = 2,
-    VOLUME_SPEECH = 3
+enum class VolumeType {
+    Fx     = 1,
+    Music  = 2,
+    Speech = 3,
 };
 
-enum eSoundMessage
-{
-    SM_MAX_DISTANCE = 1,
-    SM_MIN_DISTANCE = 2,
-    SM_POSITION = 3
+enum class SoundMessageType {
+    MaxDistance = 1,
+    MinDistance = 2,
+    Position    = 3,
 };
 
 ///////////////////////////////////////////////////////////////////
@@ -73,12 +70,12 @@ enum eSoundMessage
 #define SOUND_TRACE2(a, b) _VSYSTEM_API->Trace(a, b);
 #endif
 
-#define THROW_STRING(s, p)                                                                                             \
-    {                                                                                                                  \
-        static char _tmpString[2048];                                                                                  \
-        sprintf_s(_tmpString, s, p);                                                                                   \
-        throw _tmpString;                                                                                              \
+#define THROW_STRING(s, p) \
+    { \
+        static char _tmpString[2048]; \
+        sprintf_s(_tmpString, s, p); \
+        throw _tmpString; \
     }
 
 class SoundService;
-extern SoundService *soundService;
+extern SoundService* soundService;

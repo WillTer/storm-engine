@@ -49,22 +49,30 @@ FetchContent_Declare(
     GIT_SHALLOW     ON
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt)
+FetchContent_Declare(
+    storm-audio
+    GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
+    GIT_TAG         4f190609ea2f0663c9bcd6c8acbcecf8644133cf
+    GIT_SHALLOW     ON
+)
 
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt storm-audio)
+ 
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)
-    include(directxsdk)
+
+    include(cmake/directxsdk.cmake)
 elseif(LINUX)
     # On Linux use SDL2 and zlib from package manager
     find_package(SDL2 REQUIRED)
     find_package(ZLIB REQUIRED)
-    include(linux_d3d9)
+    include(cmake/linux_d3d9.cmake)
 endif()
 
 add_library(SDL2-storm INTERFACE)
 target_link_libraries(SDL2-storm
     INTERFACE
-        $<$<PLATFORM_ID:Windows>:SDL2::SDL2 SDL2::SDL2main>
+        $<$<PLATFORM_ID:Windows>:SDL2::SDL2-static SDL2::SDL2main>
         $<$<PLATFORM_ID:Linux>:${SDL2_LIBRARIES}>
 )
 target_include_directories(SDL2-storm

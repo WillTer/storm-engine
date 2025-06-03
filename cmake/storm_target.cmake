@@ -4,6 +4,7 @@ set(COMPILE_DEFINITIONS
     -DNOMINMAX                                       # Use std::max()/std::min()
     -D_CRT_SECURE_NO_WARNINGS                        # Disable deprecation of unsafe functions
     -DSTORM_WATERMARK_FILE="${STORM_WATERMARK_FILE}" # Set watermark file
+    -Dspdlog_EXPORTS
 
     $<$<BOOL:${STORM_ENABLE_STEAM}>:-DSTORM_ENABLE_STEAM=1>                 # Enable steam support if requested
     $<$<BOOL:${STORM_ENABLE_CRASH_REPORTS}>:-DSTORM_ENABLE_CRASH_REPORTS=1> # Enable crash reports if requested

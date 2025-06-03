@@ -1,176 +1,59 @@
 #pragma once
 
-#include <stack>
 #include <string>
+#include <unordered_map>
 
-#include "sound_defines.h"
-#include "v_sound_service.h"
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
+#include <storm_audio/device.h>
 
-// #include <fmod.hpp>
-
-#define MAX_SOUNDS_SLOTS 4095
+#include "sound_defines.h"
+#include "v_sound_service.h"
 
 class INIFILE;
-// debug....
-class SoundVisualisationEntity;
 
-///////////////////////////////////////////////////////////////////
-// CLASS DEFINITION
-///////////////////////////////////////////////////////////////////
-
-class SoundService : public VSoundService
+class SoundService: public VSoundService
 {
-    VDX9RENDER *rs = nullptr;
+public:
+    struct Alias {
+        float min_distance;
+        float max_distance;
+        float volume;
 
-    bool bShowDebugInfo;
-    bool initialized;
-
-    // FMOD::System *system;
-    // FMOD::Sound *OGG_sound[2];
-
-    struct tSoundCache
-    {
-        uint32_t dwNameHash;
-        std::string Name;
-        // FMOD::Sound *sound;
-        float fTimeFromLastPlay;
-        eSoundType type;
-
-        tSoundCache() : type()
-        {
-            dwNameHash = 0;
-            // sound = nullptr;
-            fTimeFromLastPlay = 0.0f;
-        }
+        storm::ProbabilityTable<std::string> sound_files;
     };
 
-    struct tPlayedSound
-    {
-        float fFaderNeedVolume;
-        float fFaderCurrentVolume;
-        float fFaderDeltaInSec;
+    struct PlayingSound {
+        std::shared_ptr<storm::audio::Source> source;
 
-        // FMOD::Channel *channel;
-        eVolumeType type;
-        eSoundType sound_type;
-        float fSoundVolume;
+        VolumeType volume_type {VolumeType::Fx};
+        SoundType  sound_type {};
+        float      volume {1.0F};
 
         // temp
-        std::string Name;
+        std::string name;
 
-        uint16_t stamp;
-        bool bFree;
-
-        tPlayedSound() : sound_type(), fSoundVolume(0)
-        {
-            // channel = nullptr;
-            type = VOLUME_FX;
-
-            fFaderNeedVolume = 0;
-            fFaderCurrentVolume = 0;
-            fFaderDeltaInSec = 0;
-
-            stamp = 0;
-            bFree = true;
-        }
+        uint16_t stamp {0};
+        bool     is_free {true};
     };
 
-    tPlayedSound PlayingSounds[MAX_SOUNDS_SLOTS];
-    std::stack<uint16_t> freeSounds;
-    uint16_t numActiveSounds{};
-
-    struct PlayedOGG
-    {
-        std::string Name;
-        uint32_t dwHash;
-        unsigned int position;
+    struct SoundSchemeChannel {
+        std::string name;
+        int32_t     min_delay_time;
+        int32_t     max_delay_time;
+        float       volume;
+        int32_t     time_to_next_play;
+        bool        is_looped;  // not working
     };
 
-    std::vector<PlayedOGG> OGGPosition;
-
-    unsigned int GetOGGPosition(const char *szName);
-    void SetOGGPosition(const char *szName, unsigned int pos);
-    int GetOGGPositionIndex(const char *szName);
-
-    std::vector<tSoundCache> SoundCache;
-
-    int GetFromCache(const char *szName, eSoundType _type);
-
-    bool FaderParity;
-
-    // FMOD_VECTOR vListenerPos;
-    // FMOD_VECTOR vListenerForward;
-    // FMOD_VECTOR vListenerTop;
-
-    void CreateEntityIfNeed();
-
-    // Aliases ------------------------------------------------------------
-    struct tAlias
-    {
-        std::string Name;
-        uint32_t dwNameHash;
-
-        float fMinDistance;
-        float fMaxDistance;
-        int32_t iPrior;
-        float fVolume;
-        storm::ProbabilityTable<std::string> soundFiles;
-
-        tAlias()
-        {
-        }
+    struct CacheEntry {
+        SoundType                            sound_type;
+        std::shared_ptr<storm::audio::Sound> sound;
     };
 
-    std::vector<tAlias> Aliases;
-
-    const char *GetRandomName(const tAlias *alias) const;
-    int GetAliasIndexByName(const char *szAliasName);
-    void AnalyseNameStringAndAddToAlias(tAlias *_alias, const char *in_string) const;
-    void AddAlias(INIFILE &_iniFile, char *_sectionName);
-    void LoadAliasFile(const char *_filename) override;
-    void InitAliases();
-
-    // Sound Schemes------------------------------------------------------------
-    struct tSoundSchemeChannel
-    {
-        TSD_ID SoundID;
-        std::string soundName;
-        int32_t minDelayTime;
-        int32_t maxDelayTime;
-        float volume;
-        int32_t timeToNextPlay;
-        bool looped; // not working
-
-        tSoundSchemeChannel()
-        {
-            SoundID = 0;
-        }
-    };
-
-    std::vector<tSoundSchemeChannel> SoundSchemeChannels;
-
-    bool AddSoundSchemeChannel(char *in_string, bool _looped = false);
-    void ProcessSoundSchemes();
-
-    //----------------------------------------------------------------------------
-
-    bool AllocateSound(TSD_ID &id);
-
-    float fFXVolume;
-    float fMusicVolume;
-    float fSpeechVolume;
-
-    float fPitch;
-
-    float fadeTimeInSeconds = 0.5f;
-
-  public:
     SoundService();
     ~SoundService() override;
-    bool SFLB_SetScheme(const char *_schemeName);
     bool Init() override;
 
     uint32_t RunSection() override
@@ -181,43 +64,104 @@ class SoundService : public VSoundService
     void RunStart() override;
     void RunEnd() override;
 
-    TSD_ID SoundPlay(const char *_name, eSoundType _type, eVolumeType _volumeType, bool _simpleCache = false,
-                     bool _looped = false, bool _cached = false, int32_t _time = 0,
-                     const CVECTOR *_startPosition = nullptr, float _minDistance = -1.0f, float _maxDistance = -1.0f,
-                     int32_t _loopPauseTime = 0, float _volume = 1.0f, int32_t _prior = 128) override;
+    SoundID play(
+        std::string const& name,
+        SoundType          sound_type,
+        VolumeType         volume_type,
+        bool               is_paused      = false,
+        bool               is_looped      = false,
+        int32_t            fade_time      = 0,
+        const CVECTOR*     start_position = nullptr,
+        float              min_distance   = -1.0F,
+        float              max_distance   = -1.0F,
+        float              volume         = 1.0F) override;
 
-    TSD_ID SoundDuplicate(TSD_ID _sourceID) override;
-    void SoundSet3DParam(TSD_ID _id, eSoundMessage _message, const void *_op) override;
-    void SoundStop(TSD_ID _id, int32_t _time = 0) override;
-    void SoundRelease(TSD_ID _id) override;
-    void SoundSetVolume(TSD_ID _id, float _volume) override;
-    bool SoundIsPlaying(TSD_ID _id) override;
-    float SoundGetPosition(TSD_ID _id) override;
-    void SoundRestart(TSD_ID _id) override;
-    void SoundResume(TSD_ID _id, int32_t _time = 0) override;
+    SoundID  duplicate(SoundID id) override;
+    void     set_3d_param(SoundID id, SoundMessageType msg, void const* data) override;
+    void     stop(SoundID id, int32_t fade_time = 0) override;
+    void     sound_release(SoundID id) override;
+    void     set_volume(SoundID id, float volume) override;
+    bool     is_playing(SoundID id) override;
+    uint32_t get_position(SoundID id) override;
+    void     sound_restart(SoundID id) override;
+    void     resume(SoundID id, int32_t fade_time = 0) override;
 
     // Service functions
-    void SetMasterVolume(float _fxVolume, float _musicVolume, float _speechVolume) override;
-    void GetMasterVolume(float *_fxVolume, float *_musicVolume, float *_speechVolume) override;
-    void SetPitch(float _pitch) override;
-    float GetPitch() override;
-    void SetCameraPosition(const CVECTOR &_cameraPosition) override;
-    void SetCameraOrientation(const CVECTOR &_nose, const CVECTOR &_head) override;
+    void  set_master_volume(float fx_volume, float music_volume, float speech_volume) override;
+    void  get_master_volume(float& fx_volume, float& music_volume, float& speech_volume) override;
+    void  set_pitch(float pitch) override;
+    float get_pitch() override;
+    void  set_camera_position(const CVECTOR& camera_position) override;
+    void  set_camera_orientation(const CVECTOR& nose, const CVECTOR& head) override;
 
     // Schemes routines
-    void ResetScheme() override;
-    bool SetScheme(const char *_schemeName) override;
-    bool AddScheme(const char *_schemeName) override;
-    void SetEnabled(bool _enabled) override;
+    void reset_scheme() override;
+    bool set_scheme(std::string_view const& scheme_name) override;
+    bool add_scheme(std::string_view const& scheme_name) override;
+    void set_enabled(bool is_enabled) override;
 
-    void SetActiveWithFade(bool active) override;
+    void set_active_with_fade(bool is_active) override;
 
-    void DebugDraw();
-    void DebugPrint3D(const CVECTOR &pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale,
-                      const char *format, ...) const;
-    void Draw2DCircle(const CVECTOR &center, uint32_t dwColor, float fRadius, uint32_t dwColor2, float fRadius2) const;
+private:
+    SoundID prepare_music(std::string const& name, int32_t fade_time = 0);
 
-    void ProcessFader(uint16_t idx);
+    SoundID prepare_sound(
+        std::string const& name,
+        SoundType          sound_type,
+        const CVECTOR*     start_position = nullptr,
+        float              min_distance   = -1.0F,
+        float              max_distance   = -1.0F);
 
-    uint16_t FreeSound(uint16_t idx);
+    void free_playing_on_source(std::shared_ptr<storm::audio::Source> const& source);
+    void update_playing_list();
+
+    void set_volume_all(float volume);
+    void set_volume_for_sound(PlayingSound& sound, float volume);
+
+    void resume_all(int32_t fade_time = 0);
+    void resume_sound(PlayingSound& sound, int32_t fade_time = 0);
+
+    void stop_all(int32_t fade_time = 0);
+    void stop_sound(PlayingSound& sound, int32_t fade_time = 0);
+
+    bool is_id_valid(SoundID id);
+
+    float get_volume_by_type(PlayingSound const& sound) const;
+
+    std::shared_ptr<storm::audio::Sound> get_from_cache(std::string const& sound_path, SoundType sound_type);
+
+    // Aliases ------------------------------------------------------------
+
+    void add_alias(INIFILE& ini_file, std::string_view const& section_name);
+    void load_alias_file(std::string const& filename) override;
+    void init_aliases();
+
+    // Sound Schemes------------------------------------------------------------
+
+    bool add_sound_scheme_channel(std::string const& in_string, bool is_looped = false);
+    void process_sound_schemes();
+    bool allocate_sound(SoundID& id);
+
+    std::unique_ptr<storm::audio::Device> m_device;
+
+    VDX9RENDER* m_renderer;
+
+    bool m_is_initialized;
+    bool m_fader_parity;
+
+    std::vector<PlayingSound>       m_playing_sounds;
+    std::vector<SoundSchemeChannel> m_sound_scheme_channels;
+
+    std::unordered_map<std::string, Alias>                     m_aliases;
+    std::unordered_map<std::string, std::chrono::milliseconds> m_ogg_pos;
+
+    std::unordered_multimap<std::string, CacheEntry> m_sound_cache;
+
+    float m_fx_volume;
+    float m_music_volume;
+    float m_speech_volume;
+
+    float m_pitch;
+
+    std::chrono::milliseconds m_fade_time;
 };

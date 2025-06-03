@@ -1,8 +1,7 @@
 #include "sound_service.h"
 
-#include <thread>
-
-// #include <fmod_errors.h>
+#include <algorithm>
+#include <random>
 
 #include <libs/core/core.h>
 #include <libs/core/v_file_service.h>
@@ -11,1632 +10,761 @@
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
 #include <libs/util/rands.h>
+#include <storm_audio/source.h>
 
-// for debugging
-#include "debug_entity.h"
+using namespace storm::audio;
 
 CREATE_SERVICE(SoundService)
 
-CREATE_CLASS(SoundVisualisationEntity)
+#define DISTANCEFACTOR 1.0F
 
-#define DISTANCEFACTOR 1.0f
-#define CHECKFMODERR(expr) ErrorHandler(expr, __FILE__, __LINE__, __func__, #expr)
+namespace
+{
 
-// namespace
-// {
+constexpr float VOLUME_DEFAULT = 0.5F;
+constexpr float PITCH_DEFAULT  = 1.0F;
+constexpr float FADE_DEFAULT   = 0.5F;
 
-// FMOD_RESULT ErrorHandler(const FMOD_RESULT result, const char *file, unsigned line, const char *func, const char
-// *expr)
-// {
-//     if (result != FMOD_OK)
-//     {
-//         core.Trace("[%s:%s:%d] %s (%s)", file, func, line, FMOD_ErrorString(result), expr);
-//     }
-//     return result;
-// }
+constexpr size_t STREAM_BUFFER_COUNT = 2;
+constexpr size_t BUFFER_SAMPLE_COUNT = 16384;
 
-// } // namespace
+void analyse_name_string_and_add_to_alias(SoundService::Alias& alias, std::string const& name)
+{
+    std::string file_name   = name;
+    float       probability = DEFAULT_PROBABILITY;
+
+    if (auto pos = name.find_first_of(','); pos != std::string::npos) {
+        sscanf(name.substr(pos + 1).c_str(), "%f", &probability);
+
+        // Remove probability from file name
+        file_name = name.substr(0, pos);
+    }
+
+    alias.sound_files.emplace(probability, file_name);
+
+    if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", file_name.c_str(), probability); }
+}
+
+void free_sound(SoundService::PlayingSound& sound)
+{
+    sound.is_free = true;
+    sound.source.reset();
+}
+
+class Tracer: public DebugTracer
+{
+    void trace_message(
+        [[maybe_unused]] Severity    severity,
+        std::string const&           message,
+        std::filesystem::path const& source_file,
+        size_t                       line,
+        std::string const&           function_name) override
+    {
+        core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
+    }
+};
+
+}  // namespace
 
 SoundService::SoundService()
+    : m_device {nullptr}
+    , m_renderer {nullptr}
+    , m_is_initialized {false}
+    , m_fader_parity {false}
+    , m_fx_volume {VOLUME_DEFAULT}
+    , m_music_volume {VOLUME_DEFAULT}
+    , m_speech_volume {VOLUME_DEFAULT}
+    , m_pitch {PITCH_DEFAULT}
 {
-    fFXVolume = 0.5f;
-    fMusicVolume = 0.5f;
-    fSpeechVolume = 0.5f;
-
-    fPitch = 1.0f;
-
-    bShowDebugInfo = false;
-    // OGG_sound[0] = nullptr;
-    // OGG_sound[1] = nullptr;
-    // system = nullptr;
-    initialized = false;
-
-    // vListenerPos.x = 0.0f;
-    // vListenerPos.y = 0.0f;
-    // vListenerPos.z = 0.0f;
-
-    // vListenerForward.x = 0.0f;
-    // vListenerForward.y = 0.0f;
-    // vListenerForward.z = 0.0f;
-
-    // vListenerTop.x = 0.0f;
-    // vListenerTop.y = 0.0f;
-    // vListenerTop.z = 0.0f;
-
-    FaderParity = false;
 }
 
 SoundService::~SoundService()
 {
-    // if (initialized)
-    // {
-    //     CHECKFMODERR(system->close());
-    //     CHECKFMODERR(system->release());
-    // }
+    if (m_is_initialized) {
+        for (auto& sound: m_playing_sounds) {
+            sound.source.reset();
+        }
+
+        m_sound_cache.clear();
+    }
 }
 
 bool SoundService::Init()
 {
-    initialized = false;
+    m_is_initialized = false;
 
-    rs = static_cast<VDX9RENDER *>(core.GetService("DX9RENDER"));
+    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
 
-    if (rs == nullptr)
-    {
-        return false;
+    if (m_renderer == nullptr) { return false; }
+
+    m_device =
+        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
+    if (!m_device) { return false; }
+
+    constexpr float sec_to_ms_mult = 1000.0F;
+    if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
+        m_fade_time = std::chrono::milliseconds(static_cast<uint64_t>(ini->GetFloat("sound", "fade_time", FADE_DEFAULT) * sec_to_ms_mult));
     }
 
-    // CHECKFMODERR(FMOD::System_Create(&system));
-    // unsigned version;
-    // CHECKFMODERR(system->getVersion(&version));
+    // Reserve first two for music
+    m_playing_sounds.resize(2);
 
-    // if (version < FMOD_VERSION)
-    // {
-    //     core.Trace("Error : You are using old FMOD version %08x !\n", version);
-    //     return false;
-    // }
-    // core.Trace("Using FMOD %08x", FMOD_VERSION);
-    // CHECKFMODERR(system->setSoftwareChannels(MAX_SOUNDS_SLOTS));
-    // CHECKFMODERR(system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT));
-    // CHECKFMODERR(system->init(MAX_SOUNDS_SLOTS, FMOD_INIT_NORMAL, nullptr));
-    // CHECKFMODERR(system->set3DSettings(1.0, DISTANCEFACTOR, 1.0f));
+    init_aliases();
 
-    if (const auto ini = fio->OpenIniFile(core.EngineIniFileName()))
-    {
-        fadeTimeInSeconds = ini->GetFloat("sound", "fade_time", 0.5f);
-    }
+    m_is_initialized = true;
 
-    numActiveSounds = 2; // 0 and 1 are special
-
-    InitAliases();
-    CreateEntityIfNeed();
-
-    initialized = true;
     return true;
 }
 
 void SoundService::RunEnd()
 {
-    CreateEntityIfNeed();
-    // Internal FMOD update
-    // CHECKFMODERR(system->update());
-}
-
-void SoundService::ProcessFader(uint16_t idx)
-{
-    if (PlayingSounds[idx].bFree)
-    {
-        return;
-    }
-
-    if (fabsf(PlayingSounds[idx].fFaderCurrentVolume - PlayingSounds[idx].fFaderNeedVolume) < 0.001f)
-    {
-        if (PlayingSounds[idx].fFaderDeltaInSec < 0)
-        {
-            unsigned int OGGpos = 0;
-            // PlayingSounds[idx].channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
-            SetOGGPosition(PlayingSounds[idx].Name.c_str(), OGGpos);
-            // PlayingSounds[idx].channel->stop();
-        }
-        return;
-    }
-
-    const auto fTime = core.GetDeltaTime() * 0.001f;
-
-    PlayingSounds[idx].fFaderCurrentVolume += PlayingSounds[idx].fFaderDeltaInSec * fTime;
-
-    // FADE IN
-    if (PlayingSounds[idx].fFaderDeltaInSec > 0)
-    {
-        if (PlayingSounds[idx].fFaderCurrentVolume > PlayingSounds[idx].fFaderNeedVolume)
-        {
-            PlayingSounds[idx].fFaderCurrentVolume = PlayingSounds[idx].fFaderNeedVolume;
-        }
-    }
-
-    // FADE OUT
-    if (PlayingSounds[idx].fFaderDeltaInSec < 0)
-    {
-        if (PlayingSounds[idx].fFaderCurrentVolume < PlayingSounds[idx].fFaderNeedVolume)
-        {
-            PlayingSounds[idx].fFaderCurrentVolume = PlayingSounds[idx].fFaderNeedVolume;
-            unsigned int OGGpos = 0;
-            // PlayingSounds[idx].channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
-            SetOGGPosition(PlayingSounds[idx].Name.c_str(), OGGpos);
-
-            // PlayingSounds[idx].channel->stop();
-        }
-    }
-    // PlayingSounds[idx].channel->setVolume(PlayingSounds[idx].fFaderCurrentVolume);
-}
-
-uint16_t SoundService::FreeSound(const uint16_t idx)
-{
-    PlayingSounds[idx].bFree = true;
-    if (idx >= 2 && idx < numActiveSounds)
-    {
-        freeSounds.push(idx);
-    }
-
-    return idx;
+    m_device->update(std::chrono::milliseconds(core.GetDeltaTime()));
 }
 
 void SoundService::RunStart()
 {
-    CreateEntityIfNeed();
+    if (m_renderer != nullptr) {
+        static CVECTOR pos  = {};
+        static CVECTOR nose = {};
+        static CVECTOR head = {};
+        static CMatrix view = {};
 
-    if (rs)
-    {
-        static CVECTOR pos, nose, head;
-        static CMatrix view;
-
-        rs->GetTransform(D3DTS_VIEW, view);
+        m_renderer->GetTransform(D3DTS_VIEW, view);
         view.Transposition();
         nose = view.Vz();
         head = view.Vy();
-        pos = view.Pos();
+        pos  = view.Pos();
 
-        SetCameraPosition(pos);
-        SetCameraOrientation(nose, head);
+        set_camera_position(pos);
+        set_camera_orientation(nose, head);
     }
 
-    ProcessFader(0);
-    ProcessFader(1);
+    update_playing_list();
 
-    // release the sounds that have played ...
-    for (uint16_t i = 0; i < numActiveSounds; i++)
-    {
-        if (PlayingSounds[i].bFree)
-            continue;
-
-        // If it's just paused, don't need to touch it ...
-        bool paused = true;
-
-        // FMOD_RESULT status = PlayingSounds[i].channel->getPaused(&paused);
-        // if (status != FMOD_OK)
-        // {
-        //     if constexpr (TRACE_INFORMATION)
-        //         core.Trace("PlayingSounds[%d].channel 0x%08X %s paused %d status %d", i, PlayingSounds[i].channel,
-        //                    PlayingSounds[i].Name.c_str(), paused, status);
-        //     i = FreeSound(i);
-
-        //     continue;
-        // }
-
-        if (paused)
-            continue;
-
-        // bool is_playing;
-        // status = CHECKFMODERR(PlayingSounds[i].channel->isPlaying(&is_playing));
-
-        // if (!is_playing || status != FMOD_OK)
-        // {
-        //     PlayingSounds[i].channel = nullptr;
-
-        //     if (i == 0)
-        //     {
-        //         if (OGG_sound[0] != nullptr)
-        //         {
-        //             CHECKFMODERR(OGG_sound[0]->release());
-        //             OGG_sound[0] = nullptr;
-        //         }
-        //     }
-        //     else if (i == 1)
-        //     {
-        //         if (OGG_sound[1] != nullptr)
-        //         {
-        //             CHECKFMODERR(OGG_sound[1]->release());
-        //             OGG_sound[1] = nullptr;
-        //         }
-        //     }
-
-        //     i = FreeSound(i);
-        //     core.Event("SoundEnded", "l", i + 2);
-        // }
-    }
-    ProcessSoundSchemes();
+    process_sound_schemes();
 }
 
-bool SoundService::AllocateSound(TSD_ID &id)
+bool SoundService::allocate_sound(SoundID& id)
 {
-    if (!freeSounds.empty())
-    {
-        id = TSD_ID::createId(freeSounds.top());
-        freeSounds.pop();
+    auto free_sound = std::find_if(
+        std::next(m_playing_sounds.begin(), 2), m_playing_sounds.end(), [](PlayingSound const& sound) { return sound.is_free; });
+    if (free_sound != m_playing_sounds.end()) {
+        id = SoundID::create_id(static_cast<uint16_t>(std::distance(m_playing_sounds.begin(), free_sound)));
         return true;
     }
 
-    if (numActiveSounds > MAX_SOUNDS_SLOTS)
-    {
-        core.Trace("SoundService::AllocateSound(): no empty slots!");
+    if (m_playing_sounds.size() >= std::numeric_limits<uint16_t>::max()) {
+        core.Trace("SoundService::allocate_sound(): no empty slots!");
         return false;
     }
 
-    id = TSD_ID::createId(numActiveSounds++);
+    id = SoundID::create_id(static_cast<uint16_t>(m_playing_sounds.size()));
     return true;
 }
 
-const char *SoundService::GetRandomName(const tAlias *alias) const
+SoundID SoundService::play(
+    std::string const&   name,
+    SoundType const      sound_type,
+    VolumeType const     volume_type,
+    bool const           is_paused /* = false*/,
+    bool const           is_looped /* = false*/,
+    int32_t const        fade_time /* = 0*/,
+    const CVECTOR* const start_position /* = 0*/,
+    float const          min_distance /* = -1.0f*/,
+    float const          max_distance /* = -1.0f*/,
+    float const          volume /* = 1.0f*/)
 {
-    return alias->soundFiles.pickRandom().c_str();
-}
+    std::string sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + name;
 
-int SoundService::GetAliasIndexByName(const char *szAliasName)
-{
-    const uint32_t dwSearchHash = MakeHashValue(szAliasName);
-    for (size_t i = 0; i < Aliases.size(); i++)
-    {
-        if (Aliases[i].dwNameHash == dwSearchHash)
-        {
-            if (Aliases[i].Name == szAliasName)
-            {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
+    float alias_min_distance = min_distance;
+    float alias_max_distance = max_distance;
+    float alias_volume       = volume;
 
-TSD_ID SoundService::SoundPlay(const char *_name, eSoundType _type, eVolumeType _volumeType,
-                               bool _simpleCache /* = false*/, bool _looped /* = false*/, bool _cached /* = false*/,
-                               int32_t _time /* = 0*/, const CVECTOR *_startPosition /* = 0*/,
-                               float _minDistance /* = -1.0f*/, float _maxDistance /* = -1.0f*/,
-                               int32_t _loopPauseTime /* = 0*/, float _volume, /* = 1.0f*/
-                               int32_t _prior)
-{
-    std::string FileName = _name;
+    if (m_aliases.contains(name)) {
+        auto& alias = m_aliases[name];
 
-    // aliases don`t contain `\`
-    if (!strchr(_name, '\\'))
-    {
-        // Trying to find in aliases
-        const auto AliasIdx = GetAliasIndexByName(_name);
-        if (AliasIdx >= 0 && !Aliases[AliasIdx].soundFiles.empty())
-        {
-            // play sound from the alias ...
-            FileName = GetRandomName(&Aliases[AliasIdx]);
-            if constexpr (TRACE_INFORMATION)
-                core.Trace("Play sound from alias %s", FileName.c_str());
+        // play sound from the alias ...
+        sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + alias.sound_files.pickRandom();
+        if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
 
-            _minDistance = Aliases[AliasIdx].fMinDistance;
-            _maxDistance = Aliases[AliasIdx].fMaxDistance;
-            _prior = Aliases[AliasIdx].iPrior;
+        alias_min_distance = alias.min_distance;
+        alias_max_distance = alias.max_distance;
 
-            if (Aliases[AliasIdx].fVolume > 0.0f)
-            {
-                _volume = Aliases[AliasIdx].fVolume;
-            }
-        }
+        if (alias.volume > std::numeric_limits<float>::epsilon()) { alias_volume = alias.volume; }
     }
 
-    std::string SoundName = "resource\\sounds\\";
-    SoundName += FileName;
-    SoundName = fio->ConvertPathResource(SoundName.c_str());
+    sound_path = fio->ConvertPathResource(sound_path.c_str());
 
-    // FMOD::Sound *sound = nullptr;
-    uint16_t SoundIdx = 0;
+    SoundID const id = sound_type == SoundType::MusicStereo
+        ? prepare_music(sound_path, fade_time)
+        : prepare_sound(sound_path, sound_type, start_position, alias_min_distance, alias_max_distance);
 
-    TSD_ID id;
-    if (_type == MP3_STEREO)
-    {
-        // play streamed immediately, without caching and always in 0 slot ...
-        try
-        {
-            // uint32_t dwMode = FMOD_LOOP_OFF;
-            // if (_looped)
-            //     dwMode = FMOD_LOOP_NORMAL;
-            // const auto status = CHECKFMODERR(
-            //     system->createStream(SoundName.c_str(), FMOD_CREATESAMPLE | FMOD_2D | dwMode, nullptr, &sound));
-            // if (status != FMOD_OK)
-            // {
-            //     core.Trace("system->createStream(%s, FMOD_HARDWARE | FMOD_2D | dwMode, 0, &sound)",
-            //     SoundName.c_str()); return 0;
-            // }
-        }
-        catch (...)
-        {
-            core.Trace("Internal FMOD error, when create stream. File '%s'", SoundName.c_str());
-            return 0;
-        }
+    if (id == 0) { return 0; }
 
-        auto MusicIdx = 0;
-        // auto OldMusicIdx = 1;
-        if (FaderParity)
-        {
-            MusicIdx = 1;
-            // OldMusicIdx = 0;
-        }
-        FaderParity = !FaderParity;
+    uint16_t const sound_idx = id.index();
+    auto&          sound     = m_playing_sounds[sound_idx];
 
-        // if (OGG_sound[OldMusicIdx])
-        // {
-        //     SoundStop(OldMusicIdx + 1, _time);
-        // }
-
-        SoundIdx = MusicIdx;
-        id = SoundIdx + 1;
-        // OGG_sound[SoundIdx] = sound;
-        PlayingSounds[SoundIdx].fFaderNeedVolume = _volume * fMusicVolume;
-        PlayingSounds[SoundIdx].fFaderCurrentVolume = 0.0f;
-        PlayingSounds[SoundIdx].fFaderDeltaInSec = (_volume * fMusicVolume) / (_time * 0.001f);
-    }
-    else
-    {
-        // For all other sounds, take from the cache
-        const auto CacheIdx = GetFromCache(SoundName.c_str(), _type);
-        if (CacheIdx < 0)
-        {
-            return 0;
-        }
-
-        bool success = AllocateSound(id);
-        if (!success)
-        {
-            return 0;
-        }
-        SoundIdx = id.index();
-        PlayingSounds[SoundIdx].stamp = id.stamp();
-        // sound = SoundCache[CacheIdx].sound;
+    if constexpr (TRACE_INFORMATION) {
+        core.Trace(
+            "Sound attached, name %s, idx = %d, channel = %p, state = %d",
+            sound_path.c_str(),
+            sound_idx,
+            sound.source.get(),
+            sound.source->get_state());
     }
 
-    //--------
-    PlayingSounds[SoundIdx].type = _volumeType;
-    PlayingSounds[SoundIdx].fSoundVolume = _volume;
+    sound.is_free     = false;
+    sound.sound_type  = sound_type;
+    sound.volume_type = volume_type;
+    sound.volume      = alias_volume;
+    sound.name        = std::move(sound_path);
 
-    // start to play the sound, but paused ...
-    // const auto status = CHECKFMODERR(system->playSound(sound, nullptr, true, &PlayingSounds[SoundIdx].channel));
-    // if (status != FMOD_OK)
-    // {
-    //     core.Trace("system->playSound(FMOD_CHANNEL_FREE, sound, true, &PlayingSounds[%d].channel)", SoundIdx);
-    // }
-
-    if (SoundIdx <= 1)
-    {
-        // const auto OGGpos = GetOGGPosition(SoundName.c_str());
-        // PlayingSounds[SoundIdx].channel->setPosition(OGGpos, FMOD_TIMEUNIT_MS);
-
-        _prior = 0;
+    if (is_paused) {
+        sound.source->set_volume(get_volume_by_type(sound));
+    } else {
+        // play() call will set volume itself so we don't need to do it manually
+        sound.source->play(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
     }
 
-    if (_prior < 0)
-        _prior = 0;
-    if (_prior > 255)
-        _prior = 255;
-
-    // put priority ...
-    // PlayingSounds[SoundIdx].channel->setPriority(_prior);
-
-    // Adjust parameters for 3D channel ...
-    if (_type == PCM_3D)
-    {
-        // If necessary, set the parameters by default ...
-        if (_minDistance < 0.0f)
-            _minDistance = 0.0f;
-        if (_maxDistance < 0.0f)
-            _maxDistance = 0.0f;
-
-        // CHECKFMODERR(PlayingSounds[SoundIdx].channel->set3DMinMaxDistance(_minDistance * DISTANCEFACTOR,
-        //                                                                   _maxDistance * DISTANCEFACTOR));
-
-        // FMOD_VECTOR vVelocity = {0.0f, 0.0f, 0.0f};
-        // FMOD_VECTOR vPosition{};
-        // if (_startPosition != nullptr)
-        // {
-        //     vPosition.x = _startPosition->x;
-        //     vPosition.y = _startPosition->y;
-        //     vPosition.z = _startPosition->z;
-        // }
-        // CHECKFMODERR(PlayingSounds[SoundIdx].channel->set3DAttributes(&vPosition, &vVelocity));
-    }
-
-    switch (_volumeType)
-    {
-    case VOLUME_FX:
-        _volume *= fFXVolume;
-        break;
-    case VOLUME_MUSIC:
-        _volume *= fMusicVolume;
-        break;
-    case VOLUME_SPEECH:
-        _volume *= fSpeechVolume;
-        break;
-    default:
-        _volume *= 1.0f;
-        break;
-    }
-
-    // if (_time <= 0)
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setVolume(_volume));
-    // }
-    // else
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setVolume(0));
-    // }
-
-    // CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPitch(fPitch));
-
-    PlayingSounds[SoundIdx].Name = std::move(SoundName);
-    PlayingSounds[SoundIdx].sound_type = _type;
-
-    // If not just caching ... then unpause ...
-    // if (!_simpleCache)
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(false));
-    // }
-    // else
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setPaused(true));
-    // }
-
-    PlayingSounds[SoundIdx].bFree = false;
-    // set the looping ..
-    // if (_looped)
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setMode(FMOD_LOOP_NORMAL));
-    // }
-    // else
-    // {
-    //     CHECKFMODERR(PlayingSounds[SoundIdx].channel->setMode(FMOD_LOOP_OFF));
-    // }
-
-    // ---------- loop through all sounds looking for the one with the same channel --------------
-    for (uint16_t j = 0; j < numActiveSounds; j++)
-    {
-        if (j == SoundIdx)
-            continue;
-
-        // if (PlayingSounds[j].channel == PlayingSounds[SoundIdx].channel)
-        // {
-        //     // note that the sound is thrown out ...
-        //     // so as not to stop him ...
-        //     j = FreeSound(j);
-        // }
-    }
-    // Returning the sound ID ...
+    sound.source->set_pitch(m_pitch);
+    sound.source->set_looping(is_looped);
 
     return id;
 }
 
-void SoundService::SoundSet3DParam(TSD_ID _id, eSoundMessage _message, const void *_op)
+void SoundService::set_3d_param(SoundID id, SoundMessageType msg, void const* data)
 {
-    if (_id.master() || _id.index() > numActiveSounds)
-        return;
+    if (id.master() || !is_id_valid(id)) { return; }
 
-    auto &sound = PlayingSounds[_id.index()];
+    auto const& sound = m_playing_sounds[id.index()];
+    if (!sound.source || sound.is_free) { return; }
 
-    if (_id.stamp() != sound.stamp)
-        return;
+    switch (msg) {
+    case SoundMessageType::MaxDistance: {
+        float const distance = *static_cast<float const*>(data);
+        sound.source->set_max_distance(distance);
+    } break;
 
-    auto vVelocity = CVECTOR(0.0f, 0.0f, 0.0f);
+    case SoundMessageType::MinDistance: {
+        float const distance = *static_cast<float const*>(data);
+        sound.source->set_min_distance(distance);
+    } break;
 
-    switch (_message)
-    {
-    case SM_MAX_DISTANCE: {
-        // float maxDistance = *((float *)_op);
-        // CHECKFMODERR(sound.channel->set3DMinMaxDistance(NULL, maxDistance));
-        break;
-    }
-
-    case SM_MIN_DISTANCE: {
-        // float minDistance = *((float *)_op);
-        // CHECKFMODERR(sound.channel->set3DMinMaxDistance(minDistance, NULL));
-        break;
-    }
-
-    case SM_POSITION: {
-        // FMOD_VECTOR pos;
-        // auto *fPtr = (float *)_op;
-        // pos.x = *(fPtr + 0);
-        // pos.y = *(fPtr + 1);
-        // pos.z = *(fPtr + 2);
-        // FMOD_VECTOR vVelocity = {0.0f, 0.0f, 0.0f};
-        // CHECKFMODERR(sound.channel->set3DAttributes(&pos, &vVelocity));
-        break;
-    }
+    case SoundMessageType::Position: {
+        auto pos = std::array<float, 3> {};
+        std::memcpy(pos.data(), data, sizeof(pos));
+        pos[2] = -pos[2];  // Invert Z
+        sound.source->set_position_3d(pos);
+    } break;
     }
 }
 
-void SoundService::SoundRestart(TSD_ID _id)
+void SoundService::sound_restart(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Sound restart !");
+    if constexpr (TRACE_INFORMATION) { core.Trace("Sound restart !"); }
 }
 
-void SoundService::SoundRelease(TSD_ID _id)
+void SoundService::sound_release(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Sound release !");
+    if constexpr (TRACE_INFORMATION) { core.Trace("Sound release !"); }
 }
 
-void SoundService::SoundSetVolume(TSD_ID _id, float _volume)
+void SoundService::set_volume(SoundID id, float const volume)
 {
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Sound set volume !");
+    if constexpr (TRACE_INFORMATION) { core.Trace("Sound set volume !"); }
+    if (!is_id_valid(id)) { return; }
 
-    if (_id.master())
-    {
-        for (uint16_t i = 0; i < numActiveSounds; i++)
-        {
-            if (PlayingSounds[i].bFree)
-                continue;
-
-            PlayingSounds[i].fSoundVolume = _volume;
-
-            switch (PlayingSounds[i].type)
-            {
-            case VOLUME_FX:
-                _volume *= fFXVolume;
-                break;
-            case VOLUME_MUSIC:
-                _volume *= fMusicVolume;
-                break;
-            case VOLUME_SPEECH:
-                _volume *= fSpeechVolume;
-                break;
-            default:
-                _volume *= 1.0f;
-                break;
-            }
-
-            if (i <= 1)
-            {
-                PlayingSounds[i].fFaderNeedVolume = _volume;
-                PlayingSounds[i].fFaderCurrentVolume = PlayingSounds[i].fFaderNeedVolume;
-            }
-
-            // CHECKFMODERR(PlayingSounds[i].channel->setVolume(_volume));
-        }
+    if (id.master()) {
+        set_volume_all(volume);
         return;
     }
 
-    if (_id.index() >= numActiveSounds)
-        return;
-
-    auto &sound = PlayingSounds[_id.index()];
-
-    if (_id.stamp() != sound.stamp)
-        return;
-
-    if (_id.index() <= 1)
-    {
-        if (sound.fFaderCurrentVolume - sound.fFaderNeedVolume > 0.001f)
-        {
-            return;
-        }
-    }
-
-    sound.fSoundVolume = _volume;
-
-    switch (sound.type)
-    {
-    case VOLUME_FX:
-        _volume *= fFXVolume;
-        break;
-    case VOLUME_MUSIC:
-        _volume *= fMusicVolume;
-        break;
-    case VOLUME_SPEECH:
-        _volume *= fSpeechVolume;
-        break;
-    default:
-        _volume *= 1.0f;
-        break;
-    }
-    // CHECKFMODERR(sound.channel->setVolume(_volume));
+    set_volume_for_sound(m_playing_sounds[id.index()], volume);
 }
 
-bool SoundService::SoundIsPlaying(TSD_ID _id)
+bool SoundService::is_playing(SoundID id)
 {
-    if (_id.master() || _id.index() >= numActiveSounds)
-        return false;
+    if (id.master() || !is_id_valid(id)) { return false; }
 
-    auto &sound = PlayingSounds[_id.index()];
-
-    if (_id.stamp() != sound.stamp)
-        return false;
-
-    return !sound.bFree;
+    return !m_playing_sounds[id.index()].is_free;
 }
 
-void SoundService::SoundResume(TSD_ID _id, int32_t _time /* = 0*/)
+void SoundService::resume(SoundID id, int32_t time /* = 0*/)
 {
-    // TODO: weird cond
-    if (_id.master() || _id.index() == 0 || _id == -1)
-    {
-        for (uint16_t i = 0; i < numActiveSounds; i++)
-        {
-            if (PlayingSounds[i].bFree)
-                continue;
+    if constexpr (TRACE_INFORMATION) { core.Trace("Resume sound %d", id.index()); }
+    if (!is_id_valid(id)) { return; }
 
-            // CHECKFMODERR(PlayingSounds[i].channel->setPaused(false));
-        }
+    if (id.master()) {
+        resume_all(time);
         return;
     }
 
-    if (_id.index() >= numActiveSounds)
-        return;
-
-    auto &sound = PlayingSounds[_id.index()];
-
-    if (_id.stamp() != sound.stamp)
-        return;
-
-    // CHECKFMODERR(sound.channel->setPaused(false));
+    resume_sound(m_playing_sounds[id.index()]);
 }
 
-float SoundService::SoundGetPosition(TSD_ID _id)
+uint32_t SoundService::get_position(SoundID id)
 {
-    if (_id.index() >= numActiveSounds)
-        return 0;
+    if (id.master() || !is_id_valid(id)) { return 0; }
 
-    auto &sound = PlayingSounds[_id.index()];
+    auto const pos = m_playing_sounds[id.index()].source->get_playback_position();
+    return static_cast<uint32_t>(pos.count());
+}
 
-    if (_id.stamp() != sound.stamp)
-        return 0;
+void SoundService::set_camera_position(const CVECTOR& camera_pos)
+{
+    m_device->set_listener_position_3d(std::array<float, 3> {camera_pos.x, camera_pos.y, -camera_pos.z});
+}
 
-    // unsigned int SoundPositionInMilisecond;
-    // CHECKFMODERR(sound.channel->getPosition(&SoundPositionInMilisecond, FMOD_TIMEUNIT_MS));
+void SoundService::set_camera_orientation(const CVECTOR& nose, const CVECTOR& head)
+{
+    auto const nose_normalized = !nose;
+    auto const head_normalized = !head;
+
+    m_device->set_listener_orientation_3d(
+        std::array<float, 3> {nose_normalized.x, nose_normalized.y, -nose_normalized.z},
+        std::array<float, 3> {head_normalized.x, head_normalized.y, -head_normalized.z});
+}
+
+void SoundService::set_master_volume(float fx_volume, float music_volume, float speech_volume)
+{
+    if constexpr (TRACE_INFORMATION) { core.Trace("Set master volume"); }
+
+    m_fx_volume     = std::clamp(fx_volume, 0.0F, 1.0F);
+    m_music_volume  = std::clamp(music_volume, 0.0F, 1.0F);
+    m_speech_volume = std::clamp(speech_volume, 0.0F, 1.0F);
+
+    for (auto& sound: m_playing_sounds) {
+        if (sound.is_free) { continue; }
+
+        sound.source->set_volume(get_volume_by_type(sound));
+    }
+}
+
+void SoundService::get_master_volume(float& fx_volume, float& music_volume, float& speech_volume)
+{
+    if constexpr (TRACE_INFORMATION) { core.Trace("Get master volume"); }
+
+    fx_volume     = m_fx_volume;
+    music_volume  = m_music_volume;
+    speech_volume = m_speech_volume;
+}
+
+void SoundService::set_pitch(float pitch)
+{
+    if constexpr (TRACE_INFORMATION) { core.Trace("Set pitch"); }
+
+    m_pitch = pitch > std::numeric_limits<float>::epsilon() ? pitch : 0.0F;
+
+    for (auto& sound: m_playing_sounds) {
+        if (sound.is_free) { continue; }
+
+        sound.source->set_pitch(m_pitch);
+    }
+}
+
+float SoundService::get_pitch()
+{
+    if constexpr (TRACE_INFORMATION) { core.Trace("Get pitch"); }
+
+    return m_pitch;
+}
+
+SoundID SoundService::duplicate(SoundID /*source_id*/)
+{
+    if constexpr (TRACE_INFORMATION) { core.Trace("Sound duplicate"); }
+
     return 0;
 }
 
-void SoundService::SetCameraPosition(const CVECTOR &_cameraPosition)
+void SoundService::set_enabled(bool is_enabled) {}
+
+void SoundService::set_active_with_fade(bool const is_active)
 {
-    // vListenerPos.x = _cameraPosition.x;
-    // vListenerPos.y = _cameraPosition.y;
-    // vListenerPos.z = _cameraPosition.z;
+    if (m_device == nullptr) { return; }
 
-    // CHECKFMODERR(system->set3DListenerAttributes(0, &vListenerPos, nullptr, nullptr, nullptr));
-}
+    for (auto const& sound: m_playing_sounds) {
+        if (sound.is_free) { continue; }
 
-void SoundService::SetCameraOrientation(const CVECTOR &_nose, const CVECTOR &_head)
-{
-    // const auto nose = !_nose;
-    // const auto head = !_head;
-
-    // vListenerForward.x = nose.x;
-    // vListenerForward.y = nose.y;
-    // vListenerForward.z = nose.z;
-
-    // vListenerTop.x = head.x;
-    // vListenerTop.y = head.y;
-    // vListenerTop.z = head.z;
-
-    // CHECKFMODERR(system->set3DListenerAttributes(0, nullptr, nullptr, &vListenerForward, &vListenerTop));
-}
-
-void SoundService::SetMasterVolume(float _fxVolume, float _musicVolume, float _speechVolume)
-{
-    if (_fxVolume < 0.0f)
-        _fxVolume = 0.0f;
-    if (_fxVolume > 1.0f)
-        _fxVolume = 1.0f;
-
-    if (_musicVolume < 0.0f)
-        _musicVolume = 0.0f;
-    if (_musicVolume > 1.0f)
-        _musicVolume = 1.0f;
-
-    if (_speechVolume < 0.0f)
-        _speechVolume = 0.0f;
-    if (_speechVolume > 1.0f)
-        _speechVolume = 1.0f;
-
-    fFXVolume = _fxVolume;
-    fMusicVolume = _musicVolume;
-    fSpeechVolume = _speechVolume;
-
-    for (uint16_t i = 0; i < numActiveSounds; i++)
-    {
-        if (PlayingSounds[i].bFree)
-            continue;
-
-        // update volume.....
-        // float _volume = PlayingSounds[i].fSoundVolume;
-
-        // switch (PlayingSounds[i].type)
-        // {
-        // case VOLUME_FX:
-        //     _volume *= fFXVolume;
-        //     break;
-        // case VOLUME_MUSIC:
-        //     _volume *= fMusicVolume;
-        //     break;
-        // case VOLUME_SPEECH:
-        //     _volume *= fSpeechVolume;
-        //     break;
-        // default:
-        //     _volume *= 1.0f;
-        //     break;
-        // }
-
-        // const auto status = CHECKFMODERR(PlayingSounds[i].channel->setVolume(_volume));
-        // if (status != FMOD_OK)
-        // {
-        //     i = FreeSound(i);
-        // }
+        if (is_active) {
+            sound.source->play(0.0F, get_volume_by_type(sound), m_fade_time);
+        } else {
+            sound.source->pause();  // No fade on pause
+        }
     }
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Set master volume");
 }
 
-void SoundService::GetMasterVolume(float *_fxVolume, float *_musicVolume, float *_speechVolume)
+void SoundService::stop(SoundID id, int32_t time)
 {
-    *_fxVolume = fFXVolume;
-    *_musicVolume = fMusicVolume;
-    *_speechVolume = fSpeechVolume;
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Get master volume");
-}
+    if constexpr (TRACE_INFORMATION) { core.Trace("Stop sound %d", id.index()); }
+    if (!is_id_valid(id)) { return; }
 
-void SoundService::SetPitch(float _pitch)
-{
-    fPitch = (_pitch >= 0.0f) ? _pitch : 0.0f;
-
-    for (uint16_t i = 0; i < numActiveSounds; i++)
-    {
-        if (PlayingSounds[i].bFree)
-            continue;
-
-        // const auto status = CHECKFMODERR(PlayingSounds[i].channel->setPitch(fPitch));
-        // if (status != FMOD_OK)
-        // {
-        //     i = FreeSound(i);
-        // }
-    }
-
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Set pitch");
-}
-
-float SoundService::GetPitch()
-{
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Get pitch");
-    return fPitch;
-}
-
-TSD_ID SoundService::SoundDuplicate(TSD_ID _sourceID)
-{
-    core.Trace("Sound duplicate");
-    return 0;
-}
-
-void SoundService::SetEnabled(bool _enabled)
-{
-}
-
-void SoundService::SetActiveWithFade(const bool active)
-{
-    if (fadeTimeInSeconds == 0.0f)
-    {
+    if (id.master()) {
+        stop_all(time);
         return;
     }
 
-    // if (system == nullptr)
-    // {
-    //     return;
-    // }
-
-    // if (active)
-    // {
-    //     system->mixerResume();
-    // }
-
-    // FMOD::ChannelGroup *mastergroup;
-    // CHECKFMODERR(system->getMasterChannelGroup(&mastergroup));
-    // unsigned long long parentclock; // type should match with getDSPClock param from fmod.hpp
-    // int rate;
-    // system->getSoftwareFormat(&rate, nullptr, nullptr);
-    // mastergroup->getDSPClock(nullptr, &parentclock);
-
-    // const auto dsp_clock_start = parentclock;
-    // const auto dsp_clock_end = static_cast<unsigned long long>(parentclock + fadeTimeInSeconds * rate);
-
-    // if (active)
-    // {
-    //     mastergroup->setDelay(dsp_clock_start, 0, false);
-    // }
-
-    for (const auto &PlayingSound : PlayingSounds)
-    {
-        if (PlayingSound.bFree)
-            continue;
-
-        // if (active)
-        // {
-        //     PlayingSound.channel->addFadePoint(dsp_clock_start, 0.0f);
-        //     PlayingSound.channel->addFadePoint(dsp_clock_end, 1.0f);
-        // }
-        // else
-        // {
-        //     PlayingSound.channel->addFadePoint(dsp_clock_start, 1.0f);
-        //     PlayingSound.channel->addFadePoint(dsp_clock_end, 0.0f);
-        // }
-    }
-
-    // if (!active)
-    // {
-    //     mastergroup->setDelay(dsp_clock_start, dsp_clock_end, false);
-    //     system->mixerSuspend();
-    // }
+    stop_sound(m_playing_sounds[id.index()], time);
 }
 
-void SoundService::SoundStop(TSD_ID _id, int32_t _time)
+void SoundService::add_alias(INIFILE& ini_file, std::string_view const& section_name)
 {
-    // bool is_playing; // boal fix
+    if (section_name.empty()) { return; }
 
-    if (_id.master())
-    {
-        // --------- remove all sounds -----------------------------------------
-        int start = 0;
-        if (_time > 0)
-        {
-            float fVol = 0.0f;
-            // PlayingSounds[0].channel->getVolume(&fVol);
-            PlayingSounds[0].fFaderNeedVolume = 0.0f;
-            PlayingSounds[0].fFaderCurrentVolume = fVol;
-            PlayingSounds[0].fFaderDeltaInSec = -fVol / (_time * 0.001f);
+    static char temp_string[COMMON_STRING_LENGTH];
 
-            if (PlayingSounds[0].fFaderDeltaInSec <= 0.00001f)
-            {
-                // if (OGG_sound[0])
-                // {
-                //     CHECKFMODERR(OGG_sound[0]->release());
-                //     OGG_sound[0] = nullptr;
-                // }
-            }
+    if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.data()); }
 
-            // PlayingSounds[1].channel->getVolume(&fVol);
-            PlayingSounds[1].fFaderNeedVolume = 0.0f;
-            PlayingSounds[1].fFaderCurrentVolume = fVol;
-            PlayingSounds[1].fFaderDeltaInSec = -fVol / (_time * 0.001f);
+    m_aliases.emplace(
+        section_name,
+        Alias {
+            .min_distance = ini_file.GetFloat(section_name.data(), "minDistance", -1.0F),
+            .max_distance = ini_file.GetFloat(section_name.data(), "maxDistance", -1.0F),
+            .volume       = ini_file.GetFloat(section_name.data(), "volume", -1.0F),
+        });
 
-            if (PlayingSounds[1].fFaderDeltaInSec <= 0.00001f)
-            {
-                // if (OGG_sound[1])
-                // {
-                //     CHECKFMODERR(OGG_sound[1]->release());
-                //     OGG_sound[1] = nullptr;
-                // }
-            }
-            start = 2;
+    Alias& alias = m_aliases[std::string(section_name)];
+    if (ini_file.ReadString(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH, "")) {
+        analyse_name_string_and_add_to_alias(alias, temp_string);
+        while (ini_file.ReadStringNext(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH)) {
+            analyse_name_string_and_add_to_alias(alias, temp_string);
         }
-        else
-        {
-            start = 0;
+    }
+}
+
+void SoundService::load_alias_file(std::string const& filename)
+{
+    constexpr int const section_name_length = 128;
+    static char         section_name[section_name_length];
+
+    std::string ini_name = ALIAS_DIRECTORY;
+    ini_name += filename;
+
+    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_name.c_str()); }
+
+    auto alias_ini = fio->OpenIniFile(ini_name.c_str());
+    if (!alias_ini) { return; }
+
+    if (alias_ini->GetSectionName(section_name, section_name_length)) {
+        add_alias(*alias_ini, section_name);
+        while (alias_ini->GetSectionNameNext(section_name, section_name_length)) {
+            add_alias(*alias_ini, section_name);
+        }
+    }
+}
+
+void SoundService::init_aliases()
+{
+    auto const filenames = fio->_GetPathsOrFilenamesByMask(ALIAS_DIRECTORY, "*.ini", false);
+    for (auto const& cur_name: filenames) {
+        load_alias_file(cur_name);
+    }
+}
+
+SoundID SoundService::prepare_music(std::string const& name, int32_t fade_time /*= 0*/)
+{
+    auto const sound = m_device->create_sound_stream(name, Sound::Flags::Stereo2D);
+    if (!sound) {
+        core.Trace("Error creating sound stream for file %s", name.c_str());
+        return 0;
+    }
+
+    auto const music_idx     = static_cast<uint16_t>(m_fader_parity);
+    m_fader_parity           = !m_fader_parity;
+    auto const old_music_idx = static_cast<uint16_t>(m_fader_parity);
+
+    stop(old_music_idx + 1, fade_time);
+
+    uint16_t const sound_idx = music_idx;
+    SoundID const  id        = sound_idx + 1;
+
+    auto source = m_device->attach_sound_stream(sound);
+    if (!source) { return 0; }
+
+    // Free sounds that binds to same source
+    free_playing_on_source(source);
+    m_playing_sounds[sound_idx].source = source;
+
+    if (m_ogg_pos.contains(name)) { source->set_playback_position(m_ogg_pos.at(name)); }
+
+    return id;
+}
+
+SoundID SoundService::prepare_sound(
+    std::string const& name,
+    SoundType          sound_type,
+    const CVECTOR*     start_position /*= nullptr*/,
+    float              min_distance /*= -1.0F*/,
+    float              max_distance /*= -1.0F*/)
+{
+    auto const sound = get_from_cache(name, sound_type);
+    if (sound == nullptr) {
+        core.Trace("Problem with sound loading !!! '%s'", name.c_str());
+        return 0;
+    }
+
+    SoundID id = 0;
+    if (!allocate_sound(id)) { return 0; }
+    uint16_t const sound_idx = id.index();
+
+    if (sound_idx == m_playing_sounds.size()) { m_playing_sounds.push_back({}); }
+
+    auto& playing_sound = m_playing_sounds[sound_idx];
+    playing_sound.stamp = id.stamp();
+
+    auto source = m_device->attach_sound(sound);
+    if (!source) { return 0; }
+
+    // Free sounds that binds to same source
+    free_playing_on_source(source);
+    playing_sound.source = source;
+
+    // Adjust parameters for 3D source
+    if (sound_type == SoundType::Sound3D) {
+        source->set_min_distance(std::max(min_distance, 0.0F) * DISTANCEFACTOR);
+        source->set_max_distance(std::max(max_distance, 0.0F) * DISTANCEFACTOR);
+
+        std::array<float, 3> position = {};
+        if (start_position != nullptr) {
+            position[0] = start_position->x;
+            position[1] = start_position->y;
+            position[2] = -start_position->z;
         }
 
-        for (uint16_t i = start; i < numActiveSounds; i++)
-        {
-            if (PlayingSounds[i].bFree)
-                continue;
+        source->set_position_3d(position);
+    }
 
-            // if (i <= 1)
-            // {
-            //     unsigned int OGGpos;
-            //     PlayingSounds[i].channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
-            //     SetOGGPosition(PlayingSounds[i].Name.c_str(), OGGpos);
-            // }
+    return id;
+}
 
-            // FMOD_RESULT status = PlayingSounds[i].channel->isPlaying(&is_playing);
-            // if (!is_playing || status != FMOD_OK) // boal fix
-            // {
-            //     if constexpr (TRACE_INFORMATION)
-            //         core.Trace("PlayingSounds[%d].channel 0x%08X %s status %d", i, PlayingSounds[i].channel,
-            //                    PlayingSounds[i].Name.c_str(), status);
+void SoundService::free_playing_on_source(std::shared_ptr<storm::audio::Source> const& source)
+{
+    for (auto& sound: m_playing_sounds) {
+        if (sound.source == source) { free_sound(sound); }
+    }
+}
 
-            //     i = FreeSound(i);
-            // }
-            // else
-            // {
-            //     CHECKFMODERR(PlayingSounds[i].channel->stop());
-            // }
-        }
+void SoundService::update_playing_list()
+{
+    for (auto& sound: m_playing_sounds) {
+        if (sound.is_free) { continue; }
+        if (sound.source->get_state() == SourceState::Free) { free_sound(sound); }
+    }
+}
 
-        if (_time <= 0)
-        {
-            // if (OGG_sound[0])
-            // {
-            //     CHECKFMODERR(OGG_sound[0]->release());
-            //     OGG_sound[0] = nullptr;
-            // }
+void SoundService::set_volume_all(float volume)
+{
+    for (auto& sound: m_playing_sounds) {
+        set_volume_for_sound(sound, volume);
+    }
+}
 
-            // if (OGG_sound[1])
-            // {
-            //     CHECKFMODERR(OGG_sound[1]->release());
-            //     OGG_sound[1] = nullptr;
-            // }
-        }
-        // --------- remove all sounds -----------------------------------------
+void SoundService::set_volume_for_sound(PlayingSound& sound, float volume)
+{
+    if (sound.is_free) { return; }
+
+    sound.volume = volume;
+    sound.source->set_volume(get_volume_by_type(sound));
+}
+
+void SoundService::resume_all(int32_t fade_time /*= 0*/)
+{
+    for (auto& sound: m_playing_sounds) {
+        resume_sound(sound, fade_time);
+    }
+}
+
+void SoundService::resume_sound(PlayingSound& sound, int32_t fade_time /*= 0*/)
+{
+    if (sound.is_free) { return; }
+
+    if (sound.sound_type == SoundType::MusicStereo) {
+        sound.source->play(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
+    } else {
+        sound.source->play();
+    }
+}
+
+void SoundService::stop_all(int32_t fade_time /*= 0*/)
+{
+    for (auto& sound: m_playing_sounds) {
+        stop_sound(sound, fade_time);
+    }
+}
+
+void SoundService::stop_sound(PlayingSound& sound, int32_t fade_time /*= 0*/)
+{
+    if (sound.is_free) { return; }
+    if (!sound.source) {
+        free_sound(sound);
         return;
     }
 
-    // Delete the selected
-    if (_id.index() >= numActiveSounds)
-        return;
-
-    auto &sound = PlayingSounds[_id.index()];
-
-    if (_id.stamp() != sound.stamp)
-        return;
-
-    if (_time > 0)
-    {
-        float fVol = 0.0f;
-        // sound.channel->getVolume(&fVol);
-        sound.fFaderNeedVolume = 0.0f;
-        sound.fFaderCurrentVolume = fVol;
-        sound.fFaderDeltaInSec = -fVol / (_time * 0.001f);
-    }
-    else
-    {
-        if (_id.index() <= 1)
-        {
-            unsigned int OGGpos = 0;
-            // sound.channel->getPosition(&OGGpos, FMOD_TIMEUNIT_MS);
-            SetOGGPosition(sound.Name.c_str(), OGGpos);
-        }
-
-        // auto status = FMOD_OK;
-        if (!sound.bFree) // boal fix
-        {
-            // status = CHECKFMODERR(sound.channel->isPlaying(&is_playing));
-            // if (!is_playing || status != FMOD_OK) // boal fix
-            // {
-            //     FreeSound(_id.index());
-            // }
-            // else
-            // {
-            //     status = CHECKFMODERR(sound.channel->stop());
-            // }
-        }
-
-        // if (_id.index() <= 1 && OGG_sound[_id.index()] && status == FMOD_OK)
-        // {
-        //     CHECKFMODERR(OGG_sound[_id.index()]->release());
-        //     OGG_sound[_id.index()] = nullptr;
-        // }
+    if (sound.sound_type == SoundType::MusicStereo) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
+    if (fade_time > 0) {
+        float const vol = sound.source->get_volume();
+        sound.source->stop(vol, 0.0F, std::chrono::milliseconds(fade_time));
+    } else {
+        sound.source->stop();
+        free_sound(sound);
     }
 }
 
-void SoundService::AnalyseNameStringAndAddToAlias(tAlias *_alias, const char *in_string) const
+bool SoundService::is_id_valid(SoundID id)
 {
-    static char fileName[COMMON_STRING_LENGTH];
-    strncpy_s(fileName, in_string, COMMON_STRING_LENGTH);
-
-    float probability = DEFAULT_PROBABILITY;
-
-    char *col = strchr(fileName, ',');
-    if (col)
-    {
-        // try to convert forthcoming number
-        float flt;
-        if (sscanf(++col, "%f", &flt) == 1)
-        {
-            probability = flt;
-        }
-
-        *(--col) = '\0'; // truncate at first ','
-    }
-
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("  -> sound %s, %f", fileName, probability);
-
-    _alias->soundFiles.emplace(probability, fileName);
+    if (id.master()) { return true; }
+    if (id.index() >= m_playing_sounds.size()) { return false; }
+    return id.stamp() == m_playing_sounds[id.index()].stamp;
 }
 
-void SoundService::AddAlias(INIFILE &_iniFile, char *_sectionName)
+float SoundService::get_volume_by_type(PlayingSound const& sound) const
 {
-    static char tempString[COMMON_STRING_LENGTH];
-    if (!_sectionName)
-        return;
-
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Add sound alias %s", _sectionName);
-    Aliases.push_back(tAlias{});
-    tAlias &alias = Aliases.back();
-    alias.Name = _sectionName;
-    alias.dwNameHash = MakeHashValue(alias.Name.c_str());
-    alias.fMaxDistance = _iniFile.GetFloat(_sectionName, "maxDistance", -1.0f);
-    alias.fMinDistance = _iniFile.GetFloat(_sectionName, "minDistance", -1.0f);
-    alias.fVolume = _iniFile.GetFloat(_sectionName, "volume", -1.0f);
-    alias.iPrior = _iniFile.GetInt(_sectionName, "prior", 128);
-
-    if (_iniFile.ReadString(_sectionName, "name", tempString, COMMON_STRING_LENGTH, ""))
-    {
-        AnalyseNameStringAndAddToAlias(&alias, tempString);
-        while (_iniFile.ReadStringNext(_sectionName, "name", tempString, COMMON_STRING_LENGTH))
-            AnalyseNameStringAndAddToAlias(&alias, tempString);
+    float volume = sound.volume;
+    switch (sound.volume_type) {
+    case VolumeType::Fx: volume *= m_fx_volume; break;
+    case VolumeType::Music: volume *= m_music_volume; break;
+    case VolumeType::Speech: volume *= m_speech_volume; break;
+    default: break;
     }
+
+    return volume;
 }
 
-void SoundService::LoadAliasFile(const char *_filename)
+std::shared_ptr<storm::audio::Sound> SoundService::get_from_cache(std::string const& sound_path, SoundType sound_type)
 {
-    const static int SECTION_NAME_LENGTH = 128;
-    static char sectionName[SECTION_NAME_LENGTH];
+    auto [begin, end] = m_sound_cache.equal_range(sound_path);
+    auto entry        = std::find_if(begin, end, [sound_type](auto const& p) { return p.second.sound_type == sound_type; });
+    if (entry == end || entry == m_sound_cache.end()) {
+        auto sound =
+            m_device->create_sound(sound_path, sound_type == SoundType::Sound3D ? Sound::Flags::Spatial3D : Sound::Flags::Stereo2D);
+        m_sound_cache.emplace(
+            sound_path,
+            CacheEntry {
+                .sound_type = sound_type,
+                .sound      = sound,
+            });
 
-    std::string iniName = ALIAS_DIRECTORY;
-    iniName += _filename;
-
-    if constexpr (TRACE_INFORMATION)
-        core.Trace("Find sound alias file %s", iniName.c_str());
-    auto aliasIni = fio->OpenIniFile(iniName.c_str());
-    if (!aliasIni)
-        return;
-
-    if (aliasIni->GetSectionName(sectionName, SECTION_NAME_LENGTH))
-    {
-        AddAlias(*aliasIni, sectionName);
-        while (aliasIni->GetSectionNameNext(sectionName, SECTION_NAME_LENGTH))
-        {
-            AddAlias(*aliasIni, sectionName);
-        }
-    }
-}
-
-void SoundService::InitAliases()
-{
-    const auto vFilenames = fio->_GetPathsOrFilenamesByMask(ALIAS_DIRECTORY, "*.ini", false);
-    for (std::string curName : vFilenames)
-    {
-        LoadAliasFile(curName.c_str());
-    }
-}
-
-void SoundService::CreateEntityIfNeed()
-{
-    auto Debugentid_t = core.GetEntityId("SoundVisualisationEntity");
-    if (!Debugentid_t)
-    {
-        Debugentid_t = core.CreateEntity("SoundVisualisationEntity");
-        auto *pDebugEntity = static_cast<SoundVisualisationEntity *>(core.GetEntityPointer(Debugentid_t));
-        pDebugEntity->SetMasterSoundService(this);
-        pDebugEntity->Wakeup();
-    }
-}
-
-void SoundService::DebugDraw()
-{
-    if (core.Controls->GetDebugAsyncKeyState('J') < 0)
-    {
-        bShowDebugInfo = !bShowDebugInfo;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        return sound;
     }
 
-    if (!bShowDebugInfo)
-        return;
-
-    // bool bShowDistances = true;
-
-    int Ypos = 38 + 16;
-    int Count = 0;
-    int RealCount = 0;
-
-    // FMOD_VECTOR lpos, lvel, lforward, lup;
-    // system->get3DListenerAttributes(0, &lpos, &lvel, &lforward, &lup);
-
-    // auto vListener = CVECTOR(lpos.x, lpos.y, lpos.z);
-
-    // FMOD_CPU_USAGE usage;
-    // system->getCPUUsage(&usage);
-    // float fTotal = usage.dsp + usage.stream + usage.geometry + usage.update + usage.convolution1 +
-    // usage.convolution1;
-
-    // int CurrentAlloc, PeakAlloc;
-    // FMOD::Memory_GetStats(&CurrentAlloc, &PeakAlloc);
-
-    // CVECTOR list_pos;
-    // list_pos.x = lpos.x;
-    // list_pos.y = lpos.y;
-    // list_pos.z = lpos.z;
-    // // rs->DrawSphere(list_pos, 4.0f, 0xFF008000);
-
-    // rs->Print(0, 0, "CPU Usage %3.2f Mem: %3.2f Kb, MemPeak %3.2f Kb, Cached %d sounds", fTotal, CurrentAlloc /
-    // 1024.0f,
-    //           PeakAlloc / 1024.0f, SoundCache.size());
-    // rs->Print(0, 16, "position  %3.2f, %3.2f, %3.2f, forward %3.2f, %3.2f, %3.2f, up %3.2f, %3.2f, %3.2f", lpos.x,
-    //           lpos.y, lpos.z, lforward.x, lforward.y, lforward.z, lup.x, lup.y, lup.z);
-
-    CMatrix ind;
-    ind.SetIdentity();
-    rs->SetWorld(ind);
-
-    for (uint16_t i = 0; i < numActiveSounds; i++)
-    {
-        if (PlayingSounds[i].bFree)
-            continue;
-
-        // bool bVirtual;
-        // PlayingSounds[i].channel->isVirtual(&bVirtual);
-
-        // bool paused;
-        // PlayingSounds[i].channel->getPaused(&paused);
-
-        // float fMin, fMax;
-        // PlayingSounds[i].channel->get3DMinMaxDistance(&fMin, &fMax);
-
-        // FMOD_MODE sound_mode;
-        // PlayingSounds[i].channel->getMode(&sound_mode);
-        // bool bIsLooped = false;
-        // if ((sound_mode & FMOD_LOOP_NORMAL) != 0)
-        //     bIsLooped = true;
-
-        // float fVol;
-        // PlayingSounds[i].channel->getVolume(&fVol);
-
-        // bool bPlaying;
-        // PlayingSounds[i].channel->isPlaying(&bPlaying);
-
-        // unsigned int position;
-        // PlayingSounds[i].channel->getPosition(&position, FMOD_TIMEUNIT_MS);
-
-        // if (!bVirtual)
-        RealCount++;
-        Count++;
-
-        // FMOD_VECTOR pos, vel;
-        // PlayingSounds[i].channel->get3DAttributes(&pos, &vel);
-
-        // float audib = 0;
-        // PlayingSounds[i].channel->getAudibility(&audib);
-
-        // int prior;
-        // PlayingSounds[i].channel->getPriority(&prior);
-
-        if (PlayingSounds[i].sound_type == PCM_3D)
-        {
-            // 0xFFFFFF00 plays but cannot be heard
-            // 0xFFFF0000 not playing
-            // 0xFF00FF00 is playing
-
-            // auto drawColor = Color(0xFFFF0000);
-
-            // if (!bVirtual)
-            // {
-            //     // morph between yellow audib 0 and green audib 1 colors
-            //     auto Zero = Color(0xFFFFFF00);
-            //     auto Full = Color(0xFF00FF00);
-            //     drawColor.Lerp(Zero, Full, audib);
-            // }
-
-            // CVECTOR vec_pos;
-            // vec_pos.x = pos.x;
-            // vec_pos.y = pos.y;
-            // vec_pos.z = pos.z;
-            // rs->DrawSphere(vec_pos, 0.2f, drawColor.GetDword());
-
-            // if (bShowDistances && audib > 0.001f)
-            // {
-            //     rs->SetWorld(ind);
-            //     Draw2DCircle(vec_pos, drawColor.GetDword(), fMin, drawColor.GetDword(), fMax);
-            // }
-
-            // float fDistance = CVECTOR(vListener - vec_pos).GetLength();
-
-            // DebugPrint3D(vec_pos, 30.0f, 2, 1.0f, drawColor.GetDword(), 1.0f, "%s", PlayingSounds[i].Name.c_str());
-            // DebugPrint3D(vec_pos, 30.0f, 0, 1.0f, drawColor.GetDword(), 1.0f, "%3.2f m", fDistance);
-            // DebugPrint3D(vec_pos, 30.0f, 4, 1.0f, drawColor.GetDword(), 1.0f, "prior: %d", prior);
-        }
-        else
-        {
-            // rs->Print(0, Ypos,
-            //           "[%d] [vol:%f] [Pos:%d] [Loop:%d] [Play:%d] sound [Pause:%d][Vir:%d][Aud:%f] '%s' 0x%08X", i,
-            //           fVol, position, bIsLooped, bPlaying, paused, bVirtual, audib, PlayingSounds[i].Name.c_str(),
-            //           PlayingSounds[i].channel);
-            Ypos += 16;
-        }
-
-        // rs->Print(0, Ypos, "pos %f, %f, %f", pos.x, pos.y, pos.z);
-        // Ypos += 16;
-        // rs->Print(0, Ypos, "min %f,  max %f", fMin, fMax);
-        // Ypos += 16;
-
-        // rs->DrawSphere(vec_pos, fMax, 0xFFFF0000);
-    }
-
-    rs->Print(0, 32, "Real sounds %d, Total sounds %d", RealCount, Count);
-    rs->Print(800, 0, "Sound schemes %d", SoundSchemeChannels.size());
-    Ypos = 16;
-    for (size_t i = 0; i < SoundSchemeChannels.size(); i++)
-    {
-        rs->Print(810, Ypos, "[%d] %s", i, SoundSchemeChannels[i].soundName.c_str());
-        Ypos += 16;
-    }
-}
-
-int SoundService::GetFromCache(const char *szName, eSoundType _type)
-{
-    const uint32_t dwSearchHash = MakeHashValue(szName);
-
-    for (size_t i = 0; i < SoundCache.size(); i++)
-    {
-        if (SoundCache[i].type != _type)
-            continue;
-        if (SoundCache[i].dwNameHash == dwSearchHash)
-        {
-            if (SoundCache[i].Name == szName)
-            {
-                SoundCache[i].fTimeFromLastPlay = 0.0;
-                return i;
-            }
-        }
-    }
-
-    // FMOD_MODE mode = FMOD_DEFAULT;
-    // if (_type == PCM_3D)
-    // {
-    //     mode = mode | FMOD_3D | FMOD_3D_LINEARROLLOFF;
-    // }
-
-    // if (_type == PCM_STEREO)
-    // {
-    //     mode = mode | FMOD_2D;
-    // }
-
-    tSoundCache Cache;
-    // CHECKFMODERR(system->createSound(szName, mode, nullptr, &Cache.sound));
-
-    // if (Cache.sound == nullptr)
-    // {
-    //     core.Trace("Problem with sound loading !!! '%s'", szName);
-    //     return -1;
-    // }
-    Cache.type = _type;
-    Cache.Name = szName;
-    Cache.dwNameHash = dwSearchHash;
-    Cache.fTimeFromLastPlay = 0.0f;
-
-    SoundCache.push_back(Cache);
-
-    return (SoundCache.size() - 1);
-}
-
-// Write text
-void SoundService::DebugPrint3D(const CVECTOR &pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale,
-                                const char *format, ...) const
-{
-    static char buf[256];
-    // print to the buffer
-    va_list args;
-    va_start(args, format);
-    // int32_t len = vsnprintf(buf, sizeof(buf) - 1, format, args);
-    va_end(args);
-    buf[sizeof(buf) - 1] = 0;
-    // Looking for a point position on the screen
-    static CMatrix mtx, view, prj;
-    static D3DVIEWPORT9 vp;
-    MTX_PRJ_VECTOR vrt;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
-    mtx.EqMultiply(view, prj);
-    view.Transposition();
-    float dist = ~(pos3D - view.Pos());
-    if (dist >= rad * rad)
-        return;
-    const float d = view.Vz() | view.Pos();
-    if ((pos3D | view.Vz()) < d)
-        return;
-    rs->GetViewport(&vp);
-    mtx.Projection((CVECTOR *)&pos3D, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR),
-                   sizeof(MTX_PRJ_VECTOR));
-    // Looking for a position
-    const int32_t fh = rs->CharHeight(FONT_DEFAULT) / 2;
-    vrt.y -= (line + 0.5f) * fh;
-    // Transparency
-    const float kDist = 0.75f;
-    if (alpha < 0.0f)
-        alpha = 0.0f;
-    if (alpha > 1.0f)
-        alpha = 1.0f;
-    if (dist > kDist * kDist * rad * rad)
-    {
-        dist = 1.0f - (sqrtf(dist) - kDist * rad) / (rad - kDist * rad);
-        alpha *= dist;
-    }
-    if (alpha <= 0.0f)
-        return;
-    color = (static_cast<uint32_t>(alpha * 255.0f) << 24) | (color & 0xffffff);
-    // print the text
-    rs->ExtPrint(FONT_DEFAULT, color, 0x00000000, PR_ALIGN_CENTER, false, scale, 0, 0, static_cast<int32_t>(vrt.x),
-                 static_cast<int32_t>(vrt.y), buf);
-}
-
-void SoundService::Draw2DCircle(const CVECTOR &center, uint32_t dwColor, float fRadius, uint32_t dwColor2,
-                                float fRadius2) const
-{
-    float fDelta = 0.2f;
-    RS_LINE line[2];
-    CVECTOR vStart;
-    CVECTOR vEnd;
-    CVECTOR vStartPoint;
-
-    vStartPoint = CVECTOR(cosf(0) * fRadius, 0.0f, sinf(0) * fRadius);
-    vStartPoint += center;
-    for (float Angle = fDelta; Angle <= (PI * 2); Angle += fDelta)
-    {
-        auto vPoint = CVECTOR(cosf(Angle) * fRadius, 0.0f, sinf(Angle) * fRadius);
-        vPoint += center;
-
-        vStart = vStartPoint;
-        vEnd = vPoint;
-
-        line[0].vPos = vStart;
-        line[0].dwColor = dwColor;
-        line[1].vPos = vEnd;
-        line[1].dwColor = dwColor;
-        rs->DrawLines(line, 1, "Line");
-        // rs->DrawVector(vStart, vEnd, dwColor);
-        vStartPoint = vPoint;
-    }
-
-    vStart = vStartPoint;
-    vEnd = CVECTOR(cosf(0) * fRadius, 0.0f, sinf(0) * fRadius);
-    vEnd += center;
-
-    line[0].vPos = vStart;
-    line[0].dwColor = dwColor;
-    line[1].vPos = vEnd;
-    line[1].dwColor = dwColor;
-    rs->DrawLines(line, 1, "Line");
-
-    vStartPoint = CVECTOR(cosf(0) * fRadius2, 0.0f, sinf(0) * fRadius2);
-    vStartPoint += center;
-    for (float Angle = fDelta; Angle <= (PI * 2); Angle += fDelta)
-    {
-        auto vPoint = CVECTOR(cosf(Angle) * fRadius2, 0.0f, sinf(Angle) * fRadius2);
-        vPoint += center;
-
-        vStart = vStartPoint;
-        vEnd = vPoint;
-
-        line[0].vPos = vStart;
-        line[0].dwColor = dwColor2;
-        line[1].vPos = vEnd;
-        line[1].dwColor = dwColor2;
-        rs->DrawLines(line, 1, "Line");
-        // rs->DrawVector(vStart, vEnd, dwColor);
-        vStartPoint = vPoint;
-    }
-
-    vStart = vStartPoint;
-    vEnd = CVECTOR(cosf(0) * fRadius2, 0.0f, sinf(0) * fRadius2);
-    vEnd += center;
-
-    line[0].vPos = vStart;
-    line[0].dwColor = dwColor2;
-    line[1].vPos = vEnd;
-    line[1].dwColor = dwColor2;
-    rs->DrawLines(line, 1, "Line");
-
-    line[0].vPos = CVECTOR(fRadius, 0.0f, 0.0f) + center;
-    line[0].dwColor = dwColor;
-    line[1].vPos = CVECTOR(fRadius2, 0.0f, 0.0f) + center;
-    line[1].dwColor = dwColor;
-    rs->DrawLines(line, 1, "Line");
-
-    line[0].vPos = CVECTOR(-fRadius, 0.0f, 0.0f) + center;
-    line[0].dwColor = dwColor;
-    line[1].vPos = CVECTOR(-fRadius2, 0.0f, 0.0f) + center;
-    line[1].dwColor = dwColor;
-    rs->DrawLines(line, 1, "Line");
-
-    line[0].vPos = CVECTOR(0.0f, 0.0f, fRadius) + center;
-    line[0].dwColor = dwColor;
-    line[1].vPos = CVECTOR(0.0f, 0.0f, fRadius2) + center;
-    line[1].dwColor = dwColor;
-    rs->DrawLines(line, 1, "Line");
-
-    line[0].vPos = CVECTOR(0.0f, 0.0f, -fRadius) + center;
-    line[0].dwColor = dwColor;
-    line[1].vPos = CVECTOR(0.0f, 0.0f, -fRadius2) + center;
-    line[1].dwColor = dwColor;
-    rs->DrawLines(line, 1, "Line");
-
-    // rs->DrawVector(vStart, vEnd, dwColor);
+    return entry->second.sound;
 }
 
 //--------------------------------------------------------------------
-bool SoundService::SFLB_SetScheme(const char *_schemeName)
-{
-    ResetScheme();
-    return AddScheme(_schemeName);
-}
 
-bool SoundService::SetScheme(const char *_schemeName)
+bool SoundService::set_scheme(std::string_view const& scheme_name)
 {
-    return SFLB_SetScheme(_schemeName);
+    reset_scheme();
+    return add_scheme(scheme_name);
 }
 
 //--------------------------------------------------------------------
-void SoundService::ResetScheme()
+void SoundService::reset_scheme()
 {
-    SoundSchemeChannels.clear();
+    m_sound_scheme_channels.clear();
 }
 
 //--------------------------------------------------------------------
-bool SoundService::AddScheme(const char *_schemeName)
+bool SoundService::add_scheme(std::string_view const& scheme_name)
 {
-    static char tempString[COMMON_STRING_LENGTH];
-    auto ini = fio->OpenIniFile(SCHEME_INI_NAME);
+    static char temp_string[COMMON_STRING_LENGTH];
+    auto        ini = fio->OpenIniFile(SCHEME_INI_NAME);
 
-    if (!ini)
-        return false;
+    if (!ini) { return false; }
 
-    if (ini->ReadString(const_cast<char *>(_schemeName), SCHEME_KEY_NAME, tempString, COMMON_STRING_LENGTH, ""))
-    {
-        AddSoundSchemeChannel(tempString);
-        while (ini->ReadStringNext(const_cast<char *>(_schemeName), SCHEME_KEY_NAME, tempString, COMMON_STRING_LENGTH))
-            AddSoundSchemeChannel(tempString);
+    if (ini->ReadString(scheme_name.data(), SCHEME_KEY_NAME, temp_string, COMMON_STRING_LENGTH, "")) {
+        add_sound_scheme_channel(temp_string);
+        while (ini->ReadStringNext(scheme_name.data(), SCHEME_KEY_NAME, temp_string, COMMON_STRING_LENGTH)) {
+            add_sound_scheme_channel(temp_string);
+        }
     }
 
-    if (ini->ReadString(const_cast<char *>(_schemeName), SCHEME_KEY_NAME_LOOP, tempString, COMMON_STRING_LENGTH, ""))
-    {
-        AddSoundSchemeChannel(tempString, true);
-        while (ini->ReadStringNext(const_cast<char *>(_schemeName), SCHEME_KEY_NAME_LOOP, tempString,
-                                   COMMON_STRING_LENGTH))
-            AddSoundSchemeChannel(tempString, true);
+    if (ini->ReadString(scheme_name.data(), SCHEME_KEY_NAME_LOOP, temp_string, COMMON_STRING_LENGTH, "")) {
+        add_sound_scheme_channel(temp_string, true);
+        while (ini->ReadStringNext(scheme_name.data(), SCHEME_KEY_NAME_LOOP, temp_string, COMMON_STRING_LENGTH)) {
+            add_sound_scheme_channel(temp_string, true);
+        }
     }
 
     return true;
 }
 
-bool SoundService::AddSoundSchemeChannel(char *in_string, bool _looped /*= false*/)
+bool SoundService::add_sound_scheme_channel(std::string const& in_string, bool is_looped /*= false*/)
 {
-    static char tempString2[COMMON_STRING_LENGTH];
-    strncpy_s(tempString2, in_string, COMMON_STRING_LENGTH);
+    auto add_scheme_channel = [this, is_looped](std::string const& name, int32_t min_delay, int32_t max_delay, float volume) {
+        std::default_random_engine generator;
+        // Sometimes min delay is greater than max
+        std::uniform_int_distribution<int32_t> distrib(std::min(min_delay, max_delay), std::max(min_delay, max_delay));
 
-    char *col = strchr(tempString2, ',');
-    if (!col)
-    {
-        // only name, without delays
-        tSoundSchemeChannel NewChannel;
-        NewChannel.soundName = tempString2;
-        NewChannel.minDelayTime = SCHEME_MIN_DELAY;
-        NewChannel.maxDelayTime = SCHEME_MAX_DELAY;
-        NewChannel.timeToNextPlay =
-            static_cast<int32_t>(rand(static_cast<float>(NewChannel.maxDelayTime - NewChannel.minDelayTime)));
-        NewChannel.volume = 1.f;
-        NewChannel.looped = _looped;
-        if (_looped)
-            NewChannel.timeToNextPlay = 0;
+        auto const channel = SoundSchemeChannel {
+            .name              = name,
+            .min_delay_time    = min_delay,
+            .max_delay_time    = max_delay,
+            .volume            = volume,
+            .time_to_next_play = is_looped ? 0 : distrib(generator),
+            .is_looped         = is_looped,
+        };
 
-        SoundSchemeChannels.push_back(NewChannel);
+        m_sound_scheme_channels.push_back(channel);
+    };
+
+    auto const name_end = in_string.find_first_of(',');
+    auto const name     = in_string.substr(0, name_end);
+    if (name_end == std::string::npos) {
+        // If there is only name, use default values
+        add_scheme_channel(name, SCHEME_MIN_DELAY, SCHEME_MAX_DELAY, 1.0F);
         return true;
     }
 
-    tSoundSchemeChannel NewChannel;
+    constexpr int32_t sec_to_ms_mult = 1000;
 
-    // try to convert forthcoming numbers
-    int n1, n2;
-    float f1;
-    const int numbersConverted = sscanf(++col, "%d, %d, %f", &n1, &n2, &f1);
-    switch (numbersConverted)
-    {
-    case 1:
-        NewChannel.minDelayTime = SCHEME_MIN_DELAY;
-        NewChannel.maxDelayTime = n1 * 1000;
-        NewChannel.volume = 1.f;
-        break;
-    case 2:
-        NewChannel.minDelayTime = n1 * 1000;
-        NewChannel.maxDelayTime = n2 * 1000;
-        NewChannel.volume = 1.f;
-        break;
-    case 3:
-        NewChannel.minDelayTime = n1 * 1000;
-        NewChannel.maxDelayTime = n2 * 1000;
-        NewChannel.volume = f1;
-        break;
+    // Try to get other parameters from one of possible variations:
+    // name, max_delay
+    // name, min_delay, max_delay
+    // name, min_delay, max_delay, volume
+    int   delay1 = 0;
+    int   delay2 = 0;
+    float volume = 0.0F;
+
+    int const argc = sscanf(in_string.substr(name_end + 1).c_str(), "%d, %d, %f", &delay1, &delay2, &volume);
+    switch (argc) {
+    case 1: add_scheme_channel(name, SCHEME_MIN_DELAY, delay1 * sec_to_ms_mult, 1.0F); break;
+    case 2: add_scheme_channel(name, delay1 * sec_to_ms_mult, delay2 * sec_to_ms_mult, 1.0F); break;
+    case 3: add_scheme_channel(name, delay1 * sec_to_ms_mult, delay2 * sec_to_ms_mult, volume); break;
     }
-    *(--col) = 0; // truncate at first ','
-    NewChannel.soundName = tempString2;
-    NewChannel.looped = _looped;
 
-    if (_looped)
-        NewChannel.timeToNextPlay = 0;
-    else
-        NewChannel.timeToNextPlay =
-            static_cast<int32_t>(rand(static_cast<float>(NewChannel.maxDelayTime - NewChannel.minDelayTime)));
-
-    SoundSchemeChannels.push_back(NewChannel);
     return true;
 }
 
-void SoundService::ProcessSoundSchemes()
+void SoundService::process_sound_schemes()
 {
     // handle schemes
-    const uint32_t dTime = core.GetDeltaTime();
+    uint32_t const delta_time = core.GetDeltaTime();
 
-    for (size_t i = 0; i < SoundSchemeChannels.size(); i++)
-    {
-        if (SoundSchemeChannels[i].looped)
-        {
-            if (SoundSchemeChannels[i].timeToNextPlay)
-                continue;
-            SoundSchemeChannels[i].timeToNextPlay = -1;
-            SoundPlay(SoundSchemeChannels[i].soundName.c_str(), PCM_STEREO, VOLUME_FX, false, true, false, 0, nullptr,
-                      -1.f, -1.f, 0, SoundSchemeChannels[i].volume);
+    auto const play_from_channel = [this](auto const& channel, bool const is_looped) {
+        play(channel.name, SoundType::SoundStereo, VolumeType::Fx, false, is_looped, 0, nullptr, -1.F, -1.F, channel.volume);
+    };
+
+    std::default_random_engine generator;
+    for (auto& channel: m_sound_scheme_channels) {
+        if (channel.time_to_next_play > 0) {
+            channel.time_to_next_play -= delta_time;
+            continue;
         }
-        else
-        {
-            if (SoundSchemeChannels[i].timeToNextPlay > 0)
-            {
-                SoundSchemeChannels[i].timeToNextPlay -= dTime;
-            }
-            else
-            {
-                SoundSchemeChannels[i].timeToNextPlay =
-                    SoundSchemeChannels[i].minDelayTime +
-                    static_cast<int32_t>(rand(
-                        static_cast<float>(SoundSchemeChannels[i].maxDelayTime - SoundSchemeChannels[i].minDelayTime)));
-                SoundPlay(SoundSchemeChannels[i].soundName.c_str(), PCM_STEREO, VOLUME_FX, false, false, false, 0,
-                          nullptr, -1.f, -1.f, 0, SoundSchemeChannels[i].volume);
-            }
-        } // looped
-    }
-}
 
-int SoundService::GetOGGPositionIndex(const char *szName)
-{
-    const uint32_t dwHash = MakeHashValue(szName);
-
-    for (size_t i = 0; i < OGGPosition.size(); i++)
-    {
-        if (OGGPosition[i].dwHash == dwHash)
-        {
-            if (OGGPosition[i].Name == szName)
-            {
-                return i;
-            }
+        // We need to start looping sound only once
+        if (channel.is_looped && channel.time_to_next_play == 0) {
+            channel.time_to_next_play = -1;
+            play_from_channel(channel, true);
+            continue;
         }
+
+        // Skip everything that is looping already
+        if (channel.is_looped) { continue; }
+
+        // Play sound and choose random delay for next time
+        std::uniform_int_distribution<int32_t> distrib(
+            std::min(channel.min_delay_time, channel.max_delay_time), std::max(channel.min_delay_time, channel.max_delay_time));
+        channel.time_to_next_play = distrib(generator);
+        play_from_channel(channel, false);
     }
-    return -1;
-}
-
-unsigned int SoundService::GetOGGPosition(const char *szName)
-{
-    const int idx = GetOGGPositionIndex(szName);
-    if (idx >= 0)
-    {
-        return OGGPosition[idx].position;
-    }
-    return 0;
-}
-
-void SoundService::SetOGGPosition(const char *szName, unsigned int pos)
-{
-    const int idx = GetOGGPositionIndex(szName);
-    if (idx >= 0)
-    {
-        OGGPosition[idx].position = pos;
-        return;
-    }
-
-    PlayedOGG ogg;
-    ogg.dwHash = MakeHashValue(szName);
-    ogg.Name = szName;
-    ogg.position = pos;
-
-    OGGPosition.push_back(ogg);
 }
