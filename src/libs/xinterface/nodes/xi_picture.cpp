@@ -1,5 +1,6 @@
 #include "xi_picture.h"
 
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
@@ -170,12 +171,11 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
 {
-    char param[512];
-    sprintf(param, "resource\\textures\\%s", dirName);
-
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(param, "*.tx", false);
+    auto const path       = RESOURCE_TEXTURES_DIR / dirName;
+    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(path, "*.tx", false);
     if (!vFilenames.empty()) {
-        int findQ = rand() % vFilenames.size();
+        char param[512];
+        int  findQ = rand() % vFilenames.size();
         sprintf(param, "%s\\%s", dirName, vFilenames[findQ].c_str());
         int const paramlen = strlen(param);
         if (paramlen < sizeof(param) && paramlen >= 3) { param[paramlen - 3] = 0; }

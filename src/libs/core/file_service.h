@@ -87,47 +87,47 @@ protected:
     IFS*     OpenFiles[_MAX_OPEN_INI_FILES];
     uint32_t Files_Num;
     uint32_t Max_File_Index;
-    // Resource paths
-    bool ResourcePathsFirstScan = true;  // Since some code may call this statically, we use a flag to know if this is the first time
-    std::unordered_map<std::string, std::string> ResourcePaths;
 
 public:
     FILE_SERVICE();
     ~FILE_SERVICE();
-    std::fstream             _CreateFile(char const* filename, std::ios::openmode mode) override;
-    void                     _CloseFile(std::fstream& fileS) override;
+    std::fstream             _CreateFile(std::filesystem::path const& file_path, std::ios::openmode mode) override;
+    void                     _CloseFile(std::fstream& stream) override;
     void                     _SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir) override;
-    bool                     _DeleteFile(char const* filename) override;
+    bool                     _DeleteFile(std::filesystem::path const& file_path) override;
     bool                     _WriteFile(std::fstream& fileS, void const* s, std::streamsize count) override;
     bool                     _ReadFile(std::fstream& fileS, void* s, std::streamsize count) override;
-    bool                     _FileOrDirectoryExists(char const* p) override;
+    bool                     _FileOrDirectoryExists(std::filesystem::path const& path) override;
     std::vector<std::string> _GetPathsOrFilenamesByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false)
-        override;
+        std::filesystem::path const& path,
+        char const*                  mask,
+        bool                         getPaths,
+        bool                         onlyDirs  = false,
+        bool                         onlyFiles = true,
+        bool                         recursive = false) override;
     std::vector<std::filesystem::path> _GetFsPathsByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false)
-        override;
+        std::filesystem::path const& path,
+        char const*                  mask,
+        bool                         getPaths,
+        bool                         onlyDirs  = false,
+        bool                         onlyFiles = true,
+        bool                         recursive = false) override;
     std::time_t                     _ToTimeT(std::filesystem::file_time_type tp) override;
-    std::filesystem::file_time_type _GetLastWriteTime(char const* filename) override;
+    std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path) override;
     void                            _FlushFileBuffers(std::fstream& fileS) override;
     std::string                     _GetCurrentDirectory() override;
     std::string                     _GetExecutableDirectory() override;
-    std::uintmax_t                  _GetFileSize(char const* filename) override;
-    void                            _SetCurrentDirectory(char const* pathName) override;
-    bool                            _CreateDirectory(char const* pathName) override;
-    std::uintmax_t                  _RemoveDirectory(char const* pathName) override;
-    bool                            LoadFile(char const* file_name, char** ppBuffer, uint32_t* dwSize) override;
+    std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path) override;
+    void                            _SetCurrentDirectory(std::filesystem::path const& path) override;
+    bool                            _CreateDirectory(std::filesystem::path const& path) override;
+    std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path) override;
+    bool                            LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize) override;
     // ini files section
     void                     Close();
-    std::unique_ptr<INIFILE> CreateIniFile(char const* file_name, bool fail_if_exist) override;
-    std::unique_ptr<INIFILE> OpenIniFile(char const* file_name) override;
+    std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file_path, bool fail_if_exist) override;
+    std::unique_ptr<INIFILE> OpenIniFile(std::filesystem::path const& file_path) override;
     void                     RefDec(INIFILE* ini_obj);
     void                     FlushIniFiles();
-
-    // Resource paths
-    void        AddEntryToResourcePaths(std::filesystem::directory_entry const& entry, std::string& CheckingPath);
-    void        ScanResourcePaths() override;
-    std::string ConvertPathResource(char const* path) override;
 
     uint64_t GetPathFingerprint(std::filesystem::path const& path) override;
 };

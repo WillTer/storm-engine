@@ -26,7 +26,7 @@ TFishSchools::~TFishSchools()
 //--------------------------------------------------------------------
 void TFishSchools::LoadSettings()
 {
-    auto ini = fio->OpenIniFile(ANIMALS_INI_FILENAME);
+    auto ini = fio->OpenIniFile(ANIMALS_INI_FILE);
     if (!ini) return;
 
     fishSchoolsCount = ini->GetInt(ANIMALS_FISHSCHOOLS_SECTION, "count", FISHSCHOOL_COUNT);

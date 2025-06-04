@@ -1,4 +1,5 @@
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "geometry_r.h"
@@ -80,7 +81,6 @@ int  vrtSize;
 
 GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath)
 {
-    char fnt[256], lfn[256];
     if (light_file_name != nullptr) {
         sprintf_s(lightPath, "%s\\%s", lmPath, file_name);
         // strcpy_s(lightPath, light_file_name);
@@ -100,22 +100,22 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
 
     GEOS* gp;
     try {
-        sprintf_s(fnt, "resource\\models\\%s.gm", file_name);
+        auto const model_path = RESOURCE_MODELS_DIR / (std::string(file_name) + ".gm");
         if (light_file_name == nullptr || strlen(light_file_name) == 0) {
-            gp = ::CreateGeometry(fnt, nullptr, GSR, flags);
+            gp = ::CreateGeometry(model_path.string().c_str(), nullptr, GSR, flags);
         } else {
-            // sprintf_s(lfn, "resource\\lighting\\%s.col", light_file_name);
             auto const* elf = light_file_name;
             if (elf[0] == '\\') elf++;
             if (elf[0] == '\\') elf++;
-            sprintf_s(lfn, "resource\\models\\%s_%s.col", file_name, elf);
-            gp = ::CreateGeometry(fnt, lfn, GSR, flags);
+            auto const light_path = RESOURCE_MODELS_DIR / (std::string(file_name) + "_" + elf + ".col");
+
+            gp = ::CreateGeometry(model_path.string().c_str(), light_path.string().c_str(), GSR, flags);
         }
     } catch (std::exception const& e) {
-        core.Trace("%s: %s", fnt, e.what());
+        core.Trace("%s: %s", file_name, e.what());
         return nullptr;
     } catch (...) {
-        core.Trace("Invalid model: %s", fnt);
+        core.Trace("Invalid model: %s", file_name);
         return nullptr;
     }
 

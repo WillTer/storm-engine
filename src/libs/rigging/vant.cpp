@@ -1,13 +1,14 @@
 #include "vant.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/core/v_file_service.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
 
-static char const* RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+static auto const RIGGING_INI_FILE = RESOURCE_INI_DIR / "rigging.ini";
 
 VANT_BASE::VANT_BASE()
 {
@@ -544,7 +545,7 @@ void VANT::LoadIni()
     char param[256];
 
     if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile(RIGGING_INI_FILE);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf_s(section, "VANTS");
@@ -614,7 +615,7 @@ void VANTL::LoadIni()
     char param[256];
 
     if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile(RIGGING_INI_FILE);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "VANTS_L");
@@ -684,7 +685,7 @@ void VANTZ::LoadIni()
     char param[256];
 
     if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile(RIGGING_INI_FILE);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "VANTS_Z");

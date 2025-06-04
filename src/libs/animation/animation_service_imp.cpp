@@ -11,6 +11,7 @@
 #include "animation_service_imp.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/util/string_compare.hpp>
 
@@ -27,8 +28,8 @@ CREATE_SERVICE(AnimationServiceImp)
 #define ASRV_MAXDLTTIME 50
 
 // Paths
-#define ASKW_PATH_ANI "resource\\animation\\"
-#define ASKW_PATH_JFA "resource\\animation\\"
+static inline auto const ASKW_PATH_ANI = RESOURCE_ANIMATION_DIR;
+static inline auto const ASKW_PATH_JFA = RESOURCE_ANIMATION_DIR;
 
 // Keywords
 #define ASKW_JFA_FILE "animation"  // Skeleton and Animation File
@@ -160,63 +161,66 @@ void AnimationServiceImp::Event(char const* eventName)
 int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
 {
     // Form the file name
-    static char path[MAX_PATH];
-    strcpy_s(path, ASKW_PATH_ANI);
-    strcat_s(path, animationName);
-    strcat_s(path, ".ani");
+    auto const ani_path = ASKW_PATH_ANI / (std::string(animationName) + ".ani");
     // Open the ini file describing the animation
-    auto ani = fio->OpenIniFile(path);
+    auto ani = fio->OpenIniFile(ani_path);
     if (!ani) {
-        core.Trace("Cannot open animation file %s", path);
+        core.Trace("Cannot open animation file %s", ani_path.string().c_str());
         return -1;
     }
+
     // Get the name of the jfa file with the skeleton
-    strcpy_s(path, ASKW_PATH_JFA);
-    size_t const l = strlen(path);
-    if (!ani->ReadString(nullptr, ASKW_JFA_FILE, path + l, MAX_PATH - l - 1, nullptr)) {
+    char an_file_name[MAX_PATH];
+    if (!ani->ReadString(nullptr, ASKW_JFA_FILE, an_file_name, MAX_PATH - 1, nullptr)) {
         core.Trace("Incorrect key \"%s\" in animation file %s.ani", ASKW_JFA_FILE, animationName);
         return -1;
     }
+
+    auto const an_path = ASKW_PATH_JFA / an_file_name;
+
     // Animation descriptor
     auto* info = new AnimationInfo(animationName);
     // read the bones
-    if (!LoadAN(path, info)) {
+    if (!LoadAN(an_path.string().c_str(), info)) {
         delete info;
-        core.Trace("Animation file %s is damaged!", path);
+        core.Trace("Animation file %s is damaged!", an_path.string().c_str());
         return -1;
     }
     // Global user data
     LoadUserData(ani.get(), nullptr, info->GetUserData(), animationName);
+
     // read actions
-    for (auto isHaveSection = ani->GetSectionName(path, 63); isHaveSection; isHaveSection = ani->GetSectionNameNext(path, 63)) {
+    char section_name[MAX_PATH];
+    for (auto isHaveSection = ani->GetSectionName(section_name, 63); isHaveSection;
+         isHaveSection      = ani->GetSectionNameNext(section_name, 63)) {
         // Action handling
-        if (path[0] == 0 || strlen(path) >= 64) {
-            core.Trace("Incorrect name action [%s] of animation file %s.ani", path, animationName);
+        if (section_name[0] == 0 || strlen(section_name) >= 64) {
+            core.Trace("Incorrect name action [%s] of animation file %s.ani", section_name, animationName);
             continue;
         }
         // Reading the times
-        auto const stime = ani->GetInt(path, ASKW_STIME, -1);
+        auto const stime = ani->GetInt(section_name, ASKW_STIME, -1);
         if (stime < 0) {
-            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_STIME, path, animationName);
+            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_STIME, section_name, animationName);
             continue;
         }
-        auto const etime = ani->GetInt(path, ASKW_ETIME, -1);
+        auto const etime = ani->GetInt(section_name, ASKW_ETIME, -1);
         if (etime < 0) {
-            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_ETIME, path, animationName);
+            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_ETIME, section_name, animationName);
             continue;
         }
         // Add an action
-        auto* aci = info->AddAction(path, stime, etime);
+        auto* aci = info->AddAction(section_name, stime, etime);
         if (aci == nullptr) {
-            core.Trace("Warning! Action [%s] of animation file %s.ani is repeated, skip it", path, animationName);
+            core.Trace("Warning! Action [%s] of animation file %s.ani is repeated, skip it", section_name, animationName);
             continue;
         }
         // Playback speed ratio
-        auto const rate = ani->GetFloat(path, ASKW_RATE, 1.0f);
+        auto const rate = ani->GetFloat(section_name, ASKW_RATE, 1.0f);
         aci->SetRate(rate);
         // Animation type
         auto type = at_normal;
-        if (ani->ReadString(path, ASKW_TYPE, key, 256, ASKWAT_NORMAL)) {
+        if (ani->ReadString(section_name, ASKW_TYPE, key, 256, ASKWAT_NORMAL)) {
             if (storm::iEquals(key, ASKWAT_NORMAL))
                 type = at_normal;
             else if (storm::iEquals(key, ASKWAT_REVERSE))
@@ -229,7 +233,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                 core.Trace(
                     "Incorrect %s in action [%s] of animation file %s.ani\nNo set %s, set type is %s\n",
                     ASKW_TYPE,
-                    path,
+                    section_name,
                     animationName,
                     key,
                     ASKWAT_NORMAL);
@@ -238,7 +242,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
         aci->SetAnimationType(type);
         // Looped animation
         auto isLoop = true;
-        if (ani->ReadString(path, ASKW_LOOP, key, 256, "false")) {
+        if (ani->ReadString(section_name, ASKW_LOOP, key, 256, "false")) {
             if (storm::iEquals(key, ASKWAL_TRUE))
                 isLoop = true;
             else if (storm::iEquals(key, ASKWAL_FALSE))
@@ -248,7 +252,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                     "Incorrect %s in action [%s] of animation file %s.ani\nThis parameter (%s) use is default "
                     "value %s\n",
                     ASKW_LOOP,
-                    path,
+                    section_name,
                     animationName,
                     key,
                     ASKWAL_FALSE);
@@ -256,7 +260,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
         }
         aci->SetLoop(isLoop);
         // Events
-        if (ani->ReadString(path, ASKW_EVENT, key, 256, "")) {
+        if (ani->ReadString(section_name, ASKW_EVENT, key, 256, "")) {
             do {
                 key[256] = 0;
                 memcpy(key + 257, key, 257);
@@ -266,7 +270,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nFirst symbol is not '\"'\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                     continue;
                 }
@@ -279,7 +283,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nNot found closed symbol '\"'\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                     continue;
                 }
@@ -288,7 +292,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nName have zero lenght\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                     continue;
                 }
@@ -297,7 +301,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nName have big length (max 63)\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                     continue;
                 }
@@ -311,7 +315,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nNo found time\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                     continue;
                 }
@@ -358,12 +362,12 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                             "type <%s> -> set is default value\n",
                             ASKW_EVENT,
                             key + 257,
-                            path,
+                            section_name,
                             animationName,
                             em);
                     }
                 }
-                // core.Trace("Add event %s, time = %f to action %s", key + 1, (tm - stime)/float(etime - stime), path);
+                // core.Trace("Add event %s, time = %f to action %s", key + 1, (tm - stime)/float(etime - stime), section_name);
                 // Add an event
                 if (!aci->AddEvent(key + 1, tm, ev)) {
                     core.Trace(
@@ -371,15 +375,15 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                         "-> ignory it\n",
                         ASKW_EVENT,
                         key + 257,
-                        path,
+                        section_name,
                         animationName);
                 }
-            } while (ani->ReadStringNext(path, ASKW_EVENT, key, 256));
+            } while (ani->ReadStringNext(section_name, ASKW_EVENT, key, 256));
         }
         // Bones
 
         // User data
-        LoadUserData(ani.get(), path, aci->GetUserData(), animationName);
+        LoadUserData(ani.get(), section_name, aci->GetUserData(), animationName);
     }
     // Looking for a free pointer
     int32_t i;

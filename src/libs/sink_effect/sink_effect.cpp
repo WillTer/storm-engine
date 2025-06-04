@@ -1,6 +1,7 @@
 #include "sink_effect.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
@@ -116,7 +117,7 @@ void SINKEFFECT::Execute(uint32_t _dTime)
 //--------------------------------------------------------------------
 void SINKEFFECT::InitializeSinks()
 {
-    auto psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
+    auto psIni = fio->OpenIniFile(RESOURCE_INI_DIR / "particles.ini");
 
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i) {
         sinks[i].Release();

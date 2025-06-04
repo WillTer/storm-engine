@@ -1,6 +1,7 @@
 #include "mast.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/island/island_base.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/mast_msg.h>
@@ -14,7 +15,7 @@ CREATE_CLASS(HULL)
 #define DELTA_TIME(x) ((x) * 0.001f)
 #define DELTA_TIME_ROTATE(x) ((x) * 0.01f)
 
-static const char* MAST_INI_FILE = "resource\\ini\\mast.ini";
+static const auto MAST_INI_FILE = RESOURCE_INI_DIR / "mast.ini";
 
 float MAST_MOVE_STEP      = 0.2f;
 float MAST_FALL_STEP      = .05f;

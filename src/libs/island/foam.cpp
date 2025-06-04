@@ -1,6 +1,7 @@
 #include "foam.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math3d/plane.h>
 #include <libs/math/math_inlines.h>
@@ -697,10 +698,10 @@ void CoastFoam::Save()
     if (!bCanEdit) return;
 
     char       cKey[128], cSection[128], cTemp[1024];
-    auto const sID = std::string("resource\\foam\\locations\\") + to_string(AttributesPointer->GetAttribute("id")) + ".ini";
-    fio->_DeleteFile(sID.c_str());
+    auto const sID = RESOURCE_FOAM_DIR / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    fio->_DeleteFile(sID);
 
-    auto pI = fio->CreateIniFile(sID.c_str(), false);
+    auto pI = fio->CreateIniFile(sID, false);
     if (!pI) return;
 
     pI->WriteLong(nullptr, "NumFoams", aFoams.size());
@@ -757,8 +758,8 @@ void CoastFoam::Load()
 {
     char cSection[256], cKey[256], cTemp[1024];
 
-    auto const sID = std::string("resource\\foam\\locations\\") + to_string(AttributesPointer->GetAttribute("id")) + ".ini";
-    auto       pI  = fio->OpenIniFile(sID.c_str());
+    auto const sID = RESOURCE_FOAM_DIR / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    auto       pI  = fio->OpenIniFile(sID);
     if (!pI) return;
 
     clear();

@@ -282,7 +282,6 @@ KEY_NODE* SECTION::GetRoot()
 IFS::IFS(VFILE_SERVICE* _fs)
 {
     fs           = _fs;
-    FileName     = nullptr;
     bDataChanged = false;
     Reference    = 0;
     SectionRoot  = nullptr;
@@ -293,7 +292,6 @@ IFS::IFS(VFILE_SERVICE* _fs)
 IFS::~IFS()
 {
     FlushFile();
-    delete FileName;
     while (SectionRoot) {
         auto* const old_root = SectionRoot;
         SectionRoot->Deattach(&SectionRoot, &SectionTop);
@@ -324,16 +322,17 @@ bool IFS::VoidSym(char symbol)
     return false;
 }
 
-bool IFS::LoadFile(char const* _file_name)
+bool IFS::LoadFile(std::filesystem::path const& file_path)
 {
-    if (_file_name == nullptr) { return false; }
-    auto fileS = fs->_CreateFile(_file_name, std::ios::binary | std::ios::in);
+    if (!std::filesystem::exists(file_path)) { return false; }
+
+    auto fileS = fs->_CreateFile(file_path, std::ios::binary | std::ios::in);
     if (!fileS.is_open()) {
-        spdlog::trace("Unable to load file: {}", _file_name);
+        spdlog::trace("Unable to load file: {}", file_path.string());
         return false;
     }
 
-    auto const file_size = fs->_GetFileSize(_file_name);
+    auto const file_size = fs->_GetFileSize(file_path);
 
     auto* const file_data = new char[file_size + 1];  // +1 for zero at the end
     if (file_data == nullptr) {
@@ -350,16 +349,7 @@ bool IFS::LoadFile(char const* _file_name)
 
     fs->_CloseFile(fileS);
 
-    uint32_t const name_size = strlen(_file_name) + 1;
-
-    FileName = new char[name_size];
-
-    if (FileName == nullptr) {
-        delete[] file_data;
-        fs->_CloseFile(fileS);
-        return false;
-    }
-    strcpy_s(FileName, name_size, _file_name);
+    FileName = file_path;
 
     Format(file_data, file_size + 1);
 

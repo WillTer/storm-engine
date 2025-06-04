@@ -1,9 +1,11 @@
 #include "data_cache.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
 #include <libs/util/string_compare.hpp>
+
 
 bool ReadingAlreadyComplete;
 
@@ -21,13 +23,7 @@ DataCache::~DataCache()
 // Put data for the system in the cache
 void DataCache::CacheSystem(char const* FileName)
 {
-    // NameWithExt.AddExtention(".xps");
-    // NameWithExt.Lower();
-
-    // std::string LongFileName = "resource\\particles\\";
-    // LongFileName+=FileName;
-    // LongFileName.AddExtention(".xps");
-    auto path    = std::filesystem::path() / "resource" / "particles" / FileName;
+    auto path    = RESOURCE_PARTICLES_DIR / FileName;
     auto pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();

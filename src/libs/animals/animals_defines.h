@@ -1,6 +1,9 @@
 #pragma once
 
-extern char       ANIMALS_INI_FILENAME[];
+#include <libs/core/default_paths.h>
+
+static inline auto const ANIMALS_INI_FILE = RESOURCE_INI_DIR / "animals.ini";
+
 extern char const ANIMALS_SEAGULL_FILENAME[];
 extern char       ANIMALS_SEAGULLS_SECTION[];
 extern char       ANIMALS_SEAGULLS_SCREAM_FILENAME[];

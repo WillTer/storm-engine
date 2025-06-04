@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/renderer/tga.h>
 #include <libs/shared_headers/messages.h>
@@ -417,16 +418,15 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
     if (pWeather == nullptr) { throw std::runtime_error("No found WEATHER entity!"); }
 
     std::filesystem::path const path =
-        std::filesystem::path() / "resource" / "foam" / pDir / to_string(AttributesPointer->GetAttribute("LightingPath"));
-    std::string const fileName = path.string() + pName + ".tga";
+        RESOURCE_FOAM_DIR / pDir / to_string(AttributesPointer->GetAttribute("LightingPath")) / (std::string(pName) + ".tga");
 
     fShadowMapSize = 2.0f * Max(vRealBoxSize.x, vRealBoxSize.z) + 1024.0f;
     fShadowMapStep = fShadowMapSize / DMAP_SIZE;
 
-    if (mzShadow.Load(fileName + ".zap")) { return true; }
+    if (mzShadow.Load(path.string() + ".zap")) { return true; }
 
     // try to load tga file
-    auto fileS = fio->_CreateFile(fileName.c_str(), std::ios::binary | std::ios::in);
+    auto fileS = fio->_CreateFile(path, std::ios::binary | std::ios::in);
     if (fileS.is_open()) {
         TGA_H tga_head;
 
@@ -437,7 +437,7 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
         fio->_CloseFile(fileS);
 
         mzShadow.DoZip(pShadowMap, dwSize);
-        mzShadow.Save(fileName + ".zap");
+        mzShadow.Save(path.string() + ".zap");
         STORM_DELETE(pShadowMap);
         return true;
     }
@@ -469,7 +469,7 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
             }
         }
 
-    SaveTga8((char*)fileName.c_str(), pShadowMap, DMAP_SIZE, DMAP_SIZE);
+    SaveTga8(path.string().data(), pShadowMap, DMAP_SIZE, DMAP_SIZE);
 
     Blur8(&pShadowMap, DMAP_SIZE);
     Blur8(&pShadowMap, DMAP_SIZE);
@@ -477,7 +477,7 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
     Blur8(&pShadowMap, DMAP_SIZE);
 
     mzShadow.DoZip(pShadowMap, DMAP_SIZE);
-    mzShadow.Save(fileName + ".zap");
+    mzShadow.Save(path.string() + ".zap");
 
     STORM_DELETE(pShadowMap);
 
@@ -515,7 +515,7 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     TGA_H tga_head;
     char  str_tmp[256];
 
-    std::filesystem::path path     = std::filesystem::path() / "resource" / "foam" / pDir / pName;
+    std::filesystem::path path     = RESOURCE_FOAM_DIR / pDir / pName;
     std::string           fileName = path.string() + ".tga";
     std::string           iniName  = path.string() + ".ini";
 
@@ -531,7 +531,7 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     bool bLoad = mzDepth.Load(fileName + ".zap");
 
     if (!bLoad) {
-        auto fileS = fio->_CreateFile(fileName.c_str(), std::ios::binary | std::ios::in);
+        auto fileS = fio->_CreateFile(fileName, std::ios::binary | std::ios::in);
         if (fileS.is_open()) {
             fio->_ReadFile(fileS, &tga_head, sizeof(tga_head));
             iDMapSize = tga_head.width;
@@ -559,7 +559,7 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
         vBoxSize /= 2.0f;
         vRealBoxSize /= 2.0f;
 
-        auto pI = fio->OpenIniFile(iniName.c_str());
+        auto pI = fio->OpenIniFile(iniName);
         Assert(pI.get());
 
         CVECTOR vTmpBoxCenter, vTmpBoxSize;
@@ -646,9 +646,9 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     mzDepth.Save(fileName + ".zap");
     STORM_DELETE(pDepthMap);
 
-    auto pI = fio->OpenIniFile(iniName.c_str());
+    auto pI = fio->OpenIniFile(iniName);
     if (!pI) {
-        pI = fio->CreateIniFile(iniName.c_str(), false);
+        pI = fio->CreateIniFile(iniName, false);
         Assert(pI.get());
     }
     char str[512];

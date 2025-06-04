@@ -5,6 +5,7 @@
 #include <SDL_timer.h>
 #include <fmt/chrono.h>
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
@@ -204,8 +205,6 @@ char sSplashText[] = {'\xbb', '\x9a', '\x89', '\x9a', '\x93', '\x90', '\x8f', '\
                       '\x90', '\x8d', '\xdf', '\xac', '\x9e', '\x93', '\x9a', '\xd1', '\0'};
 #pragma warning(pop)
 char splashbuffer[256];
-
-#define VIDEODIR "Resource\\Videos\\%s"
 
 struct DX9SphVertex {
     CVECTOR  v;
@@ -507,7 +506,7 @@ bool DX9RENDER::Init()
         // get start ini file for fonts
         if (!ini->ReadString(nullptr, "startFontIniFile", str, sizeof(str) - 1, "")) {
             core.Trace("Not finded 'startFontIniFile' parameter into ENGINE.INI file");
-            sprintf_s(str, "resource\\ini\\fonts.ini");
+            sprintf_s(str, (RESOURCE_INI_DIR / "fonts.ini").string().c_str());
         }
         auto const len = strlen(str) + 1;
         if ((fontIniFileName = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");
@@ -1212,7 +1211,7 @@ int32_t DX9RENDER::TextureCreate(char const* fname)
             strcpy_s(_fname, fname);
         }
 
-        std::ranges::for_each(_fname, [](char& c) { c = std::toupper(c); });
+        std::ranges::for_each(_fname, [](char& c) { c = std::tolower(c); });
 
         uint32_t const hf = MakeHashValue(_fname);
 
@@ -1277,30 +1276,28 @@ bool DX9RENDER::TextureLoad(int32_t t)
     using namespace std::literals;
 
     ProgressView();
-    // Form the path to the texture
-    char fn[_MAX_FNAME];
     Textures[t].dwSize = 0;
     if (Textures[t].name == nullptr) { return false; }
 
-    auto lTexture = std::string(Textures[t].name);
-    std::transform(lTexture.begin(), lTexture.end(), lTexture.begin(), [](unsigned char c) { return std::tolower(c); });
-    auto has_resource_prefix = starts_with(lTexture, "resource\\textures\\");
-    auto has_tx_postfix      = ends_with(lTexture, ".tx");
+    // TODO: Sometimes there is a slash at the start of the name
+    std::string name = Textures[t].name;
+    if (name.starts_with("\\") || name.starts_with("/")) { name = name.substr(1); }
 
-    sprintf_s(fn, "%s%s%s", has_resource_prefix ? "" : "resource\\textures\\", Textures[t].name, has_tx_postfix ? "" : ".tx");
-
-    for (int32_t s = 0, d = 0; fn[d]; s++) {
-        if (d > 0 && (fn[d - 1] == PATH_SEP || fn[d - 1] == WRONG_PATH_SEP) && (fn[s] == PATH_SEP || fn[s] == WRONG_PATH_SEP)) { continue; }
-        fn[d++] = fn[s];
+    auto file_path = std::filesystem::path(name);
+    if (std::mismatch(RESOURCE_TEXTURES_DIR.begin(), RESOURCE_TEXTURES_DIR.end(), file_path.begin()).first != RESOURCE_TEXTURES_DIR.end()) {
+        file_path = RESOURCE_TEXTURES_DIR / file_path;
     }
+
+    if (file_path.extension().string() != ".tx") { file_path.replace_extension(file_path.extension().string() + ".tx"); }
+
     // Opening the file
-    auto fileS = fio->_CreateFile(fn, std::ios::binary | std::ios::in);
+    auto fileS = fio->_CreateFile(file_path, std::ios::binary | std::ios::in);
     if (!fileS.is_open()) {
         // try to load without '.tx' (e.g. raw Targa)
-        std::filesystem::path path_to_tex {fn};
+        std::filesystem::path path_to_tex {file_path};
         path_to_tex.replace_extension();
         if (exists(path_to_tex)) { return TextureLoadUsingD3DX(path_to_tex.string().c_str(), t); }
-        if (bTrace) { core.Trace("Can't load texture %s", fn); }
+        if (bTrace) { core.Trace("Can't load texture %s", file_path.string().c_str()); }
         delete Textures[t].name;
         Textures[t].name = nullptr;
         return false;
@@ -1308,7 +1305,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     // Reading the header
     TX_FILE_HEADER head;
     if (!fio->_ReadFile(fileS, &head, sizeof(head))) {
-        if (bTrace) { core.Trace("Can't load texture %s", fn); }
+        if (bTrace) { core.Trace("Can't load texture %s", file_path.string().c_str()); }
         delete Textures[t].name;
         Textures[t].name = nullptr;
         fio->_CloseFile(fileS);
@@ -1321,7 +1318,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         if (textureFormats[textureFI].txFormat == head.format) { break; }
     }
     if (textureFI == sizeof(textureFormats) / sizeof(SD_TEXTURE_FORMAT) || head.flags & TX_FLAGS_PALLETTE) {
-        if (bTrace) { core.Trace("Invalidate texture format %s, not loading it.", fn); }
+        if (bTrace) { core.Trace("Invalidate texture format %s, not loading it.", file_path.string().c_str()); }
         delete Textures[t].name;
         Textures[t].name = nullptr;
         fio->_CloseFile(fileS);
@@ -1354,7 +1351,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
             if (bTrace) {
                 core.Trace(
                     "Texture %s is not created (width: %i, height: %i, num mips: %i, format: %s), not loading it.",
-                    fn,
+                    file_path.string().c_str(),
                     head.width,
                     head.height,
                     head.nmips,
@@ -1387,7 +1384,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
                         "Can't loading mip %i, texture %s is not created (width: %i, height: %i, num mips: %i, "
                         "format: %s), not loading it.",
                         m,
-                        fn,
+                        file_path.string().c_str(),
                         head.width,
                         head.height,
                         head.nmips,
@@ -1409,7 +1406,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     } else {
         // Download cubemap
         if (head.width != head.height) {
-            if (bTrace) { core.Trace("Cube map texture can't has not squared sides %s, not loading it.", fn); }
+            if (bTrace) { core.Trace("Cube map texture can't has not squared sides %s, not loading it.", file_path.string().c_str()); }
             delete Textures[t].name;
             Textures[t].name = nullptr;
             fio->_CloseFile(fileS);
@@ -1421,7 +1418,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
             if (bTrace) {
                 core.Trace(
                     "Cube map texture %s is not created (size: %i, num mips: %i, format: %s), not loading it.",
-                    fn,
+                    file_path.string().c_str(),
                     head.width,
                     head.nmips,
                     formatTxt);
@@ -1438,7 +1435,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
             if (bTrace) {
                 core.Trace(
                     "Cube map texture %s is not created (size: %i, num mips: %i, format: %s), not loading it.",
-                    fn,
+                    file_path.string().c_str(),
                     head.width,
                     head.nmips,
                     formatTxt);
@@ -1494,7 +1491,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
             if (bTrace) {
                 core.Trace(
                     "Cube map texture %s can't loading (size: %i, num mips: %i, format: %s), not loading it.",
-                    fn,
+                    file_path.string().c_str(),
                     head.width,
                     head.nmips,
                     formatTxt);
@@ -2330,8 +2327,8 @@ void DX9RENDER::RecompileEffects()
     effects_.release();
 
     std::filesystem::path cur_path = std::filesystem::current_path();
-    std::filesystem::current_path(std::filesystem::u8path(fio->_GetExecutableDirectory()));
-    for (auto const& p: std::filesystem::recursive_directory_iterator("resource/techniques"))
+    std::filesystem::current_path(std::filesystem::path(fio->_GetExecutableDirectory()));
+    for (auto const& p: std::filesystem::recursive_directory_iterator(RESOURCE_TECHNIQUES_DIR))
         if (is_regular_file(p) && p.path().extension() == ".fx") {
             auto s = p.path().string();  // hug microsoft
             effects_.compile(s.c_str());
@@ -3556,7 +3553,7 @@ HRESULT DX9RENDER::ImageBlt(int32_t TextureID, RECT* pDstRect, RECT* pSrcRect)
     };
     RECT      dr;
     F3DVERTEX v[6];
-    HRESULT   hRes;
+    HRESULT   hRes = S_OK;
 
     if (pDstRect) {
         dr = *pDstRect;

@@ -39,7 +39,6 @@ FILE_SERVICE::FILE_SERVICE()
     Max_File_Index = 0;
     for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++)
         OpenFiles[n] = nullptr;
-    if (ResourcePathsFirstScan) ScanResourcePaths();
 }
 
 FILE_SERVICE::~FILE_SERVICE()
@@ -47,16 +46,15 @@ FILE_SERVICE::~FILE_SERVICE()
     Close();
 }
 
-std::fstream FILE_SERVICE::_CreateFile(char const* filename, std::ios::openmode mode)
+std::fstream FILE_SERVICE::_CreateFile(std::filesystem::path const& file_path, std::ios::openmode mode)
 {
-    auto const   path = filename ? std::filesystem::u8path(ConvertPathResource(filename)) : std::filesystem::path();
-    std::fstream fileS(path, mode);
-    return fileS;
+    std::fstream stream(file_path, mode);
+    return stream;
 }
 
-void FILE_SERVICE::_CloseFile(std::fstream& fileS)
+void FILE_SERVICE::_CloseFile(std::fstream& stream)
 {
-    fileS.close();
+    stream.close();
 }
 
 void FILE_SERVICE::_SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir)
@@ -64,10 +62,9 @@ void FILE_SERVICE::_SetFilePointer(std::fstream& fileS, std::streamoff off, std:
     fileS.seekp(off, dir);
 }
 
-bool FILE_SERVICE::_DeleteFile(char const* filename)
+bool FILE_SERVICE::_DeleteFile(std::filesystem::path const& file_path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
-    return std::filesystem::remove(path);
+    return std::filesystem::remove(file_path);
 }
 
 bool FILE_SERVICE::_WriteFile(std::fstream& fileS, void const* s, std::streamsize count)
@@ -94,13 +91,12 @@ bool FILE_SERVICE::_ReadFile(std::fstream& fileS, void* s, std::streamsize count
     }
 }
 
-bool FILE_SERVICE::_FileOrDirectoryExists(char const* p)
+bool FILE_SERVICE::_FileOrDirectoryExists(std::filesystem::path const& path)
 {
-    std::filesystem::path path   = std::filesystem::u8path(ConvertPathResource(p));
-    auto                  ec     = std::error_code {};
-    bool                  result = std::filesystem::exists(path, ec);
+    auto ec     = std::error_code {};
+    bool result = std::filesystem::exists(path, ec);
     if (ec) {
-        spdlog::error("Failed to to check if {} exists: {}", p, ec.message());
+        spdlog::error("Failed to to check if {} exists: {}", path.string(), ec.message());
         return false;
     }
 
@@ -108,14 +104,13 @@ bool FILE_SERVICE::_FileOrDirectoryExists(char const* p)
 }
 
 std::vector<std::string> FILE_SERVICE::_GetPathsOrFilenamesByMask(
-    char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
+    std::filesystem::path const& path, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
 {
     std::vector<std::string> result;
 
-    auto const fsPaths = _GetFsPathsByMask(sourcePath, mask, getPaths, onlyDirs, onlyFiles, recursive);
-    for (std::filesystem::path curPath: fsPaths) {
-        auto u8Path = curPath.u8string();
-        result.emplace_back(u8Path.begin(), u8Path.end());
+    auto const fsPaths = _GetFsPathsByMask(path, mask, getPaths, onlyDirs, onlyFiles, recursive);
+    for (std::filesystem::path cur_path: fsPaths) {
+        result.emplace_back(cur_path.string());
     }
 
     return result;
@@ -137,7 +132,7 @@ iter_directory(DirIterator& it, std::error_code& ec, char const* mask, bool getP
         bool thisIsDir = dirEntry.is_directory();
         if ((onlyFiles && thisIsDir) || (onlyDirs && !thisIsDir)) { continue; }
         curPath = dirEntry.path();
-        if (mask == nullptr || storm::wildicmp(mask, curPath.filename().u8string().c_str())) {
+        if (mask == nullptr || storm::wildicmp(mask, curPath.filename().string().c_str())) {
             if (getPaths) {
                 result.push_back(curPath);
             } else {
@@ -149,24 +144,19 @@ iter_directory(DirIterator& it, std::error_code& ec, char const* mask, bool getP
     return result;
 }
 
-std::vector<std::filesystem::path>
-FILE_SERVICE::_GetFsPathsByMask(char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
+std::vector<std::filesystem::path> FILE_SERVICE::_GetFsPathsByMask(
+    std::filesystem::path const& path, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
 {
-    std::filesystem::path srcPath;
-    if (sourcePath == nullptr || sourcePath[0] == '\0') {
-        srcPath = std::filesystem::current_path();
-    } else {
-        srcPath = std::filesystem::u8path(ConvertPathResource(sourcePath));
-    }
+    std::filesystem::path const src_path = std::filesystem::path(path);
 
     std::error_code ec;
     if (recursive) {
-        auto it = std::filesystem::recursive_directory_iterator(srcPath, ec);
-        return iter_directory(it, ec, mask, getPaths, onlyDirs, onlyFiles);
-    } else {
-        auto it = std::filesystem::directory_iterator(srcPath, ec);
+        auto it = std::filesystem::recursive_directory_iterator(src_path, ec);
         return iter_directory(it, ec, mask, getPaths, onlyDirs, onlyFiles);
     }
+
+    auto it = std::filesystem::directory_iterator(src_path, ec);
+    return iter_directory(it, ec, mask, getPaths, onlyDirs, onlyFiles);
 }
 
 std::time_t FILE_SERVICE::_ToTimeT(std::filesystem::file_time_type tp)
@@ -176,10 +166,9 @@ std::time_t FILE_SERVICE::_ToTimeT(std::filesystem::file_time_type tp)
     return system_clock::to_time_t(sctp);
 }
 
-std::filesystem::file_time_type FILE_SERVICE::_GetLastWriteTime(char const* filename)
+std::filesystem::file_time_type FILE_SERVICE::_GetLastWriteTime(std::filesystem::path const& file_path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
-    return std::filesystem::last_write_time(path);
+    return std::filesystem::last_write_time(file_path);
 }
 
 void FILE_SERVICE::_FlushFileBuffers(std::fstream& fileS)
@@ -189,7 +178,7 @@ void FILE_SERVICE::_FlushFileBuffers(std::fstream& fileS)
 
 std::string FILE_SERVICE::_GetCurrentDirectory()
 {
-    auto const  curPath = std::filesystem::current_path().u8string();
+    auto const  curPath = std::filesystem::current_path().string();
     std::string result(curPath.begin(), curPath.end());
     return result;
 }
@@ -200,27 +189,23 @@ std::string FILE_SERVICE::_GetExecutableDirectory()
     return result;
 }
 
-std::uintmax_t FILE_SERVICE::_GetFileSize(char const* filename)
+std::uintmax_t FILE_SERVICE::_GetFileSize(std::filesystem::path const& file_path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
-    return std::filesystem::file_size(path);
+    return std::filesystem::file_size(file_path);
 }
 
-void FILE_SERVICE::_SetCurrentDirectory(char const* pathName)
+void FILE_SERVICE::_SetCurrentDirectory(std::filesystem::path const& path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     std::filesystem::current_path(path);
 }
 
-bool FILE_SERVICE::_CreateDirectory(char const* pathName)
+bool FILE_SERVICE::_CreateDirectory(std::filesystem::path const& path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     return std::filesystem::create_directories(path);
 }
 
-std::uintmax_t FILE_SERVICE::_RemoveDirectory(char const* pathName)
+std::uintmax_t FILE_SERVICE::_RemoveDirectory(std::filesystem::path const& path)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     return std::filesystem::remove_all(path);
 }
 
@@ -228,28 +213,28 @@ std::uintmax_t FILE_SERVICE::_RemoveDirectory(char const* pathName)
 // inifile objects managment
 //
 
-std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(char const* file_name, bool fail_if_exist)
+std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(std::filesystem::path const& file_path, bool fail_if_exist)
 {
-    auto fileS = _CreateFile(file_name, std::ios::binary | std::ios::in);
+    auto fileS = _CreateFile(file_path, std::ios::binary | std::ios::in);
     if (fileS.is_open() && fail_if_exist) {
         _CloseFile(fileS);
         return nullptr;
     }
     _CloseFile(fileS);
-    fileS = _CreateFile(file_name, std::ios::binary | std::ios::out);
+    fileS = _CreateFile(file_path, std::ios::binary | std::ios::out);
     if (!fileS.is_open()) {
-        spdlog::error("Can't create ini file: {}", file_name);
+        spdlog::error("Can't create ini file: {}", file_path.string());
         return nullptr;
     }
     _CloseFile(fileS);
-    return OpenIniFile(file_name);
+    return OpenIniFile(file_path);
 }
 
-std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(char const* file_name)
+std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(std::filesystem::path const& file_path)
 {
     for (auto n = 0; n <= Max_File_Index; n++) {
-        if (OpenFiles[n] == nullptr || OpenFiles[n]->GetFileName() == nullptr) continue;
-        if (storm::iEquals(OpenFiles[n]->GetFileName(), file_name)) {
+        if (OpenFiles[n] == nullptr) continue;
+        if (OpenFiles[n]->GetFileName() == file_path) {
             OpenFiles[n]->IncReference();
 
             auto v = std::make_unique<INIFILE_T>(OpenFiles[n]);
@@ -263,7 +248,7 @@ std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(char const* file_name)
 
         OpenFiles[n] = new IFS(this);
         if (OpenFiles[n] == nullptr) throw std::runtime_error("Failed to create IFS");
-        if (!OpenFiles[n]->LoadFile(file_name)) {
+        if (!OpenFiles[n]->LoadFile(file_path)) {
             delete OpenFiles[n];
             OpenFiles[n] = nullptr;
             return nullptr;
@@ -311,16 +296,16 @@ void FILE_SERVICE::Close()
     }
 }
 
-bool FILE_SERVICE::LoadFile(char const* file_name, char** ppBuffer, uint32_t* dwSize)
+bool FILE_SERVICE::LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize)
 {
     if (ppBuffer == nullptr) return false;
 
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
+    auto fileS = fio->_CreateFile(file_path, std::ios::binary | std::ios::in);
     if (!fileS.is_open()) {
-        spdlog::trace("Can't load file: {}", file_name);
+        spdlog::trace("Can't load file: {}", file_path.string());
         return false;
     }
-    auto const dwLowSize = _GetFileSize(file_name);
+    auto const dwLowSize = _GetFileSize(file_path);
     if (dwSize) { *dwSize = dwLowSize; }
     if (dwLowSize == 0) {
         *ppBuffer = nullptr;
@@ -373,71 +358,6 @@ std::string convert_path(char const* path)
         conv.push_back(path[i] == WRONG_PATH_SEP ? PATH_SEP : path[i]);
     }
     return conv;
-}
-
-void FILE_SERVICE::AddEntryToResourcePaths(std::filesystem::directory_entry const& entry, std::string& CheckingPath)
-{
-    if (entry.is_regular_file() || entry.is_directory()) {
-        std::string path     = get_dir_iterator_path(entry.path());
-        std::string path_lwr = convert_path(path.c_str());
-        std::ranges::for_each(path_lwr, [](char& c) { c = std::tolower(c); });
-        if (starts_with(path_lwr, CheckingPath + "program") || starts_with(path_lwr, CheckingPath + "resource")
-            || starts_with(path_lwr, CheckingPath + "save") || ends_with(path_lwr, ".ini")) {
-            ResourcePaths[path_lwr] = path;
-        }
-    }
-}
-
-void FILE_SERVICE::ScanResourcePaths()
-{
-#ifndef _WIN32
-    if (ResourcePathsFirstScan) {
-        // Seems like if static code calls us we need to do this manually to avoid any bugs
-        ResourcePaths = std::unordered_map<std::string, std::string>();
-    }
-    ResourcePaths.clear();
-    std::string ExePath = "";
-    for (auto const& entry: std::filesystem::recursive_directory_iterator(".")) {
-        AddEntryToResourcePaths(entry, ExePath);
-    }
-    ExePath = fio->_GetExecutableDirectory();
-    auto it = std::filesystem::recursive_directory_iterator(ExePath);
-    std::ranges::for_each(ExePath, [](char& c) { c = std::tolower(c); });
-    for (auto const& entry: it) {
-        AddEntryToResourcePaths(entry, ExePath);
-    }
-#endif
-    ResourcePathsFirstScan = false;
-}
-
-std::string FILE_SERVICE::ConvertPathResource(char const* path)
-{
-#ifdef _WIN32
-    return std::string(path);
-#else
-    if (ResourcePathsFirstScan) { ScanResourcePaths(); }
-    std::string conv     = convert_path(path);
-    std::string path_lwr = conv;  // save original string if we will need to create new file in existing folder
-    std::ranges::for_each(path_lwr, [](char& c) { c = std::tolower(c); });
-    std::filesystem::path tmp_path = std::filesystem::u8path(path_lwr).lexically_normal();  // remove relative paths
-    path_lwr                       = tmp_path.string();
-    std::string result             = ResourcePaths[path_lwr];
-    if (result.empty()) {
-        // if we need to create new file in existing folder, then we need to check ResourcePaths[parent_folder]
-        result = ResourcePaths[tmp_path.parent_path().string()];
-        if (result.empty()) {
-            // no such parent folder
-            return path_lwr;
-        } else {
-            // parent folder found
-            result                  = result + PATH_SEP + std::filesystem::u8path(conv).filename().string();
-            ResourcePaths[path_lwr] = result;
-            return result;
-        }
-    } else {
-        return result;
-    }
-#endif
 }
 
 uint64_t FILE_SERVICE::GetPathFingerprint(std::filesystem::path const& path)

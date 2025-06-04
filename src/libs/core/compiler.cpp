@@ -5,6 +5,8 @@
 
 #include <zlib.h>
 
+#include "default_paths.h"
+
 #ifdef _WIN32  // S_DEBUG
 #include "s_debug.h"
 #else
@@ -225,12 +227,12 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
     char        buffer[MAX_PATH];
 
     if (!bFullPath) {
-        std::string EngineDir = "storm-engine\\";
+        std::string EngineDir = "storm-engine\\";  // FIXME: remove virtual paths
         if (strncmp(file_name, EngineDir.c_str(), EngineDir.length()) == 0) {
-            std::string ExePath = fio->_GetExecutableDirectory() + "resource\\shared\\";
-            strcpy_s(buffer, ExePath.c_str());
-            strcat_s(buffer, file_name + EngineDir.length());
-        } else if (ProgramDirectory) {
+            auto include_path =
+                fio->_GetExecutableDirectory() / RESOURCE_DIR / "shared" / std::string(file_name).substr(EngineDir.length());
+            strcpy_s(buffer, include_path.string().c_str());
+        } else if (ProgramDirectory != nullptr) {
             strcpy_s(buffer, ProgramDirectory);
             strcat_s(buffer, file_name);
         } else {

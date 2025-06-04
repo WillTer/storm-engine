@@ -4,6 +4,7 @@
 #include <random>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
 #include <libs/math/math3d/color.h>
@@ -174,7 +175,7 @@ SoundID SoundService::play(
     float const          max_distance /* = -1.0f*/,
     float const          volume /* = 1.0f*/)
 {
-    std::string sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + name;
+    std::filesystem::path sound_path = RESOURCE_SOUNDS_DIR / name;
 
     float alias_min_distance = min_distance;
     float alias_max_distance = max_distance;
@@ -184,7 +185,7 @@ SoundID SoundService::play(
         auto& alias = m_aliases[name];
 
         // play sound from the alias ...
-        sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + alias.sound_files.pickRandom();
+        sound_path = RESOURCE_SOUNDS_DIR / alias.sound_files.pickRandom();
         if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
@@ -193,11 +194,9 @@ SoundID SoundService::play(
         if (alias.volume > std::numeric_limits<float>::epsilon()) { alias_volume = alias.volume; }
     }
 
-    sound_path = fio->ConvertPathResource(sound_path.c_str());
-
     SoundID const id = sound_type == SoundType::MusicStereo
-        ? prepare_music(sound_path, fade_time)
-        : prepare_sound(sound_path, sound_type, start_position, alias_min_distance, alias_max_distance);
+        ? prepare_music(sound_path.string(), fade_time)
+        : prepare_sound(sound_path.string(), sound_type, start_position, alias_min_distance, alias_max_distance);
 
     if (id == 0) { return 0; }
 
@@ -217,7 +216,7 @@ SoundID SoundService::play(
     sound.sound_type  = sound_type;
     sound.volume_type = volume_type;
     sound.volume      = alias_volume;
-    sound.name        = std::move(sound_path);
+    sound.name        = sound_path.string();
 
     if (is_paused) {
         sound.source->set_volume(get_volume_by_type(sound));
@@ -436,12 +435,11 @@ void SoundService::load_alias_file(std::string const& filename)
     constexpr int const section_name_length = 128;
     static char         section_name[section_name_length];
 
-    std::string ini_name = ALIAS_DIRECTORY;
-    ini_name += filename;
+    auto ini_path = RESOURCE_INI_ALIASES_DIR / filename;
 
-    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_name.c_str()); }
+    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_path.string().c_str()); }
 
-    auto alias_ini = fio->OpenIniFile(ini_name.c_str());
+    auto alias_ini = fio->OpenIniFile(ini_path);
     if (!alias_ini) { return; }
 
     if (alias_ini->GetSectionName(section_name, section_name_length)) {
@@ -454,7 +452,7 @@ void SoundService::load_alias_file(std::string const& filename)
 
 void SoundService::init_aliases()
 {
-    auto const filenames = fio->_GetPathsOrFilenamesByMask(ALIAS_DIRECTORY, "*.ini", false);
+    auto const filenames = fio->_GetPathsOrFilenamesByMask(RESOURCE_INI_ALIASES_DIR, "*.ini", false);
     for (auto const& cur_name: filenames) {
         load_alias_file(cur_name);
     }

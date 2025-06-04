@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <SDL2/SDL.h>
+#include <libs/core/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "back_scene/back_scene.h"
@@ -882,7 +883,7 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-static char const* RESOURCE_FILENAME = "resource\\ini\\interfaces\\interfaces.ini";
+static auto const RESOURCE_FILENAME = RESOURCE_INI_DIR / "interfaces\\interfaces.ini";
 
 void XINTERFACE::LoadIni()
 {
@@ -1019,7 +1020,7 @@ void XINTERFACE::LoadDialog(char const* sFileName)
         core.PostEvent("exitCancel", 1, nullptr);
         return;
     }
-    auto ownerIni = fio->OpenIniFile("RESOURCE\\INI\\INTERFACES\\defaultnode.ini");
+    auto ownerIni = fio->OpenIniFile(RESOURCE_INI_DIR / "interfaces\\defaultnode.ini");
 
     sprintf_s(section, "MAIN");
 
@@ -1136,7 +1137,7 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
             return;
         }
     }
-    auto ownerIni = fio->OpenIniFile("RESOURCE\\INI\\INTERFACES\\defaultnode.ini");
+    auto ownerIni = fio->OpenIniFile(RESOURCE_INI_DIR / "interfaces\\defaultnode.ini");
 
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }

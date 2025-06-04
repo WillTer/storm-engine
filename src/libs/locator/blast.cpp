@@ -1,6 +1,7 @@
 #include "blast.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
 
@@ -29,9 +30,9 @@ bool BLAST::Init()
     if (!rs) return false;
 
     //    int32_t n;
-    auto ini = fio->OpenIniFile("resource\\ini\\particles\\particles.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: resource\\ini\\particles\\particles.ini");
+        core.Trace("not found: %s/particles/particles.ini", RESOURCE_INI_DIR.string().c_str());
         return false;
     }
 

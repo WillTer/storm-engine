@@ -11,6 +11,7 @@
 #include "l_geometry.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/renderer/dx9render.h>
 
@@ -43,10 +44,6 @@ LGeometry::LGeometry() : min(), max(), useColor(false)
 
 LGeometry::~LGeometry()
 {
-    for (int32_t i = 0; i < numObjects; i++) {
-        delete object[i].name;
-        delete object[i].nameReal;
-    }
     delete shadows;
     delete drawbuf;
 }
@@ -64,40 +61,21 @@ void LGeometry::SetLightPath(char const* lPath)
 }
 
 // Add object
-void LGeometry::AddObject(char const* name, entid_t model)
+void LGeometry::AddObject(char const* name, entid_t model)  // unused method?
 {
     if (numObjects >= maxObjects) {
         maxObjects += 16;
         object.resize(maxObjects);
     }
-    auto len                       = strlen(name) + strlen(modelsPath) + 8;
-    object[numObjects].nameReal    = new char[len];
-    object[numObjects].nameReal[0] = 0;
-    strcat_s(object[numObjects].nameReal, len, modelsPath);
-    strcat_s(object[numObjects].nameReal, len, name);
-    strcat_s(object[numObjects].nameReal, len, ".gm");
-    object[numObjects].name    = new char[strlen(name) + 2048];
-    len                        = strlen(name) + 2048;
-    object[numObjects].name[0] = 0;
-    strcat_s(object[numObjects].name, len, "resource\\models\\");
-    strcat_s(object[numObjects].name, len, modelsPath);
-    strcat_s(object[numObjects].name, len, "\\");
-    strcat_s(object[numObjects].name, len, name);
-    strcat_s(object[numObjects].name, len, "_");
-    strcat_s(object[numObjects].name, len, lightPath);
-    strcat_s(object[numObjects].name, len, ".col");
-    auto* const str = object[numObjects].name;
-    for (int32_t s = 0, d = 0; str[d]; s++) {
-        if (str[s] >= 'a' && str[s] <= 'z') str[s] -= 'a' - 'A';
-        if (d > 0 && str[d - 1] == '\\' && str[s] == '\\') continue;
-        str[d++] = str[s];
-    }
-    object[numObjects].model = model;
-    object[numObjects].m     = static_cast<MODEL*>(core.GetEntityPointer(model));
-    if (!object[numObjects].m) {
+    object[numObjects].nameReal = std::string(modelsPath) + name + ".gm";
+    object[numObjects].path     = RESOURCE_MODELS_DIR / modelsPath / (std::string(name) + "_" + lightPath + ".col");
+    object[numObjects].model    = model;
+    object[numObjects].m        = static_cast<MODEL*>(core.GetEntityPointer(model));
+    if (object[numObjects].m == nullptr) {
         core.Trace("Location lighter: can't get pointer to model %s", name);
-    } else
-        numObjects++;
+    } else {
+        ++numObjects;
+    }
 }
 
 // Process data
@@ -114,7 +92,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             return false;
         }
         if (object[i].m->GetNode(1)) {
-            core.Trace("Location lighter: incorrent model %s (nodes above 1)", object[i].nameReal);
+            core.Trace("Location lighter: incorrent model %s (nodes above 1)", object[i].nameReal.c_str());
             return false;
         }
         // Recalculate matrices
@@ -123,14 +101,14 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
         auto* node = object[i].m->GetNode(0);
         auto* g    = node->geo;
         if (!g) {
-            core.Trace("Location lighter: incorrent model %s (node not include geos)", object[i].nameReal);
+            core.Trace("Location lighter: incorrent model %s (node not include geos)", object[i].nameReal.c_str());
             return false;
         }
         // Geometry information
         GEOS::INFO info;
         g->GetInfo(info);
         if (info.nvrtbuffs <= 0) {
-            core.Trace("Location lighter: incorrent model %s (not vertex buffers), skip it", object[i].nameReal);
+            core.Trace("Location lighter: incorrent model %s (not vertex buffers), skip it", object[i].nameReal.c_str());
             object[i].lBufSize = 0;
             continue;
         }
@@ -147,7 +125,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             auto*                vbuf = rs->GetVertexBuffer(vbID);
             D3DVERTEXBUFFER_DESC desc;
             if (!vbuf || vbuf->GetDesc(&desc) != D3D_OK) {
-                core.Trace("Location lighter: vertex buffer error, model %s, vbID %i", object[i].nameReal, vbID);
+                core.Trace("Location lighter: vertex buffer error, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
                 return false;
             }
             // Analyzing the type
@@ -157,7 +135,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             isEnabledType &= ((desc.FVF & D3DFVF_DIFFUSE) != 0);
             isEnabledType &= ((desc.FVF & D3DFVF_PSIZE) == 0);
             if (!isEnabledType) {
-                core.Trace("Location lighter: incorrect fvf of vertex buffer, model %s, vbID %i", object[i].nameReal, vbID);
+                core.Trace("Location lighter: incorrect fvf of vertex buffer, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
                 return false;
             }
             // Vertex size
@@ -167,7 +145,8 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             // Number of vertices
             auto num = desc.Size / stride;
             if (num <= 0) {
-                core.Trace("Location lighter: incorrect number of verteces in vertex buffer, model %s, vbID %i", object[i].nameReal, vbID);
+                core.Trace(
+                    "Location lighter: incorrect number of verteces in vertex buffer, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
                 return false;
             }
             // reserve a place
@@ -178,7 +157,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             // Copy
             uint8_t* pnt = nullptr;
             if (vbuf->Lock(0, desc.Size, (void**)&pnt, 0) != D3D_OK) {
-                core.Trace("Location lighter: vertex buffer no locked, model %s, vbID %i", object[i].nameReal, vbID);
+                core.Trace("Location lighter: vertex buffer no locked, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
                 return false;
             }
             for (int32_t v = 0; v < num; v++) {
@@ -191,7 +170,8 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
                 if (l > 0.0f) {
                     if (l != 1.0f) vrt[numVrt].n *= 1.0f / sqrtf(l);
                 } else {
-                    core.Trace("Location lighter: model %s, vbID %i, vrt: %i : normal have zero length", object[i].nameReal, vbID, v);
+                    core.Trace(
+                        "Location lighter: model %s, vbID %i, vrt: %i : normal have zero length", object[i].nameReal.c_str(), vbID, v);
                 }
                 vrt[numVrt].c      = 0.0f;
                 vrt[numVrt].bc     = 0.0f;
@@ -218,7 +198,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
         auto  ibID = g->GetIndexBuffer();
         auto* idx  = static_cast<uint16_t*>(rs->LockIndexBuffer(ibID));
         if (!idx) {
-            core.Trace("Location lighter: index buffer no locked, model %s", object[i].nameReal);
+            core.Trace("Location lighter: index buffer no locked, model %s", object[i].nameReal.c_str());
             return false;
         }
         GEOS::OBJECT obj;
@@ -229,7 +209,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             for (vb = 0; vb < numVBuffers; vb++)
                 if (vbuffer[vb].vbID == static_cast<int32_t>(obj.vertex_buff)) break;
             if (vb >= numVBuffers) {
-                core.Trace("Location lighter: vertex buffer %i not found, model %s", obj.vertex_buff, object[i].nameReal);
+                core.Trace("Location lighter: vertex buffer %i not found, model %s", obj.vertex_buff, object[i].nameReal.c_str());
                 return false;
             }
             vb = vbuffer[vb].start + obj.start_vertex;
@@ -241,7 +221,8 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
                 int32_t i2 = triangles[t * 3 + 1];
                 int32_t i3 = triangles[t * 3 + 2];
                 if (i1 >= obj.num_vertices || i2 >= obj.num_vertices || i3 >= obj.num_vertices) {
-                    core.Trace("Location lighter: model %s have incorrect vertex index, (obj: %i, trg: %i)", object[i].nameReal, n, t);
+                    core.Trace(
+                        "Location lighter: model %s have incorrect vertex index, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
                     return false;
                 }
                 // Absolute indices
@@ -256,7 +237,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
                 float sq  = sqrtf(~nrm);
                 // skip the empty triangle
                 if (sq <= 0.0f) {
-                    core.Trace("Location lighter: model %s have zero triangle, (obj: %i, trg: %i)", object[i].nameReal, n, t);
+                    core.Trace("Location lighter: model %s have zero triangle, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
                     continue;
                 }
                 // Add a triangle
@@ -274,7 +255,7 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
                     bool    isInv = (trg[numTrg].n | vr.n) < 0.0f;
                     if (vr.flags & Vertex::f_set) {
                         if (((vr.flags & Vertex::f_inv) != 0) != isInv) {
-                            core.Trace("Location lighter: model %s have bug normals, (obj: %i, trg: %i)", object[i].nameReal, n, t);
+                            core.Trace("Location lighter: model %s have bug normals, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
                             vr.flags |= Vertex::f_bug;
                         }
                     } else {
@@ -374,8 +355,7 @@ float LGeometry::Trace(const CVECTOR& src, const CVECTOR& dst)
 bool LGeometry::Save()
 {
     // Save the current path
-    auto  oldPath = fio->_GetCurrentDirectory();
-    char* dir     = new char[4096];
+    auto oldPath = fio->_GetCurrentDirectory();
     // Saving objects
     bool          result  = true;
     int32_t const bufSize = 16384;
@@ -383,26 +363,10 @@ bool LGeometry::Save()
     for (int32_t i = 0, pnt = 0; i < numObjects; i++) {
         if (object[i].lBufSize <= 0) continue;
         // Create a path
-        fio->_SetCurrentDirectory(oldPath.c_str());
-        bool isCont = false;
-        for (int32_t c = 0, p = 0; true; c++, p++) {
-            dir[p] = object[i].name[c];
-            if (dir[p] == '\\') {
-                dir[p] = 0;
-                if (!fio->_FileOrDirectoryExists(dir)) {
-                    if (!fio->_CreateDirectory(dir)) {
-                        isCont = true;
-                        break;
-                    }
-                }
-                fio->_SetCurrentDirectory(dir);
-                p = -1;
-                continue;
-            }
-            if (dir[p] == 0) break;
-        }
-        if (isCont) continue;
-        FILE* fl = fopen(dir, "w+b");
+        fio->_SetCurrentDirectory(oldPath);
+        if (!std::filesystem::create_directories(object[i].path.parent_path())) { continue; }
+
+        FILE* fl = fopen(object[i].path.string().c_str(), "w+b");
         if (!fl) {
             result = false;
             continue;
@@ -411,12 +375,9 @@ bool LGeometry::Save()
         for (int32_t j = 0, n = object[i].lBufSize; j < n; j++) {
             CVECTOR c = vrt[pnt].c * vrt[pnt].mc * 255.0f;
             pnt++;
-            if (c.x < 0.0f) c.x = 0.0f;
-            if (c.x > 255.0f) c.x = 255.0f;
-            if (c.y < 0.0f) c.y = 0.0f;
-            if (c.y > 255.0f) c.y = 255.0f;
-            if (c.z < 0.0f) c.z = 0.0f;
-            if (c.z > 255.0f) c.z = 255.0f;
+            c.x = std::clamp(c.x, 0.0F, 255.0F);
+            c.y = std::clamp(c.y, 0.0F, 255.0F);
+            c.z = std::clamp(c.z, 0.0F, 255.0F);
             buf[sv++] =
                 (static_cast<uint32_t>(c.x) << 16) | (static_cast<uint32_t>(c.y) << 8) | (static_cast<uint32_t>(c.z) << 0) | 0xff000000;
             if (sv >= bufSize) {
@@ -427,8 +388,7 @@ bool LGeometry::Save()
         if (sv > 0) result &= (fwrite(buf, sv * sizeof(uint32_t), 1, fl) == 1);
         fclose(fl);
     }
-    fio->_SetCurrentDirectory(oldPath.c_str());
-    delete[] dir;
+    fio->_SetCurrentDirectory(oldPath);
     delete[] buf;
     return result;
 }

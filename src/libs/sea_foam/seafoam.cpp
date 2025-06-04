@@ -1,6 +1,7 @@
 #include "seafoam.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
@@ -50,7 +51,7 @@ bool SEAFOAM::Init()
     renderer     = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
 
-    psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
+    psIni = fio->OpenIniFile(RESOURCE_INI_DIR / "particles.ini");
 
     InitializeShipFoam();
 

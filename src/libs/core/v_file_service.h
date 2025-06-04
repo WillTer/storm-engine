@@ -24,35 +24,41 @@ public:
     // VFILE_SERVICE()= 0;
     virtual ~VFILE_SERVICE() {}
 
-    virtual std::fstream             _CreateFile(char const* filename, std::ios::openmode mode)                      = 0;
+    virtual std::fstream             _CreateFile(std::filesystem::path const& file_path, std::ios::openmode mode)    = 0;
     virtual void                     _CloseFile(std::fstream& fileS)                                                 = 0;
     virtual void                     _SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir) = 0;
-    virtual bool                     _DeleteFile(char const* filename)                                               = 0;
+    virtual bool                     _DeleteFile(std::filesystem::path const& file_path)                             = 0;
     virtual bool                     _WriteFile(std::fstream& fileS, void const* s, std::streamsize count)           = 0;
     virtual bool                     _ReadFile(std::fstream& fileS, void* s, std::streamsize count)                  = 0;
-    virtual bool                     _FileOrDirectoryExists(char const* p)                                           = 0;
+    virtual bool                     _FileOrDirectoryExists(std::filesystem::path const& path)                       = 0;
     virtual std::vector<std::string> _GetPathsOrFilenamesByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false) = 0;
+        std::filesystem::path const& source_path,
+        char const*                  mask,
+        bool                         getPaths,
+        bool                         onlyDirs  = false,
+        bool                         onlyFiles = true,
+        bool                         recursive = false) = 0;
     virtual std::vector<std::filesystem::path> _GetFsPathsByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false) = 0;
-    virtual std::time_t                     _ToTimeT(std::filesystem::file_time_type tp)                                               = 0;
-    virtual std::filesystem::file_time_type _GetLastWriteTime(char const* filename)                                                    = 0;
-    virtual void                            _FlushFileBuffers(std::fstream& fileS)                                                     = 0;
-    virtual std::string                     _GetCurrentDirectory()                                                                     = 0;
-    virtual std::string                     _GetExecutableDirectory()                                                                  = 0;
-    virtual std::uintmax_t                  _GetFileSize(char const* filename)                                                         = 0;
-    virtual void                            _SetCurrentDirectory(char const* pathName)                                                 = 0;
-    virtual bool                            _CreateDirectory(char const* pathName)                                                     = 0;
-    virtual std::uintmax_t                  _RemoveDirectory(char const* pathName)                                                     = 0;
-    virtual bool                            LoadFile(char const* file_name, char** ppBuffer, uint32_t* dwSize = nullptr)               = 0;
+        std::filesystem::path const& source_path,
+        char const*                  mask,
+        bool                         getPaths,
+        bool                         onlyDirs  = false,
+        bool                         onlyFiles = true,
+        bool                         recursive = false)                                                                                = 0;
+    virtual std::time_t                     _ToTimeT(std::filesystem::file_time_type tp)                       = 0;
+    virtual std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path)          = 0;
+    virtual void                            _FlushFileBuffers(std::fstream& fileS)                             = 0;
+    virtual std::string                     _GetCurrentDirectory()                                             = 0;
+    virtual std::string                     _GetExecutableDirectory()                                          = 0;
+    virtual std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path)               = 0;
+    virtual void                            _SetCurrentDirectory(std::filesystem::path const& path)            = 0;
+    virtual bool                            _CreateDirectory(std::filesystem::path const& path)                = 0;
+    virtual std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path)                = 0;
+    virtual bool LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize = nullptr) = 0;
 
     // ini files section
-    virtual std::unique_ptr<INIFILE> CreateIniFile(char const* file_name, bool fail_if_exist) = 0;
-    virtual std::unique_ptr<INIFILE> OpenIniFile(char const* file_name)                       = 0;
-
-    // Resource paths
-    virtual void        ScanResourcePaths()                   = 0;
-    virtual std::string ConvertPathResource(char const* path) = 0;
+    virtual std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file, bool fail_if_exist) = 0;
+    virtual std::unique_ptr<INIFILE> OpenIniFile(std::filesystem::path const& file)                       = 0;
 
     virtual uint64_t GetPathFingerprint(std::filesystem::path const& path) = 0;
 };

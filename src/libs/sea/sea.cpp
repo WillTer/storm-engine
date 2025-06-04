@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
@@ -222,8 +223,7 @@ bool SEA::Init()
         char     str[256];
         char*    pFBuffer = nullptr;
         uint32_t dwSize;
-        sprintf_s(str, "resource\\sea\\sea%.4d.tga", i);
-        // sprintf_s(str, "resource\\sea\\sea0000.tga", i);
+        sprintf_s(str, "%s\\sea%.4d.tga", RESOURCE_SEA_DIR.string().c_str(), i);
         fio->LoadFile(str, &pFBuffer, &dwSize);
         if (!pFBuffer) {
             core.Trace("Sea: Can't load %s", str);

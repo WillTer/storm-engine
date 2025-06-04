@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
 #include <libs/util/string_compare.hpp>
@@ -12,7 +13,7 @@
 #define USER_BLOCK_BEGINER '{'
 #define USER_BLOCK_ENDING '}'
 
-static char const* sLanguageFile = "resource\\ini\\TEXTS\\language.ini";
+static auto const sLanguageFile = RESOURCE_INI_DIR / "texts" / "language.ini";
 
 static VSTRSERVICE* g_StringServicePointer = nullptr;
 static int32_t      g_idGlobLanguageFileID = -1;
@@ -172,7 +173,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     // initialize ini file
     auto langIni = fio->OpenIniFile(sLanguageFile);
     if (!langIni) {
-        core.Trace("ini file %s not found!", sLanguageFile);
+        core.Trace("ini file %s not found!", sLanguageFile.string().c_str());
         return;
     }
 
@@ -222,14 +223,14 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     //==========================================================================
     auto* RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (RenderService) {
-        char fullIniPath[512];
+        auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
-            sprintf_s(fullIniPath, "resource\\ini\\%s", param);
+            fullIniPath = RESOURCE_INI_DIR / param;
         } else {
             core.Trace("Warning: Not found font record for language %s", m_sLanguage);
-            sprintf_s(fullIniPath, "resource\\ini\\fonts.ini");
+            fullIniPath = RESOURCE_INI_DIR / "fonts.ini";
         }
-        RenderService->SetFontIniFileName(fullIniPath);
+        RenderService->SetFontIniFileName(fullIniPath.string().c_str());
     }
     //==========================================================================
 
@@ -252,10 +253,10 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     }
 
     // initialize ini file
-    sprintf_s(param, "resource\\ini\\texts\\%s\\%s", m_sLanguageDir, m_sIniFileName);
-    auto ini = fio->OpenIniFile(param);
+    auto const ini_path = RESOURCE_INI_DIR / "texts" / m_sLanguageDir / m_sIniFileName;
+    auto       ini      = fio->OpenIniFile(ini_path);
     if (!ini) {
-        core.Trace("WARNING! ini file \"%s\" not found!", param);
+        core.Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
         return;
     }
 
@@ -481,15 +482,14 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     auto pUSB = std::make_unique<UsersStringBlock>();
 
     // strings reading
-    char param[512];
-    sprintf_s(param, "resource\\ini\\TEXTS\\%s\\%s", m_sLanguageDir, fileName);
-    auto fileS = fio->_CreateFile(param, std::ios::binary | std::ios::in);
+    auto const ini_path = RESOURCE_INI_DIR / "texts" / m_sLanguageDir / fileName;
+    auto       fileS    = fio->_CreateFile(ini_path, std::ios::binary | std::ios::in);
     if (!fileS.is_open()) {
         spdlog::warn("WARNING! Strings file \"{}\" does not exist", fileName);
         return -1;
     }
 
-    int32_t const filesize = fio->_GetFileSize(param);
+    int32_t const filesize = fio->_GetFileSize(ini_path);
 
     if (filesize <= 0) {
         spdlog::warn("WARNING! Strings file \"{}\" has zero size", fileName);
@@ -1108,11 +1108,11 @@ uint32_t _InterfaceFindFolders(VS_STACK* pS)
     ATTRIBUTES* pA = pDat->GetAClass();
     pDat           = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
-    char const*           sFindTemplate = pDat->GetString();
-    std::filesystem::path p             = std::filesystem::path(fio->ConvertPathResource(sFindTemplate));
-    auto const            mask          = p.filename().string();
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
-    int32_t    n          = 0;
+    char const* sFindTemplate = pDat->GetString();
+    auto        p             = std::filesystem::path(sFindTemplate);
+    auto const  mask          = p.filename().string();
+    auto const  vFilenames    = fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
+    int32_t     n             = 0;
     for (std::string curName: vFilenames) {
         char pctmp[64];
         sprintf_s(pctmp, "f%d", n++);

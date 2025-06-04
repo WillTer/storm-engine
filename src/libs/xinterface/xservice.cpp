@@ -1,5 +1,6 @@
 #include "xservice.h"
 
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
@@ -7,7 +8,7 @@
 
 #define ERROR_MUL 1.0f
 
-static char const* LISTS_INIFILE = "resource\\ini\\interfaces\\pictures.ini";
+static auto const LISTS_INIFILE = RESOURCE_INI_DIR / "interfaces" / "pictures.ini";
 
 XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 {

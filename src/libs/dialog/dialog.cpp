@@ -1,6 +1,7 @@
 #include "dialog.hpp"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/v_file_service.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/util/dialog/dialog_utils.hpp>
@@ -458,9 +459,9 @@ void DIALOG::DrawButtons()
 
 void DIALOG::LoadFromIni()
 {
-    auto pIni = fio->OpenIniFile("resource\\ini\\dialog.ini");
+    auto pIni = fio->OpenIniFile(RESOURCE_INI_DIR / "dialog.ini");
     if (!pIni) {
-        core.Trace("Warning! DIALOG: Can`t open ini file %s", "resource\\ini\\dialog.ini");
+        core.Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", RESOURCE_INI_DIR.string().c_str());
         return;
     }
 
@@ -591,7 +592,7 @@ bool DIALOG::Init()
     textViewport.MinZ   = 0.0f;
     textViewport.MaxZ   = 1.0f;
 
-    auto ini = fio->OpenIniFile("Resource\\Ini\\dialog.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "dialog.ini");
     m_DlgText.Init(RenderService, textViewport, ini.get());
     InitLinks(RenderService, textViewport, ini.get());
 

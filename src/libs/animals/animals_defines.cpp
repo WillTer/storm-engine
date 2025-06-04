@@ -1,6 +1,5 @@
 #include "animals_defines.h"
 
-char       ANIMALS_INI_FILENAME[]             = "resource\\ini\\animals.ini";
 char       ANIMALS_SEAGULLS_SCREAM_FILENAME[] = "chaika.wav";
 char const ANIMALS_SEAGULL_FILENAME[]         = "seagull";
 char       ANIMALS_SEAGULLS_SECTION[]         = "seagulls";

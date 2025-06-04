@@ -1,6 +1,7 @@
 #include "rope.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/sail_msg.h>
@@ -681,7 +682,7 @@ void ROPE::LoadIni()
     char section[256];
     char param[256];
 
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "rigging.ini");
     if (!ini) throw std::runtime_error("rigging.ini file not found!");
 
     sprintf_s(section, "ROPES");

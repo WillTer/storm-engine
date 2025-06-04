@@ -2,10 +2,15 @@
 
 #include <cstdint>
 
+#include <libs/core/default_paths.h>
+
+auto const ALIAS_INI       = RESOURCE_INI_DIR / "sound_alias.ini";
+auto const SCHEME_INI_NAME = RESOURCE_INI_DIR / "sound_scheme.ini";
+
 ///////////////////////////////////////////////////////////////////
 // CONSTANTS
 ///////////////////////////////////////////////////////////////////
-#define TRACE_INFORMATION 1
+#define TRACE_INFORMATION 0
 #define FIO(a) fio->_##a
 #define MAX_CACHED_DATA (4 * 1024 * 1024)
 
@@ -26,12 +31,8 @@ extern int32_t lg[100];
 
 #define LOOP_DISABLED -54321
 
-#define ALIAS_DIRECTORY "resource\\ini\\aliases\\"
-#define DEFAULT_SOUND_DIRECTORY "resource\\sounds\\"
 #define SOUND_SECTION_NAME "sound"
 #define SOUND_PATH_NAME "sound path"
-#define ALIAS_INI "resource\\ini\\sound_alias.ini"
-#define SCHEME_INI_NAME "resource\\ini\\sound_scheme.ini"
 #define SCHEME_KEY_NAME "ch"
 #define SCHEME_KEY_NAME_LOOP "ch_loop"
 

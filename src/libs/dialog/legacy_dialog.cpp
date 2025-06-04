@@ -4,6 +4,7 @@
 
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/math/math_inlines.h>
@@ -19,8 +20,8 @@ CREATE_CLASS(LegacyDialog)
 namespace
 {
 
-constexpr std::string_view DIALOG_INI_FILE_PATH      = "Resource/Ini/dialog.ini";
-char const*                DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
+auto const                 DIALOG_INI_FILE_PATH      = RESOURCE_INI_DIR / "dialog.ini";
+constexpr std::string_view DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
 
 constexpr uint32_t const COLOR_NORMAL          = 0xFFFFFFFF;
 constexpr uint32_t const COLOR_LINK_UNSELECTED = ARGB(255, 127, 127, 127);
@@ -144,9 +145,11 @@ bool LegacyDialog::Init()
 
     UpdateScreenSize();
 
-    char const* texture = AttributesPointer->GetAttribute("texture");
-    if (texture == nullptr) { texture = DEFAULT_INTERFACE_TEXTURE; }
-    interfaceTexture_ = RenderService->TextureCreate(texture);
+    if (char const* texture = AttributesPointer->GetAttribute("texture"); texture != nullptr) {
+        interfaceTexture_ = RenderService->TextureCreate(texture);
+    } else {
+        interfaceTexture_ = RenderService->TextureCreate(DEFAULT_INTERFACE_TEXTURE.data());
+    }
 
     CreateBackBuffers();
 
@@ -276,7 +279,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
 
 void LegacyDialog::LoadIni()
 {
-    auto ini = fio->OpenIniFile(DIALOG_INI_FILE_PATH.data());
+    auto ini = fio->OpenIniFile(DIALOG_INI_FILE_PATH);
 
     mainFont_ = LoadFont("mainfont", *ini, *RenderService);
     nameFont_ = LoadFont("namefont", *ini, *RenderService);

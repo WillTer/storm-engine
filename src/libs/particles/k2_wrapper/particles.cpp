@@ -1,6 +1,7 @@
 #include "particles.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
@@ -179,12 +180,7 @@ uint64_t PARTICLES::ProcessMessage(MESSAGE& message)
 
 PARTICLE_SYSTEM* PARTICLES::CreateSystem(char const* pFileName, uint32_t LifeTime)
 {
-    // std::string pFullFileName;
-    // pFullFileName = "resource\\particles\\";
-    // pFullFileName += pFileName;
-    // pFullFileName.AddExtention(".xps");
-    // psnip_trap(); //~!~
-    auto        path    = std::filesystem::path() / "resource" / "particles" / pFileName;
+    auto        path    = RESOURCE_PARTICLES_DIR / pFileName;
     std::string pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();

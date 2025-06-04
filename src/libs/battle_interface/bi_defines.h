@@ -1,10 +1,11 @@
 #pragma once
 
+#include <libs/core/default_paths.h>
 #include <libs/core/v_data.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/storm_assert.h>
 
-#define INI_FILE_NAME "resource\\ini\\interfaces\\battle_interface.ini"
+static inline auto const INI_FILE_NAME = RESOURCE_INI_DIR / "interfaces" / "battle_interface.ini";
 
 #define FULLRECT(r) \
     { \

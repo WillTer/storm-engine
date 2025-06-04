@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/interface/messages.h>
 
@@ -11,8 +12,6 @@
         if (i) i->Release(); \
         i = NULL; \
     }
-
-#define VIDEO_DIRECTORY "resource\\videos"
 
 int32_t AVI_GetTextureSize(int32_t width)
 {
@@ -141,10 +140,9 @@ uint64_t CAviPlayer::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SET_VIDEO_PLAY: {
-        std::string const& param   = message.String();
-        std::string const  vidName = fmt::format("{}\\{}", VIDEO_DIRECTORY, param);
-        filename                   = vidName;
-        if (!PlayMedia(vidName.c_str())) {
+        std::string const& param = message.String();
+        filename                 = (RESOURCE_VIDEOS_DIR / param).string();
+        if (!PlayMedia(filename.c_str())) {
             CleanupInterfaces();
             core.PostEvent("ievntEndVideo", 1, nullptr);
         }

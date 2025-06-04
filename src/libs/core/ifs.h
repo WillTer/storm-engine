@@ -96,12 +96,12 @@ protected:
     void Format(char* file_data, int32_t file_size);
     bool VoidSym(char symbol);
 
-    VFILE_SERVICE* fs;
-    char*          FileName;
-    bool           bDataChanged;
-    uint32_t       Reference;
-    uint32_t       CompareStrings(char const* s1, char const* s2);
-    bool           FlushFile();
+    VFILE_SERVICE*        fs;
+    std::filesystem::path FileName;
+    bool                  bDataChanged;
+    uint32_t              Reference;
+    uint32_t              CompareStrings(char const* s1, char const* s2);
+    bool                  FlushFile();
 
 public:
 #define IFS_NOT_IMPLEMENTED(x) \
@@ -132,9 +132,9 @@ public:
     IFS(VFILE_SERVICE* _fs);
     ~IFS();
 
-    bool LoadFile(char const* file_name);
+    bool LoadFile(std::filesystem::path const& file_path);
 
-    char* GetFileName()
+    std::filesystem::path const& GetFileName()
     {
         return FileName;
     };

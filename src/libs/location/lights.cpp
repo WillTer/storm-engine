@@ -11,6 +11,7 @@
 #include "lights.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 // ============================================================================================
@@ -51,7 +52,7 @@ bool Lights::Init()
     if (!rs) throw std::runtime_error("No service: dx9render");
     collide = static_cast<COLLIDE*>(core.GetService("COLL"));
     // read the parameters
-    auto ini = fio->OpenIniFile("RESOURCE\\Ini\\lights.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "lights.ini");
     if (!ini) {
         core.Trace("Location lights not inited -> RESOURCES\\Ini\\lights.ini not found");
         return false;
@@ -462,7 +463,7 @@ void Lights::UnsetLights()
 // Update source types
 void Lights::UpdateLightTypes(int32_t i)
 {
-    auto ini = fio->OpenIniFile("RESOURCE\\Ini\\lights.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "lights.ini");
     if (!ini) return;
     // Source name
     char* lName = types[i].name;

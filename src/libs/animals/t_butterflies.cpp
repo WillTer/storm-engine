@@ -20,7 +20,7 @@ TButterflies::~TButterflies()
 //--------------------------------------------------------------------
 void TButterflies::LoadSettings()
 {
-    auto ini = fio->OpenIniFile(ANIMALS_INI_FILENAME);
+    auto ini = fio->OpenIniFile(ANIMALS_INI_FILE);
     if (!ini) return;
 
     butterfliesCount = ini->GetInt(ANIMALS_BUTTERFLIES_SECTION, "count", BUTTERFLY_COUNT);

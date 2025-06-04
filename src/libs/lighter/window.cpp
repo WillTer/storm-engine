@@ -13,6 +13,7 @@
 #include <cstdint>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
 
@@ -955,7 +956,7 @@ int32_t Window::SelPreset()
     if (ins > 0) {
         if (lastPreset != ins) {
             // Load the name
-            auto ini = fio->OpenIniFile("resource\\ini\\loclighter.ini");
+            auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
             if (ini) {
                 char sect[32];
                 sprintf_s(sect, "prs%i", ins);
@@ -976,7 +977,7 @@ void Window::SavePreset(int32_t prs)
 {
     if (prs < 0) return;
     // Checking if able to work
-    auto ini = fio->OpenIniFile("resource\\ini\\loclighter.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
     if (!ini) return;
     char sect[32];
     sprintf_s(sect, "prs%i", prs);
@@ -1036,7 +1037,7 @@ void Window::LoadPreset(int32_t prs)
 {
     if (prs < 0) return;
     // Checking if able to work
-    auto ini = fio->OpenIniFile("resource\\ini\\loclighter.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
     if (!ini) return;
     char sect[32];
     sprintf_s(sect, "prs%i", prs);

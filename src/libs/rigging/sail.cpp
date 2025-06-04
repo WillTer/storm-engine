@@ -1,6 +1,7 @@
 #include "sail.h"
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/core/v_file_service.h>
 #include <libs/math/math3d.h>
@@ -15,7 +16,7 @@
 
 #define WIND_SPEED_MAX 12.f
 
-static char const* RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+static auto const RIGGING_INI_FILE = RESOURCE_INI_DIR / "rigging.ini";
 
 void    sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 int     traceSail       = -1;
@@ -1148,7 +1149,7 @@ void SAIL::LoadSailIni()
     char section[256], param[256];
 
     if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "rigging.ini");
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "SAILS");

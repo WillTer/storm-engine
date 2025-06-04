@@ -13,6 +13,7 @@
 #include <chrono>
 
 #include <libs/core/core.h>
+#include <libs/core/default_paths.h>
 #include <libs/math/c_vector4.h>
 #include <libs/shared_headers/messages.h>
 
@@ -473,14 +474,9 @@ int32_t Location::LoadStaticModel(char const* modelName, char const* tech, int32
 
 bool Location::LoadCharacterPatch(char const* ptcName)
 {
-    // Form the path to the file
-    char path[512];
-    strcpy_s(path, "resource\\models\\");
-    strcat_s(path, model.modelspath.c_str());
-    strcat_s(path, ptcName);
-    strcat_s(path, ".ptc");
+    auto const path = RESOURCE_MODELS_DIR / (model.modelspath + ptcName + ".ptc");
     // load the patch
-    auto const result = ptc.Load(path);
+    auto const result = ptc.Load(path.string().c_str());
     if (!result) core.Trace("Can't loaded patch data file %s.ptc for npc.", ptcName);
     return result;
 }
@@ -502,13 +498,10 @@ bool Location::LoadGrass(char const* modelName, char const* texture)
     auto* grs = static_cast<Grass*>(core.GetEntityPointer(grass));
     if (!grs) return false;
     if (texture && texture[0]) grs->SetTexture(texture);
-    char nm[512];
-    strcpy_s(nm, "resource\\models\\");
-    strcat_s(nm, model.modelspath.c_str());
-    strcat_s(nm, modelName);
-    strcat_s(nm, ".grs");
-    if (grs->LoadData(nm)) return true;
-    core.Trace("Can't load grass data file: %s", nm);
+
+    auto const nm = RESOURCE_MODELS_DIR / (model.modelspath + modelName + ".grs");
+    if (grs->LoadData(nm.string().c_str())) return true;
+    core.Trace("Can't load grass data file: %s", nm.string().c_str());
     core.EraseEntity(grass);
     return false;
 }
