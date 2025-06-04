@@ -4,15 +4,23 @@
 
 class IBIString;
 
-class BI_StringNode : public BI_BaseNode
+class BI_StringNode: public BI_BaseNode
 {
-  public:
-    BI_StringNode(BI_ManagerBase *pManager, const char *text, const char *font, uint32_t color, float scale,
-                  const RECT &pos, int32_t nHAlign, int32_t nVAlign, int32_t prioritet);
+public:
+    BI_StringNode(
+        BI_ManagerBase* pManager,
+        char const*     text,
+        char const*     font,
+        uint32_t        color,
+        float           scale,
+        const RECT&     pos,
+        int32_t         nHAlign,
+        int32_t         nVAlign,
+        int32_t         prioritet);
     ~BI_StringNode() override;
 
     void Update() override;
 
-  protected:
-    IBIString *m_pStr;
+protected:
+    IBIString* m_pStr;
 };

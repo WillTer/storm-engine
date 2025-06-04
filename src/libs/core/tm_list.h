@@ -1,7 +1,8 @@
 #pragma once
 
-#include <windows.h>
 #include <cstdint>
+
+#include <windows.h>
 
 #define BM_BIND_LEFT 1
 #define BM_BIND_TOP 2
@@ -11,21 +12,21 @@
 class TM_LIST
 {
     HINSTANCE hInst;
-    HWND hMain;
-    HWND hOwn;
-    HWND hEdit;
-    RECT Pos{};
-    uint32_t Columns_Num;
-    uint32_t Items_Num;
-    uint32_t Bind_Mask;
-    int32_t edit_item;
-    int32_t edit_subitem;
-    char CharID[MAX_PATH]{};
-    char SearchName[MAX_PATH];
-    uint32_t EditMask;
-    HFONT hFont;
+    HWND      hMain;
+    HWND      hOwn;
+    HWND      hEdit;
+    RECT      Pos {};
+    uint32_t  Columns_Num;
+    uint32_t  Items_Num;
+    uint32_t  Bind_Mask;
+    int32_t   edit_item;
+    int32_t   edit_subitem;
+    char      CharID[MAX_PATH] {};
+    char      SearchName[MAX_PATH];
+    uint32_t  EditMask;
+    HFONT     hFont;
 
-  public:
+public:
     TM_LIST();
     virtual ~TM_LIST();
 
@@ -52,10 +53,10 @@ class TM_LIST
         return Pos;
     };
     void UpdatePosition();
-    void AddColumn(const char *name, int32_t length);
-    void AddItem(const char *name);
-    void SetItemText(int32_t Item_index, int32_t Subitem_index, const char *text);
-    void GetItemText(int32_t Item_index, int32_t Subitem_index, const char *text, int32_t max_size);
+    void AddColumn(char const* name, int32_t length);
+    void AddItem(char const* name);
+    void SetItemText(int32_t Item_index, int32_t Subitem_index, char const* text);
+    void GetItemText(int32_t Item_index, int32_t Subitem_index, char const* text, int32_t max_size);
     void SetItemImage(int32_t Item_index, int32_t Subitem_index, int32_t image_code);
 
     void SetBindMask(uint32_t bind_mask)
@@ -63,21 +64,21 @@ class TM_LIST
         Bind_Mask = bind_mask;
     };
     int32_t GetItemsCount();
-    char *GetSelectedName();
-    void ProcessMessageBase(uint64_t, uint64_t, uint64_t);
-    void SetCharID(const char *text);
-    char *GetCharID();
-    void SelectItem(const char *name);
+    char*   GetSelectedName();
+    void    ProcessMessageBase(uint64_t, uint64_t, uint64_t);
+    void    SetCharID(char const* text);
+    char*   GetCharID();
+    void    SelectItem(char const* name);
 
     void SetEditMask(uint32_t mask)
     {
         EditMask = mask;
     }
 
-    virtual void ProcessMessage(uint32_t, uint32_t, uint32_t){};
+    virtual void ProcessMessage(uint32_t, uint32_t, uint32_t) {};
     virtual void ItemChanged(int32_t Item_index, int32_t Subitem_index) = 0;
 
-    virtual void PostProcess(){};
+    virtual void PostProcess() {};
 
     virtual void SetFont(HFONT _hfont)
     {

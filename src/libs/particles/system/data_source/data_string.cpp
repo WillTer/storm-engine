@@ -1,36 +1,33 @@
 #include "data_string.h"
+
 #include <libs/core/vma.hpp>
 #include <libs/util/platform/platform.hpp>
 
 // constructor / destructor
-DataString::DataString()
-{
-}
+DataString::DataString() {}
 
-DataString::~DataString()
-{
-}
+DataString::~DataString() {}
 
 // Get value
-const char *DataString::GetValue() const
+char const* DataString::GetValue() const
 {
     return Value.c_str();
 }
 
 // Set value
-void DataString::SetValue(const char *val)
+void DataString::SetValue(char const* val)
 {
     Value = val;
 }
 
-void DataString::Load(MemFile *File)
+void DataString::Load(MemFile* File)
 {
     static char TempString[128];
     File->Read(TempString, 128);
     SetValue(TempString);
 
     static char AttribueName[128];
-    uint32_t NameLength = 0;
+    uint32_t    NameLength = 0;
     File->ReadType(NameLength);
     Assert(NameLength < 128);
     File->Read(AttribueName, NameLength);
@@ -38,18 +35,18 @@ void DataString::Load(MemFile *File)
     SetName(AttribueName);
 }
 
-void DataString::SetName(const char *szName)
+void DataString::SetName(char const* szName)
 {
     // core.Trace("DataString::SetName - '%s'", szName);
     Name = szName;
 }
 
-const char *DataString::GetName() const
+char const* DataString::GetName() const
 {
     return Name.c_str();
 }
 
-void DataString::Write(MemFile *File) const
+void DataString::Write(MemFile* File) const
 {
     static char WriteTempString[128];
     memset(WriteTempString, 0, 128);
@@ -57,8 +54,8 @@ void DataString::Write(MemFile *File) const
     File->Write(WriteTempString, 128);
 
     // save name
-    const uint32_t NameLength = Name.size();
-    auto NameLengthPlusZero = NameLength + 1;
+    uint32_t const NameLength         = Name.size();
+    auto           NameLengthPlusZero = NameLength + 1;
     File->WriteType(NameLengthPlusZero);
     Assert(NameLength < 128);
     File->Write(Name.c_str(), NameLength);

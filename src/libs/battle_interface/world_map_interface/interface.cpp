@@ -1,20 +1,21 @@
 #include "interface.h"
-#include "ship_command.h"
-#include "ship_sign.h"
+
 #include <libs/core/core.h>
 #include <libs/core/message.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 #include <libs/util/string_compare.hpp>
 
+#include "ship_command.h"
+#include "ship_sign.h"
 
 WM_INTERFACE::WM_INTERFACE() : rs(nullptr)
 {
-    m_pShipIcon = nullptr;
+    m_pShipIcon    = nullptr;
     m_pCommandList = nullptr;
 
     m_nCommandListVerticalOffset = 0;
-    m_nMainCharIndex = -1;
-    m_nCommandMode = 0;
+    m_nMainCharIndex             = -1;
+    m_nCommandMode               = 0;
 
     m_bVisible = true;
 }
@@ -27,7 +28,7 @@ WM_INTERFACE::~WM_INTERFACE()
 
 bool WM_INTERFACE::Init()
 {
-    rs = static_cast<VDX9RENDER *>(core.GetService("DX9RENDER"));
+    rs = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     Assert(rs);
 
     LoadIniFile();
@@ -36,29 +37,20 @@ bool WM_INTERFACE::Init()
 
 void WM_INTERFACE::Realize(uint32_t delta_time)
 {
-    if (m_bVisible)
-    {
+    if (m_bVisible) {
         rs->MakePostProcess();
 
-        if (m_pShipIcon)
-        {
-            m_pShipIcon->Draw();
-        }
-        if (m_pCommandList)
-        {
-            if (!m_pCommandList->GetActive())
-            {
+        if (m_pShipIcon) { m_pShipIcon->Draw(); }
+        if (m_pCommandList) {
+            if (!m_pCommandList->GetActive()) {
                 CONTROL_STATE cs;
                 core.Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
-                if (cs.state == CST_ACTIVATED)
-                {
+                if (cs.state == CST_ACTIVATED) {
                     m_pCommandList->SetActive(true);
                     m_nCommandMode = BI_COMMODE_COMMAND_SELECT;
                     UpdateCommandList();
                 }
-            }
-            else
-            {
+            } else {
                 MakeControl();
             }
             m_pCommandList->Draw();
@@ -66,18 +58,13 @@ void WM_INTERFACE::Realize(uint32_t delta_time)
     }
 }
 
-uint64_t WM_INTERFACE::ProcessMessage(MESSAGE &message)
+uint64_t WM_INTERFACE::ProcessMessage(MESSAGE& message)
 {
-    switch (message.Long())
-    {
+    switch (message.Long()) {
     case MSG_BATTLE_LAND_MAKE_COMMAND: {
-        const std::string &param = message.String();
-        if (storm::iEquals(param, "cancel"))
-        {
-            ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE);
-        }
-    }
-    break;
+        std::string const& param = message.String();
+        if (storm::iEquals(param, "cancel")) { ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE); }
+    } break;
     case BI_MSG_REFRESH:
         m_pShipIcon->SetUpdate();
         UpdateCommandList();
@@ -86,7 +73,7 @@ uint64_t WM_INTERFACE::ProcessMessage(MESSAGE &message)
     return 0;
 }
 
-uint32_t WM_INTERFACE::AttributeChanged(ATTRIBUTES *pAttr)
+uint32_t WM_INTERFACE::AttributeChanged(ATTRIBUTES* pAttr)
 {
     return 0;
 }
@@ -95,7 +82,7 @@ void WM_INTERFACE::LoadIniFile()
 {
     m_pShipIcon = new WMShipIcon(GetId(), rs);
     Assert(m_pShipIcon);
-    auto *pA = AttributesPointer ? AttributesPointer->GetAttributeClass("wm_sign") : nullptr;
+    auto* pA = AttributesPointer ? AttributesPointer->GetAttributeClass("wm_sign") : nullptr;
     m_pShipIcon->Init(AttributesPointer, pA);
     m_nCommandListVerticalOffset = pA ? pA->GetAttributeAsDword("commandlistverticaloffset") : -48;
 
@@ -112,42 +99,32 @@ void WM_INTERFACE::MakeControl()
     CONTROL_STATE cs;
 
     core.Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_ACTIVATE);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_ACTIVATE);
 
     core.Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_LEFT);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_LEFT);
 
     core.Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_RIGHT);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_RIGHT);
 
     core.Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_UP);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_UP);
 
     core.Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_DOWN);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DOWN);
 
     core.Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
-    if (cs.state == CST_ACTIVATED)
-        ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE);
+    if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE);
 }
 
 void WM_INTERFACE::ExecuteCommand(int32_t command)
 {
-    switch (command)
-    {
+    switch (command) {
     case BI_MSG_COMMAND_ACTIVATE:
-        if (m_pCommandList)
-        {
-            const auto nTmp = m_pCommandList->ExecuteConfirm();
-            if (nTmp != -1)
-                m_nCommandMode = nTmp;
-            if (m_nCommandMode == 0)
-            {
+        if (m_pCommandList) {
+            auto const nTmp = m_pCommandList->ExecuteConfirm();
+            if (nTmp != -1) m_nCommandMode = nTmp;
+            if (m_nCommandMode == 0) {
                 m_pCommandList->SetActive(false);
                 m_nCommandMode = BI_COMMODE_COMMAND_SELECT;
             }
@@ -155,44 +132,35 @@ void WM_INTERFACE::ExecuteCommand(int32_t command)
         break;
 
     case BI_MSG_COMMAND_LEFT:
-        if (m_pCommandList)
-            m_pCommandList->ExecuteLeft();
+        if (m_pCommandList) m_pCommandList->ExecuteLeft();
         break;
 
     case BI_MSG_COMMAND_RIGHT:
-        if (m_pCommandList)
-            m_pCommandList->ExecuteRight();
+        if (m_pCommandList) m_pCommandList->ExecuteRight();
         break;
 
-    case BI_MSG_COMMAND_UP:
-        break;
+    case BI_MSG_COMMAND_UP: break;
 
-    case BI_MSG_COMMAND_DOWN:
-        break;
+    case BI_MSG_COMMAND_DOWN: break;
 
     case BI_MSG_COMMAND_DEACTIVATE:
-        if (m_pCommandList)
-        {
+        if (m_pCommandList) {
             m_nCommandMode = m_pCommandList->ExecuteCancel();
-            if (m_nCommandMode == 0)
-            {
+            if (m_nCommandMode == 0) {
                 m_pCommandList->SetActive(false);
                 m_nCommandMode = BI_COMMODE_COMMAND_SELECT;
-            }
-            else
+            } else
                 UpdateCommandList();
         }
         break;
 
-    default:
-        core.Trace("Warning! Unknown executing command: %d", command);
+    default: core.Trace("Warning! Unknown executing command: %d", command);
     }
 }
 
 void WM_INTERFACE::UpdateCommandList() const
 {
-    if (m_pCommandList)
-        m_pCommandList->Update(GetCurrentCommandTopLine(), GetCurrentCommandCharacterIndex(), GetCurrentCommandMode());
+    if (m_pCommandList) m_pCommandList->Update(GetCurrentCommandTopLine(), GetCurrentCommandCharacterIndex(), GetCurrentCommandMode());
 }
 
 int32_t WM_INTERFACE::GetCurrentCommandTopLine() const
@@ -212,7 +180,6 @@ int32_t WM_INTERFACE::GetCurrentCommandMode() const
 
 bool WM_INTERFACE::IsCommandMenuActive() const
 {
-    if (!m_pCommandList)
-        return false;
+    if (!m_pCommandList) return false;
     return m_pCommandList->GetActive();
 }

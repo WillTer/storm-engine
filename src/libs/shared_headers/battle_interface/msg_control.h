@@ -30,20 +30,20 @@
 #define BI_COMMODE_DISEASED_TOWN 16384
 #define BI_COMMODE_NOTDISEASED_TOWN 32768
 
-#define BI_MSG_SET_ISLAND 46003            // "s" (modelName)
-#define BI_MSG_NOT_ENOUGH_BALLS_FLAG 46004 // "l"
-#define BI_IN_DEAD_SHIP 46009              // "l" (character index)
+#define BI_MSG_SET_ISLAND 46003             // "s" (modelName)
+#define BI_MSG_NOT_ENOUGH_BALLS_FLAG 46004  // "l"
+#define BI_IN_DEAD_SHIP 46009               // "l" (character index)
 // "laallll" (character index,character attributes, base ship attributes, is my ship flag, relation, ship color, is transferable ship flag)
 #define BI_IN_CREATE_SHIP 46011
-#define BI_IN_DELETE_SHIP 46012      // "l" (character index)
-#define BI_IN_SET_COMMAND_MODE 46013 // "lll" (command mode, command icon number, character index)
-#define BI_SET_VISIBLE 46014         // "l" (visible flag)
-#define BI_SET_ISLAND_LOCATORS 46002 // "la"
-#define BI_MSG_REFRESH 46005         //
-#define BI_MSG_SET_MSG_ICONS 46006   // "e" &aref[4]
+#define BI_IN_DELETE_SHIP 46012       // "l" (character index)
+#define BI_IN_SET_COMMAND_MODE 46013  // "lll" (command mode, command icon number, character index)
+#define BI_SET_VISIBLE 46014          // "l" (visible flag)
+#define BI_SET_ISLAND_LOCATORS 46002  // "la"
+#define BI_MSG_REFRESH 46005          //
+#define BI_MSG_SET_MSG_ICONS 46006    // "e" &aref[4]
 
-#define BI_MSG_ADD_NEWTEXTURE 46007          // "sll" texName, horzSize, vertSize
-#define BI_MSG_CARE_COMMANDLIST_UPDATE 46050 // "ls" texIdx, texName
+#define BI_MSG_ADD_NEWTEXTURE 46007           // "sll" texName, horzSize, vertSize
+#define BI_MSG_CARE_COMMANDLIST_UPDATE 46050  // "ls" texIdx, texName
 
 #define BI_EVENT_SET_VISIBLE "BI_Visible"
 #define BI_EVENT_SET_SEA_STATE "BI_SetSeaState"
@@ -58,28 +58,28 @@
 #define BI_RELATION_NEUTRAL 2
 
 // types of data received
-#define BIDT_SHIPPICTURE 0 // "l" (characterIdx)
-#define BIDT_GERALD_DATA 1 // "l" (characterIdx)
+#define BIDT_SHIPPICTURE 0  // "l" (characterIdx)
+#define BIDT_GERALD_DATA 1  // "l" (characterIdx)
 
 // land interface commands
-#define MSG_BATTLE_LAND_START 46100        // ""
-#define MSG_BATTLE_LAND_END 46101          // ""
-#define MSG_BATTLE_LAND_SET_SHOW 46102     // "l" commandos show
-#define MSG_BATTLE_LAND_SET_MSGICONS 46103 // "e" &aref[4]
-#define MSG_BATTLE_LAND_SET_ICONTEX 46104  // "ls" texIdx, texName
-#define MSG_BATTLE_LAND_MAKE_COMMAND 46105 // "s" command_name
+#define MSG_BATTLE_LAND_START 46100         // ""
+#define MSG_BATTLE_LAND_END 46101           // ""
+#define MSG_BATTLE_LAND_SET_SHOW 46102      // "l" commandos show
+#define MSG_BATTLE_LAND_SET_MSGICONS 46103  // "e" &aref[4]
+#define MSG_BATTLE_LAND_SET_ICONTEX 46104   // "ls" texIdx, texName
+#define MSG_BATTLE_LAND_MAKE_COMMAND 46105  // "s" command_name
 
 // spyglass interface commands
-#define MSG_ISG_VISIBLE 46201      // "l" (set visible interface)
-#define MSG_ISG_UPDATE 46202       // "sslllfll" (ship name, ship type, hull, sail, crew, speed, cannons, charge)
-#define MSG_ISG_SET_SHIPICON 46203 // "sffff" ( texture name, uv_rect{left,top,right,bottom} )
-#define MSG_ISG_SET_CHARICON 46204 // "sffff" ( texture name, uv_rect{left,top,right,bottom} )
+#define MSG_ISG_VISIBLE 46201       // "l" (set visible interface)
+#define MSG_ISG_UPDATE 46202        // "sslllfll" (ship name, ship type, hull, sail, crew, speed, cannons, charge)
+#define MSG_ISG_SET_SHIPICON 46203  // "sffff" ( texture name, uv_rect{left,top,right,bottom} )
+#define MSG_ISG_SET_CHARICON 46204  // "sffff" ( texture name, uv_rect{left,top,right,bottom} )
 
 // spyglass interface commands
-#define MSG_SP_CHANGESHIP 46301 // "l" (new character - ship owner)
+#define MSG_SP_CHANGESHIP 46301  // "l" (new character - ship owner)
 
 // sailing
-#define MSG_SAIL_SCRIPT_PROCESSING 40099 // "s..."
+#define MSG_SAIL_SCRIPT_PROCESSING 40099  // "s..."
 
 // update the list of activated abilities
 #define MSG_ACTIVE_PERK_LIST_REFRESH 47000

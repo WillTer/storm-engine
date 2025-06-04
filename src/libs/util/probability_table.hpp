@@ -10,16 +10,16 @@
 namespace storm
 {
 
-template <typename Type> struct RandCstd
-{
+template <typename Type>
+struct RandCstd {
     Type operator()(Type max) noexcept
     {
         return max * static_cast<float>(std::rand()) / static_cast<float>((RAND_MAX + 1));
     }
 };
 
-template <typename Type> struct EpsilonLessThan
-{
+template <typename Type>
+struct EpsilonLessThan {
     bool operator()(Type lhs, Type rhs)
     {
         return rhs - lhs > std::numeric_limits<Type>::epsilon();
@@ -38,20 +38,20 @@ class ProbabilityTable
 {
     using element = std::pair<Resolution, Type>;
 
-  public:
+public:
     ProbabilityTable() = default;
 
-    template <class... Args> void emplace(Resolution weight, Args &&...args)
+    template <class... Args>
+    void emplace(Resolution weight, Args&&... args)
     {
         weight_sum_ += weight;
         table_.emplace_back(std::make_pair(weight_sum_, std::forward<Args>(args)...));
     }
 
-    const Type &pickRandom() const
+    Type const& pickRandom() const
     {
-
-        const Resolution random_value = provider_(weight_sum_);
-        const auto it = std::ranges::upper_bound(table_, random_value, EpsilonLessThan<Resolution>{}, &element::first);
+        Resolution const random_value = provider_(weight_sum_);
+        auto const       it           = std::ranges::upper_bound(table_, random_value, EpsilonLessThan<Resolution> {}, &element::first);
         return it->second;
     }
 
@@ -60,10 +60,10 @@ class ProbabilityTable
         return table_.empty();
     }
 
-  private:
+private:
     mutable RandProvider provider_;
-    Resolution weight_sum_{0.0f};
+    Resolution           weight_sum_ {0.0f};
     std::vector<element> table_;
 };
 
-} // namespace storm
+}  // namespace storm

@@ -1,45 +1,42 @@
 #pragma once
 
+#include <vector>
+
 #include <libs/collide/collide.h>
 #include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
-#include <vector>
 
 #define MAX_BLOOD_TRIANGLES 10000
 #define ON_LIVETIME_BLOOD_TRIANGLES (MAX_BLOOD_TRIANGLES * 3 / 4)
 #define MAX_CLIPPING_TRIANGLES 64
 
-class Blood : public Entity
+class Blood: public Entity
 {
-    struct BloodVertex
-    {
-        CVECTOR pos;
+    struct BloodVertex {
+        CVECTOR  pos;
         uint32_t dwCol;
-        float u, v;
+        float    u, v;
     };
 
-    struct BloodTriangle
-    {
+    struct BloodTriangle {
         BloodVertex v[3];
     };
 
-    struct BloodInfo
-    {
+    struct BloodInfo {
         int32_t nStartIdx;
         int32_t nIdxQ;
-        float fLiveTime;
+        float   fLiveTime;
         CVECTOR cpos;
     };
 
-    struct ClipTriangle
-    {
+    struct ClipTriangle {
         CVECTOR v[3];
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Blood();
     virtual ~Blood();
 
@@ -49,15 +46,12 @@ class Blood : public Entity
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);
     //
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -68,27 +62,27 @@ class Blood : public Entity
         }
     }
 
-    static bool AddClipPoligon(const CVECTOR *v, int32_t nv);
+    static bool AddClipPoligon(const CVECTOR* v, int32_t nv);
 
-  protected:
-    VDX9RENDER *pRS;
-    COLLIDE *pCol;
-    int32_t texID;
+protected:
+    VDX9RENDER* pRS;
+    COLLIDE*    pCol;
+    int32_t     texID;
 
     BloodTriangle pvBloodT[MAX_BLOOD_TRIANGLES];
-    int32_t nStartT;
-    int32_t nUsedTQ;
+    int32_t       nStartT;
+    int32_t       nUsedTQ;
 
     std::vector<BloodInfo> aBlood;
 
     std::vector<entid_t> aModels;
 
     static ClipTriangle clipT[MAX_CLIPPING_TRIANGLES];
-    static int32_t nClipTQ;
-    static CVECTOR normal;
+    static int32_t      nClipTQ;
+    static CVECTOR      normal;
 
-    void AddBlood(const CVECTOR &pos);
-    void BuildBloodDataByCollision(const CVECTOR &cpos);
-    void SetVertexByPos(BloodVertex &v, const CVECTOR &pos, const CVECTOR &vc, float fU0, float fV0);
-    int32_t CheckBloodQuantityInRadius(const CVECTOR &cpos, float fDist, int32_t nLimitQ);
+    void    AddBlood(const CVECTOR& pos);
+    void    BuildBloodDataByCollision(const CVECTOR& cpos);
+    void    SetVertexByPos(BloodVertex& v, const CVECTOR& pos, const CVECTOR& vc, float fU0, float fV0);
+    int32_t CheckBloodQuantityInRadius(const CVECTOR& cpos, float fDist, int32_t nLimitQ);
 };

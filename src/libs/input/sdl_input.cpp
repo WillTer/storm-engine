@@ -1,17 +1,18 @@
 #include "sdl_input.hpp"
 
+#include <map>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_system.h>
 #include <SDL2/SDL_video.h>
 #include <windows.h>
-#include <map>
 
 namespace storm
 {
 namespace
 {
 // TODO: Use scancodes everywhere instead of Windows virtual key
-static const std::map<unsigned int, unsigned int> VK_TO_SDL_MAP{
+static std::map<unsigned int, unsigned int> const VK_TO_SDL_MAP {
     {VK_CANCEL, SDL_SCANCODE_CANCEL},
     {VK_BACK, SDL_SCANCODE_BACKSPACE},
     {VK_TAB, SDL_SCANCODE_TAB},
@@ -141,7 +142,7 @@ static const std::map<unsigned int, unsigned int> VK_TO_SDL_MAP{
     {VK_VOLUME_UP, SDL_SCANCODE_VOLUMEUP},
 };
 
-static const std::map<unsigned int, unsigned int> SDL_TO_VK_MAP{
+static std::map<unsigned int, unsigned int> const SDL_TO_VK_MAP {
     {SDL_SCANCODE_CANCEL, VK_CANCEL},
     {SDL_SCANCODE_BACKSPACE, VK_BACK},
     {SDL_SCANCODE_TAB, VK_TAB},
@@ -274,19 +275,17 @@ static const std::map<unsigned int, unsigned int> SDL_TO_VK_MAP{
 inline KeyboardKey sdlToKey(unsigned int code)
 {
     auto it = SDL_TO_VK_MAP.find(code);
-    if (it == SDL_TO_VK_MAP.end())
-        return 0;
+    if (it == SDL_TO_VK_MAP.end()) return 0;
     return it->second;
 }
 
 inline unsigned int keyToSDL(KeyboardKey key)
 {
     auto it = VK_TO_SDL_MAP.find(key);
-    if (it == VK_TO_SDL_MAP.end())
-        return 0;
+    if (it == VK_TO_SDL_MAP.end()) return 0;
     return it->second;
 }
-} // namespace
+}  // namespace
 
 SDLInput::SDLInput()
 {
@@ -304,11 +303,10 @@ SDLInput::~SDLInput()
     SDL_DelEventWatch(&SDLEventHandler, this);
 }
 
-int SDLInput::Subscribe(const EventHandler &handler)
+int SDLInput::Subscribe(EventHandler const& handler)
 {
     int id = 1;
-    if (!handlers_.empty())
-        id = handlers_.rbegin()->first + 1;
+    if (!handlers_.empty()) id = handlers_.rbegin()->first + 1;
     handlers_[id] = handler;
     return id;
 }
@@ -316,81 +314,59 @@ int SDLInput::Subscribe(const EventHandler &handler)
 void SDLInput::Unsubscribe(int id)
 {
     auto it = handlers_.find(id);
-    if (it != handlers_.end())
-        handlers_.erase(it);
+    if (it != handlers_.end()) handlers_.erase(it);
 }
 
-void SDLInput::ProcessEvent(const SDL_Event &event)
+void SDLInput::ProcessEvent(SDL_Event const& event)
 {
     InputEvent out;
     out.type = InputEvent::Unknown;
 
     // Mouse/keyboard
-    if (event.type == SDL_MOUSEMOTION)
-    {
+    if (event.type == SDL_MOUSEMOTION) {
         out.type = InputEvent::MouseMove;
-        out.data = MousePos{event.motion.xrel, event.motion.yrel};
-    }
-    else if (event.type == SDL_MOUSEWHEEL)
-    {
+        out.data = MousePos {event.motion.xrel, event.motion.yrel};
+    } else if (event.type == SDL_MOUSEWHEEL) {
         out.type = InputEvent::MouseWheel;
-        out.data = MousePos{event.wheel.x, event.wheel.y};
-    }
-    else if (event.type == SDL_KEYDOWN)
-    {
+        out.data = MousePos {event.wheel.x, event.wheel.y};
+    } else if (event.type == SDL_KEYDOWN) {
         out.type = InputEvent::KeyboardKeyDown;
         out.data = sdlToKey(event.key.keysym.scancode);
-    }
-    else if (event.type == SDL_KEYUP)
-    {
+    } else if (event.type == SDL_KEYUP) {
         out.type = InputEvent::KeyboardKeyUp;
         out.data = sdlToKey(event.key.keysym.scancode);
-    }
-    else if (event.type == SDL_TEXTINPUT)
-    {
+    } else if (event.type == SDL_TEXTINPUT) {
         out.type = InputEvent::KeyboardText;
         out.data = std::string(event.text.text);
-    }
-    else if (event.type == SDL_CONTROLLERDEVICEADDED)
-    {
+    } else if (event.type == SDL_CONTROLLERDEVICEADDED) {
         // Try to open controller if it wasn't open already
-        if (!controller_)
-            OpenController();
-    }
-    else if ((event.type == SDL_CONTROLLERDEVICEREMOVED) && (joyID_ == event.cdevice.which))
-    {
+        if (!controller_) OpenController();
+    } else if ((event.type == SDL_CONTROLLERDEVICEREMOVED) && (joyID_ == event.cdevice.which)) {
         // Close controller if it was removed
         controller_ = nullptr;
-        joyID_ = -1;
-    }
-    else if ((event.type == SDL_CONTROLLERAXISMOTION) && (joyID_ == event.caxis.which))
-    {
+        joyID_      = -1;
+    } else if ((event.type == SDL_CONTROLLERAXISMOTION) && (joyID_ == event.caxis.which)) {
         ControllerAxisState state;
-        state.axis = static_cast<ControllerAxis>(event.caxis.axis);
+        state.axis  = static_cast<ControllerAxis>(event.caxis.axis);
         state.value = event.caxis.value;
 
         out.type = InputEvent::ControllerAxis;
         out.data = state;
-    }
-    else if ((event.type == SDL_CONTROLLERBUTTONDOWN) && (joyID_ == event.cbutton.which))
-    {
+    } else if ((event.type == SDL_CONTROLLERBUTTONDOWN) && (joyID_ == event.cbutton.which)) {
         out.type = InputEvent::ControllerButtonDown;
         out.data = static_cast<ControllerButton>(event.cbutton.button);
-    }
-    else if ((event.type == SDL_CONTROLLERBUTTONUP) && (joyID_ == event.cbutton.which))
-    {
+    } else if ((event.type == SDL_CONTROLLERBUTTONUP) && (joyID_ == event.cbutton.which)) {
         out.type = InputEvent::ControllerButtonUp;
         out.data = static_cast<ControllerButton>(event.cbutton.button);
     }
 
-    if (out.type != InputEvent::Unknown)
-    {
-        for (const auto &handler : handlers_)
+    if (out.type != InputEvent::Unknown) {
+        for (auto const& handler: handlers_)
             handler.second(out);
     }
 }
 
-bool SDLInput::KeyboardModState(const KeyboardKey &key) const
+bool SDLInput::KeyboardModState(KeyboardKey const& key) const
 {
     if (key == VK_NUMLOCK)
         return SDL_GetModState() & KMOD_NUM;
@@ -399,36 +375,34 @@ bool SDLInput::KeyboardModState(const KeyboardKey &key) const
     else if (key == VK_SCROLL)
         return SDL_GetModState() & KMOD_SCROLL;
     else
-       return false;
+        return false;
 }
 
-bool SDLInput::KeyboardKeyState(const KeyboardKey &key) const
+bool SDLInput::KeyboardKeyState(KeyboardKey const& key) const
 {
     return keyStates_[keyToSDL(key)] != 0;
 }
 
-bool SDLInput::KeyboardSDLKeyState(const SDL_Scancode &key) const
+bool SDLInput::KeyboardSDLKeyState(SDL_Scancode const& key) const
 {
     return keyStates_[key] != 0;
 }
 
-bool SDLInput::ControllerButtonState(const ControllerButton &button) const
+bool SDLInput::ControllerButtonState(ControllerButton const& button) const
 {
-    if (!controller_)
-        return false;
+    if (!controller_) return false;
 
     return SDL_GameControllerGetButton(controller_.get(), static_cast<SDL_GameControllerButton>(button)) == SDL_PRESSED;
 }
 
-int SDLInput::ControllerAxisValue(const ControllerAxis &axis) const
+int SDLInput::ControllerAxisValue(ControllerAxis const& axis) const
 {
-    if (!controller_)
-        return 0;
+    if (!controller_) return 0;
 
     return SDL_GameControllerGetAxis(controller_.get(), static_cast<SDL_GameControllerAxis>(axis));
 }
 
-bool SDLInput::MouseKeyState(const MouseKey &key) const
+bool SDLInput::MouseKeyState(MouseKey const& key) const
 {
     uint32_t btn = SDL_GetMouseState(nullptr, nullptr);
     if (key == MouseKey::Left)
@@ -451,9 +425,9 @@ uint32_t SDLInput::GetWheelFactor() const
     return WHEEL_DELTA;
 }
 
-int SDLInput::SDLEventHandler(void *userdata, SDL_Event *evt)
+int SDLInput::SDLEventHandler(void* userdata, SDL_Event* evt)
 {
-    auto in = static_cast<SDLInput *>(userdata);
+    auto in = static_cast<SDLInput*>(userdata);
     in->ProcessEvent(*evt);
     return 0;
 }
@@ -461,8 +435,8 @@ int SDLInput::SDLEventHandler(void *userdata, SDL_Event *evt)
 void SDLInput::OpenController()
 {
     // TODO: GameController selection, open only first for now
-    controller_ = std::unique_ptr<SDL_GameController, std::function<void(SDL_GameController *)>>(
-        SDL_GameControllerOpen(0), &SDL_GameControllerClose);
+    controller_ =
+        std::unique_ptr<SDL_GameController, std::function<void(SDL_GameController*)>>(SDL_GameControllerOpen(0), &SDL_GameControllerClose);
 
     if (controller_)
         joyID_ = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller_.get()));
@@ -474,4 +448,4 @@ std::shared_ptr<Input> Input::Create()
 {
     return std::make_shared<SDLInput>();
 }
-} // namespace storm
+}  // namespace storm

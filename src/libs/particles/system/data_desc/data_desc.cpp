@@ -1,4 +1,5 @@
 #include "data_desc.h"
+
 #include <libs/util/storm_assert.h>
 
 DataDescripion::DataDescripion()
@@ -6,11 +7,9 @@ DataDescripion::DataDescripion()
     ItemsCount = 0;
 }
 
-DataDescripion::~DataDescripion()
-{
-}
+DataDescripion::~DataDescripion() {}
 
-void DataDescripion::AddField(FieldType Type, const char *Name)
+void DataDescripion::AddField(FieldType Type, char const* Name)
 {
     Assert(ItemsCount < MAX_DESC_COUNT);
     Fields[ItemsCount].Type = Type;
@@ -18,7 +17,7 @@ void DataDescripion::AddField(FieldType Type, const char *Name)
     ItemsCount++;
 }
 
-const char *DataDescripion::GetFieldName(uint32_t Index) const
+char const* DataDescripion::GetFieldName(uint32_t Index) const
 {
     return Fields[Index].Name;
 }

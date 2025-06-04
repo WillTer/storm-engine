@@ -8,8 +8,7 @@
 // UMass - fabsf (masses)
 // Drag - medium resistance (0 no resistance .. 1 full stop)
 // TimeScale - time scaling ...
-inline void SolvePhysic(Vector &Position, Vector &Velocity, const Vector &Forces, float UMass, float Drag,
-                        float TimeScale)
+inline void SolvePhysic(Vector& Position, Vector& Velocity, Vector const& Forces, float UMass, float Drag, float TimeScale)
 {
     /*
       Drag = 1.0f - Drag;
@@ -17,8 +16,7 @@ inline void SolvePhysic(Vector &Position, Vector &Velocity, const Vector &Forces
       if (Drag > 1.0f) Drag = 1.0f;
     */
     auto Acceleration = Vector(0.0f);
-    if (UMass)
-        Acceleration = (Forces / UMass);
+    if (UMass) Acceleration = (Forces / UMass);
 
     Velocity += Acceleration * TimeScale;
 
@@ -26,13 +24,11 @@ inline void SolvePhysic(Vector &Position, Vector &Velocity, const Vector &Forces
 }
 
 // Add the force of gravity to the current forces ...
-inline void AddGravityForce(Vector &Forces, float Mass, float GravK)
+inline void AddGravityForce(Vector& Forces, float Mass, float GravK)
 {
     GravK *= 0.01f;
-    if (GravK < 0)
-        GravK = 0.0f;
-    if (GravK > 1.0f)
-        GravK = 1.0f;
+    if (GravK < 0) GravK = 0.0f;
+    if (GravK > 1.0f) GravK = 1.0f;
 
     Forces += Vector(0.0f, -9.8f * Mass * GravK, 0.0f);
 }

@@ -1,4 +1,5 @@
 #include "data_position.h"
+
 #include <libs/core/vma.hpp>
 
 // constructor / destructor
@@ -7,23 +8,21 @@ DataPosition::DataPosition()
     Value = Vector(0, 0, 0);
 }
 
-DataPosition::~DataPosition()
-{
-}
+DataPosition::~DataPosition() {}
 
 // Get value (Current time, Random factor [0..1])
-const Vector &DataPosition::GetValue() const
+Vector const& DataPosition::GetValue() const
 {
     return Value;
 }
 
 // Set value
-void DataPosition::SetValue(const Vector &val)
+void DataPosition::SetValue(Vector const& val)
 {
     Value = val;
 }
 
-void DataPosition::Load(MemFile *File)
+void DataPosition::Load(MemFile* File)
 {
     Vector vValue;
     File->ReadType(vValue.x);
@@ -33,7 +32,7 @@ void DataPosition::Load(MemFile *File)
     SetValue(vValue);
 
     static char AttribueName[128];
-    uint32_t NameLength = 0;
+    uint32_t    NameLength = 0;
     File->ReadType(NameLength);
     Assert(NameLength < 128);
     File->Read(AttribueName, NameLength);
@@ -41,18 +40,18 @@ void DataPosition::Load(MemFile *File)
     SetName(AttribueName);
 }
 
-void DataPosition::SetName(const char *szName)
+void DataPosition::SetName(char const* szName)
 {
     // core.Trace("DataPosition::SetName - '%s'", szName);
     Name = szName;
 }
 
-const char *DataPosition::GetName() const
+char const* DataPosition::GetName() const
 {
     return Name.c_str();
 }
 
-void DataPosition::Write(MemFile *File) const
+void DataPosition::Write(MemFile* File) const
 {
     auto vValue = GetValue();
     // core.Trace("Write position %3.2f, %3.2f, %3.2f", vValue.x, vValue.y, vValue.z);
@@ -61,8 +60,8 @@ void DataPosition::Write(MemFile *File) const
     File->WriteType(vValue.z);
 
     // save name
-    const uint32_t NameLength = Name.size();
-    auto NameLengthPlusZero = NameLength + 1;
+    uint32_t const NameLength         = Name.size();
+    auto           NameLengthPlusZero = NameLength + 1;
     File->WriteType(NameLengthPlusZero);
     Assert(NameLength < 128);
     File->Write(Name.c_str(), NameLength);

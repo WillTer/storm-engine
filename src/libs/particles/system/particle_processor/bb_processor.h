@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include "../../gmx_qsort.h"
 #include <libs/math/math3d/matrix.h>
 #include <libs/renderer/dx9render.h>
 
+#include "../../gmx_qsort.h"
 #include "../../i_common/particle.h"
 #include "../data_source/field_list.h"
 
@@ -18,30 +18,28 @@ class ParticleSystem;
 
 class BillBoardProcessor
 {
-    static IDirect3DVertexDeclaration9 *vertexDecl_;
-    void CreateVertexDeclaration() const;
+    static IDirect3DVertexDeclaration9* vertexDecl_;
+    void                                CreateVertexDeclaration() const;
 
-    struct RECT_VERTEX
-    {
-        Vector vRelativePos;
+    struct RECT_VERTEX {
+        Vector   vRelativePos;
         uint32_t dwColor;
-        float tu1, tv1;
-        float tu2, tv2;
-        float angle;
-        float BlendK;
-        Vector vParticlePos;
-        float AddPowerK;
+        float    tu1, tv1;
+        float    tu2, tv2;
+        float    angle;
+        float    BlendK;
+        Vector   vParticlePos;
+        float    AddPowerK;
     };
 
-    VDX9RENDER *pRS;
+    VDX9RENDER* pRS;
     // Buffers for rendering billboards
     int32_t pVBuffer;
     int32_t pIBuffer;
 
-    struct MemArrayItem
-    {
+    struct MemArrayItem {
         BB_ParticleData pData;
-        bool Free;
+        bool            Free;
 
         MemArrayItem() : pData()
         {
@@ -49,28 +47,35 @@ class BillBoardProcessor
         }
     };
 
-    MemArrayItem *pMemArray;
+    MemArrayItem* pMemArray;
 
-    std::vector<BB_ParticleData *> Particles;
+    std::vector<BB_ParticleData*> Particles;
 
-    GMXQSort<BB_ParticleData *> ParticleSorter;
+    GMXQSort<BB_ParticleData*> ParticleSorter;
 
     // Counts distance to billboards
     uint32_t CalcDistanceToCamera();
 
     // Compare function when sorting
-    static BOOL CompareFunction(BB_ParticleData *e1, BB_ParticleData *e2);
+    static BOOL CompareFunction(BB_ParticleData* e1, BB_ParticleData* e2);
 
-    BB_ParticleData *AllocParticle() const;
-    void FreeParticle(BB_ParticleData *pItem) const;
+    BB_ParticleData* AllocParticle() const;
+    void             FreeParticle(BB_ParticleData* pItem) const;
 
-  public:
+public:
     BillBoardProcessor();
     ~BillBoardProcessor();
 
-    void AddParticle(ParticleSystem *pSystem, const Vector &velocity_dir, const Vector &pos, const Matrix &matWorld,
-                     float EmitterTime, float EmitterLifeTime, FieldList *pFields, uint32_t *pActiveCount,
-                     uint32_t dwGUID);
+    void AddParticle(
+        ParticleSystem* pSystem,
+        Vector const&   velocity_dir,
+        Vector const&   pos,
+        Matrix const&   matWorld,
+        float           EmitterTime,
+        float           EmitterLifeTime,
+        FieldList*      pFields,
+        uint32_t*       pActiveCount,
+        uint32_t        dwGUID);
 
     void Process(float DeltaTime);
     void Draw();

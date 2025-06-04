@@ -5,7 +5,7 @@
 float bsrand(float r)
 // returns random float
 {
-    static const float randMax = (float)RAND_MAX;
+    static float const randMax = (float)RAND_MAX;
     return r * (((float)rand()) / randMax);
 }
 

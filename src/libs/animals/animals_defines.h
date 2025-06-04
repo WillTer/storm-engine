@@ -1,21 +1,21 @@
 #pragma once
 
-extern char ANIMALS_INI_FILENAME[];
-extern const char ANIMALS_SEAGULL_FILENAME[];
-extern char ANIMALS_SEAGULLS_SECTION[];
-extern char ANIMALS_SEAGULLS_SCREAM_FILENAME[];
-extern const char ANIMALS_SHARK_FILENAME[];
-extern char ANIMALS_SHARKS_SECTION[];
-extern const char ANIMALS_FISHSCHOOL_FILENAME[];
-extern char ANIMALS_FISHSCHOOLS_SECTION[];
-extern const char ANIMALS_BUTTERFLY_FILENAME[];
-extern char ANIMALS_BUTTERFLIES_SECTION[];
+extern char       ANIMALS_INI_FILENAME[];
+extern char const ANIMALS_SEAGULL_FILENAME[];
+extern char       ANIMALS_SEAGULLS_SECTION[];
+extern char       ANIMALS_SEAGULLS_SCREAM_FILENAME[];
+extern char const ANIMALS_SHARK_FILENAME[];
+extern char       ANIMALS_SHARKS_SECTION[];
+extern char const ANIMALS_FISHSCHOOL_FILENAME[];
+extern char       ANIMALS_FISHSCHOOLS_SECTION[];
+extern char const ANIMALS_BUTTERFLY_FILENAME[];
+extern char       ANIMALS_BUTTERFLIES_SECTION[];
 
 #define RESPAWN_DISTANCE 70.0f
 // seagull
 #define SEAGULL_COUNT 300
 #define SEAGULL_ADD_COUNT 20
-#define SEAGULL_DISTANCE 100.0f // mean distance between seagulls
+#define SEAGULL_DISTANCE 100.0f  // mean distance between seagulls
 #define SEAGULL_MAX_RADIUS 60
 #define SEAGULL_MAX_SPEED 30
 #define SEAGULL_MAX_HEIGHT 50

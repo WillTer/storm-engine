@@ -1,52 +1,52 @@
 #pragma once
 
-#include "../../i_common/types.h"
 #include <cstdint>
+
+#include "../../i_common/types.h"
 
 #define MAX_DESC_COUNT 128
 
 class DataDescripion
 {
-    struct DescItem
-    {
-        FieldType Type;
-        const char *Name;
+    struct DescItem {
+        FieldType   Type;
+        char const* Name;
     };
 
     uint32_t ItemsCount;
     DescItem Fields[MAX_DESC_COUNT];
 
-  public:
+public:
     DataDescripion();
     ~DataDescripion();
 
-    void AddField(FieldType Type, const char *Name);
+    void AddField(FieldType Type, char const* Name);
 
-    const char *GetFieldName(uint32_t Index) const;
-    FieldType GetFieldType(uint32_t Index) const;
-    int GetFieldCount() const;
+    char const* GetFieldName(uint32_t Index) const;
+    FieldType   GetFieldType(uint32_t Index) const;
+    int         GetFieldCount() const;
 
     void Clear();
 
     virtual void CreateFields() = 0;
 };
 
-#define BEGIN_DATA_DESC(Name)                                                                                          \
-    class DataDescripion__##Name : public DataDescripion                                                               \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        void CreateFields() final                                                                                      \
-        {                                                                                                              \
+#define BEGIN_DATA_DESC(Name) \
+    class DataDescripion__##Name: public DataDescripion \
+    { \
+    public: \
+        void CreateFields() final \
+        { \
             Clear();
 
-#define END_DATA_DESC(Name)                                                                                            \
-    }                                                                                                                  \
-    DataDescripion__##Name()                                                                                           \
-    {                                                                                                                  \
-        CreateFields();                                                                                                \
-    }                                                                                                                  \
-    }                                                                                                                  \
-    ;                                                                                                                  \
+#define END_DATA_DESC(Name) \
+    } \
+    DataDescripion__##Name() \
+    { \
+        CreateFields(); \
+    } \
+    } \
+    ; \
     DataDescripion__##Name Name;
 
 #define DATA_COLOR(name) AddField(FIELD_COLOR, name);

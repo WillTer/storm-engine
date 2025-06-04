@@ -3,17 +3,17 @@
 #include "typedef.h"
 #include "weather_base.h"
 
-class WATERFLARE : public Entity
+class WATERFLARE: public Entity
 {
-    RS_RECT *pRSRect;
-    float *pfAlpha;
-    int32_t iFlareTex, iFlaresNum;
-    WEATHER_BASE *pWeather;
-    VDX9RENDER *RS;
+    RS_RECT*      pRSRect;
+    float*        pfAlpha;
+    int32_t       iFlareTex, iFlaresNum;
+    WEATHER_BASE* pWeather;
+    VDX9RENDER*   RS;
 
     void GenerateFlares();
 
-  public:
+public:
     WATERFLARE();
     ~WATERFLARE() override;
 
@@ -21,17 +21,14 @@ class WATERFLARE : public Entity
     bool Init() override;
     void Realize(uint32_t Delta_Time) const;
     void Execute(uint32_t Delta_Time);
-    bool CreateState(ENTITY_STATE_GEN *state_gen);
-    bool LoadState(ENTITY_STATE *state);
+    bool CreateState(ENTITY_STATE_GEN* state_gen);
+    bool LoadState(ENTITY_STATE* state);
     void ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;

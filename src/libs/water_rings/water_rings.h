@@ -11,55 +11,47 @@
 
 namespace waterrings
 {
-constexpr int MAX_RINGS = 25;
-constexpr int FADE_IN_TIME = 200;
+constexpr int MAX_RINGS     = 25;
+constexpr int FADE_IN_TIME  = 200;
 constexpr int FADE_OUT_TIME = 1200;
 
-constexpr int GRID_STEPS_COUNT = 3;
-constexpr int TRIANGLES_COUNT = ((GRID_STEPS_COUNT - 1) * (GRID_STEPS_COUNT - 1) * 2);
-constexpr float Y_DELTA = .01f;
+constexpr int   GRID_STEPS_COUNT = 3;
+constexpr int   TRIANGLES_COUNT  = ((GRID_STEPS_COUNT - 1) * (GRID_STEPS_COUNT - 1) * 2);
+constexpr float Y_DELTA          = .01f;
 
 constexpr int RING_FVF = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
-} // namespace waterrings
+}  // namespace waterrings
 
-struct RING_VERTEX
-{
-    CVECTOR pos;
+struct RING_VERTEX {
+    CVECTOR  pos;
     uint32_t color;
-    float tu, tv;
+    float    tu, tv;
 };
 
-enum tRingState
-{
-    RING_WALK,
-    RING_RUN,
-    RING_SWIM
-};
+enum tRingState { RING_WALK, RING_RUN, RING_SWIM };
 
-struct tRing
-{
-    bool active;
-    int32_t activeTime;
-    int32_t ivIndex;
-    float x, z;
+struct tRing {
+    bool       active;
+    int32_t    activeTime;
+    int32_t    ivIndex;
+    float      x, z;
     tRingState state;
-    bool firstUpdate;
-    float cosA, sinA;
+    bool       firstUpdate;
+    float      cosA, sinA;
 };
 
-class WaterRings : public Entity
+class WaterRings: public Entity
 {
-  public:
+public:
     WaterRings();
     ~WaterRings() override;
-    bool Init() override;
-    void Realize(uint32_t dTime);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Realize(uint32_t dTime);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
         case Stage::realize:
@@ -72,12 +64,12 @@ class WaterRings : public Entity
         }
     }
 
-  private:
-    void UpdateGrid(int _ringI, uint16_t *iPointer, RING_VERTEX *vPointer, int32_t vOffset);
+private:
+    void UpdateGrid(int _ringI, uint16_t* iPointer, RING_VERTEX* vPointer, int32_t vOffset);
 
-    VDX9RENDER *renderService;
-    SEA_BASE *sea;
-    IVBufferManager *ivManager;
-    int32_t ringTexture;
-    tRing rings[waterrings::MAX_RINGS];
+    VDX9RENDER*      renderService;
+    SEA_BASE*        sea;
+    IVBufferManager* ivManager;
+    int32_t          ringTexture;
+    tRing            rings[waterrings::MAX_RINGS];
 };

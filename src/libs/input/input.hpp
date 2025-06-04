@@ -1,10 +1,11 @@
 #pragma once
 
 #include <functional>
-#include <SDL2/SDL_scancode.h>
-#include <variant>
-#include <string>
 #include <memory>
+#include <string>
+#include <variant>
+
+#include <SDL2/SDL_scancode.h>
 
 namespace storm
 {
@@ -13,25 +14,16 @@ namespace storm
 using KeyboardKey = uint32_t;
 
 //! Mouse relative position
-struct MousePos
-{
+struct MousePos {
     int x = 0;
     int y = 0;
 };
 
 //! Mouse keys
-enum class MouseKey
-{
-    Left,
-    Right,
-    Middle,
-    Special1,
-    Special2
-};
+enum class MouseKey { Left, Right, Middle, Special1, Special2 };
 
 //! Controller axes
-enum class ControllerAxis
-{
+enum class ControllerAxis {
     LeftX = 0,
     //!< Left stick horizontal axis
     LeftY,
@@ -42,41 +34,21 @@ enum class ControllerAxis
     //!< Right stick vertical axis
     TriggerLeft,
     //!< Left trigger axis
-    TriggerRight //!< Right trigger axis
+    TriggerRight  //!< Right trigger axis
 };
 
 //! Controller buttons
-enum class ControllerButton
-{
-    A,
-    B,
-    X,
-    Y,
-    Back,
-    Guide,
-    Start,
-    LeftStick,
-    RightStick,
-    LeftBumper,
-    RightBumper,
-    Up,
-    Down,
-    Left,
-    Right
-};
+enum class ControllerButton { A, B, X, Y, Back, Guide, Start, LeftStick, RightStick, LeftBumper, RightBumper, Up, Down, Left, Right };
 
 //! Current state of controller axis
-struct ControllerAxisState
-{
-    ControllerAxis axis; //!< Axis
-    int value;           //!< Current value, from -32768 to 32767 (0 to 32767 for triggers)
+struct ControllerAxisState {
+    ControllerAxis axis;   //!< Axis
+    int            value;  //!< Current value, from -32768 to 32767 (0 to 32767 for triggers)
 };
 
 //! Input event
-struct InputEvent
-{
-    enum Type
-    {
+struct InputEvent {
+    enum Type {
         Unknown,
         //!< Invalid event
 
@@ -100,7 +72,7 @@ struct InputEvent
         //!< Controller axis value changed, data contains ControllerAxisState
         ControllerButtonDown,
         //!< Controller button pressed, data contains ControllerButton
-        ControllerButtonUp //!< Controller button released, data contains ControllerButton
+        ControllerButtonUp  //!< Controller button released, data contains ControllerButton
     };
 
     //! Event type
@@ -112,15 +84,15 @@ struct InputEvent
 //! Abstract input manager that handles all input events
 class Input
 {
-  public:
-    using EventHandler = std::function<void(const InputEvent &)>;
+public:
+    using EventHandler = std::function<void(InputEvent const&)>;
 
-    virtual ~Input(){};
+    virtual ~Input() {};
 
     //! Subscribe for events
     //! \param handler event callback
     //! \return subscription id, which should be passed to Unsubscribe()
-    virtual int Subscribe(const EventHandler &handler) = 0;
+    virtual int Subscribe(EventHandler const& handler) = 0;
 
     //! Unsubscribe from events
     //! \param id handler returned by Subscribe()
@@ -128,14 +100,14 @@ class Input
 
     //! Current keyboard key state
     //! \return true if key is Num Lock, Caps Lock or Scroll Lock and key is on
-    virtual bool KeyboardModState(const KeyboardKey &key) const = 0;
+    virtual bool KeyboardModState(KeyboardKey const& key) const = 0;
     //! \return true if key is pressed
-    virtual bool KeyboardKeyState(const KeyboardKey &key) const = 0;
-    virtual bool KeyboardSDLKeyState(const SDL_Scancode &key) const = 0;
+    virtual bool KeyboardKeyState(KeyboardKey const& key) const     = 0;
+    virtual bool KeyboardSDLKeyState(SDL_Scancode const& key) const = 0;
 
     //! Current mouse key state
     //! \return true if key is pressed
-    virtual bool MouseKeyState(const MouseKey &key) const = 0;
+    virtual bool MouseKeyState(MouseKey const& key) const = 0;
 
     //! Platform-specific multiplier to use for scaling
     //! \return unsigned integer representing specific convenient value
@@ -143,12 +115,12 @@ class Input
 
     //! Current controller button state
     //! \return true if button is pressed
-    virtual bool ControllerButtonState(const ControllerButton &button) const = 0;
+    virtual bool ControllerButtonState(ControllerButton const& button) const = 0;
 
     //! Current controller axis value
     //! \return current axis value, from -32768 to 32767 (0 to 32767 for triggers)
-    virtual int ControllerAxisValue(const ControllerAxis &axis) const = 0;
+    virtual int ControllerAxisValue(ControllerAxis const& axis) const = 0;
 
     static std::shared_ptr<Input> Create();
 };
-} // namespace storm
+}  // namespace storm

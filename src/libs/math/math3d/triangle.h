@@ -14,10 +14,9 @@
 // Class for representing a triangle in 3D space
 class Triangle
 {
-  public:
+public:
     union {
-        struct
-        {
+        struct {
             // First vertex
             Vector p1;
             // Second vertex
@@ -26,8 +25,7 @@ class Triangle
             Vector p3;
         };
 
-        struct
-        {
+        struct {
             // Array of vertices
             Vector p[3];
         };
@@ -36,24 +34,24 @@ class Triangle
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Empty constructor
-    Triangle(){};
+    Triangle() {};
     // Copy constructor
-    Triangle(const Triangle &t);
-    Triangle(const Vector *v);
+    Triangle(Triangle const& t);
+    Triangle(Vector const* v);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // per component multiplication with assignment
-    Triangle &operator*=(const Vector &v);
+    Triangle& operator*=(Vector const& v);
 
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Get normal
     Vector GetNormal() const;
     // Get midpoint
@@ -75,13 +73,12 @@ class Triangle
 
     // Find the nearest point in a triangle to a given one, lying in the plane of the triangle, true - inside the
     // triangle
-    bool FindClosestPoint(const Vector &trgNormal, Vector &pointOnPlane) const;
+    bool FindClosestPoint(Vector const& trgNormal, Vector& pointOnPlane) const;
 
     // Convert vertex coordinates
-    Triangle &Transform(const Matrix &mtx);
+    Triangle& Transform(Matrix const& mtx);
 
-    enum CoIntersectionResult
-    {
+    enum CoIntersectionResult {
         cir_none = 0,
         // Do not intersect
         cir_deg_cur,
@@ -97,9 +94,9 @@ class Triangle
     };
 
     // Checking triangles for intersections in one plane
-    CoIntersectionResult IsCoplanarIntersection(const Triangle &t, float intsEps = 0.0000001f) const;
+    CoIntersectionResult IsCoplanarIntersection(Triangle const& t, float intsEps = 0.0000001f) const;
 
-  private:
+private:
     static int32_t z_sysClipTriangleEdgePlane(Plane plane, Vector src[8], Vector dst[8], int32_t count);
 };
 
@@ -108,7 +105,7 @@ class Triangle
 // ===========================================================
 
 // Empty constructor
-inline Triangle::Triangle(const Triangle &t)
+inline Triangle::Triangle(Triangle const& t)
 {
     p1 = t.p1;
     p2 = t.p2;
@@ -116,7 +113,7 @@ inline Triangle::Triangle(const Triangle &t)
 }
 
 // Fill all components
-inline Triangle::Triangle(const Vector *v)
+inline Triangle::Triangle(Vector const* v)
 {
     p[0] = v[0];
     p[1] = v[1];
@@ -128,7 +125,7 @@ inline Triangle::Triangle(const Vector *v)
 // ===========================================================
 
 // per component multiplication with assignment
-inline Triangle &Triangle::operator*=(const Vector &v)
+inline Triangle& Triangle::operator*=(Vector const& v)
 {
     p1 *= v;
     p2 *= v;
@@ -139,7 +136,7 @@ inline Triangle &Triangle::operator*=(const Vector &v)
 /*!\relates Triangle
 Multiply triangle by matrix
 */
-inline Triangle operator*(const Matrix &mtx, const Triangle &t)
+inline Triangle operator*(Matrix const& mtx, Triangle const& t)
 {
     Triangle trg;
     trg.p1 = mtx * t.p1;
@@ -151,7 +148,7 @@ inline Triangle operator*(const Matrix &mtx, const Triangle &t)
 /*!\relates Triangle
 Multiply triangle by matrix
 */
-inline Triangle operator*(const Triangle &t, const Matrix &mtx)
+inline Triangle operator*(Triangle const& t, Matrix const& mtx)
 {
     Triangle trg;
     trg.p1 = mtx * t.p1;
@@ -187,8 +184,8 @@ inline Plane Triangle::OrtoPlane(int32_t start) const
 {
     Plane plane;
     // Vertices
-    const auto &ps = p[start % 3];
-    const auto &pe = p[NextIndex(start)];
+    auto const& ps = p[start % 3];
+    auto const& pe = p[NextIndex(start)];
     // Normal
     plane.n = !(((p3 - p1) ^ (p1 - p2)) ^ (ps - pe));
     // Distance
@@ -218,10 +215,8 @@ inline Plane Triangle::OrtoPlane20() const
 inline int32_t Triangle::PrevIndex(int32_t index)
 {
     index--;
-    if (index < 0)
-        index = 2;
-    if (index > 2)
-        index = 2;
+    if (index < 0) index = 2;
+    if (index > 2) index = 2;
     return index;
 }
 
@@ -229,52 +224,41 @@ inline int32_t Triangle::PrevIndex(int32_t index)
 inline int32_t Triangle::NextIndex(int32_t index)
 {
     index++;
-    if (index < 0)
-        index = 0;
-    if (index > 2)
-        index = 0;
+    if (index < 0) index = 0;
+    if (index > 2) index = 0;
     return index;
 }
 
 // Find the nearest point in a triangle to a given one, lying in the plane of the triangle, true - inside the triangle
-inline bool Triangle::FindClosestPoint(const Vector &trgNormal, Vector &pointOnPlane) const
+inline bool Triangle::FindClosestPoint(Vector const& trgNormal, Vector& pointOnPlane) const
 {
-    const Vector *cPoint = nullptr;
-    for (int32_t i = 0; i < 3; i++)
-    {
+    Vector const* cPoint = nullptr;
+    for (int32_t i = 0; i < 3; i++) {
         // Edge
-        const auto &ps = p[i];
-        const auto &pe = p[i + 1 < 3 ? i + 1 : 0];
-        auto edge = pe - ps;
+        auto const& ps   = p[i];
+        auto const& pe   = p[i + 1 < 3 ? i + 1 : 0];
+        auto        edge = pe - ps;
         // If a triangle has an invalid edge size, don't test it any more
-        const auto edgeLen = edge.Normalize();
-        if (edgeLen < 1e-37f)
-            return false;
+        auto const edgeLen = edge.Normalize();
+        if (edgeLen < 1e-37f) return false;
         // Orthogonal plane
         Plane orto(edge ^ trgNormal, ps);
         // Determine the position of the point
-        const auto distToEdge = orto.Dist(pointOnPlane);
-        if (distToEdge > 0.0f)
-        {
+        auto const distToEdge = orto.Dist(pointOnPlane);
+        if (distToEdge > 0.0f) {
             // Determine the length of the projection (pointOnPlane - ps) on the edge
-            const auto prjLength = edge | (pointOnPlane - ps);
-            if (prjLength < 0.0f)
-            {
+            auto const prjLength = edge | (pointOnPlane - ps);
+            if (prjLength < 0.0f) {
                 cPoint = &ps;
-            }
-            else if (prjLength > edgeLen)
-            {
+            } else if (prjLength > edgeLen) {
                 cPoint = &pe;
-            }
-            else
-            {
+            } else {
                 pointOnPlane = ps + (pe - ps) * (prjLength / edgeLen);
                 return false;
             }
         }
     }
-    if (cPoint)
-    {
+    if (cPoint) {
         pointOnPlane = *cPoint;
         return false;
     }
@@ -282,7 +266,7 @@ inline bool Triangle::FindClosestPoint(const Vector &trgNormal, Vector &pointOnP
 }
 
 // Convert vertex coordinates
-inline Triangle &Triangle::Transform(const Matrix &mtx)
+inline Triangle& Triangle::Transform(Matrix const& mtx)
 {
     p1 = mtx.MulVertex(p1);
     p2 = mtx.MulVertex(p2);
@@ -291,83 +275,65 @@ inline Triangle &Triangle::Transform(const Matrix &mtx)
 }
 
 // Checking triangles for intersections in one plane
-inline Triangle::CoIntersectionResult Triangle::IsCoplanarIntersection(const Triangle &t, float intsEps) const
+inline Triangle::CoIntersectionResult Triangle::IsCoplanarIntersection(Triangle const& t, float intsEps) const
 {
     // Checking the dimensions of the triangles
-    if (~(p1 - p2) < intsEps * intsEps || ~(p2 - p3) < intsEps * intsEps || ~(p3 - p1) < intsEps * intsEps)
-        return cir_deg_cur;
-    if (~(t.p1 - t.p2) < intsEps * intsEps || ~(t.p2 - t.p3) < intsEps * intsEps || ~(t.p3 - t.p1) < intsEps * intsEps)
-        return cir_deg_t;
+    if (~(p1 - p2) < intsEps * intsEps || ~(p2 - p3) < intsEps * intsEps || ~(p3 - p1) < intsEps * intsEps) return cir_deg_cur;
+    if (~(t.p1 - t.p2) < intsEps * intsEps || ~(t.p2 - t.p3) < intsEps * intsEps || ~(t.p3 - t.p1) < intsEps * intsEps) return cir_deg_t;
     // get the normals
     auto n = (p1 - p2) ^ (p1 - p3);
-    if (n.Normalize() < 0.0000001f)
-        return cir_deg_cur;
+    if (n.Normalize() < 0.0000001f) return cir_deg_cur;
     auto nt = (t.p1 - t.p2) ^ (t.p1 - t.p3);
-    if (nt.Normalize() < 0.0000001f)
-        return cir_deg_t;
+    if (nt.Normalize() < 0.0000001f) return cir_deg_t;
     // Checking coplanarity
-    const auto cs = n | nt;
-    static const auto cosMin = cosf(0.5f * 3.141592654f / 180.0f);
-    if (cs < cosMin)
-        return cir_none;
+    auto const        cs     = n | nt;
+    static auto const cosMin = cosf(0.5f * 3.141592654f / 180.0f);
+    if (cs < cosMin) return cir_none;
     // Distance between planes
-    const auto d = n | p1;
-    const auto dt = n | t.p1;
-    if (fabs(d - dt) > intsEps)
-        return cir_none;
+    auto const d  = n | p1;
+    auto const dt = n | t.p1;
+    if (fabs(d - dt) > intsEps) return cir_none;
     // Check for a match
-    if (~(p1 - t.p1) + ~(p2 - t.p2) + ~(p3 - t.p3) < intsEps * intsEps)
-        return cir_equal;
-    if (~(p2 - t.p1) + ~(p3 - t.p2) + ~(p1 - t.p3) < intsEps * intsEps)
-        return cir_equal;
-    if (~(p3 - t.p1) + ~(p1 - t.p2) + ~(p2 - t.p3) < intsEps * intsEps)
-        return cir_equal;
+    if (~(p1 - t.p1) + ~(p2 - t.p2) + ~(p3 - t.p3) < intsEps * intsEps) return cir_equal;
+    if (~(p2 - t.p1) + ~(p3 - t.p2) + ~(p1 - t.p3) < intsEps * intsEps) return cir_equal;
+    if (~(p3 - t.p1) + ~(p1 - t.p2) + ~(p2 - t.p3) < intsEps * intsEps) return cir_equal;
     // Check for intersection by clipping
     static Vector poly1[8], poly2[8];
-    poly1[0] = t.p1;
-    poly1[1] = t.p2;
-    poly1[2] = t.p3;
+    poly1[0]      = t.p1;
+    poly1[1]      = t.p2;
+    poly1[2]      = t.p3;
     int32_t count = 3;
-    count = z_sysClipTriangleEdgePlane(Plane(!(n ^ (p1 - p2)), p1), poly1, poly2, count);
-    if (!count)
-        return cir_coplanar;
+    count         = z_sysClipTriangleEdgePlane(Plane(!(n ^ (p1 - p2)), p1), poly1, poly2, count);
+    if (!count) return cir_coplanar;
     count = z_sysClipTriangleEdgePlane(Plane(!(n ^ (p2 - p3)), p2), poly2, poly1, count);
-    if (!count)
-        return cir_coplanar;
+    if (!count) return cir_coplanar;
     count = z_sysClipTriangleEdgePlane(Plane(!(n ^ (p3 - p1)), p3), poly1, poly2, count);
-    if (!count)
-        return cir_coplanar;
-    for (int32_t s = 0; s < count; s++)
-    {
-        const auto e = s + 1 < count ? s + 1 : 0;
-        const auto dist = ~(poly2[e] - poly2[s]);
-        if (dist < intsEps * intsEps)
-            return cir_coplanar;
+    if (!count) return cir_coplanar;
+    for (int32_t s = 0; s < count; s++) {
+        auto const e    = s + 1 < count ? s + 1 : 0;
+        auto const dist = ~(poly2[e] - poly2[s]);
+        if (dist < intsEps * intsEps) return cir_coplanar;
     }
     return cir_intersection;
 }
 
 inline int32_t Triangle::z_sysClipTriangleEdgePlane(Plane plane, Vector src[8], Vector dst[8], int32_t count)
 {
-    float ds = plane * src[0], de;
-    int32_t c = 0;
-    for (int32_t s = 0; s < count; s++, ds = de)
-    {
+    float   ds = plane * src[0], de;
+    int32_t c  = 0;
+    for (int32_t s = 0; s < count; s++, ds = de) {
         // If in the area, add a vertex
-        if (ds <= 0.0f)
-            dst[c++] = src[s];
+        if (ds <= 0.0f) dst[c++] = src[s];
         // Index of next
-        const auto e = s + 1 < count ? s + 1 : 0;
+        auto const e = s + 1 < count ? s + 1 : 0;
         // Distance to plane
         de = plane * src[e];
         // If on the one side, then continue
-        if (ds * de >= 0.0f)
-            continue;
+        if (ds * de >= 0.0f) continue;
         // There is an intersection
         dst[c++] = src[s] + (src[e] - src[s]) * (ds / (ds - de));
     }
-    if (c < 3)
-        c = 0;
+    if (c < 3) c = 0;
     return c;
 }
 

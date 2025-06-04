@@ -7,13 +7,13 @@
 
 class EntityContainerCache
 {
-  public:
+public:
     bool Contains(hash_t hash) const;
 
-    void Add(hash_t hash, entid_t id);
-    void UpdateAdd(hash_t hash, entid_t id);
-    void UpdateErase(hash_t hash, entid_t id);
-    void Clear();
+    void                  Add(hash_t hash, entid_t id);
+    void                  UpdateAdd(hash_t hash, entid_t id);
+    void                  UpdateErase(hash_t hash, entid_t id);
+    void                  Clear();
     entity_container_cref Get(hash_t hash);
 
 private:

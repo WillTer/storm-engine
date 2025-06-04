@@ -1,18 +1,16 @@
 #pragma once
 
-struct CVECTOR4
-{
-  public:
+struct CVECTOR4 {
+public:
     union {
-        struct
-        {
+        struct {
             float x, y, z, w;
         };
 
         float v[4];
     };
 
-    CVECTOR4(){};
+    CVECTOR4() {};
 
     CVECTOR4(float a)
     {

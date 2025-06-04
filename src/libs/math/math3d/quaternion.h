@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "vector.h"
 #include <libs/math/matrix.h>
 
+#include "vector.h"
 
 //============================================================================================
 
@@ -19,10 +19,9 @@
 // Quaternion representation class
 class Quaternion
 {
-  public:
+public:
     union {
-        struct
-        {
+        struct {
             // X vector component
             float x;
             // Y vector component
@@ -40,76 +39,76 @@ class Quaternion
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Set identity quaternion
     Quaternion();
     // With rotation angles
     Quaternion(float ax, float ay, float az);
     // With rotation angles
-    Quaternion(const Vector &ang);
+    Quaternion(Vector const& ang);
     // From components
     Quaternion(float qx, float qy, float qz, float qw);
     // From the matrix
-    Quaternion(const Matrix &mtx);
+    Quaternion(Matrix const& mtx);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // Negation
-    Quaternion &operator-();
+    Quaternion& operator-();
     // Equate
-    Quaternion &operator=(const Quaternion &q);
+    Quaternion& operator=(Quaternion const& q);
     // Addition
-    Quaternion &operator+=(const Quaternion &q);
+    Quaternion& operator+=(Quaternion const& q);
     // Addition
-    Quaternion &operator+=(float f);
+    Quaternion& operator+=(float f);
     // Subtract
-    Quaternion &operator-=(const Quaternion &q);
+    Quaternion& operator-=(Quaternion const& q);
     // Subtract
-    Quaternion &operator-=(float f);
+    Quaternion& operator-=(float f);
     // Multiply
-    Quaternion &operator*=(float f);
+    Quaternion& operator*=(float f);
     // Multiply
-    Quaternion &operator*=(const Quaternion &q);
+    Quaternion& operator*=(Quaternion const& q);
     // Divide
-    Quaternion &operator/=(float f);
+    Quaternion& operator/=(float f);
 
     // -----------------------------------------------------------
     // Filling
     // -----------------------------------------------------------
-  public:
+public:
     // Set identity quaternion
     void SetIdentity();
     // Set from angles of rotation
     void Set(float ax, float ay, float az);
     // Set from angles of rotation
-    void Set(const Vector &ang);
+    void Set(Vector const& ang);
     // Construct from components
     void Set(float qx, float qy, float qz, float qw);
     // Construct from matrix
-    void Set(const Matrix &mtx);
+    void Set(Matrix const& mtx);
 
     // -----------------------------------------------------------
     // Transformation
     // -----------------------------------------------------------
-  public:
+public:
     // Normalize
-    Quaternion &Normalize();
+    Quaternion& Normalize();
     // Get coplanar quaternion
-    Quaternion &Conjugate();
+    Quaternion& Conjugate();
     // Invert quaternion
-    Quaternion &Inverse();
+    Quaternion& Inverse();
 
     // Spherical linear interpolation
-    Quaternion &SLerp(const Quaternion &q1, const Quaternion &q2, float kBlend);
+    Quaternion& SLerp(Quaternion const& q1, Quaternion const& q2, float kBlend);
 
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Get a matrix from a quaternion
-    void GetMatrix(Matrix &mtx) const;
+    void GetMatrix(Matrix& mtx) const;
     // Get the length of the quaternion
     float GetLength() const;
     // Get the square of the length of a quaternion
@@ -136,7 +135,7 @@ inline Quaternion::Quaternion(float ax, float ay, float az)
 }
 
 // From rotation angles
-inline Quaternion::Quaternion(const Vector &ang)
+inline Quaternion::Quaternion(Vector const& ang)
 {
     Set(ang);
 }
@@ -148,7 +147,7 @@ inline Quaternion::Quaternion(float qx, float qy, float qz, float qw)
 }
 
 // From a matrix
-inline Quaternion::Quaternion(const Matrix &mtx)
+inline Quaternion::Quaternion(Matrix const& mtx)
 {
     Set(mtx);
 }
@@ -158,7 +157,7 @@ inline Quaternion::Quaternion(const Matrix &mtx)
 // ===========================================================
 
 // Negation
-inline Quaternion &Quaternion::operator-()
+inline Quaternion& Quaternion::operator-()
 {
     x = -x;
     y = -y;
@@ -168,7 +167,7 @@ inline Quaternion &Quaternion::operator-()
 }
 
 // Equate
-inline Quaternion &Quaternion::operator=(const Quaternion &q)
+inline Quaternion& Quaternion::operator=(Quaternion const& q)
 {
     x = q.x;
     y = q.y;
@@ -178,7 +177,7 @@ inline Quaternion &Quaternion::operator=(const Quaternion &q)
 }
 
 // Addition
-inline Quaternion &Quaternion::operator+=(const Quaternion &q)
+inline Quaternion& Quaternion::operator+=(Quaternion const& q)
 {
     x += q.x;
     y += q.y;
@@ -188,7 +187,7 @@ inline Quaternion &Quaternion::operator+=(const Quaternion &q)
 }
 
 // Addition
-inline Quaternion &Quaternion::operator+=(float f)
+inline Quaternion& Quaternion::operator+=(float f)
 {
     x += f;
     y += f;
@@ -198,7 +197,7 @@ inline Quaternion &Quaternion::operator+=(float f)
 }
 
 // Subtract
-inline Quaternion &Quaternion::operator-=(const Quaternion &q)
+inline Quaternion& Quaternion::operator-=(Quaternion const& q)
 {
     x -= q.x;
     y -= q.y;
@@ -208,7 +207,7 @@ inline Quaternion &Quaternion::operator-=(const Quaternion &q)
 }
 
 // Subtract
-inline Quaternion &Quaternion::operator-=(float f)
+inline Quaternion& Quaternion::operator-=(float f)
 {
     x -= f;
     y -= f;
@@ -218,7 +217,7 @@ inline Quaternion &Quaternion::operator-=(float f)
 }
 
 // Multiply
-inline Quaternion &Quaternion::operator*=(float f)
+inline Quaternion& Quaternion::operator*=(float f)
 {
     x *= f;
     y *= f;
@@ -228,38 +227,38 @@ inline Quaternion &Quaternion::operator*=(float f)
 }
 
 // Multiply
-inline Quaternion &Quaternion::operator*=(const Quaternion &q)
+inline Quaternion& Quaternion::operator*=(Quaternion const& q)
 {
-    const auto a = (w + x) * (q.w + q.x);
-    const auto b = (z - y) * (q.y - q.z);
-    const auto c = (x - w) * (q.y - q.z);
-    const auto d = (y + z) * (q.x - q.w);
-    const auto e = (x + z) * (q.x + q.y);
-    const auto f = (x - z) * (q.x - q.y);
-    const auto g = (w + y) * (q.w - q.z);
-    const auto h = (w - y) * (q.w + q.z);
-    x = a - (e + f + g + h) * 0.5f;
-    y = -c + (e - f + g - h) * 0.5f;
-    z = -d + (e - f - g + h) * 0.5f;
-    w = b + (-e - f + g + h) * 0.5f;
+    auto const a = (w + x) * (q.w + q.x);
+    auto const b = (z - y) * (q.y - q.z);
+    auto const c = (x - w) * (q.y - q.z);
+    auto const d = (y + z) * (q.x - q.w);
+    auto const e = (x + z) * (q.x + q.y);
+    auto const f = (x - z) * (q.x - q.y);
+    auto const g = (w + y) * (q.w - q.z);
+    auto const h = (w - y) * (q.w + q.z);
+    x            = a - (e + f + g + h) * 0.5f;
+    y            = -c + (e - f + g - h) * 0.5f;
+    z            = -d + (e - f - g + h) * 0.5f;
+    w            = b + (-e - f + g + h) * 0.5f;
     return *this;
 }
 
 // Divide
-inline Quaternion &Quaternion::operator/=(float f)
+inline Quaternion& Quaternion::operator/=(float f)
 {
-    const auto k = 1.0 / f;
-    x = static_cast<float>(x * k);
-    y = static_cast<float>(y * k);
-    z = static_cast<float>(z * k);
-    w = static_cast<float>(w * k);
+    auto const k = 1.0 / f;
+    x            = static_cast<float>(x * k);
+    y            = static_cast<float>(y * k);
+    z            = static_cast<float>(z * k);
+    w            = static_cast<float>(w * k);
     return *this;
 }
 
 /*!\relates Quaternion
 Addition
 */
-inline Quaternion operator+(float f, const Quaternion &q)
+inline Quaternion operator+(float f, Quaternion const& q)
 {
     auto tq(q);
     tq += f;
@@ -269,7 +268,7 @@ inline Quaternion operator+(float f, const Quaternion &q)
 /*!\relates Quaternion
 Addition
 */
-inline Quaternion operator+(const Quaternion &q, float f)
+inline Quaternion operator+(Quaternion const& q, float f)
 {
     auto tq(q);
     tq += f;
@@ -279,7 +278,7 @@ inline Quaternion operator+(const Quaternion &q, float f)
 /*!\relates Quaternion
 Addition
 */
-inline Quaternion operator+(const Quaternion &q1, const Quaternion &q2)
+inline Quaternion operator+(Quaternion const& q1, Quaternion const& q2)
 {
     auto tq(q1);
     tq += q2;
@@ -289,7 +288,7 @@ inline Quaternion operator+(const Quaternion &q1, const Quaternion &q2)
 /*!\relates Quaternion
 Subtract
 */
-inline Quaternion operator-(float f, const Quaternion &q)
+inline Quaternion operator-(float f, Quaternion const& q)
 {
     auto tq(q);
     tq -= f;
@@ -299,7 +298,7 @@ inline Quaternion operator-(float f, const Quaternion &q)
 /*!\relates Quaternion
 Subtract
 */
-inline Quaternion operator-(const Quaternion &q, float f)
+inline Quaternion operator-(Quaternion const& q, float f)
 {
     auto tq(q);
     tq -= f;
@@ -309,7 +308,7 @@ inline Quaternion operator-(const Quaternion &q, float f)
 /*!\relates Quaternion
 Subtract
 */
-inline Quaternion operator-(const Quaternion &q1, const Quaternion &q2)
+inline Quaternion operator-(Quaternion const& q1, Quaternion const& q2)
 {
     auto tq(q1);
     tq -= q2;
@@ -319,7 +318,7 @@ inline Quaternion operator-(const Quaternion &q1, const Quaternion &q2)
 /*!\relates Quaternion
 Multiply
 */
-inline Quaternion operator*(float f, const Quaternion &q)
+inline Quaternion operator*(float f, Quaternion const& q)
 {
     auto tq(q);
     tq *= f;
@@ -329,7 +328,7 @@ inline Quaternion operator*(float f, const Quaternion &q)
 /*!\relates Quaternion
 Multiply
 */
-inline Quaternion operator*(const Quaternion &q, float f)
+inline Quaternion operator*(Quaternion const& q, float f)
 {
     auto tq(q);
     tq *= f;
@@ -339,7 +338,7 @@ inline Quaternion operator*(const Quaternion &q, float f)
 /*!\relates Quaternion
 Multiply
 */
-inline Quaternion operator*(const Quaternion &q1, const Quaternion &q2)
+inline Quaternion operator*(Quaternion const& q1, Quaternion const& q2)
 {
     auto tq(q1);
     tq *= q2;
@@ -349,7 +348,7 @@ inline Quaternion operator*(const Quaternion &q1, const Quaternion &q2)
 /*!\relates Quaternion
 Divide
 */
-inline Quaternion operator/(const Quaternion &q, float f)
+inline Quaternion operator/(Quaternion const& q, float f)
 {
     auto tq(q);
     tq /= f;
@@ -376,7 +375,7 @@ inline void Quaternion::Set(float ax, float ay, float az)
 }
 
 // Construct from angles of rotation
-inline void Quaternion::Set(const Vector &ang)
+inline void Quaternion::Set(Vector const& ang)
 {
     Set(ang.x, ang.y, ang.z);
 }
@@ -391,52 +390,40 @@ inline void Quaternion::Set(float qx, float qy, float qz, float qw)
 }
 
 // Construct from matrix
-inline void Quaternion::Set(const Matrix &mtx)
+inline void Quaternion::Set(Matrix const& mtx)
 {
-    const auto tr = mtx.m[0][0] + mtx.m[1][1] + mtx.m[2][2];
-    if (tr > 0.0f)
-    {
+    auto const tr = mtx.m[0][0] + mtx.m[1][1] + mtx.m[2][2];
+    if (tr > 0.0f) {
         double s = sqrt(tr + 1.0f);
-        w = static_cast<float>(s * 0.5);
-        s = 0.5 / s;
-        x = static_cast<float>((mtx.m[1][2] - mtx.m[2][1]) * s);
-        y = static_cast<float>((mtx.m[2][0] - mtx.m[0][2]) * s);
-        z = static_cast<float>((mtx.m[0][1] - mtx.m[1][0]) * s);
-    }
-    else
-    {
+        w        = static_cast<float>(s * 0.5);
+        s        = 0.5 / s;
+        x        = static_cast<float>((mtx.m[1][2] - mtx.m[2][1]) * s);
+        y        = static_cast<float>((mtx.m[2][0] - mtx.m[0][2]) * s);
+        z        = static_cast<float>((mtx.m[0][1] - mtx.m[1][0]) * s);
+    } else {
         int32_t i, j, k;
-        if (mtx.m[1][1] > mtx.m[0][0])
-        {
-            if (mtx.m[2][2] > mtx.m[1][1])
-            {
+        if (mtx.m[1][1] > mtx.m[0][0]) {
+            if (mtx.m[2][2] > mtx.m[1][1]) {
                 i = 2;
                 j = 0;
                 k = 1;
-            }
-            else
-            {
+            } else {
                 i = 1;
                 j = 2;
                 k = 0;
             }
-        }
-        else if (mtx.m[2][2] > mtx.m[0][0])
-        {
+        } else if (mtx.m[2][2] > mtx.m[0][0]) {
             i = 2;
             j = 0;
             k = 1;
-        }
-        else
-        {
+        } else {
             i = 0;
             j = 1;
             k = 2;
         }
         auto s = sqrt((mtx.m[i][i] - (mtx.m[j][j] + mtx.m[k][k])) + 1.0);
-        q[i] = static_cast<float>(s * 0.5);
-        if (s != 0.0)
-            s = 0.5 / s;
+        q[i]   = static_cast<float>(s * 0.5);
+        if (s != 0.0) s = 0.5 / s;
         q[j] = static_cast<float>((mtx.m[i][j] + mtx.m[j][i]) * s);
         q[k] = static_cast<float>((mtx.m[i][k] + mtx.m[k][i]) * s);
         q[3] = static_cast<float>((mtx.m[j][k] - mtx.m[k][j]) * s);
@@ -448,22 +435,21 @@ inline void Quaternion::Set(const Matrix &mtx)
 // ===========================================================
 
 // Normalize
-inline Quaternion &Quaternion::Normalize()
+inline Quaternion& Quaternion::Normalize()
 {
-    auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y) +
-               static_cast<double>(z) * static_cast<double>(z) + static_cast<double>(w) * static_cast<double>(w);
-    if (len <= 0.0)
-        return *this;
+    auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y)
+        + static_cast<double>(z) * static_cast<double>(z) + static_cast<double>(w) * static_cast<double>(w);
+    if (len <= 0.0) return *this;
     len = 1.0 / sqrt(len);
-    x = static_cast<float>(x * len);
-    y = static_cast<float>(y * len);
-    z = static_cast<float>(z * len);
-    w = static_cast<float>(w * len);
+    x   = static_cast<float>(x * len);
+    y   = static_cast<float>(y * len);
+    z   = static_cast<float>(z * len);
+    w   = static_cast<float>(w * len);
     return *this;
 }
 
 // Get coplanar quaternion
-inline Quaternion &Quaternion::Conjugate()
+inline Quaternion& Quaternion::Conjugate()
 {
     x = -x;
     y = -y;
@@ -472,7 +458,7 @@ inline Quaternion &Quaternion::Conjugate()
 }
 
 // Invert quaternion
-inline Quaternion &Quaternion::Inverse()
+inline Quaternion& Quaternion::Inverse()
 {
     Conjugate();
     Normalize();
@@ -480,31 +466,26 @@ inline Quaternion &Quaternion::Inverse()
 }
 
 // Spherical linear interpolation
-inline Quaternion &Quaternion::SLerp(const Quaternion &q1, const Quaternion &q2, float kBlend)
+inline Quaternion& Quaternion::SLerp(Quaternion const& q1, Quaternion const& q2, float kBlend)
 {
     // The angle between the quaternions
     double cosomega = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
-    double k = 1.0f;
+    double k        = 1.0f;
     // Nearest direction
-    if (cosomega < 0.0f)
-    {
+    if (cosomega < 0.0f) {
         cosomega = -cosomega;
-        k = -1.0f;
+        k        = -1.0f;
     }
-    if (cosomega > 1.0)
-        cosomega = 1.0;
+    if (cosomega > 1.0) cosomega = 1.0;
     // Interpolation coefficients
     double k0, k1;
-    if (1.0 - cosomega > 0.1)
-    {
+    if (1.0 - cosomega > 0.1) {
         // slerp
-        const auto omega = acos(cosomega);
-        const auto sinomega = 1.0 / sin(omega);
-        k0 = sin(omega * (1.0 - kBlend)) * sinomega;
-        k1 = sin(omega * kBlend) * sinomega;
-    }
-    else
-    {
+        auto const omega    = acos(cosomega);
+        auto const sinomega = 1.0 / sin(omega);
+        k0                  = sin(omega * (1.0 - kBlend)) * sinomega;
+        k1                  = sin(omega * kBlend) * sinomega;
+    } else {
         // lerp
         k0 = 1.0 - kBlend;
         k1 = kBlend;
@@ -523,12 +504,12 @@ inline Quaternion &Quaternion::SLerp(const Quaternion &q1, const Quaternion &q2,
 // ===========================================================
 
 // Get a matrix from a quaternion
-inline void Quaternion::GetMatrix(Matrix &mtx) const
+inline void Quaternion::GetMatrix(Matrix& mtx) const
 {
-    const auto xx = x * x * 2.0f, xy = x * y * 2.0f, xz = x * z * 2.0f;
-    const auto yy = y * y * 2.0f, yz = y * z * 2.0f;
-    const auto zz = z * z * 2.0f;
-    const auto wx = w * x * 2.0f, wy = w * y * 2.0f, wz = w * z * 2.0f;
+    auto const xx = x * x * 2.0f, xy = x * y * 2.0f, xz = x * z * 2.0f;
+    auto const yy = y * y * 2.0f, yz = y * z * 2.0f;
+    auto const zz = z * z * 2.0f;
+    auto const wx = w * x * 2.0f, wy = w * y * 2.0f, wz = w * z * 2.0f;
     mtx.m[0][0] = 1.0f - (yy + zz);
     mtx.m[0][1] = xy + wz;
     mtx.m[0][2] = xz - wy;

@@ -7,7 +7,7 @@ CREATE_CLASS(ANIMALS)
 
 ANIMALS::ANIMALS() : seagulls(nullptr), fishSchools(nullptr), butterflies(nullptr)
 {
-    seagulls = new TSeagulls();
+    seagulls    = new TSeagulls();
     fishSchools = new TFishSchools();
     butterflies = new TButterflies();
 }
@@ -31,25 +31,20 @@ bool ANIMALS::Init()
     return true;
 }
 
-uint64_t ANIMALS::ProcessMessage(MESSAGE &message)
+uint64_t ANIMALS::ProcessMessage(MESSAGE& message)
 {
-    const auto code = message.Long();
-    uint64_t outValue = 0;
+    auto const code     = message.Long();
+    uint64_t   outValue = 0;
 
-    switch (code)
-    {
-    case MSG_SOUND_SET_MASTER_VOLUME:
-        break;
+    switch (code) {
+    case MSG_SOUND_SET_MASTER_VOLUME: break;
     default:
         outValue = seagulls->ProcessMessage(code, message);
-        if (outValue)
-            return outValue;
+        if (outValue) return outValue;
         outValue = fishSchools->ProcessMessage(code, message);
-        if (outValue)
-            return outValue;
+        if (outValue) return outValue;
         outValue = butterflies->ProcessMessage(code, message);
-        if (outValue)
-            return outValue;
+        if (outValue) return outValue;
 
         break;
     }
@@ -71,12 +66,9 @@ void ANIMALS::Execute(uint32_t _dTime)
     butterflies->Execute(_dTime);
 }
 
-uint32_t ANIMALS::AttributeChanged(ATTRIBUTES *_pA)
+uint32_t ANIMALS::AttributeChanged(ATTRIBUTES* _pA)
 {
-    if (*_pA == "midY")
-    {
-        seagulls->SetStartY(this->AttributesPointer->GetAttributeAsFloat("midY"));
-    }
+    if (*_pA == "midY") { seagulls->SetStartY(this->AttributesPointer->GetAttributeAsFloat("midY")); }
 
     return 0;
 }

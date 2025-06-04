@@ -13,7 +13,7 @@ namespace storm::diag
 constexpr auto getLoggingFlushPeriod()
 {
     using namespace std::chrono_literals;
-    return 5s; // configurable
+    return 5s;  // configurable
 }
 
 class LoggingService;
@@ -22,10 +22,8 @@ class LifecycleDiagnosticsService final
 {
     class Guard
     {
-      public:
-        explicit Guard(LifecycleDiagnosticsService &inst) : inst_(inst)
-        {
-        }
+    public:
+        explicit Guard(LifecycleDiagnosticsService& inst) : inst_(inst) {}
 
         ~Guard()
         {
@@ -37,27 +35,27 @@ class LifecycleDiagnosticsService final
             return inst_.initialized_;
         }
 
-      private:
-        LifecycleDiagnosticsService &inst_;
+    private:
+        LifecycleDiagnosticsService& inst_;
     };
 
-  public:
+public:
     using crash_info_collector = std::function<void()>;
 
     LifecycleDiagnosticsService();
     ~LifecycleDiagnosticsService();
 
     [[maybe_unused, nodiscard("This guard shall exist until stack unwind")]] Guard initialize(bool enableCrashReports);
-    void terminate() const;
-    void notifyAfterRun() const;
-    void setCrashInfoCollector(crash_info_collector f);
+    void                                                                           terminate() const;
+    void                                                                           notifyAfterRun() const;
+    void                                                                           setCrashInfoCollector(crash_info_collector f);
 
-  private:
-    bool initialized_{false};
+private:
+    bool                            initialized_ {false};
     std::unique_ptr<LoggingService> loggingService_;
-    crash_info_collector collectCrashInfo_;
+    crash_info_collector            collectCrashInfo_;
 
-    static sentry_value_t beforeCrash(const sentry_ucontext_t *uctx, sentry_value_t event, void *closure);
+    static sentry_value_t beforeCrash(sentry_ucontext_t const* uctx, sentry_value_t event, void* closure);
 };
 
-} // namespace storm::diag
+}  // namespace storm::diag

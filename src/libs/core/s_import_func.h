@@ -2,33 +2,28 @@
 
 #include <cstdint>
 
-enum FuncResult : uint32_t
-{
-    IFUNCRESULT_OK = 0U,
-    IFUNCRESULT_FAILED = 0xffffffffU
-};
+enum FuncResult : uint32_t { IFUNCRESULT_OK = 0U, IFUNCRESULT_FAILED = 0xffffffffU };
 
 #define INVALID_FUNCHANDLE 0xffffffffU
 
 #include <cstdint>
 
 class VS_STACK;
-using SIMPORTFUNC = uint32_t (*)(VS_STACK *);
+using SIMPORTFUNC = uint32_t (*)(VS_STACK*);
 
-struct IFUNCINFO
-{
+struct IFUNCINFO {
     IFUNCINFO() : nArguments(0)
     {
-        pFuncName = nullptr;
+        pFuncName        = nullptr;
         pReturnValueName = nullptr;
-        pFuncAddress = nullptr;
-        pDeclFileName = nullptr;
-        nDeclLine = 0;
+        pFuncAddress     = nullptr;
+        pDeclFileName    = nullptr;
+        nDeclLine        = 0;
     };
-    const char *pFuncName;
-    const char *pReturnValueName;
-    uint32_t nArguments;
+    char const* pFuncName;
+    char const* pReturnValueName;
+    uint32_t    nArguments;
     SIMPORTFUNC pFuncAddress;
-    const char *pDeclFileName;
-    uint32_t nDeclLine;
+    char const* pDeclFileName;
+    uint32_t    nDeclLine;
 };

@@ -8,9 +8,9 @@
 //
 //============================================================================================
 
-#include "animation_imp.h"
-
 #include <libs/util/string_compare.hpp>
+
+#include "animation_imp.h"
 
 // ============================================================================================
 // Construction, destruction
@@ -18,30 +18,28 @@
 
 ActionPlayerImp::ActionPlayerImp()
 {
-    ani = nullptr;
+    ani         = nullptr;
     playerIndex = -1;
-    action = nullptr;
-    isPlay = false;
-    isPause = false;
-    isAutostop = true;
-    anitype = at_normal;
-    speed = 1.0f;
-    kspeed = 1.0f;
-    isLoop = false;
-    kBlend = 1.0f;
+    action      = nullptr;
+    isPlay      = false;
+    isPause     = false;
+    isAutostop  = true;
+    anitype     = at_normal;
+    speed       = 1.0f;
+    kspeed      = 1.0f;
+    isLoop      = false;
+    kBlend      = 1.0f;
     kBlendTimer = 1.0f;
     ResetEventsMask();
 }
 
-ActionPlayerImp::~ActionPlayerImp()
-{
-}
+ActionPlayerImp::~ActionPlayerImp() {}
 
 // Set pointer to animation manager
-void ActionPlayerImp::SetAnimation(AnimationImp *animation, int32_t index)
+void ActionPlayerImp::SetAnimation(AnimationImp* animation, int32_t index)
 {
     Assert(!ani);
-    ani = animation;
+    ani         = animation;
     playerIndex = index;
 }
 
@@ -50,23 +48,20 @@ void ActionPlayerImp::SetAnimation(AnimationImp *animation, int32_t index)
 //--------------------------------------------------------------------------------------------
 
 // Set current action
-bool ActionPlayerImp::SetAction(const char *actionName)
+bool ActionPlayerImp::SetAction(char const* actionName)
 {
-    if (actionName && action && storm::iEquals(action->GetName(), actionName))
-        return true;
+    if (actionName && action && storm::iEquals(action->GetName(), actionName)) return true;
     action = nullptr;
     isPlay = isPause = false;
-    isAutostop = true;
-    kBlendTimer = 1.0f;
+    isAutostop       = true;
+    kBlendTimer      = 1.0f;
     ResetPosition();
-    if (!actionName || actionName[0] == 0)
-    {
+    if (!actionName || actionName[0] == 0) {
         ani->ApeSetnewaction(playerIndex);
         return false;
     }
     action = ani->GetActionInfo(actionName);
-    if (action == nullptr)
-    {
+    if (action == nullptr) {
         ani->ApeSetnewaction(playerIndex);
         return false;
     }
@@ -75,9 +70,9 @@ bool ActionPlayerImp::SetAction(const char *actionName)
         speed = 0.001f * ani->GetFPS() / (action->endFrame - action->startFrame);
     else
         speed = 0.0f;
-    kspeed = action->kRate;
+    kspeed  = action->kRate;
     anitype = action->type;
-    isLoop = action->isLoop;
+    isLoop  = action->isLoop;
     // expose a position
     ResetPosition();
     // inform about the change
@@ -85,28 +80,23 @@ bool ActionPlayerImp::SetAction(const char *actionName)
     return true;
 }
 
-const char *ActionPlayerImp::GetAction() const
+char const* ActionPlayerImp::GetAction() const
 {
-    if (action)
-        return action->GetName();
+    if (action) return action->GetName();
     return nullptr;
 }
 
 // Play control
 bool ActionPlayerImp::Play()
 {
-    if (!action)
-        return false;
-    if (isPlay && !isPause)
-        return true;
+    if (!action) return false;
+    if (isPlay && !isPause) return true;
     isPlay = true;
     auto p = isPause;
-    if (!isPause)
-    {
+    if (!isPause) {
         ani->ApePlay(playerIndex);
         ani->ApeStart(playerIndex);
-    }
-    else
+    } else
         ani->ApePauseOff(playerIndex);
     isPause = false;
     return true;
@@ -121,22 +111,19 @@ void ActionPlayerImp::Pause()
 void ActionPlayerImp::Stop()
 {
     ResetPosition();
-    isPlay = false;
+    isPlay  = false;
     isPause = false;
     ani->ApeStop(playerIndex);
 }
 
 void ActionPlayerImp::SysStop()
 {
-    if (isPause)
-        return;
-    isPlay = false;
+    if (isPause) return;
+    isPlay  = false;
     isPause = false;
     ani->ApeStop(playerIndex);
-    if (position < 0.0f)
-        position = 0.0f;
-    if (position > 1.0f)
-        position = 1.0f;
+    if (position < 0.0f) position = 0.0f;
+    if (position > 1.0f) position = 1.0f;
     ResetEventsMask();
 }
 
@@ -153,8 +140,8 @@ bool ActionPlayerImp::IsPause() const
 // Auto stop when timer expires
 bool ActionPlayerImp::SetAutoStop(bool isStop)
 {
-    const auto old = isAutostop;
-    isAutostop = isStop;
+    auto const old = isAutostop;
+    isAutostop     = isStop;
     return old;
 }
 
@@ -166,11 +153,9 @@ bool ActionPlayerImp::IsAutoStop() const
 // Current playing position
 float ActionPlayerImp::SetPosition(float position)
 {
-    const auto pos = this->position;
-    if (position < 0.0f)
-        position = 0.0f;
-    if (position > 1.0f)
-        position = 1.0f;
+    auto const pos = this->position;
+    if (position < 0.0f) position = 0.0f;
+    if (position > 1.0f) position = 1.0f;
     this->position = position;
     return pos;
 }
@@ -194,12 +179,10 @@ AnimationType ActionPlayerImp::GetType() const
 // Playback speed coefficient
 float ActionPlayerImp::SetSpeed(float kSpeed)
 {
-    if (kSpeed < 0.0f)
-        kSpeed = 0.0f;
-    if (kSpeed > 10.0f)
-        kSpeed = 10.0f;
-    const auto ks = kspeed;
-    kspeed = kSpeed;
+    if (kSpeed < 0.0f) kSpeed = 0.0f;
+    if (kSpeed > 10.0f) kSpeed = 10.0f;
+    auto const ks = kspeed;
+    kspeed        = kSpeed;
     return ks;
 }
 
@@ -210,26 +193,22 @@ float ActionPlayerImp::GetSpeed() const
 
 float ActionPlayerImp::GetDefSpeed() const
 {
-    if (action)
-        return action->kRate;
+    if (action) return action->kRate;
     return 0.0f;
 }
 
 // Get the duration of an action in milliseconds
 int32_t ActionPlayerImp::GetFrames() const
 {
-    if (action)
-        return action->GetFrames();
+    if (action) return action->GetFrames();
     return 0;
 }
 
 // Set blending coefficient 0..1
 void ActionPlayerImp::SetBlend(float k)
 {
-    if (k < 0.0f)
-        k = 0.0f;
-    if (k > 1.0f)
-        k = 1.0f;
+    if (k < 0.0f) k = 0.0f;
+    if (k > 1.0f) k = 1.0f;
     kBlend = k;
 }
 
@@ -240,12 +219,11 @@ float ActionPlayerImp::GetBlend()
 }
 
 // Get user data for this action
-const char *ActionPlayerImp::GetData(const char *dataName) const
+char const* ActionPlayerImp::GetData(char const* dataName) const
 {
-    if (!action)
-        return nullptr;
-    const auto &userData = action->GetUserData();
-    const auto it = userData.find(dataName);
+    if (!action) return nullptr;
+    auto const& userData = action->GetUserData();
+    auto const  it       = userData.find(dataName);
     return it != userData.end() ? it->second.c_str() : nullptr;
 }
 
@@ -257,27 +235,15 @@ const char *ActionPlayerImp::GetData(const char *dataName) const
 void ActionPlayerImp::Execute(int32_t dltTime)
 {
     kBlendTimer = 1.0f;
-    if (!action || !isPlay || isPause || anitype == at_static)
-        return;
-    const auto dlt = dltTime * speed * kspeed;
-    switch (anitype)
-    {
-    case at_static:
-        break;
-    case at_normal:
-        MoveNormal(dlt);
-        break;
-    case at_reverse:
-        MoveReverse(dlt);
-        break;
-    case at_pingpong:
-        MovePingpong(dlt);
-        break;
-    case at_rpingpong:
-        MoveRPingpong(dlt);
-        break;
-    default:
-        throw std::runtime_error("ActionPlayerImp::Execute -> anknow animation type");
+    if (!action || !isPlay || isPause || anitype == at_static) return;
+    auto const dlt = dltTime * speed * kspeed;
+    switch (anitype) {
+    case at_static: break;
+    case at_normal: MoveNormal(dlt); break;
+    case at_reverse: MoveReverse(dlt); break;
+    case at_pingpong: MovePingpong(dlt); break;
+    case at_rpingpong: MoveRPingpong(dlt); break;
+    default: throw std::runtime_error("ActionPlayerImp::Execute -> anknow animation type");
     }
     if (isPlay)
         CheckEvents();
@@ -289,11 +255,10 @@ void ActionPlayerImp::Execute(int32_t dltTime)
 void ActionPlayerImp::ResetPosition()
 {
     position = 0.0f;
-    dir = true;
-    if (action && (anitype == at_reverse || anitype == at_rpingpong))
-    {
+    dir      = true;
+    if (action && (anitype == at_reverse || anitype == at_rpingpong)) {
         position = 1.0f;
-        dir = false;
+        dir      = false;
     }
     ResetEventsMask();
 }
@@ -301,20 +266,19 @@ void ActionPlayerImp::ResetPosition()
 // Get the current time
 float ActionPlayerImp::GetCurrentFrame()
 {
-    if (!action)
-        return 0;
+    if (!action) return 0;
     return action->startFrame + position * (action->endFrame - action->startFrame);
 }
 
 // Copy the state of another player
-void ActionPlayerImp::CopyState(ActionPlayerImp &from)
+void ActionPlayerImp::CopyState(ActionPlayerImp& from)
 {
     // Information about the current action
     action = from.action;
     // Animation playback type
     anitype = from.anitype;
     // Playing
-    isPlay = from.isPlay;
+    isPlay  = from.isPlay;
     isPause = from.isPause;
     // Automatic stop
     isAutostop = from.isAutostop;
@@ -345,16 +309,13 @@ void ActionPlayerImp::CopyState(ActionPlayerImp &from)
 void ActionPlayerImp::MoveNormal(float dlt)
 {
     position += dlt;
-    if (position >= 1.0f)
-    {
+    if (position >= 1.0f) {
         ani->ApeEnd(playerIndex);
-        if (isLoop)
-        {
+        if (isLoop) {
             ResetEventsMask();
             position -= static_cast<float>(static_cast<int32_t>(position));
             ani->ApeStart(playerIndex);
-        }
-        else
+        } else
             SysStop();
     }
 }
@@ -362,50 +323,40 @@ void ActionPlayerImp::MoveNormal(float dlt)
 void ActionPlayerImp::MoveReverse(float dlt)
 {
     position -= dlt;
-    if (position <= 0.0f)
-    {
+    if (position <= 0.0f) {
         ani->ApeEnd(playerIndex);
-        if (isLoop)
-        {
+        if (isLoop) {
             ResetEventsMask();
             position -= static_cast<int32_t>(position) - 1.0f;
             ani->ApeStart(playerIndex);
-        }
-        else
+        } else
             SysStop();
     }
 }
 
 void ActionPlayerImp::MovePingpong(float dlt)
 {
-    if (dir)
-    {
+    if (dir) {
         // Forward movement
         position += dlt;
-        if (position >= 1.0f)
-        {
+        if (position >= 1.0f) {
             // change direction
             position = 1.0f - (position - static_cast<float>(static_cast<int32_t>(position)));
-            dir = false;
+            dir      = false;
             ani->ApeChange(playerIndex);
         }
-    }
-    else
-    {
+    } else {
         // Reverse movement
         position -= dlt;
-        if (position < 0.0f)
-        {
+        if (position < 0.0f) {
             ani->ApeEnd(playerIndex);
-            if (isLoop)
-            {
+            if (isLoop) {
                 // change direction
                 ResetEventsMask();
                 position = -(position - static_cast<int32_t>(position));
-                dir = true;
+                dir      = true;
                 ani->ApeStart(playerIndex);
-            }
-            else
+            } else
                 SysStop();
         }
     }
@@ -413,35 +364,28 @@ void ActionPlayerImp::MovePingpong(float dlt)
 
 void ActionPlayerImp::MoveRPingpong(float dlt)
 {
-    if (!dir)
-    {
+    if (!dir) {
         // Reverse movement
         position -= dlt;
-        if (position < 0.0f)
-        {
+        if (position < 0.0f) {
             ResetEventsMask();
             // change direction
             position = -(position - static_cast<int32_t>(position));
-            dir = true;
+            dir      = true;
             ani->ApeChange(playerIndex);
         }
-    }
-    else
-    {
+    } else {
         // Direct movement
         position += dlt;
-        if (position >= 1.0f)
-        {
+        if (position >= 1.0f) {
             ani->ApeEnd(playerIndex);
-            if (isLoop)
-            {
+            if (isLoop) {
                 ResetEventsMask();
                 // change direction
                 position = 1.0f - (position - static_cast<float>(static_cast<int32_t>(position)));
-                dir = false;
+                dir      = false;
                 ani->ApeStart(playerIndex);
-            }
-            else
+            } else
                 SysStop();
         }
     }
@@ -450,16 +394,12 @@ void ActionPlayerImp::MoveRPingpong(float dlt)
 // Check events and initiate if necessary
 void ActionPlayerImp::CheckEvents()
 {
-    if (!action)
-        return;
-    const auto num = action->GetNumEvents();
-    for (int32_t i = 0; i < num; i++)
-    {
-        const int32_t mask = 1 << (i & 31);
-        if (eventsMask[i >> 5] & mask)
-            continue;
-        if (action->CheckEvent(i, position, dir))
-        {
+    if (!action) return;
+    auto const num = action->GetNumEvents();
+    for (int32_t i = 0; i < num; i++) {
+        int32_t const mask = 1 << (i & 31);
+        if (eventsMask[i >> 5] & mask) continue;
+        if (action->CheckEvent(i, position, dir)) {
             eventsMask[i >> 5] |= mask;
             // send a custom event
             ani->AteExtern(playerIndex, action->EventName(i));

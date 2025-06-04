@@ -16,48 +16,48 @@
 class Location;
 class Animation;
 
-class LocLife : public AnimationEventListener
+class LocLife: public AnimationEventListener
 {
-  public:
+public:
     LocLife();
     ~LocLife() override;
 
     //--------------------------------------------------------------------------------------------
-  public:
-    bool Init(Location *loc);
+public:
+    bool Init(Location* loc);
     void Update(float dltTime);
 
     //--------------------------------------------------------------------------------------------
-  protected:
-    virtual const char *GetModelName() = 0;
-    virtual const char *GetAniName() = 0;
-    virtual bool PostInit(Animation *ani) = 0;
+protected:
+    virtual char const* GetModelName()           = 0;
+    virtual char const* GetAniName()             = 0;
+    virtual bool        PostInit(Animation* ani) = 0;
 
-    virtual void IdleProcess(Animation *ani, float dltTime) = 0;
-    virtual void MoveProcess(Animation *ani, float dltTime) = 0;
-    virtual void IsStartMove(Animation *ani) = 0;
-    virtual void IsStopMove(Animation *ani) = 0;
+    virtual void IdleProcess(Animation* ani, float dltTime) = 0;
+    virtual void MoveProcess(Animation* ani, float dltTime) = 0;
+    virtual void IsStartMove(Animation* ani)                = 0;
+    virtual void IsStopMove(Animation* ani)                 = 0;
 
     //--------------------------------------------------------------------------------------------
-  protected:
+protected:
     void StartMove();
     void StopMove();
     bool IsNearPlayer(float radius) const;
 
-  private:
+private:
     int32_t FindPos();
-    int32_t FindRandomPos(CVECTOR &pos) const;
+    int32_t FindRandomPos(CVECTOR& pos) const;
 
     //--------------------------------------------------------------------------------------------
-  protected:
+protected:
     float kSpeed;
     float speed;
 
-  private:
-    Location *location;
-    entid_t model;
-    int32_t node;
-    float ay;
-    CVECTOR pos;
-    CVECTOR npos;
+private:
+    Location* location;
+    entid_t   model;
+    int32_t   node;
+    float     ay;
+    CVECTOR   pos;
+    CVECTOR   npos;
 };

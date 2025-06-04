@@ -1,49 +1,49 @@
 #pragma once
 
+#include <libs/math/math3d.h>
+
 #include "../../i_common/i_emitter.h"
 #include "../../i_common/types.h"
 #include "../data_source/data_source.h"
 #include "../particle_system/particle_system.h"
-#include <libs/math/math3d.h>
 
 class DataGraph;
 
-class BaseEmitter : public IEmitter
+class BaseEmitter: public IEmitter
 {
-    struct structParticleType
-    {
-        bool Visible;               // visible or not
-        ParticleType Type;          // Particle type
-        float Remain;               // How many not emitted from the last frame are left
-        uint32_t ActiveCount;       // The number of active particles of this type
-        uint32_t MaxParticlesCount; // Maximum number of particles of this type
-        DataGraph *EmissionRate;    // Graph defining the rate of emission of particles
+    struct structParticleType {
+        bool         Visible;            // visible or not
+        ParticleType Type;               // Particle type
+        float        Remain;             // How many not emitted from the last frame are left
+        uint32_t     ActiveCount;        // The number of active particles of this type
+        uint32_t     MaxParticlesCount;  // Maximum number of particles of this type
+        DataGraph*   EmissionRate;       // Graph defining the rate of emission of particles
 
-        FieldList *pFields;
+        FieldList* pFields;
 
         structParticleType() : Visible(false), MaxParticlesCount(0)
         {
-            ActiveCount = 0;
-            Remain = 0.0f;
+            ActiveCount  = 0;
+            Remain       = 0.0f;
             EmissionRate = nullptr;
-            pFields = nullptr;
-            Type = UNKNOWN_PARTICLE;
+            pFields      = nullptr;
+            Type         = UNKNOWN_PARTICLE;
         }
     };
 
     std::vector<structParticleType> ParticleTypes;
 
-    DataSource::EmitterDesc *pEmitter;
-    FieldList *pFields;
-    bool IsAttachedFlag;
+    DataSource::EmitterDesc* pEmitter;
+    FieldList*               pFields;
+    bool                     IsAttachedFlag;
 
-    Vector Position;
+    Vector      Position;
     EmitterType Type;
-    float LifeTime;
-    float ElapsedTime;
-    DataGraph *EmissionDirX;
-    DataGraph *EmissionDirY;
-    DataGraph *EmissionDirZ;
+    float       LifeTime;
+    float       ElapsedTime;
+    DataGraph*  EmissionDirX;
+    DataGraph*  EmissionDirY;
+    DataGraph*  EmissionDirZ;
 
     bool Looped;
     bool Stoped;
@@ -52,21 +52,21 @@ class BaseEmitter : public IEmitter
     uint32_t Unique_GUID;
 
     Matrix matWorldTransform;
-    bool OldMatrixNotInitialized;
+    bool   OldMatrixNotInitialized;
     Matrix matWorldTransformOld;
     Matrix matWorldTransformNew;
 
-    void BlendMatrix(Matrix &result, const Matrix &mat1, const Matrix &mat2, float BlendK);
+    void BlendMatrix(Matrix& result, Matrix const& mat1, Matrix const& mat2, float BlendK);
 
     void IncreaseTime(float DeltaTime);
 
-  protected:
-    std::string Name;
-    ParticleSystem *pMaster;
+protected:
+    std::string     Name;
+    ParticleSystem* pMaster;
 
-  public:
+public:
     // Constructor / destructor
-    BaseEmitter(ParticleSystem *pSystem);
+    BaseEmitter(ParticleSystem* pSystem);
     ~BaseEmitter() override;
 
     // Get a position for the emission of new particles
@@ -78,14 +78,14 @@ class BaseEmitter : public IEmitter
     void Execute(float DeltaTime) override;
 
     // Join data source
-    virtual void AttachToDataSource(DataSource::EmitterDesc *pEmitter);
+    virtual void AttachToDataSource(DataSource::EmitterDesc* pEmitter);
 
-    virtual void CreateBillBoardParticle(FieldList &Fields);
-    virtual void CreateModelParticle(FieldList &Fields);
+    virtual void CreateBillBoardParticle(FieldList& Fields);
+    virtual void CreateModelParticle(FieldList& Fields);
 
-    ParticleSystem *GetMaster() const;
-    ParticleManager *GetManager() const;
-    void GetEmissionDirection(Matrix &matWorld) const;
+    ParticleSystem*  GetMaster() const;
+    ParticleManager* GetManager() const;
+    void             GetEmissionDirection(Matrix& matWorld) const;
 
     virtual void SetGUID(uint32_t GUID)
     {
@@ -100,12 +100,12 @@ class BaseEmitter : public IEmitter
     void Restart() override;
 
     uint32_t GetParticleCount() override;
-    bool IsStoped() override;
+    bool     IsStoped() override;
 
-    void SetTransform(const Matrix &matWorld) override;
-    void Teleport(const Matrix &matWorld) override;
+    void SetTransform(Matrix const& matWorld) override;
+    void Teleport(Matrix const& matWorld) override;
 
-    const char *GetName() override;
+    char const* GetName() override;
 
     // If the flag is set to true, the emitter will not emit particles by itself
     // because it is attached
@@ -113,25 +113,25 @@ class BaseEmitter : public IEmitter
     bool IsAttached() override;
 
     float GetTime() override;
-    void SetTime(float Time) override;
+    void  SetTime(float Time) override;
 
-    uint32_t GetParticleTypesCount() override;
-    FieldList *GetParticleTypeDataByIndex(uint32_t Index) override;
+    uint32_t     GetParticleTypesCount() override;
+    FieldList*   GetParticleTypeDataByIndex(uint32_t Index) override;
     ParticleType GetParticleTypeByIndex(uint32_t Index) override;
 
-    FieldList *GetData() override;
+    FieldList* GetData() override;
 
     bool SetEnable(bool bVisible) override;
     bool GetEnable() override;
 
     // -1 if not found, otherwise index
-    int GetParticleTypeIndex(FieldList *pFields) override;
+    int  GetParticleTypeIndex(FieldList* pFields) override;
     bool SetParticleTypeEnable(bool bVisible, uint32_t Index) override;
     bool GetParticleTypeEnable(uint32_t Index) override;
 
     void Editor_UpdateCachedData() override;
 
-    void SetName(const char *Name) override;
+    void SetName(char const* Name) override;
 
     void Stop() override;
 };

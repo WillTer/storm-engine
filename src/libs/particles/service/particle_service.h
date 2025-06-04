@@ -7,27 +7,27 @@
 
 #pragma once
 
-#include "../particles.h"
 #include <string>
 #include <vector>
 
+#include "../particles.h"
+
 class ParticleManager;
 
-class ParticleService : public IParticleService
+class ParticleService: public IParticleService
 {
-    IParticleManager *pDefaultManager;
+    IParticleManager* pDefaultManager;
 
-    struct CreatedManager
-    {
-        ParticleManager *pManager;
-        std::string FileName;
-        int Line;
+    struct CreatedManager {
+        ParticleManager* pManager;
+        std::string      FileName;
+        int              Line;
     };
 
-    bool sysDelete;
+    bool                        sysDelete;
     std::vector<CreatedManager> CreatedManagers;
 
-  public:
+public:
     // Constructor / destructor
     ParticleService();
     ~ParticleService() override;
@@ -35,12 +35,12 @@ class ParticleService : public IParticleService
     bool Init() override;
 
     // Create a particle manager
-    IParticleManager *CreateManagerEx(const char *ProjectName, const char *File, int Line) override;
+    IParticleManager* CreateManagerEx(char const* ProjectName, char const* File, int Line) override;
 
-    virtual void RemoveManagerFromList(IParticleManager *pManager);
+    virtual void RemoveManagerFromList(IParticleManager* pManager);
 
-    uint32_t GetManagersCount() override;
-    IParticleManager *GetManagerByIndex(uint32_t Index) override;
+    uint32_t          GetManagersCount() override;
+    IParticleManager* GetManagerByIndex(uint32_t Index) override;
 
-    IParticleManager *DefManager() override;
+    IParticleManager* DefManager() override;
 };

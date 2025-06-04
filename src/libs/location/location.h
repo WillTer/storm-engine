@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 
@@ -22,42 +23,38 @@
 class MODEL;
 class Lights;
 
-class Location : public Entity
+class Location: public Entity
 {
-    struct SphVertex
-    {
-        CVECTOR v;
+    struct SphVertex {
+        CVECTOR  v;
         uint32_t c;
     };
 
-    struct BarVertex
-    {
-        CVECTOR p;
-        float rhw;
+    struct BarVertex {
+        CVECTOR  p;
+        float    rhw;
         uint32_t c;
-        float u, v;
+        float    u, v;
     };
 
-    struct DmgMessage
-    {
-        CVECTOR p;
-        float alpha;
-        float hit, hp;
+    struct DmgMessage {
+        CVECTOR  p;
+        float    alpha;
+        float    hit, hp;
         uint32_t c;
     };
 
-    struct EnemyBar
-    {
+    struct EnemyBar {
         CVECTOR p;
-        float hp;
-        float energy;
-        float alpha;
+        float   hp;
+        float   energy;
+        float   alpha;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Location();
     ~Location() override;
 
@@ -67,15 +64,12 @@ class Location : public Entity
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -89,32 +83,31 @@ class Location : public Entity
     //--------------------------------------------------------------------------------------------
     // Location
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Find locator group
-    LocatorArray *FindLocatorsGroup(const char *gName);
+    LocatorArray* FindLocatorsGroup(char const* gName);
     // Find locator
-    bool CheckIfLocatorExists(const char *lName);
+    bool CheckIfLocatorExists(char const* lName);
 
     // Get a character patch
-    PtcData &GetPtcData();
+    PtcData& GetPtcData();
     // Get the model of the jump patch
-    MODEL *JmpPatch();
+    MODEL* JmpPatch();
 
     // Check the visibility of 2 points
-    bool VisibleTest(const CVECTOR &p1, const CVECTOR &p2);
+    bool VisibleTest(const CVECTOR& p1, const CVECTOR& p2);
 
     // Trace the ray through the location
-    float Trace(const CVECTOR &src, const CVECTOR &dst);
-    bool GetCollideTriangle(TRIANGLE &trg) const;
-    void Clip(PLANE *p, int32_t numPlanes, CVECTOR &cnt, float rad, bool (*fnc)(const CVECTOR *vtx, int32_t num));
+    float Trace(const CVECTOR& src, const CVECTOR& dst);
+    bool  GetCollideTriangle(TRIANGLE& trg) const;
+    void  Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool (*fnc)(const CVECTOR* vtx, int32_t num));
 
-    Lights *GetLights() const;
+    Lights* GetLights() const;
 
-    VDX9RENDER *GetRS() const;
-    void DrawLine(const CVECTOR &s, uint32_t cs, const CVECTOR &d, uint32_t cd, bool useZ = true) const;
+    VDX9RENDER* GetRS() const;
+    void        DrawLine(const CVECTOR& s, uint32_t cs, const CVECTOR& d, uint32_t cd, bool useZ = true) const;
     // Write text
-    void Print(const CVECTOR &pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale,
-               const char *format, ...) const;
+    void Print(const CVECTOR& pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale, char const* format, ...) const;
 
     bool IsDebugView();
     bool IsExDebugView();
@@ -124,49 +117,49 @@ class Location : public Entity
     bool IsSwimming() const;
 
     // Add a damage message
-    void AddDamageMessage(const CVECTOR &pos3D, float hit, float curhp, float maxhp);
+    void AddDamageMessage(const CVECTOR& pos3D, float hit, float curhp, float maxhp);
     // Draw bars above the enemy in this frame
-    void DrawEnemyBars(const CVECTOR &pos, float hp, float energy, float alpha);
+    void DrawEnemyBars(const CVECTOR& pos, float hp, float energy, float alpha);
 
-  public:
+public:
     // The object that controls the repulsion of characters
     Supervisor supervisor;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    void Update(uint32_t delta_time);
-    int32_t LoadStaticModel(const char *modelName, const char *tech, int32_t level, bool useDynamicLights);
-    bool LoadCharacterPatch(const char *ptcName);
-    void LoadCaustic() const;
-    bool LoadJumpPatch(const char *modelName);
-    bool LoadGrass(const char *modelName, const char *texture);
-    bool MessageEx(const char *name, MESSAGE &message);
-    void UpdateLocators();
-    void DrawLocators(LocatorArray *la);
-    void CreateSphere();
-    void TestLocatorsInPatch(MESSAGE &message);
+private:
+    void    Update(uint32_t delta_time);
+    int32_t LoadStaticModel(char const* modelName, char const* tech, int32_t level, bool useDynamicLights);
+    bool    LoadCharacterPatch(char const* ptcName);
+    void    LoadCaustic() const;
+    bool    LoadJumpPatch(char const* modelName);
+    bool    LoadGrass(char const* modelName, char const* texture);
+    bool    MessageEx(char const* name, MESSAGE& message);
+    void    UpdateLocators();
+    void    DrawLocators(LocatorArray* la);
+    void    CreateSphere();
+    void    TestLocatorsInPatch(MESSAGE& message);
     // Drawing bars over characters
     void DrawEnemyBars();
-    void DrawBar(const MTX_PRJ_VECTOR &vrt, uint32_t color, float hp, float energy);
-    void CorrectBar(float v, float start, float end, BarVertex *vrt);
+    void DrawBar(const MTX_PRJ_VECTOR& vrt, uint32_t color, float hp, float energy);
+    void CorrectBar(float v, float start, float end, BarVertex* vrt);
 
-  private:
+private:
     PtcData ptc;
     int32_t patchJump;
 
     int32_t lastLoadStaticModel;
 
     // All locators
-    std::vector<LocatorArray *> locators;
-    int32_t numLocators;
-    int32_t maxLocators;
+    std::vector<LocatorArray*> locators;
+    int32_t                    numLocators;
+    int32_t                    maxLocators;
 
     bool isPause;
     bool isDebugView;
 
-    VDX9RENDER *rs;
+    VDX9RENDER* rs;
 
     // All models
     ModelArray model;
@@ -185,12 +178,12 @@ class Location : public Entity
     entid_t blood;
 
     entid_t lightsid;
-    Lights *lights; // Pointer for the current frame
+    Lights* lights;  // Pointer for the current frame
 
     entid_t loceffectsid;
 
-    SphVertex *sphereVertex;
-    int32_t sphereNumTrgs;
+    SphVertex* sphereVertex;
+    int32_t    sphereNumTrgs;
 
     float locationTimeUpdate;
 
@@ -198,59 +191,57 @@ class Location : public Entity
     // entid_t cubeShotMaker;
 
     DmgMessage message[32];
-    int32_t curMessage;
+    int32_t    curMessage;
 
     EnemyBar enemyBar[32];
-    int32_t enemyBarsCount;
-    int32_t enemyBarsTexture;
-    bool bDrawBars;
+    int32_t  enemyBarsCount;
+    int32_t  enemyBarsTexture;
+    bool     bDrawBars;
 
     bool bSwimming;
 };
 
 // Get a character patch
-inline PtcData &Location::GetPtcData()
+inline PtcData& Location::GetPtcData()
 {
     return ptc;
 }
 
 // Get the model of the jump patch
-inline MODEL *Location::JmpPatch()
+inline MODEL* Location::JmpPatch()
 {
-    if (patchJump < 0)
-        return nullptr;
+    if (patchJump < 0) return nullptr;
     return model[patchJump];
 }
 
-inline VDX9RENDER *Location::GetRS() const
+inline VDX9RENDER* Location::GetRS() const
 {
     return rs;
 }
 
 // Check the visibility of 2 points
-inline bool Location::VisibleTest(const CVECTOR &p1, const CVECTOR &p2)
+inline bool Location::VisibleTest(const CVECTOR& p1, const CVECTOR& p2)
 {
     return model.VisibleTest(p1, p2);
 }
 
-inline Lights *Location::GetLights() const
+inline Lights* Location::GetLights() const
 {
     return lights;
 }
 
 // Trace the ray through the location
-inline float Location::Trace(const CVECTOR &src, const CVECTOR &dst)
+inline float Location::Trace(const CVECTOR& src, const CVECTOR& dst)
 {
     return model.Trace(src, dst);
 }
 
-inline bool Location::GetCollideTriangle(TRIANGLE &trg) const
+inline bool Location::GetCollideTriangle(TRIANGLE& trg) const
 {
     return model.GetCollideTriangle(trg);
 }
 
-inline void Location::Clip(PLANE *p, int32_t numPlanes, CVECTOR &cnt, float rad,
-                           bool (*fnc)(const CVECTOR *vtx, int32_t num))
+inline void Location::Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool (*fnc)(const CVECTOR* vtx, int32_t num))
 {
     model.Clip(p, numPlanes, cnt, rad, fnc);
 }

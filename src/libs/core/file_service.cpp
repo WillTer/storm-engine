@@ -1,12 +1,13 @@
 #include "file_service.h"
-#include "core_impl.h"
+
+#include <exception>
+#include <string>
+
+#include <SDL2/SDL.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 
-
-#include <SDL2/SDL.h>
-#include <exception>
-#include <string>
+#include "core_impl.h"
 
 #define COMMENT ';'
 #define SECTION_A '['
@@ -14,34 +15,31 @@
 #define INI_EQUAL '='
 #define VOIDSYMS_NUM 2
 #define INI_SIGNATURE ";[SE2IF]"
-const char INI_LINEFEED[3] = {0xd, 0xa, 0};
-const char INI_VOIDSYMS[VOIDSYMS_NUM] = {0x20, 0x9};
+char const INI_LINEFEED[3]            = {0xd, 0xa, 0};
+char const INI_VOIDSYMS[VOIDSYMS_NUM] = {0x20, 0x9};
 
 namespace
 {
 FILE_SERVICE file_service;
 }
 
-extern VFILE_SERVICE *fio = &file_service;
+extern VFILE_SERVICE* fio = &file_service;
 
 void FILE_SERVICE::FlushIniFiles()
 {
-    for (uint32_t n = 0; n <= Max_File_Index; n++)
-    {
-        if (OpenFiles[n] == nullptr)
-            continue;
+    for (uint32_t n = 0; n <= Max_File_Index; n++) {
+        if (OpenFiles[n] == nullptr) continue;
         OpenFiles[n]->FlushFile();
     }
 }
 
 FILE_SERVICE::FILE_SERVICE()
 {
-    Files_Num = 0;
+    Files_Num      = 0;
     Max_File_Index = 0;
     for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++)
         OpenFiles[n] = nullptr;
-    if (ResourcePathsFirstScan)
-        ScanResourcePaths();
+    if (ResourcePathsFirstScan) ScanResourcePaths();
 }
 
 FILE_SERVICE::~FILE_SERVICE()
@@ -49,66 +47,59 @@ FILE_SERVICE::~FILE_SERVICE()
     Close();
 }
 
-std::fstream FILE_SERVICE::_CreateFile(const char *filename, std::ios::openmode mode)
+std::fstream FILE_SERVICE::_CreateFile(char const* filename, std::ios::openmode mode)
 {
-    const auto path = filename ? std::filesystem::u8path(ConvertPathResource(filename)) : std::filesystem::path();
+    auto const   path = filename ? std::filesystem::u8path(ConvertPathResource(filename)) : std::filesystem::path();
     std::fstream fileS(path, mode);
     return fileS;
 }
 
-void FILE_SERVICE::_CloseFile(std::fstream &fileS)
+void FILE_SERVICE::_CloseFile(std::fstream& fileS)
 {
     fileS.close();
 }
 
-void FILE_SERVICE::_SetFilePointer(std::fstream &fileS, std::streamoff off, std::ios::seekdir dir)
+void FILE_SERVICE::_SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir)
 {
     fileS.seekp(off, dir);
 }
 
-bool FILE_SERVICE::_DeleteFile(const char *filename)
+bool FILE_SERVICE::_DeleteFile(char const* filename)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
     return std::filesystem::remove(path);
 }
 
-bool FILE_SERVICE::_WriteFile(std::fstream &fileS, const void *s, std::streamsize count)
+bool FILE_SERVICE::_WriteFile(std::fstream& fileS, void const* s, std::streamsize count)
 {
     fileS.exceptions(std::fstream::failbit | std::fstream::badbit);
-    try
-    {
-        fileS.write(reinterpret_cast<const char *>(s), count);
+    try {
+        fileS.write(reinterpret_cast<char const*>(s), count);
         return true;
-    }
-    catch (const std::fstream::failure &e)
-    {
+    } catch (std::fstream::failure const& e) {
         spdlog::error("Failed to WriteFile: {}", e.what());
         return false;
     }
 }
 
-bool FILE_SERVICE::_ReadFile(std::fstream &fileS, void *s, std::streamsize count)
+bool FILE_SERVICE::_ReadFile(std::fstream& fileS, void* s, std::streamsize count)
 {
     fileS.exceptions(std::fstream::failbit | std::fstream::badbit);
-    try
-    {
-        fileS.read(reinterpret_cast<char *>(s), count);
+    try {
+        fileS.read(reinterpret_cast<char*>(s), count);
         return true;
-    }
-    catch (const std::fstream::failure &e)
-    {
+    } catch (std::fstream::failure const& e) {
         spdlog::error("Failed to ReadFile: {}", e.what());
         return false;
     }
 }
 
-bool FILE_SERVICE::_FileOrDirectoryExists(const char *p)
+bool FILE_SERVICE::_FileOrDirectoryExists(char const* p)
 {
-    std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(p));
-    auto ec = std::error_code{};
-    bool result = std::filesystem::exists(path, ec);
-    if (ec)
-    {
+    std::filesystem::path path   = std::filesystem::u8path(ConvertPathResource(p));
+    auto                  ec     = std::error_code {};
+    bool                  result = std::filesystem::exists(path, ec);
+    if (ec) {
         spdlog::error("Failed to to check if {} exists: {}", p, ec.message());
         return false;
     }
@@ -116,15 +107,13 @@ bool FILE_SERVICE::_FileOrDirectoryExists(const char *p)
     return result;
 }
 
-std::vector<std::string> FILE_SERVICE::_GetPathsOrFilenamesByMask(const char *sourcePath, const char *mask,
-                                                                  bool getPaths, bool onlyDirs, bool onlyFiles,
-                                                                  bool recursive)
+std::vector<std::string> FILE_SERVICE::_GetPathsOrFilenamesByMask(
+    char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
 {
     std::vector<std::string> result;
 
-    const auto fsPaths = _GetFsPathsByMask(sourcePath, mask, getPaths, onlyDirs, onlyFiles, recursive);
-    for (std::filesystem::path curPath : fsPaths)
-    {
+    auto const fsPaths = _GetFsPathsByMask(sourcePath, mask, getPaths, onlyDirs, onlyFiles, recursive);
+    for (std::filesystem::path curPath: fsPaths) {
         auto u8Path = curPath.u8string();
         result.emplace_back(u8Path.begin(), u8Path.end());
     }
@@ -133,34 +122,25 @@ std::vector<std::string> FILE_SERVICE::_GetPathsOrFilenamesByMask(const char *so
 }
 
 template <typename DirIterator>
-std::vector<std::filesystem::path> iter_directory(DirIterator &it, std::error_code &ec, const char *mask, bool getPaths,
-                                                  bool onlyDirs, bool onlyFiles)
+std::vector<std::filesystem::path>
+iter_directory(DirIterator& it, std::error_code& ec, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles)
 {
     std::vector<std::filesystem::path> result;
 
-    if (ec)
-    {
+    if (ec) {
         spdlog::warn("Failed to open save folder: {}", ec.message());
         return result;
     }
 
     std::filesystem::path curPath;
-    for (auto &dirEntry : it)
-    {
+    for (auto& dirEntry: it) {
         bool thisIsDir = dirEntry.is_directory();
-        if ((onlyFiles && thisIsDir) || (onlyDirs && !thisIsDir))
-        {
-            continue;
-        }
+        if ((onlyFiles && thisIsDir) || (onlyDirs && !thisIsDir)) { continue; }
         curPath = dirEntry.path();
-        if (mask == nullptr || storm::wildicmp(mask, curPath.filename().u8string().c_str()))
-        {
-            if (getPaths)
-            {
+        if (mask == nullptr || storm::wildicmp(mask, curPath.filename().u8string().c_str())) {
+            if (getPaths) {
                 result.push_back(curPath);
-            }
-            else
-            {
+            } else {
                 result.push_back(curPath.filename());
             }
         }
@@ -169,28 +149,21 @@ std::vector<std::filesystem::path> iter_directory(DirIterator &it, std::error_co
     return result;
 }
 
-std::vector<std::filesystem::path> FILE_SERVICE::_GetFsPathsByMask(const char *sourcePath, const char *mask,
-                                                                   bool getPaths, bool onlyDirs, bool onlyFiles,
-                                                                   bool recursive)
+std::vector<std::filesystem::path>
+FILE_SERVICE::_GetFsPathsByMask(char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs, bool onlyFiles, bool recursive)
 {
     std::filesystem::path srcPath;
-    if (sourcePath == nullptr || sourcePath[0] == '\0')
-    {
+    if (sourcePath == nullptr || sourcePath[0] == '\0') {
         srcPath = std::filesystem::current_path();
-    }
-    else
-    {
+    } else {
         srcPath = std::filesystem::u8path(ConvertPathResource(sourcePath));
     }
 
     std::error_code ec;
-    if (recursive)
-    {
+    if (recursive) {
         auto it = std::filesystem::recursive_directory_iterator(srcPath, ec);
         return iter_directory(it, ec, mask, getPaths, onlyDirs, onlyFiles);
-    }
-    else
-    {
+    } else {
         auto it = std::filesystem::directory_iterator(srcPath, ec);
         return iter_directory(it, ec, mask, getPaths, onlyDirs, onlyFiles);
     }
@@ -199,25 +172,24 @@ std::vector<std::filesystem::path> FILE_SERVICE::_GetFsPathsByMask(const char *s
 std::time_t FILE_SERVICE::_ToTimeT(std::filesystem::file_time_type tp)
 {
     using namespace std::chrono;
-    auto sctp = time_point_cast<system_clock::duration>(tp - std::filesystem::file_time_type::clock::now() +
-                                                        system_clock::now());
+    auto sctp = time_point_cast<system_clock::duration>(tp - std::filesystem::file_time_type::clock::now() + system_clock::now());
     return system_clock::to_time_t(sctp);
 }
 
-std::filesystem::file_time_type FILE_SERVICE::_GetLastWriteTime(const char *filename)
+std::filesystem::file_time_type FILE_SERVICE::_GetLastWriteTime(char const* filename)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
     return std::filesystem::last_write_time(path);
 }
 
-void FILE_SERVICE::_FlushFileBuffers(std::fstream &fileS)
+void FILE_SERVICE::_FlushFileBuffers(std::fstream& fileS)
 {
     fileS.flush();
 }
 
 std::string FILE_SERVICE::_GetCurrentDirectory()
 {
-    const auto curPath = std::filesystem::current_path().u8string();
+    auto const  curPath = std::filesystem::current_path().u8string();
     std::string result(curPath.begin(), curPath.end());
     return result;
 }
@@ -228,25 +200,25 @@ std::string FILE_SERVICE::_GetExecutableDirectory()
     return result;
 }
 
-std::uintmax_t FILE_SERVICE::_GetFileSize(const char *filename)
+std::uintmax_t FILE_SERVICE::_GetFileSize(char const* filename)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(filename));
     return std::filesystem::file_size(path);
 }
 
-void FILE_SERVICE::_SetCurrentDirectory(const char *pathName)
+void FILE_SERVICE::_SetCurrentDirectory(char const* pathName)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     std::filesystem::current_path(path);
 }
 
-bool FILE_SERVICE::_CreateDirectory(const char *pathName)
+bool FILE_SERVICE::_CreateDirectory(char const* pathName)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     return std::filesystem::create_directories(path);
 }
 
-std::uintmax_t FILE_SERVICE::_RemoveDirectory(const char *pathName)
+std::uintmax_t FILE_SERVICE::_RemoveDirectory(char const* pathName)
 {
     std::filesystem::path path = std::filesystem::u8path(ConvertPathResource(pathName));
     return std::filesystem::remove_all(path);
@@ -256,18 +228,16 @@ std::uintmax_t FILE_SERVICE::_RemoveDirectory(const char *pathName)
 // inifile objects managment
 //
 
-std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(const char *file_name, bool fail_if_exist)
+std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(char const* file_name, bool fail_if_exist)
 {
     auto fileS = _CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (fileS.is_open() && fail_if_exist)
-    {
+    if (fileS.is_open() && fail_if_exist) {
         _CloseFile(fileS);
         return nullptr;
     }
     _CloseFile(fileS);
     fileS = _CreateFile(file_name, std::ios::binary | std::ios::out);
-    if (!fileS.is_open())
-    {
+    if (!fileS.is_open()) {
         spdlog::error("Can't create ini file: {}", file_name);
         return nullptr;
     }
@@ -275,39 +245,30 @@ std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(const char *file_name, bool
     return OpenIniFile(file_name);
 }
 
-std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(const char *file_name)
+std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(char const* file_name)
 {
-    for (auto n = 0; n <= Max_File_Index; n++)
-    {
-        if (OpenFiles[n] == nullptr || OpenFiles[n]->GetFileName() == nullptr)
-            continue;
-        if (storm::iEquals(OpenFiles[n]->GetFileName(), file_name))
-        {
+    for (auto n = 0; n <= Max_File_Index; n++) {
+        if (OpenFiles[n] == nullptr || OpenFiles[n]->GetFileName() == nullptr) continue;
+        if (storm::iEquals(OpenFiles[n]->GetFileName(), file_name)) {
             OpenFiles[n]->IncReference();
 
             auto v = std::make_unique<INIFILE_T>(OpenFiles[n]);
-            if (!v)
-                throw std::runtime_error("Failed to create INIFILE_T");
+            if (!v) throw std::runtime_error("Failed to create INIFILE_T");
             return v;
         }
     }
 
-    for (auto n = 0; n < _MAX_OPEN_INI_FILES; n++)
-    {
-        if (OpenFiles[n] != nullptr)
-            continue;
+    for (auto n = 0; n < _MAX_OPEN_INI_FILES; n++) {
+        if (OpenFiles[n] != nullptr) continue;
 
         OpenFiles[n] = new IFS(this);
-        if (OpenFiles[n] == nullptr)
-            throw std::runtime_error("Failed to create IFS");
-        if (!OpenFiles[n]->LoadFile(file_name))
-        {
+        if (OpenFiles[n] == nullptr) throw std::runtime_error("Failed to create IFS");
+        if (!OpenFiles[n]->LoadFile(file_name)) {
             delete OpenFiles[n];
             OpenFiles[n] = nullptr;
             return nullptr;
         }
-        if (Max_File_Index < n)
-            Max_File_Index = n;
+        if (Max_File_Index < n) Max_File_Index = n;
         OpenFiles[n]->IncReference();
         //        POP_CONTROL(0)
         // INIFILE_T object belonged to entity and must be deleted by entity
@@ -316,8 +277,7 @@ std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(const char *file_name)
         // return OpenFiles[n]->inifile_T;
 
         auto v = std::make_unique<INIFILE_T>(OpenFiles[n]);
-        if (!v)
-            throw std::runtime_error("Failed to create INIFILE_T");
+        if (!v) throw std::runtime_error("Failed to create INIFILE_T");
         return v;
     }
     //    POP_CONTROL(0)
@@ -325,18 +285,14 @@ std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(const char *file_name)
     return nullptr;
 }
 
-void FILE_SERVICE::RefDec(INIFILE *ini_obj)
+void FILE_SERVICE::RefDec(INIFILE* ini_obj)
 {
-    for (uint32_t n = 0; n <= Max_File_Index; n++)
-    {
-        if (OpenFiles[n] != ini_obj)
-            continue;
+    for (uint32_t n = 0; n <= Max_File_Index; n++) {
+        if (OpenFiles[n] != ini_obj) continue;
         // OpenFiles[n]->SearchData = &OpenFiles[n]->Search;
-        if (OpenFiles[n]->GetReference() == 0)
-            throw std::runtime_error("Reference error");
+        if (OpenFiles[n]->GetReference() == 0) throw std::runtime_error("Reference error");
         OpenFiles[n]->DecReference();
-        if (OpenFiles[n]->GetReference() == 0)
-        {
+        if (OpenFiles[n]->GetReference() == 0) {
             delete OpenFiles[n];
             OpenFiles[n] = nullptr;
         }
@@ -348,33 +304,25 @@ void FILE_SERVICE::RefDec(INIFILE *ini_obj)
 
 void FILE_SERVICE::Close()
 {
-    for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++)
-    {
-        if (OpenFiles[n] == nullptr)
-            continue;
+    for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++) {
+        if (OpenFiles[n] == nullptr) continue;
         delete OpenFiles[n];
         OpenFiles[n] = nullptr;
     }
 }
 
-bool FILE_SERVICE::LoadFile(const char *file_name, char **ppBuffer, uint32_t *dwSize)
+bool FILE_SERVICE::LoadFile(char const* file_name, char** ppBuffer, uint32_t* dwSize)
 {
-    if (ppBuffer == nullptr)
-        return false;
+    if (ppBuffer == nullptr) return false;
 
     auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open())
-    {
+    if (!fileS.is_open()) {
         spdlog::trace("Can't load file: {}", file_name);
         return false;
     }
-    const auto dwLowSize = _GetFileSize(file_name);
-    if (dwSize)
-    {
-        *dwSize = dwLowSize;
-    }
-    if (dwLowSize == 0)
-    {
+    auto const dwLowSize = _GetFileSize(file_name);
+    if (dwSize) { *dwSize = dwLowSize; }
+    if (dwLowSize == 0) {
         *ppBuffer = nullptr;
         return false;
     }
@@ -389,61 +337,52 @@ bool FILE_SERVICE::LoadFile(const char *file_name, char **ppBuffer, uint32_t *dw
 // Resource paths
 //
 
-void terminate_with_char(std::string &buffer, const char chr)
+void terminate_with_char(std::string& buffer, char const chr)
 {
     // Check if already has
-    if (!buffer.empty() && buffer[buffer.length() - 1] != chr)
-    {
+    if (!buffer.empty() && buffer[buffer.length() - 1] != chr) {
         // Append to end and store
         buffer += chr;
     }
 }
 
-std::string get_dir_iterator_path(const std::filesystem::path &path)
+std::string get_dir_iterator_path(std::filesystem::path const& path)
 {
     std::string path_str = path.string();
-    size_t pos = path_str.find(std::string(".") + PATH_SEP);
-    if (pos != std::string::npos && pos == 0)
-    {
-        path_str.erase(0, 2);
-    }
+    size_t      pos      = path_str.find(std::string(".") + PATH_SEP);
+    if (pos != std::string::npos && pos == 0) { path_str.erase(0, 2); }
     return path_str;
 }
 
-void string_replace(std::string &input, const char *find, const char *paste)
+void string_replace(std::string& input, char const* find, char const* paste)
 {
     size_t pos = 0;
-    while (true)
-    {
+    while (true) {
         pos = input.find(find, pos);
-        if (pos >= input.size())
-            break;
+        if (pos >= input.size()) break;
         input.replace(pos, strlen(find), paste);
         pos += strlen(paste);
     }
 }
 
-std::string convert_path(const char *path)
+std::string convert_path(char const* path)
 {
     std::string conv;
-    size_t size = strlen(path);
-    for (int i = 0; i < size; ++i)
-    {
+    size_t      size = strlen(path);
+    for (int i = 0; i < size; ++i) {
         conv.push_back(path[i] == WRONG_PATH_SEP ? PATH_SEP : path[i]);
     }
     return conv;
 }
 
-void FILE_SERVICE::AddEntryToResourcePaths(const std::filesystem::directory_entry &entry, std::string &CheckingPath)
+void FILE_SERVICE::AddEntryToResourcePaths(std::filesystem::directory_entry const& entry, std::string& CheckingPath)
 {
-    if (entry.is_regular_file() || entry.is_directory())
-    {
-        std::string path = get_dir_iterator_path(entry.path());
+    if (entry.is_regular_file() || entry.is_directory()) {
+        std::string path     = get_dir_iterator_path(entry.path());
         std::string path_lwr = convert_path(path.c_str());
-        std::ranges::for_each(path_lwr, [](char &c) { c = std::tolower(c); });
-        if (starts_with(path_lwr, CheckingPath + "program") || starts_with(path_lwr, CheckingPath + "resource") ||
-            starts_with(path_lwr, CheckingPath + "save") || ends_with(path_lwr, ".ini"))
-        {
+        std::ranges::for_each(path_lwr, [](char& c) { c = std::tolower(c); });
+        if (starts_with(path_lwr, CheckingPath + "program") || starts_with(path_lwr, CheckingPath + "resource")
+            || starts_with(path_lwr, CheckingPath + "save") || ends_with(path_lwr, ".ini")) {
             ResourcePaths[path_lwr] = path;
         }
     }
@@ -452,83 +391,66 @@ void FILE_SERVICE::AddEntryToResourcePaths(const std::filesystem::directory_entr
 void FILE_SERVICE::ScanResourcePaths()
 {
 #ifndef _WIN32
-    if (ResourcePathsFirstScan)
-    {
+    if (ResourcePathsFirstScan) {
         // Seems like if static code calls us we need to do this manually to avoid any bugs
         ResourcePaths = std::unordered_map<std::string, std::string>();
     }
     ResourcePaths.clear();
     std::string ExePath = "";
-    for (const auto &entry : std::filesystem::recursive_directory_iterator("."))
-    {
+    for (auto const& entry: std::filesystem::recursive_directory_iterator(".")) {
         AddEntryToResourcePaths(entry, ExePath);
     }
     ExePath = fio->_GetExecutableDirectory();
     auto it = std::filesystem::recursive_directory_iterator(ExePath);
-    std::ranges::for_each(ExePath, [](char &c) { c = std::tolower(c); });
-    for (const auto &entry : it)
-    {
+    std::ranges::for_each(ExePath, [](char& c) { c = std::tolower(c); });
+    for (auto const& entry: it) {
         AddEntryToResourcePaths(entry, ExePath);
     }
 #endif
     ResourcePathsFirstScan = false;
 }
 
-std::string FILE_SERVICE::ConvertPathResource(const char *path)
+std::string FILE_SERVICE::ConvertPathResource(char const* path)
 {
 #ifdef _WIN32
     return std::string(path);
 #else
-    if (ResourcePathsFirstScan)
-    {
-        ScanResourcePaths();
-    }
-    std::string conv = convert_path(path);
-    std::string path_lwr = conv; // save original string if we will need to create new file in existing folder
-    std::ranges::for_each(path_lwr, [](char &c) { c = std::tolower(c); });
-    std::filesystem::path tmp_path = std::filesystem::u8path(path_lwr).lexically_normal(); // remove relative paths
-    path_lwr = tmp_path.string();
-    std::string result = ResourcePaths[path_lwr];
-    if (result.empty())
-    {
+    if (ResourcePathsFirstScan) { ScanResourcePaths(); }
+    std::string conv     = convert_path(path);
+    std::string path_lwr = conv;  // save original string if we will need to create new file in existing folder
+    std::ranges::for_each(path_lwr, [](char& c) { c = std::tolower(c); });
+    std::filesystem::path tmp_path = std::filesystem::u8path(path_lwr).lexically_normal();  // remove relative paths
+    path_lwr                       = tmp_path.string();
+    std::string result             = ResourcePaths[path_lwr];
+    if (result.empty()) {
         // if we need to create new file in existing folder, then we need to check ResourcePaths[parent_folder]
         result = ResourcePaths[tmp_path.parent_path().string()];
-        if (result.empty())
-        {
+        if (result.empty()) {
             // no such parent folder
             return path_lwr;
-        }
-        else
-        {
+        } else {
             // parent folder found
-            result = result + PATH_SEP + std::filesystem::u8path(conv).filename().string();
+            result                  = result + PATH_SEP + std::filesystem::u8path(conv).filename().string();
             ResourcePaths[path_lwr] = result;
             return result;
         }
-    }
-    else
-    {
+    } else {
         return result;
     }
 #endif
 }
 
-uint64_t FILE_SERVICE::GetPathFingerprint(const std::filesystem::path &path)
+uint64_t FILE_SERVICE::GetPathFingerprint(std::filesystem::path const& path)
 {
     uint64_t result = 0U;
 
-    if (exists(path))
-    {
-        if (is_directory(path))
-        {
-            for (const auto &entry : std::filesystem::directory_iterator(path))
-            {
+    if (exists(path)) {
+        if (is_directory(path)) {
+            for (auto const& entry: std::filesystem::directory_iterator(path)) {
                 result += GetPathFingerprint(entry);
             }
-        }
-        else if (is_regular_file(path))
-        {
-            const auto timestamp = last_write_time(path).time_since_epoch().count();
+        } else if (is_regular_file(path)) {
+            auto const timestamp = last_write_time(path).time_since_epoch().count();
             result += timestamp;
         }
     }
@@ -540,139 +462,134 @@ uint64_t FILE_SERVICE::GetPathFingerprint(const std::filesystem::path &path)
 
 INIFILE_T::~INIFILE_T()
 {
-    if (auto fileService = dynamic_cast<FILE_SERVICE *>(fio); fileService)
-    {
-        try
-        {
+    if (auto fileService = dynamic_cast<FILE_SERVICE*>(fio); fileService) {
+        try {
             fileService->RefDec(ifs_PTR);
-        }
-        catch (const std::exception &e)
-        {
+        } catch (std::exception const& e) {
             spdlog::error(e.what());
         }
     }
 }
 
-void INIFILE_T::AddString(const char *section_name, const char *key_name, const char *string)
+void INIFILE_T::AddString(char const* section_name, char const* key_name, char const* string)
 {
     ifs_PTR->AddString(section_name, key_name, string);
 }
 
 // write string to file, overwrite data if exist, throw EXS exception object if failed
-void INIFILE_T::WriteString(const char *section_name, const char *key_name, const char *string)
+void INIFILE_T::WriteString(char const* section_name, char const* key_name, char const* string)
 {
     ifs_PTR->WriteString(section_name, key_name, string);
 }
 
 // write int32_t value of key in pointed section if section and key exist, throw EXS object otherwise
-void INIFILE_T::WriteLong(const char *section_name, const char *key_name, int32_t value)
+void INIFILE_T::WriteLong(char const* section_name, char const* key_name, int32_t value)
 {
     ifs_PTR->WriteLong(section_name, key_name, value);
 }
 
 // write double value of key in pointed section if section and key exist, throw EXS object otherwise
-void INIFILE_T::WriteDouble(const char *section_name, const char *key_name, double value)
+void INIFILE_T::WriteDouble(char const* section_name, char const* key_name, double value)
 {
     ifs_PTR->WriteDouble(section_name, key_name, value);
 }
 
 // fill buffer with key value, throw EXS exception object if failed or if section or key doesnt exist
-void INIFILE_T::ReadString(const char *section_name, const char *key_name, char *buffer, size_t buffer_size)
+void INIFILE_T::ReadString(char const* section_name, char const* key_name, char* buffer, size_t buffer_size)
 {
     ifs_PTR->ReadString(&Search, section_name, key_name, buffer, buffer_size);
 }
 
 // fill buffer with key value if section and key exist, otherwise fill with def_string and return false
-bool INIFILE_T::ReadString(const char *section_name, const char *key_name, char *buffer, size_t buffer_size,
-                           const char *def_string)
+bool INIFILE_T::ReadString(char const* section_name, char const* key_name, char* buffer, size_t buffer_size, char const* def_string)
 {
     return ifs_PTR->ReadString(&Search, section_name, key_name, buffer, buffer_size, def_string);
 }
 
 // continue search from key founded in previous call this function or to function ReadString
 // fill buffer with key value if section and key exist, otherwise return false
-bool INIFILE_T::ReadStringNext(const char *section_name, const char *key_name, char *buffer, size_t buffer_size)
+bool INIFILE_T::ReadStringNext(char const* section_name, char const* key_name, char* buffer, size_t buffer_size)
 {
     return ifs_PTR->ReadStringNext(&Search, section_name, key_name, buffer, buffer_size);
 }
 
 // return int32_t value of key in pointed section if section and key exist, throw EXS object otherwise
-int32_t INIFILE_T::GetInt(const char *section_name, const char *key_name)
+int32_t INIFILE_T::GetInt(char const* section_name, char const* key_name)
 {
     return ifs_PTR->GetInt(&Search, section_name, key_name);
 }
 
 // return int32_t value of key in pointed section if section and key exist, if not - return def_value
-int32_t INIFILE_T::GetInt(const char *section_name, const char *key_name, int32_t def_val)
+int32_t INIFILE_T::GetInt(char const* section_name, char const* key_name, int32_t def_val)
 {
     return ifs_PTR->GetInt(&Search, section_name, key_name, def_val);
 }
 
 // return double value of key in pointed section if section and key exist, throw EXS object otherwise
-double INIFILE_T::GetDouble(const char *section_name, const char *key_name)
+double INIFILE_T::GetDouble(char const* section_name, char const* key_name)
 {
     return ifs_PTR->GetDouble(&Search, section_name, key_name);
 }
 
 // return double value of key in pointed section if section and key exist, if not - return def_value
-double INIFILE_T::GetDouble(const char *section_name, const char *key_name, double def_val)
+double INIFILE_T::GetDouble(char const* section_name, char const* key_name, double def_val)
 {
     return ifs_PTR->GetDouble(&Search, section_name, key_name, def_val);
 }
 
-bool INIFILE_T::GetIntNext(const char *section_name, const char *key_name, int32_t *val)
+bool INIFILE_T::GetIntNext(char const* section_name, char const* key_name, int32_t* val)
 {
     return ifs_PTR->GetIntNext(&Search, section_name, key_name, val);
 }
 
-bool INIFILE_T::GetDoubleNext(const char *section_name, const char *key_name, double *val)
+bool INIFILE_T::GetDoubleNext(char const* section_name, char const* key_name, double* val)
 {
     return ifs_PTR->GetDoubleNext(&Search, section_name, key_name, val);
 }
 
 // return double value of key in pointed section if section and key exist, throw EXS object otherwise
-float INIFILE_T::GetFloat(const char *section_name, const char *key_name)
+float INIFILE_T::GetFloat(char const* section_name, char const* key_name)
 {
     return ifs_PTR->GetFloat(&Search, section_name, key_name);
 }
 
 // return float value of key in pointed section if section and key exist, if not - return def_value
-float INIFILE_T::GetFloat(const char *section_name, const char *key_name, float def_val)
+float INIFILE_T::GetFloat(char const* section_name, char const* key_name, float def_val)
 {
     return ifs_PTR->GetFloat(&Search, section_name, key_name, def_val);
 }
 
-bool INIFILE_T::GetFloatNext(const char *section_name, const char *key_name, float *val)
+bool INIFILE_T::GetFloatNext(char const* section_name, char const* key_name, float* val)
 {
     return ifs_PTR->GetFloatNext(&Search, section_name, key_name, val);
 }
 
-void INIFILE_T::DeleteKey(const char *section_name, const char *key_name)
+void INIFILE_T::DeleteKey(char const* section_name, char const* key_name)
 {
     ifs_PTR->DeleteKey(section_name, key_name);
 }
 
-void INIFILE_T::DeleteKey(const char *section_name, const char *key_name, const char *key_value)
+void INIFILE_T::DeleteKey(char const* section_name, char const* key_name, char const* key_value)
 {
     ifs_PTR->DeleteKey(section_name, key_name, key_value);
 }
 
-bool INIFILE_T::TestKey(const char *section_name, const char *key_name, const char *key_value)
+bool INIFILE_T::TestKey(char const* section_name, char const* key_name, char const* key_value)
 {
     return ifs_PTR->TestKey(section_name, key_name, key_value);
 }
 
-void INIFILE_T::DeleteSection(const char *section_name)
+void INIFILE_T::DeleteSection(char const* section_name)
 {
     ifs_PTR->DeleteSection(section_name);
 }
 
-bool INIFILE_T::GetSectionName(char *section_name_buffer, int32_t buffer_size)
+bool INIFILE_T::GetSectionName(char* section_name_buffer, int32_t buffer_size)
 {
     return ifs_PTR->GetSectionName(section_name_buffer, buffer_size);
 }
 
-bool INIFILE_T::GetSectionNameNext(char *section_name_buffer, int32_t buffer_size)
+bool INIFILE_T::GetSectionNameNext(char* section_name_buffer, int32_t buffer_size)
 {
     return ifs_PTR->GetSectionNameNext(section_name_buffer, buffer_size);
 }
@@ -692,7 +609,7 @@ bool INIFILE_T::CaseSensitive(bool v)
     return ifs_PTR->CaseSensitive(v);
 }
 
-bool INIFILE_T::TestSection(const char *section_name)
+bool INIFILE_T::TestSection(char const* section_name)
 {
     return ifs_PTR->TestSection(section_name);
 };

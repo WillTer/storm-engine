@@ -10,26 +10,25 @@
 
 #pragma once
 
-#include "path_tracks.h"
-#include <libs/core/vma.hpp>
-#include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 #include <string>
 #include <vector>
 
+#include <libs/core/vma.hpp>
+#include <libs/math/matrix.h>
+#include <libs/renderer/dx9render.h>
 
 #include "camera_follow.h"
+#include "path_tracks.h"
 
 class MODEL;
 class Character;
 class Location;
 
-class LocationCamera : public Entity
+class LocationCamera: public Entity
 {
     friend CameraFollow;
 
-    enum CameraWorkMode
-    {
+    enum CameraWorkMode {
         cwm_none = 0,
         cwm_follow,
         // Follow Camera
@@ -42,7 +41,7 @@ class LocationCamera : public Entity
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     LocationCamera();
     ~LocationCamera() override;
 
@@ -52,17 +51,14 @@ class LocationCamera : public Entity
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
     // Changing an attribute
-    uint32_t AttributeChanged(ATTRIBUTES *apnt) override;
+    uint32_t AttributeChanged(ATTRIBUTES* apnt) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -73,13 +69,13 @@ class LocationCamera : public Entity
         }
     }
 
-    void LockFPMode(bool isLock);
+    void  LockFPMode(bool isLock);
     float GetAx() const;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Prepare data
     bool Set();
     // Change camera mode
@@ -94,56 +90,56 @@ class LocationCamera : public Entity
     void ExecuteFree(float dltTime);
 
     // Moving a camera from a given position to a new one
-    bool MoveFollow(CVECTOR &pos, const CVECTOR &cpos, const CVECTOR &to);
+    bool MoveFollow(CVECTOR& pos, const CVECTOR& cpos, const CVECTOR& to);
 
     // Trace the ray through the location
-    float Trace(const CVECTOR &src, const CVECTOR &dst) const;
-    bool GetCollideTriangle(TRIANGLE &trg) const;
-    void Clip(PLANE *p, int32_t numPlanes, CVECTOR &cnt, float rad, bool (*fnc)(const CVECTOR *vtx, int32_t num)) const;
+    float Trace(const CVECTOR& src, const CVECTOR& dst) const;
+    bool  GetCollideTriangle(TRIANGLE& trg) const;
+    void  Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool (*fnc)(const CVECTOR* vtx, int32_t num)) const;
 
-  private:
-    VDX9RENDER *rs;
+private:
+    VDX9RENDER* rs;
     // The sea
     entid_t sea;
     // Camera parameters
-    float ax; // Camera tilt angle
+    float ax;  // Camera tilt angle
     float lAx;
-    float vAx;           // Current speed of change
-    float axmin, axmax;  // Camera tilt angle
-    float teleport_dist; // Maximum distance at which the camera teleports
-    float lookHeight;    // The value of where to look in height (relative)
-    float radius;        // Radius of distance from the character
-    float rotInertia;    // Rotational inertia
-    float radInertia;    // Inertia of approaching
+    float vAx;            // Current speed of change
+    float axmin, axmax;   // Camera tilt angle
+    float teleport_dist;  // Maximum distance at which the camera teleports
+    float lookHeight;     // The value of where to look in height (relative)
+    float radius;         // Radius of distance from the character
+    float rotInertia;     // Rotational inertia
+    float radInertia;     // Inertia of approaching
 
     bool isSpecialMode;
     bool isLockFPMode;
     bool isViewExecute;
 
-    entid_t loc;
-    Location *location;
+    entid_t   loc;
+    Location* location;
 
     // Work mode
     CameraWorkMode wmode;
-    bool isSleep;
-    bool lockAx;
+    bool           isSleep;
+    bool           lockAx;
 
     float dAx, dAy;
 
-    CVECTOR camPos, lookTo;    // Current camera parameters
-    CVECTOR oldPos, oldLookTo; // Last camera position in the previous mode
-    float kMorph;              // Current morph ratio
+    CVECTOR camPos, lookTo;     // Current camera parameters
+    CVECTOR oldPos, oldLookTo;  // Last camera position in the previous mode
+    float   kMorph;             // Current morph ratio
 
     // Models
-    entid_t chr;      // Character
-    entid_t patchMdl; // Camera patch
+    entid_t chr;       // Character
+    entid_t patchMdl;  // Camera patch
 
-    CameraFollow cf; // Camera following the character
+    CameraFollow cf;  // Camera following the character
 
-    float obstructTime; // Character obstruction time
-    CVECTOR obstruct;   // After
+    float   obstructTime;  // Character obstruction time
+    CVECTOR obstruct;      // After
 
-    float freeAx, freeAy; // Free camera angles
+    float freeAx, freeAy;  // Free camera angles
 
     bool isLookMode;
     bool isTeleport;
@@ -152,55 +148,52 @@ class LocationCamera : public Entity
     CVECTOR fromLook;
 
     // Temporary values at the time of execution
-    Character *character; // Character pointer
-    CVECTOR pos;          // Character position
-    float chay;           // Character direction
-    float lheight;        // Height where to look
-    float height;         // Character height
-    float chradius;       // Character radius
+    Character* character;  // Character pointer
+    CVECTOR    pos;        // Character position
+    float      chay;       // Character direction
+    float      lheight;    // Height where to look
+    float      height;     // Character height
+    float      chradius;   // Character radius
 
     // dynamic change of perspective (drunkenness)
     // ~!~ rearrange this!
-    struct
-    {
-        bool isOn;
+    struct {
+        bool  isOn;
         float fMinFov;
         float fMaxFov;
         float fCurFov;
-        bool bFogUp;
+        bool  bFogUp;
         float fFogChangeSpeed;
         float fFogTimeCur;
         float fFogTimeMax;
         float fCurAngle;
         float fMaxAngle;
         float fAngleSpeed;
-        bool bAngleUp;
+        bool  bAngleUp;
     } dynamic_fog;
 
-    void TurnOnDynamicFov(float fSpeed, float fTime, float fRelationMin, float fRelationMax, float fAngSpeed,
-                          float fAngMax);
-    void ProcessDynamicFov(float fDeltaTime, const CVECTOR &vFrom, const CVECTOR &vTo, CVECTOR &vUp);
+    void TurnOnDynamicFov(float fSpeed, float fTime, float fRelationMin, float fRelationMax, float fAngSpeed, float fAngMax);
+    void ProcessDynamicFov(float fDeltaTime, const CVECTOR& vFrom, const CVECTOR& vTo, CVECTOR& vUp);
     void StoreRestoreDynamicFov(bool bStore);
 
     // track mode section
-    bool m_bTrackMode;
-    float m_fTrackCurTime;
-    float m_fTrackMaxTime;
+    bool        m_bTrackMode;
+    float       m_fTrackCurTime;
+    float       m_fTrackMaxTime;
     std::string m_sCurTrackName;
-    float m_fPauseTime;
+    float       m_fPauseTime;
 
-    struct CameraTrackPause
-    {
+    struct CameraTrackPause {
         float trackTime;
         float pauseTime;
     };
 
     std::vector<CameraTrackPause> m_aTrackPauses;
-    int32_t m_nCurPauseIndex;
+    int32_t                       m_nCurPauseIndex;
 
-    bool LoadCameraTrack(const char *pcTrackFile, float fTrackTime);
-    void TurnOffTrackCamera();
-    void ProcessTrackCamera();
+    bool  LoadCameraTrack(char const* pcTrackFile, float fTrackTime);
+    void  TurnOffTrackCamera();
+    void  ProcessTrackCamera();
     float TrackPauseProcess();
 
     PathTracks m_track;

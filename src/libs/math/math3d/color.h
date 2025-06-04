@@ -11,13 +11,14 @@
 #include <stdint.h>
 
 #include "../math3d.h"
+
 #include "vector.h"
 #include "vector4.h"
 
 // Color representation class (float)
 class Color
 {
-  public:
+public:
     // Red
     float r;
     // Green
@@ -30,7 +31,7 @@ class Color
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Empty constructor
     Color();
     // Fill with rgb number
@@ -38,20 +39,20 @@ class Color
     // Fill all components
     Color(float r, float g, float b, float a = 1.0f);
     // Fill all components
-    Color(const float f[3], float a = 1.0f);
+    Color(float const f[3], float a = 1.0f);
     // Fill all components
-    Color(const Vector &v, float a = 1.0f);
+    Color(Vector const& v, float a = 1.0f);
     // Fill all components
-    Color(const Vector4 &v);
+    Color(Vector4 const& v);
     // Unpack
     Color(uint32_t c);
     // Copy constructor
-    Color(const Color &c);
+    Color(Color const& c);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // Get rgb intensity
     float operator~() const;
     // Return color with constrained components 0..1
@@ -61,58 +62,58 @@ class Color
     Color operator-() const;
 
     // Assign rgb
-    Color &operator=(float f);
+    Color& operator=(float f);
     // Unpack and assign
-    Color &operator=(uint32_t c);
+    Color& operator=(uint32_t c);
     // Assign rgb
-    Color &operator=(const Vector &v);
+    Color& operator=(Vector const& v);
     // Assign
-    Color &operator=(const Vector4 &v);
+    Color& operator=(Vector4 const& v);
     // Assign
-    Color &operator=(const Color &c);
+    Color& operator=(Color const& c);
     // per component addition with rgb assignment
-    Color &operator+=(float f);
+    Color& operator+=(float f);
     // Unpack and add
-    Color &operator+=(uint32_t c);
+    Color& operator+=(uint32_t c);
     // per component addition with rgb assignment
-    Color &operator+=(const Vector &v);
+    Color& operator+=(Vector const& v);
     // per component addition with assignment
-    Color &operator+=(const Vector4 &v);
+    Color& operator+=(Vector4 const& v);
     // per component addition with assignment
-    Color &operator+=(const Color &c);
+    Color& operator+=(Color const& c);
     // per component subtraction with rgb assignment
-    Color &operator-=(float f);
+    Color& operator-=(float f);
     // Unpack and subtract
-    Color &operator-=(uint32_t c);
+    Color& operator-=(uint32_t c);
     // per component subtraction with rgb assignment
-    Color &operator-=(const Vector &v);
+    Color& operator-=(Vector const& v);
     // per component subtraction with assignment
-    Color &operator-=(const Vector4 &v);
+    Color& operator-=(Vector4 const& v);
     // per component subtraction with assignment
-    Color &operator-=(const Color &c);
+    Color& operator-=(Color const& c);
     // per component multiplication with rgb assignment
-    Color &operator*=(float f);
+    Color& operator*=(float f);
     // Unpack and multiply
-    Color &operator*=(uint32_t c);
+    Color& operator*=(uint32_t c);
     // per component multiplication with rgb assignment
-    Color &operator*=(const Vector &v);
+    Color& operator*=(Vector const& v);
     // per component multiplication with assignment
-    Color &operator*=(const Vector4 &v);
+    Color& operator*=(Vector4 const& v);
     // per component multiplication with assignment
-    Color &operator*=(const Color &c);
+    Color& operator*=(Color const& c);
     // per component division with rgb assignment
-    Color &operator/=(float f);
+    Color& operator/=(float f);
     // Unpack and divide
-    Color &operator/=(uint32_t c);
+    Color& operator/=(uint32_t c);
     // per component division with rgb assignment
-    Color &operator/=(const Vector &v);
+    Color& operator/=(Vector const& v);
     // per component division with assignment
-    Color &operator/=(const Vector4 &v);
+    Color& operator/=(Vector4 const& v);
     // per component division with assignment
-    Color &operator/=(const Color &c);
+    Color& operator/=(Color const& c);
 
     // Scalar rgb multiplication, the result is copied to all components
-    Color &operator|=(const Color &c);
+    Color& operator|=(Color const& c);
 
     // Get packed color as int32_t
     operator uint32_t() const;
@@ -120,16 +121,16 @@ class Color
     // -----------------------------------------------------------
     // Transformation
     // -----------------------------------------------------------
-  public:
+public:
     // Limit to range 0..1
     void Clamp();
     // Limit to range
     void Clamp(float min, float max);
 
     // Save minimal components
-    void Min(const Color &c);
+    void Min(Color const& c);
     // Save maximum components
-    void Max(const Color &c);
+    void Max(Color const& c);
 
     // Brightness -1..1
     void Brightness(float br);
@@ -143,28 +144,28 @@ class Color
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Get intensity
     float GetIntensity() const;
     // Normalize rgb
-    Color &Normalize();
+    Color& Normalize();
 
     // Get color distance between colors
-    float GetDistance(const Color &c) const;
+    float GetDistance(Color const& c) const;
     // Get the color distance between colors squared
-    float GetDistanceSqr(const Color &c) const;
+    float GetDistanceSqr(Color const& c) const;
 
     // Calculate linearly interpolated value
-    Color &Lerp(const Color &c1, const Color &c2, float kBlend);
+    Color& Lerp(Color const& c1, Color const& c2, float kBlend);
     // Calculate linearly interpolated value
-    Color &LerpA(const Color &c1, const Color &c2, float kBlend);
+    Color& LerpA(Color const& c1, Color const& c2, float kBlend);
     // Multiply color by number
-    Color &MulColor(float k);
+    Color& MulColor(float k);
     // Multiply alpha by number
-    Color &MulAlpha(float k);
+    Color& MulAlpha(float k);
 
     // Swap r, b
-    Color &SwapRB();
+    Color& SwapRB();
 
     // Get packed color as uint32_t
     uint32_t GetDword() const;
@@ -195,9 +196,9 @@ inline Color::Color()
 // Fill with rgb number
 inline Color::Color(float rgb, float a)
 {
-    r = rgb;
-    g = rgb;
-    b = rgb;
+    r       = rgb;
+    g       = rgb;
+    b       = rgb;
     this->a = a;
 }
 
@@ -211,25 +212,25 @@ inline Color::Color(float r, float g, float b, float a)
 }
 
 // Fill all components
-inline Color::Color(const float f[3], float a)
+inline Color::Color(float const f[3], float a)
 {
-    r = f[0];
-    g = f[1];
-    b = f[2];
+    r       = f[0];
+    g       = f[1];
+    b       = f[2];
     this->a = a;
 }
 
 // Fill all components
-inline Color::Color(const Vector &v, float a)
+inline Color::Color(Vector const& v, float a)
 {
-    r = v.x;
-    g = v.y;
-    b = v.z;
+    r       = v.x;
+    g       = v.y;
+    b       = v.z;
     this->a = a;
 }
 
 // Fill all components
-inline Color::Color(const Vector4 &v)
+inline Color::Color(Vector4 const& v)
 {
     r = v.x;
     g = v.y;
@@ -247,7 +248,7 @@ inline Color::Color(uint32_t c)
 }
 
 // Copy constructor
-inline Color::Color(const Color &c)
+inline Color::Color(Color const& c)
 {
     r = c.r;
     g = c.g;
@@ -285,7 +286,7 @@ inline Color Color::operator-() const
 }
 
 // Assign rgb
-inline Color &Color::operator=(float f)
+inline Color& Color::operator=(float f)
 {
     r = f;
     g = f;
@@ -295,7 +296,7 @@ inline Color &Color::operator=(float f)
 }
 
 // Assign rgb
-inline Color &Color::operator=(const Vector &v)
+inline Color& Color::operator=(Vector const& v)
 {
     r = v.x;
     g = v.y;
@@ -305,7 +306,7 @@ inline Color &Color::operator=(const Vector &v)
 }
 
 // Assign
-inline Color &Color::operator=(const Vector4 &v)
+inline Color& Color::operator=(Vector4 const& v)
 {
     r = v.x;
     g = v.y;
@@ -315,7 +316,7 @@ inline Color &Color::operator=(const Vector4 &v)
 }
 
 // Unpack and assign
-inline Color &Color::operator=(uint32_t c)
+inline Color& Color::operator=(uint32_t c)
 {
     r = static_cast<unsigned char>(c >> 16) * (1.0f / 255.0f);
     g = static_cast<unsigned char>(c >> 8) * (1.0f / 255.0f);
@@ -325,7 +326,7 @@ inline Color &Color::operator=(uint32_t c)
 }
 
 // Assign
-inline Color &Color::operator=(const Color &c)
+inline Color& Color::operator=(Color const& c)
 {
     r = c.r;
     g = c.g;
@@ -335,7 +336,7 @@ inline Color &Color::operator=(const Color &c)
 }
 
 // per component addition with rgb assignment
-inline Color &Color::operator+=(float f)
+inline Color& Color::operator+=(float f)
 {
     r += f;
     g += f;
@@ -344,15 +345,15 @@ inline Color &Color::operator+=(float f)
 }
 
 // Unpack and add
-inline Color &Color::operator+=(uint32_t c)
+inline Color& Color::operator+=(uint32_t c)
 {
-    const Color clr(c);
+    Color const clr(c);
     *this += clr;
     return *this;
 }
 
 // per component addition with rgb assignment
-inline Color &Color::operator+=(const Vector &v)
+inline Color& Color::operator+=(Vector const& v)
 {
     r += v.x;
     g += v.y;
@@ -361,7 +362,7 @@ inline Color &Color::operator+=(const Vector &v)
 }
 
 // per component addition with assignment
-inline Color &Color::operator+=(const Vector4 &v)
+inline Color& Color::operator+=(Vector4 const& v)
 {
     r += v.x;
     g += v.y;
@@ -371,7 +372,7 @@ inline Color &Color::operator+=(const Vector4 &v)
 }
 
 // per component addition with assignment
-inline Color &Color::operator+=(const Color &c)
+inline Color& Color::operator+=(Color const& c)
 {
     r += c.r;
     g += c.g;
@@ -381,7 +382,7 @@ inline Color &Color::operator+=(const Color &c)
 }
 
 // per component subtraction with rgb assignment
-inline Color &Color::operator-=(float f)
+inline Color& Color::operator-=(float f)
 {
     r -= f;
     g -= f;
@@ -390,15 +391,15 @@ inline Color &Color::operator-=(float f)
 }
 
 // Unpack and subtract
-inline Color &Color::operator-=(uint32_t c)
+inline Color& Color::operator-=(uint32_t c)
 {
-    const Color clr(c);
+    Color const clr(c);
     *this = clr;
     return *this;
 }
 
 // per component subtraction with rgb assignment
-inline Color &Color::operator-=(const Vector &v)
+inline Color& Color::operator-=(Vector const& v)
 {
     r -= v.x;
     g -= v.y;
@@ -407,7 +408,7 @@ inline Color &Color::operator-=(const Vector &v)
 }
 
 // per component subtraction with assignment
-inline Color &Color::operator-=(const Vector4 &v)
+inline Color& Color::operator-=(Vector4 const& v)
 {
     r -= v.x;
     g -= v.y;
@@ -417,7 +418,7 @@ inline Color &Color::operator-=(const Vector4 &v)
 }
 
 // per component subtraction with assignment
-inline Color &Color::operator-=(const Color &c)
+inline Color& Color::operator-=(Color const& c)
 {
     r -= c.r;
     g -= c.g;
@@ -427,7 +428,7 @@ inline Color &Color::operator-=(const Color &c)
 }
 
 // per component multiplication with rgb assignment
-inline Color &Color::operator*=(float f)
+inline Color& Color::operator*=(float f)
 {
     r *= f;
     g *= f;
@@ -436,15 +437,15 @@ inline Color &Color::operator*=(float f)
 }
 
 // Unpack and multiply
-inline Color &Color::operator*=(uint32_t c)
+inline Color& Color::operator*=(uint32_t c)
 {
-    const Color clr(c);
+    Color const clr(c);
     *this *= clr;
     return *this;
 }
 
 // per component multiplication with rgb assignment
-inline Color &Color::operator*=(const Vector &v)
+inline Color& Color::operator*=(Vector const& v)
 {
     r *= v.x;
     g *= v.y;
@@ -453,7 +454,7 @@ inline Color &Color::operator*=(const Vector &v)
 }
 
 // per component multiplication with assignment
-inline Color &Color::operator*=(const Vector4 &v)
+inline Color& Color::operator*=(Vector4 const& v)
 {
     r *= v.x;
     g *= v.y;
@@ -463,7 +464,7 @@ inline Color &Color::operator*=(const Vector4 &v)
 }
 
 // per component multiplication with assignment
-inline Color &Color::operator*=(const Color &c)
+inline Color& Color::operator*=(Color const& c)
 {
     r *= c.r;
     g *= c.g;
@@ -473,7 +474,7 @@ inline Color &Color::operator*=(const Color &c)
 }
 
 // per component division with rgb assignment
-inline Color &Color::operator/=(float f)
+inline Color& Color::operator/=(float f)
 {
     f = 1.0f / f;
     r *= f;
@@ -483,15 +484,15 @@ inline Color &Color::operator/=(float f)
 }
 
 // Unpack and divide
-inline Color &Color::operator/=(uint32_t c)
+inline Color& Color::operator/=(uint32_t c)
 {
-    const Color clr(c);
+    Color const clr(c);
     *this /= clr;
     return *this;
 }
 
 // per component division with rgb assignment
-inline Color &Color::operator/=(const Vector &v)
+inline Color& Color::operator/=(Vector const& v)
 {
     r /= v.x;
     g /= v.y;
@@ -500,7 +501,7 @@ inline Color &Color::operator/=(const Vector &v)
 }
 
 // per component division with assignment
-inline Color &Color::operator/=(const Vector4 &v)
+inline Color& Color::operator/=(Vector4 const& v)
 {
     r /= v.x;
     g /= v.y;
@@ -510,7 +511,7 @@ inline Color &Color::operator/=(const Vector4 &v)
 }
 
 // per component division with assignment
-inline Color &Color::operator/=(const Color &c)
+inline Color& Color::operator/=(Color const& c)
 {
     r /= c.r;
     g /= c.g;
@@ -520,7 +521,7 @@ inline Color &Color::operator/=(const Color &c)
 }
 
 // Scalar rgb multiplication, the result is copied to all components
-inline Color &Color::operator|=(const Color &c)
+inline Color& Color::operator|=(Color const& c)
 {
     r = g = b = a = r * c.r + g * c.g + b * c.b;
     return *this;
@@ -537,7 +538,7 @@ inline Color::operator uint32_t() const
 /*!\relates Color
 per component addition with rgb assignment
 */
-inline Color operator+(const Color &c, float f)
+inline Color operator+(Color const& c, float f)
 {
     auto clr(c);
     clr += f;
@@ -547,7 +548,7 @@ inline Color operator+(const Color &c, float f)
 /*!\relates Color
 per component addition with rgb assignment
 */
-inline Color operator+(float f, const Color &c)
+inline Color operator+(float f, Color const& c)
 {
     auto clr(c);
     clr += f;
@@ -557,7 +558,7 @@ inline Color operator+(float f, const Color &c)
 /*!\relates Color
 Unpack and add
 */
-inline Color operator+(const Color &c, uint32_t cl)
+inline Color operator+(Color const& c, uint32_t cl)
 {
     auto clr(c);
     clr += cl;
@@ -567,7 +568,7 @@ inline Color operator+(const Color &c, uint32_t cl)
 /*!\relates Color
 Unpack and add
 */
-inline Color operator+(uint32_t cl, const Color &c)
+inline Color operator+(uint32_t cl, Color const& c)
 {
     auto clr(c);
     clr += cl;
@@ -577,7 +578,7 @@ inline Color operator+(uint32_t cl, const Color &c)
 /*!\relates Color
 per component addition with rgb assignment
 */
-inline Color operator+(const Color &c, const Vector &v)
+inline Color operator+(Color const& c, Vector const& v)
 {
     auto clr(c);
     clr += v;
@@ -587,7 +588,7 @@ inline Color operator+(const Color &c, const Vector &v)
 /*!\relates Color
 per component addition with rgb assignment
 */
-inline Color operator+(const Vector &v, const Color &c)
+inline Color operator+(Vector const& v, Color const& c)
 {
     auto clr(c);
     clr += v;
@@ -597,7 +598,7 @@ inline Color operator+(const Vector &v, const Color &c)
 /*!\relates Color
 per component addition with assignment
 */
-inline Color operator+(const Color &c, const Vector4 &v)
+inline Color operator+(Color const& c, Vector4 const& v)
 {
     auto clr(c);
     clr += v;
@@ -607,7 +608,7 @@ inline Color operator+(const Color &c, const Vector4 &v)
 /*!\relates Color
 per component addition with assignment
 */
-inline Color operator+(const Vector4 &v, const Color &c)
+inline Color operator+(Vector4 const& v, Color const& c)
 {
     auto clr(c);
     clr += v;
@@ -617,7 +618,7 @@ inline Color operator+(const Vector4 &v, const Color &c)
 /*!\relates Color
 per component addition with assignment
 */
-inline Color operator+(const Color &c1, const Color &c2)
+inline Color operator+(Color const& c1, Color const& c2)
 {
     auto clr(c1);
     clr += c2;
@@ -627,7 +628,7 @@ inline Color operator+(const Color &c1, const Color &c2)
 /*!\relates Color
 per component subtraction with rgb assignment
 */
-inline Color operator-(const Color &c, float f)
+inline Color operator-(Color const& c, float f)
 {
     auto clr(c);
     clr -= f;
@@ -637,7 +638,7 @@ inline Color operator-(const Color &c, float f)
 /*!\relates Color
 per component subtraction with rgb assignment
 */
-inline Color operator-(float f, const Color &c)
+inline Color operator-(float f, Color const& c)
 {
     Color clr(f);
     clr -= f;
@@ -647,7 +648,7 @@ inline Color operator-(float f, const Color &c)
 /*!\relates Color
 Unpack and subtract
 */
-inline Color operator-(const Color &c, uint32_t cl)
+inline Color operator-(Color const& c, uint32_t cl)
 {
     auto clr(c);
     clr -= cl;
@@ -657,7 +658,7 @@ inline Color operator-(const Color &c, uint32_t cl)
 /*!\relates Color
 Unpack and subtract
 */
-inline Color operator-(uint32_t cl, const Color &c)
+inline Color operator-(uint32_t cl, Color const& c)
 {
     Color clr(cl);
     clr -= c;
@@ -667,7 +668,7 @@ inline Color operator-(uint32_t cl, const Color &c)
 /*!\relates Color
 per component subtraction with rgb assignment
 */
-inline Color operator-(const Color &c, const Vector &v)
+inline Color operator-(Color const& c, Vector const& v)
 {
     auto clr(c);
     clr -= v;
@@ -677,7 +678,7 @@ inline Color operator-(const Color &c, const Vector &v)
 /*!\relates Color
 per component subtraction with rgb assignment
 */
-inline Color operator-(const Vector &v, const Color &c)
+inline Color operator-(Vector const& v, Color const& c)
 {
     Color clr(v);
     clr -= c;
@@ -687,7 +688,7 @@ inline Color operator-(const Vector &v, const Color &c)
 /*!\relates Color
 per component subtraction with assignment
 */
-inline Color operator-(const Color &c, const Vector4 &v)
+inline Color operator-(Color const& c, Vector4 const& v)
 {
     auto clr(c);
     clr -= v;
@@ -697,7 +698,7 @@ inline Color operator-(const Color &c, const Vector4 &v)
 /*!\relates Color
 per component subtraction with assignment
 */
-inline Color operator-(const Vector4 &v, const Color &c)
+inline Color operator-(Vector4 const& v, Color const& c)
 {
     Color clr(v);
     clr -= c;
@@ -707,7 +708,7 @@ inline Color operator-(const Vector4 &v, const Color &c)
 /*!\relates Color
 per component subtraction with assignment
 */
-inline Color operator-(const Color &c1, const Color &c2)
+inline Color operator-(Color const& c1, Color const& c2)
 {
     auto c(c1);
     c -= c2;
@@ -717,7 +718,7 @@ inline Color operator-(const Color &c1, const Color &c2)
 /*!\relates Color
 per component multiplication with rgb assignment
 */
-inline Color operator*(const Color &c, float f)
+inline Color operator*(Color const& c, float f)
 {
     auto clr(c);
     clr *= f;
@@ -727,7 +728,7 @@ inline Color operator*(const Color &c, float f)
 /*!\relates Color
 per component multiplication with rgb assignment
 */
-inline Color operator*(float f, const Color &c)
+inline Color operator*(float f, Color const& c)
 {
     auto clr(c);
     clr *= f;
@@ -737,7 +738,7 @@ inline Color operator*(float f, const Color &c)
 /*!\relates Color
 Unpack and multiply
 */
-inline Color operator*(const Color &c, uint32_t cl)
+inline Color operator*(Color const& c, uint32_t cl)
 {
     auto clr(c);
     clr *= cl;
@@ -747,7 +748,7 @@ inline Color operator*(const Color &c, uint32_t cl)
 /*!\relates Color
 Unpack and multiply
 */
-inline Color operator*(uint32_t cl, const Color &c)
+inline Color operator*(uint32_t cl, Color const& c)
 {
     auto clr(c);
     clr *= cl;
@@ -757,7 +758,7 @@ inline Color operator*(uint32_t cl, const Color &c)
 /*!\relates Color
 per component multiplication with rgb assignment
 */
-inline Color operator*(const Color &c, const Vector &v)
+inline Color operator*(Color const& c, Vector const& v)
 {
     auto clr(c);
     clr *= v;
@@ -767,7 +768,7 @@ inline Color operator*(const Color &c, const Vector &v)
 /*!\relates Color
 per component multiplication with rgb assignment
 */
-inline Color operator*(const Vector &v, const Color &c)
+inline Color operator*(Vector const& v, Color const& c)
 {
     auto clr(c);
     clr *= v;
@@ -777,7 +778,7 @@ inline Color operator*(const Vector &v, const Color &c)
 /*!\relates Color
 per component multiplication with assignment
 */
-inline Color operator*(const Color &c, const Vector4 &v)
+inline Color operator*(Color const& c, Vector4 const& v)
 {
     auto clr(c);
     clr *= v;
@@ -787,7 +788,7 @@ inline Color operator*(const Color &c, const Vector4 &v)
 /*!\relates Color
 per component multiplication with assignment
 */
-inline Color operator*(const Vector4 &v, const Color &c)
+inline Color operator*(Vector4 const& v, Color const& c)
 {
     auto clr(c);
     clr *= v;
@@ -797,7 +798,7 @@ inline Color operator*(const Vector4 &v, const Color &c)
 /*!\relates Color
 per component multiplication with assignment
 */
-inline Color operator*(const Color &c1, const Color &c2)
+inline Color operator*(Color const& c1, Color const& c2)
 {
     auto clr(c1);
     clr *= c2;
@@ -807,7 +808,7 @@ inline Color operator*(const Color &c1, const Color &c2)
 /*!\relates Color
 per component division with rgb assignment
 */
-inline Color operator/(const Color &c, float f)
+inline Color operator/(Color const& c, float f)
 {
     auto clr(c);
     clr /= f;
@@ -817,7 +818,7 @@ inline Color operator/(const Color &c, float f)
 /*!\relates Color
 per component division with rgb assignment
 */
-inline Color operator/(float f, const Color &c)
+inline Color operator/(float f, Color const& c)
 {
     Color clr(f);
     clr /= c;
@@ -827,7 +828,7 @@ inline Color operator/(float f, const Color &c)
 /*!\relates Color
 Unpack and divide
 */
-inline Color operator/(const Color &c, uint32_t cl)
+inline Color operator/(Color const& c, uint32_t cl)
 {
     auto clr(c);
     clr /= cl;
@@ -837,7 +838,7 @@ inline Color operator/(const Color &c, uint32_t cl)
 /*!\relates Color
 Unpack and divide
 */
-inline Color operator/(uint32_t cl, const Color &c)
+inline Color operator/(uint32_t cl, Color const& c)
 {
     Color clr(cl);
     clr /= c;
@@ -847,7 +848,7 @@ inline Color operator/(uint32_t cl, const Color &c)
 /*!\relates Color
 per component division with rgb assignment
 */
-inline Color operator/(const Color &c, const Vector &v)
+inline Color operator/(Color const& c, Vector const& v)
 {
     auto clr(c);
     clr /= v;
@@ -857,7 +858,7 @@ inline Color operator/(const Color &c, const Vector &v)
 /*!\relates Color
 per component division with rgb assignment
 */
-inline Color operator/(const Vector &v, const Color &c)
+inline Color operator/(Vector const& v, Color const& c)
 {
     Color clr(v);
     clr /= c;
@@ -867,7 +868,7 @@ inline Color operator/(const Vector &v, const Color &c)
 /*!\relates Color
 per component division with assignment
 */
-inline Color operator/(const Color &c, const Vector4 &v)
+inline Color operator/(Color const& c, Vector4 const& v)
 {
     auto clr(c);
     clr /= v;
@@ -877,7 +878,7 @@ inline Color operator/(const Color &c, const Vector4 &v)
 /*!\relates Color
 per component division with assignment
 */
-inline Color operator/(const Vector4 &v, const Color &c)
+inline Color operator/(Vector4 const& v, Color const& c)
 {
     Color clr(v);
     clr /= c;
@@ -887,7 +888,7 @@ inline Color operator/(const Vector4 &v, const Color &c)
 /*!\relates Color
 per component division with assignment
 */
-inline Color operator/(const Color &c1, const Color &c2)
+inline Color operator/(Color const& c1, Color const& c2)
 {
     auto clr(c1);
     clr /= c2;
@@ -897,7 +898,7 @@ inline Color operator/(const Color &c1, const Color &c2)
 /*!\relates Color
 Scalar rgb multiplication, the result is copied to all components
 */
-inline Color operator|(const Color &c1, const Color &c2)
+inline Color operator|(Color const& c1, Color const& c2)
 {
     auto clr(c1);
     clr |= c2;
@@ -911,78 +912,52 @@ inline Color operator|(const Color &c1, const Color &c2)
 // Limit to range 0..1
 inline void Color::Clamp()
 {
-    if (r < 0.0f)
-        r = 0.0f;
-    if (r > 1.0f)
-        r = 1.0f;
-    if (g < 0.0f)
-        g = 0.0f;
-    if (g > 1.0f)
-        g = 1.0f;
-    if (b < 0.0f)
-        b = 0.0f;
-    if (b > 1.0f)
-        b = 1.0f;
-    if (a < 0.0f)
-        a = 0.0f;
-    if (a > 1.0f)
-        a = 1.0f;
+    if (r < 0.0f) r = 0.0f;
+    if (r > 1.0f) r = 1.0f;
+    if (g < 0.0f) g = 0.0f;
+    if (g > 1.0f) g = 1.0f;
+    if (b < 0.0f) b = 0.0f;
+    if (b > 1.0f) b = 1.0f;
+    if (a < 0.0f) a = 0.0f;
+    if (a > 1.0f) a = 1.0f;
 }
 
 // Limit to range
 inline void Color::Clamp(float min, float max)
 {
-    if (r < min)
-        r = min;
-    if (r > max)
-        r = max;
-    if (g < min)
-        g = min;
-    if (g > max)
-        g = max;
-    if (b < min)
-        b = min;
-    if (b > max)
-        b = max;
-    if (a < min)
-        a = min;
-    if (a > max)
-        a = max;
+    if (r < min) r = min;
+    if (r > max) r = max;
+    if (g < min) g = min;
+    if (g > max) g = max;
+    if (b < min) b = min;
+    if (b > max) b = max;
+    if (a < min) a = min;
+    if (a > max) a = max;
 }
 
 // Save minimal components
-inline void Color::Min(const Color &c)
+inline void Color::Min(Color const& c)
 {
-    if (r > c.r)
-        r = c.r;
-    if (g > c.g)
-        g = c.g;
-    if (b > c.b)
-        b = c.b;
-    if (a > c.a)
-        a = c.a;
+    if (r > c.r) r = c.r;
+    if (g > c.g) g = c.g;
+    if (b > c.b) b = c.b;
+    if (a > c.a) a = c.a;
 }
 
 // Save maximum components
-inline void Color::Max(const Color &c)
+inline void Color::Max(Color const& c)
 {
-    if (r < c.r)
-        r = c.r;
-    if (g < c.g)
-        g = c.g;
-    if (b < c.b)
-        b = c.b;
-    if (a < c.a)
-        a = c.a;
+    if (r < c.r) r = c.r;
+    if (g < c.g) g = c.g;
+    if (b < c.b) b = c.b;
+    if (a < c.a) a = c.a;
 }
 
 // Brightness -1..1
 inline void Color::Brightness(float br)
 {
-    if (br > 1.0f)
-        br = 1.0f;
-    if (br < -1.0f)
-        br = -1.0f;
+    if (br > 1.0f) br = 1.0f;
+    if (br < -1.0f) br = -1.0f;
     *this += br;
     Clamp();
 }
@@ -991,33 +966,26 @@ inline void Color::Brightness(float br)
 inline void Color::Gamma(float gm)
 {
     Clamp();
-    if (gm > 0.0f)
-    {
-        if (gm > 1.0f)
-            gm = 1.0f;
+    if (gm > 0.0f) {
+        if (gm > 1.0f) gm = 1.0f;
         gm = 1.0f + gm * 9.0f;
-        r = powf(r, gm);
-        g = powf(g, gm);
-        b = powf(b, gm);
-    }
-    else if (gm < 0.0f)
-    {
-        if (gm < -1.0f)
-            gm = -1.0f;
+        r  = powf(r, gm);
+        g  = powf(g, gm);
+        b  = powf(b, gm);
+    } else if (gm < 0.0f) {
+        if (gm < -1.0f) gm = -1.0f;
         gm = 1.0f + gm * 0.9f;
-        r = powf(r, gm * 10.0f);
-        g = powf(g, gm * 10.0f);
-        b = powf(b, gm * 10.0f);
+        r  = powf(r, gm * 10.0f);
+        g  = powf(g, gm * 10.0f);
+        b  = powf(b, gm * 10.0f);
     }
 }
 
 // Contrast -1..1
 inline void Color::Contrast(float cn)
 {
-    if (cn > 1.0f)
-        cn = 1.0f;
-    if (cn < -1.0f)
-        cn = -1.0f;
+    if (cn > 1.0f) cn = 1.0f;
+    if (cn < -1.0f) cn = -1.0f;
     cn *= 5.0f;
     r = (r - 0.5f) * cn + 0.5f;
     g = (g - 0.5f) * cn + 0.5f;
@@ -1044,26 +1012,20 @@ inline float Color::GetIntensity() const
 }
 
 // Normalize rgb
-inline Color &Color::Normalize()
+inline Color& Color::Normalize()
 {
     auto min = r;
     auto max = r;
-    if (min > g)
-        min = g;
-    if (max < g)
-        max = g;
-    if (min > b)
-        min = b;
-    if (max < b)
-        max = b;
-    if (min > 0.0f)
-        min = 0.0f;
+    if (min > g) min = g;
+    if (max < g) max = g;
+    if (min > b) min = b;
+    if (max < b) max = b;
+    if (min > 0.0f) min = 0.0f;
     auto dlt = max - min;
     r -= min;
     g -= min;
     b -= min;
-    if (dlt > 1.0f)
-    {
+    if (dlt > 1.0f) {
         dlt = 1.0f / dlt;
         r *= dlt;
         g *= dlt;
@@ -1074,22 +1036,22 @@ inline Color &Color::Normalize()
 }
 
 // Get color distance between colors
-inline float Color::GetDistance(const Color &c) const
+inline float Color::GetDistance(Color const& c) const
 {
     return sqrtf(GetDistanceSqr(c));
 }
 
 // Get the color distance between colors squared
-inline float Color::GetDistanceSqr(const Color &c) const
+inline float Color::GetDistanceSqr(Color const& c) const
 {
-    const auto dr = (r - c.r) * 0.299f;
-    const auto dg = (g - c.g) * 0.587f;
-    const auto db = (b - c.b) * 0.114f;
+    auto const dr = (r - c.r) * 0.299f;
+    auto const dg = (g - c.g) * 0.587f;
+    auto const db = (b - c.b) * 0.114f;
     return dr * dr + dg * dg + db * db;
 }
 
 // Calculate linearly interpolated value
-inline Color &Color::Lerp(const Color &c1, const Color &c2, float kBlend)
+inline Color& Color::Lerp(Color const& c1, Color const& c2, float kBlend)
 {
     r = c1.r + (c2.r - c1.r) * kBlend;
     g = c1.g + (c2.g - c1.g) * kBlend;
@@ -1098,7 +1060,7 @@ inline Color &Color::Lerp(const Color &c1, const Color &c2, float kBlend)
 }
 
 // Calculate linearly interpolated value
-inline Color &Color::LerpA(const Color &c1, const Color &c2, float kBlend)
+inline Color& Color::LerpA(Color const& c1, Color const& c2, float kBlend)
 {
     r = c1.r + (c2.r - c1.r) * kBlend;
     g = c1.g + (c2.g - c1.g) * kBlend;
@@ -1108,7 +1070,7 @@ inline Color &Color::LerpA(const Color &c1, const Color &c2, float kBlend)
 }
 
 // Multiply color by number
-inline Color &Color::MulColor(float k)
+inline Color& Color::MulColor(float k)
 {
     r *= k;
     g *= k;
@@ -1117,41 +1079,39 @@ inline Color &Color::MulColor(float k)
 }
 
 // Multiply alpha by number
-inline Color &Color::MulAlpha(float k)
+inline Color& Color::MulAlpha(float k)
 {
     a *= k;
     return *this;
 }
 
 // Swap r, b
-inline Color &Color::SwapRB()
+inline Color& Color::SwapRB()
 {
-    const auto t = r;
-    r = b;
-    b = t;
+    auto const t = r;
+    r            = b;
+    b            = t;
     return *this;
 }
 
 // Get packed color as uint32_t
 inline uint32_t Color::GetDword() const
 {
-    uint32_t t = (static_cast<uint8_t>(fftoi(r * 255.0f)) << 16) +
-                 (static_cast<uint8_t>(fftoi(g * 255.0f)) << 8) +
-                 (static_cast<uint8_t>(fftoi(b * 255.0f)) << 0) +
-                 (static_cast<uint8_t>(fftoi(a * 255.0f)) << 24);
+    uint32_t t = (static_cast<uint8_t>(fftoi(r * 255.0f)) << 16) + (static_cast<uint8_t>(fftoi(g * 255.0f)) << 8)
+        + (static_cast<uint8_t>(fftoi(b * 255.0f)) << 0) + (static_cast<uint8_t>(fftoi(a * 255.0f)) << 24);
 
     return t;
-/*
-    DColor color;
-    const auto k = 255.0f;
+    /*
+        DColor color;
+        const auto k = 255.0f;
 
-    color.r = static_cast<uint8_t>(fftoi(r * k));
-    color.g = static_cast<uint8_t>(fftoi(g * k));
-    color.b = static_cast<uint8_t>(fftoi(b * k));
-    color.a = static_cast<uint8_t>(fftoi(a * k));
+        color.r = static_cast<uint8_t>(fftoi(r * k));
+        color.g = static_cast<uint8_t>(fftoi(g * k));
+        color.b = static_cast<uint8_t>(fftoi(b * k));
+        color.a = static_cast<uint8_t>(fftoi(a * k));
 
-    return color.c;
-*/
+        return color.c;
+    */
 }
 
 // Converting A8R8G8B8 to R5G6B5
@@ -1159,9 +1119,9 @@ inline unsigned short Color::Make565(uint32_t color)
 {
     //   11111000 11111100 11111000
     //           11111 111111 11111
-    const auto b = (color >> 3) & 0x1f;
-    const auto g = (color >> 5) & 0x7e0;
-    const auto r = (color >> 8) & 0xf800;
+    auto const b = (color >> 3) & 0x1f;
+    auto const g = (color >> 5) & 0x7e0;
+    auto const r = (color >> 8) & 0xf800;
     return static_cast<unsigned short>(r | g | b);
 }
 
@@ -1170,9 +1130,9 @@ inline unsigned short Color::Make555(uint32_t color)
 {
     //   11111000 11111000 11111000
     //           011111 11111 11111
-    const auto b = (color >> 3) & 0x1f;
-    const auto g = (color >> 6) & 0x3e0;
-    const auto r = (color >> 9) & 0x7c00;
+    auto const b = (color >> 3) & 0x1f;
+    auto const g = (color >> 6) & 0x3e0;
+    auto const r = (color >> 9) & 0x7c00;
     return static_cast<unsigned short>(r | g | b);
 }
 
@@ -1181,10 +1141,10 @@ inline unsigned short Color::Make1555(uint32_t color)
 {
     //   11111000 11111000 11111000
     //          1 11111 11111 11111
-    const auto b = (color >> 3) & 0x1f;
-    const auto g = (color >> 6) & 0x3e0;
-    const auto r = (color >> 9) & 0x7c00;
-    const auto a = (color >> 16) & 0x8000;
+    auto const b = (color >> 3) & 0x1f;
+    auto const g = (color >> 6) & 0x3e0;
+    auto const r = (color >> 9) & 0x7c00;
+    auto const a = (color >> 16) & 0x8000;
     return static_cast<unsigned short>(r | g | b | a);
 }
 
@@ -1193,10 +1153,10 @@ inline unsigned short Color::Make4444(uint32_t color)
 {
     //  11110000 11111000 11111000 11111000
     //                  1111 1111 1111 1111
-    const auto b = (color >> 4) & 0xf;
-    const auto g = (color >> 8) & 0xf0;
-    const auto r = (color >> 12) & 0xf00;
-    const auto a = (color >> 16) & 0xf000;
+    auto const b = (color >> 4) & 0xf;
+    auto const g = (color >> 8) & 0xf0;
+    auto const r = (color >> 12) & 0xf00;
+    auto const a = (color >> 16) & 0xf000;
     return static_cast<unsigned short>(r | g | b | a);
 }
 

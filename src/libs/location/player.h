@@ -14,12 +14,12 @@
 
 class LocationCamera;
 
-class Player : public NPCharacter
+class Player: public NPCharacter
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Player();
     ~Player() override;
 
@@ -32,9 +32,9 @@ class Player : public NPCharacter
     void Update(float dltTime) override;
 
     // Save parameters
-    void SetSaveData(ATTRIBUTES *sdata) override;
+    void SetSaveData(ATTRIBUTES* sdata) override;
     // Restore parameters
-    void GetSaveData(ATTRIBUTES *sdata) override;
+    void GetSaveData(ATTRIBUTES* sdata) override;
 
     bool IsPlayer() override
     {
@@ -59,24 +59,24 @@ class Player : public NPCharacter
     bool IsChangeFightMode();
 
     // Find an attacking enemy
-    Player *FindAttackCharacter();
+    Player* FindAttackCharacter();
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     void FireFromShootgun();
-    void ShootParticles(const CVECTOR &pos, const CVECTOR &ndir, float size, uint32_t color, int32_t num);
+    void ShootParticles(const CVECTOR& pos, const CVECTOR& ndir, float size, uint32_t color, int32_t num);
 
     float GetRotateH();
 
-  private:
-    float lastChange;
-    bool activatedDialog;
-    bool isSpecialMode;
-    bool isSetBlock;
-    entid_t baterfl;
-    bool shootgunMode;
-    float kSMReload;
-    LocationCamera *locCam;
+private:
+    float           lastChange;
+    bool            activatedDialog;
+    bool            isSpecialMode;
+    bool            isSetBlock;
+    entid_t         baterfl;
+    bool            shootgunMode;
+    float           kSMReload;
+    LocationCamera* locCam;
 };

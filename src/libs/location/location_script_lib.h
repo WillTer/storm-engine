@@ -2,9 +2,9 @@
 
 #include <libs/core/script_libriary.h>
 
-class ScriptLocationLibrary : public SCRIPT_LIBRIARY
+class ScriptLocationLibrary: public SCRIPT_LIBRIARY
 {
-  public:
+public:
     ScriptLocationLibrary() {};
 
     ~ScriptLocationLibrary() override {};

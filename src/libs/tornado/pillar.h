@@ -19,37 +19,34 @@ struct CVECTOR;
 class Pillar
 {
     // Tornado pillar section
-    struct Section
-    {
-        float radius; // Section radius
-        float alpha;  // Section transparency
-        float x, z;   // Offset relative to tornado position
-        float y;      // Height position
+    struct Section {
+        float radius;  // Section radius
+        float alpha;   // Section transparency
+        float x, z;    // Offset relative to tornado position
+        float y;       // Height position
     };
 
     // Segment direction vector
-    struct Segment
-    {
+    struct Segment {
         float x, z;
     };
 
-  public:
-    struct Vertex
-    {
-        float x, y, z;
+public:
+    struct Vertex {
+        float    x, y, z;
         uint32_t color;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Pillar();
     virtual ~Pillar();
 
     void Update(float dltTime);
-    void FillVertexBuffer(Vertex *buffer);
-    void FillIndexBuffer(uint16_t *buffer);
+    void FillVertexBuffer(Vertex* buffer);
+    void FillIndexBuffer(uint16_t* buffer);
 
     int32_t GetNumVerteces();
     int32_t GetNumTriangles();
@@ -62,23 +59,23 @@ class Pillar
     float X();
     float Z();
 
-    float RandomPos(CVECTOR &pos);
+    float RandomPos(CVECTOR& pos);
 
     void SetGlobalAlpha(float a);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     Section section[24];
     Segment segment[16];
-    float x, z;
-    float dx, dz;
-    float phaseX, phaseZ;
-    float phaseX1, phaseZ1;
-    float phaseX2, phaseZ2;
-    float phaseX3, phaseZ3;
-    float galpha;
+    float   x, z;
+    float   dx, dz;
+    float   phaseX, phaseZ;
+    float   phaseX1, phaseZ1;
+    float   phaseX2, phaseZ2;
+    float   phaseX3, phaseZ3;
+    float   galpha;
 };
 
 inline float Pillar::X()

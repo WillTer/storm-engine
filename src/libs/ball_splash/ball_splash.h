@@ -1,35 +1,32 @@
 #pragma once
 
-#include "ball_splash_defines.h"
-#include "t_splash.h"
-
 #include <libs/geometry/geometry.h>
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
+#include "ball_splash_defines.h"
+#include "t_splash.h"
+
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
 
-class BALLSPLASH : public Entity
+class BALLSPLASH: public Entity
 {
-  public:
+public:
     BALLSPLASH();
     ~BALLSPLASH() override;
 
-    bool Init() override;
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool         Init() override;
+    uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);
     virtual void Execute(uint32_t dTime);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -40,11 +37,11 @@ class BALLSPLASH : public Entity
         }
     }
 
-  private:
-    void InitializeSplashes();
-    TSplash *TryToAddSplash(const CVECTOR &_pos, const CVECTOR &_dir);
+private:
+    void     InitializeSplashes();
+    TSplash* TryToAddSplash(const CVECTOR& _pos, const CVECTOR& _dir);
 
-    TSplash splashes[MAX_SPLASHES];
-    VDX9RENDER *renderer;
-    SEA_BASE *sea;
+    TSplash     splashes[MAX_SPLASHES];
+    VDX9RENDER* renderer;
+    SEA_BASE*   sea;
 };

@@ -1,22 +1,22 @@
 #pragma once
 
-#include "animals_defines.h"
 #include <libs/core/message.h>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sound_service/v_sound_service.h>
 
+#include "animals_defines.h"
+
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
 ///////////////////////////////////////////////////////////////////
-struct tSeagull
-{
+struct tSeagull {
     CVECTOR center;
-    float radius;
-    float va;
-    float height;
-    float deltaA;
-    float a;
+    float   radius;
+    float   va;
+    float   height;
+    float   deltaA;
+    float   a;
 
     int32_t circleTime;
     int32_t circleTimePassed;
@@ -28,44 +28,44 @@ struct tSeagull
 ///////////////////////////////////////////////////////////////////
 class TSeagulls
 {
-  public:
+public:
     TSeagulls();
     virtual ~TSeagulls();
 
-    uint64_t ProcessMessage(int32_t _code, MESSAGE &message);
-    void Init();
-    void Add(float _x, float _y, float _z);
-    void Realize(uint32_t dTime);
-    void Execute(uint32_t dTime);
+    uint64_t ProcessMessage(int32_t _code, MESSAGE& message);
+    void     Init();
+    void     Add(float _x, float _y, float _z);
+    void     Realize(uint32_t dTime);
+    void     Execute(uint32_t dTime);
 
     void SetStartY(float _startY)
     {
         startY = _startY;
     }
 
-  private:
+private:
     void LoadSettings();
     void Frighten();
 
-    entid_t seagullModel;
-    tSeagull seagulls[SEAGULL_COUNT];
-    VDX9RENDER *renderService;
-    VSoundService *soundService;
-    bool enabled;
-    int32_t count;
-    float maxDistance;
-    float maxRadius;
-    float maxAngleSpeed;
-    float maxHeight;
-    int32_t countAdd;
-    int32_t maxCircleTime;
-    int32_t farChoiceChance;
-    int32_t relaxTime;
-    bool frightened;
-    int32_t frightenTime;
-    int32_t screamTime;
-    char screamFilename[256];
+    entid_t        seagullModel;
+    tSeagull       seagulls[SEAGULL_COUNT];
+    VDX9RENDER*    renderService;
+    VSoundService* soundService;
+    bool           enabled;
+    int32_t        count;
+    float          maxDistance;
+    float          maxRadius;
+    float          maxAngleSpeed;
+    float          maxHeight;
+    int32_t        countAdd;
+    int32_t        maxCircleTime;
+    int32_t        farChoiceChance;
+    int32_t        relaxTime;
+    bool           frightened;
+    int32_t        frightenTime;
+    int32_t        screamTime;
+    char           screamFilename[256];
 
     CVECTOR cameraPos, cameraAng;
-    float startY;
+    float   startY;
 };

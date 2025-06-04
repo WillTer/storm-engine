@@ -19,74 +19,66 @@ class VDX9RENDER;
 
 #define LFX_SPLASHES_SECT 16
 
-class LocationEffects : public Entity
+class LocationEffects: public Entity
 {
 #pragma pack(push, 1)
 
-    struct Vertex
-    {
-        CVECTOR pos;
+    struct Vertex {
+        CVECTOR  pos;
         uint32_t color;
-        float u, v;
+        float    u, v;
     };
 
 #pragma pack(pop)
 
-    struct Particle
-    {
+    struct Particle {
         CVECTOR pos;
-        float angle;
-        float size;
-        float alpha;
+        float   angle;
+        float   size;
+        float   alpha;
     };
 
-    struct ParticleEx : public Particle
-    {
+    struct ParticleEx: public Particle {
         uint32_t color;
-        float frame;
+        float    frame;
     };
 
-    struct ParticleSplash : public Particle
-    {
+    struct ParticleSplash: public Particle {
         CVECTOR dir;
-        float dAng;
+        float   dAng;
     };
 
-    struct ChrSplash
-    {
-        float time;
-        float kTime;
-        CVECTOR pos;
+    struct ChrSplash {
+        float          time;
+        float          kTime;
+        CVECTOR        pos;
         ParticleSplash prt[64];
     };
 
-    struct ParticleFly : public ParticleEx
-    {
+    struct ParticleFly: public ParticleEx {
         float ax, ay;
         float kx, ky;
         float a, k;
     };
 
-    struct LampFlys
-    {
+    struct LampFlys {
         CVECTOR pos;
-        float radius;
+        float   radius;
         int32_t start;
         int32_t num;
     };
 
-    struct ParticleSG : public Particle
-    {
+    struct ParticleSG: public Particle {
         CVECTOR spd;
-        float dang;
-        float time;
-        float ktime;
+        float   dang;
+        float   time;
+        float   ktime;
     };
 
     // --------------------------------------------------------------------------------------------
     // construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     LocationEffects();
     ~LocationEffects() override;
 
@@ -96,15 +88,12 @@ class LocationEffects : public Entity
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -118,58 +107,57 @@ class LocationEffects : public Entity
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    void DrawParticles(void *prts, int32_t num, int32_t size, int32_t texture, const char *tech, bool isEx = false,
-                       int32_t numU = 0);
+private:
+    void DrawParticles(void* prts, int32_t num, int32_t size, int32_t texture, char const* tech, bool isEx = false, int32_t numU = 0);
 
-  private:
-    VDX9RENDER *rs;
+private:
+    VDX9RENDER* rs;
 
     // ---------------------------------------------------
     // Ѕplashes from the character
     // ---------------------------------------------------
-    void CreateSplash(const CVECTOR &pos, float power);
+    void CreateSplash(const CVECTOR& pos, float power);
     void ProcessedChrSplash(float dltTime);
 
     ChrSplash chrSplash[4];
-    int32_t chrSplashRefCounter;
-    int32_t splashesTxt;
+    int32_t   chrSplashRefCounter;
+    int32_t   splashesTxt;
 
     // ---------------------------------------------------
     // Flies near laterns
     // ---------------------------------------------------
 
-    void AddLampFlys(CVECTOR &pos);
+    void AddLampFlys(CVECTOR& pos);
     void ProcessedFlys(float dltTime);
 
-    std::vector<LampFlys> flys;
-    int32_t numFlys;
-    int32_t maxFlys;
+    std::vector<LampFlys>    flys;
+    int32_t                  numFlys;
+    int32_t                  maxFlys;
     std::vector<ParticleFly> fly;
-    int32_t numFly;
-    int32_t flyTex;
+    int32_t                  numFly;
+    int32_t                  flyTex;
 
     // ---------------------------------------------------
     // Shotgun particles
     // ---------------------------------------------------
     void SGInited();
     void SGRelease();
-    void SGEnvPrt(const CVECTOR &pos, const CVECTOR &ndir);
-    void SGBldPrt(const CVECTOR &pos, const CVECTOR &ndir);
-    void SGFirePrt(const CVECTOR &pos, const CVECTOR &ndir);
+    void SGEnvPrt(const CVECTOR& pos, const CVECTOR& ndir);
+    void SGBldPrt(const CVECTOR& pos, const CVECTOR& ndir);
+    void SGFirePrt(const CVECTOR& pos, const CVECTOR& ndir);
     void ProcessedShotgun(float dltTime);
 
     ParticleSG smoke[64];
-    bool isShgInited;
-    int32_t numSmoke;
-    int32_t texSmoke;
+    bool       isShgInited;
+    int32_t    numSmoke;
+    int32_t    texSmoke;
     ParticleSG flinders[256];
-    int32_t numFlinders;
-    int32_t texFlinders;
+    int32_t    numFlinders;
+    int32_t    texFlinders;
     ParticleSG blood[256];
-    int32_t numBlood;
-    int32_t texBlood;
-    int32_t texHor;
+    int32_t    numBlood;
+    int32_t    texBlood;
+    int32_t    texHor;
 
     Vertex buffer[256 * 6];
 };

@@ -5,12 +5,13 @@
 #include <mutex>
 #include <thread>
 
+#include <libs/core/v_file_service.h>
+#include <libs/util/fs.h>
 #include <spdlog/spdlog.h>
 
 #include "spdlog_sinks/syncable_sink.hpp"
+
 #include "watermark.hpp"
-#include <libs/core/v_file_service.h>
-#include <libs/util/fs.h>
 
 #if defined(_UNICODE) && defined(_WIN32)
 #include <tchar.h>
@@ -30,27 +31,27 @@
 
 namespace
 {
-auto &getExecutableDir()
+auto& getExecutableDir()
 {
-    static const auto executableDir = std::filesystem::path{std::filesystem::u8path(fio->_GetExecutableDirectory())};
+    static auto const executableDir = std::filesystem::path {std::filesystem::u8path(fio->_GetExecutableDirectory())};
     return executableDir;
 }
-auto &getLogsArchive()
+auto& getLogsArchive()
 {
-    static const auto logsArchive = fs::GetLogsPath().replace_extension(".7z");
+    static auto const logsArchive = fs::GetLogsPath().replace_extension(".7z");
     return logsArchive;
 }
 
-#ifdef _WIN32 // FIX_LINUX 7za.exe
+#ifdef _WIN32  // FIX_LINUX 7za.exe
 auto assembleArchiveCmd()
 {
     constexpr auto archiverBin = "7za.exe";
-    return _T("call \"") + (getExecutableDir() / archiverBin).native() + _T("\" a \"\\\\?\\") +
-           getLogsArchive().native() + _T("\" \"\\\\?\\") + fs::GetLogsPath().native() + _T("\"");
+    return _T("call \"") + (getExecutableDir() / archiverBin).native() + _T("\" a \"\\\\?\\") + getLogsArchive().native()
+        + _T("\" \"\\\\?\\") + fs::GetLogsPath().native() + _T("\"");
 }
 #endif
 
-void log_sentry(sentry_level_t level, const char *message, va_list args, void *)
+void log_sentry(sentry_level_t level, const char* message, va_list args, void*)
 {
     // TODO:
     /* spdlog::level::level_enum log_level = spdlog::level::critical;
@@ -80,14 +81,14 @@ void log_sentry(sentry_level_t level, const char *message, va_list args, void *)
     }*/
 }
 
-} // namespace
+}  // namespace
 
 namespace storm::diag
 {
 
 class LoggingService final
 {
-  public:
+public:
     ~LoggingService()
     {
         terminate();
@@ -95,8 +96,7 @@ class LoggingService final
 
     void initialize()
     {
-        if (terminate_)
-        {
+        if (terminate_) {
             terminate_ = false;
 
             static auto terminate_handler = std::get_terminate();
@@ -104,7 +104,7 @@ class LoggingService final
 
             create_directories(fs::GetLogsPath());
 
-            std::thread worker{[this] { loggingThread(); }};
+            std::thread worker {[this] { loggingThread(); }};
             worker.detach();
         }
     }
@@ -113,8 +113,7 @@ class LoggingService final
     {
         using namespace std::chrono_literals;
 
-        if (!terminate_)
-        {
+        if (!terminate_) {
             terminate_ = true;
             {
                 std::lock_guard lock(mtx_);
@@ -137,23 +136,20 @@ class LoggingService final
         cv_.notify_one();
     }
 
-  private:
-    std::mutex mtx_;
+private:
+    std::mutex              mtx_;
     std::condition_variable cv_;
-    bool flushRequested_{false};
-    std::atomic_bool terminate_{true};
+    bool                    flushRequested_ {false};
+    std::atomic_bool        terminate_ {true};
 
-    void flushAll(const bool terminate) const
+    void flushAll(bool const terminate) const
     {
         spdlog::apply_all([terminate](std::shared_ptr<spdlog::logger> l) {
             l->flush();
 
-            if (terminate)
-            {
-                for (auto &sink : l->sinks())
-                {
-                    if (const auto syncable_sink = std::dynamic_pointer_cast<logging::sinks::syncable_sink>(sink))
-                    {
+            if (terminate) {
+                for (auto& sink: l->sinks()) {
+                    if (auto const syncable_sink = std::dynamic_pointer_cast<logging::sinks::syncable_sink>(sink)) {
                         syncable_sink->terminate_immediately();
                     }
                 }
@@ -163,8 +159,7 @@ class LoggingService final
 
     void loggingThread()
     {
-        while (!terminate_)
-        {
+        while (!terminate_) {
             std::unique_lock lock(mtx_);
             cv_.wait(lock, [this] { return flushRequested_; });
 
@@ -176,23 +171,20 @@ class LoggingService final
     }
 };
 
-LifecycleDiagnosticsService::LifecycleDiagnosticsService() : loggingService_(std::make_unique<LoggingService>())
-{
-}
+LifecycleDiagnosticsService::LifecycleDiagnosticsService() : loggingService_(std::make_unique<LoggingService>()) {}
 
 LifecycleDiagnosticsService::~LifecycleDiagnosticsService()
 {
     terminate();
 }
 
-LifecycleDiagnosticsService::Guard LifecycleDiagnosticsService::initialize(const bool enableCrashReports)
+LifecycleDiagnosticsService::Guard LifecycleDiagnosticsService::initialize(bool const enableCrashReports)
 {
     loggingService_->initialize();
 
-    if (!initialized_)
-    {
+    if (!initialized_) {
         // TODO: make this crossplatform
-        auto *options = sentry_options_new();
+        auto* options = sentry_options_new();
 #ifdef _DEBUG
         sentry_options_set_debug(options, true);
 #endif
@@ -219,19 +211,15 @@ void LifecycleDiagnosticsService::terminate() const
 {
     loggingService_->terminate();
 
-    if (initialized_)
-    {
-        sentry_close();
-    }
+    if (initialized_) { sentry_close(); }
 }
 
 void LifecycleDiagnosticsService::notifyAfterRun() const
 {
     static auto latestFlushTimePoint = std::chrono::steady_clock::now();
 
-    if (const auto now = std::chrono::steady_clock::now();
-        std::chrono::duration_cast<std::chrono::seconds>(now - latestFlushTimePoint) >= getLoggingFlushPeriod())
-    {
+    if (auto const now = std::chrono::steady_clock::now();
+        std::chrono::duration_cast<std::chrono::seconds>(now - latestFlushTimePoint) >= getLoggingFlushPeriod()) {
         loggingService_->flushAsync();
         latestFlushTimePoint = now;
     }
@@ -242,26 +230,20 @@ void LifecycleDiagnosticsService::setCrashInfoCollector(crash_info_collector f)
     collectCrashInfo_ = std::move(f);
 }
 
-sentry_value_t LifecycleDiagnosticsService::beforeCrash(const sentry_ucontext_t *uctx, sentry_value_t event,
-                                                        void *closure)
+sentry_value_t LifecycleDiagnosticsService::beforeCrash(sentry_ucontext_t const* uctx, sentry_value_t event, void* closure)
 {
-    const auto *self = static_cast<LifecycleDiagnosticsService *>(closure);
+    auto const* self = static_cast<LifecycleDiagnosticsService*>(closure);
 
     // collect engine data
-    if (self->collectCrashInfo_)
-    {
-        self->collectCrashInfo_();
-    }
+    if (self->collectCrashInfo_) { self->collectCrashInfo_(); }
 
 #ifdef _WIN32
     // collect exception data
-    if (uctx != nullptr)
-    {
-        if (const seh_extractor seh(&uctx->exception_ptrs); seh.is_abnormal())
-        {
+    if (uctx != nullptr) {
+        if (seh_extractor const seh(&uctx->exception_ptrs); seh.is_abnormal()) {
             static auto logger = logging::getOrCreateLogger("exceptions");
             logger->set_pattern("%v");
-            seh.sink([](const char *msg) { logger->trace(msg); });
+            seh.sink([](char const* msg) { logger->trace(msg); });
         }
     }
 #endif
@@ -269,7 +251,7 @@ sentry_value_t LifecycleDiagnosticsService::beforeCrash(const sentry_ucontext_t 
     // terminate logging
     self->loggingService_->terminate();
 
-#ifdef _WIN32 // FIX_LINUX 7za.exe
+#ifdef _WIN32  // FIX_LINUX 7za.exe
     // archive logs for sentry backend
     _tsystem(assembleArchiveCmd().c_str());
 #endif
@@ -277,4 +259,4 @@ sentry_value_t LifecycleDiagnosticsService::beforeCrash(const sentry_ucontext_t 
     return event;
 }
 
-} // namespace storm::diag
+}  // namespace storm::diag

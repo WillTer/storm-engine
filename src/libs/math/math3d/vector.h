@@ -14,10 +14,9 @@
 // Class for representing a vector in 3D space
 class Vector
 {
-  public:
+public:
     union {
-        struct
-        {
+        struct {
             // The X component
             float x;
             // The Y component
@@ -33,7 +32,7 @@ class Vector
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Empty constructor
     Vector();
     // Fill with number
@@ -43,16 +42,16 @@ class Vector
     // Fill all components
     Vector(float x, float y, float z);
     // Fill all components
-    Vector(const float f[3]);
+    Vector(float const f[3]);
     // Fill all components
-    Vector(const double d[3]);
+    Vector(double const d[3]);
     // Copy constructor
-    Vector(const Vector &v);
+    Vector(Vector const& v);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // Find the square of the length of a vector
     float operator~() const;
     // Return normalized vector
@@ -62,45 +61,45 @@ class Vector
     Vector operator-() const;
 
     // Assign
-    Vector &operator=(float f);
+    Vector& operator=(float f);
     // Assign
-    Vector &operator=(double d);
+    Vector& operator=(double d);
     // Assign
-    Vector &operator=(const Vector &v);
+    Vector& operator=(Vector const& v);
     // per Component addition with assignment
-    Vector &operator+=(float f);
+    Vector& operator+=(float f);
     // per Component addition with assignment
-    Vector &operator+=(double d);
+    Vector& operator+=(double d);
     // per Component addition with assignment
-    Vector &operator+=(const Vector &v);
+    Vector& operator+=(Vector const& v);
     // per Component Subtraction with Assignment
-    Vector &operator-=(float f);
+    Vector& operator-=(float f);
     // per Component Subtraction with Assignment
-    Vector &operator-=(double d);
+    Vector& operator-=(double d);
     // per Component Subtraction with Assignment
-    Vector &operator-=(const Vector &v);
+    Vector& operator-=(Vector const& v);
     // per Component multiplication with assignment
-    Vector &operator*=(float f);
+    Vector& operator*=(float f);
     // per Component multiplication with assignment
-    Vector &operator*=(double d);
+    Vector& operator*=(double d);
     // per Component multiplication with assignment
-    Vector &operator*=(const Vector &v);
+    Vector& operator*=(Vector const& v);
     // per Component division with assignment
-    Vector &operator/=(float f);
+    Vector& operator/=(float f);
     // per Component division with assignment
-    Vector &operator/=(double d);
+    Vector& operator/=(double d);
     // per Component division with assignment
-    Vector &operator/=(const Vector &v);
+    Vector& operator/=(Vector const& v);
 
     // Scalar multiplication, the result is copied to all components
-    Vector &operator|=(const Vector &v);
+    Vector& operator|=(Vector const& v);
     // Vector multiplication
-    Vector &operator^=(const Vector &v);
+    Vector& operator^=(Vector const& v);
 
     // -----------------------------------------------------------
     // Transformation
     // -----------------------------------------------------------
-  public:
+public:
     // Normalize the vector, and return it to its former length
     float Normalize();
     // Project to XZ Plane and Normalize
@@ -110,48 +109,48 @@ class Vector
     float ClampLength(float clampValue);
 
     // Limit X component to range
-    Vector &ClampX(float min, float max);
+    Vector& ClampX(float min, float max);
     // Constrain Y component to range
-    Vector &ClampY(float min, float max);
+    Vector& ClampY(float min, float max);
     // Constrain Z component to range
-    Vector &ClampZ(float min, float max);
+    Vector& ClampZ(float min, float max);
     // Limit components to a range
-    Vector &Clamp(float min, float max);
+    Vector& Clamp(float min, float max);
 
     // Keep vector minimal components
-    Vector &Min(const Vector &v);
+    Vector& Min(Vector const& v);
     // Keep vector maximum components
-    Vector &Max(const Vector &v);
+    Vector& Max(Vector const& v);
 
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Set new values
-    Vector &Set(float x, float y, float z);
+    Vector& Set(float x, float y, float z);
     // Set new values
-    Vector &Set(const Vector &v);
+    Vector& Set(Vector const& v);
 
     // Get the angle between vectors
-    float GetAngle(const Vector &v) const;
+    float GetAngle(Vector const& v) const;
     // Get the sign angle between vectors in the XZ plane
-    float GetAngle2D(const Vector &v) const;
+    float GetAngle2D(Vector const& v) const;
     // Get the angle of rotation of a vector around the Y axis
     float GetAY(float defAngle = 0.0f) const;
 
     // Get sine between 2D vectors in XZ plane
-    float Sin2D(const Vector &v) const;
+    float Sin2D(Vector const& v) const;
     // Get cosine between 2D vectors in XZ plane
-    float Cos2D(const Vector &v) const;
+    float Cos2D(Vector const& v) const;
     // Get the cross product of vectors in the XZ plane
-    float Cross2D(const Vector &v) const;
+    float Cross2D(Vector const& v) const;
 
     // Get a vector in the XZ plane
     Vector Get2D() const;
     // Get a vector in the XZ plane
     Vector Get2D(float y) const;
     // Generate vector in XZ plane by angle
-    Vector &Make2D(float ay);
+    Vector& Make2D(float ay);
 
     // Get vector length
     float GetLength() const;
@@ -161,38 +160,38 @@ class Vector
     float GetLength2D2() const;
 
     // Rotate a vector in the XZ plane by an angle
-    Vector &Rotate(float angle);
+    Vector& Rotate(float angle);
     // Rotate the vector in the XZ plane by an angle specified by cos, sin
-    Vector &Rotate(float vcos, float vsin);
+    Vector& Rotate(float vcos, float vsin);
     // Rotate the vector clockwise in the XZ plane by an angle PI/2
-    Vector &Rotate_PI2_CW();
+    Vector& Rotate_PI2_CW();
     // Rotate the vector counterclockwise in the XZ plane by an angle PI/2
-    Vector &Rotate_PI2_CCW();
+    Vector& Rotate_PI2_CCW();
 
     // Calculate linearly interpolated value
-    Vector &Lerp(const Vector &v1, const Vector &v2, float kBlend);
+    Vector& Lerp(Vector const& v1, Vector const& v2, float kBlend);
 
     // Calculate the reflected vector
-    Vector &Reflection(const Vector &normal);
+    Vector& Reflection(Vector const& normal);
 
     // Fill with a unit vector with a random direction
-    Vector &Rand();
+    Vector& Rand();
     // Fill with unit vector with random direction in XZ
-    Vector &Rand2D();
+    Vector& Rand2D();
     // Fill with random values in a given ABB
-    Vector &Rand(const Vector &min, const Vector &max);
+    Vector& Rand(Vector const& min, Vector const& max);
     // Fill with random values in a given sphere
-    Vector &Rand(const Vector &pos, float radius);
+    Vector& Rand(Vector const& pos, float radius);
 
     // Move the current vector to the specified point by the specified step
-    bool MoveByStep(const Vector &to, float step);
+    bool MoveByStep(Vector const& to, float step);
     // Move the current vector to a given point by a given step in 2D
-    bool MoveByStep2D(const Vector &to, float step);
+    bool MoveByStep2D(Vector const& to, float step);
 
     // The point is in the box
-    bool InBox(const Vector &min, const Vector &max) const;
+    bool InBox(Vector const& min, Vector const& max) const;
     // The point is in the sphere
-    bool InSphere(const Vector &pos, float rad) const;
+    bool InSphere(Vector const& pos, float rad) const;
 };
 
 // ===========================================================
@@ -227,7 +226,7 @@ inline Vector::Vector(float x, float y, float z)
 }
 
 // Fill all components
-inline Vector::Vector(const float f[3])
+inline Vector::Vector(float const f[3])
 {
     x = f[0];
     y = f[1];
@@ -235,7 +234,7 @@ inline Vector::Vector(const float f[3])
 }
 
 // Fill all components
-inline Vector::Vector(const double d[3])
+inline Vector::Vector(double const d[3])
 {
     x = static_cast<float>(d[0]);
     y = static_cast<float>(d[1]);
@@ -243,7 +242,7 @@ inline Vector::Vector(const double d[3])
 }
 
 // Copy constructor
-inline Vector::Vector(const Vector &v)
+inline Vector::Vector(Vector const& v)
 {
     x = v.x;
     y = v.y;
@@ -279,7 +278,7 @@ inline Vector Vector::operator-() const
 }
 
 // Assign
-inline Vector &Vector::operator=(float f)
+inline Vector& Vector::operator=(float f)
 {
     x = f;
     y = f;
@@ -288,7 +287,7 @@ inline Vector &Vector::operator=(float f)
 }
 
 // Assign
-inline Vector &Vector::operator=(double d)
+inline Vector& Vector::operator=(double d)
 {
     x = static_cast<float>(d);
     y = static_cast<float>(d);
@@ -297,7 +296,7 @@ inline Vector &Vector::operator=(double d)
 }
 
 // Assign
-inline Vector &Vector::operator=(const Vector &v)
+inline Vector& Vector::operator=(Vector const& v)
 {
     x = v.x;
     y = v.y;
@@ -306,7 +305,7 @@ inline Vector &Vector::operator=(const Vector &v)
 }
 
 // per Component addition with assignment
-inline Vector &Vector::operator+=(float f)
+inline Vector& Vector::operator+=(float f)
 {
     x += f;
     y += f;
@@ -315,7 +314,7 @@ inline Vector &Vector::operator+=(float f)
 }
 
 // per Component addition with assignment
-inline Vector &Vector::operator+=(double d)
+inline Vector& Vector::operator+=(double d)
 {
     x += static_cast<float>(d);
     y += static_cast<float>(d);
@@ -324,7 +323,7 @@ inline Vector &Vector::operator+=(double d)
 }
 
 // per Component addition with assignment
-inline Vector &Vector::operator+=(const Vector &v)
+inline Vector& Vector::operator+=(Vector const& v)
 {
     x += v.x;
     y += v.y;
@@ -333,7 +332,7 @@ inline Vector &Vector::operator+=(const Vector &v)
 }
 
 // per Component Subtraction with Assignment
-inline Vector &Vector::operator-=(float f)
+inline Vector& Vector::operator-=(float f)
 {
     x -= f;
     y -= f;
@@ -342,7 +341,7 @@ inline Vector &Vector::operator-=(float f)
 }
 
 // per Component Subtraction with Assignment
-inline Vector &Vector::operator-=(double d)
+inline Vector& Vector::operator-=(double d)
 {
     x -= static_cast<float>(d);
     y -= static_cast<float>(d);
@@ -351,7 +350,7 @@ inline Vector &Vector::operator-=(double d)
 }
 
 // per Component Subtraction with Assignment
-inline Vector &Vector::operator-=(const Vector &v)
+inline Vector& Vector::operator-=(Vector const& v)
 {
     x -= v.x;
     y -= v.y;
@@ -360,7 +359,7 @@ inline Vector &Vector::operator-=(const Vector &v)
 }
 
 // per Component multiplication with assignment
-inline Vector &Vector::operator*=(float f)
+inline Vector& Vector::operator*=(float f)
 {
     x *= f;
     y *= f;
@@ -369,7 +368,7 @@ inline Vector &Vector::operator*=(float f)
 }
 
 // per Component multiplication with assignment
-inline Vector &Vector::operator*=(double d)
+inline Vector& Vector::operator*=(double d)
 {
     x *= static_cast<float>(d);
     y *= static_cast<float>(d);
@@ -378,7 +377,7 @@ inline Vector &Vector::operator*=(double d)
 }
 
 // per Component multiplication with assignment
-inline Vector &Vector::operator*=(const Vector &v)
+inline Vector& Vector::operator*=(Vector const& v)
 {
     x *= v.x;
     y *= v.y;
@@ -387,17 +386,17 @@ inline Vector &Vector::operator*=(const Vector &v)
 }
 
 // per Component division with assignment
-inline Vector &Vector::operator/=(float f)
+inline Vector& Vector::operator/=(float f)
 {
-    const auto d = 1.0 / f;
-    x = static_cast<float>(x * d);
-    y = static_cast<float>(y * d);
-    z = static_cast<float>(z * d);
+    auto const d = 1.0 / f;
+    x            = static_cast<float>(x * d);
+    y            = static_cast<float>(y * d);
+    z            = static_cast<float>(z * d);
     return *this;
 }
 
 // per Component division with assignment
-inline Vector &Vector::operator/=(double d)
+inline Vector& Vector::operator/=(double d)
 {
     d = 1.0 / d;
     x = static_cast<float>(x * d);
@@ -407,7 +406,7 @@ inline Vector &Vector::operator/=(double d)
 }
 
 // per Component division with assignment
-inline Vector &Vector::operator/=(const Vector &v)
+inline Vector& Vector::operator/=(Vector const& v)
 {
     x /= v.x;
     y /= v.y;
@@ -416,28 +415,28 @@ inline Vector &Vector::operator/=(const Vector &v)
 }
 
 // Scalar multiplication, the result is copied to all components
-inline Vector &Vector::operator|=(const Vector &v)
+inline Vector& Vector::operator|=(Vector const& v)
 {
     x = y = z = v.x * x + v.y * y + v.z * z;
     return *this;
 }
 
 // Vector multiplication
-inline Vector &Vector::operator^=(const Vector &v)
+inline Vector& Vector::operator^=(Vector const& v)
 {
-    const auto tx = y * v.z - z * v.y;
-    const auto ty = z * v.x - x * v.z;
-    const auto tz = x * v.y - y * v.x;
-    x = tx;
-    y = ty;
-    z = tz;
+    auto const tx = y * v.z - z * v.y;
+    auto const ty = z * v.x - x * v.z;
+    auto const tz = x * v.y - y * v.x;
+    x             = tx;
+    y             = ty;
+    z             = tz;
     return *this;
 }
 
 /*!\relates Vector
 Addition
 */
-inline Vector operator+(const Vector &v, float f)
+inline Vector operator+(Vector const& v, float f)
 {
     auto tv(v);
     tv += f;
@@ -447,7 +446,7 @@ inline Vector operator+(const Vector &v, float f)
 /*!\relates Vector
 Addition
 */
-inline Vector operator+(float f, const Vector &v)
+inline Vector operator+(float f, Vector const& v)
 {
     auto tv(v);
     tv += f;
@@ -457,7 +456,7 @@ inline Vector operator+(float f, const Vector &v)
 /*!\relates Vector
 Addition
 */
-inline Vector operator+(const Vector &v, double d)
+inline Vector operator+(Vector const& v, double d)
 {
     auto tv(v);
     tv += d;
@@ -467,7 +466,7 @@ inline Vector operator+(const Vector &v, double d)
 /*!\relates Vector
 Addition
 */
-inline Vector operator+(double d, const Vector &v)
+inline Vector operator+(double d, Vector const& v)
 {
     auto tv(v);
     tv += d;
@@ -477,7 +476,7 @@ inline Vector operator+(double d, const Vector &v)
 /*!\relates Vector
 Addition
 */
-inline Vector operator+(const Vector &v1, const Vector &v2)
+inline Vector operator+(Vector const& v1, Vector const& v2)
 {
     auto tv(v1);
     tv += v2;
@@ -487,7 +486,7 @@ inline Vector operator+(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Subtract
 */
-inline Vector operator-(const Vector &v, float f)
+inline Vector operator-(Vector const& v, float f)
 {
     auto tv(v);
     tv -= f;
@@ -497,7 +496,7 @@ inline Vector operator-(const Vector &v, float f)
 /*!\relates Vector
 Subtract
 */
-inline Vector operator-(float f, const Vector &v)
+inline Vector operator-(float f, Vector const& v)
 {
     auto tv(v);
     tv -= f;
@@ -507,7 +506,7 @@ inline Vector operator-(float f, const Vector &v)
 /*!\relates Vector
 Subtract
 */
-inline Vector operator-(const Vector &v, double d)
+inline Vector operator-(Vector const& v, double d)
 {
     auto tv(v);
     tv -= d;
@@ -517,7 +516,7 @@ inline Vector operator-(const Vector &v, double d)
 /*!\relates Vector
 Subtract
 */
-inline Vector operator-(double d, const Vector &v)
+inline Vector operator-(double d, Vector const& v)
 {
     auto tv(v);
     tv -= d;
@@ -527,7 +526,7 @@ inline Vector operator-(double d, const Vector &v)
 /*!\relates Vector
 Subtract
 */
-inline Vector operator-(const Vector &v1, const Vector &v2)
+inline Vector operator-(Vector const& v1, Vector const& v2)
 {
     auto tv(v1);
     tv -= v2;
@@ -537,7 +536,7 @@ inline Vector operator-(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Multiply
 */
-inline Vector operator*(const Vector &v, float f)
+inline Vector operator*(Vector const& v, float f)
 {
     auto tv(v);
     tv *= f;
@@ -547,7 +546,7 @@ inline Vector operator*(const Vector &v, float f)
 /*!\relates Vector
 Multiply
 */
-inline Vector operator*(float f, const Vector &v)
+inline Vector operator*(float f, Vector const& v)
 {
     auto tv(v);
     tv *= f;
@@ -557,7 +556,7 @@ inline Vector operator*(float f, const Vector &v)
 /*!\relates Vector
 Multiply
 */
-inline Vector operator*(const Vector &v, double d)
+inline Vector operator*(Vector const& v, double d)
 {
     auto tv(v);
     tv *= d;
@@ -567,7 +566,7 @@ inline Vector operator*(const Vector &v, double d)
 /*!\relates Vector
 Multiply
 */
-inline Vector operator*(double d, const Vector &v)
+inline Vector operator*(double d, Vector const& v)
 {
     auto tv(v);
     tv *= d;
@@ -577,7 +576,7 @@ inline Vector operator*(double d, const Vector &v)
 /*!\relates Vector
 Multiply
 */
-inline Vector operator*(const Vector &v1, const Vector &v2)
+inline Vector operator*(Vector const& v1, Vector const& v2)
 {
     auto tv(v1);
     tv *= v2;
@@ -587,7 +586,7 @@ inline Vector operator*(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Divide
 */
-inline Vector operator/(const Vector &v, float f)
+inline Vector operator/(Vector const& v, float f)
 {
     auto tv(v);
     tv /= f;
@@ -597,7 +596,7 @@ inline Vector operator/(const Vector &v, float f)
 /*!\relates Vector
 Divide
 */
-inline Vector operator/(float f, const Vector &v)
+inline Vector operator/(float f, Vector const& v)
 {
     Vector tv(f);
     tv /= v;
@@ -607,7 +606,7 @@ inline Vector operator/(float f, const Vector &v)
 /*!\relates Vector
 Divide
 */
-inline Vector operator/(const Vector &v, double d)
+inline Vector operator/(Vector const& v, double d)
 {
     auto tv(v);
     tv /= d;
@@ -617,7 +616,7 @@ inline Vector operator/(const Vector &v, double d)
 /*!\relates Vector
 Divide
 */
-inline Vector operator/(double d, const Vector &v)
+inline Vector operator/(double d, Vector const& v)
 {
     Vector tv(d);
     tv /= v;
@@ -627,7 +626,7 @@ inline Vector operator/(double d, const Vector &v)
 /*!\relates Vector
 Divide
 */
-inline Vector operator/(const Vector &v1, const Vector &v2)
+inline Vector operator/(Vector const& v1, Vector const& v2)
 {
     auto tv(v1);
     tv /= v2;
@@ -637,7 +636,7 @@ inline Vector operator/(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Scalar multiplication
 */
-inline float operator|(const Vector &v1, const Vector &v2)
+inline float operator|(Vector const& v1, Vector const& v2)
 {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
@@ -645,7 +644,7 @@ inline float operator|(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Vector multiplication
 */
-inline Vector operator^(const Vector &v1, const Vector &v2)
+inline Vector operator^(Vector const& v1, Vector const& v2)
 {
     Vector v;
     v.x = v1.y * v2.z - v1.z * v2.y;
@@ -657,57 +656,52 @@ inline Vector operator^(const Vector &v1, const Vector &v2)
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator>(const Vector &v1, const Vector &v2)
+inline bool operator>(Vector const& v1, Vector const& v2)
 {
-    if (v1.x > v2.x && v1.y > v2.y && v1.z > v2.z)
-        return true;
+    if (v1.x > v2.x && v1.y > v2.y && v1.z > v2.z) return true;
     return false;
 }
 
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator>=(const Vector &v1, const Vector &v2)
+inline bool operator>=(Vector const& v1, Vector const& v2)
 {
-    if (v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z)
-        return true;
+    if (v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z) return true;
     return false;
 }
 
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator<(const Vector &v1, const Vector &v2)
+inline bool operator<(Vector const& v1, Vector const& v2)
 {
-    if (v1.x < v2.x && v1.y < v2.y && v1.z < v2.z)
-        return true;
+    if (v1.x < v2.x && v1.y < v2.y && v1.z < v2.z) return true;
     return false;
 }
 
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator<=(const Vector &v1, const Vector &v2)
+inline bool operator<=(Vector const& v1, Vector const& v2)
 {
-    if (v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z)
-        return true;
+    if (v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z) return true;
     return false;
 }
 
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator==(const Vector &v1, const Vector &v2)
+inline bool operator==(Vector const& v1, Vector const& v2)
 {
-    if (fabsf(v1.x - v2.x) < 1e-34f && fabsf(v1.y - v2.y) < 1e-34f && fabsf(v1.z - v2.z) < 1e-34f)
-        return true;
+    if (fabsf(v1.x - v2.x) < 1e-34f && fabsf(v1.y - v2.y) < 1e-34f && fabsf(v1.z - v2.z) < 1e-34f) return true;
     return false;
 }
 
 /*!\relates Vector
 Compare component by component
 */
-inline bool operator!=(const Vector &v1, const Vector &v2)
+inline bool operator!=(Vector const& v1, Vector const& v2)
 {
     return !(v1 == v2);
 }
@@ -719,15 +713,14 @@ inline bool operator!=(const Vector &v1, const Vector &v2)
 // Normalize the vector, and return it to its former length
 inline float Vector::Normalize()
 {
-    const auto len =
-        sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y) +
-             static_cast<double>(z) * static_cast<double>(z));
-    if (len > 0.0)
-    {
-        const auto k = 1.0 / len;
-        x = static_cast<float>(x * k);
-        y = static_cast<float>(y * k);
-        z = static_cast<float>(z * k);
+    auto const len = sqrt(
+        static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y)
+        + static_cast<double>(z) * static_cast<double>(z));
+    if (len > 0.0) {
+        auto const k = 1.0 / len;
+        x            = static_cast<float>(x * k);
+        y            = static_cast<float>(y * k);
+        z            = static_cast<float>(z * k);
     }
     return static_cast<float>(len);
 }
@@ -735,14 +728,12 @@ inline float Vector::Normalize()
 // Project to XZ Plane and Normalize
 inline float Vector::Normalize2D()
 {
-    y = 0.0f;
-    const auto len =
-        sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z));
-    if (len > 0.0)
-    {
-        const auto k = 1.0 / len;
-        x = static_cast<float>(x * k);
-        z = static_cast<float>(z * k);
+    y              = 0.0f;
+    auto const len = sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z));
+    if (len > 0.0) {
+        auto const k = 1.0 / len;
+        x            = static_cast<float>(x * k);
+        z            = static_cast<float>(z * k);
     }
     return static_cast<float>(len);
 }
@@ -750,92 +741,72 @@ inline float Vector::Normalize2D()
 // Limit the length of the vector, and return the current length
 inline float Vector::ClampLength(float clampValue)
 {
-    if (clampValue <= 0.0f)
-    {
+    if (clampValue <= 0.0f) {
         x = y = z = 0.0f;
         return 0.0f;
     }
-    const double len = sqrt(x * x + y * y + z * z);
-    if (len > clampValue)
-    {
-        const auto k = clampValue / len;
-        x = static_cast<float>(x * k);
-        y = static_cast<float>(y * k);
-        z = static_cast<float>(z * k);
+    double const len = sqrt(x * x + y * y + z * z);
+    if (len > clampValue) {
+        auto const k = clampValue / len;
+        x            = static_cast<float>(x * k);
+        y            = static_cast<float>(y * k);
+        z            = static_cast<float>(z * k);
         return clampValue;
     }
     return static_cast<float>(len);
 }
 
 // Limit X component to range
-inline Vector &Vector::ClampX(float min, float max)
+inline Vector& Vector::ClampX(float min, float max)
 {
-    if (x < min)
-        x = min;
-    if (x > max)
-        x = max;
+    if (x < min) x = min;
+    if (x > max) x = max;
     return *this;
 }
 
 // Constrain Y component to range
-inline Vector &Vector::ClampY(float min, float max)
+inline Vector& Vector::ClampY(float min, float max)
 {
-    if (y < min)
-        y = min;
-    if (y > max)
-        y = max;
+    if (y < min) y = min;
+    if (y > max) y = max;
     return *this;
 }
 
 // Constrain Z component to range
-inline Vector &Vector::ClampZ(float min, float max)
+inline Vector& Vector::ClampZ(float min, float max)
 {
-    if (z < min)
-        z = min;
-    if (z > max)
-        z = max;
+    if (z < min) z = min;
+    if (z > max) z = max;
     return *this;
 }
 
 // Limit components to a range
-inline Vector &Vector::Clamp(float min, float max)
+inline Vector& Vector::Clamp(float min, float max)
 {
-    if (x < min)
-        x = min;
-    if (x > max)
-        x = max;
-    if (y < min)
-        y = min;
-    if (y > max)
-        y = max;
-    if (z < min)
-        z = min;
-    if (z > max)
-        z = max;
+    if (x < min) x = min;
+    if (x > max) x = max;
+    if (y < min) y = min;
+    if (y > max) y = max;
+    if (z < min) z = min;
+    if (z > max) z = max;
     return *this;
 }
 
 // Keep vector minimal components
-inline Vector &Vector::Min(const Vector &v)
+inline Vector& Vector::Min(Vector const& v)
 {
-    if (x > v.x)
-        x = v.x;
-    if (y > v.y)
-        y = v.y;
-    if (z > v.z)
-        z = v.z;
+    if (x > v.x) x = v.x;
+    if (y > v.y) y = v.y;
+    if (z > v.z) z = v.z;
     return *this;
 }
 
 // Keep vector maximum components
-inline Vector &Vector::Max(const Vector &v)
+inline Vector& Vector::Max(Vector const& v)
 {
-    if (x < v.x)
-        x = v.x;
-    if (y < v.y)
-        y = v.y;
-    if (z < v.z)
-        z = v.z;
+    if (x < v.x) x = v.x;
+    if (y < v.y) y = v.y;
+    if (z < v.z) z = v.z;
     return *this;
 }
 
@@ -844,7 +815,7 @@ inline Vector &Vector::Max(const Vector &v)
 // ===========================================================
 
 // Set new values
-inline Vector &Vector::Set(float x, float y, float z)
+inline Vector& Vector::Set(float x, float y, float z)
 {
     this->x = x;
     this->y = y;
@@ -853,7 +824,7 @@ inline Vector &Vector::Set(float x, float y, float z)
 }
 
 // Set new values
-inline Vector &Vector::Set(const Vector &v)
+inline Vector& Vector::Set(Vector const& v)
 {
     x = v.x;
     y = v.y;
@@ -862,37 +833,30 @@ inline Vector &Vector::Set(const Vector &v)
 }
 
 // Get the angle between vectors
-inline float Vector::GetAngle(const Vector &v) const
+inline float Vector::GetAngle(Vector const& v) const
 {
-    auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y) +
-               static_cast<double>(z) * static_cast<double>(z);
-    len *= static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y) +
-           static_cast<double>(z) * static_cast<double>(z);
-    if (len <= 0.0)
-        return 0.0f;
+    auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y)
+        + static_cast<double>(z) * static_cast<double>(z);
+    len *= static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y)
+        + static_cast<double>(z) * static_cast<double>(z);
+    if (len <= 0.0) return 0.0f;
     auto cs = (x * v.x + y * v.y + z * v.z) / sqrt(len);
-    if (cs > 1.0)
-        cs = 1.0;
-    if (cs < -1.0)
-        cs = -1.0;
+    if (cs > 1.0) cs = 1.0;
+    if (cs < -1.0) cs = -1.0;
     return static_cast<float>(acos(cs));
 }
 
 // Get the sign angle between vectors in the XZ plane
-inline float Vector::GetAngle2D(const Vector &v) const
+inline float Vector::GetAngle2D(Vector const& v) const
 {
     auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z);
     len *= static_cast<double>(v.x) * static_cast<double>(v.x) + static_cast<double>(v.z) * static_cast<double>(v.z);
-    if (len <= 0.0)
-        return 0.0f;
+    if (len <= 0.0) return 0.0f;
     len = (x * v.x + z * v.z) / sqrt(len);
-    if (len > 1.0)
-        len = 1.0;
-    if (len < -1.0)
-        len = -1.0;
+    if (len > 1.0) len = 1.0;
+    if (len < -1.0) len = -1.0;
     len = acos(len);
-    if (z * v.x - x * v.z < 0)
-        len = -len;
+    if (z * v.x - x * v.z < 0) len = -len;
     return static_cast<float>(len);
 }
 
@@ -900,46 +864,39 @@ inline float Vector::GetAngle2D(const Vector &v) const
 inline float Vector::GetAY(float defAngle) const
 {
     auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z);
-    if (len > 0.00000000001)
-    {
+    if (len > 0.00000000001) {
         len = z / sqrt(len);
-        if (len > 1.0)
-            len = 1.0;
-        if (len < -1.0)
-            len = -1.0;
+        if (len > 1.0) len = 1.0;
+        if (len < -1.0) len = -1.0;
         len = acos(len);
-    }
-    else
+    } else
         return defAngle;
-    if (x < 0)
-        len = -len;
+    if (x < 0) len = -len;
     return static_cast<float>(len);
 }
 
 // Get sine between 2D vectors in XZ plane
-inline float Vector::Sin2D(const Vector &v) const
+inline float Vector::Sin2D(Vector const& v) const
 {
     auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z);
     len *= static_cast<double>(v.x) * static_cast<double>(v.x) + static_cast<double>(v.z) * static_cast<double>(v.z);
-    if (len <= 0.0)
-        return 0.0f;
+    if (len <= 0.0) return 0.0f;
     len = (z * v.x - x * v.z) / sqrt(len);
     return static_cast<float>(len);
 }
 
 // Get cosine between 2D vectors in XZ plane
-inline float Vector::Cos2D(const Vector &v) const
+inline float Vector::Cos2D(Vector const& v) const
 {
     auto len = static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z);
     len *= static_cast<double>(v.x) * static_cast<double>(v.x) + static_cast<double>(v.z) * static_cast<double>(v.z);
-    if (len <= 0.0)
-        return 1.0f;
+    if (len <= 0.0) return 1.0f;
     len = (x * v.x + z * v.z) / sqrt(len);
     return static_cast<float>(len);
 }
 
 // Get the cross product of vectors in the XZ plane
-inline float Vector::Cross2D(const Vector &v) const
+inline float Vector::Cross2D(Vector const& v) const
 {
     return z * v.x - x * v.z;
 }
@@ -957,7 +914,7 @@ inline Vector Vector::Get2D(float y) const
 }
 
 // Generate vector in XZ plane by angle
-inline Vector &Vector::Make2D(float ay)
+inline Vector& Vector::Make2D(float ay)
 {
     x = sinf(ay);
     y = 0.0f;
@@ -968,16 +925,15 @@ inline Vector &Vector::Make2D(float ay)
 // Get vector length
 inline float Vector::GetLength() const
 {
-    return static_cast<float>(sqrt(static_cast<double>(x) * static_cast<double>(x) +
-                                   static_cast<double>(y) * static_cast<double>(y) +
-                                   static_cast<double>(z) * static_cast<double>(z)));
+    return static_cast<float>(sqrt(
+        static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(y) * static_cast<double>(y)
+        + static_cast<double>(z) * static_cast<double>(z)));
 }
 
 // Get vector length in 2D
 inline float Vector::GetLength2D() const
 {
-    return static_cast<float>(
-        sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z)));
+    return static_cast<float>(sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z)));
 }
 
 // Get the squared length of a vector in 2D
@@ -987,41 +943,41 @@ inline float Vector::GetLength2D2() const
 }
 
 // Rotate a vector in the XZ plane by an angle
-inline Vector &Vector::Rotate(float angle)
+inline Vector& Vector::Rotate(float angle)
 {
     return Rotate(cosf(angle), sinf(angle));
 }
 
 // Rotate the vector in the XZ plane by an angle specified by cos, sin
-inline Vector &Vector::Rotate(float vcos, float vsin)
+inline Vector& Vector::Rotate(float vcos, float vsin)
 {
-    const auto tx = x * vcos + z * vsin;
-    const auto tz = z * vcos - x * vsin;
-    x = tx;
-    z = tz;
+    auto const tx = x * vcos + z * vsin;
+    auto const tz = z * vcos - x * vsin;
+    x             = tx;
+    z             = tz;
     return *this;
 }
 
 // Rotate the vector clockwise in the XZ plane by an angle PI / 2
-inline Vector &Vector::Rotate_PI2_CW()
+inline Vector& Vector::Rotate_PI2_CW()
 {
-    const auto t = x;
-    x = z;
-    z = -t;
+    auto const t = x;
+    x            = z;
+    z            = -t;
     return *this;
 }
 
 // Rotate the vector counterclockwise in the XZ plane by an angle PI / 2
-inline Vector &Vector::Rotate_PI2_CCW()
+inline Vector& Vector::Rotate_PI2_CCW()
 {
-    const auto t = x;
-    x = -z;
-    z = t;
+    auto const t = x;
+    x            = -z;
+    z            = t;
     return *this;
 }
 
 // Calculate linearly interpolated value
-inline Vector &Vector::Lerp(const Vector &v1, const Vector &v2, float kBlend)
+inline Vector& Vector::Lerp(Vector const& v1, Vector const& v2, float kBlend)
 {
     x = v1.x + (v2.x - v1.x) * kBlend;
     y = v1.y + (v2.y - v1.y) * kBlend;
@@ -1030,9 +986,9 @@ inline Vector &Vector::Lerp(const Vector &v1, const Vector &v2, float kBlend)
 }
 
 // Calculate the reflected vector
-inline Vector &Vector::Reflection(const Vector &normal)
+inline Vector& Vector::Reflection(Vector const& normal)
 {
-    const auto k = -2.0f * (x * normal.x + y * normal.y + z * normal.z);
+    auto const k = -2.0f * (x * normal.x + y * normal.y + z * normal.z);
     x += normal.x * k;
     y += normal.y * k;
     z += normal.z * k;
@@ -1040,7 +996,7 @@ inline Vector &Vector::Reflection(const Vector &normal)
 }
 
 // Fill with a unit vector with a random direction
-inline Vector &Vector::Rand()
+inline Vector& Vector::Rand()
 {
     Make2D(rand() * ((2.0f * 3.141592654f) / RAND_MAX));
     y = z;
@@ -1049,13 +1005,13 @@ inline Vector &Vector::Rand()
 }
 
 // Fill with unit vector with random direction in XZ
-inline Vector &Vector::Rand2D()
+inline Vector& Vector::Rand2D()
 {
     return Make2D(rand() * ((2.0f * 3.141592654f) / RAND_MAX));
 }
 
 // Fill with random values in a given ABB
-inline Vector &Vector::Rand(const Vector &min, const Vector &max)
+inline Vector& Vector::Rand(Vector const& min, Vector const& max)
 {
     x = min.x + rand() * ((max.x - min.x) * (1.0f / RAND_MAX));
     y = min.y + rand() * ((max.y - min.y) * (1.0f / RAND_MAX));
@@ -1064,7 +1020,7 @@ inline Vector &Vector::Rand(const Vector &min, const Vector &max)
 }
 
 // Fill with random values in a given sphere
-inline Vector &Vector::Rand(const Vector &pos, float radius)
+inline Vector& Vector::Rand(Vector const& pos, float radius)
 {
     Rand();
     *this *= rand() * (radius * (1.0f / RAND_MAX));
@@ -1072,17 +1028,15 @@ inline Vector &Vector::Rand(const Vector &pos, float radius)
 }
 
 // Move the current vector to the specified point by the specified step
-inline bool Vector::MoveByStep(const Vector &to, float step)
+inline bool Vector::MoveByStep(Vector const& to, float step)
 {
-    if (step <= 0.0f)
-        return false;
+    if (step <= 0.0f) return false;
     // Distance to point
-    const auto dx = to.x - x;
-    const auto dy = to.y - y;
-    const auto dz = to.z - z;
-    auto dist = dx * dx + dy * dy + dz * dz;
-    if (dist < 1e-20f)
-    {
+    auto const dx   = to.x - x;
+    auto const dy   = to.y - y;
+    auto const dz   = to.z - z;
+    auto       dist = dx * dx + dy * dy + dz * dz;
+    if (dist < 1e-20f) {
         x = to.x;
         y = to.y;
         z = to.z;
@@ -1090,8 +1044,7 @@ inline bool Vector::MoveByStep(const Vector &to, float step)
     }
     dist = sqrtf(dist);
     // Moving to a point
-    if (step >= dist)
-    {
+    if (step >= dist) {
         x = to.x;
         y = to.y;
         z = to.z;
@@ -1105,24 +1058,21 @@ inline bool Vector::MoveByStep(const Vector &to, float step)
 }
 
 // Move the current vector to a given point by a given step in 2D
-inline bool Vector::MoveByStep2D(const Vector &to, float step)
+inline bool Vector::MoveByStep2D(Vector const& to, float step)
 {
-    if (step <= 0.0f)
-        return false;
+    if (step <= 0.0f) return false;
     // Distance to point
-    const auto dx = to.x - x;
-    const auto dz = to.z - z;
-    auto dist = dx * dx + dz * dz;
-    if (dist < 1e-20f)
-    {
+    auto const dx   = to.x - x;
+    auto const dz   = to.z - z;
+    auto       dist = dx * dx + dz * dz;
+    if (dist < 1e-20f) {
         x = to.x;
         z = to.z;
         return false;
     }
     dist = sqrtf(dist);
     // Moving to a point
-    if (step >= dist)
-    {
+    if (step >= dist) {
         x = to.x;
         z = to.z;
         return true;
@@ -1134,19 +1084,16 @@ inline bool Vector::MoveByStep2D(const Vector &to, float step)
 }
 
 // The point is in the box
-inline bool Vector::InBox(const Vector &min, const Vector &max) const
+inline bool Vector::InBox(Vector const& min, Vector const& max) const
 {
-    if (y < min.y || y > max.y)
-        return false;
-    if (x < min.x || x > max.x)
-        return false;
-    if (z < min.z || z > max.z)
-        return false;
+    if (y < min.y || y > max.y) return false;
+    if (x < min.x || x > max.x) return false;
+    if (z < min.z || z > max.z) return false;
     return true;
 }
 
 // The point is in the sphere
-inline bool Vector::InSphere(const Vector &pos, float rad) const
+inline bool Vector::InSphere(Vector const& pos, float rad) const
 {
     double d = (x - pos.x) * (x - pos.x);
     d += (y - pos.y) * (y - pos.y);

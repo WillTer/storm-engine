@@ -8,9 +8,10 @@
 
 #include <cstdint>
 
+#include <d3d9.h>
+
 #include "plane.h"
 #include "vector4.h"
-#include <d3d9.h>
 
 //============================================================================================
 
@@ -32,15 +33,14 @@ Linear representation         2D array
 
 class Matrix
 {
-  public:
+public:
     union {
         // Linear array
-        alignas(16) float matrix[16]; // espkk # remove inline asm # 30/Dec/2017
+        alignas(16) float matrix[16];  // espkk # remove inline asm # 30/Dec/2017
         // Two-dimensional array
         float m[4][4];
 
-        struct
-        {
+        struct {
             // X direction
             Vector vx;
             // Weight value of X
@@ -63,7 +63,7 @@ class Matrix
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Construct the identity matrix
     Matrix();
     // Construct matrix without filling
@@ -73,72 +73,72 @@ class Matrix
     // Construct matrix using angles
     Matrix(float angX, float angY, float angZ);
     // Construct matrix using angles with position
-    Matrix(const Vector &ang, const Vector &pos);
+    Matrix(Vector const& ang, Vector const& pos);
     // Construct matrix using angles
-    Matrix(const Vector &ang);
+    Matrix(Vector const& ang);
     // Construct a copy of the matrix
-    Matrix(const Matrix &matrix);
+    Matrix(Matrix const& matrix);
     // Construct the result of matrix multiplication: this = m1 * m2
-    Matrix(const Matrix &m1, const Matrix &m2);
+    Matrix(Matrix const& m1, Matrix const& m2);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // Assign another matrix to a matrix
-    Matrix &operator=(const Matrix &mtx);
+    Matrix& operator=(Matrix const& mtx);
     // Assign a number to matrix values
-    Matrix &operator=(float f);
+    Matrix& operator=(float f);
     // Assign a number to matrix values
-    Matrix &operator=(double d);
+    Matrix& operator=(double d);
     // Assign a vector to matrix values
-    Matrix &operator=(const Vector &v);
+    Matrix& operator=(Vector const& v);
 
     // Multiply matrices
-    Matrix &operator*=(const Matrix &mtx);
+    Matrix& operator*=(Matrix const& mtx);
 
     // -----------------------------------------------------------
     // Matrix filling
     // -----------------------------------------------------------
-  public:
+public:
     // Set identity matrix
-    Matrix &SetIdentity();
+    Matrix& SetIdentity();
 
     // Set Matrix
-    Matrix &Set(const Matrix &matrix);
+    Matrix& Set(Matrix const& matrix);
 
     // Calculate matrix M = rotZ * rotX * rotY * Pos
-    Matrix &Build(float angX, float angY, float angZ, float x, float y, float z);
+    Matrix& Build(float angX, float angY, float angZ, float x, float y, float z);
     // Calculate matrix M = rotZ * rotX * rotY
-    Matrix &Build(float angX, float angY, float angZ);
+    Matrix& Build(float angX, float angY, float angZ);
     // Calculate matrix M = rotZ * rotX * rotY * Pos
-    Matrix &Build(const Vector &ang, const Vector &pos);
+    Matrix& Build(Vector const& ang, Vector const& pos);
     // Calculate matrix M = rotZ * rotX * rotY
-    Matrix &Build(const Vector &ang);
+    Matrix& Build(Vector const& ang);
 
     // Calculate matrix M = rotX * rotY * rotZ * Pos
-    Matrix &BuildXYZ(float angX, float angY, float angZ, float x, float y, float z);
+    Matrix& BuildXYZ(float angX, float angY, float angZ, float x, float y, float z);
 
     // Calculate rotation matrix around X
-    Matrix &BuildRotateX(float ang);
+    Matrix& BuildRotateX(float ang);
     // Calculate rotation matrix around Y
-    Matrix &BuildRotateY(float ang);
+    Matrix& BuildRotateY(float ang);
     // Calculate the rotation matrix around Z
-    Matrix &BuildRotateZ(float ang);
+    Matrix& BuildRotateZ(float ang);
     // Calculate position matrix
-    Matrix &BuildPosition(float x, float y, float z);
+    Matrix& BuildPosition(float x, float y, float z);
     // Calculate position matrix
-    Matrix &BuildPosition(const Vector &pos);
+    Matrix& BuildPosition(Vector const& pos);
 
     // Calculate scaling matrix
-    Matrix &BuildScale(float scale);
+    Matrix& BuildScale(float scale);
     // Calculate scaling matrix
-    Matrix &BuildScale(float scaleX, float scaleY, float scaleZ);
+    Matrix& BuildScale(float scaleX, float scaleY, float scaleZ);
     // Calculate scaling matrix
-    Matrix &BuildScale(const Vector &scale);
+    Matrix& BuildScale(Vector const& scale);
 
     // Calculate projection matrix
-    Matrix &BuildProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar);
+    Matrix& BuildProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar);
     // Calculate camera matrix
     bool BuildView(Vector lookFrom, Vector lookTo, Vector upVector);
     // Calculate the orientation matrix of an object having a z direction and an up direction
@@ -147,75 +147,75 @@ class Matrix
     // direction up
     bool BuildOriented(Vector position, Vector lookTo, Vector upVector);
     // Calculate matrix for mirroring geometry
-    Matrix &BuildMirror(float Nx, float Ny, float Nz, float D);
+    Matrix& BuildMirror(float Nx, float Ny, float Nz, float D);
     // Calculate Orthogonal Projection Matrix
-    Matrix &BuildOrtoProjection(float vpWidth, float vpHeight, float zNear, float zFar);
+    Matrix& BuildOrtoProjection(float vpWidth, float vpHeight, float zNear, float zFar);
     // Calculate projection matrix for shadow
-    Matrix &BuildShadowProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar);
+    Matrix& BuildShadowProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar);
 
     // -----------------------------------------------------------
     // Matrix transformation
     // -----------------------------------------------------------
-  public:
+public:
     // Rotate X
-    Matrix &RotateX(float ang);
+    Matrix& RotateX(float ang);
     // Rotate around Y
-    Matrix &RotateY(float ang);
+    Matrix& RotateY(float ang);
     // Rotate around Z
-    Matrix &RotateZ(float ang);
+    Matrix& RotateZ(float ang);
     // Rotate around ZXY
-    Matrix &Rotate(float angX, float angY, float angZ);
+    Matrix& Rotate(float angX, float angY, float angZ);
     // Rotate around ZXY
-    Matrix &Rotate(const Vector &ang);
+    Matrix& Rotate(Vector const& ang);
 
     // Move
-    Matrix &Move(float dX, float dY, float dZ);
+    Matrix& Move(float dX, float dY, float dZ);
     // Move
-    Matrix &Move(const Vector &pos);
+    Matrix& Move(Vector const& pos);
 
     // Scale
-    Matrix &Scale(float scale);
+    Matrix& Scale(float scale);
     // Scale rotation matrix
-    Matrix &Scale3x3(float scale);
+    Matrix& Scale3x3(float scale);
     // Scale
-    Matrix &Scale(float scaleX, float scaleY, float scaleZ);
+    Matrix& Scale(float scaleX, float scaleY, float scaleZ);
     // Scale rotation matrix
-    Matrix &Scale3x3(float scaleX, float scaleY, float scaleZ);
+    Matrix& Scale3x3(float scaleX, float scaleY, float scaleZ);
     // Scale
-    Matrix &Scale(const Vector &scale);
+    Matrix& Scale(Vector const& scale);
     // Scale rotation matrix
-    Matrix &Scale3x3(const Vector &scale);
+    Matrix& Scale3x3(Vector const& scale);
 
     // Calculating the inverse matrix
-    Matrix &Inverse();
+    Matrix& Inverse();
     // Calculating an inverse matrix from another
-    Matrix &Inverse(const Matrix &mtx);
+    Matrix& Inverse(Matrix const& mtx);
     // Calculating the scaled inverse matrix
-    Matrix &InverseWhithScale();
+    Matrix& InverseWhithScale();
     // Matrix Transposition
-    Matrix &Transposition();
+    Matrix& Transposition();
     // Rotation Matrix Transposition
-    Matrix &Transposition3X3();
+    Matrix& Transposition3X3();
 
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Count rotation only
-    Matrix &SetRotate(const Matrix &mtr);
+    Matrix& SetRotate(Matrix const& mtr);
     // Multiply matrices and place the result into the current one
-    Matrix &EqMultiply(const Matrix &m1, const Matrix &m2);
+    Matrix& EqMultiply(Matrix const& m1, Matrix const& m2);
     // Multiply matrices and place the result in the current m1 != this && m2 != this
-    Matrix &EqMultiplyFast(const Matrix &m1, const Matrix &m2);
+    Matrix& EqMultiplyFast(Matrix const& m1, Matrix const& m2);
 
     // Multiply vertex by matrix
-    Vector MulVertex(const Vector &v) const;
+    Vector MulVertex(Vector const& v) const;
     // Multiply normal by matrix
-    Vector MulNormal(const Vector &v) const;
+    Vector MulNormal(Vector const& v) const;
     // Multiply vertex by inverse matrix
-    Vector MulVertexByInverse(const Vector &v) const;
+    Vector MulVertexByInverse(Vector const& v) const;
     // Multiply normal by inverse matrix
-    Vector MulNormalByInverse(const Vector &v) const;
+    Vector MulNormalByInverse(Vector const& v) const;
 
     // Get camera position from camera matrix
     Vector GetCamPos() const;
@@ -227,19 +227,25 @@ class Matrix
     // Project Vertex (for projection matrix)
     Vector4 Projection(Vector vertex, float vphWidth05 = 1.0f, float vphHeight05 = 1.0f) const;
     // Project vertex array (for projection matrix)
-    void Projection(Vector4 *dstArray, Vector *srcArray, int32_t num, float vphWidth05 = 1.0f, float vphHeight05 = 1.0f,
-                    int32_t srcSize = sizeof(Vector), int32_t dstSize = sizeof(Vector4)) const;
+    void Projection(
+        Vector4* dstArray,
+        Vector*  srcArray,
+        int32_t  num,
+        float    vphWidth05  = 1.0f,
+        float    vphHeight05 = 1.0f,
+        int32_t  srcSize     = sizeof(Vector),
+        int32_t  dstSize     = sizeof(Vector4)) const;
 
     // Get angles from unscaled rotation matrix
-    void GetAngles(float &ax, float &ay, float &az) const;
+    void GetAngles(float& ax, float& ay, float& az) const;
     // Get angles from unscaled rotation matrix
-    void GetAngles(Vector &ang) const;
+    void GetAngles(Vector& ang) const;
 
     // Access matrix elements with brackets
-    float &operator()(int32_t i, int32_t j);
+    float& operator()(int32_t i, int32_t j);
 
     // Get a pointer to a D3D matrix
-    operator D3DMATRIX *() const;
+    operator D3DMATRIX*() const;
 
     // Get a vector for calculating the X component
     Vector4 GetVectorX() const;
@@ -262,9 +268,7 @@ inline Matrix::Matrix()
 }
 
 // Construct matrix without filling
-inline Matrix::Matrix(bool empty)
-{
-}
+inline Matrix::Matrix(bool empty) {}
 
 // Construct matrix using angles and position
 inline Matrix::Matrix(float angX, float angY, float angZ, float x, float y, float z)
@@ -279,25 +283,25 @@ inline Matrix::Matrix(float angX, float angY, float angZ)
 }
 
 // Construct matrix using angles and position
-inline Matrix::Matrix(const Vector &ang, const Vector &pos)
+inline Matrix::Matrix(Vector const& ang, Vector const& pos)
 {
     Build(ang, pos);
 }
 
 // Construct matrix using angles
-inline Matrix::Matrix(const Vector &ang)
+inline Matrix::Matrix(Vector const& ang)
 {
     Build(ang);
 }
 
 // Construct a copy of the matrix
-inline Matrix::Matrix(const Matrix &matrix)
+inline Matrix::Matrix(Matrix const& matrix)
 {
     Set(matrix);
 }
 
 // Construct the result of matrix multiplication this = m1 * m2
-inline Matrix::Matrix(const Matrix &m1, const Matrix &m2)
+inline Matrix::Matrix(Matrix const& m1, Matrix const& m2)
 {
     EqMultiply(m1, m2);
 }
@@ -307,35 +311,35 @@ inline Matrix::Matrix(const Matrix &m1, const Matrix &m2)
 // ===========================================================
 
 // Assign another matrix to a matrix
-inline Matrix &Matrix::operator=(const Matrix &mtx)
+inline Matrix& Matrix::operator=(Matrix const& mtx)
 {
     Set(mtx);
     return *this;
 }
 
 // Assign a number to the position
-inline Matrix &Matrix::operator=(float f)
+inline Matrix& Matrix::operator=(float f)
 {
     v.pos = f;
     return *this;
 }
 
 // Assign a number to the position
-inline Matrix &Matrix::operator=(double d)
+inline Matrix& Matrix::operator=(double d)
 {
     v.pos = d;
     return *this;
 }
 
 // Assign a vector to the position
-inline Matrix &Matrix::operator=(const Vector &vec)
+inline Matrix& Matrix::operator=(Vector const& vec)
 {
     v.pos = vec;
     return *this;
 }
 
 // Multiply matrices
-inline Matrix &Matrix::operator*=(const Matrix &mtx)
+inline Matrix& Matrix::operator*=(Matrix const& mtx)
 {
     EqMultiply(*this, mtx);
     return *this;
@@ -344,7 +348,7 @@ inline Matrix &Matrix::operator*=(const Matrix &mtx)
 /*!\relates Matrix
 Multiply matrices
 */
-inline Matrix operator*(const Matrix &m1, const Matrix &m2)
+inline Matrix operator*(Matrix const& m1, Matrix const& m2)
 {
     Matrix m;
     m.EqMultiplyFast(m1, m2);
@@ -354,7 +358,7 @@ inline Matrix operator*(const Matrix &m1, const Matrix &m2)
 /*!\relates Matrix
 Multiply vector by matrix
 */
-inline Vector operator*(const Matrix &mtx, const Vector &v)
+inline Vector operator*(Matrix const& mtx, Vector const& v)
 {
     return mtx.MulVertex(v);
 }
@@ -362,7 +366,7 @@ inline Vector operator*(const Matrix &mtx, const Vector &v)
 /*!\relates Matrix
 Multiply vector by matrix
 */
-inline Vector operator*(const Vector &v, const Matrix &mtx)
+inline Vector operator*(Vector const& v, Matrix const& mtx)
 {
     return mtx.MulVertex(v);
 }
@@ -372,18 +376,18 @@ inline Vector operator*(const Vector &v, const Matrix &mtx)
 // ===========================================================
 
 // Set identity matrix
-inline Matrix &Matrix::SetIdentity()
+inline Matrix& Matrix::SetIdentity()
 {
-    matrix[0] = 1.f;
-    matrix[1] = 0;
-    matrix[2] = 0;
-    matrix[3] = 0;
-    matrix[4] = 0;
-    matrix[5] = 1.f;
-    matrix[6] = 0;
-    matrix[7] = 0;
-    matrix[8] = 0;
-    matrix[9] = 0;
+    matrix[0]  = 1.f;
+    matrix[1]  = 0;
+    matrix[2]  = 0;
+    matrix[3]  = 0;
+    matrix[4]  = 0;
+    matrix[5]  = 1.f;
+    matrix[6]  = 0;
+    matrix[7]  = 0;
+    matrix[8]  = 0;
+    matrix[9]  = 0;
     matrix[10] = 1.f;
     matrix[11] = 0;
     matrix[12] = 0;
@@ -417,18 +421,18 @@ inline Matrix &Matrix::SetIdentity()
 }
 
 // Set Matrix
-inline Matrix &Matrix::Set(const Matrix &matrix)
+inline Matrix& Matrix::Set(Matrix const& matrix)
 {
-    this->matrix[0] = matrix.matrix[0];
-    this->matrix[1] = matrix.matrix[1];
-    this->matrix[2] = matrix.matrix[2];
-    this->matrix[3] = matrix.matrix[3];
-    this->matrix[4] = matrix.matrix[4];
-    this->matrix[5] = matrix.matrix[5];
-    this->matrix[6] = matrix.matrix[6];
-    this->matrix[7] = matrix.matrix[7];
-    this->matrix[8] = matrix.matrix[8];
-    this->matrix[9] = matrix.matrix[9];
+    this->matrix[0]  = matrix.matrix[0];
+    this->matrix[1]  = matrix.matrix[1];
+    this->matrix[2]  = matrix.matrix[2];
+    this->matrix[3]  = matrix.matrix[3];
+    this->matrix[4]  = matrix.matrix[4];
+    this->matrix[5]  = matrix.matrix[5];
+    this->matrix[6]  = matrix.matrix[6];
+    this->matrix[7]  = matrix.matrix[7];
+    this->matrix[8]  = matrix.matrix[8];
+    this->matrix[9]  = matrix.matrix[9];
     this->matrix[10] = matrix.matrix[10];
     this->matrix[11] = matrix.matrix[11];
     this->matrix[12] = matrix.matrix[12];
@@ -477,66 +481,66 @@ inline Matrix &Matrix::Set(const Matrix &matrix)
 }
 
 // Calculate matrix M = rotZ * rotX * rotY * Pos
-inline Matrix &Matrix::Build(float angX, float angY, float angZ, float x, float y, float z)
+inline Matrix& Matrix::Build(float angX, float angY, float angZ, float x, float y, float z)
 {
     // Sines and cosines of rotation angles
-    const auto sinAx = sinf(angX);
-    const auto cosAx = cosf(angX);
-    const auto sinAy = sinf(angY);
-    const auto cosAy = cosf(angY);
-    const auto sinAz = sinf(angZ);
-    const auto cosAz = cosf(angZ);
+    auto const sinAx = sinf(angX);
+    auto const cosAx = cosf(angX);
+    auto const sinAy = sinf(angY);
+    auto const cosAy = cosf(angY);
+    auto const sinAz = sinf(angZ);
+    auto const cosAz = cosf(angZ);
     // Create a matrix with rotation order rz * rx * ry
-    m[0][0] = cosAz * cosAy + sinAz * sinAx * sinAy;  // vx.x
-    m[0][1] = sinAz * cosAx;                          // vx.y
-    m[0][2] = cosAz * -sinAy + sinAz * sinAx * cosAy; // vx.z
+    m[0][0] = cosAz * cosAy + sinAz * sinAx * sinAy;   // vx.x
+    m[0][1] = sinAz * cosAx;                           // vx.y
+    m[0][2] = cosAz * -sinAy + sinAz * sinAx * cosAy;  // vx.z
     m[0][3] = 0.0f;
-    m[1][0] = -sinAz * cosAy + cosAz * sinAx * sinAy;  // vy.x
-    m[1][1] = cosAz * cosAx;                           // vy.y
-    m[1][2] = -sinAz * -sinAy + cosAz * sinAx * cosAy; // vy.z
+    m[1][0] = -sinAz * cosAy + cosAz * sinAx * sinAy;   // vy.x
+    m[1][1] = cosAz * cosAx;                            // vy.y
+    m[1][2] = -sinAz * -sinAy + cosAz * sinAx * cosAy;  // vy.z
     m[1][3] = 0.0f;
-    m[2][0] = cosAx * sinAy; // vz.x
-    m[2][1] = -sinAx;        // vz.y
-    m[2][2] = cosAx * cosAy; // vz.z
+    m[2][0] = cosAx * sinAy;  // vz.x
+    m[2][1] = -sinAx;         // vz.y
+    m[2][2] = cosAx * cosAy;  // vz.z
     m[2][3] = 0.0f;
-    m[3][0] = x; // pos.x
-    m[3][1] = y; // pos.y
-    m[3][2] = z; // pos.z
+    m[3][0] = x;  // pos.x
+    m[3][1] = y;  // pos.y
+    m[3][2] = z;  // pos.z
     m[3][3] = 1.0f;
     return *this;
 }
 
 // Calculate matrix M = rotZ * rotX * rotY
-inline Matrix &Matrix::Build(float angX, float angY, float angZ)
+inline Matrix& Matrix::Build(float angX, float angY, float angZ)
 {
     Build(angX, angY, angZ, 0.0f, 0.0f, 0.0f);
     return *this;
 }
 
 // Calculate matrix M = rotZ * rotX * rotY * Pos
-inline Matrix &Matrix::Build(const Vector &ang, const Vector &pos)
+inline Matrix& Matrix::Build(Vector const& ang, Vector const& pos)
 {
     Build(ang.x, ang.y, ang.z, pos.x, pos.y, pos.z);
     return *this;
 }
 
 // Calculate matrix M = rotZ * rotX * rotY
-inline Matrix &Matrix::Build(const Vector &ang)
+inline Matrix& Matrix::Build(Vector const& ang)
 {
     Build(ang.x, ang.y, ang.z, 0.0f, 0.0f, 0.0f);
     return *this;
 }
 
 // Calculate matrix M = rotX * rotY * rotZ * Pos
-inline Matrix &Matrix::BuildXYZ(float angX, float angY, float angZ, float x, float y, float z)
+inline Matrix& Matrix::BuildXYZ(float angX, float angY, float angZ, float x, float y, float z)
 {
     // Sines and cosines of rotation angles
-    const auto sinAx = sinf(angX);
-    const auto cosAx = cosf(angX);
-    const auto sinAy = sinf(angY);
-    const auto cosAy = cosf(angY);
-    const auto sinAz = sinf(angZ);
-    const auto cosAz = cosf(angZ);
+    auto const sinAx = sinf(angX);
+    auto const cosAx = cosf(angX);
+    auto const sinAy = sinf(angY);
+    auto const cosAy = cosf(angY);
+    auto const sinAz = sinf(angZ);
+    auto const cosAz = cosf(angZ);
     // Create a matrix with rotation order rx * ry * rz
     m[0][0] = cosAy * cosAz;
     m[0][1] = cosAy * sinAz;
@@ -558,7 +562,7 @@ inline Matrix &Matrix::BuildXYZ(float angX, float angY, float angZ, float x, flo
 }
 
 // Calculate rotation matrix around X
-inline Matrix &Matrix::BuildRotateX(float ang)
+inline Matrix& Matrix::BuildRotateX(float ang)
 {
     SetIdentity();
     m[1][1] = cosf(ang);
@@ -569,7 +573,7 @@ inline Matrix &Matrix::BuildRotateX(float ang)
 }
 
 // Calculate rotation matrix around Y
-inline Matrix &Matrix::BuildRotateY(float ang)
+inline Matrix& Matrix::BuildRotateY(float ang)
 {
     SetIdentity();
     m[0][0] = cosf(ang);
@@ -580,7 +584,7 @@ inline Matrix &Matrix::BuildRotateY(float ang)
 }
 
 // Calculate the rotation matrix around Z
-inline Matrix &Matrix::BuildRotateZ(float ang)
+inline Matrix& Matrix::BuildRotateZ(float ang)
 {
     SetIdentity();
     m[0][0] = cosf(ang);
@@ -591,7 +595,7 @@ inline Matrix &Matrix::BuildRotateZ(float ang)
 }
 
 // Calculate position matrix
-inline Matrix &Matrix::BuildPosition(float x, float y, float z)
+inline Matrix& Matrix::BuildPosition(float x, float y, float z)
 {
     SetIdentity();
     m[3][0] = x;
@@ -601,14 +605,14 @@ inline Matrix &Matrix::BuildPosition(float x, float y, float z)
 }
 
 // Calculate position matrix
-inline Matrix &Matrix::BuildPosition(const Vector &pos)
+inline Matrix& Matrix::BuildPosition(Vector const& pos)
 {
     BuildPosition(pos.x, pos.y, pos.z);
     return *this;
 }
 
 // Calculate scaling matrix
-inline Matrix &Matrix::BuildScale(float scale)
+inline Matrix& Matrix::BuildScale(float scale)
 {
     SetIdentity();
     m[0][0] = scale;
@@ -618,7 +622,7 @@ inline Matrix &Matrix::BuildScale(float scale)
 }
 
 // Calculate scaling matrix
-inline Matrix &Matrix::BuildScale(float scaleX, float scaleY, float scaleZ)
+inline Matrix& Matrix::BuildScale(float scaleX, float scaleY, float scaleZ)
 {
     SetIdentity();
     m[0][0] = scaleX;
@@ -628,26 +632,26 @@ inline Matrix &Matrix::BuildScale(float scaleX, float scaleY, float scaleZ)
 }
 
 // Calculate scaling matrix
-inline Matrix &Matrix::BuildScale(const Vector &scale)
+inline Matrix& Matrix::BuildScale(Vector const& scale)
 {
     BuildScale(scale.x, scale.y, scale.z);
     return *this;
 }
 
 // Calculate projection matrix
-inline Matrix &Matrix::BuildProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar)
+inline Matrix& Matrix::BuildProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar)
 {
     // zero down the array
-    matrix[0] = 0;
-    matrix[1] = 0;
-    matrix[2] = 0;
-    matrix[3] = 0;
-    matrix[4] = 0;
-    matrix[5] = 0;
-    matrix[6] = 0;
-    matrix[7] = 0;
-    matrix[8] = 0;
-    matrix[9] = 0;
+    matrix[0]  = 0;
+    matrix[1]  = 0;
+    matrix[2]  = 0;
+    matrix[3]  = 0;
+    matrix[4]  = 0;
+    matrix[5]  = 0;
+    matrix[6]  = 0;
+    matrix[7]  = 0;
+    matrix[8]  = 0;
+    matrix[9]  = 0;
     matrix[10] = 0;
     matrix[11] = 0;
     matrix[12] = 0;
@@ -678,29 +682,29 @@ inline Matrix &Matrix::BuildProjection(float viewAngle, float vpWidth, float vpH
         mov        [eax + 15*4], edx
       }*/
     // Filling in the matrix
-    const auto Q = static_cast<double>(zFar) / static_cast<double>(zFar - zNear);
-    m[0][0] = static_cast<float>(1.0 / tan(viewAngle * 0.5));
-    m[1][1] = static_cast<float>(1.0 / tan((vpHeight / vpWidth) * viewAngle * 0.5));
-    m[2][2] = static_cast<float>(Q);
-    m[2][3] = 1.0f;
-    m[3][2] = static_cast<float>(-Q * zNear);
+    auto const Q = static_cast<double>(zFar) / static_cast<double>(zFar - zNear);
+    m[0][0]      = static_cast<float>(1.0 / tan(viewAngle * 0.5));
+    m[1][1]      = static_cast<float>(1.0 / tan((vpHeight / vpWidth) * viewAngle * 0.5));
+    m[2][2]      = static_cast<float>(Q);
+    m[2][3]      = 1.0f;
+    m[3][2]      = static_cast<float>(-Q * zNear);
     return *this;
 }
 
 // Calculate Orthogonal Projection Matrix
-inline Matrix &Matrix::BuildOrtoProjection(float vpWidth, float vpHeight, float zNear, float zFar)
+inline Matrix& Matrix::BuildOrtoProjection(float vpWidth, float vpHeight, float zNear, float zFar)
 {
     // zero down the array
-    matrix[0] = 0;
-    matrix[1] = 0;
-    matrix[2] = 0;
-    matrix[3] = 0;
-    matrix[4] = 0;
-    matrix[5] = 0;
-    matrix[6] = 0;
-    matrix[7] = 0;
-    matrix[8] = 0;
-    matrix[9] = 0;
+    matrix[0]  = 0;
+    matrix[1]  = 0;
+    matrix[2]  = 0;
+    matrix[3]  = 0;
+    matrix[4]  = 0;
+    matrix[5]  = 0;
+    matrix[6]  = 0;
+    matrix[7]  = 0;
+    matrix[8]  = 0;
+    matrix[9]  = 0;
     matrix[10] = 0;
     matrix[11] = 0;
     matrix[12] = 0;
@@ -730,30 +734,30 @@ inline Matrix &Matrix::BuildOrtoProjection(float vpWidth, float vpHeight, float 
           mov        [eax + 15*4], edx
       }*/
     // Filling in the matrix
-    const auto Q = 1.0 / static_cast<double>(zFar - zNear);
-    m[0][0] = 2.0f / vpWidth;
-    m[1][1] = 2.0f / vpHeight;
-    m[2][2] = static_cast<float>(Q);
-    m[3][2] = static_cast<float>(-Q * zNear);
-    m[3][3] = 1.0f;
+    auto const Q = 1.0 / static_cast<double>(zFar - zNear);
+    m[0][0]      = 2.0f / vpWidth;
+    m[1][1]      = 2.0f / vpHeight;
+    m[2][2]      = static_cast<float>(Q);
+    m[3][2]      = static_cast<float>(-Q * zNear);
+    m[3][3]      = 1.0f;
 
     return *this;
 }
 
 // Calculate projection matrix for shadow
-inline Matrix &Matrix::BuildShadowProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar)
+inline Matrix& Matrix::BuildShadowProjection(float viewAngle, float vpWidth, float vpHeight, float zNear, float zFar)
 {
     // zero down the array
-    matrix[0] = 0;
-    matrix[1] = 0;
-    matrix[2] = 0;
-    matrix[3] = 0;
-    matrix[4] = 0;
-    matrix[5] = 0;
-    matrix[6] = 0;
-    matrix[7] = 0;
-    matrix[8] = 0;
-    matrix[9] = 0;
+    matrix[0]  = 0;
+    matrix[1]  = 0;
+    matrix[2]  = 0;
+    matrix[3]  = 0;
+    matrix[4]  = 0;
+    matrix[5]  = 0;
+    matrix[6]  = 0;
+    matrix[7]  = 0;
+    matrix[8]  = 0;
+    matrix[9]  = 0;
     matrix[10] = 0;
     matrix[11] = 0;
     matrix[12] = 0;
@@ -783,12 +787,12 @@ inline Matrix &Matrix::BuildShadowProjection(float viewAngle, float vpWidth, flo
           mov        [eax + 15*4], edx
       }*/
     // Filling in the matrix
-    const auto Q = 1.0 / static_cast<double>(zFar - zNear);
-    m[0][0] = static_cast<float>(1.0 / tan(viewAngle * 0.5));
-    m[1][1] = static_cast<float>(1.0 / tan((vpHeight / vpWidth) * viewAngle * 0.5));
-    m[2][2] = static_cast<float>(Q);
-    m[2][3] = 1.0f;
-    m[3][2] = static_cast<float>(-Q * zNear);
+    auto const Q = 1.0 / static_cast<double>(zFar - zNear);
+    m[0][0]      = static_cast<float>(1.0 / tan(viewAngle * 0.5));
+    m[1][1]      = static_cast<float>(1.0 / tan((vpHeight / vpWidth) * viewAngle * 0.5));
+    m[2][2]      = static_cast<float>(Q);
+    m[2][3]      = 1.0f;
+    m[3][2]      = static_cast<float>(-Q * zNear);
     return *this;
 }
 
@@ -798,8 +802,7 @@ inline bool Matrix::BuildView(Vector lookFrom, Vector lookTo, Vector upVector)
     SetIdentity();
     // Normalize the look-at vector
     lookTo -= lookFrom;
-    if (lookTo.Normalize() == 0.0f)
-    {
+    if (lookTo.Normalize() == 0.0f) {
         // Putting a position for a non-rotated matrix
         v.pos = -lookFrom;
         return false;
@@ -807,12 +810,10 @@ inline bool Matrix::BuildView(Vector lookFrom, Vector lookTo, Vector upVector)
     // Directing the vector up in the desired direction
     upVector -= lookTo * (lookTo | upVector);
     // Normalize the upward vector
-    if (upVector.Normalize() == 0.0f)
-        upVector.y = 1.0f;
+    if (upVector.Normalize() == 0.0f) upVector.y = 1.0f;
     // looking for the third vector of the basis
     auto vec = upVector ^ lookTo;
-    if (vec.Normalize() != 0.0f)
-    {
+    if (vec.Normalize() != 0.0f) {
         // set the rotation matrix
         m[0][0] = vec.x;
         m[1][0] = vec.y;
@@ -823,9 +824,7 @@ inline bool Matrix::BuildView(Vector lookFrom, Vector lookTo, Vector upVector)
         m[0][2] = lookTo.x;
         m[1][2] = lookTo.y;
         m[2][2] = lookTo.z;
-    }
-    else
-    {
+    } else {
         // Setting a position for a non-rotated matrix
         v.pos = -lookFrom;
         return false;
@@ -840,8 +839,7 @@ inline bool Matrix::BuildView(Vector lookFrom, Vector lookTo, Vector upVector)
 inline bool Matrix::BuildOrient(Vector zAxisDirection, Vector upVector)
 {
     // Normalize the direction vector z
-    if (zAxisDirection.Normalize() < 1e-37f || upVector.Normalize() < 1e-37f)
-    {
+    if (zAxisDirection.Normalize() < 1e-37f || upVector.Normalize() < 1e-37f) {
         v.vx = Vector(1.0f, 0.0f, 0.0f);
         v.vy = Vector(0.0f, 1.0f, 0.0f);
         v.vz = Vector(0.0f, 0.0f, 1.0f);
@@ -849,8 +847,7 @@ inline bool Matrix::BuildOrient(Vector zAxisDirection, Vector upVector)
     }
     // calculate
     v.vx = zAxisDirection ^ upVector;
-    if (v.vx.Normalize() == 0.0f)
-    {
+    if (v.vx.Normalize() == 0.0f) {
         v.vx = Vector(1.0f, 0.0f, 0.0f);
         v.vy = Vector(0.0f, 1.0f, 0.0f);
         v.vz = Vector(0.0f, 0.0f, 1.0f);
@@ -867,44 +864,42 @@ inline bool Matrix::BuildOriented(Vector position, Vector lookTo, Vector upVecto
     // Direction
     lookTo -= position;
     // Normalize the direction vector z
-    if (lookTo.Normalize() == 0.0f || upVector.Normalize() == 0.0f)
-    {
-        v.vx = Vector(1.0f, 0.0f, 0.0f);
-        v.wx = 0.0f;
-        v.vy = Vector(0.0f, 1.0f, 0.0f);
-        v.wy = 0.0f;
-        v.vz = Vector(0.0f, 0.0f, 1.0f);
-        v.wz = 0.0f;
+    if (lookTo.Normalize() == 0.0f || upVector.Normalize() == 0.0f) {
+        v.vx  = Vector(1.0f, 0.0f, 0.0f);
+        v.wx  = 0.0f;
+        v.vy  = Vector(0.0f, 1.0f, 0.0f);
+        v.wy  = 0.0f;
+        v.vz  = Vector(0.0f, 0.0f, 1.0f);
+        v.wz  = 0.0f;
         v.pos = position;
-        v.w = 1.0f;
+        v.w   = 1.0f;
         return false;
     }
     // calculate
     v.vx = lookTo ^ upVector;
     v.wx = 0.0f;
-    if (v.vx.Normalize() == 0.0f)
-    {
-        v.vx = Vector(1.0f, 0.0f, 0.0f);
-        v.wx = 0.0f;
-        v.vy = Vector(0.0f, 1.0f, 0.0f);
-        v.wy = 0.0f;
-        v.vz = Vector(0.0f, 0.0f, 1.0f);
-        v.wz = 0.0f;
+    if (v.vx.Normalize() == 0.0f) {
+        v.vx  = Vector(1.0f, 0.0f, 0.0f);
+        v.wx  = 0.0f;
+        v.vy  = Vector(0.0f, 1.0f, 0.0f);
+        v.wy  = 0.0f;
+        v.vz  = Vector(0.0f, 0.0f, 1.0f);
+        v.wz  = 0.0f;
         v.pos = position;
-        v.w = 1.0f;
+        v.w   = 1.0f;
         return false;
     }
-    v.vy = lookTo ^ v.vx;
-    v.wy = 0.0f;
-    v.vz = lookTo;
-    v.wz = 0.0f;
+    v.vy  = lookTo ^ v.vx;
+    v.wy  = 0.0f;
+    v.vz  = lookTo;
+    v.wz  = 0.0f;
     v.pos = position;
-    v.w = 1.0f;
+    v.w   = 1.0f;
     return true;
 }
 
 // Calculate matrix for mirroring geometry
-inline Matrix &Matrix::BuildMirror(float Nx, float Ny, float Nz, float D)
+inline Matrix& Matrix::BuildMirror(float Nx, float Ny, float Nz, float D)
 {
     m[0][0] = -Nx * 2.0f * Nx + 1.0f;
     m[0][1] = -Ny * 2.0f * Nx;
@@ -930,7 +925,7 @@ inline Matrix &Matrix::BuildMirror(float Nx, float Ny, float Nz, float D)
 // -----------------------------------------------------------
 
 // Rotate around X
-inline Matrix &Matrix::RotateX(float ang)
+inline Matrix& Matrix::RotateX(float ang)
 {
     Matrix m;
     m.BuildRotateX(ang);
@@ -939,7 +934,7 @@ inline Matrix &Matrix::RotateX(float ang)
 }
 
 // Rotate around Y
-inline Matrix &Matrix::RotateY(float ang)
+inline Matrix& Matrix::RotateY(float ang)
 {
     Matrix m;
     m.BuildRotateY(ang);
@@ -948,7 +943,7 @@ inline Matrix &Matrix::RotateY(float ang)
 }
 
 // Rotate around Z
-inline Matrix &Matrix::RotateZ(float ang)
+inline Matrix& Matrix::RotateZ(float ang)
 {
     Matrix m;
     m.BuildRotateZ(ang);
@@ -957,7 +952,7 @@ inline Matrix &Matrix::RotateZ(float ang)
 }
 
 // Rotate around ZXY
-inline Matrix &Matrix::Rotate(float angX, float angY, float angZ)
+inline Matrix& Matrix::Rotate(float angX, float angY, float angZ)
 {
     Matrix m;
     m.Build(angX, angY, angZ);
@@ -966,7 +961,7 @@ inline Matrix &Matrix::Rotate(float angX, float angY, float angZ)
 }
 
 // Rotate around ZXY
-inline Matrix &Matrix::Rotate(const Vector &ang)
+inline Matrix& Matrix::Rotate(Vector const& ang)
 {
     Matrix m;
     m.Build(ang.x, ang.x, ang.z);
@@ -975,7 +970,7 @@ inline Matrix &Matrix::Rotate(const Vector &ang)
 }
 
 // Move
-inline Matrix &Matrix::Move(float dX, float dY, float dZ)
+inline Matrix& Matrix::Move(float dX, float dY, float dZ)
 {
     v.pos.x += dX;
     v.pos.y += dY;
@@ -984,7 +979,7 @@ inline Matrix &Matrix::Move(float dX, float dY, float dZ)
 }
 
 // Move
-inline Matrix &Matrix::Move(const Vector &pos)
+inline Matrix& Matrix::Move(Vector const& pos)
 {
     this->v.pos.x += pos.x;
     this->v.pos.y += pos.y;
@@ -993,21 +988,21 @@ inline Matrix &Matrix::Move(const Vector &pos)
 }
 
 // Scale
-inline Matrix &Matrix::Scale(float scale)
+inline Matrix& Matrix::Scale(float scale)
 {
     Scale(scale, scale, scale);
     return *this;
 }
 
 // Scale rotation matrix
-inline Matrix &Matrix::Scale3x3(float scale)
+inline Matrix& Matrix::Scale3x3(float scale)
 {
     Scale3x3(scale, scale, scale);
     return *this;
 }
 
 // Scale
-inline Matrix &Matrix::Scale(float scaleX, float scaleY, float scaleZ)
+inline Matrix& Matrix::Scale(float scaleX, float scaleY, float scaleZ)
 {
     m[0][0] *= scaleX;
     m[1][0] *= scaleX;
@@ -1025,7 +1020,7 @@ inline Matrix &Matrix::Scale(float scaleX, float scaleY, float scaleZ)
 }
 
 // Scale rotation matrix
-inline Matrix &Matrix::Scale3x3(float scaleX, float scaleY, float scaleZ)
+inline Matrix& Matrix::Scale3x3(float scaleX, float scaleY, float scaleZ)
 {
     m[0][0] *= scaleX;
     m[1][0] *= scaleX;
@@ -1040,21 +1035,21 @@ inline Matrix &Matrix::Scale3x3(float scaleX, float scaleY, float scaleZ)
 }
 
 // Scale
-inline Matrix &Matrix::Scale(const Vector &scale)
+inline Matrix& Matrix::Scale(Vector const& scale)
 {
     Scale(scale.x, scale.y, scale.z);
     return *this;
 }
 
 // Scale Rotation
-inline Matrix &Matrix::Scale3x3(const Vector &scale)
+inline Matrix& Matrix::Scale3x3(Vector const& scale)
 {
     Scale3x3(scale.x, scale.y, scale.z);
     return *this;
 }
 
 // Calculating the inverse matrix
-inline Matrix &Matrix::Inverse()
+inline Matrix& Matrix::Inverse()
 {
     v.pos = Vector(-(v.pos | v.vx), -(v.pos | v.vy), -(v.pos | v.vz));
     Transposition3X3();
@@ -1062,17 +1057,17 @@ inline Matrix &Matrix::Inverse()
 }
 
 // Calculating an inverse matrix from another
-inline Matrix &Matrix::Inverse(const Matrix &mtx)
+inline Matrix& Matrix::Inverse(Matrix const& mtx)
 {
-    v.pos = Vector(-(mtx.v.pos | mtx.v.vx), -(mtx.v.pos | mtx.v.vy), -(mtx.v.pos | mtx.v.vz));
-    matrix[0] = mtx.matrix[0];
-    matrix[1] = mtx.matrix[4];
-    matrix[2] = mtx.matrix[8];
-    matrix[4] = mtx.matrix[1];
-    matrix[5] = mtx.matrix[5];
-    matrix[6] = mtx.matrix[9];
-    matrix[8] = mtx.matrix[2];
-    matrix[9] = mtx.matrix[6];
+    v.pos      = Vector(-(mtx.v.pos | mtx.v.vx), -(mtx.v.pos | mtx.v.vy), -(mtx.v.pos | mtx.v.vz));
+    matrix[0]  = mtx.matrix[0];
+    matrix[1]  = mtx.matrix[4];
+    matrix[2]  = mtx.matrix[8];
+    matrix[4]  = mtx.matrix[1];
+    matrix[5]  = mtx.matrix[5];
+    matrix[6]  = mtx.matrix[9];
+    matrix[8]  = mtx.matrix[2];
+    matrix[9]  = mtx.matrix[6];
     matrix[10] = mtx.matrix[10];
 
     /*    _asm
@@ -1102,7 +1097,7 @@ inline Matrix &Matrix::Inverse(const Matrix &mtx)
 }
 
 // Calculating the scaled inverse matrix
-inline Matrix &Matrix::InverseWhithScale()
+inline Matrix& Matrix::InverseWhithScale()
 {
     // Rotation matrix
     double mtmp[3][3];
@@ -1115,10 +1110,9 @@ inline Matrix &Matrix::InverseWhithScale()
     mtmp[2][0] = m[1][0] * m[2][1] - m[1][1] * m[2][0];
     mtmp[2][1] = m[0][1] * m[2][0] - m[0][0] * m[2][1];
     mtmp[2][2] = m[0][0] * m[1][1] - m[0][1] * m[1][0];
-    auto det = m[0][0] * mtmp[0][0] + m[0][1] * mtmp[1][0] + m[0][2] * mtmp[2][0];
-    if (fabs(det) > 1e-200)
-    {
-        det = 1.0 / det;
+    auto det   = m[0][0] * mtmp[0][0] + m[0][1] * mtmp[1][0] + m[0][2] * mtmp[2][0];
+    if (fabs(det) > 1e-200) {
+        det     = 1.0 / det;
         m[0][0] = static_cast<float>(det * mtmp[0][0]);
         m[0][1] = static_cast<float>(det * mtmp[0][1]);
         m[0][2] = static_cast<float>(det * mtmp[0][2]);
@@ -1128,9 +1122,7 @@ inline Matrix &Matrix::InverseWhithScale()
         m[2][0] = static_cast<float>(det * mtmp[2][0]);
         m[2][1] = static_cast<float>(det * mtmp[2][1]);
         m[2][2] = static_cast<float>(det * mtmp[2][2]);
-    }
-    else
-    {
+    } else {
         for (int32_t i = 0; i < 16; i++)
             matrix[i] = 0.0f;
     }
@@ -1140,25 +1132,25 @@ inline Matrix &Matrix::InverseWhithScale()
 }
 
 // Matrix Transposition
-inline Matrix &Matrix::Transposition()
+inline Matrix& Matrix::Transposition()
 {
     float tmp;
-    tmp = matrix[1];
-    matrix[1] = matrix[4];
-    matrix[4] = tmp;
-    tmp = matrix[2];
-    matrix[2] = matrix[8];
-    matrix[8] = tmp;
-    tmp = matrix[3];
-    matrix[3] = matrix[12];
+    tmp        = matrix[1];
+    matrix[1]  = matrix[4];
+    matrix[4]  = tmp;
+    tmp        = matrix[2];
+    matrix[2]  = matrix[8];
+    matrix[8]  = tmp;
+    tmp        = matrix[3];
+    matrix[3]  = matrix[12];
     matrix[12] = tmp;
-    tmp = matrix[6];
-    matrix[6] = matrix[9];
-    matrix[9] = tmp;
-    tmp = matrix[7];
-    matrix[7] = matrix[13];
+    tmp        = matrix[6];
+    matrix[6]  = matrix[9];
+    matrix[9]  = tmp;
+    tmp        = matrix[7];
+    matrix[7]  = matrix[13];
     matrix[13] = tmp;
-    tmp = matrix[11];
+    tmp        = matrix[11];
     matrix[11] = matrix[14];
     matrix[14] = tmp;
 
@@ -1194,16 +1186,16 @@ inline Matrix &Matrix::Transposition()
 }
 
 // Rotation Matrix Transposition
-inline Matrix &Matrix::Transposition3X3()
+inline Matrix& Matrix::Transposition3X3()
 {
     float tmp;
-    tmp = matrix[1];
+    tmp       = matrix[1];
     matrix[1] = matrix[4];
     matrix[4] = tmp;
-    tmp = matrix[2];
+    tmp       = matrix[2];
     matrix[2] = matrix[8];
     matrix[8] = tmp;
-    tmp = matrix[6];
+    tmp       = matrix[6];
     matrix[6] = matrix[9];
     matrix[9] = tmp;
 
@@ -1231,16 +1223,16 @@ inline Matrix &Matrix::Transposition3X3()
 // -----------------------------------------------------------
 
 // Set rotation only
-inline Matrix &Matrix::SetRotate(const Matrix &mtx)
+inline Matrix& Matrix::SetRotate(Matrix const& mtx)
 {
-    matrix[0] = mtx.matrix[0];
-    matrix[1] = mtx.matrix[1];
-    matrix[2] = mtx.matrix[2];
-    matrix[4] = mtx.matrix[4];
-    matrix[5] = mtx.matrix[5];
-    matrix[6] = mtx.matrix[6];
-    matrix[8] = mtx.matrix[8];
-    matrix[9] = mtx.matrix[9];
+    matrix[0]  = mtx.matrix[0];
+    matrix[1]  = mtx.matrix[1];
+    matrix[2]  = mtx.matrix[2];
+    matrix[4]  = mtx.matrix[4];
+    matrix[5]  = mtx.matrix[5];
+    matrix[6]  = mtx.matrix[6];
+    matrix[8]  = mtx.matrix[8];
+    matrix[9]  = mtx.matrix[9];
     matrix[10] = mtx.matrix[10];
 
     /*    _asm
@@ -1270,7 +1262,7 @@ inline Matrix &Matrix::SetRotate(const Matrix &mtx)
 }
 
 // Multiply matrices and place the result into the current one
-inline Matrix &Matrix::EqMultiply(const Matrix &m1, const Matrix &m2)
+inline Matrix& Matrix::EqMultiply(Matrix const& m1, Matrix const& m2)
 {
     Matrix m;
     m.EqMultiplyFast(m1, m2);
@@ -1279,7 +1271,7 @@ inline Matrix &Matrix::EqMultiply(const Matrix &m1, const Matrix &m2)
 }
 
 // Multiply matrices and place the result in the current m1 != this && m2 != this
-inline Matrix &Matrix::EqMultiplyFast(const Matrix &m1, const Matrix &m2)
+inline Matrix& Matrix::EqMultiplyFast(Matrix const& m1, Matrix const& m2)
 {
     m[0][0] = m2.m[0][0] * m1.m[0][0] + m2.m[1][0] * m1.m[0][1] + m2.m[2][0] * m1.m[0][2] + m2.m[3][0] * m1.m[0][3];
     m[0][1] = m2.m[0][1] * m1.m[0][0] + m2.m[1][1] * m1.m[0][1] + m2.m[2][1] * m1.m[0][2] + m2.m[3][1] * m1.m[0][3];
@@ -1301,7 +1293,7 @@ inline Matrix &Matrix::EqMultiplyFast(const Matrix &m1, const Matrix &m2)
 }
 
 // Multiply vertex by matrix
-inline Vector Matrix::MulVertex(const Vector &v) const
+inline Vector Matrix::MulVertex(Vector const& v) const
 {
     Vector tv;
     tv.x = m[0][0] * v.x + m[1][0] * v.y + m[2][0] * v.z + m[3][0];
@@ -1311,7 +1303,7 @@ inline Vector Matrix::MulVertex(const Vector &v) const
 }
 
 // Multiply normal by matrix
-inline Vector Matrix::MulNormal(const Vector &v) const
+inline Vector Matrix::MulNormal(Vector const& v) const
 {
     Vector tv;
     tv.x = m[0][0] * v.x + m[1][0] * v.y + m[2][0] * v.z;
@@ -1321,7 +1313,7 @@ inline Vector Matrix::MulNormal(const Vector &v) const
 }
 
 // Multiply vertex by inverse matrix
-inline Vector Matrix::MulVertexByInverse(const Vector &v) const
+inline Vector Matrix::MulVertexByInverse(Vector const& v) const
 {
     Vector tv;
     tv.x = m[0][0] * (v.x - m[3][0]) + m[0][1] * (v.y - m[3][1]) + m[0][2] * (v.z - m[3][2]);
@@ -1331,7 +1323,7 @@ inline Vector Matrix::MulVertexByInverse(const Vector &v) const
 }
 
 // Multiply normal by inverse matrix
-inline Vector Matrix::MulNormalByInverse(const Vector &v) const
+inline Vector Matrix::MulNormalByInverse(Vector const& v) const
 {
     Vector tv;
     tv.x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z;
@@ -1349,54 +1341,34 @@ inline Vector Matrix::GetCamPos() const
 // Identity matrix or not
 inline bool Matrix::IsIdentity() const
 {
-    const auto eps = 1e-4f;
-    if (fabs(m[0][0] - 1.0f) > eps)
-        return false;
-    if (fabs(m[0][1] - 0.0f) > eps)
-        return false;
-    if (fabs(m[0][2] - 0.0f) > eps)
-        return false;
-    if (fabs(m[0][3] - 0.0f) > eps)
-        return false;
-    if (fabs(m[1][0] - 0.0f) > eps)
-        return false;
-    if (fabs(m[1][1] - 1.0f) > eps)
-        return false;
-    if (fabs(m[1][2] - 0.0f) > eps)
-        return false;
-    if (fabs(m[1][3] - 0.0f) > eps)
-        return false;
-    if (fabs(m[2][0] - 0.0f) > eps)
-        return false;
-    if (fabs(m[2][1] - 0.0f) > eps)
-        return false;
-    if (fabs(m[2][2] - 1.0f) > eps)
-        return false;
-    if (fabs(m[2][3] - 0.0f) > eps)
-        return false;
-    if (fabs(m[3][0] - 0.0f) > eps)
-        return false;
-    if (fabs(m[3][1] - 0.0f) > eps)
-        return false;
-    if (fabs(m[3][2] - 0.0f) > eps)
-        return false;
-    if (fabs(m[3][3] - 1.0f) > eps)
-        return false;
+    auto const eps = 1e-4f;
+    if (fabs(m[0][0] - 1.0f) > eps) return false;
+    if (fabs(m[0][1] - 0.0f) > eps) return false;
+    if (fabs(m[0][2] - 0.0f) > eps) return false;
+    if (fabs(m[0][3] - 0.0f) > eps) return false;
+    if (fabs(m[1][0] - 0.0f) > eps) return false;
+    if (fabs(m[1][1] - 1.0f) > eps) return false;
+    if (fabs(m[1][2] - 0.0f) > eps) return false;
+    if (fabs(m[1][3] - 0.0f) > eps) return false;
+    if (fabs(m[2][0] - 0.0f) > eps) return false;
+    if (fabs(m[2][1] - 0.0f) > eps) return false;
+    if (fabs(m[2][2] - 1.0f) > eps) return false;
+    if (fabs(m[2][3] - 0.0f) > eps) return false;
+    if (fabs(m[3][0] - 0.0f) > eps) return false;
+    if (fabs(m[3][1] - 0.0f) > eps) return false;
+    if (fabs(m[3][2] - 0.0f) > eps) return false;
+    if (fabs(m[3][3] - 1.0f) > eps) return false;
     return true;
 }
 
 // Scaling matrix or not
 inline bool Matrix::IsScale() const
 {
-    const auto eps = 1e-4f;
-    if (fabsf(~v.vx - 1.0f) > eps)
-        return true;
-    if (fabsf(~v.vy - 1.0f) > eps)
-        return true;
-    if (fabsf(~v.vz - 1.0f) > eps)
-        return true;
-    if (fabsf(v.w - 1.0f) > eps)
-        return true;
+    auto const eps = 1e-4f;
+    if (fabsf(~v.vx - 1.0f) > eps) return true;
+    if (fabsf(~v.vy - 1.0f) > eps) return true;
+    if (fabsf(~v.vz - 1.0f) > eps) return true;
+    if (fabsf(v.w - 1.0f) > eps) return true;
     return false;
 }
 
@@ -1410,7 +1382,7 @@ inline Vector4 Matrix::Projection(Vector vertex, float vphWidth05, float vphHeig
     res.z = m[0][2] * vertex.x + m[1][2] * vertex.y + m[2][2] * vertex.z + m[3][2];
     res.w = m[0][3] * vertex.x + m[1][3] * vertex.y + m[2][3] * vertex.z + m[3][3];
     // Normalization factor
-    const auto w = 1.0f / res.w;
+    auto const w = 1.0f / res.w;
     // Normalize
     res.x = (1.0f + res.x * w) * vphWidth05;
     res.y = (1.0f - res.y * w) * vphHeight05;
@@ -1420,36 +1392,33 @@ inline Vector4 Matrix::Projection(Vector vertex, float vphWidth05, float vphHeig
 }
 
 // Project vertex array (for projection matrix)
-inline void Matrix::Projection(Vector4 *dstArray, Vector *srcArray, int32_t num, float vphWidth05, float vphHeight05,
-                               int32_t srcSize, int32_t dstSize) const
+inline void Matrix::Projection(
+    Vector4* dstArray, Vector* srcArray, int32_t num, float vphWidth05, float vphHeight05, int32_t srcSize, int32_t dstSize) const
 {
-    for (; num > 0; num--)
-    {
+    for (; num > 0; num--) {
         // Transforming the vertex
         dstArray->x = m[0][0] * srcArray->x + m[1][0] * srcArray->y + m[2][0] * srcArray->z + m[3][0];
         dstArray->y = m[0][1] * srcArray->x + m[1][1] * srcArray->y + m[2][1] * srcArray->z + m[3][1];
         dstArray->z = m[0][2] * srcArray->x + m[1][2] * srcArray->y + m[2][2] * srcArray->z + m[3][2];
         dstArray->w = m[0][3] * srcArray->x + m[1][3] * srcArray->y + m[2][3] * srcArray->z + m[3][3];
         // Normalization factor
-        const auto w = 1.0f / dstArray->w;
+        auto const w = 1.0f / dstArray->w;
         // Normalize
         dstArray->x = (1.0f + dstArray->x * w) * vphWidth05;
         dstArray->y = (1.0f - dstArray->y * w) * vphHeight05;
         dstArray->z *= w;
         dstArray->w = w;
         // Pointers to the next vertices
-        srcArray = (Vector *)((char *)srcArray + srcSize);
-        dstArray = (Vector4 *)((char *)dstArray + dstSize);
+        srcArray = (Vector*)((char*)srcArray + srcSize);
+        dstArray = (Vector4*)((char*)dstArray + dstSize);
     }
 }
 
 // Get angles from unscaled rotation matrix
-inline void Matrix::GetAngles(float &ax, float &ay, float &az) const
+inline void Matrix::GetAngles(float& ax, float& ay, float& az) const
 {
-    if (v.vz.y < 1.0f)
-    {
-        if (v.vz.y > -1.0f)
-        {
+    if (v.vz.y < 1.0f) {
+        if (v.vz.y > -1.0f) {
             ax = static_cast<float>(asin(-v.vz.y));
             ay = static_cast<float>(atan2(v.vz.x, v.vz.z));
             az = static_cast<float>(atan2(v.vx.y, v.vy.y));
@@ -1458,9 +1427,7 @@ inline void Matrix::GetAngles(float &ax, float &ay, float &az) const
         ax = 3.141592654f * 0.5f;
         ay = 0.0f;
         az = static_cast<float>(atan2(v.vx.z, v.vx.x));
-    }
-    else
-    {
+    } else {
         ax = -3.141592654f * 0.5f;
         ay = 0.0f;
         az = static_cast<float>(-atan2(v.vx.z, v.vx.x));
@@ -1468,21 +1435,21 @@ inline void Matrix::GetAngles(float &ax, float &ay, float &az) const
 }
 
 // Get angles from unscaled rotation matrix
-inline void Matrix::GetAngles(Vector &ang) const
+inline void Matrix::GetAngles(Vector& ang) const
 {
     GetAngles(ang.x, ang.y, ang.z);
 }
 
 // Access matrix elements with brackets
-inline float &Matrix::operator()(int32_t i, int32_t j)
+inline float& Matrix::operator()(int32_t i, int32_t j)
 {
     return m[i][j];
 }
 
 // Get a pointer to a D3D matrix
-inline Matrix::operator D3DMATRIX *() const
+inline Matrix::operator D3DMATRIX*() const
 {
-    return ((D3DMATRIX *)matrix);
+    return ((D3DMATRIX*)matrix);
 }
 
 // Get a vector for calculating the X component

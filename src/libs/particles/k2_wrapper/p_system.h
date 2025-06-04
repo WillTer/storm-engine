@@ -8,13 +8,13 @@
 class IParticleSystem;
 class PARTICLES;
 
-class PARTICLE_SYSTEM : public VPARTICLE_SYSTEM
+class PARTICLE_SYSTEM: public VPARTICLE_SYSTEM
 {
-    IParticleSystem *pSystem;
-    PARTICLES *pManager;
+    IParticleSystem* pSystem;
+    PARTICLES*       pManager;
 
-  public:
-    PARTICLE_SYSTEM(IParticleSystem *_pSystem);
+public:
+    PARTICLE_SYSTEM(IParticleSystem* _pSystem);
     ~PARTICLE_SYSTEM() override;
     void Stop() override;
     void SetEmitter(CVECTOR p, CVECTOR a) override;
@@ -24,7 +24,7 @@ class PARTICLE_SYSTEM : public VPARTICLE_SYSTEM
     void StopEmitter() override;
     void Pause(bool _bPause) override;
 
-  public:
-    void SetManager(PARTICLES *_pManager);
-    IParticleSystem *GetSystem() const;
+public:
+    void             SetManager(PARTICLES* _pManager);
+    IParticleSystem* GetSystem() const;
 };

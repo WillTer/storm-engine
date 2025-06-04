@@ -2,21 +2,20 @@
 
 #include <libs/battle_interface/bi_defines.h>
 
-class IBoardingStatus : public Entity
+class IBoardingStatus: public Entity
 {
-    VDX9RENDER *rs;
+    VDX9RENDER* rs;
 
-  public:
+public:
     IBoardingStatus();
     ~IBoardingStatus() override;
-    bool Init() override;
-    void Realize(uint32_t delta_time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Realize(uint32_t delta_time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
         case Stage::realize:
@@ -29,17 +28,17 @@ class IBoardingStatus : public Entity
         }
     }
 
-  protected:
+protected:
     void Create();
     void SetCharactersHP(float myHP, float enemyHP);
 
-  protected:
+protected:
     // show parameters
     //-----------------------
-    int32_t m_Width;
-    int32_t m_Height;
-    FPOINT m_myPos;
-    FPOINT m_enemyPos;
+    int32_t  m_Width;
+    int32_t  m_Height;
+    FPOINT   m_myPos;
+    FPOINT   m_enemyPos;
     uint32_t m_myColor;
     uint32_t m_enemyColor;
 

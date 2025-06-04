@@ -22,29 +22,26 @@
 #pragma pack(push, 1)
 
 // File header
-struct AntFileHeader
-{
-    uint32_t id;               // File ID
-    uint32_t ver;              // File version
-    uint32_t bonesCount;       // Number of bones in file >= 1
-    uint32_t framesCount;      // Number of animation frames >= 1
-    uint32_t stringsTableSize; // Size of the Bone names table
-    float defaultFPS;               // Animation speed
+struct AntFileHeader {
+    uint32_t id;                // File ID
+    uint32_t ver;               // File version
+    uint32_t bonesCount;        // Number of bones in file >= 1
+    uint32_t framesCount;       // Number of animation frames >= 1
+    uint32_t stringsTableSize;  // Size of the Bone names table
+    float    defaultFPS;        // Animation speed
 };
 
 // Bone description
-struct AntFileBone
-{
-    int32_t parentIndex;        // Parent bone index, less than current
-    uint32_t nameIndex; // The index of the row in the string table
+struct AntFileBone {
+    int32_t  parentIndex;  // Parent bone index, less than current
+    uint32_t nameIndex;    // The index of the row in the string table
 };
 
 // Track item description
-struct AntFileTrackElement
-{
-    float qx, qy, qz, qw; // Quaternion
-    float px, py, pz;     // Position
-    float sx, sy, sz;     // Scaling factors
+struct AntFileTrackElement {
+    float qx, qy, qz, qw;  // Quaternion
+    float px, py, pz;      // Position
+    float sx, sy, sz;      // Scaling factors
 };
 
 #pragma pack(pop)

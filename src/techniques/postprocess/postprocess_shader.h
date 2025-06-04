@@ -1,4 +1,4 @@
-#define SHADER                                                                                                         \
+#define SHADER \
     asm { \
     ps_1_1 \
     def c1, 0.25, 0.25, 0.25, 0.25 \

@@ -1,44 +1,44 @@
 #pragma once
 
-#include "seps.h"
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/sound_service/v_sound_service.h>
 
+#include "seps.h"
+
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
-struct SINK_VERTEX
-{
-    CVECTOR pos;
+struct SINK_VERTEX {
+    CVECTOR  pos;
     uint32_t color;
-    float tu, tv;
+    float    tu, tv;
 };
 
 class TSinkSplash
 {
-  public:
+public:
     TSinkSplash();
     virtual ~TSinkSplash();
 
-    void Initialize(INIFILE *_ini, SEA_BASE *sea);
+    void Initialize(INIFILE* _ini, SEA_BASE* sea);
     void Release();
-    void Start(const CVECTOR &_pos, uint16_t *_indexes, SINK_VERTEX *_vertexes, int32_t vOffset);
-    void Process(uint32_t dTime, uint16_t *_indexes, SINK_VERTEX *_vertexes);
+    void Start(const CVECTOR& _pos, uint16_t* _indexes, SINK_VERTEX* _vertexes, int32_t vOffset);
+    void Process(uint32_t dTime, uint16_t* _indexes, SINK_VERTEX* _vertexes);
     bool Enabled();
-    void Reset(uint16_t *_indexes, SINK_VERTEX *_vertexes);
+    void Reset(uint16_t* _indexes, SINK_VERTEX* _vertexes);
     void AdditionalRealize(uint32_t dTime);
 
-  private:
+private:
     float HeightF(uint32_t time, float _r, float _k);
 
-    SEPS_PS *ps;
-    bool enabled;
-    SEA_BASE *sea;
-    uint32_t time;
+    SEPS_PS*  ps;
+    bool      enabled;
+    SEA_BASE* sea;
+    uint32_t  time;
 
-    float distortDivider;
+    float   distortDivider;
     CVECTOR center, dir;
-    float growK;
+    float   growK;
 };

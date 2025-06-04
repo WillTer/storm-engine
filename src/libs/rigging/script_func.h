@@ -1,9 +1,9 @@
 #pragma once
 #include <libs/core/script_libriary.h>
 
-class SCRIPT_RIGGING_FILES : public SCRIPT_LIBRIARY
+class SCRIPT_RIGGING_FILES: public SCRIPT_LIBRIARY
 {
-  public:
+public:
     SCRIPT_RIGGING_FILES() {};
 
     ~SCRIPT_RIGGING_FILES() override {};

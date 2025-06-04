@@ -16,69 +16,64 @@
 #include <libs/collide/collide.h>
 #include <libs/renderer/dx9render.h>
 
-class Lights : public Entity
+class Lights: public Entity
 {
     // Light source description
-    struct LightType
-    {
-        char *name;
-        D3DLIGHT9 dxLight;
+    struct LightType {
+        char*         name;
+        D3DLIGHT9     dxLight;
         D3DCOLORVALUE color;
-        float flicker;
-        float flickerSlow;
-        float freq;
-        float freqSlow;
-        float p;
-        float pSlow;
-        float coronaRange;
-        float coronaRange2;
-        float invCoronaRange;
-        float coronaSize;
-        int32_t corona;
+        float         flicker;
+        float         flickerSlow;
+        float         freq;
+        float         freqSlow;
+        float         p;
+        float         pSlow;
+        float         coronaRange;
+        float         coronaRange2;
+        float         invCoronaRange;
+        float         coronaSize;
+        int32_t       corona;
     };
 
     // Source
-    struct Light
-    {
-        D3DCOLORVALUE color; // Current source color
-        D3DVECTOR pos;       // Source position
-        float time;          // Time since last change of flickering intensity
-        float timeSlow;      // Time since the last change in the interpolated intensity
-        float itens;         // Shimmering intensity
-        float itensSlow;     // Necessary interpolated intensity
-        float itensDlt;      // Interpolated intensity difference
-        float i;             // Resulting intensity
-        float corona;        // Crown transparency
+    struct Light {
+        D3DCOLORVALUE color;      // Current source color
+        D3DVECTOR     pos;        // Source position
+        float         time;       // Time since last change of flickering intensity
+        float         timeSlow;   // Time since the last change in the interpolated intensity
+        float         itens;      // Shimmering intensity
+        float         itensSlow;  // Necessary interpolated intensity
+        float         itensDlt;   // Interpolated intensity difference
+        float         i;          // Resulting intensity
+        float         corona;     // Crown transparency
 
-        int32_t type; // Source type index
+        int32_t type;  // Source type index
         uint8_t intensity;
     };
 
     // Controllable (moving) source
-    struct MovingLight
-    {
+    struct MovingLight {
         int32_t id;
         int32_t light;
     };
 
-    struct Vertex
-    {
-        CVECTOR pos;
+    struct Vertex {
+        CVECTOR  pos;
         uint32_t color;
-        float u, v;
+        float    u, v;
     };
 
     // To sort by distance
-    struct lt_elem
-    {
+    struct lt_elem {
         int32_t idx;
-        float dst;
+        float   dst;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Lights();
     ~Lights() override;
 
@@ -91,11 +86,8 @@ class Lights : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -107,23 +99,23 @@ class Lights : public Entity
     }
 
     // Find source index
-    int32_t FindLight(const char *name);
+    int32_t FindLight(char const* name);
     // Add source to location
-    void AddLight(int32_t index, const CVECTOR &pos);
+    void AddLight(int32_t index, const CVECTOR& pos);
     // Add lantern model
     bool AddLampModel(entid_t lampModel);
     //
     void DelAllLights();
 
     // Add portable source
-    int32_t AddMovingLight(const char *type, const CVECTOR &pos);
+    int32_t AddMovingLight(char const* type, const CVECTOR& pos);
     // Put portable source in new position
-    void UpdateMovingLight(int32_t id, const CVECTOR &pos);
+    void UpdateMovingLight(int32_t id, const CVECTOR& pos);
     // Remove portable source
     void DelMovingLight(int32_t id);
 
     // Set lights at pos
-    void SetLightsAt(const CVECTOR &pos);
+    void SetLightsAt(const CVECTOR& pos);
     void UnsetLights();
 
     // Update source types
@@ -132,20 +124,19 @@ class Lights : public Entity
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    auto GetLightsAt(const CVECTOR &pos)
+private:
+    auto GetLightsAt(const CVECTOR& pos)
     {
-        const auto dist = [&pos](const auto &light) {
-            const auto dx = (pos.x - light.pos.x);
-            const auto dy = (pos.y - light.pos.y);
-            const auto dz = (pos.z - light.pos.z);
+        auto const dist = [&pos](auto const& light) {
+            auto const dx = (pos.x - light.pos.x);
+            auto const dy = (pos.y - light.pos.y);
+            auto const dz = (pos.z - light.pos.z);
             return dx * dx + dy * dy + dz * dz + 2.0f;
         };
-        const auto cmp = [&](const auto lhs, const auto rhs) { return dist(lights[lhs]) < dist(lights[rhs]); };
+        auto const cmp = [&](auto const lhs, auto const rhs) { return dist(lights[lhs]) < dist(lights[rhs]); };
 
         std::set<uint32_t, decltype(cmp)> sorted_lights(cmp);
-        for (uint32_t i = 0; i < numLights; i++)
-        {
+        for (uint32_t i = 0; i < numLights; i++) {
             sorted_lights.insert(i);
         }
 
@@ -154,28 +145,27 @@ class Lights : public Entity
 
     void PrintDebugInfo();
 
-    constexpr static auto max_d3d_lights = 8U;
+    constexpr static auto max_d3d_lights        = 8U;
     constexpr static auto max_d3d_custom_lights = max_d3d_lights - 1;
 
-    VDX9RENDER *rs;
-    COLLIDE *collide;
+    VDX9RENDER* rs;
+    COLLIDE*    collide;
 
     // Installed light sources
-    struct
-    {
-        bool set;
+    struct {
+        bool    set;
         int32_t light;
     } lt[8];
 
     // Types of light sources
     std::vector<LightType> types;
-    int32_t numTypes;
-    int32_t maxTypes;
+    int32_t                numTypes;
+    int32_t                maxTypes;
     // Existing lighting sources
     std::vector<Light> lights;
-    uint32_t numLights;
-    int32_t maxLights;
-    int32_t lighter_code;
+    uint32_t           numLights;
+    int32_t            maxLights;
+    int32_t            lighter_code;
 
     // portable light sources
     std::vector<MovingLight> aMovingLight;

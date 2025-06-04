@@ -1,22 +1,23 @@
 #pragma once
 
-#include "common_camera.h"
 #include <libs/island/island_base.h>
 #include <libs/renderer/dx9render.h>
 
-class FREE_CAMERA : public COMMON_CAMERA
+#include "common_camera.h"
+
+class FREE_CAMERA: public COMMON_CAMERA
 {
-  private:
-    VDX9RENDER *pRS;
-    CVECTOR vPos, vAng;
-    float fFov;
-    int32_t iLockX, iLockY;
+private:
+    VDX9RENDER* pRS;
+    CVECTOR     vPos, vAng;
+    float       fFov;
+    int32_t     iLockX, iLockY;
 
-    ISLAND_BASE *pIslandBase;
-    BOOL bCameraOnEarth;
-    float fCameraOnEarthHeight;
+    ISLAND_BASE* pIslandBase;
+    BOOL         bCameraOnEarth;
+    float        fCameraOnEarthHeight;
 
-  public:
+public:
     FREE_CAMERA();
     ~FREE_CAMERA() override;
 
@@ -24,13 +25,12 @@ class FREE_CAMERA : public COMMON_CAMERA
     bool Init() override;
     void Move(uint32_t DeltaTime);
     void Execute(uint32_t Delta_Time);
-    bool CreateState(ENTITY_STATE_GEN *state_gen) const;
-    bool LoadState(ENTITY_STATE *state);
+    bool CreateState(ENTITY_STATE_GEN* state_gen) const;
+    bool LoadState(ENTITY_STATE* state);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
         case Stage::execute:
             Execute(delta);
             break;
@@ -43,6 +43,6 @@ class FREE_CAMERA : public COMMON_CAMERA
         }
     }
 
-    void Save(CSaveLoad *pSL) override;
-    void Load(CSaveLoad *pSL) override;
+    void Save(CSaveLoad* pSL) override;
+    void Load(CSaveLoad* pSL) override;
 };

@@ -45,17 +45,15 @@
 #define PSKEY_PANGLEKEY "key_angle"
 #define PSKEY_WINDEFFECTKEY "key_windeffect"
 
-struct PARTICLE_VERTEX
-{
-    CVECTOR pos;
+struct PARTICLE_VERTEX {
+    CVECTOR  pos;
     uint32_t color;
-    float tu, tv;
+    float    tu, tv;
 };
 
 #define PARTICLE_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
-struct PARTICLE
-{
+struct PARTICLE {
     CVECTOR pos;
     CVECTOR ang;
     CVECTOR v;
@@ -75,26 +73,25 @@ struct PARTICLE
     float speed_chaos;
     float speedVal;
 
-    int32_t lifetime;
-    int32_t time;
+    int32_t  lifetime;
+    int32_t  time;
     uint32_t color;
-    bool live;
-    bool done;
+    bool     live;
+    bool     done;
 
     uint32_t flow_track_index;
 };
 
 #define TRACK_EVENT_MAX 16
 
-struct TRACK_EVENT
-{
+struct TRACK_EVENT {
     int32_t time;
-    float value;
+    float   value;
 };
 
 class PARTICLES;
 
-class SEAFOAM_PS : VPARTICLE_SYSTEM
+class SEAFOAM_PS: VPARTICLE_SYSTEM
 {
     friend PARTICLES;
     TRACK_EVENT Visibility[TRACK_EVENT_MAX];
@@ -106,68 +103,68 @@ class SEAFOAM_PS : VPARTICLE_SYSTEM
 
     bool bTrackAngle;
 
-    VDX9RENDER *RenderService;
-    VGEOMETRY *gs;
+    VDX9RENDER* RenderService;
+    VGEOMETRY*  gs;
 
     int32_t TextureID[MAX_PS_TEXTURES];
     int32_t TexturesNum;
 
-    int32_t ParticlesNum;
-    PARTICLE *Particle;
+    int32_t   ParticlesNum;
+    PARTICLE* Particle;
 
-    IDirect3DVertexBuffer9 *VBuffer;
+    IDirect3DVertexBuffer9* VBuffer;
 
     CVECTOR Camera_EmitterPos;
     CVECTOR Camera_EmitterPosA;
     CVECTOR Emitter;
     CVECTOR EmitterDirection;
-    float DirectionDeviation;
+    float   DirectionDeviation;
     int32_t EmitterIniTime;
 
     CVECTOR vWindDirection;
-    float fWindPower;
-    float fWindEffect;
-    float Gravity;
-    float Inispeed;
-    float SpeedDeviation;
+    float   fWindPower;
+    float   fWindEffect;
+    float   Gravity;
+    float   Inispeed;
+    float   SpeedDeviation;
     int32_t Lifetime;
     int32_t Emitdelta;
-    float Spin;
-    float SpinDeviation;
-    float Weight;
-    float WeightDeviation;
-    float ESpace;
+    float   Spin;
+    float   SpinDeviation;
+    float   Weight;
+    float   WeightDeviation;
+    float   ESpace;
     int32_t Delay;
 
     //---------------------------------
 
-    bool enableEmit;
+    bool     enableEmit;
     uint32_t nEmitted;
-    float EmissionTime;   // time for emitting one particle
-    int32_t DeltaTimeSLE; // SinceLastEmission
-    bool EmitParticle();
-    int32_t nSystemLifeTime;
+    float    EmissionTime;  // time for emitting one particle
+    int32_t  DeltaTimeSLE;  // SinceLastEmission
+    bool     EmitParticle();
+    int32_t  nSystemLifeTime;
     // void  AddTrackPoint(CVECTOR pos);
-    CVECTOR *pFlowTrack;
+    CVECTOR* pFlowTrack;
     uint32_t nFlowTrackSize;
-    bool bUseFlowTrack;
-    void SetFlowTrack(uint32_t index);
-    float fTrackPointRadius;
-    float EmissionTimeRand;
-    float CurrentEmissionTimeRand;
-    bool bLayOnSurface;
-    void LayOnSurface(uint32_t index);
-    entid_t SurfaceID;
-    void UseSurface(entid_t surface_id);
-    float fSurfaceOffset;
-    char *TechniqueName;
+    bool     bUseFlowTrack;
+    void     SetFlowTrack(uint32_t index);
+    float    fTrackPointRadius;
+    float    EmissionTimeRand;
+    float    CurrentEmissionTimeRand;
+    bool     bLayOnSurface;
+    void     LayOnSurface(uint32_t index);
+    entid_t  SurfaceID;
+    void     UseSurface(entid_t surface_id);
+    float    fSurfaceOffset;
+    char*    TechniqueName;
     uint32_t ParticleColor;
 
     //---------------------------------
 
     CVECTOR CameraPos;
     CVECTOR CameraAng;
-    float Perspective;
+    float   Perspective;
 
     CMatrix Matrix;
 
@@ -179,8 +176,8 @@ class SEAFOAM_PS : VPARTICLE_SYSTEM
     bool bLinkEmitter;
     bool bRandomDirection;
 
-    SEAFOAM_PS *l_PTR;
-    SEAFOAM_PS *r_PTR;
+    SEAFOAM_PS* l_PTR;
+    SEAFOAM_PS* r_PTR;
 
     entid_t LinkObject;
     CVECTOR LinkPos;
@@ -190,10 +187,10 @@ class SEAFOAM_PS : VPARTICLE_SYSTEM
     int32_t EmitIndex;
     int32_t EmitTimeDelta;
 
-  public:
+public:
     SEAFOAM_PS();
     ~SEAFOAM_PS() override;
-    bool Init(INIFILE *ini, const char *psname);
+    bool Init(INIFILE* ini, char const* psname);
     void UpdateVertexBuffer();
     void Realize(uint32_t DeltaTime);
     void Execute(uint32_t DeltaTime);
@@ -207,11 +204,11 @@ class SEAFOAM_PS : VPARTICLE_SYSTEM
 
     void SetParticlesTracks(uint32_t DeltaTime);
 
-    float GetTrackValue(TRACK_EVENT *Track, int32_t Time);
-    bool BuildTrack(INIFILE *ini, TRACK_EVENT *Track, const char *psname, const char *key_name);
-    void SetEmitter(CVECTOR p, CVECTOR a) override;
-    void LinkToObject(entid_t id, CVECTOR _LinkPos) override;
-    void SetDelay(int32_t _delay) override;
+    float GetTrackValue(TRACK_EVENT* Track, int32_t Time);
+    bool  BuildTrack(INIFILE* ini, TRACK_EVENT* Track, char const* psname, char const* key_name);
+    void  SetEmitter(CVECTOR p, CVECTOR a) override;
+    void  LinkToObject(entid_t id, CVECTOR _LinkPos) override;
+    void  SetDelay(int32_t _delay) override;
 
     void EnableEmit(bool _enableEmit)
     {
@@ -219,14 +216,14 @@ class SEAFOAM_PS : VPARTICLE_SYSTEM
     }
 
     // nodes --------------------------------------------------------
-    SEAFOAM_PS *GetLeftNode();
-    SEAFOAM_PS *GetRightNode();
-    void SetLeftNode(SEAFOAM_PS *node);
-    void SetRightNode(SEAFOAM_PS *node);
-    void AttachTo(SEAFOAM_PS *link_after_PTR, SEAFOAM_PS **Root, SEAFOAM_PS **Top);
-    void Attach(SEAFOAM_PS **Root, SEAFOAM_PS **Top);
-    void Deattach(SEAFOAM_PS **Root, SEAFOAM_PS **Top);
-    void ProcessOrder(SEAFOAM_PS **Root, SEAFOAM_PS **Top);
+    SEAFOAM_PS* GetLeftNode();
+    SEAFOAM_PS* GetRightNode();
+    void        SetLeftNode(SEAFOAM_PS* node);
+    void        SetRightNode(SEAFOAM_PS* node);
+    void        AttachTo(SEAFOAM_PS* link_after_PTR, SEAFOAM_PS** Root, SEAFOAM_PS** Top);
+    void        Attach(SEAFOAM_PS** Root, SEAFOAM_PS** Top);
+    void        Deattach(SEAFOAM_PS** Root, SEAFOAM_PS** Top);
+    void        ProcessOrder(SEAFOAM_PS** Root, SEAFOAM_PS** Top);
     //---------------------------------------------------------------
 
     void SetLifeTime(uint32_t time) override

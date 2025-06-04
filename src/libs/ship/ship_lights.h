@@ -7,14 +7,13 @@
 
 #include "i_ship_lights.h"
 
-class ShipLights : public IShipLights
+class ShipLights: public IShipLights
 {
-  private:
-    struct Color
-    {
+private:
+    struct Color {
         float r, g, b, a;
 
-        friend Color operator*(const Color &c, float fValue)
+        friend Color operator*(Color const& c, float fValue)
         {
             Color cc;
 
@@ -34,7 +33,7 @@ class ShipLights : public IShipLights
             a = Clamp(a);
         }
 
-        Color &operator*=(float fValue)
+        Color& operator*=(float fValue)
         {
             r *= fValue;
             g *= fValue;
@@ -44,21 +43,19 @@ class ShipLights : public IShipLights
         }
     };
 
-    struct LightType
-    {
+    struct LightType {
         std::string sLightType;
-        Color cLightColor;
-        Color cCoronaColor;
-        float fRange;
-        float fAttenuation0, fAttenuation1, fAttenuation2;
-        float fFlicker, fFreq, fFlickerSlow, fFreqSlow;
-        float fLifeTime, fUpTime;
-        float fCoronaRange, fCoronaSize;
-        float fSunRoadFlareFadeDistance;
+        Color       cLightColor;
+        Color       cCoronaColor;
+        float       fRange;
+        float       fAttenuation0, fAttenuation1, fAttenuation2;
+        float       fFlicker, fFreq, fFlickerSlow, fFreqSlow;
+        float       fLifeTime, fUpTime;
+        float       fCoronaRange, fCoronaSize;
+        float       fSunRoadFlareFadeDistance;
     };
 
-    struct Oscillator
-    {
+    struct Oscillator {
         float fStep;
         float fAmp;
         float fOneDivAmp;
@@ -67,95 +64,87 @@ class ShipLights : public IShipLights
         float fK;
     };
 
-    struct ShipLight
-    {
-        VAI_OBJBASE *pObject;
-        NODE *pNode;
-        bool bDynamicLight;
-        CVECTOR vPos, vCurPos;
-        D3DLIGHT9 Light;
-        float fCoronaIntensity;
-        float fCurDistance;
-        float fCurTime, fTotalTime, fUpTime;
-        float fFlareAlpha, fFlareAlphaMax;
-        Oscillator Osc[2];
-        bool bCoronaOnly;
-        bool bVisible;
-        float fTotalBrokenTime, fBrokenTime;
-        bool bOff, bBrokenTimeOff;
-        bool bLightOff;
-        bool bDead;
-        LightType *pLT;
+    struct ShipLight {
+        VAI_OBJBASE* pObject;
+        NODE*        pNode;
+        bool         bDynamicLight;
+        CVECTOR      vPos, vCurPos;
+        D3DLIGHT9    Light;
+        float        fCoronaIntensity;
+        float        fCurDistance;
+        float        fCurTime, fTotalTime, fUpTime;
+        float        fFlareAlpha, fFlareAlphaMax;
+        Oscillator   Osc[2];
+        bool         bCoronaOnly;
+        bool         bVisible;
+        float        fTotalBrokenTime, fBrokenTime;
+        bool         bOff, bBrokenTimeOff;
+        bool         bLightOff;
+        bool         bDead;
+        LightType*   pLT;
     };
 
-    struct SelectedLight
-    {
-        float fDistance;
+    struct SelectedLight {
+        float    fDistance;
         uint32_t dwIndex;
 
-        bool operator<(const SelectedLight &other) const
+        bool operator<(SelectedLight const& other) const
         {
             return fDistance < other.fDistance;
         };
     };
 
-    std::vector<ShipLight> aLights;
+    std::vector<ShipLight>     aLights;
     std::vector<SelectedLight> aSelectedLights;
-    std::vector<LightType> aLightTypes;
-    int32_t iMinLight, iMaxLight;
-    uint32_t dwMaxD3DLights;
-    bool bLoadLights;
-    bool bReflection;
-    float fSunRoadFlareSize;
+    std::vector<LightType>     aLightTypes;
+    int32_t                    iMinLight, iMaxLight;
+    uint32_t                   dwMaxD3DLights;
+    bool                       bLoadLights;
+    bool                       bReflection;
+    float                      fSunRoadFlareSize;
 
-    int32_t iCoronaTex, iFlareSunRoadTex;
+    int32_t     iCoronaTex, iFlareSunRoadTex;
     std::string sCoronaTechnique;
-    uint32_t dwCoronaSubTexX, dwCoronaSubTexY;
+    uint32_t    dwCoronaSubTexX, dwCoronaSubTexY;
 
-    SEA_BASE *pSea;
+    SEA_BASE* pSea;
 
-    bool LoadLights();
-    LightType *FindLightType(std::string sLightType);
-    float GetAttributeAsFloat(ATTRIBUTES *pA, const char *pName, float fDefault);
-    void AddFlare(VAI_OBJBASE *pObject, bool bLight, MODEL *pModel, const GEOS::LABEL &label);
-    bool SetLabel(ShipLight *pL, MODEL *pModel, const char *pStr);
+    bool       LoadLights();
+    LightType* FindLightType(std::string sLightType);
+    float      GetAttributeAsFloat(ATTRIBUTES* pA, char const* pName, float fDefault);
+    void       AddFlare(VAI_OBJBASE* pObject, bool bLight, MODEL* pModel, const GEOS::LABEL& label);
+    bool       SetLabel(ShipLight* pL, MODEL* pModel, char const* pStr);
 
-  public:
-    static VDX9RENDER *pRS;
-    static COLLIDE *pCollide;
+public:
+    static VDX9RENDER* pRS;
+    static COLLIDE*    pCollide;
 
     ShipLights();
     ~ShipLights() override;
 
-    void Release(VAI_OBJBASE *pObject) override;
+    void Release(VAI_OBJBASE* pObject) override;
 
-    void AddLights(VAI_OBJBASE *pObject, MODEL *pModel, bool bLights, bool bFlares) override;
-    void SetLightsOff(VAI_OBJBASE *pObject, float fTime, bool bLights, bool bFlares, bool bNow) override;
-    void KillMast(VAI_OBJBASE *pObject, NODE *pNode, bool bNow) override;
-    void AddDynamicLights(VAI_OBJBASE *pObject, const CVECTOR &vPos) override;
-    void SetLights(VAI_OBJBASE *pObject) override;
-    void UnSetLights(VAI_OBJBASE *pObject) override;
-    void ResetLights(VAI_OBJBASE *pObject, bool bLight) override;
+    void AddLights(VAI_OBJBASE* pObject, MODEL* pModel, bool bLights, bool bFlares) override;
+    void SetLightsOff(VAI_OBJBASE* pObject, float fTime, bool bLights, bool bFlares, bool bNow) override;
+    void KillMast(VAI_OBJBASE* pObject, NODE* pNode, bool bNow) override;
+    void AddDynamicLights(VAI_OBJBASE* pObject, const CVECTOR& vPos) override;
+    void SetLights(VAI_OBJBASE* pObject) override;
+    void UnSetLights(VAI_OBJBASE* pObject) override;
+    void ResetLights(VAI_OBJBASE* pObject, bool bLight) override;
 
-    void SetDead(VAI_OBJBASE *pObject) override;
+    void SetDead(VAI_OBJBASE* pObject) override;
 
-    bool Init() override;
-    void Execute(uint32_t dwDeltaTime);
-    void Realize(uint32_t dwDeltaTime);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Execute(uint32_t dwDeltaTime);
+    void     Realize(uint32_t dwDeltaTime);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-        default:
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
+        case Stage::realize: Realize(delta); break;
+        default: break;
         }
     }
 };

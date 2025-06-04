@@ -1,34 +1,30 @@
 #include "texture_sequence.h"
-#include <libs/core/vma.hpp>
 
 #include <libs/core/core.h>
-
 #include <libs/core/v_file_service.h>
+#include <libs/core/vma.hpp>
 
 #define FILE_PATH "TextureSequence\\%s.tga"
-static const char *INI_FILENAME = "resource\\ini\\TextureSequence.ini";
+static char const* INI_FILENAME = "resource\\ini\\TextureSequence.ini";
 
 #define TS_VERTEX_FRMT (D3DFVF_XYZRHW | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2)
 
-struct TS_VERTEX
-{
+struct TS_VERTEX {
     CVECTOR pos;
-    float w;
-    float tu1, tv1;
-    float tu2, tv2;
+    float   w;
+    float   tu1, tv1;
+    float   tu2, tv2;
 };
 
-void GetRectFromNum(FRECT &texRect, int xq, int yq, int curNum, bool bHorzFlip, bool bVertFlip)
+void GetRectFromNum(FRECT& texRect, int xq, int yq, int curNum, bool bHorzFlip, bool bVertFlip)
 {
     auto y = curNum / xq;
-    if (y >= yq)
-        y = 0;
+    if (y >= yq) y = 0;
     auto x = curNum - y * xq;
-    if (x >= xq)
-        x = 0;
+    if (x >= xq) x = 0;
 
-    const auto width = 1.f / xq;
-    const auto height = 1.f / yq;
+    auto const width  = 1.f / xq;
+    auto const height = 1.f / yq;
 
     if (bHorzFlip)
         texRect.left = width + (texRect.right = x * width);
@@ -42,8 +38,8 @@ void GetRectFromNum(FRECT &texRect, int xq, int yq, int curNum, bool bHorzFlip, 
 
 TextureSequence::TextureSequence()
 {
-    m_pTexture = nullptr;
-    m_AllTex = -1;
+    m_pTexture  = nullptr;
+    m_AllTex    = -1;
     m_bHorzFlip = false;
     m_bVertFlip = false;
 }
@@ -53,60 +49,47 @@ TextureSequence::~TextureSequence()
     Release();
 }
 
-IDirect3DTexture9 *TextureSequence::Initialize(VDX9RENDER *pRS, const char *cTSfileName, bool bCicled)
+IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSfileName, bool bCicled)
 {
     m_bCicled = bCicled;
-    if (pRS == nullptr || cTSfileName == nullptr)
-        return nullptr;
+    if (pRS == nullptr || cTSfileName == nullptr) return nullptr;
     m_pRS = pRS;
 
     // open ini file
     auto ini = fio->OpenIniFile(INI_FILENAME);
-    if (!ini)
-    {
+    if (!ini) {
         core.Trace("ini file %s not found!", INI_FILENAME);
         return nullptr;
     }
-    m_dwDeltaTime = ini->GetInt((char *)cTSfileName, "timeDelay", 128);
-    if (m_dwDeltaTime == 0)
-    {
-        return nullptr;
-    }
-    m_texWidth = ini->GetInt((char *)cTSfileName, "width", 128);
-    m_texHeight = ini->GetInt((char *)cTSfileName, "height", 128);
-    m_xQuantity = ini->GetInt((char *)cTSfileName, "horzQ", 1);
-    m_yQuantity = ini->GetInt((char *)cTSfileName, "vertQ", 1);
+    m_dwDeltaTime = ini->GetInt((char*)cTSfileName, "timeDelay", 128);
+    if (m_dwDeltaTime == 0) { return nullptr; }
+    m_texWidth  = ini->GetInt((char*)cTSfileName, "width", 128);
+    m_texHeight = ini->GetInt((char*)cTSfileName, "height", 128);
+    m_xQuantity = ini->GetInt((char*)cTSfileName, "horzQ", 1);
+    m_yQuantity = ini->GetInt((char*)cTSfileName, "vertQ", 1);
     m_maxCurNum = m_xQuantity * m_yQuantity;
-    if (m_maxCurNum == 0)
-    {
-        return nullptr;
-    }
+    if (m_maxCurNum == 0) { return nullptr; }
 
     // load sequence texture
     char fullName[256];
-    if (!ini->ReadString((char *)cTSfileName, "TextureFile", fullName, sizeof(fullName) - 1, ""))
+    if (!ini->ReadString((char*)cTSfileName, "TextureFile", fullName, sizeof(fullName) - 1, ""))
         sprintf_s(fullName, FILE_PATH, cTSfileName);
     m_AllTex = m_pRS->TextureCreate(fullName);
-    if (m_AllTex == -1)
-    {
-        return nullptr;
-    }
+    if (m_AllTex == -1) { return nullptr; }
 
-    m_bHorzFlip = ini->GetInt((char *)cTSfileName, "flipH", 0) != 0;
-    m_bVertFlip = ini->GetInt((char *)cTSfileName, "flipV", 0) != 0;
+    m_bHorzFlip = ini->GetInt((char*)cTSfileName, "flipH", 0) != 0;
+    m_bVertFlip = ini->GetInt((char*)cTSfileName, "flipV", 0) != 0;
 
     m_pTexture = nullptr;
     // create output texture
-    if (S_OK != m_pRS->CreateTexture(m_texWidth, m_texHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
-                                     D3DPOOL_DEFAULT, &m_pTexture))
-    {
+    if (S_OK != m_pRS->CreateTexture(m_texWidth, m_texHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTexture)) {
         m_pTexture = nullptr;
         core.Trace("Can`t create texture");
         return nullptr;
     }
 
     // first render
-    m_curNum = 0;
+    m_curNum         = 0;
     m_dwCurDeltaTime = 0;
     // ToTextureRender(0.f);
 
@@ -120,12 +103,10 @@ IDirect3DTexture9 *TextureSequence::Initialize(VDX9RENDER *pRS, const char *cTSf
 bool TextureSequence::FrameUpdate()
 {
     m_dwCurDeltaTime += core.GetRDeltaTime();
-    while (m_dwCurDeltaTime > m_dwDeltaTime)
-    {
+    while (m_dwCurDeltaTime > m_dwDeltaTime) {
         m_dwCurDeltaTime -= m_dwDeltaTime;
         m_curNum++;
-        if (m_curNum >= m_maxCurNum)
-            m_curNum = 0;
+        if (m_curNum >= m_maxCurNum) m_curNum = 0;
     }
 
     ToTextureRender(static_cast<float>(m_dwCurDeltaTime) / static_cast<float>(m_dwDeltaTime));
@@ -134,29 +115,28 @@ bool TextureSequence::FrameUpdate()
 
 void TextureSequence::ToTextureRender(float blendValue) const
 {
-    const auto newTFactor = ARGB(static_cast<int32_t>(255.f * blendValue), static_cast<int32_t>(255.f * blendValue),
-                                 static_cast<int32_t>(255.f * blendValue), static_cast<int32_t>(255.f * blendValue));
+    auto const newTFactor = ARGB(
+        static_cast<int32_t>(255.f * blendValue),
+        static_cast<int32_t>(255.f * blendValue),
+        static_cast<int32_t>(255.f * blendValue),
+        static_cast<int32_t>(255.f * blendValue));
 
     // set texture as render target
     IDirect3DSurface9 *pRenderTarg = nullptr, *pOldRenderTarg = nullptr;
-    if (m_pRS->GetRenderTarget(&pOldRenderTarg) == S_OK)
-    {
-        if (m_pRS->GetSurfaceLevel(m_pTexture, 0, &pRenderTarg) == S_OK)
-        {
-            IDirect3DSurface9 *pStencil;
+    if (m_pRS->GetRenderTarget(&pOldRenderTarg) == S_OK) {
+        if (m_pRS->GetSurfaceLevel(m_pTexture, 0, &pRenderTarg) == S_OK) {
+            IDirect3DSurface9* pStencil;
             m_pRS->GetDepthStencilSurface(&pStencil);
-            if (m_pRS->SetRenderTarget(pRenderTarg, nullptr) == S_OK)
-            {
+            if (m_pRS->SetRenderTarget(pRenderTarg, nullptr) == S_OK) {
                 CMatrix matw;
-                m_pRS->SetTransform(D3DTS_WORLD, (D3DMATRIX *)&matw);
+                m_pRS->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&matw);
                 m_pRS->TextureSet(0, m_AllTex);
                 m_pRS->TextureSet(1, m_AllTex);
 
-                FRECT m_rectTex;
+                FRECT     m_rectTex;
                 TS_VERTEX v[4];
-                for (auto i = 0; i < 4; i++)
-                {
-                    v[i].w = 0.5f;
+                for (auto i = 0; i < 4; i++) {
+                    v[i].w     = 0.5f;
                     v[i].pos.z = 1.f;
                 }
                 v[0].pos.x = 0;
@@ -203,13 +183,11 @@ void TextureSequence::ToTextureRender(float blendValue) const
 
 void TextureSequence::Release()
 {
-    if (m_pTexture != nullptr && m_pRS != nullptr)
-    {
+    if (m_pTexture != nullptr && m_pRS != nullptr) {
         m_pRS->Release(m_pTexture);
         m_pTexture = nullptr;
     }
-    if (m_pRS != nullptr && m_AllTex != -1)
-    {
+    if (m_pRS != nullptr && m_AllTex != -1) {
         m_pRS->TextureRelease(m_AllTex);
         m_AllTex = -1;
     }
@@ -222,6 +200,5 @@ void TextureSequence::LostRender() const
 
 void TextureSequence::RestoreRender()
 {
-    m_pRS->CreateTexture(m_texWidth, m_texHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT,
-                         &m_pTexture);
+    m_pRS->CreateTexture(m_texWidth, m_texHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTexture);
 }

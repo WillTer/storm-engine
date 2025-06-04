@@ -11,13 +11,13 @@
 #define MAX_ACTIVITY_TIME 20000
 #define MAX_WAIT_TIME 20000
 #define MAX_EFFECT_RADIUS 1.5f
-#define VELOCITY 1.1f // [m/sec]
+#define VELOCITY 1.1f  // [m/sec]
 #define MIN_Y_DELTA 0.05f
 #define MIN_ACTIVITY 0.4f
-#define RISE_IMPROBABILITY 6 // improbability of back effect
+#define RISE_IMPROBABILITY 6  // improbability of back effect
 #define FALL_IMPROBABILITY 10
 #define MAX_DISPLACE_TIME 300
-#define DISPLACE_SPEED 10.0f // [m/(sec^2)]
+#define DISPLACE_SPEED 10.0f  // [m/(sec^2)]
 #define MAX_REMOTE_DISTANCE 10.0f
 #define MAX_HEIGHT 4.0f
 #define MODEL_SIDE 0.05f
@@ -28,24 +28,23 @@
 #define BUTTERFLY_VERTEX_TYPE (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 #pragma pack(push, 1)
-struct tButterflyVertex
-{
+struct tButterflyVertex {
     CVECTOR pos;
-    float tu, tv;
+    float   tu, tv;
 };
 #pragma pack(pop)
 //--------------------------------------------------------------------
 class TButterfly
 {
-  public:
+public:
     TButterfly();
     virtual ~TButterfly();
 
-    void Initialize(const CVECTOR &_center, float _radius, int32_t _bufferIndex, int _tI, int _tJ);
-    void Calculate(int32_t _dTime, COLLIDE *_collide, entity_container_cref its);
-    void Effect(const CVECTOR &_position);
+    void Initialize(const CVECTOR& _center, float _radius, int32_t _bufferIndex, int _tI, int _tJ);
+    void Calculate(int32_t _dTime, COLLIDE* _collide, entity_container_cref its);
+    void Effect(const CVECTOR& _position);
 
-    static void SetCenter(const CVECTOR &_center)
+    static void SetCenter(const CVECTOR& _center)
     {
         center = _center;
     };
@@ -67,21 +66,21 @@ class TButterfly
     }
 
     void Draw(HDC _dc);
-    void Draw(IVBufferManager *_ivManager);
-    void Draw(VDX9RENDER *_renderer, MODEL *_model);
+    void Draw(IVBufferManager* _ivManager);
+    void Draw(VDX9RENDER* _renderer, MODEL* _model);
 
-  private:
+private:
     CVECTOR centerPosition, centerVelocity, oldPos;
     CVECTOR displaceVector;
     int32_t timeToNextDisplace;
     int32_t fullActiveTime, activeTime, waitTime;
     int32_t bufferIndex;
-    bool active;
+    bool    active;
 
     static CVECTOR center;
-    float minY, maxY;
-    bool firstDraw;
-    float time;
+    float          minY, maxY;
+    bool           firstDraw;
+    float          time;
 
     float tI, tJ;
 };

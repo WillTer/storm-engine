@@ -17,19 +17,18 @@
 
 //============================================================================================
 
-class AnimationPlayer;        // Action player
-class AnimationTimer;         // Animation blending class
-class Animation;              // A class that controls animations for one model
-class AnimationEventListener; // A class that accepts internal animation events
-class AnimationService;       // Animation service
+class AnimationPlayer;         // Action player
+class AnimationTimer;          // Animation blending class
+class Animation;               // A class that controls animations for one model
+class AnimationEventListener;  // A class that accepts internal animation events
+class AnimationService;        // Animation service
 
 // ============================================================================================
 // Constants
 // ============================================================================================
 
 // Possible ways to play action animation
-enum AnimationType
-{
+enum AnimationType {
     at_static,
     // Frames do not change
     at_normal,
@@ -43,8 +42,7 @@ enum AnimationType
 };
 
 // Events set from code to help control animation
-enum AnimationEvent
-{
+enum AnimationEvent {
     // Internal AnimationPlayer Events
     ae_setnewaction,
     // A new action has been set for the player
@@ -71,8 +69,8 @@ enum AnimationEvent
     // Number of events
 };
 
-#define ANI_MAX_ACTIONS 8 // Number of ActionPlayers and AnimationTimers for one model
-#define ANI_MAX_EVENTS 8  // Number of events per action
+#define ANI_MAX_ACTIONS 8  // Number of ActionPlayers and AnimationTimers for one model
+#define ANI_MAX_EVENTS 8   // Number of events per action
 
 // ============================================================================================
 // The class that plays the action
@@ -85,33 +83,31 @@ enum AnimationEvent
 
 class ActionPlayer
 {
-  public:
-    ~ActionPlayer()
-    {
-    }
+public:
+    ~ActionPlayer() {}
 
     // Set current action
-    virtual bool SetAction(const char *actionName) = 0;
-    virtual const char *GetAction() const = 0;
+    virtual bool        SetAction(char const* actionName) = 0;
+    virtual char const* GetAction() const                 = 0;
     // Play control
-    virtual bool Play() = 0;
-    virtual void Pause() = 0;
-    virtual void Stop() = 0;
+    virtual bool Play()            = 0;
+    virtual void Pause()           = 0;
+    virtual void Stop()            = 0;
     virtual bool IsPlaying() const = 0;
-    virtual bool IsPause() const = 0;
+    virtual bool IsPause() const   = 0;
     // Auto stop when timer expires
     virtual bool SetAutoStop(bool isStop) = 0;
-    virtual bool IsAutoStop() const = 0;
+    virtual bool IsAutoStop() const       = 0;
     // Current playing position
     virtual float SetPosition(float position) = 0;
-    virtual float GetPosition() const = 0;
+    virtual float GetPosition() const         = 0;
     // Play type
-    virtual void SetType(AnimationType atype) = 0;
-    virtual AnimationType GetType() const = 0;
+    virtual void          SetType(AnimationType atype) = 0;
+    virtual AnimationType GetType() const              = 0;
     // Playback speed coefficient
     virtual float SetSpeed(float kSpeed = 1.0f) = 0;
-    virtual float GetSpeed() const = 0;
-    virtual float GetDefSpeed() const = 0;
+    virtual float GetSpeed() const              = 0;
+    virtual float GetDefSpeed() const           = 0;
     // Get duration of action in frames
     virtual int32_t GetFrames() const = 0;
     // Set blending coefficient 0..1
@@ -119,7 +115,7 @@ class ActionPlayer
     // Get a blending coefficient of 0..1
     virtual float GetBlend() = 0;
     // Get user data for this action
-    virtual const char *GetData(const char *dataName) const = 0;
+    virtual char const* GetData(char const* dataName) const = 0;
 };
 
 // ============================================================================================
@@ -133,10 +129,8 @@ class ActionPlayer
 
 class AnimationTimer
 {
-  public:
-    virtual ~AnimationTimer()
-    {
-    }
+public:
+    virtual ~AnimationTimer() {}
 
     // Start timer (time in seconds)
     virtual void Start(float time, float startTime = 0.0f) = 0;
@@ -152,9 +146,9 @@ class AnimationTimer
     virtual float GetTime() const = 0;
     // Assign ActionPlayer for blending (isInverse == false --> kBlend = [0..1])
     virtual void SetPlayer(int32_t playerIndex, bool isInverse = false) = 0;
-    virtual void ResetPlayer(int32_t playerIndex) = 0;
+    virtual void ResetPlayer(int32_t playerIndex)                       = 0;
     // Find out if ActionPlayer is being used
-    virtual bool IsUsedPlayer(int32_t playerIndex, bool *isInverse = nullptr) = 0;
+    virtual bool IsUsedPlayer(int32_t playerIndex, bool* isInverse = nullptr) = 0;
     // Get the blending value for the player (if not used then 1.0f)
     virtual float GetPlayerValue(int32_t playerIndex) = 0;
 };
@@ -168,27 +162,27 @@ class AnimationTimer
 
 class Animation
 {
-  public:
+public:
     virtual ~Animation() {};
     // Access the action player
-    virtual ActionPlayer &Player(int32_t index) = 0;
+    virtual ActionPlayer& Player(int32_t index) = 0;
     // Access the animation timer
-    virtual AnimationTimer &Timer(int32_t index) = 0;
+    virtual AnimationTimer& Timer(int32_t index) = 0;
     // Events
     // Set an internal event handler
-    virtual int32_t SetEvent(AnimationEvent event, int32_t index, AnimationEventListener *ael) = 0;
+    virtual int32_t SetEvent(AnimationEvent event, int32_t index, AnimationEventListener* ael) = 0;
     // Remove internal event handler
     virtual void DelEvent(int32_t eventID) = 0;
     // Set an external event handler
-    virtual void SetEventListener(AnimationEventListener *ael = nullptr) = 0;
+    virtual void SetEventListener(AnimationEventListener* ael = nullptr) = 0;
     // Access to bones
     // Get the number of bones in a skeleton
     virtual int32_t GetNumBones() const = 0;
     // Get animation matrix for bone
-    virtual CMatrix &GetAnimationMatrix(int32_t iBone) const = 0;
+    virtual CMatrix& GetAnimationMatrix(int32_t iBone) const = 0;
     // miscellanea
     // Get custom data for animation
-    virtual const char *GetData(const char *dataName) const = 0;
+    virtual char const* GetData(char const* dataName) const = 0;
     // Copy the state of one player to another
     virtual void CopyPlayerState(int32_t indexSrc, int32_t indexDst, bool copyTimerState = false) = 0;
     // Get animation speed
@@ -196,14 +190,14 @@ class Animation
     // Set blending modes
     // Automatic normalization of blending coefficients
     virtual bool SetAutoNormalize(bool isNormalize = true) = 0;
-    virtual bool GetAutoNormalize() = 0;
+    virtual bool GetAutoNormalize()                        = 0;
     // Allow custom blending coefficients in ActionPlayer
     virtual bool UserBlend(bool isBlend = true) = 0;
-    virtual bool IsUserBlend() = 0;
+    virtual bool IsUserBlend()                  = 0;
     // Procedural head look
     virtual bool HeadControl(bool isControllable) = 0;
-    virtual bool IsControllableHead() = 0;
-    virtual void RotateHead(float x, float y) = 0;
+    virtual bool IsControllableHead()             = 0;
+    virtual void RotateHead(float x, float y)     = 0;
 };
 
 // ============================================================================================
@@ -212,32 +206,26 @@ class Animation
 
 class AnimationEventListener
 {
-  public:
+public:
     virtual ~AnimationEventListener() {};
     // Accept event
-    virtual void Event(Animation *animation, int32_t index, int32_t eventID, AnimationEvent event)
-    {
-    }
+    virtual void Event(Animation* animation, int32_t index, int32_t eventID, AnimationEvent event) {}
 
     // Accept event
-    virtual void Event(Animation *animation, int32_t playerIndex, const char *eventName)
-    {
-    }
+    virtual void Event(Animation* animation, int32_t playerIndex, char const* eventName) {}
 };
 
 // ============================================================================================
 // Animation service
 // ============================================================================================
 
-class AnimationService : public SERVICE
+class AnimationService: public SERVICE
 {
-  public:
-    ~AnimationService() override
-    {
-    }
+public:
+    ~AnimationService() override {}
 
     // Create animation for the model, delete with "delete"
-    virtual Animation *CreateAnimation(const char *animationName) = 0;
+    virtual Animation* CreateAnimation(char const* animationName) = 0;
 };
 
 //============================================================================================

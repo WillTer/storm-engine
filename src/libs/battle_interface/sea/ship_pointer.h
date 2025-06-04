@@ -2,25 +2,22 @@
 
 #include <libs/sea_ai/vai_objbase.h>
 
-class SHIPPOINTER : public Entity
+class SHIPPOINTER: public Entity
 {
-    VDX9RENDER *rs;
+    VDX9RENDER* rs;
 
-  public:
+public:
     SHIPPOINTER();
     ~SHIPPOINTER() override;
-    bool Init() override;
-    void Execute(uint32_t delta_time);
-    void Realize(uint32_t delta_time) const;
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Execute(uint32_t delta_time);
+    void     Realize(uint32_t delta_time) const;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -31,9 +28,9 @@ class SHIPPOINTER : public Entity
         }
     }
 
-  protected:
-    void UpdateShipPointer() const;
-    VAI_OBJBASE *FindShipByChrIndex(int32_t chrIdx) const;
+protected:
+    void         UpdateShipPointer() const;
+    VAI_OBJBASE* FindShipByChrIndex(int32_t chrIdx) const;
 
     bool m_bVisible;
     bool m_bFriend;
@@ -50,5 +47,5 @@ class SHIPPOINTER : public Entity
     float m_fShiftHSize;
     float m_fShiftTop;
 
-    VAI_OBJBASE *m_pShip;
+    VAI_OBJBASE* m_pShip;
 };

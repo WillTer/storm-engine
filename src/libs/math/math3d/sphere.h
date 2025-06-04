@@ -14,10 +14,9 @@
 // Class for representing a sphere in 3D space
 class Sphere
 {
-  public:
+public:
     union {
-        struct
-        {
+        struct {
             // X Position
             float x;
             // Y position
@@ -35,31 +34,31 @@ class Sphere
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Empty constructor
     Sphere();
     // Copy constructor
-    Sphere(const Sphere &s);
+    Sphere(Sphere const& s);
     // -----------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------
-  public:
+public:
     // Point in sphere
-    bool Intersection(const Vector &p);
+    bool Intersection(Vector const& p);
     // Check intersection of line and sphere
-    bool Intersection(const Vector &src, const Vector &dst);
+    bool Intersection(Vector const& src, Vector const& dst);
     // Check ray and sphere intersection
-    bool Intersection(const Vector &orig, const Vector &normdir, float *res);
+    bool Intersection(Vector const& orig, Vector const& normdir, float* res);
     // Check sphere and sphere intersection
-    bool Intersection(const Sphere &sph);
+    bool Intersection(Sphere const& sph);
 
     // Set sphere in a point with 0 radius
-    void Reset(const Vector &p);
+    void Reset(Vector const& p);
     // Include a point in the enclosing sphere
-    void AddPoint(const Vector &p);
+    void AddPoint(Vector const& p);
 
     // Check ray and sphere intersection
-    static bool Intersection(const Vector &orig, const Vector &normdir, const Vector &pos, float r, float *res);
+    static bool Intersection(Vector const& orig, Vector const& normdir, Vector const& pos, float r, float* res);
 };
 
 // -----------------------------------------------------------
@@ -73,7 +72,7 @@ inline Sphere::Sphere()
 };
 
 // Copy constructor
-inline Sphere::Sphere(const Sphere &s)
+inline Sphere::Sphere(Sphere const& s)
 {
     v4 = s.v4;
 };
@@ -83,51 +82,42 @@ inline Sphere::Sphere(const Sphere &s)
 // ===========================================================
 
 // Point in sphere
-inline bool Sphere::Intersection(const Vector &p)
+inline bool Sphere::Intersection(Vector const& p)
 {
     return ~Vector(x - p.x, y - p.y, z - p.z) <= r * r;
 }
 
 // Check intersection of line and sphere
-inline bool Sphere::Intersection(const Vector &src, const Vector &dst)
+inline bool Sphere::Intersection(Vector const& src, Vector const& dst)
 {
-    Vector dir = dst - src;
-    const float len = dir.Normalize();
-    if (len > 1e-10f)
-    {
+    Vector      dir = dst - src;
+    float const len = dir.Normalize();
+    if (len > 1e-10f) {
         float dist;
-        if (!Intersection(src, dir, Vector(x, y, z), r, &dist))
-            return false;
-        if (dist >= 0.0f)
-        {
-            return (dist <= len);
-        }
+        if (!Intersection(src, dir, Vector(x, y, z), r, &dist)) return false;
+        if (dist >= 0.0f) { return (dist <= len); }
         dir = -dir;
-        if (!Intersection(dst, dir, Vector(x, y, z), r, &dist))
-            return false;
-        if (dist >= 0.0f)
-        {
-            return (dist <= len);
-        }
+        if (!Intersection(dst, dir, Vector(x, y, z), r, &dist)) return false;
+        if (dist >= 0.0f) { return (dist <= len); }
         return false;
     }
     return ~Vector(x - src.x, y - src.y, z - src.z) <= r * r;
 }
 
 // Check ray and sphere intersection
-inline bool Sphere::Intersection(const Vector &orig, const Vector &normdir, float *res)
+inline bool Sphere::Intersection(Vector const& orig, Vector const& normdir, float* res)
 {
     return Intersection(orig, normdir, Vector(x, y, z), r, res);
 }
 
 // Check sphere and sphere intersection
-inline bool Sphere::Intersection(const Sphere &sph)
+inline bool Sphere::Intersection(Sphere const& sph)
 {
     return (~Vector(x - sph.x, y - sph.y, z - sph.z) <= (r + sph.r) * (r + sph.r));
 }
 
 // Set sphere in a point with 0 radius
-inline void Sphere::Reset(const Vector &p)
+inline void Sphere::Reset(Vector const& p)
 {
     x = p.x;
     y = p.y;
@@ -136,37 +126,32 @@ inline void Sphere::Reset(const Vector &p)
 }
 
 // Include a point in the enclosing sphere
-inline void Sphere::AddPoint(const Vector &p)
+inline void Sphere::AddPoint(Vector const& p)
 {
     // Vector from point to center
-    const float dx = x - p.x;
-    const float dy = y - p.y;
-    const float dz = z - p.z;
-    float len = dx * dx + dy * dy + dz * dz;
-    if (len <= r * r)
-        return;
+    float const dx  = x - p.x;
+    float const dy  = y - p.y;
+    float const dz  = z - p.z;
+    float       len = dx * dx + dy * dy + dz * dz;
+    if (len <= r * r) return;
     len = sqrtf(len);
     // New radius
     r = (len + r) * 0.5f;
     // New position
     len = r / len;
-    x = p.x + dx * len;
-    y = p.y + dy * len;
-    z = p.z + dz * len;
+    x   = p.x + dx * len;
+    y   = p.y + dy * len;
+    z   = p.z + dz * len;
 }
 
 // Check ray and sphere intersection
-inline bool Sphere::Intersection(const Vector &orig, const Vector &normdir, const Vector &pos, float r, float *res)
+inline bool Sphere::Intersection(Vector const& orig, Vector const& normdir, Vector const& pos, float r, float* res)
 {
-    const Vector toCenter = pos - orig;
-    const float distToOrtoPlane = normdir | toCenter;
-    const float distFromOrtoPlaneToSphere2 = r * r - (~toCenter - distToOrtoPlane * distToOrtoPlane);
-    if (distFromOrtoPlaneToSphere2 < 0.0f)
-        return false;
-    if (res)
-    {
-        *res = distToOrtoPlane - sqrtf(distFromOrtoPlaneToSphere2);
-    }
+    Vector const toCenter                   = pos - orig;
+    float const  distToOrtoPlane            = normdir | toCenter;
+    float const  distFromOrtoPlaneToSphere2 = r * r - (~toCenter - distToOrtoPlane * distToOrtoPlane);
+    if (distFromOrtoPlaneToSphere2 < 0.0f) return false;
+    if (res) { *res = distToOrtoPlane - sqrtf(distFromOrtoPlaneToSphere2); }
     return true;
 }
 

@@ -1,22 +1,21 @@
-#include "ai_ship.h"
 #include <libs/sea/sea_base.h>
 
-AIShipMoveController::AIShipMoveController(AIShip *pShip)
+#include "ai_ship.h"
+
+AIShipMoveController::AIShipMoveController(AIShip* pShip)
 {
     // core.CreateEntity(&eidSphere,"modelr");
     // core.Send_Message(eidSphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
     // core.AddToLayer("sea_realize",eidSphere,10000);
-    fMoveTime = FRAND(2.0f);
-    dwCurPnt = 0;
+    fMoveTime     = FRAND(2.0f);
+    dwCurPnt      = 0;
     vDeflectForce = 0.0f;
-    vRetardForce = 0.0f;
+    vRetardForce  = 0.0f;
     SetAIShip(pShip);
     Stop(true);
 }
 
-AIShipMoveController::~AIShipMoveController()
-{
-}
+AIShipMoveController::~AIShipMoveController() {}
 
 bool AIShipMoveController::Init()
 {
@@ -35,60 +34,53 @@ void AIShipMoveController::Execute(float fDeltaTime)
 
     fMoveTime -= fDeltaTime;
 
-    if (isStopped() || GetAIShip()->isMainCharacter())
-        return;
-    auto *pShip = static_cast<SHIP_BASE *>(GetAIShip()->GetShipPointer());
+    if (isStopped() || GetAIShip()->isMainCharacter()) return;
+    auto* pShip = static_cast<SHIP_BASE*>(GetAIShip()->GetShipPointer());
     Assert(pShip);
 
-    const auto vCurPos = GetAIShip()->GetPos();
-    const auto vCurAng = GetAIShip()->GetAng();
+    auto const vCurPos = GetAIShip()->GetPos();
+    auto const vCurAng = GetAIShip()->GetAng();
 
-    const auto vMovePoint = vDestPoint;
+    auto const vMovePoint = vDestPoint;
 
-    vDeflectForce.z = 1.0f; // FRAND(2.0f) - 1.0f;
+    vDeflectForce.z = 1.0f;  // FRAND(2.0f) - 1.0f;
     // vDeflectForce.z = FRAND(2.0f) - 1.0f;
 
-    const auto vCurDir = CVECTOR(sinf(vCurAng.y), 0.0f, cosf(vCurAng.y));
-    const auto vDestDir = !(vMovePoint - vCurPos);
+    auto const vCurDir  = CVECTOR(sinf(vCurAng.y), 0.0f, cosf(vCurAng.y));
+    auto const vDestDir = !(vMovePoint - vCurPos);
 
-    auto fTime = 0.0f;
-    const auto fDist = sqrtf(~(vCurPos - vMovePoint));
-    const auto fBrakingDistance = pShip->GetBrakingDistance(&fTime);
+    auto       fTime            = 0.0f;
+    auto const fDist            = sqrtf(~(vCurPos - vMovePoint));
+    auto const fBrakingDistance = pShip->GetBrakingDistance(&fTime);
 
     auto fSpeed = 1.0f;
-    if (fBrakingDistance > fDist + 20.0f)
-    {
+    if (fBrakingDistance > fDist + 20.0f) {
         fSpeed = 1.0f - (fBrakingDistance - (fDist + 20.0f)) / 20.0f;
-        if (fSpeed < 0.0f)
-            fSpeed = 0.0f;
+        if (fSpeed < 0.0f) fSpeed = 0.0f;
     }
-    if (fabsf(fBrakingDistance - fDist) < 10.0f)
-        fSpeed = 0.0f;
+    if (fabsf(fBrakingDistance - fDist) < 10.0f) fSpeed = 0.0f;
     GetAIShip()->GetSpeedController()->AddSpeed(fSpeed);
     // pShip->SetSailState(fSpeed);
 
-    const auto fRotationAngle = pShip->GetRotationAngle(&fTime);
+    auto const fRotationAngle = pShip->GetRotationAngle(&fTime);
 
     auto fTemp = ~vDeflectForce;
-    if (~vDeflectForce > 0.00001f)
-    {
+    if (~vDeflectForce > 0.00001f) {
         auto vRotDir = !vDeflectForce;
 
-        const auto fDot = vCurDir | vDestDir;
-        const auto fRotAng = fabsf(acosf(Clamp(fDot)));
+        auto const fDot    = vCurDir | vDestDir;
+        auto const fRotAng = fabsf(acosf(Clamp(fDot)));
 
-        const auto vProd = vCurDir ^ vDestDir;
-        const auto fSignRot = ((vProd.y > 0.0f) ? 1.0f : -1.0f);
+        auto const vProd    = vCurDir ^ vDestDir;
+        auto const fSignRot = ((vProd.y > 0.0f) ? 1.0f : -1.0f);
         // check fSignRot with can Rotate in these direction
         // float fBestRotate = GetAIShip()->GetTouchController()->GetBestRotateDirection();
         // if (fBestRotate != 0.0f) fSignRot = fBestRotate;
-        const auto fMul = (fDot > 0.0f) ? Bring2Range(1.0f, 0.1f, 0.0f, 1.0f, fDot) : 1.0f;
-        auto fAngRot = fSignRot;
-        if (fRotationAngle >= fRotAng)
-            fAngRot = 0.0f;
+        auto const fMul    = (fDot > 0.0f) ? Bring2Range(1.0f, 0.1f, 0.0f, 1.0f, fDot) : 1.0f;
+        auto       fAngRot = fSignRot;
+        if (fRotationAngle >= fRotAng) fAngRot = 0.0f;
         GetAIShip()->GetRotateController()->AddRotate(fMul * fAngRot);
-        if (fMul > 0.3f)
-            GetAIShip()->GetSpeedController()->MulSpeed(0.5f);
+        if (fMul > 0.3f) GetAIShip()->GetSpeedController()->MulSpeed(0.5f);
         // pShip->SetRotate(fAngRot);
     }
 
@@ -128,21 +120,16 @@ void AIShipMoveController::Realize(float fDeltaTime)
 void AIShipMoveController::Move(CVECTOR vMovePoint)
 {
     auto fDist = sqrtf(~(vMovePoint - vDestPoint));
-    if (fMoveTime > 0.0f)
-        return;
+    if (fMoveTime > 0.0f) return;
     fMoveTime = 2.0f;
     // if (fDist < 100.0f) return;
 
-    if (AIHelper::pIsland)
-    {
+    if (AIHelper::pIsland) {
         CVECTOR vRealMovePoint;
-        auto vOurPos = GetAIShip()->GetPos();
+        auto    vOurPos = GetAIShip()->GetPos();
         vOurPos.y = vMovePoint.y = 0.0f;
-        const auto b = AIHelper::pIsland->GetMovePoint(vOurPos, vMovePoint, vRealMovePoint);
-        if (b)
-        {
-            vMovePoint = vRealMovePoint;
-        }
+        auto const b             = AIHelper::pIsland->GetMovePoint(vOurPos, vMovePoint, vRealMovePoint);
+        if (b) { vMovePoint = vRealMovePoint; }
     }
     Stop(false);
     vDestPoint = vMovePoint;
@@ -158,7 +145,7 @@ void AIShipMoveController::AddDeflectForce(CVECTOR _vDeflectForce)
     vDeflectForce += _vDeflectForce;
 }
 
-void AIShipMoveController::Save(CSaveLoad *pSL) const
+void AIShipMoveController::Save(CSaveLoad* pSL) const
 {
     pSL->SaveDword(bStopped);
     pSL->SaveVector(vDestPoint);
@@ -168,12 +155,12 @@ void AIShipMoveController::Save(CSaveLoad *pSL) const
     pSL->SaveDword(dwCurPnt);
 }
 
-void AIShipMoveController::Load(CSaveLoad *pSL)
+void AIShipMoveController::Load(CSaveLoad* pSL)
 {
-    bStopped = pSL->LoadDword() != 0;
-    vDestPoint = pSL->LoadVector();
-    vRetardForce = pSL->LoadVector();
+    bStopped      = pSL->LoadDword() != 0;
+    vDestPoint    = pSL->LoadVector();
+    vRetardForce  = pSL->LoadVector();
     vDeflectForce = pSL->LoadVector();
-    fMoveTime = pSL->LoadFloat();
-    dwCurPnt = pSL->LoadDword();
+    fMoveTime     = pSL->LoadFloat();
+    dwCurPnt      = pSL->LoadDword();
 }

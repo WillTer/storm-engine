@@ -1,22 +1,19 @@
 #pragma once
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 /* TODO: REMOVE THIS.... */
-constexpr uint32_t MakeHashValue(const char *string)
+constexpr uint32_t MakeHashValue(char const* string)
 {
     uint32_t hval = 0;
 
-    while (*string != 0)
-    {
+    while (*string != 0) {
         auto v = *string++;
-        if ('A' <= v && v <= 'Z')
-            v += 'a' - 'A';
+        if ('A' <= v && v <= 'Z') v += 'a' - 'A';
 
-        hval = (hval << 4) + static_cast<uint32_t>(v);
-        const uint32_t g = hval & (static_cast<uint32_t>(0xf) << (32 - 4));
-        if (g != 0)
-        {
+        hval             = (hval << 4) + static_cast<uint32_t>(v);
+        uint32_t const g = hval & (static_cast<uint32_t>(0xf) << (32 - 4));
+        if (g != 0) {
             hval ^= g >> (32 - 8);
             hval ^= g;
         }
@@ -25,24 +22,24 @@ constexpr uint32_t MakeHashValue(const char *string)
 }
 
 class VMA;
-inline std::vector<VMA *> __STORM_CLASSES_REGISTRY;
+inline std::vector<VMA*> __STORM_CLASSES_REGISTRY;
 
 class VMA
 {
-  protected:
-    VMA *pNext;
+protected:
+    VMA*    pNext;
     int32_t nHash;
     int32_t nReference;
 
-  public:
+public:
     VMA() : pNext(nullptr)
     {
         nReference = 0;
-        nHash = 0;
+        nHash      = 0;
         __STORM_CLASSES_REGISTRY.push_back(this);
     }
 
-    VMA *Next() const
+    VMA* Next() const
     {
         return pNext;
     }
@@ -64,7 +61,7 @@ class VMA
         return nHash;
     }
 
-    void Set(VMA *_p)
+    void Set(VMA* _p)
     {
         pNext = _p;
     }
@@ -74,12 +71,12 @@ class VMA
         return false;
     }
 
-    virtual const char *GetName()
+    virtual char const* GetName()
     {
         return nullptr;
     }
 
-    virtual void *CreateClass()
+    virtual void* CreateClass()
     {
         return nullptr;
     }
@@ -105,62 +102,60 @@ class VMA
     }
 };
 
-#define CREATE_CLASS(a)                                                                                                \
-    class a##vmacd : public VMA                                                                                        \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        const char *GetName()                                                                                          \
-        {                                                                                                              \
-            return #a;                                                                                                 \
-        }                                                                                                              \
-        void *CreateClass()                                                                                            \
-        {                                                                                                              \
-            nReference++;                                                                                              \
-            return new a;                                                                                              \
-        }                                                                                                              \
+#define CREATE_CLASS(a) \
+    class a##vmacd: public VMA \
+    { \
+    public: \
+        const char* GetName() \
+        { \
+            return #a; \
+        } \
+        void* CreateClass() \
+        { \
+            nReference++; \
+            return new a; \
+        } \
     } a##vmaci;
-#define CREATE_SERVICE(a)                                                                                              \
-    class a##vmacd : public VMA                                                                                        \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        a *pService = 0;                                                                                               \
-        const char *GetName()                                                                                          \
-        {                                                                                                              \
-            return #a;                                                                                                 \
-        }                                                                                                              \
-        void *CreateClass()                                                                                            \
-        {                                                                                                              \
-            if (pService == 0)                                                                                         \
-                pService = new a;                                                                                      \
-            nReference++;                                                                                              \
-            return pService;                                                                                           \
-        }                                                                                                              \
-        bool Service()                                                                                                 \
-        {                                                                                                              \
-            return true;                                                                                               \
-        }                                                                                                              \
-        void Clear()                                                                                                   \
-        {                                                                                                              \
-            nReference = 0;                                                                                            \
-            if (pService)                                                                                              \
-                delete pService;                                                                                       \
-            pService = 0;                                                                                              \
-        };                                                                                                             \
+#define CREATE_SERVICE(a) \
+    class a##vmacd: public VMA \
+    { \
+    public: \
+        a*          pService = 0; \
+        const char* GetName() \
+        { \
+            return #a; \
+        } \
+        void* CreateClass() \
+        { \
+            if (pService == 0) pService = new a; \
+            nReference++; \
+            return pService; \
+        } \
+        bool Service() \
+        { \
+            return true; \
+        } \
+        void Clear() \
+        { \
+            nReference = 0; \
+            if (pService) delete pService; \
+            pService = 0; \
+        }; \
     } a##vmaci;
-#define CREATE_SCRIPTLIBRIARY(a)                                                                                       \
-    class a##vmacd : public VMA                                                                                        \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        const char *GetName()                                                                                          \
-        {                                                                                                              \
-            return #a;                                                                                                 \
-        }                                                                                                              \
-        void *CreateClass()                                                                                            \
-        {                                                                                                              \
-            return new a;                                                                                              \
-        }                                                                                                              \
-        bool ScriptLibriary()                                                                                          \
-        {                                                                                                              \
-            return true;                                                                                               \
-        }                                                                                                              \
+#define CREATE_SCRIPTLIBRIARY(a) \
+    class a##vmacd: public VMA \
+    { \
+    public: \
+        const char* GetName() \
+        { \
+            return #a; \
+        } \
+        void* CreateClass() \
+        { \
+            return new a; \
+        } \
+        bool ScriptLibriary() \
+        { \
+            return true; \
+        } \
     } a##vmaci;

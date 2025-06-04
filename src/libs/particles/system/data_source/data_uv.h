@@ -1,10 +1,11 @@
 #pragma once
 
-#include "../../i_common/mem_file.h"
-
-#include <libs/math/math3d.h>
 #include <string>
 #include <vector>
+
+#include <libs/math/math3d.h>
+
+#include "../../i_common/mem_file.h"
 
 class DataUV
 {
@@ -12,23 +13,23 @@ class DataUV
 
     std::vector<Vector4> Frames;
 
-  public:
+public:
     // constructor / destructor
     DataUV();
     virtual ~DataUV();
 
     // Get the value [x, y = UV1; z, w = UV2]
-    const Vector4 &GetValue(uint32_t FrameNum);
+    Vector4 const& GetValue(uint32_t FrameNum);
 
     // Set values
-    void SetValues(const Vector4 *_Frames, uint32_t FramesCount);
+    void SetValues(Vector4 const* _Frames, uint32_t FramesCount);
 
     // Get the number of frames
     uint32_t GetFrameCount() const;
 
-    void Load(MemFile *File);
-    void Write(MemFile *File);
+    void Load(MemFile* File);
+    void Write(MemFile* File);
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 };

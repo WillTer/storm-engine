@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <spdlog/common.h>
 #include <tuple>
+
+#include <spdlog/common.h>
 
 namespace storm::logging::details
 {
@@ -14,22 +15,22 @@ namespace storm::logging::details
 
 class SPDLOG_API file_helper
 {
-  public:
+public:
     explicit file_helper() = default;
 
-    file_helper(const file_helper &) = delete;
-    file_helper &operator=(const file_helper &) = delete;
+    file_helper(file_helper const&)            = delete;
+    file_helper& operator=(file_helper const&) = delete;
     ~file_helper();
 
-    void open(const spdlog::filename_t &fname, bool truncate = false);
-    void reopen(bool truncate);
-    void flush();
-    void close();
-    void write(const spdlog::memory_buf_t &buf);
-    size_t size() const;
-    const spdlog::filename_t &filename() const;
+    void                      open(spdlog::filename_t const& fname, bool truncate = false);
+    void                      reopen(bool truncate);
+    void                      flush();
+    void                      close();
+    void                      write(spdlog::memory_buf_t const& buf);
+    size_t                    size() const;
+    spdlog::filename_t const& filename() const;
 
-    std::FILE *getfd() const;
+    std::FILE* getfd() const;
 
     //
     // return file path and its extension:
@@ -44,12 +45,12 @@ class SPDLOG_API file_helper
     // ".mylog" => (".mylog". "")
     // "my_folder/.mylog" => ("my_folder/.mylog", "")
     // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-    static std::tuple<spdlog::filename_t, spdlog::filename_t> split_by_extension(const spdlog::filename_t &fname);
+    static std::tuple<spdlog::filename_t, spdlog::filename_t> split_by_extension(spdlog::filename_t const& fname);
 
-  private:
-    const int open_tries_ = 5;
-    const int open_interval_ = 10;
-    std::FILE *fd_{nullptr};
+private:
+    int const          open_tries_    = 5;
+    int const          open_interval_ = 10;
+    std::FILE*         fd_ {nullptr};
     spdlog::filename_t filename_;
 };
-} // namespace storm::logging::details
+}  // namespace storm::logging::details

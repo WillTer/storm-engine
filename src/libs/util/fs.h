@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#ifdef _WIN32 // SHGetKnownFolderPath
+#ifdef _WIN32  // SHGetKnownFolderPath
 #include <ShlObj.h>
 #else
 #include <SDL2/SDL.h>
@@ -16,18 +16,17 @@ using namespace std::filesystem;
 inline path GetStashPath()
 {
     static path path;
-    if (path.empty())
-    {
-#ifdef _WIN32 // SHGetKnownFolderPath
-        wchar_t *str = nullptr;
+    if (path.empty()) {
+#ifdef _WIN32  // SHGetKnownFolderPath
+        wchar_t* str = nullptr;
         SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_SIMPLE_IDLIST, nullptr, &str);
         path = str;
         path = path / "My Games" / "Sea Dogs";
         CoTaskMemFree(str);
 #else
-        char *pref_path = nullptr;
-        pref_path = SDL_GetPrefPath("Akella", "Sea Dogs");
-        path = pref_path;
+        char* pref_path = nullptr;
+        pref_path       = SDL_GetPrefPath("Akella", "Sea Dogs");
+        path            = pref_path;
 #endif
     }
     return path;
@@ -49,4 +48,4 @@ inline path GetScreenshotsPath()
 }
 
 constexpr char ENGINE_INI_FILE_NAME[] = "engine.ini";
-} // namespace fs
+}  // namespace fs

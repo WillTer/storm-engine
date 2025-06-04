@@ -2,16 +2,16 @@
 
 #include "../battle_command.h"
 
-class BIShipCommandList : public BICommandList
+class BIShipCommandList: public BICommandList
 {
-  public:
-    BIShipCommandList(entid_t eid, ATTRIBUTES *pA, VDX9RENDER *rs);
+public:
+    BIShipCommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs);
     ~BIShipCommandList() override;
 
     void FillIcons() override;
     void Init() override;
 
-  protected:
+protected:
     void Release();
 
     int32_t ShipAdding(bool allLabel, bool bMyShip, bool bEnemy, bool bNeutral, bool bFriend);

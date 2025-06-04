@@ -13,12 +13,11 @@
 #include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
-
 #include "lizard.h"
 
-class Lizards : public Entity
+class Lizards: public Entity
 {
-  public:
+public:
     Lizards();
     ~Lizards() override;
 
@@ -31,11 +30,8 @@ class Lizards : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -46,6 +42,6 @@ class Lizards : public Entity
         }
     }
 
-    Lizard lizard[8];
+    Lizard  lizard[8];
     int32_t num;
 };

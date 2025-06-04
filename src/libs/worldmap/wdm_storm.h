@@ -15,31 +15,31 @@
 class ATTRIBUTES;
 class WdmCloud;
 
-class WdmStorm : public WdmRenderObject
+class WdmStorm: public WdmRenderObject
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmStorm();
     ~WdmStorm() override;
 
-    void SetLiveTime(float t);
+    void  SetLiveTime(float t);
     float GetLiveTime() const;
-    void GetPosition(float &x, float &z) const;
-    bool IsActive() const;
+    void  GetPosition(float& x, float& z) const;
+    bool  IsActive() const;
 
     bool CheckIntersection(float x, float z, float r);
 
     // Calculations
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
-    const char *GetId() const;
+    char const* GetId() const;
 
-  public:
+public:
     // Setting parameters
-    void SetSaveAttribute(ATTRIBUTES *save);
+    void SetSaveAttribute(ATTRIBUTES* save);
     void DeleteUpdate();
 
     bool isTornado;
@@ -47,25 +47,25 @@ class WdmStorm : public WdmRenderObject
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Updating stored data
     void UpdateSaveData();
 
-  private:
+private:
     CVECTOR pos, dir;
 
     float isActiveTime;
     float liveTime;
     float liveAlpha;
     float speed;
-    bool isBrn, isKl;
+    bool  isBrn, isKl;
 
-    int32_t num;
-    WdmCloud *cloud[8];  // Pointers to the clouds
-    CVECTOR cloudPos[8]; // Positions
-    float rotSpd[8];     // Rotational speeds around the center
+    int32_t   num;
+    WdmCloud* cloud[8];     // Pointers to the clouds
+    CVECTOR   cloudPos[8];  // Positions
+    float     rotSpd[8];    // Rotational speeds around the center
 
-    ATTRIBUTES *saveAttribute;
+    ATTRIBUTES* saveAttribute;
 
     // Rain
     int32_t rainTexture;
@@ -77,8 +77,7 @@ class WdmStorm : public WdmRenderObject
 
 inline void WdmStorm::SetLiveTime(float t)
 {
-    if (t < 1.0f)
-        t = 1.0f;
+    if (t < 1.0f) t = 1.0f;
     liveTime = t;
 }
 
@@ -87,7 +86,7 @@ inline float WdmStorm::GetLiveTime() const
     return liveTime >= 0.0f ? liveTime : 0.0f;
 }
 
-inline void WdmStorm::GetPosition(float &x, float &z) const
+inline void WdmStorm::GetPosition(float& x, float& z) const
 {
     x = pos.x;
     z = pos.z;

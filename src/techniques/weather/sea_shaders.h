@@ -1,4 +1,4 @@
-#define SEA2FOAM_VERTEX_SHADER                                                                                         \
+#define SEA2FOAM_VERTEX_SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \
@@ -50,7 +50,7 @@
     mov oT4.z, c[2].x \
     mov oT4.xy, v2}
 
-#define SEA2FOAM_PIXEL_SHADER                                                                                          \
+#define SEA2FOAM_PIXEL_SHADER \
     asm { \
     ps_1_4 \
     texcrd r0.rgb, t0 \
@@ -67,7 +67,7 @@
     texld r0, r1 \
     mov r0.a, r3.b}
 
-#define SEA2_VERTEX_SHADER                                                                                             \
+#define SEA2_VERTEX_SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \
@@ -150,8 +150,7 @@
     mov oT0.z, c[2].x \
     mov oT0.xy, v2}
 
-#define SEA2_PIXEL_SHADER                                                                                              \
-    asm { \
+#define SEA2_PIXEL_SHADER asm { \
     ps_1_1 \
     tex t0 \
     texm3x3pad t1, t0_bx2 \
@@ -160,7 +159,7 @@
     mad r0.xyz, v0, t3, v1 \
     mov r0.w, v0.w}
 
-#define SEA2SUNROAD_VERTEX_SHADER                                                                                      \
+#define SEA2SUNROAD_VERTEX_SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \
@@ -210,8 +209,7 @@
     mov oT0.z, c[2].x \
     mov oT0.xy, v2}
 
-#define SEA2SUNROAD_PIXEL_SHADER                                                                                       \
-    asm { \
+#define SEA2SUNROAD_PIXEL_SHADER asm { \
     ps_1_1 \
     tex t0 \
     texm3x3pad t1, t0_bx2 \
@@ -219,7 +217,7 @@
     texm3x3vspec t3, t0_bx2 \
     mov r0, t3}
 
-#define SEA3_VERTEX_SHADER                                                                                             \
+#define SEA3_VERTEX_SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \
@@ -288,8 +286,7 @@
     mov oT2.z, c[2].x \
     mov oT2.xy, v2}
 
-#define SEA3_PIXEL_SHADER                                                                                              \
-    asm { \
+#define SEA3_PIXEL_SHADER asm { \
     ps_1_1 \
     tex t0 \
     texbem t1, t0 \

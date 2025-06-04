@@ -9,63 +9,47 @@ namespace
 
 class [[nodiscard]] va_to_any_ptr
 {
-  public:
-    va_to_any_ptr(const nullptr_t)
-    {
-    }
-    va_to_any_ptr(const uintptr_t ptr) : ptr_(ptr)
-    {
-    }
-    va_to_any_ptr(const void *ptr) : ptr_(reinterpret_cast<uintptr_t>(ptr))
-    {
-    }
+public:
+    va_to_any_ptr(nullptr_t const) {}
+    va_to_any_ptr(uintptr_t const ptr) : ptr_(ptr) {}
+    va_to_any_ptr(void const* ptr) : ptr_(reinterpret_cast<uintptr_t>(ptr)) {}
 
-    template <typename T> operator T()
+    template <typename T>
+    operator T()
     {
         return T(ptr_);
     }
 
-  private:
-    const uintptr_t ptr_{};
+private:
+    uintptr_t const ptr_ {};
 };
 
-template <typename F> [[nodiscard]] va_to_any_ptr get_rtti(ThrowInfo *throw_info, F &&get_va)
+template <typename F>
+[[nodiscard]] va_to_any_ptr get_rtti(ThrowInfo* throw_info, F&& get_va)
 {
-    const CatchableTypeArray *ctype_array = get_va(throw_info->pCatchableTypeArray);
-    if (ctype_array)
-    {
-        const CatchableType *ctype = get_va(ctype_array->arrayOfCatchableTypes[0]);
-        if (ctype)
-        {
-            return get_va(ctype->pType);
-        }
+    CatchableTypeArray const* ctype_array = get_va(throw_info->pCatchableTypeArray);
+    if (ctype_array) {
+        CatchableType const* ctype = get_va(ctype_array->arrayOfCatchableTypes[0]);
+        if (ctype) { return get_va(ctype->pType); }
     }
     return nullptr;
 }
 
 [[nodiscard]] int check_magic(auto magic)
 {
-    switch (magic)
-    {
-    case EH_MAGIC_NUMBER1:
-        return 1;
-    case EH_MAGIC_NUMBER2:
-        return 2;
-    case EH_MAGIC_NUMBER3:
-        return 3;
-    case EH_PURE_MAGIC_NUMBER1:
-        return 4;
-    default:
-        return -1;
+    switch (magic) {
+    case EH_MAGIC_NUMBER1: return 1;
+    case EH_MAGIC_NUMBER2: return 2;
+    case EH_MAGIC_NUMBER3: return 3;
+    case EH_PURE_MAGIC_NUMBER1: return 4;
+    default: return -1;
     }
 }
 
-} // namespace
-seh_extractor::seh_extractor(const EXCEPTION_POINTERS *ep): ep_(ep)
+}  // namespace
+seh_extractor::seh_extractor(const EXCEPTION_POINTERS* ep) : ep_(ep)
 {
-    if(ep_ == nullptr || !ep_->ExceptionRecord) {
-        throw std::runtime_error("");
-    }
+    if (ep_ == nullptr || !ep_->ExceptionRecord) { throw std::runtime_error(""); }
 
     code_ = ep_->ExceptionRecord->ExceptionCode;
 }
@@ -83,71 +67,68 @@ void seh_extractor::sink(sink_func f) const
     sink(f, nullptr);
 }
 
-void seh_extractor::sink(const sink_func f, EXCEPTION_RECORD *next) const
+void seh_extractor::sink(sink_func const f, EXCEPTION_RECORD* next) const
 {
     // reduce stack usage
     static char buf[1024];
 
     if (!next) {
         f("(root exception)");
-    }
-    else {
+    } else {
         f("(nested exception)");
     }
 
-    const auto* record = next ? next : ep_->ExceptionRecord;
-    const auto* params = record->ExceptionInformation;
+    auto const* record = next ? next : ep_->ExceptionRecord;
+    auto const* params = record->ExceptionInformation;
 
-    const auto magic = params[0];
-    const auto exc_obj = record->ExceptionInformation[1];
-    const auto throw_info = record->ExceptionInformation[2];
+    auto const magic      = params[0];
+    auto const exc_obj    = record->ExceptionInformation[1];
+    auto const throw_info = record->ExceptionInformation[2];
 
 #ifdef _WIN64
     const auto params_count = record->NumberParameters;
-    auto get_va = [module_offset = params_count >= 4 ? record->ExceptionInformation[3] : 0](const auto rva)->va_to_any_ptr {
+    auto       get_va       = [module_offset = params_count >= 4 ? record->ExceptionInformation[3] : 0](auto const rva) -> va_to_any_ptr {
         return module_offset + rva;
     };
 #else
-        auto get_va = [](const auto va) { return va; };
+    auto get_va = [](const auto va) { return va; };
 #endif
-
 
     // sink error code message
     if (record->ExceptionCode) {
-        const auto error_message = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE,
-                                                  LoadLibrary(L"ntdll"), code_, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, std::size(buf), nullptr);
-        if (error_message > 0) {
-            f(buf);
-        }
+        auto const error_message = FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE,
+            LoadLibrary(L"ntdll"),
+            code_,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            buf,
+            std::size(buf),
+            nullptr);
+        if (error_message > 0) { f(buf); }
     }
 
     // sink exc magic
-    const auto [_,size] = std::format_to_n(buf, std::size(buf), "magic={:#x} (classified {})", magic, check_magic(magic));
-    buf[size] = '\0';
+    auto const [_, size] = std::format_to_n(buf, std::size(buf), "magic={:#x} (classified {})", magic, check_magic(magic));
+    buf[size]            = '\0';
     f(buf);
 
     // sink exc rtti name
     if (throw_info) {
-        if (const std::type_info* info = get_rtti(reinterpret_cast<const ThrowInfo*>(throw_info), std::move(get_va))) {
-            f(info->name());
-        }
+        if (std::type_info const* info = get_rtti(reinterpret_cast<ThrowInfo const*>(throw_info), std::move(get_va))) { f(info->name()); }
     }
 
     // sink exc data
     // TODO: may be extended with engine-specific exception data
-    if(exc_obj) {
-        if(const auto exc = reinterpret_cast<const std::exception*>(exc_obj)) {
+    if (exc_obj) {
+        if (auto const exc = reinterpret_cast<std::exception const*>(exc_obj)) {
             __try {
                 f(exc->what());
-            }
-            __except(EXCEPTION_EXECUTE_HANDLER) {
+            } __except (EXCEPTION_EXECUTE_HANDLER) {
             }
         }
     }
 
     // chaining
-    if (record->ExceptionRecord) {
-        sink(f, record->ExceptionRecord);
-    }
+    if (record->ExceptionRecord) { sink(f, record->ExceptionRecord); }
 }
 #endif

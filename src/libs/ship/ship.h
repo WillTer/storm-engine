@@ -5,7 +5,9 @@
 
 #include <libs/collide/collide.h>
 #include <libs/core/d_timer.h>
+#include <libs/core/save_load.h>
 #include <libs/geometry/geometry.h>
+#include <libs/island/island_base.h>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
@@ -13,8 +15,6 @@
 #include "fire_place.h"
 #include "ship_base.h"
 #include "ship_msg.h"
-#include <libs/core/save_load.h>
-#include <libs/island/island_base.h>
 
 #define DELTA_TIME(x) ((x) * 0.001f)
 #define DELTA_TIME_ROTATE(x) ((x) * 1.0f / 10.0f)
@@ -27,37 +27,34 @@
 
 #define MAST_IDENTIFY "mast"
 #define MAST_FIRST 1
-#define TOPMAST_BEGIN 100 // start of topmast numbering (if any)
+#define TOPMAST_BEGIN 100  // start of topmast numbering (if any)
 #define HULL_IDENTIFY "shatter"
 
-class SHIP : public SHIP_BASE
+class SHIP: public SHIP_BASE
 {
-  protected:
+protected:
     // struct section
-    struct mast_t
-    {
-        NODE *pNode;        // node pointer in model
-        CVECTOR vSrc, vDst; // src and dest vectors
-        int32_t iMastNum;   // mast number
-        bool bBroken;       // if mast is broken then pNode = 0
-        float fDamage;
+    struct mast_t {
+        NODE*   pNode;       // node pointer in model
+        CVECTOR vSrc, vDst;  // src and dest vectors
+        int32_t iMastNum;    // mast number
+        bool    bBroken;     // if mast is broken then pNode = 0
+        float   fDamage;
     };
 
-    struct hull_t
-    {
-        NODE *pNode;        // node pointer in model
-        CVECTOR vSrc, vDst; // src and dest vectors
-        int32_t iHullNum;   // hull detail number
-        bool bBroken;       // if hull detail is broken then pNode = 0
-        float fDamage;
+    struct hull_t {
+        NODE*   pNode;       // node pointer in model
+        CVECTOR vSrc, vDst;  // src and dest vectors
+        int32_t iHullNum;    // hull detail number
+        bool    bBroken;     // if hull detail is broken then pNode = 0
+        float   fDamage;
     };
 
-    struct ship_point_t
-    {
+    struct ship_point_t {
         float fSpeed;
-        float fGravity; // acceleration
+        float fGravity;  // acceleration
         float fExpulsiveForce;
-        bool bUnderWater;
+        bool  bUnderWater;
 
         float fY;
         float fA;
@@ -66,9 +63,9 @@ class SHIP : public SHIP_BASE
 
     // init parameters
     inline static layer_index_t RealizeLayer, ExecuteLayer;
-    char cShipIniName[256];
-    int32_t iShipPriorityExecute, iShipPriorityRealize;
-    float fGravity;
+    char                        cShipIniName[256];
+    int32_t                     iShipPriorityExecute, iShipPriorityRealize;
+    float                       fGravity;
 
     float fRockingY, fRockingAZ;
 
@@ -76,24 +73,24 @@ class SHIP : public SHIP_BASE
     entid_t model_id, sphere[36];
     entid_t sail_id, rope_id, flag_id, cannon_id, vant_id, vantl_id, vantz_id, touch_id, sea_id, blots_id;
 
-    static VDX9RENDER *pRS;
-    static SEA_BASE *pSea;
-    static ISLAND_BASE *pIsland;
-    static COLLIDE *pCollide;
-    static VGEOMETRY *pGS;
+    static VDX9RENDER*  pRS;
+    static SEA_BASE*    pSea;
+    static ISLAND_BASE* pIsland;
+    static COLLIDE*     pCollide;
+    static VGEOMETRY*   pGS;
 
     CMatrix mRoot;
     CVECTOR vSpeed, vSpeedsA;
-    float fMinusVolume;
-    float fXOffset, fZOffset;
+    float   fMinusVolume;
+    float   fXOffset, fZOffset;
 
-    bool bModelUpperShip;
-    MODEL *pModelUpperShip;
-    float fUpperShipAY, fUpperShipY;
+    bool   bModelUpperShip;
+    MODEL* pModelUpperShip;
+    float  fUpperShipAY, fUpperShipY;
 
     // Ships lights
     entid_t shipLights;
-    entid_t flagEntity_{};
+    entid_t flagEntity_ {};
 
     // Fire places
     std::vector<FirePlace> aFirePlaces;
@@ -101,33 +98,33 @@ class SHIP : public SHIP_BASE
     // Sound section
 
     // temporary used
-    bool bMassaShow;
-    int32_t uniIDX;
-    bool bUse;
+    bool                                         bMassaShow;
+    int32_t                                      uniIDX;
+    bool                                         bUse;
     std::array<std::array<ship_point_t, 16>, 16> ShipPoints;
 
     // executed parameters
-    CVECTOR vSpeedAccel;
-    ship_t SP;
-    CVECTOR vPos, vAng;
-    float fSailState;
-    float fWaterLine;
-    bool bDead, bVisible;
-    CVECTOR vDeadDir, vCurDeadDir;
-    CVECTOR vKeelContour[MAX_KEEL_POINTS];
-    int32_t iNumMasts;
-    int32_t iNumHulls;
+    CVECTOR             vSpeedAccel;
+    ship_t              SP;
+    CVECTOR             vPos, vAng;
+    float               fSailState;
+    float               fWaterLine;
+    bool                bDead, bVisible;
+    CVECTOR             vDeadDir, vCurDeadDir;
+    CVECTOR             vKeelContour[MAX_KEEL_POINTS];
+    int32_t             iNumMasts;
+    int32_t             iNumHulls;
     std::vector<mast_t> pMasts;
     std::vector<hull_t> pHulls;
-    bool bShip2Strand;
-    bool bMounted;
-    bool bKeelContour;
-    CVECTOR vOldAng, vOldPos;
-    bool bSetFixed;
-    float fFixedSpeed;
+    bool                bShip2Strand;
+    bool                bMounted;
+    bool                bKeelContour;
+    CVECTOR             vOldAng, vOldPos;
+    bool                bSetFixed;
+    float               fFixedSpeed;
 
     // fast turn perk parameters
-    bool bPerkTurnActive;
+    bool  bPerkTurnActive;
     float fInitialPerkAngle, fResultPerkAngle;
 
     std::array<STRENGTH, MAX_STRENGTH> Strength;
@@ -136,16 +133,16 @@ class SHIP : public SHIP_BASE
 
     // executed functions
     CVECTOR ShipRocking(float fDeltaTime);
-    BOOL ApplyStrength(float dtime, BOOL bCollision);
-    BOOL CalculateNewSpeedVector(CVECTOR *Speed, CVECTOR *Rotate);
-    void CalculateImmersion(); //
-    void CheckShip2Strand(float fDeltaTime);
-    void MastFall(mast_t *pM);
-    void HullFall(hull_t *pM);
-    void FakeFire(const char *sBort, float fRandTime);
+    BOOL    ApplyStrength(float dtime, BOOL bCollision);
+    BOOL    CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate);
+    void    CalculateImmersion();  //
+    void    CheckShip2Strand(float fDeltaTime);
+    void    MastFall(mast_t* pM);
+    void    HullFall(hull_t* pM);
+    void    FakeFire(char const* sBort, float fRandTime);
 
     CMatrix UpdateModelMatrix();
-    void RecalculateWorldOffset();
+    void    RecalculateWorldOffset();
 
     // init section
     void ScanShipForFirePlaces();
@@ -167,101 +164,97 @@ class SHIP : public SHIP_BASE
 
     void InitSailState();
 
-  public:
+public:
     ~SHIP() override;
     SHIP();
 
-    float GetMaxSpeedZ() override;
-    float GetMaxSpeedY() override;
-    float GetWindAgainst() override;
-    int32_t AddStrength(STRENGTH *strength) override;
-    bool DelStrength(int32_t iIdx) override;
+    float   GetMaxSpeedZ() override;
+    float   GetMaxSpeedY() override;
+    float   GetWindAgainst() override;
+    int32_t AddStrength(STRENGTH* strength) override;
+    bool    DelStrength(int32_t iIdx) override;
 
-    BOOL BuildContour(CVECTOR *vContour, int32_t &iNumVContour) override;
+    BOOL BuildContour(CVECTOR* vContour, int32_t& iNumVContour) override;
     bool BuildMasts();
     bool BuildHulls();
     BOOL Move(uint32_t DeltaTime, BOOL bCollision);
-    BOOL TouchMove(uint32_t DeltaTime, TOUCH_PARAMS *pTPOld, TOUCH_PARAMS *pTPNew) override;
+    BOOL TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew) override;
 
     void LoadServices();
 
     // inherit functions SHIP_BASE
-    bool bSetLightAndFog;
-    uint32_t dwSaveAmbient, dwSaveFogColor;
+    bool      bSetLightAndFog;
+    uint32_t  dwSaveAmbient, dwSaveFogColor;
     D3DLIGHT9 saveLight;
 
     void SetLightAndFog(bool bSetLight) override;
     void RestoreLightAndFog() override;
 
-    void SetSailState(float fSpeed) override;
+    void  SetSailState(float fSpeed) override;
     float GetSailState() override;
 
-    void SetRotate(float fRotSpeed) override;
+    void  SetRotate(float fRotSpeed) override;
     float GetRotate() override;
 
-    float GetBrakingDistance(float *pfTime = nullptr) override;
-    float GetRotationAngle(float *pfTime = nullptr) override;
+    float GetBrakingDistance(float* pfTime = nullptr) override;
+    float GetRotationAngle(float* pfTime = nullptr) override;
 
     float GetCurrentSpeed() override;
 
     void SetLights() override;
     void UnSetLights() override;
-    void Fire(const CVECTOR &vPos) override;
+    void Fire(const CVECTOR& vPos) override;
 
     void SetFixedSpeed(bool bSetFixed, float fFixedSpeed) override;
 
     // inherit functions COLLISION_OBJECT
-    float Trace(const CVECTOR &src, const CVECTOR &dst) override;
+    float Trace(const CVECTOR& src, const CVECTOR& dst) override;
 
-    bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &center, float radius,
-              ADD_POLYGON_FUNC addpoly) override
+    bool Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& center, float radius, ADD_POLYGON_FUNC addpoly) override
     {
         return false;
     };
 
-    const char *GetCollideMaterialName() override
+    char const* GetCollideMaterialName() override
     {
         return nullptr;
     };
 
-    bool GetCollideTriangle(TRIANGLE &triangle) override
+    bool GetCollideTriangle(TRIANGLE& triangle) override
     {
         return false;
     };
 
     // inherit functions CANNON_TRACE_BASE
-    float Cannon_Trace(int32_t iBallOwner, const CVECTOR &src, const CVECTOR &dst) override;
+    float Cannon_Trace(int32_t iBallOwner, const CVECTOR& src, const CVECTOR& dst) override;
 
     // inherit functions VAI_OBJBASE
-    void SetACharacter(ATTRIBUTES *pAP) override;
+    void SetACharacter(ATTRIBUTES* pAP) override;
 
-    CMatrix *GetMatrix() override;
-    void SetMatrix(CMatrix &mtx);
-    MODEL *GetModel() const override;
-    entid_t GetModelEID() const override;
-    CVECTOR GetPos() const override;
-    CVECTOR GetAng() const override;
-    CVECTOR GetBoxsize() const override;
-    CVECTOR GetRealBoxsize() const override;
+    CMatrix* GetMatrix() override;
+    void     SetMatrix(CMatrix& mtx);
+    MODEL*   GetModel() const override;
+    entid_t  GetModelEID() const override;
+    CVECTOR  GetPos() const override;
+    CVECTOR  GetAng() const override;
+    CVECTOR  GetBoxsize() const override;
+    CVECTOR  GetRealBoxsize() const override;
 
-    void SetPos(const CVECTOR &vNewPos) override;
+    void SetPos(const CVECTOR& vNewPos) override;
 
-    bool Mount(ATTRIBUTES *) override;
+    bool Mount(ATTRIBUTES*) override;
 
     // inherit functions Entity
-    bool Init() override;
-    void Realize(uint32_t Delta_Time);
-    void Execute(uint32_t Delta_Time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
-    uint32_t AttributeChanged(ATTRIBUTES *pAttribute) override;
+    bool     Init() override;
+    void     Realize(uint32_t Delta_Time);
+    void     Execute(uint32_t Delta_Time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
+    uint32_t AttributeChanged(ATTRIBUTES* pAttribute) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -272,6 +265,6 @@ class SHIP : public SHIP_BASE
         }
     }
 
-    void Save(CSaveLoad *pSL) override;
-    void Load(CSaveLoad *pSL) override;
+    void Save(CSaveLoad* pSL) override;
+    void Load(CSaveLoad* pSL) override;
 };

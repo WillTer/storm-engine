@@ -12,18 +12,18 @@
 
 #include "wdm_enemy_ship.h"
 
-class WdmMerchantShip : public WdmEnemyShip
+class WdmMerchantShip: public WdmEnemyShip
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmMerchantShip();
     ~WdmMerchantShip() override;
 
     void Goto(float x, float z, float rad);
 
-  protected:
+protected:
     // Find the pulling force in the desired direction
     void FindMoveForce() override;
     // Completion check
@@ -32,16 +32,16 @@ class WdmMerchantShip : public WdmEnemyShip
     // Updating stored data
     void UpdateSaveData() override;
     // Setting parameters
-    void SetSaveAttribute(ATTRIBUTES *save) override;
+    void SetSaveAttribute(ATTRIBUTES* save) override;
 
     // Setting parameters
-    bool Load(const char *modelName) override;
+    bool Load(char const* modelName) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     CVECTOR gotoPos;
-    float gotoRad;
-    bool isEnableSetDir;
+    float   gotoRad;
+    bool    isEnableSetDir;
 };

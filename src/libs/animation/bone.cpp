@@ -20,9 +20,9 @@
 
 Bone::Bone()
 {
-    parent = nullptr;
-    ang = nullptr;
-    pos = nullptr;
+    parent    = nullptr;
+    ang       = nullptr;
+    pos       = nullptr;
     numFrames = 0;
 }
 
@@ -33,15 +33,14 @@ Bone::~Bone()
 }
 
 // how many frames of animation there will be
-void Bone::SetNumFrames(int32_t num, CVECTOR &sPos, bool isRoot)
+void Bone::SetNumFrames(int32_t num, CVECTOR& sPos, bool isRoot)
 {
     delete ang;
     delete pos;
-    ang = nullptr;
-    pos = nullptr;
+    ang       = nullptr;
+    pos       = nullptr;
     numFrames = num;
-    if (numFrames <= 0)
-    {
+    if (numFrames <= 0) {
         numFrames = 0;
         return;
     }
@@ -53,8 +52,7 @@ void Bone::SetNumFrames(int32_t num, CVECTOR &sPos, bool isRoot)
     memset(ang, 0, numFrames * sizeof(ang[0]));
 #endif
 
-    if (isRoot)
-    {
+    if (isRoot) {
         pos = new CVECTOR[num];
         memset(pos, 0, numFrames * sizeof(CVECTOR));
     }
@@ -62,7 +60,7 @@ void Bone::SetNumFrames(int32_t num, CVECTOR &sPos, bool isRoot)
 }
 
 // Set animation positions
-void Bone::SetPositions(const CVECTOR *pArray, int32_t numPos)
+void Bone::SetPositions(const CVECTOR* pArray, int32_t numPos)
 {
     Assert(numPos == numFrames);
     Assert(pArray);
@@ -79,21 +77,20 @@ void Bone::SetPositions(const CVECTOR *pArray, int32_t numPos)
 //-------------------------------------
 
 // Set animation angles
-void Bone::SetAngles(const Quaternion *aArray, int32_t numAng)
+void Bone::SetAngles(Quaternion const* aArray, int32_t numAng)
 {
     Assert(numAng == numFrames);
     Assert(aArray);
     Assert(ang);
-    for (int32_t i = 0; i < numAng; i++)
-    {
-        auto x = Clamp(aArray[i].x, "Animation is break: qt.x < -1.0f or qt.x > 1.0f !!!");
-        auto y = Clamp(aArray[i].y, "Animation is break: qt.y < -1.0f or qt.y > 1.0f !!!");
-        auto z = Clamp(aArray[i].z, "Animation is break: qt.z < -1.0f or qt.z > 1.0f !!!");
-        auto w = Clamp(aArray[i].w, "Animation is break: qt.w < -1.0f or qt.w > 1.0f !!!");
-        x = static_cast<float>(asin(x) / (PI * 0.5)) * 32767.0f;
-        y = static_cast<float>(asin(y) / (PI * 0.5)) * 32767.0f;
-        z = static_cast<float>(asin(z) / (PI * 0.5)) * 32767.0f;
-        w = static_cast<float>(asin(w) / (PI * 0.5)) * 32767.0f;
+    for (int32_t i = 0; i < numAng; i++) {
+        auto x   = Clamp(aArray[i].x, "Animation is break: qt.x < -1.0f or qt.x > 1.0f !!!");
+        auto y   = Clamp(aArray[i].y, "Animation is break: qt.y < -1.0f or qt.y > 1.0f !!!");
+        auto z   = Clamp(aArray[i].z, "Animation is break: qt.z < -1.0f or qt.z > 1.0f !!!");
+        auto w   = Clamp(aArray[i].w, "Animation is break: qt.w < -1.0f or qt.w > 1.0f !!!");
+        x        = static_cast<float>(asin(x) / (PI * 0.5)) * 32767.0f;
+        y        = static_cast<float>(asin(y) / (PI * 0.5)) * 32767.0f;
+        z        = static_cast<float>(asin(z) / (PI * 0.5)) * 32767.0f;
+        w        = static_cast<float>(asin(w) / (PI * 0.5)) * 32767.0f;
         ang[i].x = static_cast<short>(static_cast<int32_t>(x));
         ang[i].y = static_cast<short>(static_cast<int32_t>(y));
         ang[i].z = static_cast<short>(static_cast<int32_t>(z));
@@ -101,7 +98,7 @@ void Bone::SetAngles(const Quaternion *aArray, int32_t numAng)
     }
 }
 
-inline void Bone::GetFrame(int32_t f, Quaternion &qt)
+inline void Bone::GetFrame(int32_t f, Quaternion& qt)
 {
     qt.x = sinf((ang[f].x * (1.0f / 32767.0f)) * PI * 0.5f);
     qt.y = sinf((ang[f].y * (1.0f / 32767.0f)) * PI * 0.5f);
@@ -116,7 +113,7 @@ inline void Bone::GetFrame(int32_t f, Quaternion &qt)
 //-------------------------------------
 
 // Set animation angles
-void Bone::SetAngles(const Quaternion *aArray, int32_t numAng)
+void Bone::SetAngles(Quaternion const* aArray, int32_t numAng)
 {
     Assert(numAng == numFrames);
     Assert(aArray);
@@ -124,28 +121,25 @@ void Bone::SetAngles(const Quaternion *aArray, int32_t numAng)
     memcpy(ang, aArray, numFrames * sizeof(*ang));
 }
 
-inline void Bone::GetFrame(int32_t f, Quaternion &qt)
+inline void Bone::GetFrame(int32_t f, Quaternion& qt)
 {
     qt = ang[f];
 }
 
 #endif
 
-inline float Bone::Clamp(float v, const char *str)
+inline float Bone::Clamp(float v, const char* str)
 {
     auto isErr = false;
-    if (v < -1.0f)
-    {
-        v = -1.0f;
+    if (v < -1.0f) {
+        v     = -1.0f;
         isErr = true;
     }
-    if (v > 1.0f)
-    {
-        v = 1.0f;
+    if (v > 1.0f) {
+        v     = 1.0f;
         isErr = true;
     }
-    if (isErr && str)
-        core.Trace(str);
+    if (isErr && str) core.Trace(str);
     return v;
 }
 
@@ -154,14 +148,13 @@ inline float Bone::Clamp(float v, const char *str)
 // Initialize start matrix
 void Bone::BuildStartMatrix()
 {
-    if (numFrames == 0 || !ang)
-        return;
-    Matrix tmpInmtx;
-    CMatrix inmtx;
+    if (numFrames == 0 || !ang) return;
+    Matrix     tmpInmtx;
+    CMatrix    inmtx;
     Quaternion a;
     GetFrame(0, a);
     a.GetMatrix(tmpInmtx);
-    inmtx = tmpInmtx;
+    inmtx       = tmpInmtx;
     inmtx.Pos() = pos0;
     if (parent)
         start.EqMultiply(inmtx, parent->start);
@@ -174,24 +167,20 @@ void Bone::BuildStartMatrix()
 // --------------------------------------------------------------------------------------------
 
 // Add animation frames
-void Bone::BlendFrame(int32_t frame, float kBlend, Quaternion &res)
+void Bone::BlendFrame(int32_t frame, float kBlend, Quaternion& res)
 {
-    if (numFrames <= 0)
-        return;
-    const auto f0 = frame;
-    const auto f1 = frame + 1;
-    if (f0 >= numFrames || f1 >= numFrames)
-    {
+    if (numFrames <= 0) return;
+    auto const f0 = frame;
+    auto const f1 = frame + 1;
+    if (f0 >= numFrames || f1 >= numFrames) {
         GetFrame(numFrames - 1, res);
         return;
     }
     Quaternion q0, q1;
     GetFrame(f0, q0);
     GetFrame(f1, q1);
-    if (kBlend < 0.0f)
-        kBlend = 0.0f;
-    if (kBlend > 1.0f)
-        kBlend = 1.0f;
+    if (kBlend < 0.0f) kBlend = 0.0f;
+    if (kBlend > 1.0f) kBlend = 1.0f;
     res.SLerp(q0, q1, kBlend);
 }
 
@@ -202,9 +191,8 @@ void Bone::BuildMatrix()
     // matrix = a.BuildMatrix();
     Matrix tmpMtx;
     a.GetMatrix(tmpMtx);
-    matrix = tmpMtx;
+    matrix       = tmpMtx;
     matrix.Pos() = p;
     // Multiply by the parent matrix
-    if (parent)
-        matrix.EqMultiply(CMatrix(matrix), parent->matrix);
+    if (parent) matrix.EqMultiply(CMatrix(matrix), parent->matrix);
 }

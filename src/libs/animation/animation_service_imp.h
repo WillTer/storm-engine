@@ -10,21 +10,22 @@
 
 #pragma once
 
+#include <libs/core/vma.hpp>
+
 #include "animation.h"
 #include "animation_info.h"
-#include <libs/core/vma.hpp>
 
 //============================================================================================
 
 class INIFILE;
 class AnimationImp;
 
-class AnimationServiceImp final : public AnimationService
+class AnimationServiceImp final: public AnimationService
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     AnimationServiceImp();
     ~AnimationServiceImp() override;
 
@@ -34,30 +35,29 @@ class AnimationServiceImp final : public AnimationService
     void RunStart() override;
     void RunEnd() override;
     // Create animation for the model, delete using "delete"
-    Animation *CreateAnimation(const char *animationName) override;
+    Animation* CreateAnimation(char const* animationName) override;
 
     // --------------------------------------------------------------------------------------------
     // Functions for Animation
     // --------------------------------------------------------------------------------------------
     // Remove animation (called from destructor)
-    void DeleteAnimation(AnimationImp *ani);
+    void DeleteAnimation(AnimationImp* ani);
     // Event
-    void Event(const char *eventName);
+    void Event(char const* eventName);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // load animation
-    int32_t LoadAnimation(const char *animationName);
+    int32_t LoadAnimation(char const* animationName);
     // Load user data from the current section
-    void LoadUserData(INIFILE *ani, const char *sectionName, std::unordered_map<std::string, std::string> &data,
-                      const char *animationName);
+    void LoadUserData(INIFILE* ani, char const* sectionName, std::unordered_map<std::string, std::string>& data, char const* animationName);
     // load AN
-    bool LoadAN(const char *fname, AnimationInfo *info);
+    bool LoadAN(char const* fname, AnimationInfo* info);
 
-    std::vector<AnimationInfo *> ainfo;
-    std::vector<AnimationImp *> animations;
+    std::vector<AnimationInfo*> ainfo;
+    std::vector<AnimationImp*>  animations;
 
     static char key[1024];
 };

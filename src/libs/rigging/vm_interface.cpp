@@ -6,7 +6,6 @@
 #include "script_func.h"
 #include "vant.h"
 
-
 CREATE_CLASS(SAIL)
 
 CREATE_CLASS(FLAG)

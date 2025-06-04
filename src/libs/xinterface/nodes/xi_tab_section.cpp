@@ -1,16 +1,17 @@
 #include "xi_tab_section.h"
+
 #include <stdio.h>
 
 CXI_TABSECTION::CXI_TABSECTION()
 {
-    m_rs = nullptr;
+    m_rs         = nullptr;
     m_bClickable = true;
-    m_nNodeType = NODETYPE_TABSECTION;
+    m_nNodeType  = NODETYPE_TABSECTION;
 
     m_idIconTexture = -1;
-    m_idVBuf = -1;
-    m_idIBuf = -1;
-    m_nSubQ = 0;
+    m_idVBuf        = -1;
+    m_idIBuf        = -1;
+    m_nSubQ         = 0;
 }
 
 CXI_TABSECTION::~CXI_TABSECTION()
@@ -21,8 +22,7 @@ CXI_TABSECTION::~CXI_TABSECTION()
 void CXI_TABSECTION::Draw(bool bSelected, uint32_t Delta_Time)
 {
     // Drawing
-    if (m_idIconTexture != -1 && m_idVBuf != -1 && m_idIBuf != -1)
-    {
+    if (m_idIconTexture != -1 && m_idVBuf != -1 && m_idIBuf != -1) {
         m_rs->TextureSet(0, m_idIconTexture);
         m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nSubQ * 4, 0, m_nSubQ * 2, "iIcon");
     }
@@ -30,11 +30,10 @@ void CXI_TABSECTION::Draw(bool bSelected, uint32_t Delta_Time)
     // Output headers
 }
 
-bool CXI_TABSECTION::Init(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2, VDX9RENDER *rs,
-                          XYRECT &hostRect, XYPOINT &ScreenSize)
+bool CXI_TABSECTION::Init(
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize))
-        return false;
+    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
 }
 
@@ -48,14 +47,10 @@ void CXI_TABSECTION::ReleaseAll()
 
 int CXI_TABSECTION::CommandExecute(int wActCode)
 {
-    if (m_bUse)
-    {
-        switch (wActCode)
-        {
-        case ACTION_ACTIVATE:
-            break;
-        case ACTION_MOUSECLICK:
-            break;
+    if (m_bUse) {
+        switch (wActCode) {
+        case ACTION_ACTIVATE: break;
+        case ACTION_MOUSECLICK: break;
         }
     }
     return -1;
@@ -63,13 +58,12 @@ int CXI_TABSECTION::CommandExecute(int wActCode)
 
 bool CXI_TABSECTION::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable &&
-        m_bSelected && m_bUse)
+    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bSelected && m_bUse)
         return true;
     return false;
 }
 
-void CXI_TABSECTION::ChangePosition(XYRECT &rNewPos)
+void CXI_TABSECTION::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
 }
@@ -79,8 +73,7 @@ void CXI_TABSECTION::SaveParametersToIni()
     char pcWriteParam[2048];
 
     auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
-    if (!pIni)
-    {
+    if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
@@ -90,22 +83,19 @@ void CXI_TABSECTION::SaveParametersToIni()
     pIni->WriteString(m_nodeName, "position", pcWriteParam);
 }
 
-uint32_t CXI_TABSECTION::MessageProc(int32_t msgcode, MESSAGE &message)
+uint32_t CXI_TABSECTION::MessageProc(int32_t msgcode, MESSAGE& message)
 {
-    switch (msgcode)
-    {
-    case 0: //
+    switch (msgcode) {
+    case 0:  //
         break;
     }
 
     return 0;
 }
 
-void CXI_TABSECTION::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2)
+void CXI_TABSECTION::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
     SetGlowCursor(false);
 }
 
-void CXI_TABSECTION::UpdateImage()
-{
-}
+void CXI_TABSECTION::UpdateImage() {}

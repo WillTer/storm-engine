@@ -13,39 +13,36 @@
 #include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 
-
 #include "character.h"
 #include "location.h"
 
 class Location;
 class Character;
 
-class CharactersGroups : public Entity
+class CharactersGroups: public Entity
 {
-  public:
-    struct String
-    {
+public:
+    struct String {
         String();
-        String(const char *str);
+        String(char const* str);
         ~String();
-        char *name;
+        char*   name;
         int32_t len;
         int32_t max;
         int32_t hash;
 
-        void operator=(const char *str);
+        void operator=(char const* str);
 
-        operator const char *() const
+        operator char const*() const
         {
             return name;
         };
-        bool Cmp(const char *str, int32_t l, int32_t h) const;
-        static int32_t GetHash(const char *str);
-        static int32_t GetLen(const char *str);
+        bool           Cmp(char const* str, int32_t l, int32_t h) const;
+        static int32_t GetHash(char const* str);
+        static int32_t GetLen(char const* str);
     };
 
-    enum RelState
-    {
+    enum RelState {
         rs_beginvalue,
         rs_friend,
         rs_neitral,
@@ -53,34 +50,32 @@ class CharactersGroups : public Entity
         rs_endvalue,
     };
 
-    struct Relation
-    {
-        float alarm;       // Current alarm state
-        float alarmdown;   // Alarm fading speed
-        float alarmmin;    // Deactivation threshold
-        float alarmmax;    // Activation threshold
-        bool isActive;     // Is the alarm active
-        RelState curState; // Current relationship between groups
-        RelState actState; // Relationship between groups to be established in case of alarm activation
-        RelState relState; // Relationship between groups that will be established in case of alarm deactivation
+    struct Relation {
+        float    alarm;      // Current alarm state
+        float    alarmdown;  // Alarm fading speed
+        float    alarmmin;   // Deactivation threshold
+        float    alarmmax;   // Activation threshold
+        bool     isActive;   // Is the alarm active
+        RelState curState;   // Current relationship between groups
+        RelState actState;   // Relationship between groups to be established in case of alarm activation
+        RelState relState;   // Relationship between groups that will be established in case of alarm deactivation
     };
 
-    struct Group
-    {
-        int32_t index;          // Group index
-        String name;            // Group name
-        float look;             // Enemy sight radius
-        float hear;             // The radius at which the character always determines the enemy
-        float say;              // The radius at which the character can inform neighbors about the danger
-        int32_t priority;       // Protection priority
-        Relation *relations;    // Relationship list - the size corresponds to the group index in the list
-        std::vector<entid_t> c; // List of characters in the group
+    struct Group {
+        int32_t              index;      // Group index
+        String               name;       // Group name
+        float                look;       // Enemy sight radius
+        float                hear;       // The radius at which the character always determines the enemy
+        float                say;        // The radius at which the character can inform neighbors about the danger
+        int32_t              priority;   // Protection priority
+        Relation*            relations;  // Relationship list - the size corresponds to the group index in the list
+        std::vector<entid_t> c;          // List of characters in the group
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     CharactersGroups();
     ~CharactersGroups() override;
 
@@ -89,14 +84,13 @@ class CharactersGroups : public Entity
     // Execution
     void Execute(uint32_t delta_time);
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
     // Changing an attribute
-    uint32_t AttributeChanged(ATTRIBUTES *apnt) override;
+    uint32_t AttributeChanged(ATTRIBUTES* apnt) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
         case Stage::execute:
             Execute(delta);
             break;
@@ -112,62 +106,62 @@ class CharactersGroups : public Entity
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Checking the character detects others
-    void CharacterVisibleCheck(Character *chr);
+    void CharacterVisibleCheck(Character* chr);
     // Check found characters for enemies
-    void FindEnemyFromFindList(Character *chr, Group *grp, bool visCheck);
+    void FindEnemyFromFindList(Character* chr, Group* grp, bool visCheck);
     // Add or update an enemy
-    bool AddEnemyTarget(Character *chr, Character *enemy, float maxtime = -1.0);
+    bool AddEnemyTarget(Character* chr, Character* enemy, float maxtime = -1.0);
     // Remove all inactive or invalid targets
     void RemoveAllInvalidTargets();
     // Remove inactive or invalid targets
-    bool RemoveInvalidTargets(Character *chr, Character *check = nullptr);
+    bool RemoveInvalidTargets(Character* chr, Character* check = nullptr);
 
-  private:
+private:
     // Check target for validity
-    bool MsgIsValidateTarget(MESSAGE &message);
+    bool MsgIsValidateTarget(MESSAGE& message);
     // Find the optimal goal
-    bool MsgGetOptimalTarget(MESSAGE &message) const;
+    bool MsgGetOptimalTarget(MESSAGE& message) const;
     // Is this character an enemy
-    bool MsgIsEnemy(MESSAGE &message);
+    bool MsgIsEnemy(MESSAGE& message);
     // Group reaction to attack
-    void MsgAttack(MESSAGE &message);
+    void MsgAttack(MESSAGE& message);
     // Add target
-    void MsgAddTarget(MESSAGE &message);
+    void MsgAddTarget(MESSAGE& message);
     // Refresh goals for this character
-    void MsgUpdChrTrg(MESSAGE &message);
+    void MsgUpdChrTrg(MESSAGE& message);
 
     // Register a group
-    void MsgRegistryGroup(MESSAGE &message);
+    void MsgRegistryGroup(MESSAGE& message);
     // Delete group
-    void MsgReleaseGroup(MESSAGE &message);
+    void MsgReleaseGroup(MESSAGE& message);
     // Register a group
-    int32_t RegistryGroup(const char *groupName);
+    int32_t RegistryGroup(char const* groupName);
     // Delete group
-    void ReleaseGroup(const char *groupName);
+    void ReleaseGroup(char const* groupName);
 
     // Set the visibility radius for the group
-    bool MsgSetGroupLook(MESSAGE &message);
+    bool MsgSetGroupLook(MESSAGE& message);
     // Set the radius of hearing for the group
-    bool MsgSetGroupHear(MESSAGE &message);
+    bool MsgSetGroupHear(MESSAGE& message);
     // Set message radius for the group
-    bool MsgSetGroupSay(MESSAGE &message);
+    bool MsgSetGroupSay(MESSAGE& message);
     // Set group priority
-    bool MsgSetGroupPriority(MESSAGE &message);
+    bool MsgSetGroupPriority(MESSAGE& message);
     // Set speed alarm level
-    bool MsgSetAlarm(MESSAGE &message);
+    bool MsgSetAlarm(MESSAGE& message);
     // Set alarm fading speed
-    bool MsgSetAlarmDown(MESSAGE &message);
+    bool MsgSetAlarmDown(MESSAGE& message);
     // Add character to group
-    bool MoveCharacterToGroup(MESSAGE &message);
+    bool MoveCharacterToGroup(MESSAGE& message);
     // Establish relationships between groups
-    void MsgSetRelation(MESSAGE &message);
+    void MsgSetRelation(MESSAGE& message);
     // Set alarm response for a pair of groups
-    void MsgSetAlarmReaction(MESSAGE &message);
+    void MsgSetAlarmReaction(MESSAGE& message);
 
     // Unloading a character
-    void UnloadCharacter(MESSAGE &message);
+    void UnloadCharacter(MESSAGE& message);
 
     // Remove character from all groups
     void RemoveCharacterFromAllGroups(entid_t chr);
@@ -175,21 +169,21 @@ class CharactersGroups : public Entity
     // Remove all empty groups
     void DeleteEmptyGroups();
 
-  public:
+public:
     // Get group from message
-    Group *GetGroup(MESSAGE &message, bool isRegistry = true);
+    Group* GetGroup(MESSAGE& message, bool isRegistry = true);
     // Find a group by name
-    Group *FindGroup(const char *name);
+    Group* FindGroup(char const* name);
     // Find a group by name
-    int32_t FindGroupIndex(const char *name);
+    int32_t FindGroupIndex(char const* name);
     // Find group relationship
-    Relation &FindRelation(MESSAGE &message, bool *selfgroup = nullptr);
+    Relation& FindRelation(MESSAGE& message, bool* selfgroup = nullptr);
     // Find group relationship
-    Relation &FindRelation(const char *name1, const char *name2, bool *selfgroup = nullptr);
+    Relation& FindRelation(char const* name1, char const* name2, bool* selfgroup = nullptr);
     // Find group relationship
-    Relation &FindRelation(int32_t g1, int32_t g2, bool *selfgroup = nullptr);
+    Relation& FindRelation(int32_t g1, int32_t g2, bool* selfgroup = nullptr);
     // Get character group index
-    int32_t GetCharacterGroup(Character *c);
+    int32_t GetCharacterGroup(Character* c);
 
     // Delete all targets
     void ClearAllTargets() const;
@@ -203,15 +197,15 @@ class CharactersGroups : public Entity
     // Display information about relationships
     void DumpRelations();
     // Get the state as a string
-    const char *GetTextState(RelState state);
+    char const* GetTextState(RelState state);
 
-  private:
-    std::vector<Group *> groups; // Groups
-    int32_t numGroups;           // Number of groups
-    int32_t maxGroups;           // Number of groups
-    Location *location;          // Current location
-    int32_t curExecuteChr;       // The index of the currently executing character
-    float waveTime;              // Time since last wave launch
+private:
+    std::vector<Group*> groups;         // Groups
+    int32_t             numGroups;      // Number of groups
+    int32_t             maxGroups;      // Number of groups
+    Location*           location;       // Current location
+    int32_t             curExecuteChr;  // The index of the currently executing character
+    float               waveTime;       // Time since last wave launch
 
     // Character search array
     std::vector<Supervisor::FindCharacter> fnd;

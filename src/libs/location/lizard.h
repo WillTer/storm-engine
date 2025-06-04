@@ -12,22 +12,22 @@
 
 #include "loc_life.h"
 
-class Lizard : public LocLife
+class Lizard: public LocLife
 {
-  public:
+public:
     Lizard();
     ~Lizard() override;
 
-  private:
-    const char *GetModelName() override;
-    const char *GetAniName() override;
-    bool PostInit(Animation *ani) override;
+private:
+    char const* GetModelName() override;
+    char const* GetAniName() override;
+    bool        PostInit(Animation* ani) override;
 
-    void IdleProcess(Animation *ani, float dltTime) override;
-    void MoveProcess(Animation *ani, float dltTime) override;
-    void IsStartMove(Animation *ani) override;
-    void IsStopMove(Animation *ani) override;
+    void IdleProcess(Animation* ani, float dltTime) override;
+    void MoveProcess(Animation* ani, float dltTime) override;
+    void IsStartMove(Animation* ani) override;
+    void IsStopMove(Animation* ani) override;
 
-  private:
+private:
     float lastMove;
 };

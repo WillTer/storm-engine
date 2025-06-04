@@ -2,38 +2,37 @@
 
 #include "ai_helper.h"
 
-class SeaLocatorShow : public Entity
+class SeaLocatorShow: public Entity
 {
-    ATTRIBUTES *pALocators;
-    bool bShow;
-    float fScale;
+    ATTRIBUTES* pALocators;
+    bool        bShow;
+    float       fScale;
 
-    float fWidth, fHeight;
+    float   fWidth, fHeight;
     CMatrix view, mtx;
 
-    struct SphVertex
-    {
-        CVECTOR v;
+    struct SphVertex {
+        CVECTOR  v;
         uint32_t c;
     };
 
-    uint32_t sphereNumTrgs;
-    SphVertex *sphereVertex;
+    uint32_t   sphereNumTrgs;
+    SphVertex* sphereVertex;
 
     void CreateSphere();
 
-    bool isLocator(ATTRIBUTES *pA);
-    CVECTOR GetLocatorPos(ATTRIBUTES *pA);
-    float GetLocatorAng(ATTRIBUTES *pA);
-    float GetLocatorRadius(ATTRIBUTES *pA);
-    const char *GetRealLocatorName(ATTRIBUTES *pA);
-    const char *GetLocatorName(ATTRIBUTES *pA);
-    const char *GetLocatorGroupName(ATTRIBUTES *pA);
+    bool        isLocator(ATTRIBUTES* pA);
+    CVECTOR     GetLocatorPos(ATTRIBUTES* pA);
+    float       GetLocatorAng(ATTRIBUTES* pA);
+    float       GetLocatorRadius(ATTRIBUTES* pA);
+    char const* GetRealLocatorName(ATTRIBUTES* pA);
+    char const* GetLocatorName(ATTRIBUTES* pA);
+    char const* GetLocatorGroupName(ATTRIBUTES* pA);
 
-    void PrintLocator(ATTRIBUTES *pA);
-    void ProcessLocators(ATTRIBUTES *pA);
+    void PrintLocator(ATTRIBUTES* pA);
+    void ProcessLocators(ATTRIBUTES* pA);
 
-  public:
+public:
     SeaLocatorShow();
     ~SeaLocatorShow() override;
 
@@ -43,19 +42,16 @@ class SeaLocatorShow : public Entity
     void Realize(uint32_t Delta_Time);
     void Execute(uint32_t Delta_Time) const;
 
-    bool CreateState(ENTITY_STATE_GEN *state_gen);
-    bool LoadState(ENTITY_STATE *state);
+    bool CreateState(ENTITY_STATE_GEN* state_gen);
+    bool LoadState(ENTITY_STATE* state);
 
-    void ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    void     ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -66,5 +62,5 @@ class SeaLocatorShow : public Entity
         }
     }
 
-    uint32_t AttributeChanged(ATTRIBUTES *pAttribute) override;
+    uint32_t AttributeChanged(ATTRIBUTES* pAttribute) override;
 };

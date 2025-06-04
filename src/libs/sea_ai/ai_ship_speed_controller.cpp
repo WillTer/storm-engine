@@ -1,19 +1,17 @@
 #include "ai_ship.h"
 
-AIShipSpeedController::AIShipSpeedController(AIShip *pShip)
+AIShipSpeedController::AIShipSpeedController(AIShip* pShip)
 {
-    fSpeed = 0.0f;
-    dwSpeedNum = 0;
-    fSpeedSmooth = 0.0f;
-    fSpeedTime = 0.0f;
+    fSpeed          = 0.0f;
+    dwSpeedNum      = 0;
+    fSpeedSmooth    = 0.0f;
+    fSpeedTime      = 0.0f;
     fGlobalMultiply = 1.0f;
-    fTopSpeed = 1.0f;
+    fTopSpeed       = 1.0f;
     SetAIShip(pShip);
 }
 
-AIShipSpeedController::~AIShipSpeedController()
-{
-}
+AIShipSpeedController::~AIShipSpeedController() {}
 
 bool AIShipSpeedController::Init()
 {
@@ -22,31 +20,26 @@ bool AIShipSpeedController::Init()
 
 void AIShipSpeedController::Execute(float fDeltaTime)
 {
-    if (GetAIShip()->isMainCharacter())
-        return;
+    if (GetAIShip()->isMainCharacter()) return;
 
     fSpeedTime += fDeltaTime;
     dwSpeedNum++;
     fSpeedSmooth += fSpeed;
-    if (fSpeedTime >= 2.0f)
-    {
+    if (fSpeedTime >= 2.0f) {
         fSpeedSmooth = Clamp(fSpeedSmooth / static_cast<float>(dwSpeedNum));
-        if (fSpeedSmooth > fTopSpeed)
-            fSpeedSmooth = fTopSpeed;
+        if (fSpeedSmooth > fTopSpeed) fSpeedSmooth = fTopSpeed;
         GetAIShip()->GetShipBasePointer()->SetSailState(fGlobalMultiply * fSpeed);
-        fSpeedTime = 0.0f;
+        fSpeedTime   = 0.0f;
         fSpeedSmooth = 0.0f;
-        dwSpeedNum = 0;
+        dwSpeedNum   = 0;
     }
 
     fGlobalMultiply = 1.0f;
-    fSpeed = 0.0f;
-    fTopSpeed = 1.0f;
+    fSpeed          = 0.0f;
+    fTopSpeed       = 1.0f;
 }
 
-void AIShipSpeedController::Realize(float fDeltaTime)
-{
-}
+void AIShipSpeedController::Realize(float fDeltaTime) {}
 
 void AIShipSpeedController::TopSpeed(float _fSpeed)
 {
@@ -65,11 +58,10 @@ void AIShipSpeedController::AddSpeed(float _fSpeed)
 
 void AIShipSpeedController::SetGlobalMultiply(float _fGlobalMultiply)
 {
-    if (_fGlobalMultiply < fGlobalMultiply)
-        fGlobalMultiply = _fGlobalMultiply;
+    if (_fGlobalMultiply < fGlobalMultiply) fGlobalMultiply = _fGlobalMultiply;
 }
 
-void AIShipSpeedController::Save(CSaveLoad *pSL) const
+void AIShipSpeedController::Save(CSaveLoad* pSL) const
 {
     pSL->SaveDword(dwSpeedNum);
     pSL->SaveFloat(fSpeedSmooth);
@@ -79,12 +71,12 @@ void AIShipSpeedController::Save(CSaveLoad *pSL) const
     pSL->SaveFloat(fGlobalMultiply);
 }
 
-void AIShipSpeedController::Load(CSaveLoad *pSL)
+void AIShipSpeedController::Load(CSaveLoad* pSL)
 {
-    dwSpeedNum = pSL->LoadDword();
-    fSpeedSmooth = pSL->LoadFloat();
-    fSpeed = pSL->LoadFloat();
-    fSpeedTime = pSL->LoadFloat();
-    fTopSpeed = pSL->LoadFloat();
+    dwSpeedNum      = pSL->LoadDword();
+    fSpeedSmooth    = pSL->LoadFloat();
+    fSpeed          = pSL->LoadFloat();
+    fSpeedTime      = pSL->LoadFloat();
+    fTopSpeed       = pSL->LoadFloat();
     fGlobalMultiply = pSL->LoadFloat();
 }

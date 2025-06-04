@@ -4,17 +4,16 @@
 
 namespace storm
 {
-SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered)
-    : fullscreen_(fullscreen)
+SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered) : fullscreen_(fullscreen)
 {
     uint32_t flags = (fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_HIDDEN;
-#if !defined(_WIN32) && !defined(STORM_MESA_NINE) // DXVK-Native
+#if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
     flags |= SDL_WINDOW_VULKAN;
 #endif
-    window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(
-        SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display),
-                         SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), width, height, flags),
-        [](SDL_Window *w) { SDL_DestroyWindow(w); });
+    window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
+        SDL_CreateWindow(
+            "", SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), width, height, flags),
+        [](SDL_Window* w) { SDL_DestroyWindow(w); });
 
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered ? SDL_TRUE : SDL_FALSE);
@@ -88,21 +87,20 @@ void SDLWindow::WarpMouseInWindow(int x, int y)
     SDL_WarpMouseInWindow(window_.get(), x, y);
 }
 
-void SDLWindow::SetTitle(const std::string &title)
+void SDLWindow::SetTitle(std::string const& title)
 {
     SDL_SetWindowTitle(window_.get(), title.c_str());
 }
 
-void SDLWindow::SetGamma(const uint16_t (&red)[256], const uint16_t (&green)[256], const uint16_t (&blue)[256])
+void SDLWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256])
 {
     SDL_SetWindowGammaRamp(window_.get(), red, green, blue);
 }
 
-int SDLWindow::Subscribe(const EventHandler &handler)
+int SDLWindow::Subscribe(EventHandler const& handler)
 {
     int id = 1;
-    if (!handlers_.empty())
-        id = (--handlers_.end())->first + 1;
+    if (!handlers_.empty()) id = (--handlers_.end())->first + 1;
     handlers_[id] = handler;
     return id;
 }
@@ -110,15 +108,13 @@ int SDLWindow::Subscribe(const EventHandler &handler)
 void SDLWindow::Unsubscribe(int id)
 {
     auto it = handlers_.find(id);
-    if (it != handlers_.end())
-        handlers_.erase(it);
+    if (it != handlers_.end()) handlers_.erase(it);
 }
 
 // TODO: X/Wayland/MacOS
-void *SDLWindow::OSHandle()
+void* SDLWindow::OSHandle()
 {
-    if (!window_)
-        return nullptr;
+    if (!window_) return nullptr;
 
 #ifdef _WIN32
     SDL_SysWMinfo info;
@@ -131,33 +127,25 @@ void *SDLWindow::OSHandle()
 #endif
 }
 
-SDL_Window *SDLWindow::SDLHandle() const
+SDL_Window* SDLWindow::SDLHandle() const
 {
     return window_.get();
 }
 
-void SDLWindow::ProcessEvent(const SDL_WindowEvent &evt) const
+void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
 {
     Event winEvent;
-    switch (evt.event)
-    {
-    case SDL_WINDOWEVENT_FOCUS_GAINED:
-        winEvent = FocusGained;
-        break;
+    switch (evt.event) {
+    case SDL_WINDOWEVENT_FOCUS_GAINED: winEvent = FocusGained; break;
 
-    case SDL_WINDOWEVENT_FOCUS_LOST:
-        winEvent = FocusLost;
-        break;
+    case SDL_WINDOWEVENT_FOCUS_LOST: winEvent = FocusLost; break;
 
-    case SDL_WINDOWEVENT_CLOSE:
-        winEvent = Closed;
-        break;
+    case SDL_WINDOWEVENT_CLOSE: winEvent = Closed; break;
 
-    default:
-        return;
+    default: return;
     }
 
-    for (auto handler : handlers_)
+    for (auto handler: handlers_)
         handler.second(winEvent);
 }
 
@@ -166,15 +154,14 @@ std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_
     return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
 }
 
-int SDLWindow::SDLEventHandler(void *userdata, SDL_Event *evt)
+int SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
 {
-    auto w = static_cast<SDLWindow *>(userdata);
+    auto w = static_cast<SDLWindow*>(userdata);
 
-    if ((evt->type != SDL_WINDOWEVENT) || (evt->window.windowID != w->sdlID_))
-        return 0;
+    if ((evt->type != SDL_WINDOWEVENT) || (evt->window.windowID != w->sdlID_)) return 0;
 
     w->ProcessEvent(evt->window);
 
     return 0;
 }
-} // namespace storm
+}  // namespace storm

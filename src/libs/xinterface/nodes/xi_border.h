@@ -4,53 +4,51 @@
 
 class CXI_IMAGE;
 
-class CXI_BORDER : public CINODE
+class CXI_BORDER: public CINODE
 {
-  public:
+public:
     CXI_BORDER();
     ~CXI_BORDER() override;
 
     void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2, VDX9RENDER *rs, XYRECT &hostRect,
-              XYPOINT &ScreenSize) override;
+    bool Init(
+        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
     void ReleaseAll() override;
-    int CommandExecute(int wActCode) override;
+    int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
 
-    void MouseThis(float fX, float fY) override
-    {
-    }
+    void MouseThis(float fX, float fY) override {}
 
-    void ChangePosition(XYRECT &rNewPos) override;
+    void ChangePosition(XYRECT& rNewPos) override;
     void SaveParametersToIni() override;
 
-    uint32_t MessageProc(int32_t msgcode, MESSAGE &message) override;
+    uint32_t MessageProc(int32_t msgcode, MESSAGE& message) override;
 
-  protected:
-    void LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2) override;
+protected:
+    void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
     void FillIndexBuffers() const;
     void FillVertexBuffers();
-    void WriteVertexForSquare(XI_ONETEX_VERTEX *pV, FXYRECT &UVRect, uint32_t dwColor, int32_t left, int32_t top, int32_t right,
-                              int32_t bottom);
+    void
+    WriteVertexForSquare(XI_ONETEX_VERTEX* pV, FXYRECT& UVRect, uint32_t dwColor, int32_t left, int32_t top, int32_t right, int32_t bottom);
 
-  protected:
+protected:
     // back picture
-    CXI_IMAGE *m_pBackImage;
+    CXI_IMAGE* m_pBackImage;
 
-    int32_t m_nCaptionHeight;
-    CXI_IMAGE *m_pCaptionImage;
-    int32_t m_mCaptionDividerHeight;
-    XYRECT m_rCapRect;
+    int32_t    m_nCaptionHeight;
+    CXI_IMAGE* m_pCaptionImage;
+    int32_t    m_mCaptionDividerHeight;
+    XYRECT     m_rCapRect;
 
     // texture parameters
     std::string m_sGroupName;
-    int32_t m_idTex;
-    uint32_t m_dwColor;
+    int32_t     m_idTex;
+    uint32_t    m_dwColor;
 
     // picture index & vertex buffers
-    int32_t m_idVBuf;   // identificator of the vertex buffer
-    int32_t m_idIBuf;   // identificator of the index buffer
-    int32_t m_nSquareQ; // square quantity
+    int32_t m_idVBuf;    // identificator of the vertex buffer
+    int32_t m_idIBuf;    // identificator of the index buffer
+    int32_t m_nSquareQ;  // square quantity
 
     int32_t m_nLeftTopPicture;
     FXYRECT m_frLeftTopUV;

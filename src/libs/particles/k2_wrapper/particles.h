@@ -1,42 +1,42 @@
 #pragma once
 
-#include <libs/core/entity.h>
 #include <string>
 #include <vector>
+
+#include <libs/core/entity.h>
 
 class IParticleService;
 class IParticleManager;
 class IParticleSystem;
 class PARTICLE_SYSTEM;
 
-class PARTICLES : public Entity
+class PARTICLES: public Entity
 {
     bool CreationCapture;
     bool bSystemDelete;
 
-    struct SystemInfo
-    {
-        std::string FileName;
-        PARTICLE_SYSTEM *pSystem;
-        uint32_t LifeTime;
-        uint32_t PassedTime;
+    struct SystemInfo {
+        std::string      FileName;
+        PARTICLE_SYSTEM* pSystem;
+        uint32_t         LifeTime;
+        uint32_t         PassedTime;
 
         SystemInfo()
         {
             PassedTime = 0;
-            pSystem = nullptr;
-            LifeTime = 0xFFFFFF00;
+            pSystem    = nullptr;
+            LifeTime   = 0xFFFFFF00;
         }
     };
 
     std::vector<SystemInfo> CreatedSystems;
 
-    IParticleService *pService;
-    IParticleManager *pManager;
+    IParticleService* pService;
+    IParticleManager* pManager;
 
-    PARTICLE_SYSTEM *CreateSystem(const char *pFileName, uint32_t LifeTime);
-    void DeleteSystem(uintptr_t SystemID);
-    void DeleteAll();
+    PARTICLE_SYSTEM* CreateSystem(char const* pFileName, uint32_t LifeTime);
+    void             DeleteSystem(uintptr_t SystemID);
+    void             DeleteAll();
 
     void PauseAllActive(bool bPaused);
 
@@ -44,27 +44,24 @@ class PARTICLES : public Entity
 
     void DeleteCaptured();
 
-  public:
-    void DeleteResource(PARTICLE_SYSTEM *pResource);
+public:
+    void DeleteResource(PARTICLE_SYSTEM* pResource);
 
-  public:
+public:
     PARTICLES();
     ~PARTICLES() override;
 
     bool Init() override;
 
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void Realize(uint32_t Delta_Time);
     void Execute(uint32_t Delta_Time);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;

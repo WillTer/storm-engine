@@ -1,8 +1,7 @@
 #pragma once
 #include <vector>
 
-enum GIEditorStates
-{
+enum GIEditorStates {
     GIState_Nothing = 0,
 
     GIState_ListChange = 1,
@@ -17,30 +16,27 @@ using GIEditorEvent = void (GIEditorObject::*)();
 
 class GIEditorObject
 {
-  public:
-    virtual ~GIEditorObject()
-    {
-    }
+public:
+    virtual ~GIEditorObject() {}
 
-  public:
-    void LinkEvent(GIEditorEventHandler *pEventHandler, const GIEditorEvent &pEventFunction);
+public:
+    void LinkEvent(GIEditorEventHandler* pEventHandler, GIEditorEvent const& pEventFunction);
 };
 
 class GIEditorEventHandler
 {
-  public:
+public:
     GIEditorEventHandler();
     ~GIEditorEventHandler();
 
     bool Execute();
 
-    void AddEventFunction(GIEditorObject *pObj, const GIEditorEvent &pEventFunction);
+    void AddEventFunction(GIEditorObject* pObj, GIEditorEvent const& pEventFunction);
 
-  protected:
-    struct FuncDescr
-    {
-        GIEditorObject *pObj;
-        GIEditorEvent func;
+protected:
+    struct FuncDescr {
+        GIEditorObject* pObj;
+        GIEditorEvent   func;
     };
 
     std::vector<FuncDescr> m_aEventFuncs;

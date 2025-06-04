@@ -5,20 +5,19 @@
 class MODEL;
 class NODE;
 
-class EnemyStatShower : public Entity
+class EnemyStatShower: public Entity
 {
-  public:
+public:
     EnemyStatShower();
     ~EnemyStatShower() override;
 
-    bool Init() override;
-    void Realize(uint32_t delta_time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Realize(uint32_t delta_time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
         case Stage::realize:
@@ -31,15 +30,15 @@ class EnemyStatShower : public Entity
         }
     }
 
-  protected:
+protected:
     bool ReadAndCreate();
     void SetBeginData();
     void Release();
 
     entid_t GetModelEIDFromCharacterEID(entid_t chrEID);
 
-  protected: // data
-    bool m_bVisible;
+protected:  // data
+    bool    m_bVisible;
     entid_t m_eidChrEID;
-    MODEL *m_pModel;
+    MODEL*  m_pModel;
 };

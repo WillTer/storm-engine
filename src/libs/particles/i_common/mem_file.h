@@ -15,18 +15,18 @@ class MemFile
 {
     bool DataIsMy;
 
-    uint8_t *Data;
+    uint8_t* Data;
     uint32_t MaxLen;
     uint32_t CurPos;
     uint32_t BiggestWritePos;
 
-  public:
+public:
     MemFile()
     {
-        DataIsMy = false;
-        Data = nullptr;
-        MaxLen = 0;
-        CurPos = 0;
+        DataIsMy        = false;
+        Data            = nullptr;
+        MaxLen          = 0;
+        CurPos          = 0;
         BiggestWritePos = 0;
     }
 
@@ -35,35 +35,32 @@ class MemFile
         Close();
     }
 
-    bool Compare(MemFile *pMemfile)
+    bool Compare(MemFile* pMemfile)
     {
-        if (GetLength() != pMemfile->GetLength())
-            return false;
+        if (GetLength() != pMemfile->GetLength()) return false;
 
-        for (uint32_t i = 0; i < GetLength(); i++)
-        {
-            const auto Buffer1 = static_cast<uint8_t *>(GetBuffer());
-            const auto Buffer2 = static_cast<uint8_t *>(pMemfile->GetBuffer());
+        for (uint32_t i = 0; i < GetLength(); i++) {
+            auto const Buffer1 = static_cast<uint8_t*>(GetBuffer());
+            auto const Buffer2 = static_cast<uint8_t*>(pMemfile->GetBuffer());
 
-            if (Buffer1[i] != Buffer2[i])
-                return false;
+            if (Buffer1[i] != Buffer2[i]) return false;
         }
 
         return true;
     }
 
-    void OpenRead(void *Data, uint32_t DataSize)
+    void OpenRead(void* Data, uint32_t DataSize)
     {
-        DataIsMy = false;
-        this->Data = static_cast<uint8_t *>(Data);
-        MaxLen = DataSize;
-        CurPos = 0;
+        DataIsMy   = false;
+        this->Data = static_cast<uint8_t*>(Data);
+        MaxLen     = DataSize;
+        CurPos     = 0;
     }
 
     void OpenWrite(uint32_t MaxSize)
     {
         DataIsMy = true;
-        Data = new uint8_t[MaxSize];
+        Data     = new uint8_t[MaxSize];
         memset(Data, 0, MaxSize);
         MaxLen = MaxSize;
         CurPos = 0;
@@ -76,45 +73,33 @@ class MemFile
 
     uint32_t GetLength() const
     {
-        if (DataIsMy)
-            return BiggestWritePos;
+        if (DataIsMy) return BiggestWritePos;
         return MaxLen;
     }
 
     void Seek(int NewPos, uint32_t flags)
     {
-        switch (flags)
-        {
-        case VFSEEK_SET:
-            CurPos = NewPos;
-            break;
-        case VFSEEK_CURRENT:
-            CurPos += NewPos;
-            break;
-        case VFSEEK_END:
-            CurPos = GetLength() + NewPos;
-            break;
+        switch (flags) {
+        case VFSEEK_SET: CurPos = NewPos; break;
+        case VFSEEK_CURRENT: CurPos += NewPos; break;
+        case VFSEEK_END: CurPos = GetLength() + NewPos; break;
         }
     }
 
     void Close()
     {
-        if (DataIsMy)
-        {
+        if (DataIsMy) {
             delete Data;
             Data = nullptr;
         }
     }
 
-    uint32_t Read(void *Buffer, uint32_t size)
+    uint32_t Read(void* Buffer, uint32_t size)
     {
-        if (!Data)
-            return 0;
-        const auto real_size = CurPos + size;
-        if (real_size > MaxLen)
-            size = size - (real_size - MaxLen);
-        if (size <= 0)
-            return 0;
+        if (!Data) return 0;
+        auto const real_size = CurPos + size;
+        if (real_size > MaxLen) size = size - (real_size - MaxLen);
+        if (size <= 0) return 0;
         memcpy(Buffer, (Data + CurPos), size);
         CurPos += size;
         return size;
@@ -126,37 +111,34 @@ class MemFile
         return Write(&Zero, 1);
     }
 
-    uint32_t Write(const void *Buffer, uint32_t size)
+    uint32_t Write(void const* Buffer, uint32_t size)
     {
-        if (!DataIsMy)
-            return 0;
-        if (!Data)
-            return 0;
+        if (!DataIsMy) return 0;
+        if (!Data) return 0;
 
-        const auto real_size = CurPos + size;
-        if (real_size > MaxLen)
-            size = size - (real_size - MaxLen);
-        if (size <= 0)
-            return 0;
+        auto const real_size = CurPos + size;
+        if (real_size > MaxLen) size = size - (real_size - MaxLen);
+        if (size <= 0) return 0;
 
         memcpy((Data + CurPos), Buffer, size);
         CurPos += size;
-        if (CurPos > BiggestWritePos)
-            BiggestWritePos = CurPos;
+        if (CurPos > BiggestWritePos) BiggestWritePos = CurPos;
         return size;
     }
 
-    template <class TYPE> uint32_t WriteType(TYPE &Val)
+    template <class TYPE>
+    uint32_t WriteType(TYPE& Val)
     {
         return Write(&Val, sizeof(TYPE));
     }
 
-    template <class TYPE> uint32_t ReadType(TYPE &Val)
+    template <class TYPE>
+    uint32_t ReadType(TYPE& Val)
     {
         return Read(&Val, sizeof(TYPE));
     }
 
-    void *GetBuffer() const
+    void* GetBuffer() const
     {
         return Data;
     }

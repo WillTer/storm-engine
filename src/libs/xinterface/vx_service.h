@@ -14,27 +14,31 @@ struct XYPOINT;
 
 class VXSERVICE
 {
-  public:
-    virtual ~VXSERVICE() = default;
-    virtual void Init(VDX9RENDER *pRS, int32_t lWidth, int32_t lHight) = 0;
+public:
+    virtual ~VXSERVICE()                                               = default;
+    virtual void Init(VDX9RENDER* pRS, int32_t lWidth, int32_t lHight) = 0;
 
     // get texture identificator for image group
-    virtual int32_t GetTextureID(const char *sImageListName) = 0;
-    virtual bool ReleaseTextureID(const char *sImageListName) = 0;
+    virtual int32_t GetTextureID(char const* sImageListName)     = 0;
+    virtual bool    ReleaseTextureID(char const* sImageListName) = 0;
 
     // get texture positon for select picture
-    virtual bool GetTexturePos(int32_t pictureNum, FXYRECT &texRect) = 0;
-    virtual bool GetTexturePos(int32_t pictureNum, XYRECT &texRect) = 0;
-    virtual bool GetTexturePos(const char *sImageListName, const char *sImageName, FXYRECT &texRect) = 0;
-    virtual bool GetTexturePos(const char *sImageListName, const char *sImageName, XYRECT &texRect) = 0;
-    virtual bool GetTexturePos(int nTextureModify, int32_t pictureNum, FXYRECT &texRect) = 0;
-    virtual bool GetTexturePos(int nTextureModify, const char *sImageListName, const char *sImageName,
-                               FXYRECT &texRect) = 0;
+    virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;
+    virtual bool GetTexturePos(int32_t pictureNum, XYRECT& texRect)                                                      = 0;
+    virtual bool GetTexturePos(char const* sImageListName, char const* sImageName, FXYRECT& texRect)                     = 0;
+    virtual bool GetTexturePos(char const* sImageListName, char const* sImageName, XYRECT& texRect)                      = 0;
+    virtual bool GetTexturePos(int nTextureModify, int32_t pictureNum, FXYRECT& texRect)                                 = 0;
+    virtual bool GetTexturePos(int nTextureModify, char const* sImageListName, char const* sImageName, FXYRECT& texRect) = 0;
 
-    virtual void GetTextureCutForSize(const char *pcImageListName, const FXYPOINT &pntLeftTopUV, const XYPOINT &pntSize,
-                                      int32_t nSrcWidth, int32_t nSrcHeight, FXYRECT &outUV) = 0;
+    virtual void GetTextureCutForSize(
+        char const*     pcImageListName,
+        const FXYPOINT& pntLeftTopUV,
+        const XYPOINT&  pntSize,
+        int32_t         nSrcWidth,
+        int32_t         nSrcHeight,
+        FXYRECT&        outUV) = 0;
 
-    virtual int32_t GetImageNum(const char *sImageListName, const char *sImageName) = 0;
+    virtual int32_t GetImageNum(char const* sImageListName, char const* sImageName) = 0;
 
     virtual void ReleaseAll() = 0;
 };

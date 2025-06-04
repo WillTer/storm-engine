@@ -12,12 +12,12 @@
 
 #include "light_processor.h"
 
-class Lighter : public Entity
+class Lighter: public Entity
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Lighter();
     virtual ~Lighter();
 
@@ -27,15 +27,12 @@ class Lighter : public Entity
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message);
+    uint64_t ProcessMessage(MESSAGE& message);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -49,23 +46,23 @@ class Lighter : public Entity
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    void MsgAddModel(MESSAGE &message);
-    void MsgModelsPath(MESSAGE &message);
-    void MsgLightPath(MESSAGE &message);
-    void MsgAddLight(MESSAGE &message);
+private:
+    void MsgAddModel(MESSAGE& message);
+    void MsgModelsPath(MESSAGE& message);
+    void MsgLightPath(MESSAGE& message);
+    void MsgAddLight(MESSAGE& message);
     void PreparingData();
 
-  private:
-    VDX9RENDER *rs;
+private:
+    VDX9RENDER* rs;
 
-    LGeometry geometry;
-    OctTree octTree;
-    Window window;
-    LighterLights lights;
+    LGeometry      geometry;
+    OctTree        octTree;
+    Window         window;
+    LighterLights  lights;
     LightProcessor lightProcessor;
 
     int32_t initCounter;
-    float waitChange;
-    bool isInited, autoTrace, autoSmooth;
+    float   waitChange;
+    bool    isInited, autoTrace, autoSmooth;
 };

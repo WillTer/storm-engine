@@ -12,10 +12,9 @@
 
 #include "wdm_cloud.h"
 
-class WdmStormCloud : public WdmCloud
+class WdmStormCloud: public WdmCloud
 {
-    struct RainVertex
-    {
+    struct RainVertex {
         float x, y, z;
         float tu, tv;
     };
@@ -23,7 +22,7 @@ class WdmStormCloud : public WdmCloud
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmStormCloud();
     ~WdmStormCloud() override;
 
@@ -31,27 +30,27 @@ class WdmStormCloud : public WdmCloud
     void Update(float dltTime) override;
 
     // Rendering
-    void PRender(VDX9RENDER *rs) override;
-    void LRender(VDX9RENDER *rs) override;
+    void PRender(VDX9RENDER* rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     void BuildCloud(int32_t n) override;
     void FillRects();
 
     // Lightning parameters
     int32_t curLightning;
-    float lightningWaitTime;
-    float lightningTime;
-    float flashTime;
+    float   lightningWaitTime;
+    float   lightningTime;
+    float   flashTime;
     int32_t lastColor;
     int32_t lightningColor;
 
     // Rain
-    int32_t rainTexture;
-    float curU, curV;
-    CVECTOR rainpos[2048];        // Particle position
-    static RainVertex rain[4096]; // The current array to draw
+    int32_t           rainTexture;
+    float             curU, curV;
+    CVECTOR           rainpos[2048];  // Particle position
+    static RainVertex rain[4096];     // The current array to draw
 };

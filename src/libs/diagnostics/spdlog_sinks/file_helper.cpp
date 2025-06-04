@@ -1,14 +1,14 @@
 #include "file_helper.hpp"
 
-#include <spdlog/common.h>
-#include <spdlog/details/os.h>
-
 #include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <string>
 #include <thread>
 #include <tuple>
+
+#include <spdlog/common.h>
+#include <spdlog/details/os.h>
 
 namespace storm::logging::details
 {
@@ -20,35 +20,27 @@ SPDLOG_INLINE file_helper::~file_helper()
     close();
 }
 
-SPDLOG_INLINE void file_helper::open(const filename_t &fname, bool truncate)
+SPDLOG_INLINE void file_helper::open(filename_t const& fname, bool truncate)
 {
     close();
     filename_ = fname;
 
-    auto *mode = SPDLOG_FILENAME_T("ab");
-    auto *trunc_mode = SPDLOG_FILENAME_T("wb");
+    auto* mode       = SPDLOG_FILENAME_T("ab");
+    auto* trunc_mode = SPDLOG_FILENAME_T("wb");
 
-    for (int tries = 0; tries < open_tries_; ++tries)
-    {
+    for (int tries = 0; tries < open_tries_; ++tries) {
         // create containing folder if not exists already.
         os::create_dir(os::dir_name(fname));
-        if (truncate)
-        {
+        if (truncate) {
             // Truncate by opening-and-closing a tmp file in "wb" mode, always
             // opening the actual log-we-write-to in "ab" mode, since that
             // interacts more politely with eternal processes that might
             // rotate/truncate the file underneath us.
-            std::FILE *tmp;
-            if (os::fopen_s(&tmp, fname, trunc_mode))
-            {
-                continue;
-            }
+            std::FILE* tmp;
+            if (os::fopen_s(&tmp, fname, trunc_mode)) { continue; }
             std::fclose(tmp);
         }
-        if (!os::fopen_s(&fd_, fname, mode))
-        {
-            return;
-        }
+        if (!os::fopen_s(&fd_, fname, mode)) { return; }
 
         details::os::sleep_for_millis(open_interval_);
     }
@@ -58,10 +50,7 @@ SPDLOG_INLINE void file_helper::open(const filename_t &fname, bool truncate)
 
 SPDLOG_INLINE void file_helper::reopen(bool truncate)
 {
-    if (filename_.empty())
-    {
-        throw_spdlog_ex("Failed re opening file - was not opened before");
-    }
+    if (filename_.empty()) { throw_spdlog_ex("Failed re opening file - was not opened before"); }
     this->open(filename_, truncate);
 }
 
@@ -72,38 +61,33 @@ SPDLOG_INLINE void file_helper::flush()
 
 SPDLOG_INLINE void file_helper::close()
 {
-    if (fd_ != nullptr)
-    {
+    if (fd_ != nullptr) {
         std::fclose(fd_);
         fd_ = nullptr;
     }
 }
 
-SPDLOG_INLINE void file_helper::write(const memory_buf_t &buf)
+SPDLOG_INLINE void file_helper::write(memory_buf_t const& buf)
 {
     size_t msg_size = buf.size();
-    auto data = buf.data();
-    if (std::fwrite(data, 1, msg_size, fd_) != msg_size)
-    {
+    auto   data     = buf.data();
+    if (std::fwrite(data, 1, msg_size, fd_) != msg_size) {
         throw_spdlog_ex("Failed writing to file " + os::filename_to_str(filename_), errno);
     }
 }
 
 SPDLOG_INLINE size_t file_helper::size() const
 {
-    if (fd_ == nullptr)
-    {
-        throw_spdlog_ex("Cannot use size() on closed file " + os::filename_to_str(filename_));
-    }
+    if (fd_ == nullptr) { throw_spdlog_ex("Cannot use size() on closed file " + os::filename_to_str(filename_)); }
     return os::filesize(fd_);
 }
 
-SPDLOG_INLINE const filename_t &file_helper::filename() const
+SPDLOG_INLINE const filename_t& file_helper::filename() const
 {
     return filename_;
 }
 
-std::FILE *file_helper::getfd() const
+std::FILE* file_helper::getfd() const
 {
     return fd_;
 }
@@ -121,26 +105,20 @@ std::FILE *file_helper::getfd() const
 // ".mylog" => (".mylog". "")
 // "my_folder/.mylog" => ("my_folder/.mylog", "")
 // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-SPDLOG_INLINE std::tuple<filename_t, filename_t> file_helper::split_by_extension(const filename_t &fname)
+SPDLOG_INLINE std::tuple<filename_t, filename_t> file_helper::split_by_extension(filename_t const& fname)
 {
     auto ext_index = fname.rfind('.');
 
     // no valid extension found - return whole path and empty string as
     // extension
-    if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1)
-    {
-        return std::make_tuple(fname, filename_t());
-    }
+    if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1) { return std::make_tuple(fname, filename_t()); }
 
     // treat cases like "/etc/rc.d/somelogfile or "/abc/.hiddenfile"
     auto folder_index = fname.find_last_of(details::os::folder_seps_filename);
-    if (folder_index != filename_t::npos && folder_index >= ext_index - 1)
-    {
-        return std::make_tuple(fname, filename_t());
-    }
+    if (folder_index != filename_t::npos && folder_index >= ext_index - 1) { return std::make_tuple(fname, filename_t()); }
 
     // finally - return a valid base and extension tuple
     return std::make_tuple(fname.substr(0, ext_index), fname.substr(ext_index));
 }
 
-} // namespace storm::logging::details
+}  // namespace storm::logging::details

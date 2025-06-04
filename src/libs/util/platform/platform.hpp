@@ -4,12 +4,12 @@
 #define PATH_SEP '\\'
 #define WRONG_PATH_SEP '/'
 
-inline const char *convert_path_sep(const char *cPath)
+inline char const* convert_path_sep(char const* cPath)
 {
     return cPath;
 }
 
-#else // NOT _WIN32
+#else  // NOT _WIN32
 
 #include <cerrno>
 #include <climits>
@@ -21,7 +21,7 @@ inline const char *convert_path_sep(const char *cPath)
 #include "d3dx9.hpp"
 #include "winuser.rh"
 
-#undef EXTERN // fix for token.h:72:5: error: expected identifier EXTERN,
+#undef EXTERN  // fix for token.h:72:5: error: expected identifier EXTERN,
 
 #define MAX_PATH PATH_MAX
 #define _MAX_FNAME NAME_MAX
@@ -30,38 +30,32 @@ inline const char *convert_path_sep(const char *cPath)
 #define PATH_SEP '/'
 #define WRONG_PATH_SEP '\\'
 
-inline char *convert_path_sep(const char *cPath)
+inline char* convert_path_sep(char const* cPath)
 {
-    const auto len = strlen(cPath) + 1;
-    auto newPath = new char[len];
+    auto const len     = strlen(cPath) + 1;
+    auto       newPath = new char[len];
     strcpy(newPath, cPath);
 
-    while (char *sep = strchr(newPath, '\\'))
+    while (char* sep = strchr(newPath, '\\'))
         *sep = '/';
 
     return newPath;
 }
 
-inline int strcat_s(char * dest, size_t num, const char * source)
+inline int strcat_s(char* dest, size_t num, char const* source)
 {
-    if(!dest)
-        return EINVAL;
+    if (!dest) return EINVAL;
 
-    if(!source)
-    {
+    if (!source) {
         dest[0] = '\0';
         return EINVAL;
     }
 
     size_t i, j;
-    for(i = 0; i < num; i++)
-    {
-        if(dest[i] == '\0')
-        {
-            for(j = 0; (j + i) < num; j++)
-            {
-                if((dest[j + i] = source[j]) == '\0')
-                    return 0;
+    for (i = 0; i < num; i++) {
+        if (dest[i] == '\0') {
+            for (j = 0; (j + i) < num; j++) {
+                if ((dest[j + i] = source[j]) == '\0') return 0;
             }
         }
     }
@@ -70,71 +64,64 @@ inline int strcat_s(char * dest, size_t num, const char * source)
     return ERANGE;
 }
 
-template <size_t size> inline int strcat_s(char (&dest)[size], const char *src)
+template <size_t size>
+inline int strcat_s(char (&dest)[size], char const* src)
 {
     return strcat_s(dest, size, src);
 }
 
-inline int strcpy_s(char *dest, size_t num, const char *source)
+inline int strcpy_s(char* dest, size_t num, char const* source)
 {
-    if(!dest)
-        return EINVAL;
+    if (!dest) return EINVAL;
 
-    if(0 == num)
-    {
+    if (0 == num) {
         dest[0] = '\0';
         return ERANGE;
     }
 
-    if(!source)
-    {
+    if (!source) {
         dest[0] = '\0';
         return EINVAL;
     }
 
     size_t i;
-    for(i = 0; i < num; i++)
-    {
-        if((dest[i] = source[i]) == '\0')
-            return 0;
+    for (i = 0; i < num; i++) {
+        if ((dest[i] = source[i]) == '\0') return 0;
     }
     dest[0] = '\0';
     return ERANGE;
 }
 
-template <size_t size> inline int strcpy_s(char (&dest)[size], const char *src)
+template <size_t size>
+inline int strcpy_s(char (&dest)[size], char const* src)
 {
     return strcpy_s(dest, size, src);
 }
 
-inline int strncpy_s(char * dest, size_t dst_size, const char * source, size_t num)
+inline int strncpy_s(char* dest, size_t dst_size, char const* source, size_t num)
 {
-    if (!dest || (0 == dst_size))
-        return EINVAL;
+    if (!dest || (0 == dst_size)) return EINVAL;
 
-    if(0 == num)
-    {
+    if (0 == num) {
         dest[0] = '\0';
         return 0;
     }
 
-    if (!source)
-    {
+    if (!source) {
         dest[0] = '\0';
         return EINVAL;
     }
 
     size_t i, end;
-    if(num < dst_size)
+    if (num < dst_size)
         end = num;
     else
         end = dst_size - 1;
 
-    for(i = 0; i < end && source[i]; i++)
+    for (i = 0; i < end && source[i]; i++)
         dest[i] = source[i];
 
-    if(!source[i] || end == num)
-    {
+    if (!source[i] || end == num) {
         dest[i] = '\0';
         return 0;
     }
@@ -144,12 +131,13 @@ inline int strncpy_s(char * dest, size_t dst_size, const char * source, size_t n
     return EINVAL;
 }
 
-template <size_t size> inline int strncpy_s(char (&dest)[size], const char *src, size_t count)
+template <size_t size>
+inline int strncpy_s(char (&dest)[size], char const* src, size_t count)
 {
     return strncpy_s(dest, size, src, count);
 }
 
-inline int sprintf_s(char *buffer, size_t size, const char *format, ...)
+inline int sprintf_s(char* buffer, size_t size, char const* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -158,7 +146,8 @@ inline int sprintf_s(char *buffer, size_t size, const char *format, ...)
     return result;
 }
 
-template <size_t size> inline int sprintf_s(char (&buffer)[size], const char *format, ...)
+template <size_t size>
+inline int sprintf_s(char (&buffer)[size], char const* format, ...)
 {
     va_list args;
     va_start(args, format);

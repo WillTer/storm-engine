@@ -2,25 +2,24 @@
 
 #include <thread>
 
-#include "fader.h"
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
 #include <libs/util/string_compare.hpp>
 
+#include "fader.h"
 
 //============================================================================================
 
-struct LocationFindCacheElement
-{
+struct LocationFindCacheElement {
     LocationFindCacheElement()
     {
-        name = nullptr;
-        size = 0;
-        max = 0;
+        name  = nullptr;
+        size  = 0;
+        max   = 0;
         index = -1;
-        use = 0;
+        use   = 0;
     };
 
     ~LocationFindCacheElement()
@@ -28,20 +27,17 @@ struct LocationFindCacheElement
         delete name;
     };
 
-    int32_t Cmp(const LocationFindCacheElement &v) const
+    int32_t Cmp(LocationFindCacheElement const& v) const
     {
-        if (v.size != size)
-            return false;
-        if (storm::iEquals(v.name, name))
-            return true;
+        if (v.size != size) return false;
+        if (storm::iEquals(v.name, name)) return true;
         return false;
     };
 
-    void Set(const char *str)
+    void Set(char const* str)
     {
         size = strlen(str) + 1;
-        if (size > max)
-        {
+        if (size > max) {
             max = (size + 15) & ~15;
             delete name;
             name = new char[max];
@@ -49,7 +45,7 @@ struct LocationFindCacheElement
         memcpy(name, str, size);
     };
 
-    char *name;
+    char*   name;
     int32_t size;
     int32_t max;
     int32_t index;
@@ -60,105 +56,83 @@ LocationFindCacheElement charactersFindCache[16];
 LocationFindCacheElement locationsFindCache[8];
 LocationFindCacheElement charactersFindBuf;
 
-inline bool CheckID(VDATA *vd, const char *id, bool &res)
+inline bool CheckID(VDATA* vd, char const* id, bool& res)
 {
     res = false;
-    if (!vd || !id || !id[0])
-        return false;
-    auto *a = vd->GetAClass();
-    if (!a)
-        return false;
+    if (!vd || !id || !id[0]) return false;
+    auto* a = vd->GetAClass();
+    if (!a) return false;
     a = a->GetAttributeClass("id");
-    if (!a)
-        return true;
-    if (!a->HasValue())
-    {
-        return true;
-    }
+    if (!a) return true;
+    if (!a->HasValue()) { return true; }
     res = storm::iEquals(to_string(a->GetThisAttr()), id);
     return true;
 }
 
-void slAddToCache(LocationFindCacheElement *element, int32_t size, const char *name, int32_t index)
+void slAddToCache(LocationFindCacheElement* element, int32_t size, char const* name, int32_t index)
 {
     Assert(name);
     Assert(name[0]);
     // looking for a cell for recording
     int32_t j = 0;
-    for (int32_t i = 0, min = element[i].use; i < size; i++)
-    {
-        if (element[i].index < 0)
-        {
+    for (int32_t i = 0, min = element[i].use; i < size; i++) {
+        if (element[i].index < 0) {
             j = i;
             break;
         }
-        if (element[i].use < min)
-        {
-            j = i;
+        if (element[i].use < min) {
+            j   = i;
             min = element[i].use;
         }
     }
     element[j].index = index;
-    element[j].use = 16;
+    element[j].use   = 16;
     element[j].Set(name);
 }
 
-uint32_t slNativeFastFind(VS_STACK *pS, LocationFindCacheElement *cache, int32_t cacheSize)
+uint32_t slNativeFastFind(VS_STACK* pS, LocationFindCacheElement* cache, int32_t cacheSize)
 {
     // Get strings
-    auto *pStr = (VDATA *)pS->Pop();
-    const char *nm = nullptr;
-    if (!pStr->Get(nm))
-        return IFUNCRESULT_FAILED;
+    auto*       pStr = (VDATA*)pS->Pop();
+    char const* nm   = nullptr;
+    if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     if (nm)
         charactersFindBuf.Set(nm);
     else
         charactersFindBuf.Set("");
     // Array of characters
-    auto *pArray = (VDATA *)pS->Pop();
-    if (!pArray)
-        return IFUNCRESULT_FAILED;
-    pArray = (VDATA *)pArray->GetReference();
-    if (!pArray)
-        return IFUNCRESULT_FAILED;
+    auto* pArray = (VDATA*)pS->Pop();
+    if (!pArray) return IFUNCRESULT_FAILED;
+    pArray = (VDATA*)pArray->GetReference();
+    if (!pArray) return IFUNCRESULT_FAILED;
     // Return value
-    auto *pReturn = (VDATA *)pS->Push();
-    if (!pReturn)
-        return IFUNCRESULT_FAILED;
-    if (!charactersFindBuf.name[0])
-    {
+    auto* pReturn = (VDATA*)pS->Push();
+    if (!pReturn) return IFUNCRESULT_FAILED;
+    if (!charactersFindBuf.name[0]) {
         pReturn->Set(-1);
         return IFUNCRESULT_OK;
     }
     // Lowering the cache usage values
-    for (int32_t i = 0; i < cacheSize; i++)
-    {
+    for (int32_t i = 0; i < cacheSize; i++) {
         cache[i].use--;
-        if (cache[i].use < 0)
-            cache[i].use = 0;
+        if (cache[i].use < 0) cache[i].use = 0;
     }
     // look in the cache
     bool res;
-    for (int32_t i = 0; i < cacheSize; i++)
-    {
-        if (cache[i].index < 0)
-            continue;
-        if (!cache[i].Cmp(charactersFindBuf))
-            continue;
+    for (int32_t i = 0; i < cacheSize; i++) {
+        if (cache[i].index < 0) continue;
+        if (!cache[i].Cmp(charactersFindBuf)) continue;
         // Checking for the correctness of the cache value
-        if (static_cast<uint32_t>(cache[i].index) >= pArray->GetElementsNum())
-        {
+        if (static_cast<uint32_t>(cache[i].index) >= pArray->GetElementsNum()) {
             cache[i].index = -1;
             continue;
         }
-        auto *vd = (VDATA *)pArray->GetArrayElement(cache[i].index);
-        if (!CheckID(vd, charactersFindBuf.name, res))
-        {
+        auto* vd = (VDATA*)pArray->GetArrayElement(cache[i].index);
+        if (!CheckID(vd, charactersFindBuf.name, res)) {
             cache[i].index = -1;
             continue;
         }
-        if (res)
-        {
+        if (res) {
             // Found in cache, return
             cache[i].use++;
             pReturn->Set(cache[i].index);
@@ -166,14 +140,11 @@ uint32_t slNativeFastFind(VS_STACK *pS, LocationFindCacheElement *cache, int32_t
         }
     }
     // Have to search through the array
-    const int32_t num = pArray->GetElementsNum();
-    for (int32_t i = 0; i < num; i++)
-    {
-        auto *const vd = (VDATA *)pArray->GetArrayElement(i);
-        if (CheckID(vd, charactersFindBuf.name, res))
-        {
-            if (res)
-            {
+    int32_t const num = pArray->GetElementsNum();
+    for (int32_t i = 0; i < num; i++) {
+        auto* const vd = (VDATA*)pArray->GetArrayElement(i);
+        if (CheckID(vd, charactersFindBuf.name, res)) {
+            if (res) {
                 slAddToCache(cache, cacheSize, charactersFindBuf.name, i);
                 pReturn->Set(i);
                 return IFUNCRESULT_OK;
@@ -185,104 +156,90 @@ uint32_t slNativeFastFind(VS_STACK *pS, LocationFindCacheElement *cache, int32_t
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeFindCharacter(VS_STACK *pS)
+uint32_t slNativeFindCharacter(VS_STACK* pS)
 {
     return slNativeFastFind(pS, charactersFindCache, sizeof(charactersFindCache) / sizeof(LocationFindCacheElement));
 }
 
-uint32_t slNativeFindLocation(VS_STACK *pS)
+uint32_t slNativeFindLocation(VS_STACK* pS)
 {
     return slNativeFastFind(pS, locationsFindCache, sizeof(locationsFindCache) / sizeof(LocationFindCacheElement));
 }
 
-uint32_t slNativeFindLaodLocation(VS_STACK *pS)
+uint32_t slNativeFindLaodLocation(VS_STACK* pS)
 {
     // Return value
-    auto pReturn = (VDATA *)pS->Push();
-    if (!pReturn)
-        return IFUNCRESULT_FAILED;
+    auto pReturn = (VDATA*)pS->Push();
+    if (!pReturn) return IFUNCRESULT_FAILED;
     // Looking for a location
-    const auto loc = core.GetEntityId("location");
-    if (!loc)
-    {
+    auto const loc = core.GetEntityId("location");
+    if (!loc) {
         pReturn->Set(-1);
         return IFUNCRESULT_OK;
     }
-    Entity *l = core.GetEntityPointer(loc);
-    if (!l || !l->AttributesPointer)
-    {
+    Entity* l = core.GetEntityPointer(loc);
+    if (!l || !l->AttributesPointer) {
         pReturn->Set(-1);
         return IFUNCRESULT_OK;
     }
-    const int32_t index = l->AttributesPointer->GetAttributeAsDword("index", -1L);
+    int32_t const index = l->AttributesPointer->GetAttributeAsDword("index", -1L);
     pReturn->Set(index);
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeSetReloadBackImage(VS_STACK *pS)
+uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
 {
     // Get strings
-    auto pStr = (VDATA *)pS->Pop();
-    const char *nm = nullptr;
-    if (!pStr->Get(nm))
-        return IFUNCRESULT_FAILED;
+    auto        pStr = (VDATA*)pS->Pop();
+    char const* nm   = nullptr;
+    if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Setting the picture
-    auto rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (rs)
-    {
-        rs->SetProgressImage(nm);
-    }
+    auto rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (rs) { rs->SetProgressImage(nm); }
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeReloadProgressStart(VS_STACK *pS)
+uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (rs)
-        rs->StartProgressView();
+    auto rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (rs) rs->StartProgressView();
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeReloadProgressUpdate(VS_STACK *pS)
+uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (rs)
-        rs->ProgressView();
+    auto rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (rs) rs->ProgressView();
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeReloadProgressEnd(VS_STACK *pS)
+uint32_t slNativeReloadProgressEnd(VS_STACK* pS)
 {
-    auto *rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (rs)
-        rs->EndProgressView();
+    auto* rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (rs) rs->EndProgressView();
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeSleep(VS_STACK *pS)
+uint32_t slNativeSleep(VS_STACK* pS)
 {
     // Get strings
-    auto *pInt = (VDATA *)pS->Pop();
+    auto*   pInt  = (VDATA*)pS->Pop();
     int32_t delay = 1;
-    if (!pInt || !pInt->Get(delay))
-        return IFUNCRESULT_FAILED;
-    if (delay < 1)
-        delay = 1;
+    if (!pInt || !pInt->Get(delay)) return IFUNCRESULT_FAILED;
+    if (delay < 1) delay = 1;
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeExecuteTechnique(VS_STACK *pS)
+uint32_t slNativeExecuteTechnique(VS_STACK* pS)
 {
     // Get string
-    auto pStr = (VDATA *)pS->Pop();
-    const char *nm = nullptr;
-    if (!pStr->Get(nm))
-        return IFUNCRESULT_FAILED;
+    auto        pStr = (VDATA*)pS->Pop();
+    char const* nm   = nullptr;
+    if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Execute technique
-    if (nm && nm[0])
-    {
-        auto *rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
+    if (nm && nm[0]) {
+        auto* rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
         rs->TechniqueExecuteStart(nm);
         while (rs->TechniqueExecuteNext())
             ;
@@ -290,24 +247,20 @@ uint32_t slNativeExecuteTechnique(VS_STACK *pS)
     return IFUNCRESULT_OK;
 }
 
-uint32_t slGetNextLineString(VS_STACK *pS)
+uint32_t slGetNextLineString(VS_STACK* pS)
 {
     // Return value
-    auto *pReturn = (VDATA *)pS->Push();
-    if (!pReturn)
-        return IFUNCRESULT_FAILED;
+    auto* pReturn = (VDATA*)pS->Push();
+    if (!pReturn) return IFUNCRESULT_FAILED;
     pReturn->Set("\r\n");
     return IFUNCRESULT_OK;
 }
 
-uint32_t slNativeSetReloadNextTipsImage(VS_STACK *pS)
+uint32_t slNativeSetReloadNextTipsImage(VS_STACK* pS)
 {
-    if (Fader::numberOfTips <= 0)
-    {
+    if (Fader::numberOfTips <= 0) {
         Fader::currentTips = -1;
-    }
-    else
-    {
+    } else {
         Fader::currentTips = rand() % Fader::numberOfTips;
     }
     return IFUNCRESULT_OK;
@@ -318,70 +271,70 @@ uint32_t slNativeSetReloadNextTipsImage(VS_STACK *pS)
 bool ScriptLocationLibrary::Init()
 {
     IFUNCINFO sIFuncInfo;
-    sIFuncInfo.nArguments = 2;
-    sIFuncInfo.pFuncName = "NativeFindCharacter";
+    sIFuncInfo.nArguments       = 2;
+    sIFuncInfo.pFuncName        = "NativeFindCharacter";
     sIFuncInfo.pReturnValueName = "int";
-    sIFuncInfo.pFuncAddress = slNativeFindCharacter;
+    sIFuncInfo.pFuncAddress     = slNativeFindCharacter;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 2;
-    sIFuncInfo.pFuncName = "NativeFindLocation";
+    sIFuncInfo.nArguments       = 2;
+    sIFuncInfo.pFuncName        = "NativeFindLocation";
     sIFuncInfo.pReturnValueName = "int";
-    sIFuncInfo.pFuncAddress = slNativeFindLocation;
+    sIFuncInfo.pFuncAddress     = slNativeFindLocation;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "NativeFindLoadCharacter";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "NativeFindLoadCharacter";
     sIFuncInfo.pReturnValueName = "int";
-    sIFuncInfo.pFuncAddress = slNativeFindLaodLocation;
+    sIFuncInfo.pFuncAddress     = slNativeFindLaodLocation;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 1;
-    sIFuncInfo.pFuncName = "SetReloadProgressBackImage";
+    sIFuncInfo.nArguments       = 1;
+    sIFuncInfo.pFuncName        = "SetReloadProgressBackImage";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeSetReloadBackImage;
+    sIFuncInfo.pFuncAddress     = slNativeSetReloadBackImage;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "SetReloadNextTipsImage";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "SetReloadNextTipsImage";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeSetReloadNextTipsImage;
+    sIFuncInfo.pFuncAddress     = slNativeSetReloadNextTipsImage;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "ReloadProgressStart";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "ReloadProgressStart";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeReloadProgressStart;
+    sIFuncInfo.pFuncAddress     = slNativeReloadProgressStart;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "ReloadProgressUpdate";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "ReloadProgressUpdate";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeReloadProgressUpdate;
+    sIFuncInfo.pFuncAddress     = slNativeReloadProgressUpdate;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "ReloadProgressEnd";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "ReloadProgressEnd";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeReloadProgressEnd;
+    sIFuncInfo.pFuncAddress     = slNativeReloadProgressEnd;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 1;
-    sIFuncInfo.pFuncName = "SystemDelay";
+    sIFuncInfo.nArguments       = 1;
+    sIFuncInfo.pFuncName        = "SystemDelay";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeSleep;
+    sIFuncInfo.pFuncAddress     = slNativeSleep;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 1;
-    sIFuncInfo.pFuncName = "ExecuteTechnique";
+    sIFuncInfo.nArguments       = 1;
+    sIFuncInfo.pFuncName        = "ExecuteTechnique";
     sIFuncInfo.pReturnValueName = "void";
-    sIFuncInfo.pFuncAddress = slNativeExecuteTechnique;
+    sIFuncInfo.pFuncAddress     = slNativeExecuteTechnique;
     core.SetScriptFunction(&sIFuncInfo);
 
-    sIFuncInfo.nArguments = 0;
-    sIFuncInfo.pFuncName = "GetNextLineString";
+    sIFuncInfo.nArguments       = 0;
+    sIFuncInfo.pFuncName        = "GetNextLineString";
     sIFuncInfo.pReturnValueName = "string";
-    sIFuncInfo.pFuncAddress = slGetNextLineString;
+    sIFuncInfo.pFuncAddress     = slGetNextLineString;
     core.SetScriptFunction(&sIFuncInfo);
 
     return true;

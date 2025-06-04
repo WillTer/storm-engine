@@ -6,18 +6,18 @@
 
 class Lights;
 
-class LocModelRealizer : public Entity
+class LocModelRealizer: public Entity
 {
-    entid_t eid_model;
-    Lights *lights;
-    VDX9RENDER *rs;
-    VGEOMETRY *gs;
-    bool bShow;
+    entid_t     eid_model;
+    Lights*     lights;
+    VDX9RENDER* rs;
+    VGEOMETRY*  gs;
+    bool        bShow;
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     LocModelRealizer();
     ~LocModelRealizer() override;
 
@@ -29,11 +29,8 @@ class LocModelRealizer : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -45,5 +42,5 @@ class LocModelRealizer : public Entity
     }
 
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 };

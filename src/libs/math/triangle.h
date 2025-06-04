@@ -2,7 +2,6 @@
 
 #include "c_vector.h"
 
-struct TRIANGLE
-{
+struct TRIANGLE {
     CVECTOR vrt[3];
 };

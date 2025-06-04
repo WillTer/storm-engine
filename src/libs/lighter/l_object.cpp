@@ -14,10 +14,6 @@
 // Construction, destruction
 // ============================================================================================
 
-LObject::LObject()
-{
-}
+LObject::LObject() {}
 
-LObject::~LObject()
-{
-}
+LObject::~LObject() {}

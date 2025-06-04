@@ -17,22 +17,21 @@
 
 class ISLAND_DESCRIBER
 {
-  public:
+public:
     ISLAND_DESCRIBER();
     ~ISLAND_DESCRIBER();
 
-    struct LOCATOR_DESCR
-    {
-        int locatorType;
-        int relation;
-        ATTRIBUTES *pA;
-        float x, z, r;
-        const char *pchr_note;
-        int picIdx;
-        int selPicIdx;
-        int texIdx;
-        int32_t characterIndex;
-        bool bDiseased;
+    struct LOCATOR_DESCR {
+        int         locatorType;
+        int         relation;
+        ATTRIBUTES* pA;
+        float       x, z, r;
+        char const* pchr_note;
+        int         picIdx;
+        int         selPicIdx;
+        int         texIdx;
+        int32_t     characterIndex;
+        bool        bDiseased;
     };
 
     void ReleaseAll();
@@ -42,29 +41,29 @@ class ISLAND_DESCRIBER
         return m_bYesIsland;
     }
 
-    void SetIsland(ATTRIBUTES *pAIsland);
-    LOCATOR_DESCR *GetFirstLocator();
-    LOCATOR_DESCR *GetFirstLand();
-    LOCATOR_DESCR *GetFirstFort();
-    LOCATOR_DESCR *GetFirstFriendFort();
-    LOCATOR_DESCR *GetFirstNeutralFort();
-    LOCATOR_DESCR *GetFirstEnemyFort();
-    LOCATOR_DESCR *GetFirstBrokenFort();
-    LOCATOR_DESCR *GetNext();
-    LOCATOR_DESCR *FindLocatorByName(char *name) const;
+    void           SetIsland(ATTRIBUTES* pAIsland);
+    LOCATOR_DESCR* GetFirstLocator();
+    LOCATOR_DESCR* GetFirstLand();
+    LOCATOR_DESCR* GetFirstFort();
+    LOCATOR_DESCR* GetFirstFriendFort();
+    LOCATOR_DESCR* GetFirstNeutralFort();
+    LOCATOR_DESCR* GetFirstEnemyFort();
+    LOCATOR_DESCR* GetFirstBrokenFort();
+    LOCATOR_DESCR* GetNext();
+    LOCATOR_DESCR* FindLocatorByName(char* name) const;
 
     void Refresh() const;
 
-  protected:
-    LOCATOR_DESCR *FindLocator(LOCATOR_DESCR *p, size_t nMax);
+protected:
+    LOCATOR_DESCR* FindLocator(LOCATOR_DESCR* p, size_t nMax);
 
-    bool m_bYesIsland;
-    ATTRIBUTES *m_pIslandAttributes;
-    LOCATOR_DESCR *m_pLocators;
-    size_t m_nLocators;
+    bool           m_bYesIsland;
+    ATTRIBUTES*    m_pIslandAttributes;
+    LOCATOR_DESCR* m_pLocators;
+    size_t         m_nLocators;
     // find data
     size_t m_lastFindIdx;
-    int m_nFindType;
+    int    m_nFindType;
 };
 
 extern ISLAND_DESCRIBER g_IslandDescr;

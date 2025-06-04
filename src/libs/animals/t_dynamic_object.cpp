@@ -1,18 +1,15 @@
 #include "t_dynamic_object.h"
+
 #include <libs/util/rands.h>
 
 //--------------------------------------------------------------------
-TDynamicObject::TDynamicObject()
-{
-}
+TDynamicObject::TDynamicObject() {}
 
 //--------------------------------------------------------------------
-TDynamicObject::~TDynamicObject()
-{
-}
+TDynamicObject::~TDynamicObject() {}
 
 //--------------------------------------------------------------------
-void TDynamicObject::Initialize(const CVECTOR &_center, float _radius)
+void TDynamicObject::Initialize(const CVECTOR& _center, float _radius)
 {
     pos.x = _center.x + randCentered(_radius);
     pos.y = 0.0f;
@@ -22,33 +19,28 @@ void TDynamicObject::Initialize(const CVECTOR &_center, float _radius)
 }
 
 //--------------------------------------------------------------------
-void TDynamicObject::Calculate(TDynamicObject **a, int aCount, TDynamicObject **d, int dCount, float _k)
+void TDynamicObject::Calculate(TDynamicObject** a, int aCount, TDynamicObject** d, int dCount, float _k)
 {
     // ang = fmod(ang, 2.0*PI);
 
-    CVECTOR aEffect(0.0f, 0.0f, 0.0f);
-    CVECTOR dEffect(0.0f, 0.0f, 0.0f);
-    TDynamicObject **effectObject;
-    int i;
+    CVECTOR          aEffect(0.0f, 0.0f, 0.0f);
+    CVECTOR          dEffect(0.0f, 0.0f, 0.0f);
+    TDynamicObject** effectObject;
+    int              i;
 
-    for (i = 0, effectObject = a; i < aCount; i++, effectObject++)
-    {
-        if (!(*effectObject) || (this == *effectObject))
-            continue;
+    for (i = 0, effectObject = a; i < aCount; i++, effectObject++) {
+        if (!(*effectObject) || (this == *effectObject)) continue;
 
         aEffect += ATTRACT_FACTOR * ((*effectObject)->pos - pos);
     }
 
-    for (i = 0, effectObject = d; i < dCount; i++, effectObject++)
-    {
-        if (!(*effectObject) || (this == *effectObject))
-            continue;
+    for (i = 0, effectObject = d; i < dCount; i++, effectObject++) {
+        if (!(*effectObject) || (this == *effectObject)) continue;
 
         CVECTOR delta;
-        delta = (*effectObject)->pos - pos;
+        delta  = (*effectObject)->pos - pos;
         auto d = static_cast<float>(sqrt(~delta));
-        if (d < 1e-10f)
-            d = 1e-10f;
+        if (d < 1e-10f) d = 1e-10f;
         dEffect += DEFLECT_FACTOR * !delta / d;
     }
 
@@ -126,7 +118,7 @@ void TDynamicObject::Draw(HDC _dc, DWORD _color)
 }
 */
 //--------------------------------------------------------------------
-void TDynamicObject::SetXYZ(const CVECTOR &_pos)
+void TDynamicObject::SetXYZ(const CVECTOR& _pos)
 {
     pos = _pos;
 }

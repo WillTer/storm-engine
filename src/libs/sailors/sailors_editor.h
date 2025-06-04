@@ -4,26 +4,22 @@
 #include <libs/renderer/dx9render.h>
 #include <libs/ship/ship_base.h>
 
-
 #include "sailors_menu.h"
 
-class SailorsEditor : public Entity
+class SailorsEditor: public Entity
 {
-  public:
+public:
     SailorsEditor();
     ~SailorsEditor() override;
 
-    bool Init() override;
+    bool         Init() override;
     virtual void Execute(uint32_t dltTime);
     virtual void Realize(uint32_t dltTime);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -34,12 +30,12 @@ class SailorsEditor : public Entity
         }
     }
 
-    VDX9RENDER *rs;
-    entid_t sailors;
-    entid_t shipID;
-    entid_t pointID;
+    VDX9RENDER* rs;
+    entid_t     sailors;
+    entid_t     shipID;
+    entid_t     pointID;
 
-    MODEL *model;
+    MODEL* model;
 
     CVECTOR cameraPos;
     CVECTOR cameraTo;
@@ -50,6 +46,6 @@ class SailorsEditor : public Entity
 
     std::string _shipName;
 
-    void SetCamera(uint32_t &dltTime);
+    void SetCamera(uint32_t& dltTime);
     void LoadFromIni(std::string fileName);
 };

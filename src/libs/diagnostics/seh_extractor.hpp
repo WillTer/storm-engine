@@ -4,11 +4,12 @@
 
 #include <ehdata.h>
 
-class [[nodiscard]] seh_extractor {
+class [[nodiscard]] seh_extractor
+{
 public:
-    typedef void (*sink_func)(const char *);
+    typedef void (*sink_func)(char const*);
 
-    explicit seh_extractor(const EXCEPTION_POINTERS * ep);
+    explicit seh_extractor(const EXCEPTION_POINTERS* ep);
 
     // test if exception is abnormal
     [[nodiscard]] bool is_abnormal() const;
@@ -16,9 +17,9 @@ public:
     // printout exception data to the provided sink
     void sink(sink_func f) const;
 
-  private:
-    void sink(sink_func f, EXCEPTION_RECORD *next) const;
+private:
+    void sink(sink_func f, EXCEPTION_RECORD* next) const;
 
-    const EXCEPTION_POINTERS* ep_{};
-    DWORD code_{};
+    const EXCEPTION_POINTERS* ep_ {};
+    DWORD                     code_ {};
 };

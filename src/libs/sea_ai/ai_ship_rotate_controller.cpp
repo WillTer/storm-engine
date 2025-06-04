@@ -1,20 +1,18 @@
 #include "ai_ship.h"
 
-AIShipRotateController::AIShipRotateController(AIShip *pShip)
+AIShipRotateController::AIShipRotateController(AIShip* pShip)
 {
-    fRotate = 0.0f;
-    dwRotateNum = 0;
-    fRotateSmooth = 0.0f;
-    fRotateTime = 0.0f;
-    fRotateMode = 0.0f;
+    fRotate         = 0.0f;
+    dwRotateNum     = 0;
+    fRotateSmooth   = 0.0f;
+    fRotateTime     = 0.0f;
+    fRotateMode     = 0.0f;
     fGlobalMultiply = 1.0f;
 
     SetAIShip(pShip);
 }
 
-AIShipRotateController::~AIShipRotateController()
-{
-}
+AIShipRotateController::~AIShipRotateController() {}
 
 bool AIShipRotateController::Init()
 {
@@ -23,21 +21,17 @@ bool AIShipRotateController::Init()
 
 void AIShipRotateController::Execute(float fDeltaTime)
 {
-    if (GetAIShip()->isMainCharacter())
-        return;
+    if (GetAIShip()->isMainCharacter()) return;
     fRotateTime += fDeltaTime;
     dwRotateNum++;
-    if (fRotate < -1.0f)
-        fRotate = -1.0f;
-    if (fRotate > 1.0f)
-        fRotate = 1.0f;
+    if (fRotate < -1.0f) fRotate = -1.0f;
+    if (fRotate > 1.0f) fRotate = 1.0f;
     fRotateSmooth += fRotate;
-    if (fRotateTime >= 1.0f)
-    {
-        fRotateMode = fRotateSmooth / static_cast<float>(dwRotateNum);
-        fRotateTime = 0.0f;
+    if (fRotateTime >= 1.0f) {
+        fRotateMode   = fRotateSmooth / static_cast<float>(dwRotateNum);
+        fRotateTime   = 0.0f;
         fRotateSmooth = 0.0f;
-        dwRotateNum = 0;
+        dwRotateNum   = 0;
     }
 
     fRotate = 0.0f;
@@ -58,11 +52,10 @@ void AIShipRotateController::AddRotate(float _fRotate)
 
 void AIShipRotateController::SetGlobalMultiply(float _fGlobalMultiply)
 {
-    if (_fGlobalMultiply < fGlobalMultiply)
-        fGlobalMultiply = _fGlobalMultiply;
+    if (_fGlobalMultiply < fGlobalMultiply) fGlobalMultiply = _fGlobalMultiply;
 }
 
-void AIShipRotateController::Save(CSaveLoad *pSL) const
+void AIShipRotateController::Save(CSaveLoad* pSL) const
 {
     pSL->SaveDword(dwRotateNum);
     pSL->SaveFloat(fRotateMode);
@@ -72,12 +65,12 @@ void AIShipRotateController::Save(CSaveLoad *pSL) const
     pSL->SaveFloat(fGlobalMultiply);
 }
 
-void AIShipRotateController::Load(CSaveLoad *pSL)
+void AIShipRotateController::Load(CSaveLoad* pSL)
 {
-    dwRotateNum = pSL->LoadDword();
-    fRotateMode = pSL->LoadFloat();
-    fRotateTime = pSL->LoadFloat();
-    fRotateSmooth = pSL->LoadFloat();
-    fRotate = pSL->LoadFloat();
+    dwRotateNum     = pSL->LoadDword();
+    fRotateMode     = pSL->LoadFloat();
+    fRotateTime     = pSL->LoadFloat();
+    fRotateSmooth   = pSL->LoadFloat();
+    fRotate         = pSL->LoadFloat();
     fGlobalMultiply = pSL->LoadFloat();
 }

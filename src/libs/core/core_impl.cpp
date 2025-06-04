@@ -3,7 +3,6 @@
 #include <fstream>
 
 #include <SDL2/SDL.h>
-
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
@@ -11,7 +10,7 @@
 #include "compiler.h"
 #include "controls.h"
 
-Core &core = core_internal;
+Core& core = core_internal;
 
 uint64_t get_performance_counter()
 {
@@ -22,51 +21,39 @@ namespace storm
 {
 namespace
 {
-ENGINE_VERSION getTargetEngineVersion(const std::string_view &version)
+ENGINE_VERSION getTargetEngineVersion(std::string_view const& version)
 {
     using namespace std::string_view_literals;
 
-    if (iEquals(version, "sd"sv))
-    {
+    if (iEquals(version, "sd"sv)) {
         return ENGINE_VERSION::SEA_DOGS;
-    }
-    else if (iEquals(version, "potc"sv))
-    {
+    } else if (iEquals(version, "potc"sv)) {
         return ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN;
-    }
-    else if (iEquals(version, "ct"sv))
-    {
+    } else if (iEquals(version, "ct"sv)) {
         return ENGINE_VERSION::CARIBBEAN_TALES;
-    }
-    else if (iEquals(version, "coas"sv))
-    {
+    } else if (iEquals(version, "coas"sv)) {
         return ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS;
-    }
-    else if (iEquals(version, "teho"sv))
-    {
+    } else if (iEquals(version, "teho"sv)) {
         return ENGINE_VERSION::TO_EACH_HIS_OWN;
-    }
-    else if (iEquals(version, "latest"sv))
-    {
+    } else if (iEquals(version, "latest"sv)) {
         return ENGINE_VERSION::LATEST;
     }
 
     return ENGINE_VERSION::UNKNOWN;
 }
-} // namespace
-} // namespace storm
+}  // namespace
+}  // namespace storm
 
 uint32_t dwNumberScriptCommandsExecuted = 0;
 
-typedef struct
-{
+typedef struct {
     uint32_t code;
-    void *pointer;
+    void*    pointer;
 } CODE_AND_POINTER;
 
 void CoreImpl::ResetCore()
 {
-    Initialized = false;
+    Initialized         = false;
     bEngineIniProcessed = false;
 
     ReleaseServices();
@@ -78,7 +65,7 @@ void CoreImpl::ResetCore()
 
 void CoreImpl::CleanUp()
 {
-    Initialized = false;
+    Initialized         = false;
     bEngineIniProcessed = false;
     ReleaseServices();
     Compiler->Release();
@@ -94,15 +81,15 @@ void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
 
 void CoreImpl::Init()
 {
-    Initialized = false;
+    Initialized         = false;
     bEngineIniProcessed = false;
-    State_file_name = nullptr;
-    Exit_flag = false;
-    State_loading = false;
-    Memory_Leak_flag = false;
-    Controls = nullptr;
-    fTimeScale = 1.0f;
-    Compiler = new COMPILER;
+    State_file_name     = nullptr;
+    Exit_flag           = false;
+    State_loading       = false;
+    Memory_Leak_flag    = false;
+    Controls            = nullptr;
+    fTimeScale          = 1.0f;
+    Compiler            = new COMPILER;
 
     /* TODO: place this outside CoreImpl */
     SetLayerType(EXECUTE, layer_type_t::execute);
@@ -136,52 +123,41 @@ bool CoreImpl::Run()
 {
     stopFrameProcessing_ = false;
 
-    const auto bDebugWindow = true;
-    if (bDebugWindow && core_internal.Controls && core_internal.Controls->GetDebugAsyncKeyState(VK_F7) < 0)
-        DumpEntitiesInfo();
+    auto const bDebugWindow = true;
+    if (bDebugWindow && core_internal.Controls && core_internal.Controls->GetDebugAsyncKeyState(VK_F7) < 0) DumpEntitiesInfo();
     dwNumberScriptCommandsExecuted = 0;
 
-    if (Exit_flag)
-        return false; // exit
+    if (Exit_flag) return false;  // exit
 
-    Timer.Run(); // calc delta time
+    Timer.Run();  // calc delta time
 
-    auto *pVCTime = static_cast<VDATA *>(core_internal.GetScriptVariable("iRealDeltaTime"));
-    if (pVCTime)
-        pVCTime->Set(static_cast<int32_t>(GetRDeltaTime()));
+    auto* pVCTime = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDeltaTime"));
+    if (pVCTime) pVCTime->Set(static_cast<int32_t>(GetRDeltaTime()));
 
-    auto tt = std::time(nullptr);
+    auto tt       = std::time(nullptr);
     auto local_tm = *std::localtime(&tt);
 
-    auto *pVYear = static_cast<VDATA *>(core_internal.GetScriptVariable("iRealYear"));
-    auto *pVMonth = static_cast<VDATA *>(core_internal.GetScriptVariable("iRealMonth"));
-    auto *pVDay = static_cast<VDATA *>(core_internal.GetScriptVariable("iRealDay"));
+    auto* pVYear  = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealYear"));
+    auto* pVMonth = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealMonth"));
+    auto* pVDay   = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDay"));
 
-    if (pVYear)
-        pVYear->Set(local_tm.tm_year + 1900);
-    if (pVMonth)
-        pVMonth->Set(local_tm.tm_mon + 1); // tm_mon belongs [0, 11]
-    if (pVDay)
-        pVDay->Set(local_tm.tm_mday);
+    if (pVYear) pVYear->Set(local_tm.tm_year + 1900);
+    if (pVMonth) pVMonth->Set(local_tm.tm_mon + 1);  // tm_mon belongs [0, 11]
+    if (pVDay) pVDay->Set(local_tm.tm_mday);
 
-    if (Controls && Controls->GetDebugAsyncKeyState('R') < 0)
-        Timer.Delta_Time *= 10;
-    if (Controls && Controls->GetDebugAsyncKeyState('Y') < 0)
-        Timer.Delta_Time = static_cast<uint32_t>(Timer.Delta_Time * 0.2f);
+    if (Controls && Controls->GetDebugAsyncKeyState('R') < 0) Timer.Delta_Time *= 10;
+    if (Controls && Controls->GetDebugAsyncKeyState('Y') < 0) Timer.Delta_Time = static_cast<uint32_t>(Timer.Delta_Time * 0.2f);
 
     Timer.Delta_Time = static_cast<uint32_t>(Timer.Delta_Time * fTimeScale);
     Timer.fDeltaTime *= fTimeScale;
 
-    auto *pVData = static_cast<VDATA *>(GetScriptVariable("fHighPrecisionDeltaTime", nullptr));
-    if (pVData)
-        pVData->Set(Timer.fDeltaTime * 0.001f);
+    auto* pVData = static_cast<VDATA*>(GetScriptVariable("fHighPrecisionDeltaTime", nullptr));
+    if (pVData) pVData->Set(Timer.fDeltaTime * 0.001f);
 
-    if (!Initialized)
-    {
-        Initialize(); // initialization at start or after reset
+    if (!Initialized) {
+        Initialize();  // initialization at start or after reset
     }
-    if (!bEngineIniProcessed)
-        ProcessEngineIniFile();
+    if (!bEngineIniProcessed) ProcessEngineIniFile();
 
     Compiler->ProcessFrame(Timer.GetDeltaTime());
     Compiler->ProcessEvent("frame");
@@ -189,22 +165,19 @@ bool CoreImpl::Run()
     ProcessStateLoading();
 
     ProcessRunStart(SECTION_ALL);
-    if (stopFrameProcessing_)
-    {
+    if (stopFrameProcessing_) {
         // service asked to skip current frame processing
         return true;
     }
 
-    ProcessExecute(); // transfer control to objects via Execute() function
-    ProcessRealize(); // transfer control to objects via Realize() function
+    ProcessExecute();  // transfer control to objects via Execute() function
+    ProcessRealize();  // transfer control to objects via Realize() function
 
     steamapi::SteamApi::getInstance().RunCallbacks();
 
-    if (Controls)
-        Controls->Update(Timer.rDelta_Time);
+    if (Controls) Controls->Update(Timer.rDelta_Time);
 
-    if (Controls)
-        ProcessControls();
+    if (Controls) ProcessControls();
 
     entity_manager_.NewLifecycle();
 
@@ -216,21 +189,16 @@ bool CoreImpl::Run()
 void CoreImpl::ProcessControls()
 {
     CONTROL_STATE cs;
-    USER_CONTROL uc;
+    USER_CONTROL  uc;
 
-    if (!Controls)
-        return;
+    if (!Controls) return;
 
-    for (int32_t n = 0; n < Controls->GetControlsNum(); n++)
-    {
+    for (int32_t n = 0; n < Controls->GetControlsNum(); n++) {
         Controls->GetControlState(n, cs);
-        if (cs.state == CST_ACTIVATED)
-        {
+        if (cs.state == CST_ACTIVATED) {
             Controls->GetControlDesc(n, uc);
             Core::Event("Control Activation", "s", uc.name);
-        }
-        else if (cs.state == CST_INACTIVATED)
-        {
+        } else if (cs.state == CST_INACTIVATED) {
             Controls->GetControlDesc(n, uc);
             Core::Event("Control Deactivation", "s", uc.name);
         }
@@ -256,24 +224,16 @@ void CoreImpl::ProcessEngineIniFile()
     bEngineIniProcessed = true;
 
     auto engine_ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
-    if (!engine_ini)
-        throw std::runtime_error("no 'engine.ini' file");
+    if (!engine_ini) throw std::runtime_error("no 'engine.ini' file");
 
     auto res = engine_ini->ReadString(nullptr, "program_directory", String, sizeof(String), "");
-    if (res)
-    {
-        Compiler->SetProgramDirectory(String);
-    }
+    if (res) { Compiler->SetProgramDirectory(String); }
 
     res = engine_ini->ReadString(nullptr, "controls", String, sizeof(String), "");
-    if (res)
-    {
-        core_internal.Controls = static_cast<CONTROLS *>(MakeClass(String));
-        if (core_internal.Controls == nullptr)
-            core_internal.Controls = static_cast<CONTROLS *>(MakeClass("controls"));
-    }
-    else
-    {
+    if (res) {
+        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(String));
+        if (core_internal.Controls == nullptr) core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls"));
+    } else {
         delete Controls;
         Controls = nullptr;
 
@@ -283,24 +243,18 @@ void CoreImpl::ProcessEngineIniFile()
     loadCompatibilitySettings(*engine_ini);
 
     res = engine_ini->ReadString(nullptr, "run", String, sizeof(String), "");
-    if (res)
-    {
-        if (!Compiler->CreateProgram(String))
-            throw std::runtime_error("fail to create program");
-        if (!Compiler->Run())
-            throw std::runtime_error("fail to run program");
+    if (res) {
+        if (!Compiler->CreateProgram(String)) throw std::runtime_error("fail to create program");
+        if (!Compiler->Run()) throw std::runtime_error("fail to run program");
 
         // Script version test
-        if (targetVersion_ >= storm::ENGINE_VERSION::LATEST)
-        {
-            int32_t iScriptVersion = 0xFFFFFFFF;
-            auto *pVScriptVersion = static_cast<VDATA *>(core_internal.GetScriptVariable("iScriptVersion"));
-            if (pVScriptVersion)
-                pVScriptVersion->Get(iScriptVersion);
+        if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
+            int32_t iScriptVersion  = 0xFFFFFFFF;
+            auto*   pVScriptVersion = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
+            if (pVScriptVersion) pVScriptVersion->Get(iScriptVersion);
 
-            if (iScriptVersion != ENGINE_SCRIPT_VERSION)
-            {
-#ifdef _WIN32 // FIX_LINUX Cursor
+            if (iScriptVersion != ENGINE_SCRIPT_VERSION) {
+#ifdef _WIN32  // FIX_LINUX Cursor
                 ShowCursor(true);
 #endif
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
@@ -312,9 +266,8 @@ void CoreImpl::ProcessEngineIniFile()
 
 bool CoreImpl::LoadClassesTable()
 {
-    for (auto *c : __STORM_CLASSES_REGISTRY)
-    {
-        const auto hash = MakeHashValue(c->GetName());
+    for (auto* c: __STORM_CLASSES_REGISTRY) {
+        auto const hash = MakeHashValue(c->GetName());
         c->SetHash(hash);
     }
 
@@ -331,12 +284,12 @@ void CoreImpl::Exit()
     Exit_flag = true;
 }
 
-storm::OSWindow *CoreImpl::GetWindow()
+storm::OSWindow* CoreImpl::GetWindow()
 {
     return window_.get();
 }
 
-#ifdef _WIN32 // HINSTANCE
+#ifdef _WIN32  // HINSTANCE
 HINSTANCE CoreImpl::GetAppInstance()
 {
     return hInstance;
@@ -351,30 +304,28 @@ void CoreImpl::SetTimeScale(float _scale)
 //------------------------------------------------------------------------------------------------
 // transfer message arguments and program control to entity, specified by Destination id
 //
-uint64_t CoreImpl::Send_Message(entid_t Destination, const char *Format, ...)
+uint64_t CoreImpl::Send_Message(entid_t Destination, char const* Format, ...)
 {
-    MESSAGE message;
-    auto *const ptr = GetEntityPointerSafe(Destination); // check for valid destination
-    if (!ptr)
-        return 0;
+    MESSAGE     message;
+    auto* const ptr = GetEntityPointerSafe(Destination);  // check for valid destination
+    if (!ptr) return 0;
 
     va_list args;
     va_start(args, Format);
     message.ResetVA(Format, args);
-    const auto rc = static_cast<Entity *>(ptr)->ProcessMessage(message); // transfer control
+    auto const rc = static_cast<Entity*>(ptr)->ProcessMessage(message);  // transfer control
     va_end(args);
     return rc;
 }
 
-uint32_t CoreImpl::PostEvent(const char *Event_name, uint32_t post_time, const char *Format, ...)
+uint32_t CoreImpl::PostEvent(char const* Event_name, uint32_t post_time, char const* Format, ...)
 {
-    MESSAGE *pMS;
-    MESSAGE message;
+    MESSAGE* pMS;
+    MESSAGE  message;
 
     entid_t id;
 
-    if (Format != nullptr)
-    {
+    if (Format != nullptr) {
         pMS = new MESSAGE();
         va_list args;
         va_start(args, Format);
@@ -382,10 +333,8 @@ uint32_t CoreImpl::PostEvent(const char *Event_name, uint32_t post_time, const c
         pMS->Reset(Format);
 
         auto bAction = true;
-        while (bAction)
-        {
-            switch (message.GetCurrentFormatType())
-            {
+        while (bAction) {
+            switch (message.GetCurrentFormatType()) {
                 //-------------------------------------
             case 'l':
                 int32_t v;
@@ -402,112 +351,101 @@ uint32_t CoreImpl::PostEvent(const char *Event_name, uint32_t post_time, const c
                 pMS->SetEntity(id);
                 break;
             case 'e':
-                VDATA *e;
+                VDATA* e;
                 e = message.ScriptVariablePointer();
                 pMS->Set(e);
                 break;
             case 's': {
-                const std::string &s = message.StringPointer();
+                std::string const& s = message.StringPointer();
                 pMS->Set(s);
                 break;
             }
             case 'a':
-                ATTRIBUTES *a;
+                ATTRIBUTES* a;
                 a = message.AttributePointer();
                 pMS->Set(a);
                 break;
 
                 //-------------------------------------
-            default:
-                bAction = false;
-                break;
+            default: bAction = false; break;
             }
         }
         va_end(args);
-    }
-    else
+    } else
         pMS = nullptr;
 
-    auto *pEM = new S_EVENTMSG(Event_name, pMS, post_time);
+    auto* pEM     = new S_EVENTMSG(Event_name, pMS, post_time);
     pEM->bProcess = true;
     Compiler->AddPostEvent(pEM);
     return 0;
 }
 
-VDATA *CoreImpl::Event(const std::string_view &event_name)
+VDATA* CoreImpl::Event(std::string_view const& event_name)
 {
     MESSAGE message;
     return Compiler->ProcessEvent(event_name.data(), message);
 }
 
-VDATA *CoreImpl::Event(const std::string_view &event_name, MESSAGE &message)
+VDATA* CoreImpl::Event(std::string_view const& event_name, MESSAGE& message)
 {
     return Compiler->ProcessEvent(event_name.data(), message);
 }
 
-void *CoreImpl::MakeClass(const char *class_name)
+void* CoreImpl::MakeClass(char const* class_name)
 {
-    const int32_t hash = MakeHashValue(class_name);
-    for (auto *const c : __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName()))
-            return c->CreateClass();
+    int32_t const hash = MakeHashValue(class_name);
+    for (auto* const c: __STORM_CLASSES_REGISTRY)
+        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c->CreateClass();
 
     return nullptr;
 }
 
 void CoreImpl::ReleaseServices()
 {
-    for (auto *const c : __STORM_CLASSES_REGISTRY)
-        if (c->Service())
-            c->Clear();
+    for (auto* const c: __STORM_CLASSES_REGISTRY)
+        if (c->Service()) c->Clear();
 
     Controls = nullptr;
 }
 
-VMA *CoreImpl::FindVMA(const char *class_name)
+VMA* CoreImpl::FindVMA(char const* class_name)
 {
-    const int32_t hash = MakeHashValue(class_name);
-    for (auto *const c : __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName()))
-            return c;
+    int32_t const hash = MakeHashValue(class_name);
+    for (auto* const c: __STORM_CLASSES_REGISTRY)
+        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c;
 
     return nullptr;
 }
 
-VMA *CoreImpl::FindVMA(int32_t hash)
+VMA* CoreImpl::FindVMA(int32_t hash)
 {
-    for (auto *const c : __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash)
-            return c;
+    for (auto* const c: __STORM_CLASSES_REGISTRY)
+        if (c->GetHash() == hash) return c;
 
     return nullptr;
 }
 
-void *CoreImpl::GetService(const char *service_name)
+void* CoreImpl::GetService(char const* service_name)
 {
-    auto *pClass = FindVMA(service_name);
-    if (pClass == nullptr)
-    {
+    auto* pClass = FindVMA(service_name);
+    if (pClass == nullptr) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
-    if (pClass->GetHash() == 0)
-    {
+    if (pClass->GetHash() == 0) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
-    if (pClass->GetReference() > 0)
-        return pClass->CreateClass();
+    if (pClass->GetReference() > 0) return pClass->CreateClass();
 
-    auto *service_PTR = static_cast<SERVICE *>(pClass->CreateClass());
+    auto* service_PTR = static_cast<SERVICE*>(pClass->CreateClass());
 
-    const auto class_code = MakeHashValue(service_name);
+    auto const class_code = MakeHashValue(service_name);
     pClass->SetHash(class_code);
 
-    if (!service_PTR->Init())
-    {
+    if (!service_PTR->Init()) {
         CheckAutoExceptions(0);
         return nullptr;
     }
@@ -517,7 +455,7 @@ void *CoreImpl::GetService(const char *service_name)
     return service_PTR;
 }
 
-void CoreImpl::Trace(const char *format, ...)
+void CoreImpl::Trace(char const* format, ...)
 {
     static char buffer_4k[4096];
 
@@ -535,14 +473,10 @@ void CoreImpl::ProcessExecute()
 {
     ProcessRunStart(SECTION_EXECUTE);
 
-    const auto deltatime = Timer.GetDeltaTime();
-    const auto &entIds = core.GetEntityIds(layer_type_t::execute);
-    for (auto id : entIds)
-    {
-        if (auto *ptr = core.GetEntityPointerSafe(id))
-        {
-            ptr->ProcessStage(Entity::Stage::execute, deltatime);
-        }
+    auto const  deltatime = Timer.GetDeltaTime();
+    auto const& entIds    = core.GetEntityIds(layer_type_t::execute);
+    for (auto id: entIds) {
+        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
     }
 
     ProcessRunEnd(SECTION_EXECUTE);
@@ -552,33 +486,23 @@ void CoreImpl::ProcessRealize()
 {
     ProcessRunStart(SECTION_REALIZE);
 
-    const auto deltatime = Timer.GetDeltaTime();
-    const auto &entIds = core.GetEntityIds(layer_type_t::realize);
-    for (auto id : entIds)
-    {
-        if (auto *ptr = core.GetEntityPointerSafe(id))
-        {
-            ptr->ProcessStage(Entity::Stage::realize, deltatime);
-        }
+    auto const  deltatime = Timer.GetDeltaTime();
+    auto const& entIds    = core.GetEntityIds(layer_type_t::realize);
+    for (auto id: entIds) {
+        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
     }
 
     ProcessRunEnd(SECTION_REALIZE);
 }
 
 // save core state
-bool CoreImpl::SaveState(const char *file_name)
+bool CoreImpl::SaveState(char const* file_name)
 {
-    if (!file_name)
-    {
-        throw std::logic_error("Bad file name of save");
-    }
+    if (!file_name) { throw std::logic_error("Bad file name of save"); }
 
     auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::out);
 
-    if (!fileS.is_open())
-    {
-        return false;
-    }
+    if (!fileS.is_open()) { return false; }
 
     Compiler->SaveState(fileS);
     fio->_CloseFile(fileS);
@@ -587,56 +511,43 @@ bool CoreImpl::SaveState(const char *file_name)
 }
 
 // force core to load state file at the start of next game loop, return false if no state file
-bool CoreImpl::InitiateStateLoading(const char *file_name)
+bool CoreImpl::InitiateStateLoading(char const* file_name)
 {
     auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open())
-    {
-        return false;
-    }
+    if (!fileS.is_open()) { return false; }
     fio->_CloseFile(fileS);
     delete[] State_file_name;
 
-    const auto len = strlen(file_name) + 1;
-    State_file_name = static_cast<char *>(new char[len]);
+    auto const len  = strlen(file_name) + 1;
+    State_file_name = static_cast<char*>(new char[len]);
     strcpy_s(State_file_name, len, file_name);
     return true;
 }
 
 void CoreImpl::ProcessStateLoading()
 {
-    if (!State_file_name)
-    {
-        return;
-    }
+    if (!State_file_name) { return; }
 
     State_loading = true;
     EraseEntities();
 
     auto fileS = fio->_CreateFile(State_file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open())
-    {
-        return;
-    }
+    if (!fileS.is_open()) { return; }
     Compiler->LoadState(fileS);
     fio->_CloseFile(fileS);
 
     delete[] State_file_name;
     State_file_name = nullptr;
-    State_loading = false;
+    State_loading   = false;
 }
 
 void CoreImpl::ProcessRunStart(uint32_t section_code)
 {
     uint32_t class_code;
-    SERVICE *service_PTR = Services_List.GetService(class_code);
-    while (service_PTR)
-    {
-        const uint32_t section = service_PTR->RunSection();
-        if (section == section_code)
-        {
-            service_PTR->RunStart();
-        }
+    SERVICE* service_PTR = Services_List.GetService(class_code);
+    while (service_PTR) {
+        uint32_t const section = service_PTR->RunSection();
+        if (section == section_code) { service_PTR->RunStart(); }
         service_PTR = Services_List.GetServiceNext(class_code);
     }
 }
@@ -644,14 +555,10 @@ void CoreImpl::ProcessRunStart(uint32_t section_code)
 void CoreImpl::ProcessRunEnd(uint32_t section_code)
 {
     uint32_t class_code;
-    SERVICE *service_PTR = Services_List.GetService(class_code);
-    while (service_PTR)
-    {
-        const uint32_t section = service_PTR->RunSection();
-        if (section == section_code)
-        {
-            service_PTR->RunEnd();
-        }
+    SERVICE* service_PTR = Services_List.GetService(class_code);
+    while (service_PTR) {
+        uint32_t const section = service_PTR->RunSection();
+        if (section == section_code) { service_PTR->RunEnd(); }
         service_PTR = Services_List.GetServiceNext(class_code);
     }
 }
@@ -676,97 +583,80 @@ uint32_t CoreImpl::GetRDeltaTime()
     return Timer.rDelta_Time;
 }
 
-ATTRIBUTES *CoreImpl::Entity_GetAttributeClass(entid_t id_PTR, const char *name)
+ATTRIBUTES* CoreImpl::Entity_GetAttributeClass(entid_t id_PTR, char const* name)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return nullptr;
-    if (pE->AttributesPointer == nullptr)
-        return nullptr;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return nullptr;
+    if (pE->AttributesPointer == nullptr) return nullptr;
     return pE->AttributesPointer->FindAClass(pE->AttributesPointer, name);
 }
 
-const char *CoreImpl::Entity_GetAttribute(entid_t id_PTR, const char *name)
+char const* CoreImpl::Entity_GetAttribute(entid_t id_PTR, char const* name)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return nullptr;
-    if (pE->AttributesPointer == nullptr)
-        return nullptr;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return nullptr;
+    if (pE->AttributesPointer == nullptr) return nullptr;
     return pE->AttributesPointer->GetAttribute(name);
 }
 
-uint32_t CoreImpl::Entity_GetAttributeAsDword(entid_t id_PTR, const char *name, uint32_t def)
+uint32_t CoreImpl::Entity_GetAttributeAsDword(entid_t id_PTR, char const* name, uint32_t def)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return def;
-    if (pE->AttributesPointer == nullptr)
-        return def;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return def;
+    if (pE->AttributesPointer == nullptr) return def;
     return pE->AttributesPointer->GetAttributeAsDword(name, def);
 }
 
-float CoreImpl::Entity_GetAttributeAsFloat(entid_t id_PTR, const char *name, float def)
+float CoreImpl::Entity_GetAttributeAsFloat(entid_t id_PTR, char const* name, float def)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return def;
-    if (pE->AttributesPointer == nullptr)
-        return def;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return def;
+    if (pE->AttributesPointer == nullptr) return def;
     return pE->AttributesPointer->GetAttributeAsFloat(name, def);
 }
 
-bool CoreImpl::Entity_SetAttribute(entid_t id_PTR, const char *name, const char *attribute)
+bool CoreImpl::Entity_SetAttribute(entid_t id_PTR, char const* name, char const* attribute)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return false;
-    if (pE->AttributesPointer == nullptr)
-        return false;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return false;
+    if (pE->AttributesPointer == nullptr) return false;
     return pE->AttributesPointer->SetAttribute(name, attribute);
 }
 
-bool CoreImpl::Entity_SetAttributeUseDword(entid_t id_PTR, const char *name, uint32_t val)
+bool CoreImpl::Entity_SetAttributeUseDword(entid_t id_PTR, char const* name, uint32_t val)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return false;
-    if (pE->AttributesPointer == nullptr)
-        return false;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return false;
+    if (pE->AttributesPointer == nullptr) return false;
     return pE->AttributesPointer->SetAttributeUseDword(name, val);
 }
 
-bool CoreImpl::Entity_SetAttributeUseFloat(entid_t id_PTR, const char *name, float val)
+bool CoreImpl::Entity_SetAttributeUseFloat(entid_t id_PTR, char const* name, float val)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return false;
-    if (pE->AttributesPointer == nullptr)
-        return false;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return false;
+    if (pE->AttributesPointer == nullptr) return false;
     return pE->AttributesPointer->SetAttributeUseFloat(name, val);
 }
 
-void CoreImpl::Entity_SetAttributePointer(entid_t id_PTR, ATTRIBUTES *pA)
+void CoreImpl::Entity_SetAttributePointer(entid_t id_PTR, ATTRIBUTES* pA)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return;
     pE->AttributesPointer = pA;
 }
 
-uint32_t CoreImpl::Entity_AttributeChanged(entid_t id_PTR, ATTRIBUTES *pA)
+uint32_t CoreImpl::Entity_AttributeChanged(entid_t id_PTR, ATTRIBUTES* pA)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return 0;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return 0;
     return pE->AttributeChanged(pA);
 }
 
-ATTRIBUTES *CoreImpl::Entity_GetAttributePointer(entid_t id_PTR)
+ATTRIBUTES* CoreImpl::Entity_GetAttributePointer(entid_t id_PTR)
 {
-    Entity *pE = GetEntityPointer(id_PTR);
-    if (pE == nullptr)
-        return nullptr;
+    Entity* pE = GetEntityPointer(id_PTR);
+    if (pE == nullptr) return nullptr;
     return pE->AttributesPointer;
 }
 
@@ -782,24 +672,20 @@ void CoreImpl::ClearEvents()
 
 void CoreImpl::AppState(bool state)
 {
-    if (Controls)
-        Controls->AppState(state);
+    if (Controls) Controls->AppState(state);
 }
 
-uint32_t CoreImpl::MakeHashValue(const char *string)
+uint32_t CoreImpl::MakeHashValue(char const* string)
 {
     uint32_t hval = 0;
 
-    while (*string != 0)
-    {
+    while (*string != 0) {
         char v = *string++;
-        if ('A' <= v && v <= 'Z')
-            v += 'a' - 'A';
+        if ('A' <= v && v <= 'Z') v += 'a' - 'A';
 
-        hval = (hval << 4) + static_cast<uint32_t>(v);
-        const uint32_t g = hval & (static_cast<uint32_t>(0xf) << (32 - 4));
-        if (g != 0)
-        {
+        hval             = (hval << 4) + static_cast<uint32_t>(v);
+        uint32_t const g = hval & (static_cast<uint32_t>(0xf) << (32 - 4));
+        if (g != 0) {
             hval ^= g >> (32 - 8);
             hval ^= g;
         }
@@ -876,44 +762,37 @@ void CoreImpl::DumpEntitiesInfo()
     std::this_thread::sleep_for(std::chrono::milliseconds(200));*/
 }
 
-void *CoreImpl::GetSaveData(const char *file_name, int32_t &data_size)
+void* CoreImpl::GetSaveData(char const* file_name, int32_t& data_size)
 {
     return Compiler->GetSaveData(file_name, data_size);
 }
 
-bool CoreImpl::SetSaveData(const char *file_name, void *data_ptr, int32_t data_size)
+bool CoreImpl::SetSaveData(char const* file_name, void* data_ptr, int32_t data_size)
 {
     return Compiler->SetSaveData(file_name, data_ptr, data_size);
 }
 
-uint32_t CoreImpl::SetScriptFunction(IFUNCINFO *pFuncInfo)
+uint32_t CoreImpl::SetScriptFunction(IFUNCINFO* pFuncInfo)
 {
     return Compiler->SetScriptFunction(pFuncInfo);
 }
 
-const char *CoreImpl::EngineIniFileName()
+char const* CoreImpl::EngineIniFileName()
 {
     return fs::ENGINE_INI_FILE_NAME;
 }
 
-void *CoreImpl::GetScriptVariable(const char *pVariableName, uint32_t *pdwVarIndex)
+void* CoreImpl::GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex)
 {
-    const VarInfo *real_var;
+    VarInfo const* real_var;
 
-    const auto dwVarIndex = Compiler->VarTab.FindVar(pVariableName);
-    if (dwVarIndex == INVALID_VAR_CODE)
-    {
-        return nullptr;
-    }
+    auto const dwVarIndex = Compiler->VarTab.FindVar(pVariableName);
+    if (dwVarIndex == INVALID_VAR_CODE) { return nullptr; }
 
     real_var = Compiler->VarTab.GetVar(dwVarIndex);
-    if (real_var == nullptr)
-    {
-        return nullptr;
-    }
+    if (real_var == nullptr) { return nullptr; }
 
-    if (pdwVarIndex)
-        *pdwVarIndex = dwVarIndex;
+    if (pdwVarIndex) *pdwVarIndex = dwVarIndex;
 
     return real_var->value.get();
 }
@@ -925,8 +804,7 @@ storm::ENGINE_VERSION CoreImpl::GetTargetEngineVersion() const noexcept
 
 ScreenSize CoreImpl::GetScreenSize() const noexcept
 {
-    switch (targetVersion_)
-    {
+    switch (targetVersion_) {
     case storm::ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN: {
         return {640, 480};
     }
@@ -951,7 +829,7 @@ void CoreImpl::EraseEntity(entid_t entity)
     entity_manager_.EraseEntity(entity);
 }
 
-entid_t CoreImpl::CreateEntity(const char *name, ATTRIBUTES *attr)
+entid_t CoreImpl::CreateEntity(char const* name, ATTRIBUTES* attr)
 {
     return entity_manager_.CreateEntity(name, attr);
 }
@@ -966,7 +844,7 @@ entptr_t CoreImpl::GetEntityPointerSafe(entid_t id) const
     return entity_manager_.IsEntityValid(id) ? GetEntityPointer(id) : nullptr;
 }
 
-entid_t CoreImpl::GetEntityId(const char *name) const
+entid_t CoreImpl::GetEntityId(char const* name) const
 {
     return entity_manager_.GetEntityId(name);
 }
@@ -986,7 +864,7 @@ entity_container_cref CoreImpl::GetEntityIds(layer_index_t index) const
     return entity_manager_.GetEntityIds(index);
 }
 
-entity_container_cref CoreImpl::GetEntityIds(const char *name) const
+entity_container_cref CoreImpl::GetEntityIds(char const* name) const
 {
     return entity_manager_.GetEntityIds(name);
 }
@@ -1016,7 +894,7 @@ bool CoreImpl::IsLayerFrozen(layer_index_t index) const
     return entity_manager_.IsLayerFrozen(index);
 }
 
-void CoreImpl::ForEachEntity(const std::function<void(entptr_t)> &f)
+void CoreImpl::ForEachEntity(std::function<void(entptr_t)> const& f)
 {
     entity_manager_.ForEachEntity(f);
 }
@@ -1026,17 +904,16 @@ void CoreImpl::collectCrashInfo() const
     Compiler->CollectCallStack();
 }
 
-void CoreImpl::loadCompatibilitySettings(INIFILE &inifile)
+void CoreImpl::loadCompatibilitySettings(INIFILE& inifile)
 {
     using namespace storm;
 
-    std::array<char, 128> strBuffer{};
+    std::array<char, 128> strBuffer {};
     inifile.ReadString("compatibility", "target_version", strBuffer.data(), strBuffer.size(), "latest");
-    const std::string_view target_engine_version = strBuffer.data();
+    std::string_view const target_engine_version = strBuffer.data();
 
     targetVersion_ = getTargetEngineVersion(target_engine_version);
-    if (targetVersion_ == ENGINE_VERSION::UNKNOWN)
-    {
+    if (targetVersion_ == ENGINE_VERSION::UNKNOWN) {
         spdlog::warn("Unknown target version '{}' in engine compatibility settings", target_engine_version);
         targetVersion_ = ENGINE_VERSION::LATEST;
     }

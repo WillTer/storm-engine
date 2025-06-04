@@ -7,42 +7,42 @@
 
 class CSaveLoad;
 
-class VAI_OBJBASE : public CANNON_TRACE_BASE
+class VAI_OBJBASE: public CANNON_TRACE_BASE
 {
-  private:
-    ATTRIBUTES *pACharacter;
+private:
+    ATTRIBUTES* pACharacter;
 
-  public:
+public:
     ~VAI_OBJBASE() override {};
 
-    virtual void SetACharacter(ATTRIBUTES *pAP)
+    virtual void SetACharacter(ATTRIBUTES* pAP)
     {
         pACharacter = pAP;
     };
 
-    virtual ATTRIBUTES *GetACharacter()
+    virtual ATTRIBUTES* GetACharacter()
     {
         return pACharacter;
     };
 
-    virtual bool Mount(ATTRIBUTES *) = 0;
+    virtual bool Mount(ATTRIBUTES*) = 0;
 
-    virtual void SetPos(const CVECTOR &vNewPos) = 0;
+    virtual void SetPos(const CVECTOR& vNewPos) = 0;
 
-    virtual CVECTOR GetPos() const = 0;
-    virtual CVECTOR GetAng() const = 0;
-    virtual CMatrix *GetMatrix() = 0;
-    virtual CVECTOR GetBoxsize() const = 0;
-    virtual CVECTOR GetRealBoxsize() const
+    virtual CVECTOR  GetPos() const     = 0;
+    virtual CVECTOR  GetAng() const     = 0;
+    virtual CMatrix* GetMatrix()        = 0;
+    virtual CVECTOR  GetBoxsize() const = 0;
+    virtual CVECTOR  GetRealBoxsize() const
     {
         return GetBoxsize();
     }
 
-    virtual MODEL *GetModel() const = 0;
+    virtual MODEL*  GetModel() const    = 0;
     virtual entid_t GetModelEID() const = 0;
 
-    virtual void Save(CSaveLoad *pSL) = 0;
-    virtual void Load(CSaveLoad *pSL) = 0;
+    virtual void Save(CSaveLoad* pSL) = 0;
+    virtual void Load(CSaveLoad* pSL) = 0;
 
-    virtual void Fire(const CVECTOR &vPos) = 0;
+    virtual void Fire(const CVECTOR& vPos) = 0;
 };

@@ -1,17 +1,14 @@
 #include "ball_splash.h"
 
-#include <stdio.h>
-
 #include <libs/core/core.h>
 #include <libs/core/v_file_service.h>
 #include <libs/shared_headers/messages.h>
+#include <stdio.h>
 
 CREATE_CLASS(BALLSPLASH)
 
 //--------------------------------------------------------------------
-BALLSPLASH::BALLSPLASH() : renderer(nullptr), sea(nullptr)
-{
-}
+BALLSPLASH::BALLSPLASH() : renderer(nullptr), sea(nullptr) {}
 
 //--------------------------------------------------------------------
 BALLSPLASH::~BALLSPLASH()
@@ -26,9 +23,9 @@ bool BALLSPLASH::Init()
 {
     // GUARD(BALLSPLASH::Init)
 
-    sea = static_cast<SEA_BASE *>(core.GetEntityPointer(core.GetEntityId("sea")));
+    sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
 
-    renderer = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     // core.CreateEntity(&arrowModel,"MODELR");
     // core.Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
@@ -39,15 +36,14 @@ bool BALLSPLASH::Init()
 }
 
 //--------------------------------------------------------------------
-uint64_t BALLSPLASH::ProcessMessage(MESSAGE &message)
+uint64_t BALLSPLASH::ProcessMessage(MESSAGE& message)
 {
     // GUARD(BALLSPLASH::ProcessMessage)
 
-    const auto code = message.Long();
-    const uint32_t outValue = 0;
+    auto const     code     = message.Long();
+    uint32_t const outValue = 0;
 
-    switch (code)
-    {
+    switch (code) {
     case MSG_BALLSPLASH_ADD: {
         CVECTOR pos, dir;
         pos.x = message.Float();
@@ -64,8 +60,7 @@ uint64_t BALLSPLASH::ProcessMessage(MESSAGE &message)
         dir.z = 0.0f;
 
         TryToAddSplash(pos, dir);
-    }
-    break;
+    } break;
     }
 
     return outValue;
@@ -80,32 +75,28 @@ void BALLSPLASH::Realize(uint32_t _dTime)
     uint64_t ticks;
     RDTSC_B(ticks);
 
-    TSplash::lockTicks = 0;
-    TSplash::fillTicks = 0;
-    TSplash::unlockTicks = 0;
+    TSplash::lockTicks    = 0;
+    TSplash::fillTicks    = 0;
+    TSplash::unlockTicks  = 0;
     TSplash::realizeTicks = 0;
     TSplash::processCount = 0;
 
     // draw bottom part
     TSplash::startRender = true;
-    TSplash::topIndex = 0;
-    auto lastProcessed = -1;
+    TSplash::topIndex    = 0;
+    auto lastProcessed   = -1;
     for (auto i = 0; i < MAX_SPLASHES; ++i)
-        if (splashes[i].Process(_dTime))
-            lastProcessed = i;
-    if (lastProcessed != -1)
-        splashes[lastProcessed].PostProcess();
+        if (splashes[i].Process(_dTime)) lastProcessed = i;
+    if (lastProcessed != -1) splashes[lastProcessed].PostProcess();
     splashes[lastProcessed].Realize(_dTime);
 
     // draw top part
-    const auto techniqueStarted = renderer->TechniqueExecuteStart("splash2");
-    TSplash::startRender = true;
-    TSplash::topIndex = 0;
-    lastProcessed = -1;
-    for (auto i = 0; i < MAX_SPLASHES; ++i)
-    {
-        if (splashes[i].Process2(_dTime))
-            lastProcessed = i;
+    auto const techniqueStarted = renderer->TechniqueExecuteStart("splash2");
+    TSplash::startRender        = true;
+    TSplash::topIndex           = 0;
+    lastProcessed               = -1;
+    for (auto i = 0; i < MAX_SPLASHES; ++i) {
+        if (splashes[i].Process2(_dTime)) lastProcessed = i;
     }
     splashes[lastProcessed].PostProcess2();
     splashes[lastProcessed].Realize2(_dTime);
@@ -144,23 +135,20 @@ void BALLSPLASH::InitializeSplashes()
 {
     auto psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
 
-    for (auto i = 0; i < MAX_SPLASHES; ++i)
-    {
+    for (auto i = 0; i < MAX_SPLASHES; ++i) {
         splashes[i].Release();
         splashes[i].Initialize(psIni.get(), nullptr, sea, renderer);
     }
 }
 
 //--------------------------------------------------------------------
-TSplash *BALLSPLASH::TryToAddSplash(const CVECTOR &_pos, const CVECTOR &_dir)
+TSplash* BALLSPLASH::TryToAddSplash(const CVECTOR& _pos, const CVECTOR& _dir)
 {
     auto backDir = !_dir;
-    backDir.y = -backDir.y;
+    backDir.y    = -backDir.y;
 
-    for (auto i = 0; i < MAX_SPLASHES; ++i)
-    {
-        if (!splashes[i].Enabled())
-        {
+    for (auto i = 0; i < MAX_SPLASHES; ++i) {
+        if (!splashes[i].Enabled()) {
             splashes[i].Start(_pos, backDir);
             return &splashes[i];
         }

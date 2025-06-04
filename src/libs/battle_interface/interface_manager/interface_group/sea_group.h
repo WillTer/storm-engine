@@ -2,22 +2,20 @@
 
 #include "base_group.h"
 
-class BI_SeaGroup : public BI_BaseGroup
+class BI_SeaGroup: public BI_BaseGroup
 {
-  public:
-    BI_SeaGroup(BI_ManagerBase *pManager);
+public:
+    BI_SeaGroup(BI_ManagerBase* pManager);
     ~BI_SeaGroup() override;
 
     void Init() override;
 
-    void Update() override
-    {
-    }
+    void Update() override {}
 
-    int32_t Event(const char *pcEventName) override
+    int32_t Event(char const* pcEventName) override
     {
         return 0;
     }
 
-  protected:
+protected:
 };

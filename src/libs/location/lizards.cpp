@@ -9,27 +9,24 @@
 //============================================================================================
 
 #include "lizards.h"
+
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-
 
 Lizards::Lizards()
 {
     num = sizeof(lizard) / sizeof(Lizard);
 }
 
-Lizards::~Lizards()
-{
-}
+Lizards::~Lizards() {}
 
 // Initialization
 bool Lizards::Init()
 {
     // Location Pointer
-    const auto loc = core.GetEntityId("location");
-    auto *location = (Location *)core.GetEntityPointer(loc);
-    if (!location)
-        return false;
+    auto const loc      = core.GetEntityId("location");
+    auto*      location = (Location*)core.GetEntityPointer(loc);
+    if (!location) return false;
     // init lizards
     for (int32_t i = 0; i < num; i++)
         lizard[i].Init(location);
@@ -41,14 +38,12 @@ bool Lizards::Init()
 }
 
 // Execution
-void Lizards::Execute(uint32_t delta_time)
-{
-}
+void Lizards::Execute(uint32_t delta_time) {}
 
 // Drawing
 void Lizards::Realize(uint32_t delta_time)
 {
-    const auto dltTime = delta_time * 0.001f;
+    auto const dltTime = delta_time * 0.001f;
     for (int32_t i = 0; i < num; i++)
         lizard[i].Update(dltTime);
 }
