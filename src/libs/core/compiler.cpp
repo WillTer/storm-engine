@@ -5,20 +5,20 @@
 
 #include <zlib.h>
 
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
 #include "s_debug.h"
 #else
 #include "core_impl.h"
 #endif
-#include "script_cache.h"
+#include <unordered_map>
+
+#include <SDL_timer.h>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/storm_assert.h>
 
-
-#include <SDL_timer.h>
-#include <unordered_map>
+#include "script_cache.h"
 
 #define SKIP_COMMENT_TRACING
 #define TRACE_OFF
@@ -31,7 +31,7 @@
 #define SBUPDATE 4
 #define DEF_COMPILE_EXPRESSIONS
 
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
 namespace
 {
 S_DEBUG s_debug;
@@ -40,12 +40,11 @@ S_DEBUG s_debug;
 
 namespace
 {
-enum CacheMode : int
-{
-    kCacheDisabled = 0,             // Disable script caching
-    kCacheEnabled = 1,              // Enable script caching and integrity checks
-    kCacheEnabledNoRuntimeCheck = 2 // Enable script caching; only check integrity once - should be used if no
-                                    // changes(e.g. in the interface scripts) are expected during the session
+enum CacheMode : int {
+    kCacheDisabled              = 0,  // Disable script caching
+    kCacheEnabled               = 1,  // Enable script caching and integrity checks
+    kCacheEnabledNoRuntimeCheck = 2   // Enable script caching; only check integrity once - should be used if no
+                                      // changes(e.g. in the interface scripts) are expected during the session
 };
 
 auto GetCacheFolder()
@@ -55,22 +54,16 @@ auto GetCacheFolder()
 }
 constexpr auto kCacheStateFile = "state";
 
-bool ReadCacheFingerprint(uint64_t &fingerprint)
+bool ReadCacheFingerprint(uint64_t& fingerprint)
 {
     std::ifstream cache_state(GetCacheFolder() / kCacheStateFile, std::ifstream::binary);
-    if (!cache_state)
-    {
-        return false;
-    }
+    if (!cache_state) { return false; }
     cache_state.exceptions(std::ifstream::badbit | std::ifstream::eofbit);
 
     uint64_t cache_fingerprint;
-    try
-    {
-        cache_state.read(reinterpret_cast<char *>(&cache_fingerprint), sizeof(cache_fingerprint));
-    }
-    catch (...)
-    {
+    try {
+        cache_state.read(reinterpret_cast<char*>(&cache_fingerprint), sizeof(cache_fingerprint));
+    } catch (...) {
         return false;
     }
 
@@ -78,23 +71,20 @@ bool ReadCacheFingerprint(uint64_t &fingerprint)
     return true;
 }
 
-void WipeCache(const uint64_t fingerprint)
+void WipeCache(uint64_t const fingerprint)
 {
     remove_all(GetCacheFolder());
     create_directory(GetCacheFolder());
     std::ofstream cache_state(GetCacheFolder() / kCacheStateFile, std::ofstream::binary);
-    if (cache_state)
-    {
-        cache_state.write(reinterpret_cast<const char *>(&fingerprint), sizeof(fingerprint));
-    }
+    if (cache_state) { cache_state.write(reinterpret_cast<char const*>(&fingerprint), sizeof(fingerprint)); }
 }
 
-} // namespace
+}  // namespace
 
 // extern char * FuncNameTable[];
 extern INTFUNCDESC IntFuncTable[];
-#ifdef _WIN32 // S_DEBUG
-extern S_DEBUG *CDebug = &s_debug;
+#ifdef _WIN32  // S_DEBUG
+extern S_DEBUG* CDebug = &s_debug;
 #endif
 extern uint32_t dwNumberScriptCommandsExecuted;
 
@@ -103,13 +93,35 @@ using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
 COMPILER::COMPILER()
-    : bBreakOnError(false), pRunCodeBase(nullptr), CompilerStage(CS_SYSTEM), pEventMessage(nullptr), SegmentsNum(0),
-      InstructionPointer(0), pBuffer(nullptr), ProgramDirectory(nullptr), bCompleted(false), bEntityUpdate(true),
-      pDebExpBuffer(nullptr), nDebExpBufferSize(0), pRun_fi(nullptr), bRuntimeLog(false),
-      nRuntimeLogEventsBufferSize(0), nRuntimeLogEventsNum(0), nRuntimeTicks(0), bFirstRun(true), bWriteCodeFile(false),
-      bDebugInfo(false), DebugSourceLine(0), pCompileTokenTempBuffer(nullptr), bDebugExpressionRun(false),
-      bTraceMode(true), nDebugTraceLineCode(0), nIOBufferSize(0), pIOBuffer(nullptr), rAP(nullptr),
-      script_cache_mode_(kCacheDisabled)
+    : bBreakOnError(false)
+    , pRunCodeBase(nullptr)
+    , CompilerStage(CS_SYSTEM)
+    , pEventMessage(nullptr)
+    , SegmentsNum(0)
+    , InstructionPointer(0)
+    , pBuffer(nullptr)
+    , ProgramDirectory(nullptr)
+    , bCompleted(false)
+    , bEntityUpdate(true)
+    , pDebExpBuffer(nullptr)
+    , nDebExpBufferSize(0)
+    , pRun_fi(nullptr)
+    , bRuntimeLog(false)
+    , nRuntimeLogEventsBufferSize(0)
+    , nRuntimeLogEventsNum(0)
+    , nRuntimeTicks(0)
+    , bFirstRun(true)
+    , bWriteCodeFile(false)
+    , bDebugInfo(false)
+    , DebugSourceLine(0)
+    , pCompileTokenTempBuffer(nullptr)
+    , bDebugExpressionRun(false)
+    , bTraceMode(true)
+    , nDebugTraceLineCode(0)
+    , nIOBufferSize(0)
+    , pIOBuffer(nullptr)
+    , rAP(nullptr)
+    , script_cache_mode_(kCacheDisabled)
 
 {
     LabelTable.SetStringDataSize(sizeof(uint32_t));
@@ -149,12 +161,10 @@ COMPILER::~COMPILER()
 
 void COMPILER::Release()
 {
-    for (uint32_t n = 0; n < SegmentsNum; n++)
-    {
+    for (uint32_t n = 0; n < SegmentsNum; n++) {
         delete[] SegmentTable[n].pData;
         delete[] SegmentTable[n].pCode;
-        if (SegmentTable[n].Files_list)
-        {
+        if (SegmentTable[n].Files_list) {
             SegmentTable[n].Files_list->Release();
             delete SegmentTable[n].Files_list;
         }
@@ -181,10 +191,10 @@ void COMPILER::Release()
     LibriaryFuncs.clear();
 
     delete[] pDebExpBuffer;
-    pDebExpBuffer = nullptr;
+    pDebExpBuffer     = nullptr;
     nDebExpBufferSize = 0;
 
-    nRuntimeLogEventsNum = 0;
+    nRuntimeLogEventsNum        = 0;
     nRuntimeLogEventsBufferSize = 0;
 
     rAX.Release();
@@ -193,51 +203,43 @@ void COMPILER::Release()
     // Token.Release();
 }
 
-void COMPILER::SetProgramDirectory(const char *dir_name)
+void COMPILER::SetProgramDirectory(char const* dir_name)
 {
     delete[] ProgramDirectory;
     ProgramDirectory = nullptr;
-    if (dir_name)
-    {
-        const auto len = strlen(dir_name) + strlen("\\") + 1;
+    if (dir_name) {
+        auto const len   = strlen(dir_name) + strlen("\\") + 1;
         ProgramDirectory = new char[len];
         strcpy_s(ProgramDirectory, len, dir_name);
         strcat_s(ProgramDirectory, len, "\\");
     }
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     CDebug->SetProgramDirectory(dir_name);
 #endif
 }
 
 // load file into memory
-char *COMPILER::LoadFile(const char *file_name, uint32_t &file_size, bool bFullPath)
+char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullPath)
 {
-    const char *fName;
-    char buffer[MAX_PATH];
+    char const* fName;
+    char        buffer[MAX_PATH];
 
-    if (!bFullPath)
-    {
+    if (!bFullPath) {
         std::string EngineDir = "storm-engine\\";
-        if (strncmp(file_name, EngineDir.c_str(), EngineDir.length()) == 0)
-        {
+        if (strncmp(file_name, EngineDir.c_str(), EngineDir.length()) == 0) {
             std::string ExePath = fio->_GetExecutableDirectory() + "resource\\shared\\";
             strcpy_s(buffer, ExePath.c_str());
             strcat_s(buffer, file_name + EngineDir.length());
-        }
-        else if (ProgramDirectory)
-        {
+        } else if (ProgramDirectory) {
             strcpy_s(buffer, ProgramDirectory);
             strcat_s(buffer, file_name);
-        }
-        else
-        {
+        } else {
             strcpy_s(buffer, file_name);
         }
     }
 
     file_size = 0;
-    if (bFullPath)
-    {
+    if (bFullPath) {
         // f expand
         /*DWORD n,m;
         m = 0;
@@ -254,41 +256,34 @@ char *COMPILER::LoadFile(const char *file_name, uint32_t &file_size, bool bFullP
         buffer[m] = 0;*/
 
         fName = file_name;
-    }
-    else
-    {
+    } else {
         fName = &buffer[0];
     }
 
     auto fileS = fio->_CreateFile(fName, std::ios::binary | std::ios::in);
-    if (!fileS.is_open())
-    {
-        return nullptr;
-    }
-    const auto fsize = fio->_GetFileSize(fName);
+    if (!fileS.is_open()) { return nullptr; }
+    auto const fsize = fio->_GetFileSize(fName);
 
-    auto *const pData = static_cast<char *>(new char[fsize + 1]);
-    if (!fio->_ReadFile(fileS, pData, fsize))
-    {
+    auto* const pData = static_cast<char*>(new char[fsize + 1]);
+    if (!fio->_ReadFile(fileS, pData, fsize)) {
         delete[] pData;
         fio->_CloseFile(fileS);
         return nullptr;
     }
     fio->_CloseFile(fileS);
-    file_size = fsize;
+    file_size    = fsize;
     pData[fsize] = 0;
     return pData;
 }
 
 // write to compilation log file
-void COMPILER::Trace(const char *data_PTR, ...)
+void COMPILER::Trace(char const* data_PTR, ...)
 {
 #ifdef TRACE_OFF
     return;
 #endif
-    if (data_PTR == nullptr)
-        return;
-    char LogBuffer[4096];
+    if (data_PTR == nullptr) return;
+    char    LogBuffer[4096];
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
@@ -297,14 +292,13 @@ void COMPILER::Trace(const char *data_PTR, ...)
 }
 
 // write to compilation log file
-void COMPILER::DTrace(const char *data_PTR, ...)
+void COMPILER::DTrace(char const* data_PTR, ...)
 {
 #ifdef DTRACEOFF
     return;
 #endif
-    if (data_PTR == nullptr)
-        return;
-    char LogBuffer[4096];
+    if (data_PTR == nullptr) return;
+    char    LogBuffer[4096];
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
@@ -332,90 +326,76 @@ Append_program_size, int32_t& new_program_size)
     return pBase;
 }*/
 
-bool COMPILER::AppendProgram(char *&pBase_program, uint32_t &Base_program_size, const char *pAppend_program,
-                             uint32_t &Append_program_size, bool bAddLinefeed)
+bool COMPILER::AppendProgram(
+    char*& pBase_program, uint32_t& Base_program_size, char const* pAppend_program, uint32_t& Append_program_size, bool bAddLinefeed)
 {
-    const auto offset = Base_program_size;
-    if (pAppend_program == nullptr)
-        return false;
-    if (bAddLinefeed)
-    {
+    auto const offset = Base_program_size;
+    if (pAppend_program == nullptr) return false;
+    if (bAddLinefeed) {
         // pBase_program = (char *)RESIZE(pBase_program,Base_program_size + Append_program_size + 3); // +1 for
         // terminating zero, +1 for 0xd +1 for 0xa
-        auto *const newPtr = new char[Base_program_size + Append_program_size + 3];
+        auto* const newPtr = new char[Base_program_size + Append_program_size + 3];
         memcpy(newPtr, pBase_program, Base_program_size);
         delete[] pBase_program;
-        pBase_program = newPtr;
+        pBase_program     = newPtr;
         Base_program_size = Base_program_size + Append_program_size + 2;
         memcpy(&pBase_program[offset], pAppend_program, Append_program_size);
-        pBase_program[Base_program_size - 2] = 0xd; // code blocks separator to prevent data merging
-        pBase_program[Base_program_size - 1] = 0xa; // code blocks separator to prevent data merging
-        pBase_program[Base_program_size] = 0;       // terminating zero
+        pBase_program[Base_program_size - 2] = 0xd;  // code blocks separator to prevent data merging
+        pBase_program[Base_program_size - 1] = 0xa;  // code blocks separator to prevent data merging
+        pBase_program[Base_program_size]     = 0;    // terminating zero
         delete[] pAppend_program;
         Append_program_size += 2;
         return true;
     }
     // pBase_program = (char *)RESIZE(pBase_program,Base_program_size + Append_program_size + 2); // +1 for terminating
     // zero, +1 for ';'
-    auto *const newPtr = new char[Base_program_size + Append_program_size + 2];
+    auto* const newPtr = new char[Base_program_size + Append_program_size + 2];
     memcpy(newPtr, pBase_program, Base_program_size);
     delete[] pBase_program;
-    pBase_program = newPtr;
+    pBase_program     = newPtr;
     Base_program_size = Base_program_size + Append_program_size + 1;
     memcpy(&pBase_program[offset], pAppend_program, Append_program_size);
-    pBase_program[Base_program_size - 1] = ';'; // code blocks separator to prevent data merging
-    pBase_program[Base_program_size] = 0;       // terminating zero
+    pBase_program[Base_program_size - 1] = ';';  // code blocks separator to prevent data merging
+    pBase_program[Base_program_size]     = 0;    // terminating zero
     delete[] pAppend_program;
     Append_program_size += 1;
     return true;
 }
 
-void COMPILER::SetError(const char *data_PTR, ...)
+void COMPILER::SetError(char const* data_PTR, ...)
 {
-    if (bDebugExpressionRun)
-        return;
-    if (data_PTR == nullptr)
-        return;
-    char LogBuffer[BUFSIZ];
-    char ErrorBuffer[MAX_PATH + BUFSIZ];
+    if (bDebugExpressionRun) return;
+    if (data_PTR == nullptr) return;
+    char    LogBuffer[BUFSIZ];
+    char    ErrorBuffer[MAX_PATH + BUFSIZ];
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
     FindErrorSource();
 
-    switch (CompilerStage)
-    {
-    case CS_SYSTEM:
-        sprintf_s(ErrorBuffer, "ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer);
-        break;
-    case CS_COMPILATION:
-        sprintf_s(ErrorBuffer, "COMPILE ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer);
-        break;
-    case CS_RUNTIME:
-        sprintf_s(ErrorBuffer, "RUNTIME ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer);
-        break;
+    switch (CompilerStage) {
+    case CS_SYSTEM: sprintf_s(ErrorBuffer, "ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer); break;
+    case CS_COMPILATION: sprintf_s(ErrorBuffer, "COMPILE ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer); break;
+    case CS_RUNTIME: sprintf_s(ErrorBuffer, "RUNTIME ERROR in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer); break;
     }
     va_end(args);
 
     logError_->error(ErrorBuffer);
 
-#ifdef _WIN32 // S_DEBUG
-    if (bBreakOnError)
-        CDebug->SetTraceMode(TMODE_MAKESTEP);
+#ifdef _WIN32  // S_DEBUG
+    if (bBreakOnError) CDebug->SetTraceMode(TMODE_MAKESTEP);
 #endif
 }
 
-void COMPILER::SetWarning(const char *data_PTR, ...)
+void COMPILER::SetWarning(char const* data_PTR, ...)
 {
 #ifdef WARNINGS_OFF
     return;
 #endif
-    if (bDebugExpressionRun)
-        return;
+    if (bDebugExpressionRun) return;
     char LogBuffer[BUFSIZ];
     char ErrorBuffer[MAX_PATH + BUFSIZ];
-    if (data_PTR == nullptr)
-        return;
+    if (data_PTR == nullptr) return;
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
@@ -430,18 +410,14 @@ void COMPILER::SetWarning(const char *data_PTR, ...)
 void COMPILER::LoadPreprocess()
 {
     auto engine_ini = fio->OpenIniFile(core_internal.EngineIniFileName());
-    if (engine_ini)
-    {
-        if (engine_ini->GetInt("script", "debuginfo", 0) == 0)
-        {
+    if (engine_ini) {
+        if (engine_ini->GetInt("script", "debuginfo", 0) == 0) {
             bDebugInfo = false;
             // FuncTab.KeepNameMode(false);
             // VarTab.KeepNameMode(false);
             // DefTab.KeepNameMode(false);
             // EventTab.KeepNameMode(false);
-        }
-        else
-        {
+        } else {
             bDebugInfo = true;
             // FuncTab.KeepNameMode(true);
             // VarTab.KeepNameMode(true);
@@ -459,8 +435,7 @@ void COMPILER::LoadPreprocess()
             bRuntimeLog = true;
 
         script_cache_mode_ = engine_ini->GetInt("script", "cache_mode", kCacheDisabled);
-        if (script_cache_mode_ < kCacheDisabled || script_cache_mode_ > kCacheEnabledNoRuntimeCheck)
-        {
+        if (script_cache_mode_ < kCacheDisabled || script_cache_mode_ > kCacheEnabledNoRuntimeCheck) {
             script_cache_mode_ = kCacheDisabled;
         }
 
@@ -468,16 +443,13 @@ void COMPILER::LoadPreprocess()
         // else bScriptTrace = true;
     }
 
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     auto ini = fio->OpenIniFile(PROJECT_NAME);
-    if (ini)
-    {
-        bBreakOnError = (ini->GetInt("options", "break_on_error", 0) == 1);
-    }
+    if (ini) { bBreakOnError = (ini->GetInt("options", "break_on_error", 0) == 1); }
 #endif
 }
 
-bool COMPILER::CreateProgram(const char *file_name)
+bool COMPILER::CreateProgram(char const* file_name)
 {
     /*    INIFILE * engine_ini;
 
@@ -508,7 +480,7 @@ bool COMPILER::CreateProgram(const char *file_name)
     }
   //*/
     LoadPreprocess();
-    const bool bRes = BC_LoadSegment(file_name);
+    bool const bRes = BC_LoadSegment(file_name);
 
     /*    for(DWORD m=0;m<HASH_TABLE_SIZE;m++)
       {
@@ -523,9 +495,9 @@ bool COMPILER::CreateProgram(const char *file_name)
 
 bool COMPILER::Run()
 {
-    pRun_fi = nullptr;
-    const uint32_t function_code = FuncTab.FindFunc("Main");
-    DATA *pResult;
+    pRun_fi                      = nullptr;
+    uint32_t const function_code = FuncTab.FindFunc("Main");
+    DATA*          pResult;
     bFirstRun = false;
     BC_Execute(function_code, pResult);
     pRun_fi = nullptr;
@@ -548,46 +520,37 @@ bool COMPILER::Run()
 
 void COMPILER::FindErrorSource()
 {
-    const uint32_t segment_index = GetSegmentIndex(RunningSegmentID);
-    if (segment_index == INVALID_SEGMENT_INDEX)
-        return;
+    uint32_t const segment_index = GetSegmentIndex(RunningSegmentID);
+    if (segment_index == INVALID_SEGMENT_INDEX) return;
 
-    uint32_t index;
-    uint32_t token_data_size;
-    uint32_t file_line_offset;
-    uint32_t file_name_size;
+    uint32_t     index;
+    uint32_t     token_data_size;
+    uint32_t     file_line_offset;
+    uint32_t     file_name_size;
     S_TOKEN_TYPE Token_type;
 
-    uint32_t ip = 0;
-    DebugSourceLine = 0;
+    uint32_t ip      = 0;
+    DebugSourceLine  = 0;
     file_line_offset = 0;
-    char *pCodeBase = SegmentTable[segment_index].pCode;
-    do
-    {
+    char* pCodeBase  = SegmentTable[segment_index].pCode;
+    do {
         Token_type = static_cast<S_TOKEN_TYPE>(pCodeBase[ip]);
         ip++;
-        if (static_cast<uint8_t>(pCodeBase[ip]) < 0xff)
-        {
+        if (static_cast<uint8_t>(pCodeBase[ip]) < 0xff) {
             token_data_size = static_cast<uint8_t>(pCodeBase[ip]);
             ip++;
-        }
-        else
-        {
+        } else {
             ip++;
             memcpy(&token_data_size, &pCodeBase[ip], sizeof(uint32_t));
             ip += sizeof(uint32_t);
         }
 
-        if (ip >= InstructionPointer)
-        {
+        if (ip >= InstructionPointer) {
             // DebugSourceLine -= file_line_offset;
             return;
         }
-        switch (Token_type)
-        {
-        case DEBUG_LINE_CODE:
-            memcpy(&DebugSourceLine, &pCodeBase[ip], sizeof(uint32_t));
-            break;
+        switch (Token_type) {
+        case DEBUG_LINE_CODE: memcpy(&DebugSourceLine, &pCodeBase[ip], sizeof(uint32_t)); break;
         case DEBUG_FILE_NAME:
             index = ip;
             memcpy(&file_line_offset, &pCodeBase[index], sizeof(uint32_t));
@@ -597,39 +560,34 @@ void COMPILER::FindErrorSource()
             memcpy(DebugSourceFileName, &pCodeBase[index], file_name_size);
             index += file_name_size;
             DebugSourceFileName[file_name_size] = 0;
-            DebugSourceLine = DSL_INI_VALUE;
+            DebugSourceLine                     = DSL_INI_VALUE;
             break;
-        default:
-            break;
+        default: break;
         }
-        ip += token_data_size; // step to next instruction
+        ip += token_data_size;  // step to next instruction
     } while (Token_type != END_OF_PROGRAMM);
 }
 
-void COMPILER::SetEventHandler(const char *event_name, const char *func_name, int32_t flag, bool bStatic)
+void COMPILER::SetEventHandler(char const* event_name, char const* func_name, int32_t flag, bool bStatic)
 {
     FuncInfo fi;
 
-    if (event_name == nullptr)
-    {
+    if (event_name == nullptr) {
         SetError("Invalid event name for SetEventHandler");
         return;
     }
-    if (func_name == nullptr)
-    {
+    if (func_name == nullptr) {
         SetError("Invalid function name for SetEventHandler");
         return;
     }
 
-    const uint32_t func_code = FuncTab.FindFunc(func_name);
-    if (func_code == INVALID_FUNC_CODE)
-    {
+    uint32_t const func_code = FuncTab.FindFunc(func_name);
+    if (func_code == INVALID_FUNC_CODE) {
         SetError("Invalid function code in SetEventHandler");
         return;
     }
 
-    if (!FuncTab.GetFunc(fi, func_code))
-    {
+    if (!FuncTab.GetFunc(fi, func_code)) {
         SetError("func not found eror");
         return;
     }
@@ -637,58 +595,51 @@ void COMPILER::SetEventHandler(const char *event_name, const char *func_name, in
     EventTab.AddEventHandler(event_name, func_code, fi.segment_id, flag, bStatic);
 }
 
-void COMPILER::DelEventHandler(const char *event_name, const char *func_name)
+void COMPILER::DelEventHandler(char const* event_name, char const* func_name)
 {
-    if (event_name == nullptr)
-    {
+    if (event_name == nullptr) {
         SetError("Bad event name");
         return;
     }
 
-    if (func_name == nullptr)
-    {
+    if (func_name == nullptr) {
         SetError("Bad func name");
         return;
     }
 
-    const uint32_t func_code = FuncTab.FindFunc(func_name);
-    if (func_code == INVALID_FUNC_CODE)
-    {
+    uint32_t const func_code = FuncTab.FindFunc(func_name);
+    if (func_code == INVALID_FUNC_CODE) {
         SetError("Invalid function code in DelEventHandler");
         return;
     }
 
     EventTab.SetStatus(event_name, func_code, FSTATUS_DELETED);
 
-    for (int32_t n = 0; n < static_cast<int32_t>(EventMsg.GetClassesNum()); n++)
-    {
-        S_EVENTMSG *pM = EventMsg.Read(n);
-        if (!pM->pEventName)
-            continue;
-        if (pM->ProcessTime(0))
-            continue; // skip events, possible executed on this frame
-        if (storm::iEquals(pM->pEventName, event_name))
-        {
+    for (int32_t n = 0; n < static_cast<int32_t>(EventMsg.GetClassesNum()); n++) {
+        S_EVENTMSG* pM = EventMsg.Read(n);
+        if (!pM->pEventName) continue;
+        if (pM->ProcessTime(0)) continue;  // skip events, possible executed on this frame
+        if (storm::iEquals(pM->pEventName, event_name)) {
             EventMsg.Del(n);
             n--;
         }
     }
 }
 
-VDATA *COMPILER::ProcessEvent(const char *event_name)
+VDATA* COMPILER::ProcessEvent(char const* event_name)
 {
     // TODO: only do if stack debug if enabled (should be runtime configurable)
     // push event name to call stack
     storm::ringbuffer_stack_push_guard push_guard(callStack_);
     push_guard.push(std::make_tuple("", 0U, event_name));
 
-    uint32_t event_code;
-    uint32_t func_code;
-    VDATA *pVD;
-    DATA *pResult;
-    MESSAGE *pMem;
+    uint32_t  event_code;
+    uint32_t  func_code;
+    VDATA*    pVD;
+    DATA*     pResult;
+    MESSAGE*  pMem;
     EVENTINFO ei;
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     uint32_t current_debug_mode;
 #endif
 
@@ -699,73 +650,56 @@ VDATA *COMPILER::ProcessEvent(const char *event_name)
     bEventsBreak = false;
 
     uint32_t nTimeOnEvent = SDL_GetTicks();
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     current_debug_mode = CDebug->GetTraceMode();
 #endif
 
     pVD = nullptr;
-    if (event_name == nullptr)
-    {
+    if (event_name == nullptr) {
         SetError("Invalid event name in ProcessEvent");
         return nullptr;
     }
 
     event_code = EventTab.FindEvent(event_name);
-    if (event_code == INVALID_EVENT_CODE)
-        return nullptr; // no handlers
+    if (event_code == INVALID_EVENT_CODE) return nullptr;  // no handlers
     EventTab.GetEvent(ei, event_code);
-    for (uint32_t n = 0; n < ei.elements; n++)
-    {
+    for (uint32_t n = 0; n < ei.elements; n++) {
         func_code = ei.pFuncInfo[n].func_code;
-        if (ei.pFuncInfo[n].status != FSTATUS_NORMAL)
-            continue;
+        if (ei.pFuncInfo[n].status != FSTATUS_NORMAL) continue;
         pMem = pEventMessage;
-        if (pMem)
-        {
-            pMem->Move2Start();
-        }
+        if (pMem) { pMem->Move2Start(); }
 
-        const uint32_t nStackVars = SStack.GetDataNum(); // remember stack elements num
+        uint32_t const nStackVars = SStack.GetDataNum();  // remember stack elements num
         RDTSC_B(nTicks);
         BC_Execute(ei.pFuncInfo[n].func_code, pResult);
         RDTSC_E(nTicks);
 
         FuncInfo fi;
         // if(FuncTab.GetFuncX(fi,ei.pFuncInfo[n].func_code))
-        if (FuncTab.GetFuncX(fi, func_code))
-        {
-            if (fi.return_type != TVOID)
-            {
-                fi.return_type = TVOID;
-            }
-        } //*/
+        if (FuncTab.GetFuncX(fi, func_code)) {
+            if (fi.return_type != TVOID) { fi.return_type = TVOID; }
+        }  //*/
 
-        if (EventTab.GetEvent(ei, event_code)) // to be sure event still exist
+        if (EventTab.GetEvent(ei, event_code))  // to be sure event still exist
         {
-            if (n < ei.elements)
-            {
-                if (!FuncTab.AddTime(ei.pFuncInfo[n].func_code, nTicks))
-                {
+            if (n < ei.elements) {
+                if (!FuncTab.AddTime(ei.pFuncInfo[n].func_code, nTicks)) {
                     core_internal.Trace("Invalid func_code = %u for AddTime", ei.pFuncInfo[n].func_code);
                 }
             }
         }
 
         pEventMessage = pMem;
-        if (pResult)
-            pVD = pResult->GetVarPointer();
-        if (pResult)
-            SStack.Pop();
+        if (pResult) pVD = pResult->GetVarPointer();
+        if (pResult) SStack.Pop();
 
-        if (nStackVars != SStack.GetDataNum())
-        {
-            SStack.InvalidateFrom(nStackVars); // restore stack state - crash situation
+        if (nStackVars != SStack.GetDataNum()) {
+            SStack.InvalidateFrom(nStackVars);  // restore stack state - crash situation
             pVD = nullptr;
             SetError("process event stack error");
         }
 
-        if (bEventsBreak)
-            break;
+        if (bEventsBreak) break;
     }
 
     nTimeOnEvent = SDL_GetTicks() - nTimeOnEvent;
@@ -774,97 +708,83 @@ VDATA *COMPILER::ProcessEvent(const char *event_name)
 
     pRun_fi = nullptr;
 
-#ifdef _WIN32 // S_DEBUG
-    if (current_debug_mode == TMODE_CONTINUE)
-        CDebug->SetTraceMode(TMODE_CONTINUE);
+#ifdef _WIN32  // S_DEBUG
+    if (current_debug_mode == TMODE_CONTINUE) CDebug->SetTraceMode(TMODE_CONTINUE);
 #endif
     // SetFocus(core_internal.App_Hwnd);        // VANO CHANGES
 
     RDTSC_E(dwRDTSC);
 
     // VANO CHANGES - remove in release
-    if (core_internal.Controls->GetDebugAsyncKeyState('5') < 0 &&
-        core_internal.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)
-    {
+    if (core_internal.Controls->GetDebugAsyncKeyState('5') < 0 && core_internal.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0) {
         core_internal.Trace("evnt: %d, %s", dwRDTSC, event_name);
     }
 
     return pVD;
 }
 
-void COMPILER::ProcessEvent(const char *event_name, MESSAGE *pMs)
+void COMPILER::ProcessEvent(char const* event_name, MESSAGE* pMs)
 {
     pEventMessage = pMs;
     ProcessEvent(event_name);
     pEventMessage = nullptr;
 }
 
-VDATA *COMPILER::ProcessEvent(const char *event_name, MESSAGE message)
+VDATA* COMPILER::ProcessEvent(char const* event_name, MESSAGE message)
 {
     pEventMessage = &message;
-    VDATA *pVD = ProcessEvent(event_name);
+    VDATA* pVD    = ProcessEvent(event_name);
     pEventMessage = nullptr;
     return pVD;
 }
 
 uint32_t COMPILER::GetSegmentIndex(uint32_t segment_id)
 {
-    for (uint32_t n = 0; n < SegmentsNum; n++)
-    {
-        if (SegmentTable[n].id == segment_id)
-            return n;
+    for (uint32_t n = 0; n < SegmentsNum; n++) {
+        if (SegmentTable[n].id == segment_id) return n;
     }
     return INVALID_SEGMENT_INDEX;
 }
 
 // function release global variables, functions and labels reference for segment
 // mark segment for subsequent unload (on ProcessFrame)
-void COMPILER::UnloadSegment(const char *segment_name)
+void COMPILER::UnloadSegment(char const* segment_name)
 {
     //    OFFSET_INFO offset_info;
 
-    for (uint32_t n = 0; n < SegmentsNum; n++)
-    {
-        if (strcmp(SegmentTable[n].name.c_str(), segment_name) == 0)
-        {
-            const uint32_t segment_id = SegmentTable[n].id;
-            SegmentTable[n].bUnload = true;
+    for (uint32_t n = 0; n < SegmentsNum; n++) {
+        if (strcmp(SegmentTable[n].name.c_str(), segment_name) == 0) {
+            uint32_t const segment_id = SegmentTable[n].id;
+            SegmentTable[n].bUnload   = true;
             FuncTab.InvalidateBySegmentID(segment_id);
             VarTab.InvalidateBySegmentID(segment_id);
             EventTab.InvalidateBySegmentID(segment_id);
             DefTab.InvalidateBySegmentID(segment_id);
-            if (SegmentTable[n].Files_list)
-            {
-                SegmentTable[n].Files_list->Release();
-            }
+            if (SegmentTable[n].Files_list) { SegmentTable[n].Files_list->Release(); }
             break;
         }
     }
 }
 
-bool COMPILER::BC_SegmentIsLoaded(const char *file_name)
+bool COMPILER::BC_SegmentIsLoaded(char const* file_name)
 {
-    if (file_name == nullptr)
-    {
+    if (file_name == nullptr) {
         SetError("Invalid segment name");
         return false;
     }
-    for (uint32_t n = 0; n < SegmentsNum; n++)
-    {
-        if (strcmp(SegmentTable[n].name.c_str(), file_name) == 0)
-            return true;
+    for (uint32_t n = 0; n < SegmentsNum; n++) {
+        if (strcmp(SegmentTable[n].name.c_str(), file_name) == 0) return true;
     }
     return false;
 }
 
-bool COMPILER::BC_LoadSegment(const char *file_name)
+bool COMPILER::BC_LoadSegment(char const* file_name)
 {
     uint32_t n;
 
     LabelUpdateTable.Release();
 
-    if (file_name == nullptr)
-    {
+    if (file_name == nullptr) {
         SetError("Invalid segment name");
         return false;
     }
@@ -872,31 +792,25 @@ bool COMPILER::BC_LoadSegment(const char *file_name)
     // Trace("Loading segment: %s", file_name);
 
     // check for already loaded
-    for (n = 0; n < SegmentsNum; n++)
-    {
-        if (strcmp(SegmentTable[n].name.c_str(), file_name) == 0)
-        {
+    for (n = 0; n < SegmentsNum; n++) {
+        if (strcmp(SegmentTable[n].name.c_str(), file_name) == 0) {
             SetWarning("Segment already loaded: %s", file_name);
             return true;
         }
     }
 
     // compute new segment id --------------------------
-    uint32_t id = 0;
-    bool found = false;
-    while (!found)
-    {
+    uint32_t id    = 0;
+    bool     found = false;
+    while (!found) {
         found = true;
-        for (n = 0; n < SegmentsNum; n++)
-        {
-            if (SegmentTable[n].id == id)
-                found = false;
+        for (n = 0; n < SegmentsNum; n++) {
+            if (SegmentTable[n].id == id) found = false;
         }
-        if (!found)
-            id++;
+        if (!found) id++;
     }
 
-    const uint32_t index = SegmentsNum;
+    uint32_t const index = SegmentsNum;
     SegmentsNum++;
     // SegmentTable = (SEGMENT_DESC *)RESIZE(SegmentTable,SegmentsNum*sizeof(SEGMENT_DESC));
     SegmentTable.resize(SegmentsNum);
@@ -904,49 +818,38 @@ bool COMPILER::BC_LoadSegment(const char *file_name)
     // const auto len = strlen(file_name) + 1;
     // SegmentTable[index].name = new char[len];
     // memcpy(SegmentTable[index].name, file_name, len);
-    SegmentTable[index].name = strdup(file_name);
-    SegmentTable[index].id = id;
-    SegmentTable[index].bUnload = false;
-    SegmentTable[index].pData = nullptr;
-    SegmentTable[index].pCode = nullptr;
+    SegmentTable[index].name               = strdup(file_name);
+    SegmentTable[index].id                 = id;
+    SegmentTable[index].bUnload            = false;
+    SegmentTable[index].pData              = nullptr;
+    SegmentTable[index].pCode              = nullptr;
     SegmentTable[index].BCode_Program_size = 0;
-    SegmentTable[index].BCode_Buffer_size = 0;
+    SegmentTable[index].BCode_Buffer_size  = 0;
 
     SegmentTable[index].Files_list = new STRINGS_LIST;
     SegmentTable[index].Files_list->SetStringDataSize(sizeof(OFFSET_INFO));
     bool result = false;
-    if (script_cache_mode_ != kCacheDisabled)
-    {
-        static bool is_calculated;
+    if (script_cache_mode_ != kCacheDisabled) {
+        static bool     is_calculated;
         static uint64_t calculated_fingerprint;
-        if (!is_calculated)
-        {
-            is_calculated = true;
+        if (!is_calculated) {
+            is_calculated          = true;
             calculated_fingerprint = fio->GetPathFingerprint(ProgramDirectory);
-        }
-        else if (script_cache_mode_ == kCacheEnabled)
-        {
+        } else if (script_cache_mode_ == kCacheEnabled) {
             calculated_fingerprint = fio->GetPathFingerprint(ProgramDirectory);
         }
 
-        if (ReadCacheFingerprint(cache_fingerprint_) && cache_fingerprint_ == calculated_fingerprint)
-        {
+        if (ReadCacheFingerprint(cache_fingerprint_) && cache_fingerprint_ == calculated_fingerprint) {
             // attempt to load from cache first
             result = LoadSegmentFromCache(SegmentTable[index]);
-        }
-        else
-        {
+        } else {
             WipeCache(calculated_fingerprint);
         }
     }
 
-    if (!result)
-    {
-        result = Compile(SegmentTable[index]);
-    }
+    if (!result) { result = Compile(SegmentTable[index]); }
 
-    if (!result)
-    {
+    if (!result) {
         delete SegmentTable[index].Files_list;
         SegmentsNum--;
         // SegmentTable = (SEGMENT_DESC *)RESIZE(SegmentTable,SegmentsNum*sizeof(SEGMENT_DESC));
@@ -959,84 +862,72 @@ bool COMPILER::BC_LoadSegment(const char *file_name)
     return result;
 }
 
-bool COMPILER::ProcessDebugExpression(const char *pExpression, DATA &Result)
+bool COMPILER::ProcessDebugExpression(char const* pExpression, DATA& Result)
 {
-    if (pExpression == nullptr)
-        return false;
+    if (pExpression == nullptr) return false;
 
-    const uint32_t nDataSize = strlen(pExpression) + strlen("return ") + 2;
-    if (nDataSize > nDebExpBufferSize)
-    {
+    uint32_t const nDataSize = strlen(pExpression) + strlen("return ") + 2;
+    if (nDataSize > nDebExpBufferSize) {
         //    pDebExpBuffer = (char *)RESIZE(pDebExpBuffer,nDataSize);
-        auto *const newPtr = new char[nDataSize];
+        auto* const newPtr = new char[nDataSize];
         memcpy(newPtr, pDebExpBuffer, nDebExpBufferSize);
         delete[] pDebExpBuffer;
-        pDebExpBuffer = newPtr;
+        pDebExpBuffer     = newPtr;
         nDebExpBufferSize = nDataSize;
     }
     sprintf_s(pDebExpBuffer, nDebExpBufferSize, "return %s;", pExpression);
     return ProcessDebugExpression0(pDebExpBuffer, Result);
 }
 
-bool COMPILER::SetOnDebugExpression(const char *pLValue, const char *pRValue, DATA &Result)
+bool COMPILER::SetOnDebugExpression(char const* pLValue, char const* pRValue, DATA& Result)
 {
-    if (pLValue == nullptr || pRValue == nullptr)
-        return false;
+    if (pLValue == nullptr || pRValue == nullptr) return false;
 
-    const uint32_t nDataSize = strlen(pLValue) + strlen(pRValue) + 5;
-    if (nDataSize > nDebExpBufferSize)
-    {
+    uint32_t const nDataSize = strlen(pLValue) + strlen(pRValue) + 5;
+    if (nDataSize > nDebExpBufferSize) {
         // pDebExpBuffer = (char *)RESIZE(pDebExpBuffer,nDataSize);
-        auto *const newPtr = new char[nDataSize];
+        auto* const newPtr = new char[nDataSize];
         memcpy(newPtr, pDebExpBuffer, nDebExpBufferSize);
         delete[] pDebExpBuffer;
-        pDebExpBuffer = newPtr;
+        pDebExpBuffer     = newPtr;
         nDebExpBufferSize = nDataSize;
     }
     sprintf_s(pDebExpBuffer, nDataSize, "%s = %s;", pLValue, pRValue);
     return ProcessDebugExpression0(pDebExpBuffer, Result);
 }
 
-bool COMPILER::ProcessDebugExpression0(const char *pExpression, DATA &Result)
+bool COMPILER::ProcessDebugExpression0(char const* pExpression, DATA& Result)
 {
     SEGMENT_DESC Segment;
     STRINGS_LIST DbgLocalSL;
-    bool bRes;
+    bool         bRes;
 
-    DATA *pResult = nullptr;
+    DATA* pResult = nullptr;
 
-    if (pExpression == nullptr)
-        return false;
+    if (pExpression == nullptr) return false;
 
     bDebugExpressionRun = true;
 
-    Segment = {};
-    Segment.name = "Debug Expression";
-    Segment.id = RunningSegmentID;
-    Segment.bUnload = false;
-    Segment.pData = nullptr;
-    Segment.pCode = nullptr;
+    Segment                    = {};
+    Segment.name               = "Debug Expression";
+    Segment.id                 = RunningSegmentID;
+    Segment.bUnload            = false;
+    Segment.pData              = nullptr;
+    Segment.pCode              = nullptr;
     Segment.BCode_Program_size = 0;
-    Segment.BCode_Buffer_size = 0;
-    Segment.Files_list = &DbgLocalSL;
+    Segment.BCode_Buffer_size  = 0;
+    Segment.Files_list         = &DbgLocalSL;
     Segment.Files_list->SetStringDataSize(sizeof(OFFSET_INFO));
 
-    if (pRun_fi)
-    {
-        CurrentFuncCode = FuncTab.FindFunc(pRun_fi->name);
-    }
+    if (pRun_fi) { CurrentFuncCode = FuncTab.FindFunc(pRun_fi->name); }
 
-    try
-    {
+    try {
         bRes = Compile(Segment, pDebExpBuffer, strlen(pDebExpBuffer) + 1);
-    }
-    catch (...)
-    {
+    } catch (...) {
         return false;
     }
 
-    if (!bRes)
-    {
+    if (!bRes) {
         delete[] Segment.pCode;
         bDebugExpressionRun = false;
         return false;
@@ -1045,10 +936,10 @@ bool COMPILER::ProcessDebugExpression0(const char *pExpression, DATA &Result)
     // DWORD mem_CurrentFuncCode;
 
     // save current pointers values
-    const uint32_t mem_InstructionPointer = InstructionPointer;
+    uint32_t const mem_InstructionPointer = InstructionPointer;
     // mem_ip = ip;
-    FuncInfo *mem_pfi = pRun_fi;
-    const char *mem_codebase = pRunCodeBase;
+    FuncInfo*   mem_pfi      = pRun_fi;
+    char const* mem_codebase = pRunCodeBase;
     // mem_CurrentFuncCode = CurrentFuncCode;
 
     // trace("Segment.pCode : %s",pDebExpBuffer);
@@ -1056,21 +947,19 @@ bool COMPILER::ProcessDebugExpression0(const char *pExpression, DATA &Result)
     // DWORD old_data_num;
     // old_data_num = SStack.GetDataNum(); trace("old_data_num: %d",old_data_num);
 
-    const uint32_t stackN = SStack.GetDataNum();
+    uint32_t const stackN = SStack.GetDataNum();
 
-    try
-    {
+    try {
         bRes = BC_Execute(INVALID_FUNC_CODE, pResult, Segment.pCode);
     }
     // old_data_num = SStack.GetDataNum(); trace("new_data_num: %d",old_data_num);
 
-    catch (...)
-    {
+    catch (...) {
         bRes = false;
     }
 
     // restore
-    pRun_fi = mem_pfi;
+    pRun_fi            = mem_pfi;
     InstructionPointer = mem_InstructionPointer;
     // ip = mem_ip;
     // RunningSegmentID = pRun_fi->segment_id;
@@ -1078,8 +967,7 @@ bool COMPILER::ProcessDebugExpression0(const char *pExpression, DATA &Result)
 
     delete[] Segment.pCode;
 
-    if (pResult)
-    {
+    if (pResult) {
         Result.Copy(pResult);
         // SStack.Pop();
     }
@@ -1091,21 +979,17 @@ bool COMPILER::ProcessDebugExpression0(const char *pExpression, DATA &Result)
 
 void COMPILER::ProcessFrame(uint32_t DeltaTime)
 {
-    if (core_internal.Timer.Ring)
-        AddRuntimeEvent();
+    if (core_internal.Timer.Ring) AddRuntimeEvent();
 
-    for (uint32_t n = 0; n < SegmentsNum; n++)
-    {
-        if (!SegmentTable[n].bUnload)
-            continue;
+    for (uint32_t n = 0; n < SegmentsNum; n++) {
+        if (!SegmentTable[n].bUnload) continue;
         // unload segment of program
         delete[] SegmentTable[n].pData;
         delete[] SegmentTable[n].pCode;
         delete SegmentTable[n].Files_list;
         SegmentTable[n].Files_list = nullptr;
 
-        for (uint32_t i = n; i < (SegmentsNum - 1); i++)
-        {
+        for (uint32_t i = n; i < (SegmentsNum - 1); i++) {
             SegmentTable[i] = SegmentTable[i + 1];
         }
         SegmentsNum--;
@@ -1117,18 +1001,14 @@ void COMPILER::ProcessFrame(uint32_t DeltaTime)
 
     EventTab.ProcessFrame();
 
-    for (int32_t ln = 0; ln < static_cast<int32_t>(EventMsg.GetClassesNum()); ln++)
-    {
-        S_EVENTMSG *pMsg = EventMsg.Read(ln);
-        if (pMsg->bInvalide)
-            continue;
-        if (pMsg->bProcess == false)
-        {
+    for (int32_t ln = 0; ln < static_cast<int32_t>(EventMsg.GetClassesNum()); ln++) {
+        S_EVENTMSG* pMsg = EventMsg.Read(ln);
+        if (pMsg->bInvalide) continue;
+        if (pMsg->bProcess == false) {
             pMsg->ProcessTime(DeltaTime);
             continue;
         }
-        if (pMsg->ProcessTime(DeltaTime))
-        {
+        if (pMsg->ProcessTime(DeltaTime)) {
             pMsg->Invalidate();
             ProcessEvent(pMsg->pEventName, pMsg->pMessageClass);
             // EventMsg.Del(ln);
@@ -1143,27 +1023,26 @@ void COMPILER::ProcessFrame(uint32_t DeltaTime)
     PrintoutUsage();
 }
 
-void COMPILER::ResizeBCodeBuffer(SEGMENT_DESC &Segment, uint32_t add_size)
+void COMPILER::ResizeBCodeBuffer(SEGMENT_DESC& Segment, uint32_t add_size)
 {
     int64_t needed_memory = static_cast<int64_t>(Segment.BCode_Program_size) + add_size - Segment.BCode_Buffer_size;
-    if (needed_memory >= 0)
-    {
-        const auto needed_blocks = (needed_memory - 1) / BCODE_BUFFER_BLOCKSIZE + 1;
+    if (needed_memory >= 0) {
+        auto const needed_blocks = (needed_memory - 1) / BCODE_BUFFER_BLOCKSIZE + 1;
         Segment.BCode_Buffer_size += needed_blocks * BCODE_BUFFER_BLOCKSIZE;
         // Segment.pCode = (char *)RESIZE(Segment.pCode,Segment.BCode_Buffer_size);
-        auto *const newPtr = new char[Segment.BCode_Buffer_size];
+        auto* const newPtr = new char[Segment.BCode_Buffer_size];
         memcpy(newPtr, Segment.pCode, Segment.BCode_Program_size);
         delete[] Segment.pCode;
         Segment.pCode = newPtr;
     }
 }
 
-void COMPILER::CompileToken(SEGMENT_DESC &Segment, S_TOKEN_TYPE Token_type, uint32_t data_blocks_num, ...)
+void COMPILER::CompileToken(SEGMENT_DESC& Segment, S_TOKEN_TYPE Token_type, uint32_t data_blocks_num, ...)
 {
     uint32_t data_size;
     uint32_t n;
-    va_list args;
-    char *data_ptr;
+    va_list  args;
+    char*    data_ptr;
 
     // DTrace("token: %s : %s",Token.GetTypeName(Token_type),Token.GetData());
 
@@ -1174,8 +1053,7 @@ void COMPILER::CompileToken(SEGMENT_DESC &Segment, S_TOKEN_TYPE Token_type, uint
     Segment.BCode_Program_size += write_size;
     //--------------------------------------------------------------------------
 
-    if (data_blocks_num == 0)
-    {
+    if (data_blocks_num == 0) {
         // write byte length of token data -------------------------------------
         write_size = 1;
         ResizeBCodeBuffer(Segment, write_size);
@@ -1186,35 +1064,30 @@ void COMPILER::CompileToken(SEGMENT_DESC &Segment, S_TOKEN_TYPE Token_type, uint
 
     // pCompileTokenTempBuffer = (char *)RESIZE(pCompileTokenTempBuffer,data_blocks_num * (sizeof(char *) +
     // sizeof(uint32_t)));
-    auto *const newPtr = new char[data_blocks_num * (sizeof(char *) + sizeof(uint32_t))];
+    auto* const newPtr = new char[data_blocks_num * (sizeof(char*) + sizeof(uint32_t))];
     delete[] pCompileTokenTempBuffer;
     pCompileTokenTempBuffer = newPtr;
 
     // gather data blocks information and count total data size ----------------
     va_start(args, data_blocks_num);
     write_size = 0;
-    for (n = 0; n < data_blocks_num; n++)
-    {
-        data_ptr = va_arg(args, char *);
+    for (n = 0; n < data_blocks_num; n++) {
+        data_ptr  = va_arg(args, char*);
         data_size = va_arg(args, uint32_t);
-        memcpy(pCompileTokenTempBuffer + n * (sizeof(char *) + sizeof(uint32_t)), &data_ptr, sizeof(char *));
-        memcpy(pCompileTokenTempBuffer + n * (sizeof(char *) + sizeof(uint32_t)) + sizeof(char *), &data_size,
-               sizeof(uint32_t));
+        memcpy(pCompileTokenTempBuffer + n * (sizeof(char*) + sizeof(uint32_t)), &data_ptr, sizeof(char*));
+        memcpy(pCompileTokenTempBuffer + n * (sizeof(char*) + sizeof(uint32_t)) + sizeof(char*), &data_size, sizeof(uint32_t));
         write_size += data_size;
     }
     va_end(args);
     //--------------------------------------------------------------------------
 
     // write total length of token
-    if (write_size < 0xff)
-    {
+    if (write_size < 0xff) {
         // write byte length of token data
         ResizeBCodeBuffer(Segment, 1);
         Segment.pCode[Segment.BCode_Program_size] = static_cast<uint8_t>(write_size);
         Segment.BCode_Program_size += 1;
-    }
-    else
-    {
+    } else {
         // write uint32_t length of token data
         ResizeBCodeBuffer(Segment, sizeof(uint32_t) + 1);
         Segment.pCode[Segment.BCode_Program_size] = static_cast<uint8_t>(0xff);
@@ -1226,11 +1099,9 @@ void COMPILER::CompileToken(SEGMENT_DESC &Segment, S_TOKEN_TYPE Token_type, uint
 
     // write token data blocks
     ResizeBCodeBuffer(Segment, write_size);
-    for (n = 0; n < data_blocks_num; n++)
-    {
-        memcpy(&data_ptr, pCompileTokenTempBuffer + n * (sizeof(char *) + sizeof(uint32_t)), sizeof(char *));
-        memcpy(&data_size, pCompileTokenTempBuffer + n * (sizeof(char *) + sizeof(uint32_t)) + sizeof(char *),
-               sizeof(uint32_t));
+    for (n = 0; n < data_blocks_num; n++) {
+        memcpy(&data_ptr, pCompileTokenTempBuffer + n * (sizeof(char*) + sizeof(uint32_t)), sizeof(char*));
+        memcpy(&data_size, pCompileTokenTempBuffer + n * (sizeof(char*) + sizeof(uint32_t)) + sizeof(char*), sizeof(uint32_t));
         memcpy(&Segment.pCode[Segment.BCode_Program_size], data_ptr, data_size);
         Segment.BCode_Program_size += data_size;
     }
@@ -1242,57 +1113,54 @@ bool COMPILER::InitInternalFunctions()
 
     // register internal functions ------------
 
-    const uint32_t internal_functions_num = GetIntFunctionsNum();
-    for (uint32_t n = 0; n < internal_functions_num; n++)
-    {
+    uint32_t const internal_functions_num = GetIntFunctionsNum();
+    for (uint32_t n = 0; n < internal_functions_num; n++) {
         fi.segment_id = INTERNAL_SEGMENT_ID;
         // fi.name = FuncNameTable[n];
-        fi.name = IntFuncTable[n].pName;
-        fi.offset = n;
-        fi.arguments = GetInternalFunctionArgumentsNum(n);
-        fi.decl_file_name = "engine";
-        fi.decl_line = 0;
-        fi.return_type = IntFuncTable[n].ReturnType;
+        fi.name            = IntFuncTable[n].pName;
+        fi.offset          = n;
+        fi.arguments       = GetInternalFunctionArgumentsNum(n);
+        fi.decl_file_name  = "engine";
+        fi.decl_line       = 0;
+        fi.return_type     = IntFuncTable[n].ReturnType;
         uint32_t func_code = FuncTab.AddFunc(fi);
 
-        if (func_code == INVALID_FUNC_CODE)
-        {
+        if (func_code == INVALID_FUNC_CODE) {
             func_code = FuncTab.FindFunc(fi.name);
             FuncTab.GetFunc(fi, func_code);
             // SetError("Duplicate function name: %s",fi.name);
-            SetError("Function [%s] already declared in: %s line %d", fi.name.c_str(), fi.decl_file_name.c_str(),
-                     fi.decl_line);
+            SetError("Function [%s] already declared in: %s line %d", fi.name.c_str(), fi.decl_file_name.c_str(), fi.decl_line);
             return false;
         }
     }
     return true;
 }
 
-bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInternalCodeSize)
+bool COMPILER::Compile(SEGMENT_DESC& Segment, char* pInternalCode, uint32_t pInternalCodeSize)
 {
-    char dbg_file_name[MAX_PATH];
-    char file_name[MAX_PATH];
-    char func_name[MAX_PATH];
-    char var_name[MAX_PATH];
-    char *pProgram;
-    char *pApend_file;
-    char *pSegmentSource;
-    FuncInfo fi;
-    VarInfo vi = {};
-    const VarInfo *real_var = nullptr;
-    LocalVarInfo lvi;
-    uint32_t SegmentSize;
-    uint32_t Program_size;
-    uint32_t func_code;
-    uint32_t var_code;
-    uint32_t def_code;
-    uint32_t inout;
-    uint32_t n;
-    ptrdiff_t Control_offset;
-    uint32_t Append_file_size;
-    STRINGS_LIST BlockTable;
-    S_TOKEN_TYPE Token_type;
-    DEFINFO di;
+    char           dbg_file_name[MAX_PATH];
+    char           file_name[MAX_PATH];
+    char           func_name[MAX_PATH];
+    char           var_name[MAX_PATH];
+    char*          pProgram;
+    char*          pApend_file;
+    char*          pSegmentSource;
+    FuncInfo       fi;
+    VarInfo        vi       = {};
+    VarInfo const* real_var = nullptr;
+    LocalVarInfo   lvi;
+    uint32_t       SegmentSize;
+    uint32_t       Program_size;
+    uint32_t       func_code;
+    uint32_t       var_code;
+    uint32_t       def_code;
+    uint32_t       inout;
+    uint32_t       n;
+    ptrdiff_t      Control_offset;
+    uint32_t       Append_file_size;
+    STRINGS_LIST   BlockTable;
+    S_TOKEN_TYPE   Token_type;
+    DEFINFO        di;
 
     CompilerStage = CS_COMPILATION;
 
@@ -1301,36 +1169,29 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     script_cache_ = storm::ScriptCache();
 
     //    bool bCDStop;
-    bool bFunctionBlock;
+    bool    bFunctionBlock;
     int32_t lvalue;
-    float fvalue;
+    float   fvalue;
 
     Control_offset = 0;
     strcpy_s(file_name, Segment.name.c_str());
 
-    if (pInternalCode == nullptr)
-    {
-        auto is_new = Segment.Files_list->AddUnicalString(file_name);
-        pProgram = nullptr;
-        Program_size = 0;
+    if (pInternalCode == nullptr) {
+        auto is_new    = Segment.Files_list->AddUnicalString(file_name);
+        pProgram       = nullptr;
+        Program_size   = 0;
         pSegmentSource = LoadFile(file_name, SegmentSize);
-        if (is_new && script_cache_mode_ != kCacheDisabled)
-        {
-            script_cache_.files.emplace_back(file_name);
-        }
+        if (is_new && script_cache_mode_ != kCacheDisabled) { script_cache_.files.emplace_back(file_name); }
         AppendProgram(pProgram, Program_size, pSegmentSource, SegmentSize, true);
         Segment.pData = pProgram;
-        if (pProgram == nullptr)
-        {
+        if (pProgram == nullptr) {
             SetError("file not found: %s", file_name);
             return false;
         }
         CurrentFuncCode = INVALID_FUNC_CODE;
-    }
-    else
-    {
-        pProgram = pInternalCode;
-        Program_size = pInternalCodeSize;
+    } else {
+        pProgram      = pInternalCode;
+        Program_size  = pInternalCodeSize;
         Segment.pData = pProgram;
     }
 
@@ -1338,123 +1199,93 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
 
     // register functions and variables ---------
     strcpy_s(func_name, "null");
-    inout = 0;
+    inout          = 0;
     bFunctionBlock = false;
     // pProgram = Segment.pData;
     Token.SetProgram(pProgram, pProgram);
-    if (bDebugInfo)
-    {
-        strcpy_s(DebugSourceFileName, Segment.name.c_str());
-    }
+    if (bDebugInfo) { strcpy_s(DebugSourceFileName, Segment.name.c_str()); }
     DebugSourceLine = DSL_INI_VALUE;
     bool bExtern;
     bool bImport;
     bExtern = false;
     bImport = false;
-    do
-    {
+    do {
         Token_type = Token.Get();
-        if (Token_type == DOT)
-        {
-            Token_type = Token.Get();
-        }
-        switch (Token_type)
-        {
-        case COMMENT:
-            DebugSourceLine += Token.TokenLines();
-            break;
+        if (Token_type == DOT) { Token_type = Token.Get(); }
+        switch (Token_type) {
+        case COMMENT: DebugSourceLine += Token.TokenLines(); break;
         case LABEL:
             Token.StepBack();
             Token.StepBack();
-            Token.Get(); // label name
+            Token.Get();  // label name
 
-            if (!LabelTable.AddUnicalString(Token.GetData()))
-                SetError("duplicate label: %s", Token.GetData());
+            if (!LabelTable.AddUnicalString(Token.GetData())) SetError("duplicate label: %s", Token.GetData());
             Token.Get();
             break;
         case CASE_COMMAND:
-            Token.Get(); // condition value
-            if (Token.Get() != LABEL)
-            {
+            Token.Get();  // condition value
+            if (Token.Get() != LABEL) {
                 SetError("invalid case syntax");
                 return false;
             }
             break;
         case SEPARATOR:
-            if (bFunctionBlock && bExtern)
-            {
+            if (bFunctionBlock && bExtern) {
                 bFunctionBlock = false;
-                bExtern = false;
+                bExtern        = false;
             }
-            if (bFunctionBlock && bImport)
-            {
+            if (bFunctionBlock && bImport) {
                 bFunctionBlock = false;
-                bImport = false;
+                bImport        = false;
             }
             break;
-        case DEBUG_LINEFEED:
-            DebugSourceLine++;
-            break;
+        case DEBUG_LINEFEED: DebugSourceLine++; break;
         case DEBUG_FILE_NAME:
             DebugSourceLine = DSL_INI_VALUE;
             strcpy_s(DebugSourceFileName, Token.GetData());
             break;
         case INCLUDE_LIBRIARY: {
-            SCRIPT_LIBRIARY *pLib;
-            VMA *pClass;
+            SCRIPT_LIBRIARY* pLib;
+            VMA*             pClass;
 
             //-----------------------------------------------------
             // check if already loaded
-            auto name = std::string_view(Token.GetData());
-            auto comparator = [&name](const auto &library) { return storm::iEquals(library.name, name); };
+            auto name       = std::string_view(Token.GetData());
+            auto comparator = [&name](auto const& library) { return storm::iEquals(library.name, name); };
 
-            if (std::ranges::find_if(LibriaryFuncs, comparator) != LibriaryFuncs.end())
-            {
-                break;
-            }
+            if (std::ranges::find_if(LibriaryFuncs, comparator) != LibriaryFuncs.end()) { break; }
             //-----------------------------------------------------
 
             pClass = core_internal.FindVMA(Token.GetData());
-            if (!pClass)
-            {
+            if (!pClass) {
                 SetWarning("cant load libriary '%s'", Token.GetData());
                 break;
             }
 
-            pLib = static_cast<SCRIPT_LIBRIARY *>(pClass->CreateClass());
-            if (pLib)
-                pLib->Init();
+            pLib = static_cast<SCRIPT_LIBRIARY*>(pClass->CreateClass());
+            if (pLib) pLib->Init();
 
             LibriaryFuncs.emplace_back(pLib, Token.GetData());
-            if (script_cache_mode_ != kCacheDisabled)
-            {
-                script_cache_.script_libs.emplace_back(Token.GetData());
-            }
+            if (script_cache_mode_ != kCacheDisabled) { script_cache_.script_libs.emplace_back(Token.GetData()); }
 
             break;
         }
         case INCLIDE_FILE:
-            if (Segment.Files_list->AddUnicalString(Token.GetData()))
-            {
-                Control_offset = Token.GetProgramControl() - Token.GetProgramBase(); // store program scan point
-                pApend_file = LoadFile(Token.GetData(), Append_file_size);
-                if (pApend_file == nullptr)
-                {
+            if (Segment.Files_list->AddUnicalString(Token.GetData())) {
+                Control_offset = Token.GetProgramControl() - Token.GetProgramBase();  // store program scan point
+                pApend_file    = LoadFile(Token.GetData(), Append_file_size);
+                if (pApend_file == nullptr) {
                     SetError("can't load file: %s", Token.GetData());
                     return false;
                 }
-                if (script_cache_mode_ != kCacheDisabled)
-                {
-                    script_cache_.files.emplace_back(Token.GetData());
-                }
-                if (bDebugInfo)
-                {
+                if (script_cache_mode_ != kCacheDisabled) { script_cache_.files.emplace_back(Token.GetData()); }
+                if (bDebugInfo) {
                     uint32_t aps;
                     strcpy_s(dbg_file_name, "#file \"");
                     strcat_s(dbg_file_name, Token.GetData());
                     strcat_s(dbg_file_name, "\";");
                     aps = strlen(dbg_file_name);
-                    char *pTempS;
+                    char* pTempS;
                     pTempS = new char[aps + 1];
                     strcpy_s(pTempS, aps + 1, dbg_file_name);
                     AppendProgram(pProgram, Program_size, pTempS, aps, false);
@@ -1464,58 +1295,48 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                 Token.SetProgram(pProgram, pProgram + Control_offset);
             }
             break;
-        case DEFINE_COMMAND: // create define
+        case DEFINE_COMMAND:  // create define
             // DefineTable
-            if (inout == 0)
-            {
+            if (inout == 0) {
                 strcpy_s(var_name, Token.GetData());
-                di.name = var_name;
+                di.name       = var_name;
                 di.segment_id = Segment.id;
                 Token.Get();
-                di.deftype = Token.GetType();
+                di.deftype  = Token.GetType();
                 bool bMinus = false;
-                if (Token.GetType() == OP_MINUS)
-                {
+                if (Token.GetType() == OP_MINUS) {
                     bMinus = true;
                     Token.Get();
                     di.deftype = Token.GetType();
                 }
                 di.data4b = {};
-                switch (Token.GetType())
-                {
+                switch (Token.GetType()) {
                 case NUMBER:
                     lvalue = static_cast<int32_t>(atoll(Token.GetData()));
-                    if (bMinus)
-                        lvalue = -lvalue;
+                    if (bMinus) lvalue = -lvalue;
                     memcpy(&di.data4b, &lvalue, sizeof(int32_t));
                     break;
                 case FLOAT_NUMBER:
                     fvalue = static_cast<float>(atof(Token.GetData()));
-                    if (bMinus)
-                        fvalue = -fvalue;
+                    if (bMinus) fvalue = -fvalue;
                     memcpy(&di.data4b, &fvalue, sizeof(float));
                     break;
                 case STRING: {
-                    const auto len = strlen(Token.GetData()) + 1;
-                    di.data4b = (uintptr_t)new char[len];
-                    memcpy((void *)di.data4b, Token.GetData(), len);
+                    auto const len = strlen(Token.GetData()) + 1;
+                    di.data4b      = (uintptr_t)new char[len];
+                    memcpy((void*)di.data4b, Token.GetData(), len);
                     break;
                 }
-                case OP_MINUS:
-
-                    break;
-                default:
-                    break;
+                case OP_MINUS: break;
+                default: break;
                 }
                 def_code = DefTab.AddDef(di);
-                if (def_code == INVALID_DEF_CODE)
-                {
+                if (def_code == INVALID_DEF_CODE) {
                     SetError("define redefinition: %s", di.name);
                     return false;
                 }
-                if (script_cache_mode_ != kCacheDisabled)
-                {
-                    script_cache_.defines.emplace_back(storm::script_cache::Define{di.name, di.deftype, di.data4b});
+                if (script_cache_mode_ != kCacheDisabled) {
+                    script_cache_.defines.emplace_back(storm::script_cache::Define {di.name, di.deftype, di.data4b});
                 }
             }
             break;
@@ -1543,14 +1364,11 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                 }
               }
             break;*/
-        case EXTERN:
-            Token_type = Token.Get();
-            bExtern = true;
+        case EXTERN: Token_type = Token.Get(); bExtern = true;
         case IMPORT:
-            if (!bExtern)
-            {
+            if (!bExtern) {
                 Token_type = Token.Get();
-                bImport = true;
+                bImport    = true;
             }
         case VAR_AREFERENCE:
         case VAR_REFERENCE:
@@ -1560,18 +1378,15 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
         case VAR_STRING:
         case VAR_OBJECT:
         case TVOID:
-            if (inout == 0)
-            {
-                if (!bFunctionBlock)
-                {
+            if (inout == 0) {
+                if (!bFunctionBlock) {
                     Token.Get();
-                    if (Token.GetType() == OPEN_BRACKET)
-                    {
+                    if (Token.GetType() == OPEN_BRACKET) {
                         // this is function header
                         Token.StepBack();
                         Token.StepBack();
-                        Token.Get();           // function name
-                        bFunctionBlock = true; // we are stepped into func area
+                        Token.Get();            // function name
+                        bFunctionBlock = true;  // we are stepped into func area
 
                         strcpy_s(func_name, Token.GetData());
 
@@ -1582,28 +1397,26 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                             fi.offset = INVALID_FUNC_OFFSET;
                         else
                             fi.offset = Segment.BCode_Program_size;
-                        fi.name = func_name;
-                        fi.return_type = Token_type;
-                        fi.arguments = 0;
+                        fi.name           = func_name;
+                        fi.return_type    = Token_type;
+                        fi.arguments      = 0;
                         fi.decl_file_name = DebugSourceFileName;
-                        fi.decl_line = DebugSourceLine;
-                        fi.imported_func = nullptr;
-                        func_code = FuncTab.AddFunc(fi);
+                        fi.decl_line      = DebugSourceLine;
+                        fi.imported_func  = nullptr;
+                        func_code         = FuncTab.AddFunc(fi);
 
-                        if (func_code == INVALID_FUNC_CODE)
-                        {
+                        if (func_code == INVALID_FUNC_CODE) {
                             func_code = FuncTab.FindFunc(fi.name);
                             FuncTab.GetFunc(fi, func_code);
                             // SetError("Duplicate function name: %s",fi.name);
-                            SetError("Function [%s] already declared in: %s line %d", fi.name.c_str(),
-                                     fi.decl_file_name.c_str(), fi.decl_line);
+                            SetError(
+                                "Function [%s] already declared in: %s line %d", fi.name.c_str(), fi.decl_file_name.c_str(), fi.decl_line);
 
                             return false;
                         }
-                        if (script_cache_mode_ != kCacheDisabled)
-                        {
-                            script_cache_.functions.emplace_back(storm::script_cache::Function{
-                                fi, std::vector<storm::script_cache::FunctionLocalVariable>{}});
+                        if (script_cache_mode_ != kCacheDisabled) {
+                            script_cache_.functions.emplace_back(
+                                storm::script_cache::Function {fi, std::vector<storm::script_cache::FunctionLocalVariable> {}});
                         }
                         break;
                     }
@@ -1611,73 +1424,57 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
 
                     // global variable
                     Token.StepBack();
-                    do
-                    {
+                    do {
                         Token.Get();
-                        if (Token.GetData() == nullptr)
-                        {
+                        if (Token.GetData() == nullptr) {
                             SetError("Invalid variable name");
                             return false;
                         }
-                        vi.name = Token.GetData();
+                        vi.name       = Token.GetData();
                         vi.segment_id = Segment.id;
-                        vi.elements = 1;
-                        vi.type = Token_type;
+                        vi.elements   = 1;
+                        vi.type       = Token_type;
                         Token.Get();
-                        if (Token.GetType() == SQUARE_OPEN_BRACKET)
-                        {
+                        if (Token.GetType() == SQUARE_OPEN_BRACKET) {
                             Token.Get();
-                            if (Token.GetType() != NUMBER)
-                            {
+                            if (Token.GetType() != NUMBER) {
                                 def_code = DefTab.FindDef(Token.GetData());
-                                if (def_code != INVALID_DEF_CODE)
-                                {
+                                if (def_code != INVALID_DEF_CODE) {
                                     DefTab.GetDef(di, def_code);
-                                    if (di.deftype == NUMBER)
-                                    {
+                                    if (di.deftype == NUMBER) {
                                         lvalue = di.data4b;
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         SetError("Invalid array (%s) size", vi.name.c_str());
                                         return false;
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     SetError("Invalid array (%s) size", vi.name.c_str());
                                     return false;
                                 }
-                            }
-                            else
+                            } else
                                 lvalue = static_cast<int32_t>(atoll(Token.GetData()));
                             vi.elements = lvalue;
-                            Token.Get(); // SQUARE_CLOSE_BRACKET
+                            Token.Get();  // SQUARE_CLOSE_BRACKET
                             Token.Get();
                         }
                         var_code = VarTab.AddVar(vi);
-                        if (var_code == INVALID_VAR_CODE)
-                        {
+                        if (var_code == INVALID_VAR_CODE) {
                             SetError("Duplicate variable name: %s", vi.name.c_str());
                             return false;
                         }
 
                         real_var = VarTab.GetVarX(var_code);
-                        if (real_var == nullptr)
-                        {
+                        if (real_var == nullptr) {
                             SetError("Registered variable %s has invalid code", vi.name.c_str());
                             return false;
                         }
 
                         bool bNeg;
-                        if (Token.GetType() == OP_EQUAL)
-                        {
+                        if (Token.GetType() == OP_EQUAL) {
                             // global var initialization
-                            if (vi.elements > 1)
-                            {
+                            if (vi.elements > 1) {
                                 // array
-                                if (SkipAuxiliaryTokens() != BLOCK_IN)
-                                {
+                                if (SkipAuxiliaryTokens() != BLOCK_IN) {
                                     SetError("Invalid array '%s' initialization", vi.name.c_str());
                                     return false;
                                 }
@@ -1686,33 +1483,25 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                                 aindex = 0;
 
                                 SkipAuxiliaryTokens();
-                                while (Token.GetType() != END_OF_PROGRAMM)
-                                {
-                                    if (Token.GetType() == OP_MINUS)
-                                    {
+                                while (Token.GetType() != END_OF_PROGRAMM) {
+                                    if (Token.GetType() == OP_MINUS) {
                                         bNeg = true;
                                         Token.Get();
-                                    }
-                                    else
+                                    } else
                                         bNeg = false;
-                                    if (Token.GetType() == BLOCK_OUT)
-                                        break;
-                                    if (Token.GetType() == END_OF_PROGRAMM)
-                                        break;
+                                    if (Token.GetType() == BLOCK_OUT) break;
+                                    if (Token.GetType() == END_OF_PROGRAMM) break;
 
-                                    switch (Token.GetType())
-                                    {
+                                    switch (Token.GetType()) {
                                     case TRUE_CONST:
-                                        if (vi.type != VAR_INTEGER)
-                                        {
+                                        if (vi.type != VAR_INTEGER) {
                                             SetError("Invalid array '%s' initialization parameter", vi.name.c_str());
                                             return false;
                                         }
                                         real_var->value->Set(1);
                                         break;
                                     case FALSE_CONST:
-                                        if (vi.type != VAR_INTEGER)
-                                        {
+                                        if (vi.type != VAR_INTEGER) {
                                             SetError("Invalid array '%s' initialization parameter", vi.name.c_str());
                                             return false;
                                         }
@@ -1720,8 +1509,7 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                                         break;
 
                                     case NUMBER:
-                                        if (vi.type != VAR_INTEGER)
-                                        {
+                                        if (vi.type != VAR_INTEGER) {
                                             SetError("Invalid array '%s' initialization parameter", vi.name.c_str());
                                             return false;
                                         }
@@ -1732,8 +1520,7 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                                         aindex++;
                                         break;
                                     case FLOAT_NUMBER:
-                                        if (vi.type != VAR_FLOAT)
-                                        {
+                                        if (vi.type != VAR_FLOAT) {
                                             SetError("Invalid array '%s' initialization parameter", vi.name.c_str());
                                             return false;
                                         }
@@ -1744,90 +1531,70 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                                         aindex++;
                                         break;
                                     case STRING:
-                                        if (vi.type != VAR_STRING)
-                                        {
+                                        if (vi.type != VAR_STRING) {
                                             SetError("Invalid array '%s' initialization parameter", vi.name.c_str());
                                             return false;
                                         }
                                         real_var->value->Set(Token.GetData(), aindex);
                                         aindex++;
                                         break;
-                                    case UNKNOWN:
-
-                                        break;
-                                    default:
-                                        break;
+                                    case UNKNOWN: break;
+                                    default: break;
                                     }
                                     SkipAuxiliaryTokens();
-                                    if (Token.GetType() == BLOCK_OUT)
-                                        break;
-                                    if (Token.GetType() != COMMA)
-                                    {
+                                    if (Token.GetType() == BLOCK_OUT) break;
+                                    if (Token.GetType() != COMMA) {
                                         SetError("Invalid array '%s' initialization parameters list", vi.name.c_str());
                                         return false;
                                     }
                                     SkipAuxiliaryTokens();
                                 }
                                 SkipAuxiliaryTokens();
-                            }
-                            else
-                            {
+                            } else {
                                 // single variable
-                                if (Token.Get() == OP_MINUS)
-                                {
+                                if (Token.Get() == OP_MINUS) {
                                     bNeg = true;
                                     Token.Get();
-                                }
-                                else
+                                } else
                                     bNeg = false;
 
-                                switch (Token.GetType())
-                                {
+                                switch (Token.GetType()) {
                                 case TRUE_CONST:
-                                    if (vi.type != VAR_INTEGER)
-                                        break;
+                                    if (vi.type != VAR_INTEGER) break;
                                     real_var->value->Set(1);
                                     break;
                                 case FALSE_CONST:
-                                    if (vi.type != VAR_INTEGER)
-                                        break;
+                                    if (vi.type != VAR_INTEGER) break;
                                     real_var->value->Set(0);
                                     break;
                                 case NUMBER:
-                                    if (vi.type != VAR_INTEGER)
-                                        break;
+                                    if (vi.type != VAR_INTEGER) break;
                                     if (bNeg)
                                         real_var->value->Set(-atoi(Token.GetData()));
                                     else
                                         real_var->value->Set(static_cast<int32_t>(atoll(Token.GetData())));
                                     break;
                                 case FLOAT_NUMBER:
-                                    if (vi.type != VAR_FLOAT)
-                                        break;
+                                    if (vi.type != VAR_FLOAT) break;
                                     if (bNeg)
                                         real_var->value->Set(-static_cast<float>(atof(Token.GetData())));
                                     else
                                         real_var->value->Set(static_cast<float>(atof(Token.GetData())));
                                     break;
                                 case STRING:
-                                    if (vi.type != VAR_STRING)
-                                        break;
+                                    if (vi.type != VAR_STRING) break;
                                     real_var->value->Set(Token.GetData());
                                     break;
-                                case UNKNOWN:
-
-                                    break;
-                                default:
-                                    break;
+                                case UNKNOWN: break;
+                                default: break;
                                 }
                                 Token.Get();
                             }
                         }
 
-                        if (script_cache_mode_ != kCacheDisabled)
-                        {
-                            auto &cached_var = script_cache_.variables.emplace_back(vi);
-                            cached_var.value = std::make_unique<DATA>();
+                        if (script_cache_mode_ != kCacheDisabled) {
+                            auto& cached_var  = script_cache_.variables.emplace_back(vi);
+                            cached_var.value  = std::make_unique<DATA>();
                             *cached_var.value = *real_var->value;
                         }
                     } while (Token.GetType() == COMMA);
@@ -1838,104 +1605,78 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                 // compute number of arguments
                 // if(bImport || !bExtern)
                 {
-                    lvi.type = Token_type;
-                    lvi.name = Token.GetData();
+                    lvi.type     = Token_type;
+                    lvi.name     = Token.GetData();
                     lvi.elements = 1;
                     if (bExtern)
                         FuncTab.AddFuncArg(func_code, lvi, true);
                     else
                         FuncTab.AddFuncArg(func_code, lvi);
 
-                    if (script_cache_mode_ != kCacheDisabled)
-                    {
-                        script_cache_.functions.back().arguments.emplace_back(
-                            storm::script_cache::FunctionLocalVariable{lvi, bExtern});
+                    if (script_cache_mode_ != kCacheDisabled) {
+                        script_cache_.functions.back().arguments.emplace_back(storm::script_cache::FunctionLocalVariable {lvi, bExtern});
                     }
                 }
-            }
-            else
-            {
+            } else {
                 // local variables
                 // compute number of local vars
                 lvi.type = Token_type;
                 Token.StepBack();
-                do
-                {
+                do {
                     Token.Get();
-                    if (Token.GetData() == nullptr)
-                    {
+                    if (Token.GetData() == nullptr) {
                         SetError("Invalid variable name");
                         return false;
                     }
-                    lvi.name = Token.GetData();
+                    lvi.name     = Token.GetData();
                     lvi.elements = 1;
                     Token.Get();
-                    if (Token.GetType() == SQUARE_OPEN_BRACKET)
-                    {
+                    if (Token.GetType() == SQUARE_OPEN_BRACKET) {
                         Token.Get();
-                        if (Token.GetType() != NUMBER)
-                        {
+                        if (Token.GetType() != NUMBER) {
                             def_code = DefTab.FindDef(Token.GetData());
-                            if (def_code != INVALID_DEF_CODE)
-                            {
+                            if (def_code != INVALID_DEF_CODE) {
                                 DefTab.GetDef(di, def_code);
-                                if (di.deftype == NUMBER)
-                                {
+                                if (di.deftype == NUMBER) {
                                     lvalue = di.data4b;
-                                }
-                                else
-                                {
+                                } else {
                                     SetError("Invalid array (%s) size", lvi.name.c_str());
                                     return false;
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 SetError("Invalid array (%s) size", lvi.name.c_str());
                                 return false;
                             }
-                        }
-                        else
+                        } else
                             lvalue = static_cast<int32_t>(atoll(Token.GetData()));
                         lvi.elements = lvalue;
-                        Token.Get(); // SQUARE_CLOSE_BRACKET
+                        Token.Get();  // SQUARE_CLOSE_BRACKET
                         Token.Get();
                     }
 
-                    if (lvi.name.empty())
-                    {
+                    if (lvi.name.empty()) {
                         SetWarning("Empty variable name");
-                    }
-                    else if (!FuncTab.AddFuncVar(func_code, lvi))
-                    {
+                    } else if (!FuncTab.AddFuncVar(func_code, lvi)) {
                         SetError("Duplicate variable name: %s", lvi.name.c_str());
                         return false;
                     }
 
-                    if (script_cache_mode_ != kCacheDisabled)
-                    {
-                        script_cache_.functions.back().local_variables.emplace_back(lvi);
-                    }
+                    if (script_cache_mode_ != kCacheDisabled) { script_cache_.functions.back().local_variables.emplace_back(lvi); }
                 } while (Token.GetType() == COMMA);
                 Token.StepBack();
             }
             break;
 
-        case BLOCK_IN:
-            inout++;
-            break;
+        case BLOCK_IN: inout++; break;
         case BLOCK_OUT:
             inout--;
-            if (inout == 0)
-                bFunctionBlock = false; // sign if we are out of function
+            if (inout == 0) bFunctionBlock = false;  // sign if we are out of function
             break;
-        default:
-            break;
+        default: break;
         }
     } while (Token_type != END_OF_PROGRAMM);
 
-    if (inout != 0)
-    {
+    if (inout != 0) {
         SetError("Missing '}' in segment");
         return false;
     }
@@ -1945,303 +1686,270 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     DebugSourceLine = DSL_INI_VALUE;
     uint32_t fnsize;
 
-    if (bDebugInfo)
-    {
+    if (bDebugInfo) {
         strcpy_s(DebugSourceFileName, Segment.name.c_str());
         fnsize = Segment.name.length();
-        CompileToken(Segment, DEBUG_FILE_NAME, 3, (char *)&DebugSourceLine, sizeof(uint32_t), (char *)&fnsize,
-                     sizeof(uint32_t), Segment.name.c_str(), fnsize);
-        CompileToken(Segment, DEBUG_LINE_CODE, 1, (char *)&DebugSourceLine, sizeof(uint32_t));
+        CompileToken(
+            Segment,
+            DEBUG_FILE_NAME,
+            3,
+            (char*)&DebugSourceLine,
+            sizeof(uint32_t),
+            (char*)&fnsize,
+            sizeof(uint32_t),
+            Segment.name.c_str(),
+            fnsize);
+        CompileToken(Segment, DEBUG_LINE_CODE, 1, (char*)&DebugSourceLine, sizeof(uint32_t));
         // DebugSourceLine++;
     }
 
-    inout = 0;
+    inout          = 0;
     bFunctionBlock = false;
-    pProgram = Segment.pData;
+    pProgram       = Segment.pData;
     Token.SetProgram(pProgram, pProgram);
 
     STRINGS_LIST BreakUpdateTable;
-    if (!CompileBlock(Segment, bFunctionBlock, inout, TVOID, INVALID_OFFSET, INVALID_OFFSET, BreakUpdateTable))
-        return false;
+    if (!CompileBlock(Segment, bFunctionBlock, inout, TVOID, INVALID_OFFSET, INVALID_OFFSET, BreakUpdateTable)) return false;
     DOUBLE_DWORD ddw;
-    uint32_t label_offset;
-    for (n = 0; n < LabelUpdateTable.GetStringsCount(); n++)
-    {
+    uint32_t     label_offset;
+    for (n = 0; n < LabelUpdateTable.GetStringsCount(); n++) {
         LabelUpdateTable.GetStringData(n, &ddw);
         LabelTable.GetStringData(ddw.dw1, &label_offset);
         memcpy(&Segment.pCode[ddw.dw2], &label_offset, sizeof(uint32_t));
     }
 
-    if (pInternalCode == nullptr)
-    {
+    if (pInternalCode == nullptr) {
         delete[] Segment.pData;
         Segment.pData = nullptr;
     }
 
-    if (bWriteCodeFile)
-    {
+    if (bWriteCodeFile) {
         auto fName = std::filesystem::path(Segment.name.c_str()).filename().string();
         strcpy_s(file_name, fName.c_str());
         strcat_s(file_name, ".b");
         auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::out);
-        if (fileS.is_open())
-        {
+        if (fileS.is_open()) {
             fio->_WriteFile(fileS, Segment.pCode, Segment.BCode_Program_size);
             fio->_CloseFile(fileS);
         }
     }
-    if (script_cache_mode_ != kCacheDisabled)
-    {
-        SaveSegmentToCache(Segment);
-    }
+    if (script_cache_mode_ != kCacheDisabled) { SaveSegmentToCache(Segment); }
     return true;
 }
 
 S_TOKEN_TYPE COMPILER::SkipAuxiliaryTokens()
 {
     S_TOKEN_TYPE Token_type;
-    do
-    {
+    do {
         Token_type = Token.Get();
-        switch (Token_type)
-        {
+        switch (Token_type) {
         case DEBUG_LINEFEED:
         case DEBUG_FILE_NAME:
         case COMMENT:
         case INCLIDE_FILE:
-        case WHITESPACE:
-            break;
-        default:
-            return Token_type;
+        case WHITESPACE: break;
+        default: return Token_type;
         }
     } while (Token_type != END_OF_PROGRAMM);
     return Token_type;
 }
 
-S_TOKEN_TYPE COMPILER::CompileAuxiliaryTokens(SEGMENT_DESC &Segment) //, bool & bFunctionBlock, DWORD & inout)
+S_TOKEN_TYPE COMPILER::CompileAuxiliaryTokens(SEGMENT_DESC& Segment)  //, bool & bFunctionBlock, DWORD & inout)
 {
-    uint32_t fnsize;
+    uint32_t     fnsize;
     S_TOKEN_TYPE Token_type;
 
-    do
-    {
+    do {
         Token_type = Token.Get();
-        switch (Token_type)
-        {
+        switch (Token_type) {
         case DEBUG_LINEFEED:
-            if (!bDebugInfo)
-                break;
+            if (!bDebugInfo) break;
             DebugSourceLine++;
-            CompileToken(Segment, DEBUG_LINE_CODE, 1, (char *)&DebugSourceLine, sizeof(uint32_t));
+            CompileToken(Segment, DEBUG_LINE_CODE, 1, (char*)&DebugSourceLine, sizeof(uint32_t));
             break;
         case DEBUG_FILE_NAME:
-            if (!bDebugInfo)
-                break;
+            if (!bDebugInfo) break;
             DebugSourceLine = DSL_INI_VALUE;
-            if (Token.GetData() == nullptr)
-            {
+            if (Token.GetData() == nullptr) {
                 SetError("Invalid DBG_FILE_NAME");
                 return DEBUG_FILE_NAME;
             }
             strcpy_s(DebugSourceFileName, Token.GetData());
             fnsize = strlen(Token.GetData());
 
-            CompileToken(Segment, DEBUG_FILE_NAME, 3, (char *)&DebugSourceLine, sizeof(uint32_t), (char *)&fnsize,
-                         sizeof(uint32_t), Token.GetData(), strlen(Token.GetData()));
+            CompileToken(
+                Segment,
+                DEBUG_FILE_NAME,
+                3,
+                (char*)&DebugSourceLine,
+                sizeof(uint32_t),
+                (char*)&fnsize,
+                sizeof(uint32_t),
+                Token.GetData(),
+                strlen(Token.GetData()));
             break;
-        case COMMENT:
-            DebugSourceLine += Token.TokenLines();
-            break;
+        case COMMENT: DebugSourceLine += Token.TokenLines(); break;
         case INCLIDE_FILE:
         case WHITESPACE:
             // skip compiling of auxiliary tokens
             break;
-        default:
-            return Token_type;
+        default: return Token_type;
         }
     } while (Token_type != END_OF_PROGRAMM);
     return Token_type;
 }
 
-void COMPILER::CopyOffsets(SEGMENT_DESC &Segment, STRINGS_LIST &srclist, STRINGS_LIST &dstlist, const char *sname)
+void COMPILER::CopyOffsets(SEGMENT_DESC& Segment, STRINGS_LIST& srclist, STRINGS_LIST& dstlist, char const* sname)
 {
     uint32_t n;
     uint32_t i;
     uint32_t jump_voffset;
-    if (sname == nullptr)
-    {
-        for (n = 0; n < srclist.GetStringsCount(); n++)
-        {
-            srclist.GetStringData(n, (char *)&jump_voffset);
+    if (sname == nullptr) {
+        for (n = 0; n < srclist.GetStringsCount(); n++) {
+            srclist.GetStringData(n, (char*)&jump_voffset);
 
             i = dstlist.GetStringsCount();
             dstlist.AddString("c");
-            dstlist.SetStringData(i, (char *)&jump_voffset);
+            dstlist.SetStringData(i, (char*)&jump_voffset);
         }
         return;
     }
 
-    for (n = 0; n < srclist.GetStringsCount(); n++)
-    {
-        if (strcmp(sname, srclist.GetString(n)) != 0)
-            continue;
+    for (n = 0; n < srclist.GetStringsCount(); n++) {
+        if (strcmp(sname, srclist.GetString(n)) != 0) continue;
 
-        srclist.GetStringData(n, (char *)&jump_voffset);
+        srclist.GetStringData(n, (char*)&jump_voffset);
 
         i = dstlist.GetStringsCount();
         dstlist.AddString("c");
-        dstlist.SetStringData(i, (char *)&jump_voffset);
+        dstlist.SetStringData(i, (char*)&jump_voffset);
     }
 }
 
-void COMPILER::UpdateOffsets(SEGMENT_DESC &Segment, STRINGS_LIST &list, uint32_t offset, const char *sname)
+void COMPILER::UpdateOffsets(SEGMENT_DESC& Segment, STRINGS_LIST& list, uint32_t offset, char const* sname)
 {
     uint32_t n;
     uint32_t jump_voffset;
-    if (sname == nullptr)
-    {
-        for (n = 0; n < list.GetStringsCount(); n++)
-        {
-            list.GetStringData(n, (char *)&jump_voffset);
+    if (sname == nullptr) {
+        for (n = 0; n < list.GetStringsCount(); n++) {
+            list.GetStringData(n, (char*)&jump_voffset);
             memcpy(&Segment.pCode[jump_voffset], &offset, sizeof(uint32_t));
         }
         return;
     }
-    for (n = 0; n < list.GetStringsCount(); n++)
-    {
-        if (strcmp(sname, list.GetString(n)) != 0)
-            continue;
-        list.GetStringData(n, (char *)&jump_voffset);
+    for (n = 0; n < list.GetStringsCount(); n++) {
+        if (strcmp(sname, list.GetString(n)) != 0) continue;
+        list.GetStringData(n, (char*)&jump_voffset);
         memcpy(&Segment.pCode[jump_voffset], &offset, sizeof(uint32_t));
     }
 }
 
-bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_t &inout, S_TOKEN_TYPE bound_type,
-                            uint32_t continue_jump, uint32_t break_offset, STRINGS_LIST &BreakTable)
+bool COMPILER::CompileBlock(
+    SEGMENT_DESC& Segment,
+    bool&         bFunctionBlock,
+    uint32_t&     inout,
+    S_TOKEN_TYPE  bound_type,
+    uint32_t      continue_jump,
+    uint32_t      break_offset,
+    STRINGS_LIST& BreakTable)
 {
     S_TOKEN_TYPE Token_type;
     //    S_TOKEN_TYPE Block_bound;
     //    DWORD fnsize;
-    uint32_t awcode;
-    uint32_t var_code;
-    uint32_t balance_bracket;
-    uint32_t balance_block;
-    uint32_t jump_offset;
-    uint32_t update_offset;
-    uint32_t vuint32_t;
-    uint32_t n;
-    uint32_t unk_code;
-    uint32_t func_args;
+    uint32_t     awcode;
+    uint32_t     var_code;
+    uint32_t     balance_bracket;
+    uint32_t     balance_block;
+    uint32_t     jump_offset;
+    uint32_t     update_offset;
+    uint32_t     vuint32_t;
+    uint32_t     n;
+    uint32_t     unk_code;
+    uint32_t     func_args;
     STRINGS_LIST BreakUpdateTable;
     BreakUpdateTable.SetStringDataSize(sizeof(uint32_t));
-    bool bExtern;
-    bool bImport;
-    int32_t lvalue;
+    bool     bExtern;
+    bool     bImport;
+    int32_t  lvalue;
     uint32_t def_code;
-    DEFINFO di;
+    DEFINFO  di;
     uint32_t dwRCode;
 
-    const VarInfo *real_var;
-    LocalVarInfo lvi;
+    VarInfo const* real_var;
+    LocalVarInfo   lvi;
 
     jump_offset = 0xffbadbad;
 
-    balance_block = 0;
+    balance_block   = 0;
     balance_bracket = 0;
 
-    switch (bound_type)
-    {
-    case CLOSE_BRACKET:
-        balance_bracket = 1;
-        break;
-    case BLOCK_OUT:
-        balance_block = 1;
-        break;
-    default:
-        break;
+    switch (bound_type) {
+    case CLOSE_BRACKET: balance_bracket = 1; break;
+    case BLOCK_OUT: balance_block = 1; break;
+    default: break;
     }
 
     bExtern = false;
     bImport = false;
-    do
-    {
+    do {
         // Token_type = Token.Get();
         Token_type = CompileAuxiliaryTokens(Segment /*,bFunctionBlock,inout*/);
 
-        switch (Token_type)
-        {
+        switch (Token_type) {
         case EVENT_HANDLER:
-            if (Token.Get() != OPEN_BRACKET)
-            {
+            if (Token.Get() != OPEN_BRACKET) {
                 SetError("Invalid event handler");
                 return false;
             }
 
-            if (Token.Get() == STRING)
-            {
-                if (Token.GetData() == nullptr)
-                {
+            if (Token.Get() == STRING) {
+                if (Token.GetData() == nullptr) {
                     SetError("Invalid event handler");
                     return false;
                 }
                 strcpy_s(gs, Token.GetData());
-            }
-            else
-            {
-                if (Token.GetData() == nullptr)
-                {
+            } else {
+                if (Token.GetData() == nullptr) {
                     SetError("Invalid event handler");
                     return false;
                 }
                 def_code = DefTab.FindDef(Token.GetData());
-                if (def_code != INVALID_DEF_CODE)
-                {
+                if (def_code != INVALID_DEF_CODE) {
                     DefTab.GetDef(di, def_code);
-                    if (di.deftype != STRING)
-                    {
+                    if (di.deftype != STRING) {
                         SetError("Invalid event handler");
                         return false;
                     }
-                    if (di.data4b == 0)
-                    {
+                    if (di.data4b == 0) {
                         SetError("Invalid define");
                         return false;
                     }
-                    strcpy_s(gs, (char *)di.data4b);
-                }
-                else
-                {
+                    strcpy_s(gs, (char*)di.data4b);
+                } else {
                     SetError("Invalid event handler");
                     return false;
                 }
             }
-            if (Token.Get() != COMMA)
-            {
+            if (Token.Get() != COMMA) {
                 SetError("Invalid event handler");
                 return false;
             }
-            if (Token.Get() == STRING)
-            {
-                if (Token.GetData() == nullptr)
-                {
+            if (Token.Get() == STRING) {
+                if (Token.GetData() == nullptr) {
                     SetError("Invalid event handler");
                     return false;
                 }
                 // SetEventHandler(gs,Token.GetData(),1,true);
                 SetEventHandler(gs, Token.GetData(), 0, true);
-                if (script_cache_mode_ != kCacheDisabled)
-                {
-                    script_cache_.event_handlers.emplace_back(storm::script_cache::EventHandler{gs, Token.GetData()});
+                if (script_cache_mode_ != kCacheDisabled) {
+                    script_cache_.event_handlers.emplace_back(storm::script_cache::EventHandler {gs, Token.GetData()});
                 }
-            }
-            else
-            {
+            } else {
                 SetError("Invalid event handler");
                 return false;
             }
 
-            if (Token.Get() != CLOSE_BRACKET)
-            {
+            if (Token.Get() != CLOSE_BRACKET) {
                 SetError("Invalid event handler");
                 return false;
             }
@@ -2250,53 +1958,45 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         case GOTO_COMMAND:
             // CompileToken(Segment,Token_type,1,Token.GetData(),strlen(Token.GetData())+1);
             // LabelUpdateTable
-            Token.Get(); // label name
+            Token.Get();  // label name
             DOUBLE_DWORD ddw;
             ddw.dw1 = LabelTable.GetStringCode(Token.GetData());
-            n = LabelUpdateTable.GetStringsCount();
+            n       = LabelUpdateTable.GetStringsCount();
             LabelUpdateTable.AddString("j");
             ddw.dw2 = Segment.BCode_Program_size + 2;
-            LabelUpdateTable.SetStringData(n, (char *)&ddw);
+            LabelUpdateTable.SetStringData(n, (char*)&ddw);
             vuint32_t = 0xffffffff;
-            CompileToken(Segment, JUMP, 1, (char *)&vuint32_t, sizeof(uint32_t));
+            CompileToken(Segment, JUMP, 1, (char*)&vuint32_t, sizeof(uint32_t));
             break;
         case BREAK_COMMAND:
-            if (break_offset == INVALID_OFFSET)
-            {
+            if (break_offset == INVALID_OFFSET) {
                 SetError("invalid break");
                 return false;
             }
             vuint32_t = Segment.BCode_Program_size + 2;
-            n = BreakTable.GetStringsCount();
+            n         = BreakTable.GetStringsCount();
             BreakTable.AddString("b");
-            BreakTable.SetStringData(n, (char *)&vuint32_t);
+            BreakTable.SetStringData(n, (char*)&vuint32_t);
             vuint32_t = INVALID_OFFSET;
-            CompileToken(Segment, JUMP, 1, (char *)&vuint32_t, sizeof(uint32_t));
-            if (bound_type == BREAK_COMMAND)
-            {
-                return true;
-            }
+            CompileToken(Segment, JUMP, 1, (char*)&vuint32_t, sizeof(uint32_t));
+            if (bound_type == BREAK_COMMAND) { return true; }
             break;
         case CONTINUE_COMMAND:
-            if (continue_jump == INVALID_OFFSET)
-            {
+            if (continue_jump == INVALID_OFFSET) {
                 SetError("invalid continue");
                 return false;
             }
             vuint32_t = Segment.BCode_Program_size + 2;
-            n = BreakTable.GetStringsCount();
+            n         = BreakTable.GetStringsCount();
             BreakTable.AddString("c");
-            BreakTable.SetStringData(n, (char *)&vuint32_t);
+            BreakTable.SetStringData(n, (char*)&vuint32_t);
             vuint32_t = INVALID_OFFSET;
-            CompileToken(Segment, JUMP, 1, (char *)&vuint32_t, sizeof(uint32_t));
+            CompileToken(Segment, JUMP, 1, (char*)&vuint32_t, sizeof(uint32_t));
             // CompileToken(Segment,JUMP,1,(char *)&continue_jump,sizeof(uint32_t));
             break;
         case SEPARATOR:
             CompileToken(Segment, Token_type);
-            if (bound_type == SEPARATOR)
-            {
-                return true;
-            }
+            if (bound_type == SEPARATOR) { return true; }
             break;
         case OPEN_BRACKET:
             balance_bracket++;
@@ -2305,12 +2005,8 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         case CLOSE_BRACKET:
             balance_bracket--;
             CompileToken(Segment, Token_type);
-            if (bound_type == CLOSE_BRACKET)
-            {
-                if (balance_bracket == 0)
-                {
-                    return true;
-                }
+            if (bound_type == CLOSE_BRACKET) {
+                if (balance_bracket == 0) { return true; }
             }
             break;
         case BLOCK_IN:
@@ -2319,42 +2015,28 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             break;
         case BLOCK_OUT:
 
-            if (inout == 0)
-            {
+            if (inout == 0) {
                 SetError("syntax error");
                 return false;
             }
             inout--;
 
-            if (balance_block == 0)
-            {
-                switch (bound_type)
-                {
-                case CLOSE_BRACKET:
-                    SetError("missed ')'");
-                    break;
-                case BLOCK_OUT:
-                    SetError("missed '}'");
-                    break;
-                default:
-                    SetError("syntax error");
-                    break;
+            if (balance_block == 0) {
+                switch (bound_type) {
+                case CLOSE_BRACKET: SetError("missed ')'"); break;
+                case BLOCK_OUT: SetError("missed '}'"); break;
+                default: SetError("syntax error"); break;
                 }
                 return false;
             }
             balance_block--;
-            if (inout == 0)
-            {
+            if (inout == 0) {
                 CompileToken(Segment, FUNCTION_RETURN_VOID);
-                bFunctionBlock = false; // sign if we are out of function
+                bFunctionBlock = false;  // sign if we are out of function
                 break;
             }
-            if (bound_type == BLOCK_OUT)
-            {
-                if (balance_block == 0)
-                {
-                    return true;
-                }
+            if (bound_type == BLOCK_OUT) {
+                if (balance_block == 0) { return true; }
             }
             break;
             /*
@@ -2534,16 +2216,14 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         case IF_BLOCK:
 
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type != OPEN_BRACKET)
-            {
+            if (Token_type != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
 
             CompileExpression(Segment);
 
-            if (Token.GetType() != CLOSE_BRACKET)
-            {
+            if (Token.GetType() != CLOSE_BRACKET) {
                 SetError("missed ')'");
                 return false;
             }
@@ -2552,47 +2232,41 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             CompileToken(Segment, EX);
 
             update_offset = Segment.BCode_Program_size + 2;
-            CompileToken(Segment, JUMP_Z, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP_Z, 1, (char*)&jump_offset, sizeof(uint32_t));
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type == BLOCK_IN)
-            {
+            if (Token_type == BLOCK_IN) {
                 inout++;
-                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, break_offset, BreakTable))
-                    return false;
-            }
-            else
-            {
+                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, break_offset, BreakTable)) return false;
+            } else {
                 Token.StepBack();
-                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, continue_jump, break_offset, BreakTable))
-                    return false;
+                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, continue_jump, break_offset, BreakTable)) return false;
             }
             memcpy(&Segment.pCode[update_offset], &Segment.BCode_Program_size, sizeof(uint32_t));
             // CompileToken(Segment,STACK_POP);
             // CompileToken(Segment,EX);
 
-            CompileToken(Segment, POP_EXPRESULT); // pop
+            CompileToken(Segment, POP_EXPRESULT);  // pop
 
-            if (bound_type == IF_BLOCK)
-            {
-                return true;
-            }
+            if (bound_type == IF_BLOCK) { return true; }
 
             break;
         case ELSE_BLOCK:
             update_offset = Segment.BCode_Program_size + 2;
-            CompileToken(Segment, JUMP_NZ, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP_NZ, 1, (char*)&jump_offset, sizeof(uint32_t));
             Token_type = CompileAuxiliaryTokens(Segment /*,bFunctionBlock,inout*/);
-            if (Token_type == BLOCK_IN)
-            {
+            if (Token_type == BLOCK_IN) {
                 inout++;
-                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, break_offset, BreakTable))
-                    return false;
-            }
-            else
-            {
+                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, break_offset, BreakTable)) return false;
+            } else {
                 Token.StepBack();
-                if (!CompileBlock(Segment, bFunctionBlock, inout, Token_type == IF_BLOCK ? IF_BLOCK : SEPARATOR,
-                                  continue_jump, break_offset, BreakTable))
+                if (!CompileBlock(
+                        Segment,
+                        bFunctionBlock,
+                        inout,
+                        Token_type == IF_BLOCK ? IF_BLOCK : SEPARATOR,
+                        continue_jump,
+                        break_offset,
+                        BreakTable))
                     return false;
             }
             memcpy(&Segment.pCode[update_offset], &Segment.BCode_Program_size, sizeof(uint32_t));
@@ -2605,8 +2279,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             // CompileToken(Segment,Token_type);
 
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type != OPEN_BRACKET)
-            {
+            if (Token_type != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
@@ -2615,8 +2288,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             CompileToken(Segment, STACK_POP);
             CompileToken(Segment, EX);
 
-            if (Token.GetType() != CLOSE_BRACKET)
-            {
+            if (Token.GetType() != CLOSE_BRACKET) {
                 SetError("missed ')'");
                 return false;
             }
@@ -2625,23 +2297,18 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             // return false;
 
             update_offset = Segment.BCode_Program_size + 2;
-            CompileToken(Segment, JUMP_Z, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP_Z, 1, (char*)&jump_offset, sizeof(uint32_t));
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type == BLOCK_IN)
-            {
+            if (Token_type == BLOCK_IN) {
                 inout++;
-                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, jump_offset, 6, BreakUpdateTable))
-                    return false;
-            }
-            else
-            {
+                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, jump_offset, 6, BreakUpdateTable)) return false;
+            } else {
                 // SetError("missed '{'");    return false;
                 Token.StepBack();
-                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, jump_offset, 6, BreakUpdateTable))
-                    return false;
+                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, jump_offset, 6, BreakUpdateTable)) return false;
                 // **** ?
             }
-            CompileToken(Segment, JUMP, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP, 1, (char*)&jump_offset, sizeof(uint32_t));
             memcpy(&Segment.pCode[update_offset], &Segment.BCode_Program_size, sizeof(uint32_t));
             UpdateOffsets(Segment, BreakUpdateTable, Segment.BCode_Program_size, "b");
             UpdateOffsets(Segment, BreakUpdateTable, jump_offset, "c");
@@ -2652,15 +2319,13 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
             // '('
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type != OPEN_BRACKET)
-            {
+            if (Token_type != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
 
             // var = initial_value
-            if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, INVALID_OFFSET, INVALID_OFFSET, BreakTable))
-                return false;
+            if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, INVALID_OFFSET, INVALID_OFFSET, BreakTable)) return false;
 
             jump_offset = Segment.BCode_Program_size;
 
@@ -2674,56 +2339,47 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
             // jump if zero
             update_offset = Segment.BCode_Program_size + 2;
-            CompileToken(Segment, JUMP_Z, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP_Z, 1, (char*)&jump_offset, sizeof(uint32_t));
 
-            S_TOKEN_TYPE sttResult; // var for inc/dec op
+            S_TOKEN_TYPE sttResult;  // var for inc/dec op
             S_TOKEN_TYPE forOp;
-            if (Token.Get() != UNKNOWN)
-            {
+            if (Token.Get() != UNKNOWN) {
                 SetError("invalid 'for' syntax");
                 return false;
             }
 
             sttResult = DetectUnknown(var_code);
-            if (!(sttResult == VARIABLE || sttResult == LOCAL_VARIABLE))
-            {
+            if (!(sttResult == VARIABLE || sttResult == LOCAL_VARIABLE)) {
                 SetError("invalid 'for' syntax");
                 return false;
             }
 
             forOp = Token.Get();
-            if (!(forOp == OP_INC || forOp == OP_DEC))
-            {
+            if (!(forOp == OP_INC || forOp == OP_DEC)) {
                 SetError("invalid 'for' syntax");
                 return false;
             }
-            if (CompileAuxiliaryTokens(Segment) != CLOSE_BRACKET)
-            {
+            if (CompileAuxiliaryTokens(Segment) != CLOSE_BRACKET) {
                 SetError("invalid 'for' syntax");
                 return false;
             }
 
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type == BLOCK_IN)
-            {
+            if (Token_type == BLOCK_IN) {
                 inout++;
-                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, jump_offset, 6, BreakUpdateTable))
-                    return false;
-            }
-            else
-            {
+                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, jump_offset, 6, BreakUpdateTable)) return false;
+            } else {
                 Token.StepBack();
-                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, jump_offset, 6, BreakUpdateTable))
-                    return false;
+                if (!CompileBlock(Segment, bFunctionBlock, inout, SEPARATOR, jump_offset, 6, BreakUpdateTable)) return false;
                 // SetError("missed '{'");    return false;
                 // **** ?
             }
 
             uint32_t forcont_offset;
             forcont_offset = Segment.BCode_Program_size;
-            CompileToken(Segment, sttResult, 1, (char *)&var_code, sizeof(uint32_t));
+            CompileToken(Segment, sttResult, 1, (char*)&var_code, sizeof(uint32_t));
             CompileToken(Segment, forOp);
-            CompileToken(Segment, JUMP, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP, 1, (char*)&jump_offset, sizeof(uint32_t));
             memcpy(&Segment.pCode[update_offset], &Segment.BCode_Program_size, sizeof(uint32_t));
             UpdateOffsets(Segment, BreakUpdateTable, Segment.BCode_Program_size, "b");
             UpdateOffsets(Segment, BreakUpdateTable, forcont_offset, "c");
@@ -2733,8 +2389,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             BreakUpdateTable.Release();
             // CompileToken(Segment,Token_type);
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type != OPEN_BRACKET)
-            {
+            if (Token_type != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
@@ -2746,16 +2401,12 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             CompileExpression(Segment);
 
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type == BLOCK_IN)
-            {
+            if (Token_type == BLOCK_IN) {
                 inout++;
                 // if(!CompileBlock(Segment,bFunctionBlock,inout,BLOCK_OUT,jump_offset,6,BreakUpdateTable)) return
                 // false;
-                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, 6, BreakUpdateTable))
-                    return false;
-            }
-            else
-            {
+                if (!CompileBlock(Segment, bFunctionBlock, inout, BLOCK_OUT, continue_jump, 6, BreakUpdateTable)) return false;
+            } else {
                 SetError("missed '{'");
                 return false;
             }
@@ -2785,8 +2436,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
             if(Token.Get() != LABEL){ SetError("missed ':'");    return false; }*/
 
-            if (Token.GetType() != LABEL)
-            {
+            if (Token.GetType() != LABEL) {
                 SetError("missed ':'");
                 return false;
             }
@@ -2795,12 +2445,11 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             CompileToken(Segment, STACK_COMPARE);
 
             update_offset = Segment.BCode_Program_size + 2;
-            CompileToken(Segment, JUMP_Z, 1, (char *)&jump_offset, sizeof(uint32_t));
+            CompileToken(Segment, JUMP_Z, 1, (char*)&jump_offset, sizeof(uint32_t));
 
             // if(!CompileBlock(Segment,bFunctionBlock,inout,BREAK_COMMAND,INVALID_OFFSET,0,BreakTable)) return false;
             // ??? why INVALID_OFFSET on continue_jump here? dont remember; anyway now change to normal
-            if (!CompileBlock(Segment, bFunctionBlock, inout, BREAK_COMMAND, continue_jump, 0, BreakTable))
-                return false;
+            if (!CompileBlock(Segment, bFunctionBlock, inout, BREAK_COMMAND, continue_jump, 0, BreakTable)) return false;
 
             memcpy(&Segment.pCode[update_offset], &Segment.BCode_Program_size, sizeof(uint32_t));
             break;
@@ -2829,54 +2478,40 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         case CALL:
 
             S_TOKEN_TYPE sttVar;
-            uint32_t dwCallVarCode;
+            uint32_t     dwCallVarCode;
 
             // CompileToken(Segment,Token_type);
             Token_type = CompileAuxiliaryTokens(Segment);
-            if (Token_type != UNKNOWN)
-            {
+            if (Token_type != UNKNOWN) {
                 SetError("invalid dynamic call");
                 return false;
             }
             sttVar = DetectUnknown(dwCallVarCode);
-            if (!(sttVar == VARIABLE || sttVar == LOCAL_VARIABLE))
-            {
+            if (!(sttVar == VARIABLE || sttVar == LOCAL_VARIABLE)) {
                 SetError("invalid dynamic call");
                 return false;
             }
             //======================================================
 
-            if (CompileAuxiliaryTokens(Segment) != OPEN_BRACKET)
-            {
+            if (CompileAuxiliaryTokens(Segment) != OPEN_BRACKET) {
                 SetError("missing '('");
                 return false;
             }
-            if (Token.Get() == CLOSE_BRACKET)
-            {
+            if (Token.Get() == CLOSE_BRACKET) {
                 // function w/o arguments
                 func_args = 0;
-            }
-            else
-            {
+            } else {
                 // function with arguments
                 bool bNext;
-                bNext = true;
+                bNext     = true;
                 func_args = 1;
                 Token.StepBack();
-                do
-                {
+                do {
                     CompileExpression(Segment);
-                    switch (Token.GetType())
-                    {
-                    case CLOSE_BRACKET:
-                        bNext = false;
-                        break;
-                    case COMMA:
-                        func_args++;
-                        break;
-                    default:
-                        SetError("invalid syntax");
-                        return false;
+                    switch (Token.GetType()) {
+                    case CLOSE_BRACKET: bNext = false; break;
+                    case COMMA: func_args++; break;
+                    default: SetError("invalid syntax"); return false;
                     }
                 } while (bNext);
             }
@@ -2886,9 +2521,9 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             //======================================================
 
             CompileToken(Segment, CALL);
-            CompileToken(Segment, Token_type, 1, (char *)&dwCallVarCode, sizeof(uint32_t));
-            CompileToken(Segment, ARGS_NUM, 1, (char *)&func_args, sizeof(uint32_t));
-            CompileToken(Segment, POP_NZ); // pop return value if function returned value
+            CompileToken(Segment, Token_type, 1, (char*)&dwCallVarCode, sizeof(uint32_t));
+            CompileToken(Segment, ARGS_NUM, 1, (char*)&func_args, sizeof(uint32_t));
+            CompileToken(Segment, POP_NZ);  // pop return value if function returned value
 
             break;
 
@@ -2897,66 +2532,47 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             uint32_t func_args;
             FuncInfo fi;
 
-            if (DetectUnknown(func_code) == CALL_FUNCTION)
-            {
-                if (CompileAuxiliaryTokens(Segment) != OPEN_BRACKET)
-                {
+            if (DetectUnknown(func_code) == CALL_FUNCTION) {
+                if (CompileAuxiliaryTokens(Segment) != OPEN_BRACKET) {
                     SetError("missing '('");
                     return false;
                 }
-                if (Token.Get() == CLOSE_BRACKET)
-                {
+                if (Token.Get() == CLOSE_BRACKET) {
                     // function w/o arguments
                     func_args = 0;
-                }
-                else
-                {
+                } else {
                     // function with arguments
                     bool bNext;
-                    bNext = true;
+                    bNext     = true;
                     func_args = 1;
                     Token.StepBack();
-                    do
-                    {
+                    do {
                         CompileExpression(Segment);
-                        switch (Token.GetType())
-                        {
-                        case CLOSE_BRACKET:
-                            bNext = false;
-                            break;
-                        case COMMA:
-                            func_args++;
-                            break;
-                        default:
-                            SetError("invalid syntax");
-                            return false;
+                        switch (Token.GetType()) {
+                        case CLOSE_BRACKET: bNext = false; break;
+                        case COMMA: func_args++; break;
+                        default: SetError("invalid syntax"); return false;
                         }
                     } while (bNext);
                 }
 
-                if (!FuncTab.GetFuncX(fi, func_code))
-                {
+                if (!FuncTab.GetFuncX(fi, func_code)) {
                     SetError("function not found");
                     return false;
                 }
 
-                if (fi.offset == INVALID_FUNC_OFFSET)
-                {
+                if (fi.offset == INVALID_FUNC_OFFSET) {
                     // external function declared but not compiled yet
                     fi.arguments = fi.extern_arguments;
                 }
 
                 // off for debug needs
 
-                if (fi.arguments != func_args)
-                {
-                    switch (fi.segment_id)
-                    {
+                if (fi.arguments != func_args) {
+                    switch (fi.segment_id) {
                     case INTERNAL_SEGMENT_ID:
-                        if (!IsIntFuncVarArgsNum(func_code))
-                        {
-                            SetError("function '%s(args:%d)' doesnt accept %d arguments", fi.name.c_str(), fi.arguments,
-                                     func_args);
+                        if (!IsIntFuncVarArgsNum(func_code)) {
+                            SetError("function '%s(args:%d)' doesnt accept %d arguments", fi.name.c_str(), fi.arguments, func_args);
                             return false;
                         }
                         break;
@@ -2964,8 +2580,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                         // skip imported funcs checking for now
                         break;
                     default:
-                        SetError("function %s(args:%d) doesnt accept %d arguments", fi.name.c_str(), fi.arguments,
-                                 func_args);
+                        SetError("function %s(args:%d) doesnt accept %d arguments", fi.name.c_str(), fi.arguments, func_args);
                         return false;
                     }
 
@@ -2984,30 +2599,24 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                       }
 
                     }*/
-                } //*/
+                }  //*/
 
-                CompileToken(Segment, CALL_FUNCTION, 1, (char *)&func_code, sizeof(uint32_t));
-                CompileToken(Segment, ARGS_NUM, 1, (char *)&func_args, sizeof(uint32_t));
-                if (fi.return_type != TVOID)
-                    CompileToken(Segment, STACK_POP_VOID);
-            }
-            else if (!CompileUnknown(Segment))
+                CompileToken(Segment, CALL_FUNCTION, 1, (char*)&func_code, sizeof(uint32_t));
+                CompileToken(Segment, ARGS_NUM, 1, (char*)&func_args, sizeof(uint32_t));
+                if (fi.return_type != TVOID) CompileToken(Segment, STACK_POP_VOID);
+            } else if (!CompileUnknown(Segment))
                 return false;
-        }
-        break;
+        } break;
 
-        case EXTERN:
-            Token_type = Token.Get();
-            bExtern = true;
+        case EXTERN: Token_type = Token.Get(); bExtern = true;
         case IMPORT:
-            if (!bExtern)
-            {
+            if (!bExtern) {
                 Token_type = Token.Get();
-                bImport = true;
+                bImport    = true;
             }
         case VAR_REFERENCE:
         case VAR_AREFERENCE:
-        case VAR_INTEGER: // create global variable
+        case VAR_INTEGER:  // create global variable
         case VAR_PTR:
         case VAR_FLOAT:
         case VAR_STRING:
@@ -3015,44 +2624,35 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
         case TVOID:
             // DWORD unk_code;
             Token_type = DetectUnknown(unk_code);
-            if (Token_type == CALL_FUNCTION)
-            {
+            if (Token_type == CALL_FUNCTION) {
                 // function declaration
 
                 bFunctionBlock = true;
 
                 CurrentFuncCode = FuncTab.FindFunc(Token.GetData());
                 if (!bExtern)
-                    if (!bImport)
-                    {
-                        if (!FuncTab.SetFuncOffset(Token.GetData(), Segment.BCode_Program_size))
-                        {
+                    if (!bImport) {
+                        if (!FuncTab.SetFuncOffset(Token.GetData(), Segment.BCode_Program_size)) {
                             SetError("Invalid function name: %s", Token.GetData());
                             return false;
                         }
 
                         auto func_name = Token.GetData();
-                        auto cmp = [&func_name](const auto &func) { return storm::iEquals(func.info.name, func_name); };
-                        auto it = std::ranges::find_if(script_cache_.functions, cmp);
-                        if (it != script_cache_.functions.end())
-                        {
-                            it->info.offset = Segment.BCode_Program_size;
-                        }
+                        auto cmp       = [&func_name](auto const& func) { return storm::iEquals(func.info.name, func_name); };
+                        auto it        = std::ranges::find_if(script_cache_.functions, cmp);
+                        if (it != script_cache_.functions.end()) { it->info.offset = Segment.BCode_Program_size; }
                     }
                 bExtern = false;
                 bImport = false;
                 // skip function arguments list in function declaration
-                if (Token.Get() != OPEN_BRACKET)
-                {
+                if (Token.Get() != OPEN_BRACKET) {
                     SetError("Invalid syntax");
                     return false;
                 }
 
-                do
-                {
+                do {
                     Token_type = Token.Get();
-                    switch (Token_type)
-                    {
+                    switch (Token_type) {
                     case VAR_INTEGER:
                     case VAR_PTR:
                     case VAR_STRING:
@@ -3063,22 +2663,15 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                     case UNKNOWN:
                     case COMMA:
                     case CLOSE_BRACKET:
-                    case DEBUG_LINEFEED:
-                        break;
-                    default:
-                        SetError("Invalid function declaration");
-                        return false;
+                    case DEBUG_LINEFEED: break;
+                    default: SetError("Invalid function declaration"); return false;
                     }
                 } while (Token_type != CLOSE_BRACKET);
-            }
-            else
-            {
-                if (Token_type == LOCAL_VARIABLE)
-                {
-                    if (Token.Get() == OP_EQUAL)
-                    {
+            } else {
+                if (Token_type == LOCAL_VARIABLE) {
+                    if (Token.Get() == OP_EQUAL) {
                         // initialization
-                        CompileToken(Segment, Token_type, 1, (char *)&unk_code, sizeof(uint32_t));
+                        CompileToken(Segment, Token_type, 1, (char*)&unk_code, sizeof(uint32_t));
                     }
                     Token.StepBack();
                 }
@@ -3091,15 +2684,14 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             Token_type = Token.Get();
             if (Token_type == SEPARATOR)
                 CompileToken(Segment, FUNCTION_RETURN_VOID);
-            else
-            {
+            else {
                 Token.StepBack();
-                CompileExpression(Segment); // this will cause function result be pushed into stack
+                CompileExpression(Segment);  // this will cause function result be pushed into stack
                 CompileToken(Segment, STACK_POP);
                 CompileToken(Segment, EX);
                 CompileToken(Segment, FUNCTION_RETURN);
             }
-            Token.StepBack(); // ???
+            Token.StepBack();  // ???
 
             break;
 
@@ -3148,17 +2740,13 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             // CompileToken(Segment,LEFT_OPERAND);
             // CompileToken(Segment,STACK_TOP);
             CompileToken(Segment, STACK_POP_VOID);
-            if (Token.GetType() == bound_type)
-            {
-                Token.StepBack();
-            }
+            if (Token.GetType() == bound_type) { Token.StepBack(); }
 
             break;
             //*/
 
         case OP_EQUAL:
-            if (inout == 0 && !bDebugExpressionRun)
-                break; // skip global vars initialization
+            if (inout == 0 && !bDebugExpressionRun) break;  // skip global vars initialization
             // CompileToken(Segment,Token_type);
             CompileExpression(Segment);
 
@@ -3175,10 +2763,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             //        break;
 
         case SQUARE_OPEN_BRACKET:
-            if (!CompileExpression(Segment))
-            {
-                return false;
-            }
+            if (!CompileExpression(Segment)) { return false; }
             CompileToken(Segment, STACK_POP);
             CompileToken(Segment, LEFTOP_INDEX);
 
@@ -3189,26 +2774,23 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
             // case MAKEREF_COMMAND: CompileToken(Segment,Token_type); break;
         case MAKEREF_COMMAND:
-            uint32_t dwRCode1, dwRCode2;
+            uint32_t     dwRCode1, dwRCode2;
             S_TOKEN_TYPE sttVarType1, sttVarType2;
 
             // CompileToken(Segment,Token_type);
-            if (Token.Get() != OPEN_BRACKET)
-            {
+            if (Token.Get() != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
 
-            if (Token.Get() != UNKNOWN)
-            {
+            if (Token.Get() != UNKNOWN) {
                 SetError("invalid 1st operand");
                 return false;
             }
 
             sttVarType1 = DetectUnknown(dwRCode1);
 
-            if (!(sttVarType1 == VARIABLE || sttVarType1 == LOCAL_VARIABLE))
-            {
+            if (!(sttVarType1 == VARIABLE || sttVarType1 == LOCAL_VARIABLE)) {
                 SetError("invalid 1st operand");
                 return false;
             }
@@ -3230,58 +2812,49 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             */
 
             //            if(!pRef->IsReference()) { SetError("makeref to non reference variable"); return false; }
-            if (Token.Get() != COMMA)
-            {
+            if (Token.Get() != COMMA) {
                 SetError("missed ','");
                 return false;
             }
 
-            if (Token.Get() != UNKNOWN)
-            {
+            if (Token.Get() != UNKNOWN) {
                 SetError("invalid 1st operand");
                 return false;
             }
 
             sttVarType2 = DetectUnknown(dwRCode2);
 
-            if (!(sttVarType2 == VARIABLE || sttVarType2 == LOCAL_VARIABLE))
-            {
+            if (!(sttVarType2 == VARIABLE || sttVarType2 == LOCAL_VARIABLE)) {
                 SetError("invalid 2st operand");
                 return false;
             }
 
-            if (Token.Get() == SQUARE_OPEN_BRACKET)
-            {
+            if (Token.Get() == SQUARE_OPEN_BRACKET) {
                 CompileExpression(Segment);
 
                 CompileToken(Segment, STACK_POP);
                 CompileToken(Segment, BX);
 
                 CompileToken(Segment, SETREF_BXINDEX);
-                CompileToken(Segment, sttVarType1, 1, (char *)&dwRCode1, sizeof(uint32_t));
-                CompileToken(Segment, sttVarType2, 1, (char *)&dwRCode2, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType1, 1, (char*)&dwRCode1, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType2, 1, (char*)&dwRCode2, sizeof(uint32_t));
 
-                if (Token.GetType() != SQUARE_CLOSE_BRACKET)
-                {
+                if (Token.GetType() != SQUARE_CLOSE_BRACKET) {
                     SetError("missed ']'");
                     return false;
                 }
-                if (Token.Get() != CLOSE_BRACKET)
-                {
+                if (Token.Get() != CLOSE_BRACKET) {
                     SetError("missed ')'");
                     return false;
                 }
-            }
-            else
-            {
-                if (Token.GetType() != CLOSE_BRACKET)
-                {
+            } else {
+                if (Token.GetType() != CLOSE_BRACKET) {
                     SetError("missed ')'");
                     return false;
                 }
                 CompileToken(Segment, SETREF);
-                CompileToken(Segment, sttVarType1, 1, (char *)&dwRCode1, sizeof(uint32_t));
-                CompileToken(Segment, sttVarType2, 1, (char *)&dwRCode2, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType1, 1, (char*)&dwRCode1, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType2, 1, (char*)&dwRCode2, sizeof(uint32_t));
             }
 
             /*    if(BC_TokenGet()== SQUARE_OPEN_BRACKET)
@@ -3305,44 +2878,35 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             // CompileToken(Segment,Token_type);    // debug
             S_TOKEN_TYPE sttVarType;
 
-            if (Token.Get() != OPEN_BRACKET)
-            {
+            if (Token.Get() != OPEN_BRACKET) {
                 SetError("missed '('");
                 return false;
             }
             Token_type = Token.Get();
-            if (Token_type != UNKNOWN)
-            {
+            if (Token_type != UNKNOWN) {
                 SetError("invalid 1st argument");
                 return false;
             }
             Token_type = DetectUnknown(dwRCode);
-            if (!(Token_type == VARIABLE || Token_type == LOCAL_VARIABLE))
-            {
+            if (!(Token_type == VARIABLE || Token_type == LOCAL_VARIABLE)) {
                 SetError("invalid 1st argument");
                 return false;
             }
 
-            if (Token_type == VARIABLE)
-            {
+            if (Token_type == VARIABLE) {
                 real_var = VarTab.GetVarX(dwRCode);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Invalid var code");
                     return false;
                 }
 
-                if (!(real_var->type == VAR_AREFERENCE || real_var->type == VAR_REFERENCE))
-                {
+                if (!(real_var->type == VAR_AREFERENCE || real_var->type == VAR_REFERENCE)) {
                     SetError("not aref or ref");
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 FuncTab.GetVar(lvi, CurrentFuncCode, dwRCode);
-                if (!(lvi.type == VAR_AREFERENCE || lvi.type == VAR_REFERENCE))
-                {
+                if (!(lvi.type == VAR_AREFERENCE || lvi.type == VAR_REFERENCE)) {
                     SetError("not aref or ref");
                     return false;
                 }
@@ -3352,33 +2916,28 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             CompileToken(Segment, STACK_ALLOC);
             CompileToken(Segment, SETREF);
             CompileToken(Segment, STACK_TOP);
-            CompileToken(Segment, Token_type, 1, (char *)&dwRCode, sizeof(uint32_t));
+            CompileToken(Segment, Token_type, 1, (char*)&dwRCode, sizeof(uint32_t));
 
-            if (Token.Get() != COMMA)
-            {
+            if (Token.Get() != COMMA) {
                 SetError("missed ','");
                 return false;
             }
 
             sttVarType = Token.Get();
-            if (sttVarType != UNKNOWN)
-            {
+            if (sttVarType != UNKNOWN) {
                 SetError("invalid 2d argument");
                 return false;
             }
             sttVarType = DetectUnknown(dwRCode);
-            if (!(sttVarType == VARIABLE || sttVarType == LOCAL_VARIABLE))
-            {
+            if (!(sttVarType == VARIABLE || sttVarType == LOCAL_VARIABLE)) {
                 SetError("invalid 2d argument");
                 return false;
             }
 
             Token_type = Token.Get();
-            if (Token_type == SQUARE_OPEN_BRACKET)
-            {
+            if (Token_type == SQUARE_OPEN_BRACKET) {
                 CompileExpression(Segment);
-                if (Token.GetType() != SQUARE_CLOSE_BRACKET)
-                {
+                if (Token.GetType() != SQUARE_CLOSE_BRACKET) {
                     SetError("missing ']'");
                     return false;
                 }
@@ -3389,25 +2948,22 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                 // move ap to AP register
                 CompileToken(Segment, MOVEAP_BXINDEX);
                 CompileToken(Segment, AP);
-                CompileToken(Segment, sttVarType, 1, (char *)&dwRCode, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType, 1, (char*)&dwRCode, sizeof(uint32_t));
                 Token_type = Token.Get();
 
                 CompileToken(Segment, PUSH_OBJID_BXINDEX);
-                CompileToken(Segment, sttVarType, 1, (char *)&dwRCode, sizeof(uint32_t));
-            }
-            else
-            {
+                CompileToken(Segment, sttVarType, 1, (char*)&dwRCode, sizeof(uint32_t));
+            } else {
                 // bove atributes root to AP
                 CompileToken(Segment, MOVEAP);
                 CompileToken(Segment, AP);
-                CompileToken(Segment, sttVarType, 1, (char *)&dwRCode, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType, 1, (char*)&dwRCode, sizeof(uint32_t));
 
                 CompileToken(Segment, PUSH_OBJID);
-                CompileToken(Segment, sttVarType, 1, (char *)&dwRCode, sizeof(uint32_t));
+                CompileToken(Segment, sttVarType, 1, (char*)&dwRCode, sizeof(uint32_t));
             }
 
-            if (Token_type != DOT)
-            {
+            if (Token_type != DOT) {
                 // set attribute pointer to referenced var
                 CompileToken(Segment, SETAREF);
                 CompileToken(Segment, STACK_TOP);
@@ -3421,37 +2977,29 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
             sttResult = Token.Get();
             uint32_t dwAWCode;
             uint32_t dwVarCode;
-            do
-            {
-                if (Token.GetType() == OPEN_BRACKET)
-                {
+            do {
+                if (Token.GetType() == OPEN_BRACKET) {
                     // access var
                     sttResult = Token.Get();
-                    if (sttResult != UNKNOWN)
-                    {
+                    if (sttResult != UNKNOWN) {
                         SetError("Invalid access var syntax");
                         return false;
                     }
                     sttResult = DetectUnknown(dwVarCode);
-                    if (!(sttResult == VARIABLE || sttResult == LOCAL_VARIABLE))
-                    {
+                    if (!(sttResult == VARIABLE || sttResult == LOCAL_VARIABLE)) {
                         SetError("not variable: %s", Token.GetData());
                         return false;
                     }
                     // CompileToken(Segment,ADVANCE_AP);
                     CompileToken(Segment, VERIFY_AP);
                     CompileToken(Segment, sttResult, 1, &dwVarCode, sizeof(uint32_t));
-                    if (Token.Get() != CLOSE_BRACKET)
-                    {
+                    if (Token.Get() != CLOSE_BRACKET) {
                         SetError("missing ')'");
                         return false;
                     }
-                }
-                else
-                {
+                } else {
                     // access word
-                    if (Token.GetData() == nullptr)
-                    {
+                    if (Token.GetData() == nullptr) {
                         SetError("Invalid access string");
                         return false;
                     }
@@ -3462,8 +3010,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                     CompileToken(Segment, ACCESS_WORD_CODE, 1, &dwAWCode, sizeof(uint32_t));
                 }
                 sttResult = Token.Get();
-                if (sttResult == DOT)
-                    Token.Get(); // get next token (after dot)
+                if (sttResult == DOT) Token.Get();  // get next token (after dot)
             } while (sttResult == DOT);
 
             CompileToken(Segment, SETAREF);
@@ -3475,36 +3022,31 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
         case DOT:
             Token_type = Token.Get();
-            if (Token_type == OPEN_BRACKET)
-            {
+            if (Token_type == OPEN_BRACKET) {
                 // access word inside variable
-                Token.Get(); // variable name
+                Token.Get();  // variable name
                 // check for valid local variable
                 var_code = FuncTab.FindVar(CurrentFuncCode, Token.GetData());
-                if (var_code != INVALID_VAR_CODE)
-                {
+                if (var_code != INVALID_VAR_CODE) {
                     Token.Get();
-                    if (Token.GetType() != CLOSE_BRACKET)
-                    {
+                    if (Token.GetType() != CLOSE_BRACKET) {
                         SetError("no mathcing ')'");
                         return false;
                     }
                     CompileToken(Segment, ACCESS_VAR);
-                    CompileToken(Segment, LOCAL_VARIABLE, 1, (char *)&var_code, sizeof(uint32_t));
+                    CompileToken(Segment, LOCAL_VARIABLE, 1, (char*)&var_code, sizeof(uint32_t));
                     break;
                 }
 
                 var_code = VarTab.FindVar(Token.GetData());
-                if (var_code != INVALID_VAR_CODE)
-                {
+                if (var_code != INVALID_VAR_CODE) {
                     Token.Get();
-                    if (Token.GetType() != CLOSE_BRACKET)
-                    {
+                    if (Token.GetType() != CLOSE_BRACKET) {
                         SetError("no mathcing ')'");
                         return false;
                     }
                     CompileToken(Segment, ACCESS_VAR);
-                    CompileToken(Segment, VARIABLE, 1, (char *)&var_code, sizeof(uint32_t));
+                    CompileToken(Segment, VARIABLE, 1, (char*)&var_code, sizeof(uint32_t));
                     break;
                 }
 
@@ -3512,8 +3054,7 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
                 return false;
             }
             // else its access word
-            if (Token.GetData() == nullptr)
-            {
+            if (Token.GetData() == nullptr) {
                 SetError("Invalid access string");
                 return false;
             }
@@ -3526,34 +3067,26 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
         case TRUE_CONST:
             lvalue = 1;
-            CompileToken(Segment, NUMBER, 1, (char *)&lvalue, sizeof(int32_t));
+            CompileToken(Segment, NUMBER, 1, (char*)&lvalue, sizeof(int32_t));
             break;
         case FALSE_CONST:
             lvalue = 0;
-            CompileToken(Segment, NUMBER, 1, (char *)&lvalue, sizeof(int32_t));
+            CompileToken(Segment, NUMBER, 1, (char*)&lvalue, sizeof(int32_t));
             break;
 
             // write value
-        case NUMBER:
-            CompileNumber(Segment);
-            break;
-        case FLOAT_NUMBER:
-            CompileFloatNumber(Segment);
-            break;
-        case STRING:
-            CompileString(Segment);
-            break;
+        case NUMBER: CompileNumber(Segment); break;
+        case FLOAT_NUMBER: CompileFloatNumber(Segment); break;
+        case STRING: CompileString(Segment); break;
 
-        case LABEL: // register label
+        case LABEL:  // register label
 
             break;
-        case DEFINE_COMMAND: // create define
+        case DEFINE_COMMAND:  // create define
 
             break;
 
-        default:
-
-            break;
+        default: break;
         }
     } while (Token_type != END_OF_PROGRAMM);
 
@@ -3562,15 +3095,13 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
 bool COMPILER::TokenIs(S_TOKEN_TYPE test)
 {
-    if (TokenLastReadResult == test)
-        return true;
+    if (TokenLastReadResult == test) return true;
     return false;
 }
 
-bool COMPILER::BC_Jump(SEGMENT_DESC &Segment, uint32_t offset)
+bool COMPILER::BC_Jump(SEGMENT_DESC& Segment, uint32_t offset)
 {
-    if (offset >= Segment.BCode_Program_size)
-    {
+    if (offset >= Segment.BCode_Program_size) {
         SetError("invalid jump");
         return false;
     }
@@ -3578,7 +3109,7 @@ bool COMPILER::BC_Jump(SEGMENT_DESC &Segment, uint32_t offset)
     return true;
 }
 
-S_TOKEN_TYPE COMPILER::BC_TokenGet(uint32_t &ip, uint32_t &token_data_size)
+S_TOKEN_TYPE COMPILER::BC_TokenGet(uint32_t& ip, uint32_t& token_data_size)
 {
     // function read token type and data size, advance InstructionPointer to next token
     // set ip to token data
@@ -3586,18 +3117,15 @@ S_TOKEN_TYPE COMPILER::BC_TokenGet(uint32_t &ip, uint32_t &token_data_size)
     TokenLastReadResult = static_cast<S_TOKEN_TYPE>(pRunCodeBase[InstructionPointer]);
     // Trace("Token: %s", Token.GetTypeName(TokenLastReadResult));
     InstructionPointer++;
-    if (static_cast<uint8_t>(pRunCodeBase[InstructionPointer]) < 0xff)
-    {
+    if (static_cast<uint8_t>(pRunCodeBase[InstructionPointer]) < 0xff) {
         token_data_size = static_cast<uint8_t>(pRunCodeBase[InstructionPointer]);
         InstructionPointer++;
-    }
-    else
-    {
+    } else {
         InstructionPointer++;
         memcpy(&token_data_size, &pRunCodeBase[InstructionPointer], sizeof(uint32_t));
         InstructionPointer += sizeof(uint32_t);
     }
-    ip = InstructionPointer;
+    ip             = InstructionPointer;
     TLR_DataOffset = InstructionPointer;
     InstructionPointer += token_data_size;
     return TokenLastReadResult;
@@ -3610,13 +3138,10 @@ S_TOKEN_TYPE COMPILER::BC_TokenGet()
     TokenLastReadResult = static_cast<S_TOKEN_TYPE>(pRunCodeBase[InstructionPointer]);
     // Trace("Token: %s", Token.GetTypeName(TokenLastReadResult));
     InstructionPointer++;
-    if (static_cast<uint8_t>(pRunCodeBase[InstructionPointer]) < 0xff)
-    {
+    if (static_cast<uint8_t>(pRunCodeBase[InstructionPointer]) < 0xff) {
         token_data_size = static_cast<uint8_t>(pRunCodeBase[InstructionPointer]);
         InstructionPointer++;
-    }
-    else
-    {
+    } else {
         InstructionPointer++;
         memcpy(&token_data_size, &pRunCodeBase[InstructionPointer], sizeof(uint32_t));
         InstructionPointer += sizeof(uint32_t);
@@ -3631,25 +3156,24 @@ S_TOKEN_TYPE COMPILER::NextTokenType()
     return static_cast<S_TOKEN_TYPE>(pRunCodeBase[InstructionPointer]);
 }
 
-bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult)
+bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t& ip, DATA*& pVResult)
 {
-    FuncInfo call_fi;
-    uint32_t mem_ip;
-    uint32_t mem_InstructionPointer;
-    FuncInfo *mem_pfi;
+    FuncInfo  call_fi;
+    uint32_t  mem_ip;
+    uint32_t  mem_InstructionPointer;
+    FuncInfo* mem_pfi;
     //    DATA * pV;
-    const char *mem_codebase;
-    uint32_t arguments;
-    uint32_t check_sp;
-#ifdef _WIN32 // S_DEBUG
+    char const* mem_codebase;
+    uint32_t    arguments;
+    uint32_t    check_sp;
+#ifdef _WIN32  // S_DEBUG
     uint32_t nDebugEnterMode;
 #endif
 
     CompilerStage = CS_RUNTIME;
 
     // get func info
-    if (!FuncTab.GetFunc(call_fi, func_code))
-    {
+    if (!FuncTab.GetFunc(call_fi, func_code)) {
         SetError("Invalid function call");
         return false;
     }
@@ -3660,12 +3184,11 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
     push_guard.push(std::make_tuple(call_fi.decl_file_name.c_str(), call_fi.decl_line, call_fi.name.c_str()));
 
     // number f arguments pushed into stack for this function call
-    if (BC_TokenGet() != ARGS_NUM)
-    {
+    if (BC_TokenGet() != ARGS_NUM) {
         SetError("missing args_num token");
         return false;
     }
-    arguments = *((int32_t *)&pRunCodeBase[TLR_DataOffset]);
+    arguments = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);
 
     check_sp = SStack.GetDataNum() - arguments;
     /*
@@ -3711,22 +3234,17 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
 
     // save current pointers values
     mem_InstructionPointer = InstructionPointer;
-    mem_ip = ip;
-    mem_pfi = pRun_fi;
-    mem_codebase = pRunCodeBase;
+    mem_ip                 = ip;
+    mem_pfi                = pRun_fi;
+    mem_codebase           = pRunCodeBase;
 
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     nDebugEnterMode = CDebug->GetTraceMode();
 #endif
     uint64_t nTicks;
-    if (call_fi.segment_id == INTERNAL_SEGMENT_ID)
-    {
-        if (bRuntimeLog)
-        {
-            if (!FuncTab.AddCall(func_code))
-            {
-                core_internal.Trace("Invalid func_code = %u for AddCall", func_code);
-            }
+    if (call_fi.segment_id == INTERNAL_SEGMENT_ID) {
+        if (bRuntimeLog) {
+            if (!FuncTab.AddCall(func_code)) { core_internal.Trace("Invalid func_code = %u for AddCall", func_code); }
         }
 
         // BC_CallIntFunction(func_code,pVResult,arguments);
@@ -3734,178 +3252,141 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
         BC_CallIntFunction(func_code, pVResult, arguments);
         RDTSC_E(nTicks);
 
-        if (!FuncTab.AddTime(func_code, nTicks))
-        {
-            core_internal.Trace("Invalid func_code = %u for AddTime", func_code);
-        }
-    }
-    else if (call_fi.segment_id == IMPORTED_SEGMENT_ID)
-    {
+        if (!FuncTab.AddTime(func_code, nTicks)) { core_internal.Trace("Invalid func_code = %u for AddTime", func_code); }
+    } else if (call_fi.segment_id == IMPORTED_SEGMENT_ID) {
         pVResult = nullptr;
         RDTSC_B(nTicks);
-        const uint32_t nResult = call_fi.imported_func(&SStack);
-        if (nResult == IFUNCRESULT_OK)
-        {
-            if (call_fi.return_type != TVOID)
-            {
-                pVResult = SStack.Read();
-            }
+        uint32_t const nResult = call_fi.imported_func(&SStack);
+        if (nResult == IFUNCRESULT_OK) {
+            if (call_fi.return_type != TVOID) { pVResult = SStack.Read(); }
         }
         RDTSC_E(nTicks);
-        if (!FuncTab.AddTime(func_code, nTicks))
-        {
-            core_internal.Trace("Invalid func_code = %u for AddTime", func_code);
-        }
-    }
-    else
-    {
+        if (!FuncTab.AddTime(func_code, nTicks)) { core_internal.Trace("Invalid func_code = %u for AddTime", func_code); }
+    } else {
         // BC_Execute(func_code,pVResult);
         RDTSC_B(nTicks);
         BC_Execute(func_code, pVResult);
         RDTSC_E(nTicks);
-        if (!FuncTab.AddTime(func_code, nTicks))
-        {
-            core_internal.Trace("Invalid func_code = %u for AddTime", func_code);
-        }
+        if (!FuncTab.AddTime(func_code, nTicks)) { core_internal.Trace("Invalid func_code = %u for AddTime", func_code); }
     }
-#ifdef _WIN32 // S_DEBUG
-    if (nDebugEnterMode == TMODE_MAKESTEP)
-    {
-        CDebug->SetTraceMode(TMODE_MAKESTEP);
-    }
+#ifdef _WIN32  // S_DEBUG
+    if (nDebugEnterMode == TMODE_MAKESTEP) { CDebug->SetTraceMode(TMODE_MAKESTEP); }
 #endif
 
-    if (pVResult)
-    {
-        if (check_sp != (SStack.GetDataNum() - 1))
-        {
+    if (pVResult) {
+        if (check_sp != (SStack.GetDataNum() - 1)) {
             SetError("function '%s' stack error", call_fi.name.c_str());
 
-            pRun_fi = mem_pfi;
+            pRun_fi            = mem_pfi;
             InstructionPointer = mem_InstructionPointer;
-            ip = mem_ip;
+            ip                 = mem_ip;
 
             RunningSegmentID = pRun_fi->segment_id;
-            pRunCodeBase = mem_codebase;
+            pRunCodeBase     = mem_codebase;
 
             // return false;    // debug!
         }
-    }
-    else
-    {
-        if (check_sp != SStack.GetDataNum())
-        {
+    } else {
+        if (check_sp != SStack.GetDataNum()) {
             SetError("function '%s' stack error", call_fi.name.c_str());
-            pRun_fi = mem_pfi;
+            pRun_fi            = mem_pfi;
             InstructionPointer = mem_InstructionPointer;
-            ip = mem_ip;
+            ip                 = mem_ip;
 
             RunningSegmentID = pRun_fi->segment_id;
-            pRunCodeBase = mem_codebase;
+            pRunCodeBase     = mem_codebase;
 
             // return false;// debug!
         }
     }
     //*/
     // restore
-    pRun_fi = mem_pfi;
+    pRun_fi            = mem_pfi;
     InstructionPointer = mem_InstructionPointer;
-    ip = mem_ip;
-    if (pRun_fi)
-        RunningSegmentID = pRun_fi->segment_id;
+    ip                 = mem_ip;
+    if (pRun_fi) RunningSegmentID = pRun_fi->segment_id;
     pRunCodeBase = mem_codebase;
 
     return true;
 }
 
-bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const char *pDbgExpSource)
+bool COMPILER::BC_Execute(uint32_t function_code, DATA*& pVReturnResult, char const* pDbgExpSource)
 {
     // GUARD(BC_Execute)
-    uint32_t inout;
-    uint32_t segment_index;
-    uint32_t token_data_size;
-    uint32_t ip;
-    uint32_t n;
-    uint32_t jump_offset;
-    uint32_t func_code;
-    uint32_t nLeftOperandCode;
-    uint32_t bLeftOperandType;
-    int32_t nLeftOperandIndex;
-    S_TOKEN_TYPE Token_type;
-    FuncInfo fi;
-    const VarInfo *real_var;
-    DATA *pV;
-    DATA *pVResult;
+    uint32_t       inout;
+    uint32_t       segment_index;
+    uint32_t       token_data_size;
+    uint32_t       ip;
+    uint32_t       n;
+    uint32_t       jump_offset;
+    uint32_t       func_code;
+    uint32_t       nLeftOperandCode;
+    uint32_t       bLeftOperandType;
+    int32_t        nLeftOperandIndex;
+    S_TOKEN_TYPE   Token_type;
+    FuncInfo       fi;
+    VarInfo const* real_var;
+    DATA*          pV;
+    DATA*          pVResult;
     //    DATA   ExpressionResult;    // while compile expression not ready, each function have its own register
-    const char *pCodeBase;
-    bool bExit;
-    int32_t lvalue;
+    char const*  pCodeBase;
+    bool         bExit;
+    int32_t      lvalue;
     S_TOKEN_TYPE vtype;
-    DATA *pVV;
-    uint32_t var_code;
-    const char *pAccess_string;
+    DATA*        pVV;
+    uint32_t     var_code;
+    char const*  pAccess_string;
     //    int32_t array_index;
     //    DATA * pRef;
-    DATA *pVar;
+    DATA*   pVar;
     entid_t eid;
     //    ATTRIBUTES * pRoot;
-    ATTRIBUTES *pLeftOperandAClass;
-    bool bDebugWaitForThisFunc;
-    DATA *pVDst;
-    DATA *pVSrc;
-    bool bUseIndex;
-    int32_t dwBXIndex;
+    ATTRIBUTES* pLeftOperandAClass;
+    bool        bDebugWaitForThisFunc;
+    DATA*       pVDst;
+    DATA*       pVSrc;
+    bool        bUseIndex;
+    int32_t     dwBXIndex;
 
     CompilerStage = CS_RUNTIME;
 
-    if (bRuntimeLog)
-    {
-        if (!FuncTab.AddCall(function_code))
-        {
-            core_internal.Trace("Invalid function_code = %u for AddCall", function_code);
-        }
+    if (bRuntimeLog) {
+        if (!FuncTab.AddCall(function_code)) { core_internal.Trace("Invalid function_code = %u for AddCall", function_code); }
     }
 
     bDebugWaitForThisFunc = false;
 
     // ExpressionResult.SetVCompiler(this);
     pVReturnResult = nullptr;
-    pVResult = nullptr;
+    pVResult       = nullptr;
 
-    if (pDbgExpSource == nullptr)
-    {
-        if (!FuncTab.GetFunc(fi, function_code))
-        {
+    if (pDbgExpSource == nullptr) {
+        if (!FuncTab.GetFunc(fi, function_code)) {
             SetError("Invalid function: %s", fi.name.c_str());
             return false;
         }
 
-        if (fi.offset == INVALID_FUNC_OFFSET)
-        {
+        if (fi.offset == INVALID_FUNC_OFFSET) {
             SetError("Function (%s) isnt loaded", fi.name.c_str());
             return false;
         }
 
-        if (fi.segment_id == INTERNAL_SEGMENT_ID)
-        {
+        if (fi.segment_id == INTERNAL_SEGMENT_ID) {
             SetError("Function (%s) is internal", fi.name.c_str());
             return false;
         }
 
-        if (fi.segment_id == IMPORTED_SEGMENT_ID)
-        {
+        if (fi.segment_id == IMPORTED_SEGMENT_ID) {
             SetError("Function (%s) is imported", fi.name.c_str());
             return false;
         }
 
         segment_index = GetSegmentIndex(fi.segment_id);
-        if (segment_index == INVALID_SEGMENT_INDEX)
-        {
+        if (segment_index == INVALID_SEGMENT_INDEX) {
             SetError("Function (%s) segment not loaded", fi.name.c_str());
             return false;
         }
-        if (SegmentTable[segment_index].pCode == nullptr)
-        {
+        if (SegmentTable[segment_index].pCode == nullptr) {
             SetError("Segment (%s) not loaded", SegmentTable[segment_index].name.c_str());
             return false;
         }
@@ -3914,75 +3395,66 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         // Trace("Execute function: %s",fi.name);
 
         RunningSegmentID = fi.segment_id;
-        fi.stack_offset = SStack.GetDataNum() - fi.arguments; // set stack offset
+        fi.stack_offset  = SStack.GetDataNum() - fi.arguments;  // set stack offset
 
         // check arguments types
-        for (n = 0; n < fi.arguments; n++)
-        {
-            if (fi.local_vars[n].type == VAR_REFERENCE)
-                continue;
+        for (n = 0; n < fi.arguments; n++) {
+            if (fi.local_vars[n].type == VAR_REFERENCE) continue;
             pV = SStack.Read(fi.stack_offset, n);
-            if (pV->GetType() != fi.local_vars[n].type)
-            {
+            if (pV->GetType() != fi.local_vars[n].type) {
                 pV = pV->GetVarPointer();
-                if (!pV)
-                {
+                if (!pV) {
                     SetError("uninitialized function argument");
                     return false;
                 }
 
-                if (fi.local_vars[n].type == VAR_AREFERENCE && pV->GetType() == VAR_OBJECT)
-                    continue;
+                if (fi.local_vars[n].type == VAR_AREFERENCE && pV->GetType() == VAR_OBJECT) continue;
 
                 // TODO: remove and fix
-                if (false && pV->GetType() != fi.local_vars[n].type)
-                {
-                    SetWarning("wrong type of argument %d  %s(%s) <-- [%s]", n, fi.name.c_str(),
-                               Token.GetTypeName(fi.local_vars[n].type), Token.GetTypeName(pV->GetType()));
+                if (false && pV->GetType() != fi.local_vars[n].type) {
+                    SetWarning(
+                        "wrong type of argument %d  %s(%s) <-- [%s]",
+                        n,
+                        fi.name.c_str(),
+                        Token.GetTypeName(fi.local_vars[n].type),
+                        Token.GetTypeName(pV->GetType()));
                 }
             }
         }
 
-        for (n = fi.arguments; n < fi.local_vars.size(); n++)
-        {
+        for (n = fi.arguments; n < fi.local_vars.size(); n++) {
             pV = SStack.Push();
             pV->SetType(fi.local_vars[n].type, fi.local_vars[n].elements);
         }
 
-        pRun_fi = &fi; // set pointer to 'this' function info
+        pRun_fi = &fi;  // set pointer to 'this' function info
 
         InstructionPointer = fi.offset;
 
-        pCodeBase = SegmentTable[segment_index].pCode;
+        pCodeBase    = SegmentTable[segment_index].pCode;
         pRunCodeBase = pCodeBase;
-    }
-    else
-    {
+    } else {
         InstructionPointer = 0;
-        pCodeBase = pDbgExpSource;
-        pRunCodeBase = pCodeBase;
+        pCodeBase          = pDbgExpSource;
+        pRunCodeBase       = pCodeBase;
     }
 
     inout = 0;
     bExit = false;
 
-    nLeftOperandIndex = INVALID_ARRAY_INDEX;
-    nLeftOperandCode = INVALID_VAR_CODE;
-    bLeftOperandType = 0xffffffff;
+    nLeftOperandIndex  = INVALID_ARRAY_INDEX;
+    nLeftOperandCode   = INVALID_VAR_CODE;
+    bLeftOperandType   = 0xffffffff;
     pLeftOperandAClass = nullptr;
 
     // S_TOKEN_TYPE oldToken_type;
-    do
-    {
+    do {
         dwNumberScriptCommandsExecuted++;
         // oldToken_type = Token_type;
         Token_type = BC_TokenGet(ip, token_data_size);
 
-        switch (Token_type)
-        {
-        case ARGS_NUM:
-            psnip_trap();
-            break;
+        switch (Token_type) {
+        case ARGS_NUM: psnip_trap(); break;
         case STACK_COMPARE:
             pV = SStack.Read();
             ExpressionResult.CompareAndSetResult(pV, OP_BOOL_EQUAL);
@@ -3999,256 +3471,199 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         case POP_NZ:
             ExpressionResult.Convert(VAR_INTEGER);
             ExpressionResult.Get(lvalue);
-            if (lvalue == 0)
-                break;
+            if (lvalue == 0) break;
             SStack.Pop();
             break;
-        case POP_VOID:
-            SStack.Pop();
-            break;
+        case POP_VOID: SStack.Pop(); break;
         case JUMP:
             memcpy(&jump_offset, &pCodeBase[ip], sizeof(uint32_t));
-            if (!BC_Jump(SegmentTable[segment_index], jump_offset))
-                return false;
+            if (!BC_Jump(SegmentTable[segment_index], jump_offset)) return false;
             break;
         case JUMP_Z:
             memcpy(&jump_offset, &pCodeBase[ip], sizeof(uint32_t));
             ExpressionResult.Convert(VAR_INTEGER);
             ExpressionResult.Get(lvalue);
-            if (lvalue)
-                break;
-            if (!BC_Jump(SegmentTable[segment_index], jump_offset))
-                return false;
+            if (lvalue) break;
+            if (!BC_Jump(SegmentTable[segment_index], jump_offset)) return false;
             break;
         case JUMP_NZ:
             memcpy(&jump_offset, &pCodeBase[ip], sizeof(uint32_t));
             ExpressionResult.Convert(VAR_INTEGER);
             ExpressionResult.Get(lvalue);
-            if (lvalue == 0)
-                break;
-            if (!BC_Jump(SegmentTable[segment_index], jump_offset))
-                return false;
+            if (lvalue == 0) break;
+            if (!BC_Jump(SegmentTable[segment_index], jump_offset)) return false;
             break;
         case LOCAL_VARIABLE:
-            pLeftOperandAClass = nullptr;            // reset attribute
-            nLeftOperandIndex = INVALID_ARRAY_INDEX; // reset index
-            nLeftOperandCode = *((int32_t *)&pRunCodeBase[TLR_DataOffset]);
-            bLeftOperandType = LOCAL_VARIABLE;
+            pLeftOperandAClass = nullptr;              // reset attribute
+            nLeftOperandIndex  = INVALID_ARRAY_INDEX;  // reset index
+            nLeftOperandCode   = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);
+            bLeftOperandType   = LOCAL_VARIABLE;
             break;
         case VARIABLE:
-            pLeftOperandAClass = nullptr;            // reset attribute
-            nLeftOperandIndex = INVALID_ARRAY_INDEX; // reset index
-            nLeftOperandCode = *((int32_t *)&pRunCodeBase[TLR_DataOffset]);
-            bLeftOperandType = VARIABLE;
+            pLeftOperandAClass = nullptr;              // reset attribute
+            nLeftOperandIndex  = INVALID_ARRAY_INDEX;  // reset index
+            nLeftOperandCode   = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);
+            bLeftOperandType   = VARIABLE;
             break;
         case ACCESS_WORD_CODE:
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
 
-            if (nLeftOperandIndex == INVALID_ARRAY_INDEX)
-            {
-                if (pLeftOperandAClass == nullptr)
-                {
-                    if (bLeftOperandType == VARIABLE)
-                    {
+            if (nLeftOperandIndex == INVALID_ARRAY_INDEX) {
+                if (pLeftOperandAClass == nullptr) {
+                    if (bLeftOperandType == VARIABLE) {
                         real_var = VarTab.GetVar(nLeftOperandCode);
-                        if (real_var == nullptr)
-                        {
+                        if (real_var == nullptr) {
                             SetError("Global variable not found");
                             return false;
                         }
 
                         pV = real_var->value.get();
-                    }
-                    else
-                    {
+                    } else {
                         pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                        if (pV == nullptr)
-                        {
+                        if (pV == nullptr) {
                             SetError("Local variable not found");
                             return false;
                         }
                     }
                     pLeftOperandAClass = pV->GetAClass();
                 }
-                if (pLeftOperandAClass == nullptr)
-                {
+                if (pLeftOperandAClass == nullptr) {
                     SetError("AClass ERROR n1");
                     return false;
                 }
-                pLeftOperandAClass =
-                    pLeftOperandAClass->VerifyAttributeClassByCode(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
+                pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClassByCode(*((int32_t*)&pRunCodeBase[TLR_DataOffset]));
                 break;
             }
-            if (pLeftOperandAClass == nullptr)
-            {
-                if (bLeftOperandType == VARIABLE)
-                {
+            if (pLeftOperandAClass == nullptr) {
+                if (bLeftOperandType == VARIABLE) {
                     real_var = VarTab.GetVar(nLeftOperandCode);
-                    if (real_var == nullptr)
-                    {
+                    if (real_var == nullptr) {
                         SetError("Global variable not found");
                         return false;
                     }
 
                     pV = real_var->value.get();
-                }
-                else
-                {
+                } else {
                     pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                    if (pV == nullptr)
-                    {
+                    if (pV == nullptr) {
                         SetError("Local variable not found");
                         return false;
                     }
                 }
                 pLeftOperandAClass = pV->GetAClass(nLeftOperandIndex);
             }
-            if (pLeftOperandAClass == nullptr)
-            {
+            if (pLeftOperandAClass == nullptr) {
                 SetError("AClass ERROR n1");
                 return false;
             }
-            pLeftOperandAClass =
-                pLeftOperandAClass->VerifyAttributeClassByCode(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
+            pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClassByCode(*((int32_t*)&pRunCodeBase[TLR_DataOffset]));
             break;
             break;
         case ACCESS_WORD:
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
-            if (nLeftOperandIndex == INVALID_ARRAY_INDEX)
-            {
-                if (pLeftOperandAClass == nullptr)
-                {
-                    if (bLeftOperandType == VARIABLE)
-                    {
+            if (nLeftOperandIndex == INVALID_ARRAY_INDEX) {
+                if (pLeftOperandAClass == nullptr) {
+                    if (bLeftOperandType == VARIABLE) {
                         real_var = VarTab.GetVar(nLeftOperandCode);
-                        if (real_var == nullptr)
-                        {
+                        if (real_var == nullptr) {
                             SetError("Global variable not found");
                             return false;
                         }
 
                         pV = real_var->value.get();
-                    }
-                    else
-                    {
+                    } else {
                         pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                        if (pV == nullptr)
-                        {
+                        if (pV == nullptr) {
                             SetError("Local variable not found");
                             return false;
                         }
                     }
                     pLeftOperandAClass = pV->GetAClass();
                 }
-                if (pLeftOperandAClass == nullptr)
-                {
+                if (pLeftOperandAClass == nullptr) {
                     SetError("AClass ERROR n1");
                     return false;
                 }
-                pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClass((char *)&pRunCodeBase[TLR_DataOffset]);
+                pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClass((char*)&pRunCodeBase[TLR_DataOffset]);
                 break;
             }
-            if (pLeftOperandAClass == nullptr)
-            {
-                if (bLeftOperandType == VARIABLE)
-                {
+            if (pLeftOperandAClass == nullptr) {
+                if (bLeftOperandType == VARIABLE) {
                     real_var = VarTab.GetVar(nLeftOperandCode);
-                    if (real_var == nullptr)
-                    {
+                    if (real_var == nullptr) {
                         SetError("Global variable not found");
                         return false;
                     }
 
                     pV = real_var->value.get();
-                }
-                else
-                {
+                } else {
                     pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                    if (pV == nullptr)
-                    {
+                    if (pV == nullptr) {
                         SetError("Local variable not found");
                         return false;
                     }
                 }
                 pLeftOperandAClass = pV->GetAClass(nLeftOperandIndex);
             }
-            if (pLeftOperandAClass == nullptr)
-            {
+            if (pLeftOperandAClass == nullptr) {
                 SetError("AClass ERROR n1");
                 return false;
             }
-            pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClass((char *)&pRunCodeBase[TLR_DataOffset]);
+            pLeftOperandAClass = pLeftOperandAClass->VerifyAttributeClass((char*)&pRunCodeBase[TLR_DataOffset]);
             break;
             break;
         case ACCESS_VAR:
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
-            if (nLeftOperandIndex == INVALID_ARRAY_INDEX)
-            {
-                if (pLeftOperandAClass == nullptr)
-                {
-                    if (bLeftOperandType == VARIABLE)
-                    {
+            if (nLeftOperandIndex == INVALID_ARRAY_INDEX) {
+                if (pLeftOperandAClass == nullptr) {
+                    if (bLeftOperandType == VARIABLE) {
                         real_var = VarTab.GetVar(nLeftOperandCode);
-                        if (real_var == nullptr)
-                        {
+                        if (real_var == nullptr) {
                             SetError("Global variable not found");
                             return false;
                         }
 
                         pV = real_var->value.get();
-                    }
-                    else
-                    {
+                    } else {
                         pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                        if (pV == nullptr)
-                        {
+                        if (pV == nullptr) {
                             SetError("Local variable not found");
                             return false;
                         }
                     }
                     pLeftOperandAClass = pV->GetAClass();
                 }
-                if (pLeftOperandAClass == nullptr)
-                {
+                if (pLeftOperandAClass == nullptr) {
                     SetError("AClass ERROR n1");
                     return false;
                 }
 
-                vtype = BC_TokenGet();
-                var_code = *((int32_t *)&pRunCodeBase[TLR_DataOffset]);
-                if (!(vtype == VARIABLE || vtype == LOCAL_VARIABLE))
-                {
+                vtype    = BC_TokenGet();
+                var_code = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);
+                if (!(vtype == VARIABLE || vtype == LOCAL_VARIABLE)) {
                     SetError("invalid access var");
                     return false;
                 }
-                if (vtype == VARIABLE)
-                {
+                if (vtype == VARIABLE) {
                     real_var = VarTab.GetVar(var_code);
-                    if (real_var == nullptr)
-                    {
+                    if (real_var == nullptr) {
                         SetError("Global variable not found");
                         return false;
                     }
 
                     pVV = real_var->value.get();
-                }
-                else
-                {
+                } else {
                     pVV = SStack.Read(pRun_fi->stack_offset, var_code);
-                    if (pVV == nullptr)
-                    {
+                    if (pVV == nullptr) {
                         SetError("Local variable not found");
                         return false;
                     }
@@ -4259,59 +3674,46 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 pLeftOperandAClass = pLeftOperandAClass->CreateSubAClass(pLeftOperandAClass, pAccess_string);
                 break;
             }
-            if (pLeftOperandAClass == nullptr)
-            {
-                if (bLeftOperandType == VARIABLE)
-                {
+            if (pLeftOperandAClass == nullptr) {
+                if (bLeftOperandType == VARIABLE) {
                     real_var = VarTab.GetVar(nLeftOperandCode);
-                    if (real_var == nullptr)
-                    {
+                    if (real_var == nullptr) {
                         SetError("Global variable not found");
                         return false;
                     }
 
                     pV = real_var->value.get();
-                }
-                else
-                {
+                } else {
                     pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                    if (pV == nullptr)
-                    {
+                    if (pV == nullptr) {
                         SetError("Local variable not found");
                         return false;
                     }
                 }
                 pLeftOperandAClass = pV->GetAClass(nLeftOperandIndex);
             }
-            if (pLeftOperandAClass == nullptr)
-            {
+            if (pLeftOperandAClass == nullptr) {
                 SetError("AClass ERROR n1");
                 return false;
             }
 
-            vtype = BC_TokenGet();
-            var_code = *((int32_t *)&pRunCodeBase[TLR_DataOffset]);
-            if (!(vtype == VARIABLE || vtype == LOCAL_VARIABLE))
-            {
+            vtype    = BC_TokenGet();
+            var_code = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);
+            if (!(vtype == VARIABLE || vtype == LOCAL_VARIABLE)) {
                 SetError("invalid access var");
                 return false;
             }
-            if (vtype == VARIABLE)
-            {
+            if (vtype == VARIABLE) {
                 real_var = VarTab.GetVar(var_code);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pVV = real_var->value.get();
-            }
-            else
-            {
+            } else {
                 pVV = SStack.Read(pRun_fi->stack_offset, var_code);
-                if (pVV == nullptr)
-                {
+                if (pVV == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
@@ -4324,55 +3726,42 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             break;
             break;
         case DEBUG_LINE_CODE:
-            if (core_internal.Exit_flag)
-                return false;
-            if (pDbgExpSource)
-                break;
-            if (bDebugExpressionRun)
-                break;
-#ifdef _WIN32 // S_DEBUG
+            if (core_internal.Exit_flag) return false;
+            if (pDbgExpSource) break;
+            if (bDebugExpressionRun) break;
+#ifdef _WIN32  // S_DEBUG
             memcpy(&nDebugTraceLineCode, &pCodeBase[ip], sizeof(uint32_t));
-            if (bTraceMode)
-            {
-                if (CDebug->GetTraceMode() == TMODE_MAKESTEP || CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
-                {
-                    if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER && bDebugWaitForThisFunc == false)
-                        break;
+            if (bTraceMode) {
+                if (CDebug->GetTraceMode() == TMODE_MAKESTEP || CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER) {
+                    if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER && bDebugWaitForThisFunc == false) break;
 
-                    if (!CDebug->IsDebug())
-                        CDebug->OpenDebugWindow(core_internal.GetAppInstance());
+                    if (!CDebug->IsDebug()) CDebug->OpenDebugWindow(core_internal.GetAppInstance());
                     // else
                     ShowWindow(CDebug->GetWindowHandle(), SW_NORMAL);
 
                     CDebug->SetTraceLine(nDebugTraceLineCode);
                     CDebug->BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
                     CDebug->SetTraceMode(TMODE_WAIT);
-                    while (CDebug->GetTraceMode() == TMODE_WAIT)
-                    {
+                    while (CDebug->GetTraceMode() == TMODE_WAIT) {
                         std::this_thread::sleep_for(std::chrono::milliseconds(40));
                     }
                     if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
                         bDebugWaitForThisFunc = true;
                     else
                         bDebugWaitForThisFunc = false;
-                }
-                else if (CDebug->Breaks.CanBreak())
-                {
+                } else if (CDebug->Breaks.CanBreak()) {
                     // check for breakpoint
-                    if (CDebug->Breaks.Find(fi.decl_file_name.c_str(), nDebugTraceLineCode))
-                    {
-                        if (!CDebug->IsDebug())
-                            CDebug->OpenDebugWindow(core_internal.GetAppInstance());
+                    if (CDebug->Breaks.Find(fi.decl_file_name.c_str(), nDebugTraceLineCode)) {
+                        if (!CDebug->IsDebug()) CDebug->OpenDebugWindow(core_internal.GetAppInstance());
 
                         ShowWindow(CDebug->GetWindowHandle(), SW_NORMAL);
                         // CDebug->OpenDebugWindow(core_impl.hInstance);
                         CDebug->SetTraceMode(TMODE_WAIT);
                         CDebug->BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
 
-                        while (CDebug->GetTraceMode() == TMODE_WAIT)
-                        {
+                        while (CDebug->GetTraceMode() == TMODE_WAIT) {
                             std::this_thread::sleep_for(std::chrono::milliseconds(40));
-                        } // wait for debug thread decision
+                        }  // wait for debug thread decision
                         if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
                             bDebugWaitForThisFunc = true;
                         else
@@ -4402,67 +3791,53 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             SetError("Unallowed instraction");
             return false;
             break;
-        default:
-            SetError("Incorrect instruction code");
-            return false;
+        default: SetError("Incorrect instruction code"); return false;
 
         case CALL:                                                  // undetermined function call
-            vtype = BC_TokenGet();                                  // read variable
-            var_code = *((int32_t *)&pRunCodeBase[TLR_DataOffset]); // var code
-            if (vtype == VARIABLE)
-            {
+            vtype    = BC_TokenGet();                               // read variable
+            var_code = *((int32_t*)&pRunCodeBase[TLR_DataOffset]);  // var code
+            if (vtype == VARIABLE) {
                 real_var = VarTab.GetVar(var_code);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pVV = real_var->value.get();
-            }
-            else
-            {
+            } else {
                 pVV = SStack.Read(pRun_fi->stack_offset, var_code);
-                if (pVV == nullptr)
-                {
+                if (pVV == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
             }
             pVV = pVV->GetVarPointer();
-            if (pVV->GetType() != VAR_STRING)
-            {
+            if (pVV->GetType() != VAR_STRING) {
                 SetError("string call argument isnt string var");
                 return false;
             }
-            pVV->Get(pAccess_string); // func name
+            pVV->Get(pAccess_string);  // func name
             func_code = FuncTab.FindFunc(pAccess_string);
-            if (func_code == INVALID_FUNC_CODE)
-            {
+            if (func_code == INVALID_FUNC_CODE) {
                 SetError("function '%s' not found", pAccess_string);
                 return false;
             }
             pVResult = nullptr;
-            if (!BC_CallFunction(func_code, ip, pVResult))
-                return false;
-            if (pVResult)
-            {
+            if (!BC_CallFunction(func_code, ip, pVResult)) return false;
+            if (pVResult) {
                 ExpressionResult.Set(1);
                 // SStack.Pop();
-            }
-            else
+            } else
                 ExpressionResult.Set(0);
             break;
         case CALL_FUNCTION:
             memcpy(&func_code, &pCodeBase[ip], sizeof(uint32_t));
             pVResult = nullptr;
-            if (!BC_CallFunction(func_code, ip, pVResult))
-                return false;
+            if (!BC_CallFunction(func_code, ip, pVResult)) return false;
             // if(pVResult) SStack.Pop();
             break;
         case FUNCTION_RETURN_VOID:
-            if (fi.return_type != TVOID)
-            {
+            if (fi.return_type != TVOID) {
                 SetError("function must return value");
                 return false;
             }
@@ -4471,15 +3846,14 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             return true;
         case FUNCTION_RETURN:
-            if (fi.return_type == TVOID)
-            {
+            if (fi.return_type == TVOID) {
                 SetError("void function return value");
 
                 return false;
             }
             // at this moment result expression placed in EX register
 
-            if (pDbgExpSource == nullptr) // skip stack unwind for dbg expression process    // ????????
+            if (pDbgExpSource == nullptr)  // skip stack unwind for dbg expression process    // ????????
                 SStack.InvalidateFrom(fi.stack_offset);
 
             // copy result into stack
@@ -4488,17 +3862,14 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             pVReturnResult = pV;
 
             // check return type
-            if (pDbgExpSource == nullptr) // skip test for dbg expression process
-                if (fi.return_type != pV->GetType())
-                {
-                    if (fi.return_type == VAR_INTEGER && pV->GetType() == VAR_PTR)
-                    {
+            if (pDbgExpSource == nullptr)  // skip test for dbg expression process
+                if (fi.return_type != pV->GetType()) {
+                    if (fi.return_type == VAR_INTEGER && pV->GetType() == VAR_PTR) {
                         pV->Convert(VAR_INTEGER);
                         return true;
                     }
 
-                    SetError("%s function return %s value", Token.GetTypeName(fi.return_type),
-                             Token.GetTypeName(pV->GetType()));
+                    SetError("%s function return %s value", Token.GetTypeName(fi.return_type), Token.GetTypeName(pV->GetType()));
                     return false;
                 }
             return true;
@@ -4549,61 +3920,43 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         case OP_DECADD:
             S_TOKEN_TYPE OpType;
             OpType = Token_type;
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
-            if (bLeftOperandType == VARIABLE)
-            {
+            if (bLeftOperandType == VARIABLE) {
                 real_var = VarTab.GetVar(nLeftOperandCode);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pV = real_var->value.get();
-            }
-            else
-            {
+            } else {
                 pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                if (pV == nullptr)
-                {
+                if (pV == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
             }
-            if (nLeftOperandIndex != INVALID_ARRAY_INDEX)
-            {
-                pV = static_cast<DATA *>(pV->GetArrayElement(nLeftOperandIndex));
-                if (pV == nullptr)
-                {
+            if (nLeftOperandIndex != INVALID_ARRAY_INDEX) {
+                pV = static_cast<DATA*>(pV->GetArrayElement(nLeftOperandIndex));
+                if (pV == nullptr) {
                     SetError("invalid array index");
                     return false;
                 }
             }
             // BC_ProcessExpression(&ExpressionResult);
             pVV = SStack.Read();
-            switch (OpType)
-            {
-            case OP_INCADD:
-                pV->Plus(pVV);
-                break;
-            case OP_DECADD:
-                pV->Minus(pVV);
-                break;
-            case OP_MULTIPLYEQ:
-                pV->Multiply(pVV);
-                break;
-            case OP_DIVIDEEQ:
-                pV->Divide(pVV);
-                break;
-            default:
-                break;
+            switch (OpType) {
+            case OP_INCADD: pV->Plus(pVV); break;
+            case OP_DECADD: pV->Minus(pVV); break;
+            case OP_MULTIPLYEQ: pV->Multiply(pVV); break;
+            case OP_DIVIDEEQ: pV->Divide(pVV); break;
+            default: break;
             }
 
-            break; //*/
+            break;  //*/
 
             /*case OP_MULTIPLYEQ:
             case OP_DIVIDEEQ:
@@ -4639,38 +3992,30 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             break;//*/
         case OP_INC:
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
-            if (bLeftOperandType == VARIABLE)
-            {
+            if (bLeftOperandType == VARIABLE) {
                 real_var = VarTab.GetVar(nLeftOperandCode);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pV = real_var->value.get();
-            }
-            else
-            {
+            } else {
                 pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                if (pV == nullptr)
-                {
+                if (pV == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
             }
             if (nLeftOperandIndex == INVALID_ARRAY_INDEX)
                 pV->Inc();
-            else
-            {
-                pV = static_cast<DATA *>(pV->GetArrayElement(nLeftOperandIndex));
-                if (pV == nullptr)
-                {
+            else {
+                pV = static_cast<DATA*>(pV->GetArrayElement(nLeftOperandIndex));
+                if (pV == nullptr) {
                     SetError("invalid array index");
                     return false;
                 }
@@ -4678,38 +4023,30 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             }
             break;
         case OP_DEC:
-            if (nLeftOperandCode == INVALID_VAR_CODE)
-            {
+            if (nLeftOperandCode == INVALID_VAR_CODE) {
                 SetError("no Lvalue");
                 return false;
             }
-            if (bLeftOperandType == VARIABLE)
-            {
+            if (bLeftOperandType == VARIABLE) {
                 real_var = VarTab.GetVar(nLeftOperandCode);
-                if (real_var == nullptr)
-                {
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pV = real_var->value.get();
-            }
-            else
-            {
+            } else {
                 pV = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                if (pV == nullptr)
-                {
+                if (pV == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
             }
             if (nLeftOperandIndex == INVALID_ARRAY_INDEX)
                 pV->Dec();
-            else
-            {
-                pV = static_cast<DATA *>(pV->GetArrayElement(nLeftOperandIndex));
-                if (pV == nullptr)
-                {
+            else {
+                pV = static_cast<DATA*>(pV->GetArrayElement(nLeftOperandIndex));
+                if (pV == nullptr) {
                     SetError("invalid array index");
                     return false;
                 }
@@ -4941,33 +4278,22 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             //-----------------------------------------------------------------------
 
-        case GOTO_COMMAND:
-            break;
-        case CONTINUE_COMMAND:
-            break;
-        case BREAK_COMMAND:
-            break;
+        case GOTO_COMMAND: break;
+        case CONTINUE_COMMAND: break;
+        case BREAK_COMMAND: break;
 
-        case CASE_COMMAND:
-            return false;
+        case CASE_COMMAND: return false;
 
-        case SEPARATOR:
-            break;
-        case UNKNOWN:
-            break;
+        case SEPARATOR: break;
+        case UNKNOWN: break;
         case VAR_OBJECT:
         case VAR_STRING:
         case VAR_FLOAT:
         case VAR_INTEGER:
-        case VAR_PTR:
-            break;
-        case OPEN_BRACKET:
-            break;
-        case CLOSE_BRACKET:
-            break;
-        case COMMA:
-
-            break;
+        case VAR_PTR: break;
+        case OPEN_BRACKET: break;
+        case CLOSE_BRACKET: break;
+        case COMMA: break;
         case DOT:
 
             break;
@@ -4989,12 +4315,8 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                   break;//*/
 
             //----------------------------------------------
-        case NUMBER:
-
-            break;
-        case FLOAT_NUMBER:
-
-            break;
+        case NUMBER: break;
+        case FLOAT_NUMBER: break;
         case STRING:
 
             break;
@@ -5003,12 +4325,10 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         case PUSH_OBJID_BXINDEX:
         case PUSH_OBJID:
 
-            if (Token_type == PUSH_OBJID_BXINDEX)
-            {
+            if (Token_type == PUSH_OBJID_BXINDEX) {
                 bUseIndex = true;
                 rBX.Get(dwBXIndex);
-            }
-            else
+            } else
                 bUseIndex = false;
 
             pV = SStack.Push();
@@ -5016,18 +4336,13 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             pVV = GetOperand(pCodeBase, ip, &Token_type);
 
-            if (!(Token_type == VARIABLE || Token_type == LOCAL_VARIABLE))
-            {
+            if (!(Token_type == VARIABLE || Token_type == LOCAL_VARIABLE)) {
                 SetError("invalid arg for push_objid");
                 return false;
             }
-            if (bUseIndex)
-            {
-                pVV = pVV->GetArrayElement(dwBXIndex);
-            }
+            if (bUseIndex) { pVV = pVV->GetArrayElement(dwBXIndex); }
 
-            if (!(pVV->GetType() == VAR_AREFERENCE || pVV->GetType() == VAR_REFERENCE || pVV->GetType() == VAR_OBJECT))
-            {
+            if (!(pVV->GetType() == VAR_AREFERENCE || pVV->GetType() == VAR_REFERENCE || pVV->GetType() == VAR_OBJECT)) {
                 SetError("not aref or ref or object");
             }
 
@@ -5043,56 +4358,43 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             // destination
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
-            case STACK_TOP:
-                pVDst = SStack.Read();
-                break;
-            default:
-                SetError("invalid argument for setaref (dst)");
-                return false;
+            switch (Token_type) {
+            case STACK_TOP: pVDst = SStack.Read(); break;
+            default: SetError("invalid argument for setaref (dst)"); return false;
             }
-            if (!pVDst)
-            {
+            if (!pVDst) {
                 SetError("invalid argument for setaref (dst)");
                 return false;
             }
             pVDst = pVDst->GetVarPointer();
-            if (!pVDst)
-            {
+            if (!pVDst) {
                 SetError("invalid argument for setaref (dst)");
                 return false;
             }
-            if (pVDst->GetType() != VAR_AREFERENCE)
-            {
+            if (pVDst->GetType() != VAR_AREFERENCE) {
                 SetError("isnt aref");
                 return false;
             }
 
             // source
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case AP:
                 pVDst->Set(eid);
                 pVDst->SetAReference(rAP);
 
                 break;
-            default:
-                SetError("invalid argument for setref (src)");
-                return false;
+            default: SetError("invalid argument for setref (src)"); return false;
             }
 
             break;
         case SETREF_BXINDEX:
         case SETREF:
 
-            if (Token_type == SETREF_BXINDEX)
-            {
+            if (Token_type == SETREF_BXINDEX) {
                 bUseIndex = true;
                 rBX.Get(dwBXIndex);
-            }
-            else
+            } else
                 bUseIndex = false;
 
             pVDst = nullptr;
@@ -5100,90 +4402,71 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             // destination
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case STACK_TOP:
                 pVDst = SStack.Read();
                 pVDst->ClearType();
                 pVDst->SetType(VAR_REFERENCE);
                 break;
             case VARIABLE:
-                real_var = VarTab.GetVar(*((uint32_t *)&pCodeBase[ip]));
-                if (real_var == nullptr)
-                {
+                real_var = VarTab.GetVar(*((uint32_t*)&pCodeBase[ip]));
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pVDst = real_var->value.get();
                 // if(bUseIndex) pVDst = pVDst->GetArrayElement(dwBXIndex);
-                if (!pVDst)
-                    return false;
-                if (pVDst->GetType() != VAR_REFERENCE)
-                {
+                if (!pVDst) return false;
+                if (pVDst->GetType() != VAR_REFERENCE) {
                     SetError("'%s' isnt reference", real_var->name.c_str());
                     return false;
                 }
                 break;
             case LOCAL_VARIABLE:
-                pVDst = SStack.Read(pRun_fi->stack_offset, *((uint32_t *)&pCodeBase[ip]));
-                if (pVDst == nullptr)
-                {
+                pVDst = SStack.Read(pRun_fi->stack_offset, *((uint32_t*)&pCodeBase[ip]));
+                if (pVDst == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
                 // if(bUseIndex) pVDst = pVDst->GetArrayElement(dwBXIndex);
-                if (!pVDst)
-                    return false;
-                if (pVDst->GetType() != VAR_REFERENCE)
-                {
+                if (!pVDst) return false;
+                if (pVDst->GetType() != VAR_REFERENCE) {
                     SetError("Local variable is not reference");
                     return false;
                 }
                 break;
-            default:
-                SetError("invalid argument for setref (dst)");
-                return false;
+            default: SetError("invalid argument for setref (dst)"); return false;
             }
-            if (!pVDst)
-            {
+            if (!pVDst) {
                 SetError("invalid argument for setref (dst)");
                 return false;
             }
 
             // source
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case VARIABLE:
-                real_var = VarTab.GetVar(*((uint32_t *)&pCodeBase[ip]));
-                if (real_var == nullptr)
-                {
+                real_var = VarTab.GetVar(*((uint32_t*)&pCodeBase[ip]));
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     return false;
                 }
 
                 pVSrc = real_var->value.get();
-                if (bUseIndex)
-                    pVSrc = pVSrc->GetArrayElement(dwBXIndex);
-                if (!pVSrc)
-                    return false;
+                if (bUseIndex) pVSrc = pVSrc->GetArrayElement(dwBXIndex);
+                if (!pVSrc) return false;
                 break;
             case LOCAL_VARIABLE:
-                pVSrc = SStack.Read(pRun_fi->stack_offset, *((uint32_t *)&pCodeBase[ip]));
-                if (pVSrc == nullptr)
-                {
+                pVSrc = SStack.Read(pRun_fi->stack_offset, *((uint32_t*)&pCodeBase[ip]));
+                if (pVSrc == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
-                if (bUseIndex)
-                    pVSrc = pVSrc->GetArrayElement(dwBXIndex);
-                if (!pVSrc)
-                    return false;
+                if (bUseIndex) pVSrc = pVSrc->GetArrayElement(dwBXIndex);
+                if (!pVSrc) return false;
                 break;
-            default:
-                SetError("invalid argument for setref (src)");
-                return false;
+            default: SetError("invalid argument for setref (src)"); return false;
             }
 
             pVDst->SetReference(pVSrc->GetVarPointer());
@@ -5195,39 +4478,29 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             pVSrc = nullptr;
             // find destination
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case LEFT_OPERAND:
-                if (nLeftOperandCode == INVALID_VAR_CODE)
-                {
+                if (nLeftOperandCode == INVALID_VAR_CODE) {
                     SetError("no Lvalue");
                     return false;
                 }
 
-                if (bLeftOperandType == VARIABLE)
-                {
+                if (bLeftOperandType == VARIABLE) {
                     real_var = VarTab.GetVar(nLeftOperandCode);
-                    if (real_var == nullptr)
-                    {
+                    if (real_var == nullptr) {
                         SetError("Global variable not found");
                         return false;
                     }
 
                     pVDst = real_var->value.get();
-                }
-                else
-                {
-                    if (pRun_fi)
-                    {
+                } else {
+                    if (pRun_fi) {
                         pVDst = SStack.Read(pRun_fi->stack_offset, nLeftOperandCode);
-                        if (pVDst == nullptr)
-                        {
+                        if (pVDst == nullptr) {
                             SetError("Local variable not found");
                             return false;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         pVDst = nullptr;
                         SetError("Internal error, line 4808! Current function not defined...");
                         return false;
@@ -5239,44 +4512,35 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                   pVDst = &ExpressionResult;
 
                 break;*/
-            default:
-                SetError("invalid DST");
-                return false;
+            default: SetError("invalid DST"); return false;
             }
 
-            if (pVDst == nullptr)
-            {
+            if (pVDst == nullptr) {
                 SetError("no LValue");
                 return false;
             }
 
             // find source
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case STACK_TOP:
                 pVSrc = SStack.Read();
-                if (!pVSrc)
-                    return false;
+                if (!pVSrc) return false;
                 break;
-            default:
-                SetError("incorrect SRC");
-                return false;
+            default: SetError("incorrect SRC"); return false;
             }
 
             // check for attribute operations
-            if (pLeftOperandAClass != nullptr)
-            {
+            if (pLeftOperandAClass != nullptr) {
                 // set attribute class value
-                const char *pChar;
+                char const* pChar;
 
                 // use ExpressionResult as temporary register
                 ExpressionResult.ClearType();
                 ExpressionResult.Copy(pVSrc);
 
                 // 2 signs precision --------------------------------
-                if (ExpressionResult.GetType() == VAR_FLOAT)
-                {
+                if (ExpressionResult.GetType() == VAR_FLOAT) {
                     float fV1;
                     ExpressionResult.Get(fV1);
                     sprintf_s(gs, "%.7f", fV1);
@@ -5284,61 +4548,49 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 }
                 // 2 signs precision --------------------------------
                 ExpressionResult.Convert(VAR_STRING);
-                if (!ExpressionResult.Get(pChar))
-                    break;
+                if (!ExpressionResult.Get(pChar)) break;
                 pLeftOperandAClass->SetValue(pChar);
 
-                if (nLeftOperandIndex != INVALID_ARRAY_INDEX)
-                    pVDst = pVDst->GetArrayElement(nLeftOperandIndex);
-                if (!pVDst)
-                    return false;
+                if (nLeftOperandIndex != INVALID_ARRAY_INDEX) pVDst = pVDst->GetArrayElement(nLeftOperandIndex);
+                if (!pVDst) return false;
 
                 pVDst->Get(eid);
-                if (bEntityUpdate)
-                {
-                    core_internal.Entity_AttributeChanged(eid, pLeftOperandAClass);
-                }
+                if (bEntityUpdate) { core_internal.Entity_AttributeChanged(eid, pLeftOperandAClass); }
                 break;
             }
 
             // test for references operations
-            if (pVSrc->GetType() == VAR_REFERENCE && pVDst->GetType() == VAR_REFERENCE)
-            {
+            if (pVSrc->GetType() == VAR_REFERENCE && pVDst->GetType() == VAR_REFERENCE) {
                 pVDst->SetReference(pVSrc->GetReference());
                 break;
             }
 
             // find real dst
             pVDst = pVDst->GetVarPointer();
-            if (!pVDst)
-            {
+            if (!pVDst) {
                 SetError("no DST");
                 return false;
             }
 
-            if (nLeftOperandIndex != INVALID_ARRAY_INDEX)
-                pVDst = pVDst->GetArrayElement(nLeftOperandIndex);
-            if (!pVDst)
-                return false;
+            if (nLeftOperandIndex != INVALID_ARRAY_INDEX) pVDst = pVDst->GetArrayElement(nLeftOperandIndex);
+            if (!pVDst) return false;
 
             // test for allowed data conversion
-            DATA *pVTTSrc;
-            DATA *pVTTDst;
+            DATA* pVTTSrc;
+            DATA* pVTTDst;
             pVTTSrc = pVSrc->GetVarPointer();
             pVTTDst = pVDst->GetVarPointer();
 
-            if (pVTTSrc->GetType() != pVTTDst->GetType())
-            {
+            if (pVTTSrc->GetType() != pVTTDst->GetType()) {
                 // ??? think about a little later
                 ExpressionResult.ClearType();
                 ExpressionResult.Copy(pVSrc);
-                if (ExpressionResult.IsReference())
-                    ExpressionResult.RefConvert();
-                if (!ExpressionResult.Convert(pVTTDst->GetType())) /// ??????????
+                if (ExpressionResult.IsReference()) ExpressionResult.RefConvert();
+                if (!ExpressionResult.Convert(pVTTDst->GetType()))  /// ??????????
                 {
-                    break; // skip unallowed conversion, write to log(in Convert func)
+                    break;  // skip unallowed conversion, write to log(in Convert func)
                 }
-                pVSrc = ExpressionResult.GetVarPointer(); // converted source
+                pVSrc = ExpressionResult.GetVarPointer();  // converted source
             }
 
             // if not attribute operation proceed to variables copy
@@ -5349,20 +4601,16 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             break;
 
-        case STACK_ALLOC:
-            SStack.Push();
-            break;
+        case STACK_ALLOC: SStack.Push(); break;
 
         case STACK_WRITE_BXINDEX:
         case STACK_PUSH:
         case STACK_WRITE:
 
-            if (Token_type == STACK_WRITE_BXINDEX)
-            {
+            if (Token_type == STACK_WRITE_BXINDEX) {
                 bUseIndex = true;
                 rBX.Get(dwBXIndex);
-            }
-            else
+            } else
                 bUseIndex = false;
 
             if (Token_type == STACK_PUSH)
@@ -5371,21 +4619,15 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 pV = SStack.Read();
 
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
-            case NUMBER:
-                pV->Set(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
-                break;
-            case FLOAT_NUMBER:
-                pV->Set(*((float *)&pRunCodeBase[TLR_DataOffset]));
-                break;
+            switch (Token_type) {
+            case NUMBER: pV->Set(*((int32_t*)&pRunCodeBase[TLR_DataOffset])); break;
+            case FLOAT_NUMBER: pV->Set(*((float*)&pRunCodeBase[TLR_DataOffset])); break;
             case STRING:
-                pV->Set((char *)&pRunCodeBase[TLR_DataOffset + 4]); // 4 - string length
+                pV->Set((char*)&pRunCodeBase[TLR_DataOffset + 4]);  // 4 - string length
                 break;
             case VARIABLE:
-                real_var = VarTab.GetVar(*((uint32_t *)&pCodeBase[ip]));
-                if (real_var == nullptr)
-                {
+                real_var = VarTab.GetVar(*((uint32_t*)&pCodeBase[ip]));
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     break;
                 }
@@ -5393,67 +4635,53 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 pVV = real_var->value.get();
                 // pVV = pVV->GetVarPointer();
                 // if(!pVV) { SetError("invalid ref"); break; }
-                if (pVV->IsReference())
-                {
-                    if (bUseIndex)
-                    {
+                if (pVV->IsReference()) {
+                    if (bUseIndex) {
                         pVV = pVV->GetVarPointer();
                         pVV = pVV->GetArrayElement(dwBXIndex);
-                        if (!pVV)
-                        {
+                        if (!pVV) {
                             SetError("invalid ref");
                             break;
                         }
 
                         pV->SetType(VAR_REFERENCE);
                         pV->SetReference(pVV);
-                    }
-                    else
-                    {
+                    } else {
                         pV->SetType(VAR_REFERENCE);
                         pV->SetReference(pVV->GetReference());
                     }
                     break;
                 }
 
-                if (bUseIndex)
-                {
+                if (bUseIndex) {
                     pVV = pVV->GetArrayElement(dwBXIndex);
-                    if (!pVV)
-                    {
+                    if (!pVV) {
                         SetError("invalid array index");
                         break;
                     }
                     pV->Copy(pVV);
-                }
-                else
+                } else
                     pV->Copy(pVV);
 
                 break;
             case LOCAL_VARIABLE:
-                pVar = SStack.Read(pRun_fi->stack_offset, *((uint32_t *)&pCodeBase[ip]));
-                if (pVar == nullptr)
-                {
+                pVar = SStack.Read(pRun_fi->stack_offset, *((uint32_t*)&pCodeBase[ip]));
+                if (pVar == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
-                if (pVar->IsReference())
-                {
-                    if (bUseIndex)
-                    {
+                if (pVar->IsReference()) {
+                    if (bUseIndex) {
                         pVar = pVar->GetVarPointer();
                         pVar = pVar->GetArrayElement(dwBXIndex);
-                        if (!pVar)
-                        {
+                        if (!pVar) {
                             SetError("invalid ref");
                             break;
                         }
 
                         pV->SetType(VAR_REFERENCE);
                         pV->SetReference(pVar);
-                    }
-                    else
-                    {
+                    } else {
                         pV->SetType(VAR_REFERENCE);
                         pV->SetReference(pVar->GetReference());
                     }
@@ -5462,63 +4690,46 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
                 // if(!pVar) { SetError("invalid ref"); break; }
 
-                if (bUseIndex)
-                {
+                if (bUseIndex) {
                     pVar = pVar->GetArrayElement(dwBXIndex);
-                    if (!pVar)
-                    {
+                    if (!pVar) {
                         SetError("invalid array index");
                         break;
                     }
                     pV->Copy(pVar);
-                }
-                else
+                } else
                     pV->Copy(pVar);
 
                 break;
-            case AX:
-                pV->Copy(&rAX);
-                break;
-            case BX:
-                pV->Copy(&rBX);
-                break;
-            case EX:
-                pV->Copy(&ExpressionResult);
-                break;
+            case AX: pV->Copy(&rAX); break;
+            case BX: pV->Copy(&rBX); break;
+            case EX: pV->Copy(&ExpressionResult); break;
             case AP_VALUE:
-                if (!rAP)
-                {
+                if (!rAP) {
                     SetError("no rAP data");
                     pV->Set("error");
                     break; /*return false;*/
                 }
                 pV->Set(to_string(rAP->GetThisAttr()));
                 break;
-            default:
-                SetError("invalid argument for STACK_PUSH");
-                return false;
+            default: SetError("invalid argument for STACK_PUSH"); return false;
             }
             break;
 
-        case STACK_POP_VOID:
-            SStack.Pop();
-            break;
+        case STACK_POP_VOID: SStack.Pop(); break;
         case STACK_POP:
         case STACK_READ:
-            if (SStack.GetDataNum() == 0)
-                break;
+            if (SStack.GetDataNum() == 0) break;
             if (Token_type == STACK_POP)
                 pV = SStack.Pop();
             else
                 pV = SStack.Read();
 
             Token_type = BC_TokenGet(ip, token_data_size);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case VARIABLE:
-                real_var = VarTab.GetVar(*((uint32_t *)&pCodeBase[ip]));
-                if (real_var == nullptr)
-                {
+                real_var = VarTab.GetVar(*((uint32_t*)&pCodeBase[ip]));
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     break;
                 }
@@ -5526,9 +4737,8 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 real_var->value->Copy(pV);
                 break;
             case LOCAL_VARIABLE:
-                pVar = SStack.Read(pRun_fi->stack_offset, *((uint32_t *)&pCodeBase[ip]));
-                if (pVar == nullptr)
-                {
+                pVar = SStack.Read(pRun_fi->stack_offset, *((uint32_t*)&pCodeBase[ip]));
+                if (pVar == nullptr) {
                     SetError("Local variable not found");
                     return false;
                 }
@@ -5550,26 +4760,21 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 pV->Convert(VAR_INTEGER);
                 pV->Get(nLeftOperandIndex);
                 break;
-            default:
-                SetError("invalid argument for STACK_POP");
-                return false;
+            default: SetError("invalid argument for STACK_POP"); return false;
             }
             break;
 
         case OP_BOOL_CONVERT:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pV->BoolConvert();
             break;
         case OP_BOOL_AND:
         case OP_BOOL_OR:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
 
             pV->BoolConvert();
             pV->RefConvert();
@@ -5582,95 +4787,76 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         case OP_GREATER:
         case OP_BOOL_EQUAL:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->RefConvert();
             pV->CompareAndSetResult(pVV, Token_type);
             break;
         case OP_PLUS:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Plus(pVV);
             break;
         case OP_MINUS:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Minus(pVV);
             break;
         case OP_MULTIPLY:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Multiply(pVV);
             break;
         case OP_DIVIDE:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Divide(pVV);
             break;
         case OP_MODUL:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Modul(pVV);
             break;
         case OP_POWER:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pVV = GetOperand(pCodeBase, ip);
-            if (!pVV)
-                return false;
+            if (!pVV) return false;
             pV->Power(pVV);
             break;
         case OP_SMINUS:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pV->Inverse();
             break;
         case OP_BOOL_NEG:
             pV = GetOperand(pCodeBase, ip);
-            if (!pV)
-                return false;
+            if (!pV) return false;
             pV->Neg();
             break;
 
         case MOVEAP_BXINDEX:
         case MOVEAP:
 
-            if (Token_type == MOVEAP_BXINDEX)
-            {
+            if (Token_type == MOVEAP_BXINDEX) {
                 bUseIndex = true;
                 rBX.Get(dwBXIndex);
-            }
-            else
+            } else
                 bUseIndex = false;
 
             pV = GetOperand(pCodeBase, ip, &Token_type);
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case VARIABLE:
             case LOCAL_VARIABLE:
                 SetError("not implemented");
@@ -5678,21 +4864,16 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 break;
             case AP:
                 pVV = GetOperand(pCodeBase, ip, &Token_type);
-                if (Token_type == AP)
-                    break;
-                if (!pVV)
-                    return false;
-                if (bUseIndex)
-                    pVV = pVV->GetArrayElement(dwBXIndex);
-                if (!pVV)
-                {
+                if (Token_type == AP) break;
+                if (!pVV) return false;
+                if (bUseIndex) pVV = pVV->GetArrayElement(dwBXIndex);
+                if (!pVV) {
                     SetError("invalid array index");
                     return false;
                 }
                 rAP = pVV->GetAClass();
                 break;
-            default:
-                break;
+            default: break;
             }
             break;
         case VERIFY_AP:
@@ -5700,37 +4881,32 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
 
             S_TOKEN_TYPE sttV = Token_type;
 
-            const char *pChar;
-            if (!rAP)
-            {
+            char const* pChar;
+            if (!rAP) {
                 SetError("null ap");
                 BC_TokenGet();
                 break; /*return false;*/
             }
 
             Token_type = BC_TokenGet();
-            switch (Token_type)
-            {
+            switch (Token_type) {
             case ACCESS_WORD_CODE:
                 if (sttV == VERIFY_AP)
-                    rAP = rAP->VerifyAttributeClassByCode(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
+                    rAP = rAP->VerifyAttributeClassByCode(*((int32_t*)&pRunCodeBase[TLR_DataOffset]));
                 else
-                    rAP = rAP->GetAttributeClassByCode(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
-                if (!rAP)
-                    SetError("missed attribute: %s", SCodec.Convert(*((int32_t *)&pRunCodeBase[TLR_DataOffset])));
+                    rAP = rAP->GetAttributeClassByCode(*((int32_t*)&pRunCodeBase[TLR_DataOffset]));
+                if (!rAP) SetError("missed attribute: %s", SCodec.Convert(*((int32_t*)&pRunCodeBase[TLR_DataOffset])));
                 break;
             case VARIABLE:
-                real_var = VarTab.GetVar(*((int32_t *)&pRunCodeBase[TLR_DataOffset]));
-                if (real_var == nullptr)
-                {
+                real_var = VarTab.GetVar(*((int32_t*)&pRunCodeBase[TLR_DataOffset]));
+                if (real_var == nullptr) {
                     SetError("Global variable not found");
                     break;
                 }
 
                 ExpressionResult.ClearType();
                 ExpressionResult.Copy(real_var->value.get());
-                if (!ExpressionResult.Convert(VAR_STRING))
-                {
+                if (!ExpressionResult.Convert(VAR_STRING)) {
                     SetError("invalid type for attribute var");
                     break; /*return false;*/
                 }
@@ -5744,21 +4920,18 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 rAP = rAP->VerifyAttributeClass(pChar);
                   else
                 rAP = rAP->GetAttributeClass(pChar);*/
-                if (!rAP)
-                    SetError("missed attribute: %s", pChar);
+                if (!rAP) SetError("missed attribute: %s", pChar);
                 break;
             case LOCAL_VARIABLE:
-                pV = SStack.Read(pRun_fi->stack_offset, *((int32_t *)&pRunCodeBase[TLR_DataOffset]));
-                if (pV == nullptr)
-                {
+                pV = SStack.Read(pRun_fi->stack_offset, *((int32_t*)&pRunCodeBase[TLR_DataOffset]));
+                if (pV == nullptr) {
                     SetError("Local variable not found");
                     break; /*return false;*/
                 }
 
                 ExpressionResult.ClearType();
                 ExpressionResult.Copy(pV);
-                if (!ExpressionResult.Convert(VAR_STRING))
-                {
+                if (!ExpressionResult.Convert(VAR_STRING)) {
                     SetError("invalid type for attribute var");
                     break; /*return false;*/
                 }
@@ -5774,13 +4947,10 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                 else
                 rAP = rAP->GetAttributeClass(pChar);*/
 
-                if (!rAP)
-                    SetError("missed attribute: %s", pChar);
+                if (!rAP) SetError("missed attribute: %s", pChar);
 
                 break;
-            default:
-                SetError("invalid arg type for ADVANCE_AP");
-                return false;
+            default: SetError("invalid arg type for ADVANCE_AP"); return false;
             }
 
             // pLeftOperandAClass = rAP;
@@ -5792,43 +4962,39 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
         }
     } while (Token_type != END_OF_PROGRAMM && bExit != true);
 
-    if (Token_type == END_OF_PROGRAMM && inout != 0)
-        SetError("Unexpected end of programm");
+    if (Token_type == END_OF_PROGRAMM && inout != 0) SetError("Unexpected end of programm");
     // UNGUARD
     return false;
 }
 
-void COMPILER::CompileNumber(SEGMENT_DESC &Segment)
+void COMPILER::CompileNumber(SEGMENT_DESC& Segment)
 {
     int32_t lvalue;
     lvalue = static_cast<int32_t>(atoll(Token.GetData()));
-    CompileToken(Segment, NUMBER, 1, (char *)&lvalue, sizeof(int32_t));
+    CompileToken(Segment, NUMBER, 1, (char*)&lvalue, sizeof(int32_t));
 }
 
-void COMPILER::CompileFloatNumber(SEGMENT_DESC &Segment)
+void COMPILER::CompileFloatNumber(SEGMENT_DESC& Segment)
 {
     float fvalue;
     fvalue = static_cast<float>(atof(Token.GetData()));
-    CompileToken(Segment, FLOAT_NUMBER, 1, (char *)&fvalue, sizeof(float));
+    CompileToken(Segment, FLOAT_NUMBER, 1, (char*)&fvalue, sizeof(float));
 }
 
-void COMPILER::CompileString(SEGMENT_DESC &Segment)
+void COMPILER::CompileString(SEGMENT_DESC& Segment)
 {
-    uint32_t string_size;
-    const char *pData = Token.GetData();
-    if (pData != nullptr)
-    {
+    uint32_t    string_size;
+    char const* pData = Token.GetData();
+    if (pData != nullptr) {
         string_size = strlen(Token.GetData()) + 1;
-        CompileToken(Segment, STRING, 2, (char *)&string_size, sizeof(uint32_t), Token.GetData(), string_size);
-    }
-    else
-    {
+        CompileToken(Segment, STRING, 2, (char*)&string_size, sizeof(uint32_t), Token.GetData(), string_size);
+    } else {
         string_size = strlen("") + 1;
-        CompileToken(Segment, STRING, 2, (char *)&string_size, sizeof(uint32_t), "", string_size);
+        CompileToken(Segment, STRING, 2, (char*)&string_size, sizeof(uint32_t), "", string_size);
     }
 }
 
-bool COMPILER::CompileUnknown(SEGMENT_DESC &Segment)
+bool COMPILER::CompileUnknown(SEGMENT_DESC& Segment)
 {
     uint32_t func_code;
     uint32_t var_code;
@@ -5836,59 +5002,49 @@ bool COMPILER::CompileUnknown(SEGMENT_DESC &Segment)
     // check for valid function code
     func_code = FuncTab.FindFunc(Token.GetData());
 
-    if (func_code != INVALID_FUNC_CODE)
-    {
+    if (func_code != INVALID_FUNC_CODE) {
         // this is function call
-        CompileToken(Segment, CALL_FUNCTION, 1, (char *)&func_code, sizeof(uint32_t));
+        CompileToken(Segment, CALL_FUNCTION, 1, (char*)&func_code, sizeof(uint32_t));
         // Trace("function call: %s ; code = %d",Token.GetData(),func_code);
         return true;
     }
 
     // check for valid local variable
     var_code = FuncTab.FindVar(CurrentFuncCode, Token.GetData());
-    if (var_code != INVALID_VAR_CODE)
-    {
-        CompileToken(Segment, LOCAL_VARIABLE, 1, (char *)&var_code, sizeof(uint32_t));
+    if (var_code != INVALID_VAR_CODE) {
+        CompileToken(Segment, LOCAL_VARIABLE, 1, (char*)&var_code, sizeof(uint32_t));
         // Trace("local variable: %s ; code = %d",Token.GetData(),var_code);
         return true;
     }
 
     var_code = VarTab.FindVar(Token.GetData());
-    if (var_code != INVALID_VAR_CODE)
-    {
+    if (var_code != INVALID_VAR_CODE) {
         // this is gloabl variable
-        CompileToken(Segment, VARIABLE, 1, (char *)&var_code, sizeof(uint32_t));
+        CompileToken(Segment, VARIABLE, 1, (char*)&var_code, sizeof(uint32_t));
         // Trace("variable: %s ; code = %d",Token.GetData(),var_code);
         return true;
     }
 
     // def_code = DefineTable.GetStringCode(Token.GetData());
-    const uint32_t def_code = DefTab.FindDef(Token.GetData());
-    if (def_code != INVALID_DEF_CODE)
-    {
+    uint32_t const def_code = DefTab.FindDef(Token.GetData());
+    if (def_code != INVALID_DEF_CODE) {
         DEFINFO di;
         // DefineTable.GetStringData(def_code,&di);
         DefTab.GetDef(di, def_code);
-        switch (di.deftype)
-        {
-        case NUMBER:
-            CompileToken(Segment, NUMBER, 1, (char *)&di.data4b, sizeof(uint32_t));
-            break;
-        case FLOAT_NUMBER:
-            CompileToken(Segment, FLOAT_NUMBER, 1, (char *)&di.data4b, sizeof(uint32_t));
-            break;
+        switch (di.deftype) {
+        case NUMBER: CompileToken(Segment, NUMBER, 1, (char*)&di.data4b, sizeof(uint32_t)); break;
+        case FLOAT_NUMBER: CompileToken(Segment, FLOAT_NUMBER, 1, (char*)&di.data4b, sizeof(uint32_t)); break;
         case STRING:
             uint32_t string_size;
-            string_size = strlen((char *)di.data4b) + 1;
-            CompileToken(Segment, STRING, 2, (char *)&string_size, sizeof(uint32_t), (char *)di.data4b, string_size);
+            string_size = strlen((char*)di.data4b) + 1;
+            CompileToken(Segment, STRING, 2, (char*)&string_size, sizeof(uint32_t), (char*)di.data4b, string_size);
             break;
         }
         return true;
     }
 
-    const uint32_t lab_code = LabelTable.GetStringCode(Token.GetData());
-    if (lab_code != INVALID_ORDINAL_NUMBER)
-    {
+    uint32_t const lab_code = LabelTable.GetStringCode(Token.GetData());
+    if (lab_code != INVALID_ORDINAL_NUMBER) {
         LabelTable.SetStringData(lab_code, &Segment.BCode_Program_size);
         return true;
     }
@@ -5897,13 +5053,12 @@ bool COMPILER::CompileUnknown(SEGMENT_DESC &Segment)
     return false;
 }
 
-S_TOKEN_TYPE COMPILER::DetectUnknown(uint32_t &code)
+S_TOKEN_TYPE COMPILER::DetectUnknown(uint32_t& code)
 {
     // check for valid function code
-    const uint32_t func_code = FuncTab.FindFunc(Token.GetData());
+    uint32_t const func_code = FuncTab.FindFunc(Token.GetData());
 
-    if (func_code != INVALID_FUNC_CODE)
-    {
+    if (func_code != INVALID_FUNC_CODE) {
         // this is function call
         code = func_code;
         return CALL_FUNCTION;
@@ -5911,22 +5066,19 @@ S_TOKEN_TYPE COMPILER::DetectUnknown(uint32_t &code)
 
     // check for valid local variable
     uint32_t var_code = FuncTab.FindVar(CurrentFuncCode, Token.GetData());
-    if (var_code != INVALID_VAR_CODE)
-    {
+    if (var_code != INVALID_VAR_CODE) {
         code = var_code;
         return LOCAL_VARIABLE;
     }
 
     var_code = VarTab.FindVar(Token.GetData());
-    if (var_code != INVALID_VAR_CODE)
-    {
+    if (var_code != INVALID_VAR_CODE) {
         code = var_code;
         return VARIABLE;
     }
 
-    const uint32_t def_code = DefTab.FindDef(Token.GetData());
-    if (def_code != INVALID_DEF_CODE)
-    {
+    uint32_t const def_code = DefTab.FindDef(Token.GetData());
+    if (def_code != INVALID_DEF_CODE) {
         code = def_code;
         return DEFINE_VAL;
         /*DEFINFO di;
@@ -5953,10 +5105,9 @@ S_TOKEN_TYPE COMPILER::DetectUnknown(uint32_t &code)
 
 void COMPILER::ExitProgram()
 {
-    const uint32_t function_code = FuncTab.FindFunc("ExitMain");
-    if (function_code != INVALID_FUNC_CODE)
-    {
-        DATA *pResult;
+    uint32_t const function_code = FuncTab.FindFunc("ExitMain");
+    if (function_code != INVALID_FUNC_CODE) {
+        DATA* pResult;
         BC_Execute(function_code, pResult);
     }
     core_internal.Exit();
@@ -5968,13 +5119,10 @@ void COMPILER::ClearEvents()
     EventTab.Clear();
 }
 
-void COMPILER::SaveDataDebug(char *data_PTR, ...)
+void COMPILER::SaveDataDebug(char* data_PTR, ...)
 {
     char LogBuffer[MAX_PATH + MAX_PATH];
-    if (data_PTR == nullptr)
-    {
-        return;
-    }
+    if (data_PTR == nullptr) { return; }
     va_list args;
     va_start(args, data_PTR);
     vsnprintf(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
@@ -5982,16 +5130,14 @@ void COMPILER::SaveDataDebug(char *data_PTR, ...)
     va_end(args);
 }
 
-void COMPILER::SaveData(const void *data_PTR, uint32_t data_size)
+void COMPILER::SaveData(void const* data_PTR, uint32_t data_size)
 {
-    if (data_PTR == nullptr)
-        return;
+    if (data_PTR == nullptr) return;
 
-    if (dwCurPointer + data_size > dwMaxSize)
-    {
-        const uint32_t dwNewAllocate = (1 + (dwCurPointer + data_size) / (1024 * 1024)) * (1024 * 1024);
+    if (dwCurPointer + data_size > dwMaxSize) {
+        uint32_t const dwNewAllocate = (1 + (dwCurPointer + data_size) / (1024 * 1024)) * (1024 * 1024);
         // pBuffer = (char*)RESIZE(pBuffer, dwNewAllocate);
-        auto *const newPtr = new char[dwNewAllocate];
+        auto* const newPtr = new char[dwNewAllocate];
         memcpy(newPtr, pBuffer, dwMaxSize);
         delete[] pBuffer;
         pBuffer = newPtr;
@@ -6017,15 +5163,13 @@ void COMPILER::SaveData(const void *data_PTR, uint32_t data_size)
     dwCurPointer += data_size;
 }
 
-bool COMPILER::ReadData(void *data_PTR, uint32_t data_size)
+bool COMPILER::ReadData(void* data_PTR, uint32_t data_size)
 {
-    if (data_PTR == nullptr)
-    {
+    if (data_PTR == nullptr) {
         dwCurPointer += data_size;
         return true;
     }
-    if (dwCurPointer + data_size > dwMaxSize)
-        return false;
+    if (dwCurPointer + data_size > dwMaxSize) return false;
 
     /*    if (data_size < 16)
       {
@@ -6047,35 +5191,27 @@ bool COMPILER::ReadData(void *data_PTR, uint32_t data_size)
     return true;
 }
 
-bool COMPILER::FindReferencedVariable(DATA *pRef, uint32_t &var_index, uint32_t &array_index)
+bool COMPILER::FindReferencedVariable(DATA* pRef, uint32_t& var_index, uint32_t& array_index)
 {
-    const uint32_t nVarNum = VarTab.GetVarNum();
-    for (uint32_t n = 0; n < nVarNum; n++)
-    {
-        const auto *real_var = VarTab.GetVarX(n);
-        if (real_var == nullptr)
-        {
+    uint32_t const nVarNum = VarTab.GetVarNum();
+    for (uint32_t n = 0; n < nVarNum; n++) {
+        auto const* real_var = VarTab.GetVarX(n);
+        if (real_var == nullptr) {
             SetError("Invalid var code");
             continue;
         }
 
-        const auto &vi = *real_var;
-        if (!vi.value->IsArray())
-        {
-            if (pRef == vi.value.get())
-            {
-                var_index = n;
+        auto const& vi = *real_var;
+        if (!vi.value->IsArray()) {
+            if (pRef == vi.value.get()) {
+                var_index   = n;
                 array_index = 0xffffffff;
                 return true;
             }
-        }
-        else
-        {
-            for (uint32_t i = 0; i < vi.elements; i++)
-            {
-                if (pRef == vi.value->GetArrayElement(i))
-                {
-                    var_index = n;
+        } else {
+            for (uint32_t i = 0; i < vi.elements; i++) {
+                if (pRef == vi.value->GetArrayElement(i)) {
+                    var_index   = n;
                     array_index = i;
                     return true;
                 }
@@ -6085,39 +5221,30 @@ bool COMPILER::FindReferencedVariable(DATA *pRef, uint32_t &var_index, uint32_t 
     return false;
 }
 
-bool COMPILER::FindReferencedVariableByRootA(ATTRIBUTES *pA, uint32_t &var_index, uint32_t &array_index)
+bool COMPILER::FindReferencedVariableByRootA(ATTRIBUTES* pA, uint32_t& var_index, uint32_t& array_index)
 {
     VarInfo vi;
 
-    const uint32_t nVarNum = VarTab.GetVarNum();
-    for (uint32_t n = 0; n < nVarNum; n++)
-    {
-        const auto *real_var = VarTab.GetVarX(n);
-        if (real_var == nullptr)
-        {
+    uint32_t const nVarNum = VarTab.GetVarNum();
+    for (uint32_t n = 0; n < nVarNum; n++) {
+        auto const* real_var = VarTab.GetVarX(n);
+        if (real_var == nullptr) {
             SetError("Invalid var code");
             continue;
         }
 
-        const auto &vi = *real_var;
-        if (vi.type != VAR_OBJECT)
-            continue;
-        if (!vi.value->IsArray())
-        {
-            if (pA == vi.value->AttributesClass)
-            {
-                var_index = n;
-                array_index = 0xffffffff; // ***
+        auto const& vi = *real_var;
+        if (vi.type != VAR_OBJECT) continue;
+        if (!vi.value->IsArray()) {
+            if (pA == vi.value->AttributesClass) {
+                var_index   = n;
+                array_index = 0xffffffff;  // ***
                 return true;
             }
-        }
-        else
-        {
-            for (uint32_t i = 0; i < vi.elements; i++)
-            {
-                if (pA == vi.value->GetArrayElement(i)->AttributesClass)
-                {
-                    var_index = n;
+        } else {
+            for (uint32_t i = 0; i < vi.elements; i++) {
+                if (pA == vi.value->GetArrayElement(i)->AttributesClass) {
+                    var_index   = n;
                     array_index = i;
                     return true;
                 }
@@ -6127,30 +5254,24 @@ bool COMPILER::FindReferencedVariableByRootA(ATTRIBUTES *pA, uint32_t &var_index
     return false;
 }
 
-ATTRIBUTES *COMPILER::TraceARoot(ATTRIBUTES *pA, const char *&pAccess)
+ATTRIBUTES* COMPILER::TraceARoot(ATTRIBUTES* pA, char const*& pAccess)
 {
-    if (pA == nullptr)
-        return nullptr; // error or invalid argument
-    if (pA->GetParent() == nullptr)
-        return pA; // root found
-    if (pA->GetThisNameCode() == 0)
-        return nullptr; // fix crash at NewGame start
+    if (pA == nullptr) return nullptr;               // error or invalid argument
+    if (pA->GetParent() == nullptr) return pA;       // root found
+    if (pA->GetThisNameCode() == 0) return nullptr;  // fix crash at NewGame start
 
-    const int32_t slen = strlen(pA->GetThisName()) + 1;
+    int32_t const slen = strlen(pA->GetThisName()) + 1;
 
-    char *pAS = new char[slen];
+    char* pAS = new char[slen];
 
     memcpy(pAS, pA->GetThisName(), slen);
 
-    if (pAccess == nullptr)
-    {
+    if (pAccess == nullptr) {
         pAccess = pAS;
-    }
-    else
-    {
-        const auto len = slen + strlen(pAccess) + 1;
+    } else {
+        auto const len = slen + strlen(pAccess) + 1;
         // pAS = (char *)RESIZE(pAS, len);
-        auto *const newPtr = new char[len];
+        auto* const newPtr = new char[len];
         memcpy(newPtr, pAS, slen);
         delete[] pAS;
         pAS = newPtr;
@@ -6173,22 +5294,17 @@ void COMPILER::WriteVDword(uint32_t v)
         SaveData(&v, sizeof(v));
       }
     */
-    uint8_t nbv;
+    uint8_t  nbv;
     uint16_t nwv;
-    if (v < 0xfe)
-    {
+    if (v < 0xfe) {
         nbv = static_cast<uint8_t>(v);
         SaveData(&nbv, sizeof(nbv));
-    }
-    else if (v < 0xffff)
-    {
+    } else if (v < 0xffff) {
         nbv = 0xfe;
         SaveData(&nbv, sizeof(nbv));
         nwv = static_cast<uint16_t>(v);
         SaveData(&nwv, sizeof(nwv));
-    }
-    else
-    {
+    } else {
         nbv = 0xff;
         SaveData(&nbv, sizeof(nbv));
         SaveData(&v, sizeof(v));
@@ -6197,16 +5313,12 @@ void COMPILER::WriteVDword(uint32_t v)
 
 uint32_t COMPILER::ReadVDword()
 {
-    uint8_t nbv;
+    uint8_t  nbv;
     uint16_t nwv;
     uint32_t v;
     ReadData(&nbv, 1);
-    if (nbv < 0xfe)
-    {
-        return nbv;
-    }
-    if (nbv == 0xfe)
-    {
+    if (nbv < 0xfe) { return nbv; }
+    if (nbv == 0xfe) {
         ReadData(&nwv, sizeof(nwv));
         return nwv;
     }
@@ -6214,285 +5326,234 @@ uint32_t COMPILER::ReadVDword()
     return v;
 }
 
-void COMPILER::SaveString(const char *pS)
+void COMPILER::SaveString(char const* pS)
 {
-    if (pS == nullptr)
-    {
+    if (pS == nullptr) {
         WriteVDword(0);
         return;
     }
-    const uint32_t n = strlen(pS) + 1;
+    uint32_t const n = strlen(pS) + 1;
     WriteVDword(n);
     SaveData(pS, n);
 }
 
-char *COMPILER::ReadString()
+char* COMPILER::ReadString()
 {
-    const uint32_t n = ReadVDword();
-    if (n == 0)
-        return nullptr;
+    uint32_t const n = ReadVDword();
+    if (n == 0) return nullptr;
 
-    char *pBuffer = new char[n];
+    char* pBuffer = new char[n];
     ReadData(pBuffer, n);
-    if (!utf8::IsValidUtf8(pBuffer))
-    {
-        spdlog::warn("Deserializing invalid utf8 string: {}", pBuffer);
-    }
+    if (!utf8::IsValidUtf8(pBuffer)) { spdlog::warn("Deserializing invalid utf8 string: {}", pBuffer); }
     return pBuffer;
 }
 
-bool COMPILER::ReadVariable(char *name, /* DWORD code,*/ bool bDim, uint32_t a_index)
+bool COMPILER::ReadVariable(char* name, /* DWORD code,*/ bool bDim, uint32_t a_index)
 {
-    int32_t nLongValue;
-    uintptr_t ptrValue;
-    float fFloatValue;
-    char *pString;
-    uint32_t var_index;
-    uint32_t array_index;
-    uint32_t nElementsNum;
-    ATTRIBUTES *pA;
-    S_TOKEN_TYPE eType;
-    const VarInfo *real_var;
-    const VarInfo *real_var_ref;
-    DATA *pV;
-    DATA *pVRef;
-    entid_t eid;
-    uint32_t var_code;
-    bool bSkipVariable;
+    int32_t        nLongValue;
+    uintptr_t      ptrValue;
+    float          fFloatValue;
+    char*          pString;
+    uint32_t       var_index;
+    uint32_t       array_index;
+    uint32_t       nElementsNum;
+    ATTRIBUTES*    pA;
+    S_TOKEN_TYPE   eType;
+    VarInfo const* real_var;
+    VarInfo const* real_var_ref;
+    DATA*          pV;
+    DATA*          pVRef;
+    entid_t        eid;
+    uint32_t       var_code;
+    bool           bSkipVariable;
 
     bSkipVariable = false;
-    var_code = VarTab.FindVar(name);
-    if (var_code == INVALID_VAR_CODE)
-    {
+    var_code      = VarTab.FindVar(name);
+    if (var_code == INVALID_VAR_CODE) {
         SetError("Load warning - variable: '%s' not found", name);
         bSkipVariable = true;
-    }
-    else
-    {
+    } else {
         real_var = VarTab.GetVarX(var_code);
-        if (real_var == nullptr)
-        {
+        if (real_var == nullptr) {
             SetError("Load warning - variable: '%s' has invalid var code", name);
             bSkipVariable = true;
-        }
-        else
-        {
+        } else {
             pV = real_var->value.get();
         }
     }
 
-    if (!bDim) // skip this info for array elements
+    if (!bDim)  // skip this info for array elements
     {
         // trace("Read[%d]: %s",code,vi.name);
         ReadData(&eType, sizeof(eType));
         Assert(eType < S_TOKEN_TYPE::TOKEN_TYPES_COUNT);
         if (!bSkipVariable)
-            if (real_var->type != eType)
-            {
+            if (real_var->type != eType) {
                 SetError("load type mismatch");
                 return false;
             }
         ReadData(&nElementsNum, sizeof(nElementsNum));
         if (!bSkipVariable)
-            if (real_var->elements != nElementsNum)
-            {
+            if (real_var->elements != nElementsNum) {
                 // ???
                 // SetError("load size mismatch");
                 // return false;
                 real_var->value->SetElementsNum(nElementsNum);
-                if (!VarTab.SetElementsNum(var_code, nElementsNum))
-                {
+                if (!VarTab.SetElementsNum(var_code, nElementsNum)) {
                     core_internal.Trace("Unable to set elements num for %s", real_var->name.c_str());
                 }
             }
-    }
-    else
-    {
-        if (bSkipVariable)
-        {
+    } else {
+        if (bSkipVariable) {
             SetError("Load - lost element");
             return false;
         }
         nElementsNum = 1;
-        eType = pV->GetType();
-        pV = pV->GetArrayElement(a_index);
+        eType        = pV->GetType();
+        pV           = pV->GetArrayElement(a_index);
     }
 
-    if (nElementsNum > 1) // array
+    if (nElementsNum > 1)  // array
     {
         // load array elements
-        for (uint32_t n = 0; n < nElementsNum; n++)
-        {
-            if (bSkipVariable)
-            {
+        for (uint32_t n = 0; n < nElementsNum; n++) {
+            if (bSkipVariable) {
                 if (eType == S_TOKEN_TYPE::VAR_INTEGER)
                     ReadData(nullptr, sizeof(int32_t));
                 else if (eType == S_TOKEN_TYPE::VAR_FLOAT)
                     ReadData(nullptr, sizeof(float));
                 else if (eType == S_TOKEN_TYPE::VAR_STRING)
                     ReadString();
-                else if (eType == S_TOKEN_TYPE::VAR_OBJECT)
-                {
+                else if (eType == S_TOKEN_TYPE::VAR_OBJECT) {
                     ReadData(nullptr, sizeof(uint64_t));
                     ATTRIBUTES TA(SCodec);
                     ReadAttributesData(&TA, nullptr);
-                }
-                else
+                } else
                     Assert(false);
                 continue;
             }
 
-            if (!ReadVariable(name, /*code,*/ true, n))
-                return false;
+            if (!ReadVariable(name, /*code,*/ true, n)) return false;
         }
         return true;
     }
 
-    switch (eType)
-    {
+    switch (eType) {
     case VAR_INTEGER:
         ReadData(&nLongValue, sizeof(nLongValue));
-        if (bSkipVariable)
-            break;
+        if (bSkipVariable) break;
         pV->Set(nLongValue);
         break;
     case VAR_PTR:
         ReadData(&ptrValue, sizeof(ptrValue));
-        if (bSkipVariable)
-            break;
+        if (bSkipVariable) break;
         pV->SetPtr(ptrValue);
         break;
     case VAR_FLOAT:
         ReadData(&fFloatValue, sizeof(fFloatValue));
-        if (bSkipVariable)
-            break;
+        if (bSkipVariable) break;
         pV->Set(fFloatValue);
         break;
     case VAR_STRING:
         pString = ReadString();
-        if (pString)
-        {
-            if (!bSkipVariable)
-                pV->Set(pString);
+        if (pString) {
+            if (!bSkipVariable) pV->Set(pString);
             delete[] pString;
         }
         break;
     case VAR_OBJECT:
         ReadData(&eid, sizeof(eid));
-        if (!bSkipVariable)
-        {
+        if (!bSkipVariable) {
             pV->Set(eid);
 
-            if (pV->AttributesClass == nullptr)
-                pV->AttributesClass = new ATTRIBUTES(SCodec);
+            if (pV->AttributesClass == nullptr) pV->AttributesClass = new ATTRIBUTES(SCodec);
             ReadAttributesData(pV->AttributesClass, nullptr);
-        }
-        else
-        {
-            ATTRIBUTES *pTA = new ATTRIBUTES(SCodec);
+        } else {
+            ATTRIBUTES* pTA = new ATTRIBUTES(SCodec);
             ReadAttributesData(pTA, nullptr);
             delete pTA;
         }
         break;
     case VAR_REFERENCE:
         var_index = ReadVDword();
-        if (var_index == 0xffffffff)
-            break; // uninitialized ref
+        if (var_index == 0xffffffff) break;  // uninitialized ref
         array_index = ReadVDword();
-        if (bSkipVariable)
-            break;
+        if (bSkipVariable) break;
         real_var_ref = VarTab.GetVarX(var_index);
-        if (real_var_ref == nullptr)
-        {
+        if (real_var_ref == nullptr) {
             SetError("State read error");
             return false;
         }
 
         pVRef = real_var_ref->value.get();
-        if (array_index != 0xffffffff)
-        {
-            pVRef = pVRef->GetArrayElement(array_index);
-        }
+        if (array_index != 0xffffffff) { pVRef = pVRef->GetArrayElement(array_index); }
         pV->SetReference(pVRef);
         break;
     case VAR_AREFERENCE:
-        pA = nullptr;
+        pA        = nullptr;
         var_index = ReadVDword();
-        if (var_index == 0xffffffff)
-            break;
+        if (var_index == 0xffffffff) break;
         array_index = ReadVDword();
-        pString = ReadString();
-        if (bSkipVariable)
-        {
+        pString     = ReadString();
+        if (bSkipVariable) {
             delete[] pString;
             break;
         }
 
         real_var_ref = VarTab.GetVarX(var_index);
-        if (real_var_ref == nullptr)
-        {
+        if (real_var_ref == nullptr) {
             delete[] pString;
             SetError("State read error");
             return false;
         }
 
         pVRef = real_var_ref->value.get();
-        if (array_index != 0xffffffff)
-        {
-            pVRef = pVRef->GetArrayElement(array_index);
-        }
+        if (array_index != 0xffffffff) { pVRef = pVRef->GetArrayElement(array_index); }
 
-        if (pVRef->AttributesClass == nullptr)
-            pVRef->AttributesClass = new ATTRIBUTES(SCodec);
-        if (pString)
-        {
+        if (pVRef->AttributesClass == nullptr) pVRef->AttributesClass = new ATTRIBUTES(SCodec);
+        if (pString) {
             pA = pVRef->AttributesClass->CreateSubAClass(pVRef->AttributesClass, pString);
             delete[] pString;
         }
         pV->SetAReference(pA);
 
         break;
-    default:
-        SetError("Unknown token type: %i", eType);
+    default: SetError("Unknown token type: %i", eType);
     }
 
     return true;
 }
 
-void COMPILER::SaveVariable(DATA *pV, bool bdim)
+void COMPILER::SaveVariable(DATA* pV, bool bdim)
 {
-    int32_t nLongValue;
-    uintptr_t ptrValue;
-    float fFloatValue;
-    const char *pString;
-    uint32_t var_index;
-    uint32_t array_index;
-    uint32_t n;
-    ATTRIBUTES *pA;
+    int32_t      nLongValue;
+    uintptr_t    ptrValue;
+    float        fFloatValue;
+    char const*  pString;
+    uint32_t     var_index;
+    uint32_t     array_index;
+    uint32_t     n;
+    ATTRIBUTES*  pA;
     S_TOKEN_TYPE eType;
-    entid_t eid;
+    entid_t      eid;
 
-    if (pV == nullptr)
-    {
+    if (pV == nullptr) {
         SetError("Zero Variable Pointer");
         return;
     }
-    if (!bdim) // skip this info for array elements
+    if (!bdim)  // skip this info for array elements
     {
         eType = pV->GetType();
         SaveData(&eType, sizeof(eType));
 
         // n = pV->GetElementsNum();
         n = pV->Number_of_elements;
-        if (n == 0)
-            n = 1; // for reference variables
+        if (n == 0) n = 1;  // for reference variables
         SaveData(&n, sizeof(n));
     }
 
-    if (pV->IsArray())
-    {
-        for (n = 0; n < pV->GetElementsNum(); n++)
-        {
+    if (pV->IsArray()) {
+        for (n = 0; n < pV->GetElementsNum(); n++) {
             // sprintf_s(gs,"    [index : %d]\n",n);
             // OutputDebugString(gs);
             SaveVariable(pV->GetArrayElement(n), true);
@@ -6500,8 +5561,7 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
         return;
     }
 
-    switch (pV->GetType())
-    {
+    switch (pV->GetType()) {
     case VAR_INTEGER:
         pV->Get(nLongValue);
         SaveData(&nLongValue, sizeof(nLongValue));
@@ -6531,14 +5591,12 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
         break;
     case VAR_REFERENCE:
 
-        if (pV->GetReference() == nullptr)
-        {
+        if (pV->GetReference() == nullptr) {
             // uninitialized reference
             WriteVDword(0xffffffff);
             return;
         }
-        if (!FindReferencedVariable(pV->GetVarPointer(), var_index, array_index))
-        {
+        if (!FindReferencedVariable(pV->GetVarPointer(), var_index, array_index)) {
             SetError("Ghost reference");
             // reference to none
             WriteVDword(0xffffffff);
@@ -6551,11 +5609,10 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
         break;
     case VAR_AREFERENCE:
         pString = nullptr;
-        __try
-        {
+        __try {
             pA = TraceARoot(pV->AttributesClass, pString);
         }
-#ifdef _WIN32 // TODO: check and replace __except
+#ifdef _WIN32  // TODO: check and replace __except
         __except (EXCEPTION_EXECUTE_HANDLER)
 #else
         catch (...)
@@ -6565,14 +5622,12 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
             WriteVDword(0xffffffff);
             break;
         }
-        if (pA == nullptr)
-        {
+        if (pA == nullptr) {
             WriteVDword(0xffffffff);
             delete[] pString;
             break;
         }
-        if (!FindReferencedVariableByRootA(pA, var_index, array_index))
-        {
+        if (!FindReferencedVariableByRootA(pA, var_index, array_index)) {
             SetError("Ghost A reference");
             WriteVDword(0xffffffff);
             delete[] pString;
@@ -6583,41 +5638,39 @@ void COMPILER::SaveVariable(DATA *pV, bool bdim)
         SaveString(pString);
         delete[] pString;
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
 bool COMPILER::OnLoad()
 {
-    const uint32_t function_code = FuncTab.FindFunc("OnLoad");
-    DATA *pResult;
+    uint32_t const function_code = FuncTab.FindFunc("OnLoad");
+    DATA*          pResult;
     BC_Execute(function_code, pResult);
     return true;
 }
 
-bool COMPILER::SaveState(std::fstream &fileS)
+bool COMPILER::SaveState(std::fstream& fileS)
 {
     uint32_t n;
     delete[] pBuffer;
     pBuffer = nullptr;
 
     dwCurPointer = 0;
-    dwMaxSize = 0;
+    dwMaxSize    = 0;
 
-    DATA *pResult;
-    const uint32_t function_code = FuncTab.FindFunc("OnSave");
-    if (function_code != INVALID_FUNC_CODE)
-        BC_Execute(function_code, pResult);
+    DATA*          pResult;
+    uint32_t const function_code = FuncTab.FindFunc("OnSave");
+    if (function_code != INVALID_FUNC_CODE) BC_Execute(function_code, pResult);
 
     EXTDATA_HEADER edh;
-    auto *pVDat = static_cast<VDATA *>(core_internal.GetScriptVariable("savefile_info"));
+    auto*          pVDat = static_cast<VDATA*>(core_internal.GetScriptVariable("savefile_info"));
     if (pVDat && pVDat->GetString())
         sprintf_s(edh.sFileInfo, sizeof(edh.sFileInfo), "%s", pVDat->GetString());
     else
         sprintf_s(edh.sFileInfo, sizeof(edh.sFileInfo), "save");
     edh.dwExtDataOffset = 0;
-    edh.dwExtDataSize = 0;
+    edh.dwExtDataSize   = 0;
 
     fio->_WriteFile(fileS, &edh, sizeof(edh));
 
@@ -6626,55 +5679,45 @@ bool COMPILER::SaveState(std::fstream &fileS)
 
     // 4. SCodec data
     WriteVDword(SCodec.GetNum());
-    for (n = 0; n < SCodec.GetNum(); n++)
-    {
+    for (n = 0; n < SCodec.GetNum(); n++) {
         if (n == 0)
             SaveString(SCodec.Get());
         else
             SaveString(SCodec.GetNext());
     }
 
-    const uint32_t nSegNum = 1; // SegmentsNum;
+    uint32_t const nSegNum = 1;  // SegmentsNum;
     // 2. Data Segments
     WriteVDword(nSegNum);
 
     // 3. Segments names
-    for (n = 0; n < nSegNum; n++)
-    {
-        if (!SegmentTable[n].name.empty())
-        {
-            SaveString(SegmentTable[n].name.c_str());
-        }
+    for (n = 0; n < nSegNum; n++) {
+        if (!SegmentTable[n].name.empty()) { SaveString(SegmentTable[n].name.c_str()); }
     }
 
     // 5. Variables table
-    const uint32_t nVarNum = VarTab.GetVarNum();
+    uint32_t const nVarNum = VarTab.GetVarNum();
     WriteVDword(nVarNum);
 
-    const VarInfo *last_var{nullptr};
-    for (n = 0; n < nVarNum; n++)
-    {
-        const VarInfo *real_var = VarTab.GetVar(n);
-        if (real_var == nullptr)
-        {
-            real_var = last_var; // preserve old semanthics
-        }
-        else
-        {
+    VarInfo const* last_var {nullptr};
+    for (n = 0; n < nVarNum; n++) {
+        VarInfo const* real_var = VarTab.GetVar(n);
+        if (real_var == nullptr) {
+            real_var = last_var;  // preserve old semanthics
+        } else {
             last_var = real_var;
         }
 
-        SaveString(real_var->name.c_str()); // ***
+        SaveString(real_var->name.c_str());  // ***
         SaveVariable(real_var->value.get());
     }
 
     uint64_t dw2;
-    if (dwCurPointer)
-    {
-        char *pDst = new char[dwCurPointer * 2];
+    if (dwCurPointer) {
+        char*  pDst      = new char[dwCurPointer * 2];
         uLongf ulPackLen = dwCurPointer * 2;
         RDTSC_B(dw2);
-        compress2((Bytef *)pDst, &ulPackLen, (Bytef *)pBuffer, dwCurPointer, Z_BEST_COMPRESSION);
+        compress2((Bytef*)pDst, &ulPackLen, (Bytef*)pBuffer, dwCurPointer, Z_BEST_COMPRESSION);
         RDTSC_E(dw2);
         uint32_t uiPackLen = ulPackLen;
 
@@ -6691,10 +5734,10 @@ bool COMPILER::SaveState(std::fstream &fileS)
     return true;
 }
 
-bool COMPILER::LoadState(std::fstream &fileS)
+bool COMPILER::LoadState(std::fstream& fileS)
 {
     uint32_t n;
-    char *pString;
+    char*    pString;
 
     delete[] pBuffer;
     pBuffer = nullptr;
@@ -6705,15 +5748,12 @@ bool COMPILER::LoadState(std::fstream &fileS)
     uint32_t dwPackLen;
     fio->_ReadFile(fileS, &dwMaxSize, sizeof(dwMaxSize));
     fio->_ReadFile(fileS, &dwPackLen, sizeof(dwPackLen));
-    if (dwPackLen == 0 || dwPackLen > 0x8000000 || dwMaxSize == 0 || dwMaxSize > 0x8000000)
-    {
-        return false;
-    }
-    char *pCBuffer = new char[dwPackLen];
-    pBuffer = new char[dwMaxSize];
+    if (dwPackLen == 0 || dwPackLen > 0x8000000 || dwMaxSize == 0 || dwMaxSize > 0x8000000) { return false; }
+    char* pCBuffer = new char[dwPackLen];
+    pBuffer        = new char[dwMaxSize];
     fio->_ReadFile(fileS, pCBuffer, dwPackLen);
     uLongf ulMaxSize = dwMaxSize;
-    uncompress((Bytef *)pBuffer, &ulMaxSize, (Bytef *)pCBuffer, dwPackLen);
+    uncompress((Bytef*)pBuffer, &ulMaxSize, (Bytef*)pCBuffer, dwPackLen);
     dwMaxSize = ulMaxSize;
     delete[] pCBuffer;
     dwCurPointer = 0;
@@ -6733,18 +5773,16 @@ bool COMPILER::LoadState(std::fstream &fileS)
     ProgramDirectory = ReadString();
 
     // 4. SCodec data
-    const uint32_t nSCStringsNum = ReadVDword();
-    for (n = 0; n < nSCStringsNum; n++)
-    {
+    uint32_t const nSCStringsNum = ReadVDword();
+    for (n = 0; n < nSCStringsNum; n++) {
         pString = ReadString();
-        if (pString)
-        {
+        if (pString) {
             SCodec.Convert(pString);
             delete[] pString;
         }
     }
 
-    const uint32_t nSegments2Load = ReadVDword();
+    uint32_t const nSegments2Load = ReadVDword();
 
     // 3.  Segments names
     // 3.a Initialize internal functions
@@ -6752,21 +5790,17 @@ bool COMPILER::LoadState(std::fstream &fileS)
     InitInternalFunctions();
     LoadPreprocess();
 
-    for (n = 0; n < nSegments2Load; n++)
-    {
-        char *pSegmentName = ReadString();
-        if (!BC_LoadSegment(pSegmentName))
-            return false;
+    for (n = 0; n < nSegments2Load; n++) {
+        char* pSegmentName = ReadString();
+        if (!BC_LoadSegment(pSegmentName)) return false;
         delete[] pSegmentName;
     }
 
     // 5. Variables table, all variables created during previous step, just read value
-    const uint32_t nVarNum = ReadVDword();
-    for (n = 0; n < nVarNum; n++)
-    {
+    uint32_t const nVarNum = ReadVDword();
+    for (n = 0; n < nVarNum; n++) {
         pString = ReadString();
-        if (pString == nullptr || strcmp(pString, "") == 0)
-        {
+        if (pString == nullptr || strcmp(pString, "") == 0) {
             SetError("missing variable name");
             return false;
         }
@@ -6784,23 +5818,23 @@ bool COMPILER::LoadState(std::fstream &fileS)
     return true;
 }
 
-void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
+void COMPILER::ReadAttributesData(ATTRIBUTES* pRoot, ATTRIBUTES* pParent)
 {
     uint32_t nSubClassesNum;
     uint32_t n;
     uint32_t nNameCode;
 
-    if (pRoot == nullptr)
-    {
+    if (pRoot == nullptr) {
         nSubClassesNum = ReadVDword();
-        nNameCode = ReadVDword();
+        nNameCode      = ReadVDword();
 
-        // DTrace(SCodec.Convert(nNameCode));
-        const std::string pValue = ReadString();
-        pParent->SetAttribute(nNameCode, pValue);
+        if (auto const* str = ReadString(); str != nullptr) {
+            pParent->SetAttribute(nNameCode, str);
+        } else {
+            pParent->SetAttribute(nNameCode, "");
+        }
         pRoot = pParent->GetAttributeClassByCode(nNameCode);
-        for (n = 0; n < nSubClassesNum; n++)
-        {
+        for (n = 0; n < nSubClassesNum && pRoot != nullptr; n++) {
             ReadAttributesData(nullptr, pRoot);
         }
 
@@ -6808,30 +5842,30 @@ void COMPILER::ReadAttributesData(ATTRIBUTES *pRoot, ATTRIBUTES *pParent)
     }
 
     nSubClassesNum = ReadVDword();
-    nNameCode = ReadVDword();
-    const std::string pValue = ReadString();
-    // pRoot->SetAttribute(nNameCode,pValue);
+    nNameCode      = ReadVDword();
 
     pRoot->SetNameCode(nNameCode);
-    pRoot->SetValue(pValue);
+    if (auto const* str = ReadString(); str != nullptr) {
+        pRoot->SetValue(str);
+    } else {
+        pRoot->SetValue("");
+    }
 
-    for (n = 0; n < nSubClassesNum; n++)
-    {
+    for (n = 0; n < nSubClassesNum; n++) {
         // ReadAttributesData(pRoot->GetAttributeClass(n));
         ReadAttributesData(nullptr, pRoot);
     }
 }
 
-void COMPILER::SaveAttributesData(ATTRIBUTES *pRoot)
+void COMPILER::SaveAttributesData(ATTRIBUTES* pRoot)
 {
-    if (pRoot == nullptr)
-    {
-        WriteVDword(0);      // number of subclasses
-        SaveString(nullptr); // attribute name
-        SaveString(nullptr); // attribute value
+    if (pRoot == nullptr) {
+        WriteVDword(0);       // number of subclasses
+        SaveString(nullptr);  // attribute name
+        SaveString(nullptr);  // attribute value
         return;
     }
-    WriteVDword(pRoot->GetAttributesNum()); // number of subclasses
+    WriteVDword(pRoot->GetAttributesNum());  // number of subclasses
 
     // save attribute name
     // SaveString(pRoot->GetThisName());
@@ -6839,42 +5873,38 @@ void COMPILER::SaveAttributesData(ATTRIBUTES *pRoot)
 
     // save attribute value
     SaveString(pRoot->GetThisAttr());
-    for (uint32_t n = 0; n < pRoot->GetAttributesNum(); n++)
-    {
+    for (uint32_t n = 0; n < pRoot->GetAttributesNum(); n++) {
         SaveAttributesData(pRoot->GetAttributeClass(n));
     }
 }
 
-void COMPILER::AddPostEvent(S_EVENTMSG *pEM)
+void COMPILER::AddPostEvent(S_EVENTMSG* pEM)
 {
     EventMsg.Add(pEM);
 }
 
-bool COMPILER::SetSaveData(const char *file_name, void *save_data, int32_t data_size)
+bool COMPILER::SetSaveData(char const* file_name, void* save_data, int32_t data_size)
 {
     EXTDATA_HEADER exdh;
 
     auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in | std::ios::out);
-    if (!fileS.is_open())
-    {
-        return false;
-    }
+    if (!fileS.is_open()) { return false; }
 
-    const uint32_t dwFileSize = fio->_GetFileSize(file_name);
-    auto *pVDat = static_cast<VDATA *>(core_internal.GetScriptVariable("savefile_info"));
+    uint32_t const dwFileSize = fio->_GetFileSize(file_name);
+    auto*          pVDat      = static_cast<VDATA*>(core_internal.GetScriptVariable("savefile_info"));
     if (pVDat && pVDat->GetString())
         sprintf_s(exdh.sFileInfo, sizeof(exdh.sFileInfo), "%s", pVDat->GetString());
     else
         sprintf_s(exdh.sFileInfo, sizeof(exdh.sFileInfo), "save");
     exdh.dwExtDataOffset = dwFileSize;
-    exdh.dwExtDataSize = data_size;
+    exdh.dwExtDataSize   = data_size;
 
     fio->_WriteFile(fileS, &exdh, sizeof(exdh));
     fio->_SetFilePointer(fileS, dwFileSize, std::ios::beg);
 
-    char *pDst = new char[data_size * 2];
+    char*  pDst      = new char[data_size * 2];
     uLongf ulPackLen = data_size * 2;
-    compress2((Bytef *)pDst, &ulPackLen, static_cast<Bytef *>(save_data), data_size, Z_BEST_COMPRESSION);
+    compress2((Bytef*)pDst, &ulPackLen, static_cast<Bytef*>(save_data), data_size, Z_BEST_COMPRESSION);
     uint32_t uiPackLen = ulPackLen;
 
     fio->_WriteFile(fileS, &uiPackLen, sizeof(uiPackLen));
@@ -6972,18 +6002,16 @@ bool COMPILER::SetSaveData(const char *file_name, void *save_data, int32_t data_
 
 }*/
 
-void *COMPILER::GetSaveData(const char *file_name, int32_t &data_size)
+void* COMPILER::GetSaveData(char const* file_name, int32_t& data_size)
 {
     auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open())
-    {
+    if (!fileS.is_open()) {
         SetError("cant open save file: %s", file_name);
         return nullptr;
     }
 
-    const auto file_size = fio->_GetFileSize(file_name);
-    if (file_size < sizeof(EXTDATA_HEADER) + sizeof(uint32_t))
-    {
+    auto const file_size = fio->_GetFileSize(file_name);
+    if (file_size < sizeof(EXTDATA_HEADER) + sizeof(uint32_t)) {
         data_size = 0;
         fio->_CloseFile(fileS);
         return nullptr;
@@ -6993,8 +6021,7 @@ void *COMPILER::GetSaveData(const char *file_name, int32_t &data_size)
     RDTSC_B(dw2);
     EXTDATA_HEADER exdh;
     fio->_ReadFile(fileS, &exdh, sizeof(exdh));
-    if (exdh.dwExtDataSize <= 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t))
-    {
+    if (exdh.dwExtDataSize <= 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t)) {
         data_size = 0;
         fio->_CloseFile(fileS);
         return nullptr;
@@ -7003,17 +6030,16 @@ void *COMPILER::GetSaveData(const char *file_name, int32_t &data_size)
     uint32_t dwPackLen;
     fio->_SetFilePointer(fileS, exdh.dwExtDataOffset, std::ios::beg);
     fio->_ReadFile(fileS, &dwPackLen, sizeof(dwPackLen));
-    if (dwPackLen == 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t) + dwPackLen)
-    {
+    if (dwPackLen == 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t) + dwPackLen) {
         data_size = 0;
         fio->_CloseFile(fileS);
         return nullptr;
     }
-    char *pCBuffer = new char[dwPackLen];
+    char* pCBuffer = new char[dwPackLen];
     fio->_ReadFile(fileS, pCBuffer, dwPackLen);
-    char *pBuffer = new char[exdh.dwExtDataSize];
+    char*  pBuffer   = new char[exdh.dwExtDataSize];
     uLongf ulDestLen = exdh.dwExtDataSize;
-    uncompress((Bytef *)pBuffer, &ulDestLen, (Bytef *)pCBuffer, dwPackLen);
+    uncompress((Bytef*)pBuffer, &ulDestLen, (Bytef*)pCBuffer, dwPackLen);
     fio->_CloseFile(fileS);
     delete[] pCBuffer;
     RDTSC_E(dw2);
@@ -7095,11 +6121,9 @@ void *COMPILER::GetSaveData(const char *file_name, int32_t &data_size)
 
 void COMPILER::AddRuntimeEvent()
 {
-    if (!bRuntimeLog)
-        return;
+    if (!bRuntimeLog) return;
     nRuntimeLogEventsNum++;
-    if (nRuntimeLogEventsNum >= nRuntimeLogEventsBufferSize)
-    {
+    if (nRuntimeLogEventsNum >= nRuntimeLogEventsBufferSize) {
         if (nRuntimeLogEventsBufferSize == 0)
             nRuntimeLogEventsBufferSize = 180;
         else
@@ -7108,49 +6132,42 @@ void COMPILER::AddRuntimeEvent()
         pRuntimeLogEvent.resize(nRuntimeLogEventsBufferSize);
     }
     pRuntimeLogEvent[nRuntimeLogEventsNum - 1] = nRuntimeTicks;
-    nRuntimeTicks = 0;
+    nRuntimeTicks                              = 0;
 }
 
-uint32_t COMPILER::SetScriptFunction(IFUNCINFO *pFuncInfo)
+uint32_t COMPILER::SetScriptFunction(IFUNCINFO* pFuncInfo)
 {
     FuncInfo fi;
 
-    if (pFuncInfo->pFuncName == nullptr)
-    {
+    if (pFuncInfo->pFuncName == nullptr) {
         SetError("Invalid function name in SetScriptFunction(...)");
         return INVALID_FUNCHANDLE;
     }
 
-    const uint32_t nFuncHandle = FuncTab.FindFunc(pFuncInfo->pFuncName);
-    if (nFuncHandle != INVALID_FUNC_CODE)
-    {
+    uint32_t const nFuncHandle = FuncTab.FindFunc(pFuncInfo->pFuncName);
+    if (nFuncHandle != INVALID_FUNC_CODE) {
         FuncTab.GetFuncX(fi, nFuncHandle);
-        if (fi.arguments != pFuncInfo->nArguments)
-        {
+        if (fi.arguments != pFuncInfo->nArguments) {
             SetError("arguments num mismatch in function '%s'", pFuncInfo->pFuncName);
             return INVALID_FUNCHANDLE;
         }
-    }
-    else
-    {
+    } else {
         SetError("native function '%s' not declared", pFuncInfo->pFuncName);
         return INVALID_FUNCHANDLE;
     }
 
-    fi.name = pFuncInfo->pFuncName;
+    fi.name          = pFuncInfo->pFuncName;
     fi.imported_func = pFuncInfo->pFuncAddress;
-    fi.arguments = pFuncInfo->nArguments;
-    fi.segment_id = IMPORTED_SEGMENT_ID;
-    fi.offset = INVALID_FUNC_OFFSET;
-    fi.stack_offset = 0xffffffff;
+    fi.arguments     = pFuncInfo->nArguments;
+    fi.segment_id    = IMPORTED_SEGMENT_ID;
+    fi.offset        = INVALID_FUNC_OFFSET;
+    fi.stack_offset  = 0xffffffff;
 
     if (pFuncInfo->pReturnValueName == nullptr)
         fi.return_type = TVOID;
-    else
-    {
+    else {
         const S_TOKEN_TYPE TokenType = Token.Keyword2TokenType(pFuncInfo->pReturnValueName);
-        switch (TokenType)
-        {
+        switch (TokenType) {
         case TVOID:
         case VAR_INTEGER:
         case VAR_PTR:
@@ -7158,66 +6175,50 @@ uint32_t COMPILER::SetScriptFunction(IFUNCINFO *pFuncInfo)
         case VAR_STRING:
         case VAR_OBJECT:
         case VAR_REFERENCE:
-        case VAR_AREFERENCE:
-            fi.return_type = TokenType;
-            break;
+        case VAR_AREFERENCE: fi.return_type = TokenType; break;
         default:
-            SetError("Invalid import function '%s' return type '%s'", pFuncInfo->pFuncName,
-                     pFuncInfo->pReturnValueName);
+            SetError("Invalid import function '%s' return type '%s'", pFuncInfo->pFuncName, pFuncInfo->pReturnValueName);
             return INVALID_FUNCHANDLE;
         }
     }
 
-    const uint32_t funch = FuncTab.AddFunc(fi);
+    uint32_t const funch = FuncTab.AddFunc(fi);
     return funch;
 }
 
-DATA *COMPILER::GetOperand(const char *pCodeBase, uint32_t &ip, S_TOKEN_TYPE *pTokenType)
+DATA* COMPILER::GetOperand(char const* pCodeBase, uint32_t& ip, S_TOKEN_TYPE* pTokenType)
 {
-    uint32_t token_data_size;
-    const VarInfo *real_var;
-    DATA *pVar;
+    uint32_t       token_data_size;
+    VarInfo const* real_var;
+    DATA*          pVar;
 
     const S_TOKEN_TYPE sttResult = BC_TokenGet(ip, token_data_size);
-    if (pTokenType)
-        *pTokenType = sttResult;
-    switch (sttResult)
-    {
-    case STACK_TOP:
-        pVar = SStack.Read();
-        return pVar;
+    if (pTokenType) *pTokenType = sttResult;
+    switch (sttResult) {
+    case STACK_TOP: pVar = SStack.Read(); return pVar;
     case VARIABLE:
-        real_var = VarTab.GetVar(*reinterpret_cast<const uint32_t *>(&pCodeBase[ip]));
-        if (real_var == nullptr)
-        {
+        real_var = VarTab.GetVar(*reinterpret_cast<uint32_t const*>(&pCodeBase[ip]));
+        if (real_var == nullptr) {
             SetError("Global variable not found");
             break;
         }
-        if (!real_var->value.get())
-        {
+        if (!real_var->value.get()) {
             SetError("invalid global variable");
             break;
         }
         return real_var->value.get();
     case LOCAL_VARIABLE:
-        pVar = SStack.Read(pRun_fi->stack_offset, *reinterpret_cast<const uint32_t *>(&pCodeBase[ip]));
-        if (pVar == nullptr)
-        {
+        pVar = SStack.Read(pRun_fi->stack_offset, *reinterpret_cast<uint32_t const*>(&pCodeBase[ip]));
+        if (pVar == nullptr) {
             SetError("Local variable not found");
             return nullptr;
         }
         return pVar;
-    case AX:
-        return &rAX;
-    case BX:
-        return &rBX;
-    case EX:
-        return &ExpressionResult;
-    case AP:
-        return nullptr;
-    default:
-        SetError("invalid operand");
-        return nullptr;
+    case AX: return &rAX;
+    case BX: return &rBX;
+    case EX: return &ExpressionResult;
+    case AP: return nullptr;
+    default: SetError("invalid operand"); return nullptr;
     }
     return nullptr;
 }
@@ -7226,24 +6227,18 @@ void COMPILER::CollectCallStack() const
 {
     logStack_->trace("Call stack:");
     auto callStackCopy = callStack_;
-    while (!callStackCopy.empty())
-    {
-        const auto &record = callStackCopy.back();
+    while (!callStackCopy.empty()) {
+        auto const& record = callStackCopy.back();
 
-        const auto &filename = std::get<0>(record);
-        const auto &line = std::get<1>(record);
-        const auto &name = std::get<2>(record);
+        auto const& filename = std::get<0>(record);
+        auto const& line     = std::get<1>(record);
+        auto const& name     = std::get<2>(record);
 
-        if (filename[0] == '\0')
-        {
+        if (filename[0] == '\0') {
             logStack_->trace("{} (EVENT)", name);
-        }
-        else if (strcmp(filename, "engine") == 0)
-        {
+        } else if (strcmp(filename, "engine") == 0) {
             logStack_->trace("{} (INTERNAL FUNCTION)", name);
-        }
-        else
-        {
+        } else {
             logStack_->trace("{} (FUNCTION) at {}:{}", name, filename, line);
         }
 
@@ -7253,32 +6248,22 @@ void COMPILER::CollectCallStack() const
 
 void COMPILER::PrintoutUsage()
 {
-    if (bRuntimeLog && core.Controls->GetDebugAsyncKeyState(VK_BACK) < 0 &&
-        core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)
-    {
+    if (bRuntimeLog && core.Controls->GetDebugAsyncKeyState(VK_BACK) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0) {
         logTrace_->debug("Script Function Time Usage[func name/code(release mode) : ticks]");
         FuncInfo fi;
-        for (size_t n = 0; n < FuncTab.GetFuncNum(); n++)
-        {
+        for (size_t n = 0; n < FuncTab.GetFuncNum(); n++) {
             FuncTab.GetFuncX(fi, n);
-            if (fi.number_of_calls == 0)
-            {
-                continue;
-            }
+            if (fi.number_of_calls == 0) { continue; }
 
             FuncTab.GetFunc(fi, n);
-            if (!fi.name.empty())
-            {
+            if (!fi.name.empty()) {
                 logTrace_->debug("  {}", fi.name);
-            }
-            else
-            {
+            } else {
                 logTrace_->debug("  {}", n);
             }
             logTrace_->debug("  ticks summary  : {}", fi.usage_time);
             logTrace_->debug("  calls          : {}", fi.number_of_calls);
-            if (fi.number_of_calls != 0)
-            {
+            if (fi.number_of_calls != 0) {
                 logTrace_->debug("  average ticks  : {}", static_cast<float>(fi.usage_time) / fi.number_of_calls);
             }
             logTrace_->debug("");
@@ -7286,66 +6271,58 @@ void COMPILER::PrintoutUsage()
         FuncTab.ResetTimeAndCalls();
 
         logTrace_->debug("Script Run Time Log [sec : ms]");
-        for (size_t n = 0; n < nRuntimeLogEventsNum; n++)
-        {
+        for (size_t n = 0; n < nRuntimeLogEventsNum; n++) {
             logTrace_->debug("  {} : {}", n, pRuntimeLogEvent[n]);
         }
     }
 }
 
-void COMPILER::LoadVariablesFromCache(storm::script_cache::BufferReader &reader, SEGMENT_DESC &segment)
+void COMPILER::LoadVariablesFromCache(storm::script_cache::BufferReader& reader, SEGMENT_DESC& segment)
 {
-    const auto size = reader.Read<size_t>();
-    for (size_t i = 0; i < size; ++i)
-    {
+    auto const size = reader.Read<size_t>();
+    for (size_t i = 0; i < size; ++i) {
         auto vi = VarInfo();
 
         vi.segment_id = segment.id;
-        vi.name = reader.ReadArray();
-        vi.type = reader.Read<decltype(vi.type)>();
-        vi.elements = reader.Read<decltype(vi.elements)>();
+        vi.name       = reader.ReadArray();
+        vi.type       = reader.Read<decltype(vi.type)>();
+        vi.elements   = reader.Read<decltype(vi.elements)>();
 
-        const auto var_code = VarTab.AddVar(vi);
-        const auto real_var = VarTab.GetVarX(var_code);
+        auto const var_code = VarTab.AddVar(vi);
+        auto const real_var = VarTab.GetVarX(var_code);
 
-        if (vi.elements == 1)
-        {
+        if (vi.elements == 1) {
             ReadScriptData(reader, vi.type, real_var->value.get());
-        }
-        else
-        {
-            for (size_t j = 0; j < vi.elements; ++j)
-            {
+        } else {
+            for (size_t j = 0; j < vi.elements; ++j) {
                 ReadScriptData(reader, vi.type, real_var->value->GetArrayElement(j));
             }
         }
     }
 }
 
-void COMPILER::LoadFunctionsFromCache(storm::script_cache::BufferReader &reader, SEGMENT_DESC &segment)
+void COMPILER::LoadFunctionsFromCache(storm::script_cache::BufferReader& reader, SEGMENT_DESC& segment)
 {
-    const auto size = reader.Read<size_t>();
-    for (size_t i = 0; i < size; ++i)
-    {
-        auto fi = FuncInfo();
+    auto const size = reader.Read<size_t>();
+    for (size_t i = 0; i < size; ++i) {
+        auto fi       = FuncInfo();
         fi.segment_id = segment.id;
 
-        fi.name = reader.ReadArray();
-        fi.offset = reader.Read<decltype(fi.offset)>();
-        fi.return_type = reader.Read<decltype(fi.return_type)>();
+        fi.name           = reader.ReadArray();
+        fi.offset         = reader.Read<decltype(fi.offset)>();
+        fi.return_type    = reader.Read<decltype(fi.return_type)>();
         fi.decl_file_name = reader.ReadArray();
-        fi.decl_line = reader.Read<decltype(fi.decl_line)>();
+        fi.decl_line      = reader.Read<decltype(fi.decl_line)>();
 
         auto func_code = FuncTab.AddFunc(fi);
 
         // args
         auto count = reader.Read<size_t>();
-        for (size_t j = 0; j < count; ++j)
-        {
+        for (size_t j = 0; j < count; ++j) {
             auto lvi = LocalVarInfo();
 
-            lvi.name = reader.ReadArray();
-            lvi.type = reader.Read<decltype(lvi.type)>();
+            lvi.name     = reader.ReadArray();
+            lvi.type     = reader.Read<decltype(lvi.type)>();
             lvi.elements = reader.Read<decltype(lvi.elements)>();
 
             auto is_extern = reader.Read<bool>();
@@ -7355,12 +6332,11 @@ void COMPILER::LoadFunctionsFromCache(storm::script_cache::BufferReader &reader,
 
         // local variables
         count = reader.Read<size_t>();
-        for (size_t j = 0; j < count; ++j)
-        {
+        for (size_t j = 0; j < count; ++j) {
             auto lvi = LocalVarInfo();
 
-            lvi.name = reader.ReadArray();
-            lvi.type = reader.Read<decltype(lvi.type)>();
+            lvi.name     = reader.ReadArray();
+            lvi.type     = reader.Read<decltype(lvi.type)>();
             lvi.elements = reader.Read<decltype(lvi.elements)>();
 
             FuncTab.AddFuncVar(func_code, lvi);
@@ -7368,143 +6344,121 @@ void COMPILER::LoadFunctionsFromCache(storm::script_cache::BufferReader &reader,
     }
 }
 
-void COMPILER::LoadScriptLibrariesFromCache(storm::script_cache::BufferReader &reader)
+void COMPILER::LoadScriptLibrariesFromCache(storm::script_cache::BufferReader& reader)
 {
-    const auto size = reader.Read<size_t>();
-    for (size_t i = 0; i < size; ++i)
-    {
+    auto const size = reader.Read<size_t>();
+    for (size_t i = 0; i < size; ++i) {
         auto name = std::string(reader.ReadArray());
 
         auto cls = core_internal.FindVMA(name.c_str());
-        if (!cls)
-        {
+        if (!cls) {
             SetWarning("cant load library '%s'", name.c_str());
             continue;
         }
 
-        auto lib = static_cast<SCRIPT_LIBRIARY *>(cls->CreateClass());
-        if (lib)
-        {
-            lib->Init();
-        }
+        auto lib = static_cast<SCRIPT_LIBRIARY*>(cls->CreateClass());
+        if (lib) { lib->Init(); }
 
         LibriaryFuncs.emplace_back(lib, name.c_str());
     }
 }
 
-void COMPILER::LoadEventHandlersFromCache(storm::script_cache::BufferReader &reader)
+void COMPILER::LoadEventHandlersFromCache(storm::script_cache::BufferReader& reader)
 {
-    const auto size = reader.Read<size_t>();
-    for (size_t i = 0; i < size; ++i)
-    {
+    auto const size = reader.Read<size_t>();
+    for (size_t i = 0; i < size; ++i) {
         auto event = std::string(reader.ReadArray());
-        auto name = std::string(reader.ReadArray());
+        auto name  = std::string(reader.ReadArray());
 
         SetEventHandler(event.c_str(), name.c_str(), 0, true);
     }
 }
 
-void COMPILER::LoadByteCodeFromCache(storm::script_cache::BufferReader &reader, SEGMENT_DESC &segment)
+void COMPILER::LoadByteCodeFromCache(storm::script_cache::BufferReader& reader, SEGMENT_DESC& segment)
 {
-    const auto code = reader.ReadArray();
+    auto const code            = reader.ReadArray();
     segment.BCode_Program_size = segment.BCode_Buffer_size = code.size();
-    segment.pCode = new char[segment.BCode_Buffer_size];
+    segment.pCode                                          = new char[segment.BCode_Buffer_size];
     std::ranges::copy(code, segment.pCode);
 
     // relocations data
-    auto strings = std::unordered_map<uint32_t, std::string>();
+    auto strings   = std::unordered_map<uint32_t, std::string>();
     auto variables = std::unordered_map<uint32_t, std::string>();
     auto functions = std::unordered_map<uint32_t, std::string>();
 
     auto size = reader.Read<size_t>();
     strings.reserve(size);
-    for (size_t i = 0; i < size; ++i)
-    {
+    for (size_t i = 0; i < size; ++i) {
         auto string_code = reader.Read<uint32_t>();
-        auto string = reader.ReadArray();
+        auto string      = reader.ReadArray();
         strings.emplace(string_code, string);
     }
 
     size = reader.Read<size_t>();
     variables.reserve(size);
-    for (size_t i = 0; i < size; ++i)
-    {
+    for (size_t i = 0; i < size; ++i) {
         auto variable_code = reader.Read<uint32_t>();
-        auto name = reader.ReadArray();
+        auto name          = reader.ReadArray();
         variables.emplace(variable_code, name);
     }
 
     size = reader.Read<size_t>();
     functions.reserve(size);
-    for (size_t i = 0; i < size; ++i)
-    {
+    for (size_t i = 0; i < size; ++i) {
         auto function_code = reader.Read<uint32_t>();
-        auto name = reader.ReadArray();
+        auto name          = reader.ReadArray();
         functions.emplace(function_code, name);
     }
 
     // apply relocations
-    pRunCodeBase = segment.pCode;
-    InstructionPointer = 0;
+    pRunCodeBase            = segment.pCode;
+    InstructionPointer      = 0;
     S_TOKEN_TYPE token_type = END_OF_PROGRAMM;
-    do
-    {
-        token_type = BC_TokenGet();
-        auto &relocated_data =
-            *const_cast<uint32_t *>(reinterpret_cast<const uint32_t *>(&pRunCodeBase[TLR_DataOffset]));
-        if (token_type == ACCESS_WORD_CODE)
-        {
+    do {
+        token_type           = BC_TokenGet();
+        auto& relocated_data = *const_cast<uint32_t*>(reinterpret_cast<uint32_t const*>(&pRunCodeBase[TLR_DataOffset]));
+        if (token_type == ACCESS_WORD_CODE) {
             auto string_code = relocated_data;
-            relocated_data = SCodec.Convert(strings[string_code].c_str());
-        }
-        else if (token_type == VARIABLE)
-        {
-            const auto real_var_code = VarTab.FindVar(variables[relocated_data]);
-            relocated_data = real_var_code;
-        }
-        else if (token_type == CALL_FUNCTION)
-        {
-            const auto real_function_code = FuncTab.FindFunc(functions[relocated_data]);
-            relocated_data = real_function_code;
+            relocated_data   = SCodec.Convert(strings[string_code].c_str());
+        } else if (token_type == VARIABLE) {
+            auto const real_var_code = VarTab.FindVar(variables[relocated_data]);
+            relocated_data           = real_var_code;
+        } else if (token_type == CALL_FUNCTION) {
+            auto const real_function_code = FuncTab.FindFunc(functions[relocated_data]);
+            relocated_data                = real_function_code;
         }
     } while (token_type != END_OF_PROGRAMM);
 }
 
-std::filesystem::path COMPILER::GetSegmentCachePath(const SEGMENT_DESC &segment) const
+std::filesystem::path COMPILER::GetSegmentCachePath(const SEGMENT_DESC& segment) const
 {
     auto path = GetCacheFolder() / segment.name;
     path.replace_extension(".b");
     return path;
 }
 
-void COMPILER::SaveVariablesToCache(storm::script_cache::BufferWriter &writer)
+void COMPILER::SaveVariablesToCache(storm::script_cache::BufferWriter& writer)
 {
     writer.WriteData(script_cache_.variables.size());
-    for (auto &vi : script_cache_.variables)
-    {
+    for (auto& vi: script_cache_.variables) {
         writer.WriteArray(vi.name);
         writer.WriteData(vi.type);
         writer.WriteData(vi.elements);
 
-        if (vi.elements == 1)
-        {
+        if (vi.elements == 1) {
             WriteScriptData(writer, vi.type, vi.value.get());
-        }
-        else
-        {
-            for (size_t i = 0; i < vi.elements; ++i)
-            {
+        } else {
+            for (size_t i = 0; i < vi.elements; ++i) {
                 WriteScriptData(writer, vi.type, vi.value->GetArrayElement(i));
             }
         }
     }
 }
 
-void COMPILER::SaveFunctionsToCache(storm::script_cache::BufferWriter &writer)
+void COMPILER::SaveFunctionsToCache(storm::script_cache::BufferWriter& writer)
 {
     writer.WriteData(script_cache_.functions.size());
-    for (auto &[fi, arguments, local_variables] : script_cache_.functions)
-    {
+    for (auto& [fi, arguments, local_variables]: script_cache_.functions) {
         writer.WriteArray(fi.name);
         writer.WriteData(fi.offset);
         writer.WriteData(fi.return_type);
@@ -7512,8 +6466,7 @@ void COMPILER::SaveFunctionsToCache(storm::script_cache::BufferWriter &writer)
         writer.WriteData(fi.decl_line);
 
         writer.WriteData(arguments.size());
-        for (auto &[lvi, is_extern] : arguments)
-        {
+        for (auto& [lvi, is_extern]: arguments) {
             writer.WriteArray(lvi.name);
             writer.WriteData(lvi.type);
             writer.WriteData(lvi.elements);
@@ -7521,8 +6474,7 @@ void COMPILER::SaveFunctionsToCache(storm::script_cache::BufferWriter &writer)
         }
 
         writer.WriteData(local_variables.size());
-        for (auto &lvi : local_variables)
-        {
+        for (auto& lvi: local_variables) {
             writer.WriteArray(lvi.name);
             writer.WriteData(lvi.type);
             writer.WriteData(lvi.elements);
@@ -7530,54 +6482,46 @@ void COMPILER::SaveFunctionsToCache(storm::script_cache::BufferWriter &writer)
     }
 }
 
-void COMPILER::SaveScriptLibrariesToCache(storm::script_cache::BufferWriter &writer)
+void COMPILER::SaveScriptLibrariesToCache(storm::script_cache::BufferWriter& writer)
 {
     writer.WriteData(script_cache_.script_libs.size());
-    for (auto &lib_name : script_cache_.script_libs)
-    {
+    for (auto& lib_name: script_cache_.script_libs) {
         writer.WriteArray(lib_name);
     }
 }
 
-void COMPILER::SaveEventHandlersToCache(storm::script_cache::BufferWriter &writer)
+void COMPILER::SaveEventHandlersToCache(storm::script_cache::BufferWriter& writer)
 {
     writer.WriteData(script_cache_.event_handlers.size());
-    for (auto &[event, handler] : script_cache_.event_handlers)
-    {
+    for (auto& [event, handler]: script_cache_.event_handlers) {
         writer.WriteArray(event);
         writer.WriteArray(handler);
     }
 }
 
-void COMPILER::SaveByteCodeToCache(storm::script_cache::BufferWriter &writer, const SEGMENT_DESC &segment)
+void COMPILER::SaveByteCodeToCache(storm::script_cache::BufferWriter& writer, const SEGMENT_DESC& segment)
 {
     auto code = std::string_view(segment.pCode, segment.pCode + segment.BCode_Program_size);
     writer.WriteArray(code);
 
     // relocations
-    auto strings = std::unordered_map<uint32_t, std::string>();
+    auto strings   = std::unordered_map<uint32_t, std::string>();
     auto variables = std::unordered_map<uint32_t, std::string>();
     auto functions = std::unordered_map<uint32_t, std::string>();
 
-    pRunCodeBase = segment.pCode;
+    pRunCodeBase       = segment.pCode;
     InstructionPointer = 0;
-    auto token_type = S_TOKEN_TYPE();
-    do
-    {
-        token_type = BC_TokenGet();
-        auto &relocated_data = *reinterpret_cast<const uint32_t *>(&pRunCodeBase[TLR_DataOffset]);
+    auto token_type    = S_TOKEN_TYPE();
+    do {
+        token_type           = BC_TokenGet();
+        auto& relocated_data = *reinterpret_cast<uint32_t const*>(&pRunCodeBase[TLR_DataOffset]);
 
-        if (token_type == ACCESS_WORD_CODE)
-        {
+        if (token_type == ACCESS_WORD_CODE) {
             strings.emplace(relocated_data, SCodec.Convert(relocated_data));
-        }
-        else if (token_type == VARIABLE)
-        {
+        } else if (token_type == VARIABLE) {
             auto vi = VarTab.GetVarX(relocated_data);
             variables.emplace(relocated_data, vi->name);
-        }
-        else if (token_type == CALL_FUNCTION)
-        {
+        } else if (token_type == CALL_FUNCTION) {
             auto fi = FuncInfo();
             FuncTab.GetFuncX(fi, relocated_data);
             functions.emplace(relocated_data, fi.name);
@@ -7585,36 +6529,30 @@ void COMPILER::SaveByteCodeToCache(storm::script_cache::BufferWriter &writer, co
     } while (token_type != END_OF_PROGRAMM);
 
     writer.WriteData(strings.size());
-    for (auto &[string_code, string] : strings)
-    {
+    for (auto& [string_code, string]: strings) {
         writer.WriteData(string_code);
         writer.WriteArray(string);
     }
 
     writer.WriteData(variables.size());
-    for (auto &[variable_code, name] : variables)
-    {
+    for (auto& [variable_code, name]: variables) {
         writer.WriteData(variable_code);
         writer.WriteArray(name);
     }
 
     writer.WriteData(functions.size());
-    for (auto &[function_code, name] : functions)
-    {
+    for (auto& [function_code, name]: functions) {
         writer.WriteData(function_code);
         writer.WriteArray(name);
     }
 }
 
-void COMPILER::SaveSegmentToCache(const SEGMENT_DESC &segment)
+void COMPILER::SaveSegmentToCache(const SEGMENT_DESC& segment)
 {
-    const auto path = GetSegmentCachePath(segment);
+    auto const path = GetSegmentCachePath(segment);
     create_directories(path.parent_path());
     std::ofstream stream(path, std::ios::binary);
-    if (!stream)
-    {
-        return;
-    }
+    if (!stream) { return; }
 
     storm::script_cache::BufferWriter writer;
 
@@ -7636,53 +6574,36 @@ void COMPILER::SaveSegmentToCache(const SEGMENT_DESC &segment)
     // bytecode
     SaveByteCodeToCache(writer, segment);
 
-    const auto data = writer.GetDataBuffer();
+    auto const data = writer.GetDataBuffer();
     stream.write(std::data(data), std::size(data));
 }
 
-void COMPILER::SaveDefinesToCache(storm::script_cache::BufferWriter &writer)
+void COMPILER::SaveDefinesToCache(storm::script_cache::BufferWriter& writer)
 {
     writer.WriteData(script_cache_.defines.size());
-    for (auto &[name, type, value] : script_cache_.defines)
-    {
+    for (auto& [name, type, value]: script_cache_.defines) {
         writer.WriteArray(name);
         writer.WriteData(type);
-        switch (type)
-        {
-        case NUMBER:
-            writer.WriteData(static_cast<int32_t>(value));
-            break;
+        switch (type) {
+        case NUMBER: writer.WriteData(static_cast<int32_t>(value)); break;
 
-        case FLOAT_NUMBER:
-            writer.WriteData(static_cast<float>(value));
-            break;
+        case FLOAT_NUMBER: writer.WriteData(static_cast<float>(value)); break;
 
-        case STRING:
-            writer.WriteArray(reinterpret_cast<const char *>(value));
-            break;
+        case STRING: writer.WriteArray(reinterpret_cast<char const*>(value)); break;
         }
     }
 }
 
-bool COMPILER::LoadSegmentFromCache(SEGMENT_DESC &segment)
+bool COMPILER::LoadSegmentFromCache(SEGMENT_DESC& segment)
 {
-    const auto path = GetSegmentCachePath(segment);
-    if (auto ec = std::error_code(); !exists(path, ec) || ec)
-    {
-        return false;
-    }
+    auto const path = GetSegmentCachePath(segment);
+    if (auto ec = std::error_code(); !exists(path, ec) || ec) { return false; }
 
-    const auto cache_size = file_size(path);
-    if (cache_size == 0)
-    {
-        return false;
-    }
+    auto const cache_size = file_size(path);
+    if (cache_size == 0) { return false; }
 
     std::ifstream stream(path, std::ios::binary);
-    if (!stream)
-    {
-        return false;
-    }
+    if (!stream) { return false; }
 
     std::vector<char> data(cache_size);
     stream.read(std::data(data), cache_size);
@@ -7710,34 +6631,28 @@ bool COMPILER::LoadSegmentFromCache(SEGMENT_DESC &segment)
     return true;
 }
 
-void COMPILER::LoadDefinesFromCache(storm::script_cache::BufferReader &reader, SEGMENT_DESC &segment)
+void COMPILER::LoadDefinesFromCache(storm::script_cache::BufferReader& reader, SEGMENT_DESC& segment)
 {
-    const auto size = reader.Read<size_t>();
-    for (size_t i = 0; i < size; ++i)
-    {
+    auto const size = reader.Read<size_t>();
+    for (size_t i = 0; i < size; ++i) {
         auto di = DEFINFO();
 
         di.segment_id = segment.id;
-        auto name = std::string(reader.ReadArray());
-        di.name = const_cast<char *>(name.c_str());
-        di.deftype = reader.Read<uint32_t>();
+        auto name     = std::string(reader.ReadArray());
+        di.name       = const_cast<char*>(name.c_str());
+        di.deftype    = reader.Read<uint32_t>();
 
-        switch (di.deftype)
-        {
-        case NUMBER:
-            di.data4b = static_cast<uintptr_t>(reader.Read<int32_t>());
-            break;
+        switch (di.deftype) {
+        case NUMBER: di.data4b = static_cast<uintptr_t>(reader.Read<int32_t>()); break;
 
-        case FLOAT_NUMBER:
-            di.data4b = static_cast<uintptr_t>(reader.Read<float>());
-            break;
+        case FLOAT_NUMBER: di.data4b = static_cast<uintptr_t>(reader.Read<float>()); break;
 
         case STRING: {
-            auto value = reader.ReadArray();
-            const auto new_ptr = new char[value.size() + 1];
+            auto       value   = reader.ReadArray();
+            auto const new_ptr = new char[value.size() + 1];
             std::ranges::copy(value, new_ptr);
             new_ptr[value.size()] = '\0';
-            di.data4b = reinterpret_cast<uintptr_t>(new_ptr);
+            di.data4b             = reinterpret_cast<uintptr_t>(new_ptr);
             break;
         }
         }
@@ -7746,54 +6661,43 @@ void COMPILER::LoadDefinesFromCache(storm::script_cache::BufferReader &reader, S
     }
 }
 
-void COMPILER::FormatAllDialog(const char *directory_name)
+void COMPILER::FormatAllDialog(char const* directory_name)
 {
-    const auto vPaths = fio->_GetPathsOrFilenamesByMask(directory_name, "*.c", true);
-    for (const std::string &curPath : vPaths)
-    {
+    auto const vPaths = fio->_GetPathsOrFilenamesByMask(directory_name, "*.c", true);
+    for (std::string const& curPath: vPaths) {
         FormatDialog(curPath.c_str());
     }
 }
 
-void COMPILER::FormatDialog(const char *file_name)
+void COMPILER::FormatDialog(char const* file_name)
 {
-    uint32_t FileSize;
-    TOKEN Token;
+    uint32_t     FileSize;
+    TOKEN        Token;
     S_TOKEN_TYPE Token_type;
-    char sFileName[MAX_PATH];
-    char buffer[MAX_PATH]{};
-    char sNewLine[] = {0xd, 0xa, 0};
-    bool bExportString;
+    char         sFileName[MAX_PATH];
+    char         buffer[MAX_PATH] {};
+    char         sNewLine[] = {0xd, 0xa, 0};
+    bool         bExportString;
 
-    if (file_name == nullptr)
-    {
-        return;
-    }
+    if (file_name == nullptr) { return; }
 
     uint32_t nTxt = 0;
 
     // sprintf_s(sFileName,"PROGRAM\\%sc",file_name);
     strcpy_s(sFileName, file_name);
 
-    char *pFileData = LoadFile(file_name, FileSize, true);
-    if (pFileData == nullptr)
-    {
-        return;
-    }
+    char* pFileData = LoadFile(file_name, FileSize, true);
+    if (pFileData == nullptr) { return; }
 
     auto fileS = fio->_CreateFile(sFileName, std::ios::binary | std::ios_base::out);
-    if (!fileS.is_open())
-    {
-        return;
-    }
+    if (!fileS.is_open()) { return; }
 
     // sprintf_s(sFileName,"PROGRAM\\%s",file_name);
     strcpy_s(sFileName, file_name);
     sFileName[strlen(sFileName) - 1] = 0;
     strcat_s(sFileName, "h");
     auto fileS2 = fio->_CreateFile(sFileName, std::ios::binary | std::ios_base::out);
-    if (!fileS2.is_open())
-    {
+    if (!fileS2.is_open()) {
         fio->_CloseFile(fileS);
         delete[] pFileData;
         return;
@@ -7802,12 +6706,10 @@ void COMPILER::FormatDialog(const char *file_name)
     // pFileData = LoadFile(file_name,FileSize,true);
     // if(pFileData == 0) {fio->_CloseHandle(fh); fio->_CloseHandle(fhH); return;}
 
-    uint32_t n;
-    const uint32_t nFullNameLen = strlen(file_name);
-    for (n = nFullNameLen; n > 0; n--)
-    {
-        if (file_name[n] == '\\')
-            break;
+    uint32_t       n;
+    uint32_t const nFullNameLen = strlen(file_name);
+    for (n = nFullNameLen; n > 0; n--) {
+        if (file_name[n] == '\\') break;
     }
     sprintf_s(sFileName, "DIALOGS%s", file_name + n);
     sFileName[strlen(sFileName) - 1] = 0;
@@ -7822,21 +6724,16 @@ void COMPILER::FormatDialog(const char *file_name)
 
     Token.SetProgram(pFileData, pFileData);
 
-    do
-    {
+    do {
         Token_type = Token.FormatGet();
-        switch (Token_type)
-        {
+        switch (Token_type) {
         case DOT:
             fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
             Token_type = Token.FormatGet();
-            if (Token_type != OPEN_BRACKET)
-            {
-                if (Token.GetData())
-                {
+            if (Token_type != OPEN_BRACKET) {
+                if (Token.GetData()) {
                     // node text --------------------------------------------
-                    if (storm::iEquals(Token.GetData(), "text"))
-                    {
+                    if (storm::iEquals(Token.GetData(), "text")) {
                         fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
 
                         // fio->_WriteFile(fhH,sNewLine,strlen(sNewLine),&dwR);
@@ -7845,37 +6742,26 @@ void COMPILER::FormatDialog(const char *file_name)
                         // fio->_WriteFile(fhH,sNewLine,strlen(sNewLine),&dwR);
 
                         constexpr size_t newline_len = std::size(sNewLine) - 1;
-                        do
-                        {
+                        do {
                             Token_type = Token.FormatGet();
-                            if (Token_type == STRING)
-                            {
+                            if (Token_type == STRING) {
                                 bExportString = true;
-                                if (strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
-                                {
-                                    switch (Token.GetData()[1])
-                                    {
+                                if (strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39) {
+                                    switch (Token.GetData()[1]) {
                                     case '!':
                                     case ',':
                                     case '.':
                                     case '?':
                                     case '-':
-                                    case ':':
-                                        bExportString = true;
-                                        break;
-                                    default:
-                                        bExportString = false;
-                                        break;
+                                    case ':': bExportString = true; break;
+                                    default: bExportString = false; break;
                                     }
                                 }
 
                                 // if(strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
-                                if (!bExportString)
-                                {
+                                if (!bExportString) {
                                     fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                                }
-                                else
-                                {
+                                } else {
                                     fio->_WriteFile(fileS2, Token.GetData(), strlen(Token.GetData()));
                                     fio->_WriteFile(fileS2, ",", std::size(",") - 1);
                                     fio->_WriteFile(fileS2, sNewLine, newline_len);
@@ -7883,81 +6769,51 @@ void COMPILER::FormatDialog(const char *file_name)
                                     fio->_WriteFile(fileS, sFileName, strlen(sFileName));
                                     nTxt++;
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
                             }
-                            if (Token_type == END_OF_PROGRAMM)
-                            {
-                                break;
-                            }
+                            if (Token_type == END_OF_PROGRAMM) { break; }
                         } while (Token_type != SEPARATOR);
                         break;
                     }
                 }
             }
-            if (Token.GetData())
-            {
-                fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-            }
+            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
             break;
         case UNKNOWN:
-            if (Token.GetData())
-            {
+            if (Token.GetData()) {
                 fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                if (storm::iEquals(Token.GetData(), "link"))
-                {
+                if (storm::iEquals(Token.GetData(), "link")) {
                     Token_type = Token.FormatGet();
                     fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                    if (Token_type == DOT)
-                    {
+                    if (Token_type == DOT) {
                         Token_type = Token.FormatGet();
-                        if (Token.GetData())
-                        {
-                            fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                        }
-                        if (Token_type == UNKNOWN)
-                        {
+                        if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+                        if (Token_type == UNKNOWN) {
                             Token_type = Token.FormatGet();
-                            if (Token.GetData())
-                            {
-                                fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                            }
-                            if (Token_type != DOT)
-                            {
+                            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+                            if (Token_type != DOT) {
                                 constexpr size_t newline_len = std::size(sNewLine) - 1;
-                                do
-                                {
+                                do {
                                     Token_type = Token.FormatGet();
-                                    if (Token_type == STRING)
-                                    {
+                                    if (Token_type == STRING) {
                                         bExportString = true;
-                                        if (strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
-                                        {
-                                            switch (Token.GetData()[1])
-                                            {
+                                        if (strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39) {
+                                            switch (Token.GetData()[1]) {
                                             case '!':
                                             case ',':
                                             case '.':
                                             case '?':
                                             case '-':
-                                            case ':':
-                                                bExportString = true;
-                                                break;
-                                            default:
-                                                bExportString = false;
-                                                break;
+                                            case ':': bExportString = true; break;
+                                            default: bExportString = false; break;
                                             }
                                         }
 
                                         // if(strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
-                                        if (!bExportString)
-                                        {
+                                        if (!bExportString) {
                                             fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             fio->_WriteFile(fileS2, Token.GetData(), strlen(Token.GetData()));
                                             fio->_WriteFile(fileS2, ",", std::size(",") - 1);
                                             fio->_WriteFile(fileS2, sNewLine, newline_len);
@@ -7965,15 +6821,10 @@ void COMPILER::FormatDialog(const char *file_name)
                                             fio->_WriteFile(fileS, sFileName, strlen(sFileName));
                                             nTxt++;
                                         }
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
                                     }
-                                    if (Token_type == END_OF_PROGRAMM)
-                                    {
-                                        break;
-                                    }
+                                    if (Token_type == END_OF_PROGRAMM) { break; }
                                 } while (Token_type != SEPARATOR);
                                 break;
                             }
@@ -7983,10 +6834,7 @@ void COMPILER::FormatDialog(const char *file_name)
             }
             break;
         default:
-            if (Token.GetData())
-            {
-                fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
-            }
+            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
             break;
         }
     } while (Token_type != END_OF_PROGRAMM);
@@ -8006,7 +6854,7 @@ void COMPILER::FormatDialog(const char *file_name)
 
 void STRING_CODEC::VariableChanged()
 {
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
     CDebug->SetTraceMode(TMODE_MAKESTEP);
 #endif
 }
