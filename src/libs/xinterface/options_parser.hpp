@@ -1,14 +1,14 @@
 #pragma once
 
-#include <libs/core/attributes.h>
-
 #include <string>
+
+#include <libs/core/attributes.h>
 
 namespace storm
 {
 
-void removeCarriageReturn(std::string &str);
+void removeCarriageReturn(std::string& str);
 
-void parseOptions(const std::string_view &str, ATTRIBUTES &attribute);
+void parseOptions(std::string_view const& str, ATTRIBUTES& attribute);
 
-} // namespace storm
+}  // namespace storm

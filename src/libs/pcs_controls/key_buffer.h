@@ -1,18 +1,17 @@
 #pragma once
 
-#include <libs/core/controls.h>
-
 #include <vector>
 
-struct ControlKeyBuffer
-{
-  public:
+#include <libs/core/controls.h>
+
+struct ControlKeyBuffer {
+public:
     ControlKeyBuffer();
     ~ControlKeyBuffer();
 
     void Reset();
-    void AddKey(char *u8_str, int u8_size, bool bSystem);
-    void AddKey(const KeyDescr &key);
+    void AddKey(char* u8_str, int u8_size, bool bSystem);
+    void AddKey(KeyDescr const& key);
 
     int32_t GetBufferLength()
     {
@@ -20,7 +19,7 @@ struct ControlKeyBuffer
     }
 
     // FIXME: Not good
-    const KeyDescr *c_str()
+    KeyDescr const* c_str()
     {
         return pcBuffer_.data();
     }

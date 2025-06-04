@@ -1,43 +1,34 @@
 #pragma once
 
-#include "battle_navigator.h"
 #include <libs/battle_interface/bi_defines.h>
 #include <libs/battle_interface/bi_utils.h>
 #include <libs/renderer/dx9render.h>
 
+#include "battle_navigator.h"
 
 class BIShipIcon;
 class ShipInfoImages;
 
-class BATTLE_INTERFACE : public Entity
+class BATTLE_INTERFACE: public Entity
 {
-    VDX9RENDER *rs;
+    VDX9RENDER* rs;
 
-  public:
+public:
     BATTLE_INTERFACE();
     ~BATTLE_INTERFACE() override;
-    bool Init() override;
-    void Execute(uint32_t delta_time);
-    void Realize(uint32_t delta_time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
-    uint32_t AttributeChanged(ATTRIBUTES *pAttr) override;
+    bool     Init() override;
+    void     Execute(uint32_t delta_time);
+    void     Realize(uint32_t delta_time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
+    uint32_t AttributeChanged(ATTRIBUTES* pAttr) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-        case Stage::lost_render:
-            LostRender();
-            break;
-        case Stage::restore_render:
-            RestoreRender();
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
+        case Stage::realize: Realize(delta); break;
+        case Stage::lost_render: LostRender(); break;
+        case Stage::restore_render: RestoreRender(); break;
         }
     }
 
@@ -51,14 +42,14 @@ class BATTLE_INTERFACE : public Entity
         BattleNavigator.RestoreRender();
     };
 
-  protected:
-    BATTLE_NAVIGATOR BattleNavigator; // navigation icons
+protected:
+    BATTLE_NAVIGATOR BattleNavigator;  // navigation icons
     // MESSAGE_ICONS *        m_pMessageIcons;
-    BIShipIcon *m_pShipIcon; // icons of commands and target pointers in the combat menu
-    bool m_bShowCommandMenu;
-    bool m_bShowBattleNavigator;
-    bool m_bYesShowAll;
-    bool m_bVisible;
+    BIShipIcon* m_pShipIcon;  // icons of commands and target pointers in the combat menu
+    bool        m_bShowCommandMenu;
+    bool        m_bShowBattleNavigator;
+    bool        m_bYesShowAll;
+    bool        m_bVisible;
 
     float m_fBlinkSpeed;
     float m_fCurBlinkTime;
@@ -68,15 +59,15 @@ class BATTLE_INTERFACE : public Entity
     bool m_bMyShipView;
 
     std::vector<BITextInfo> m_TextArray;
-    BILinesInfo m_LinesInfo;
-    bool m_bShowBattleBorder;
-    BIBorderInfo m_BattleBorder;
-    BIImagesInfo m_ImagesInfo;
+    BILinesInfo             m_LinesInfo;
+    bool                    m_bShowBattleBorder;
+    BIBorderInfo            m_BattleBorder;
+    BIImagesInfo            m_ImagesInfo;
 
-    ShipInfoImages *m_pShipInfoImages;
+    ShipInfoImages* m_pShipInfoImages;
 
-  protected:
+protected:
     void LoadIniFile();
     void CheckSeaState();
-    void EnableMessageIcons(VDATA *pvdat);
+    void EnableMessageIcons(VDATA* pvdat);
 };

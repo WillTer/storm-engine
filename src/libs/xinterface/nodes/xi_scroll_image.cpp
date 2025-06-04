@@ -4,10 +4,9 @@
 
 #define MAXIMAGEQUANTITY 100
 
-int32_t GetTexFromEvent(VDATA *vdat)
+int32_t GetTexFromEvent(VDATA* vdat)
 {
-    if (vdat == nullptr)
-        return -1;
+    if (vdat == nullptr) return -1;
     return vdat->GetInt();
 }
 
@@ -15,10 +14,10 @@ CXI_SCROLLIMAGE::CXI_SCROLLIMAGE()
 {
     m_bClickable = true;
 
-    m_texBorder = -1;
-    m_nCurImage = 0;
-    m_pScroll = nullptr;
-    m_bDoMove = false;
+    m_texBorder        = -1;
+    m_nCurImage        = 0;
+    m_pScroll          = nullptr;
+    m_bDoMove          = false;
     m_sBorderGroupName = nullptr;
 
     m_nOneStrFont = -1L;
@@ -27,21 +26,21 @@ CXI_SCROLLIMAGE::CXI_SCROLLIMAGE()
     m_nSpeedMul = 5;
     m_nNodeType = NODETYPE_SCROLLIMAGE;
 
-    m_nGroupQuantity = 0;
-    m_sGroupName = nullptr;
-    m_nGroupTex = nullptr;
-    m_nShowOrder = 100;
-    m_nNotUsedQuantity = 0;
-    m_sSpecTechniqueName = nullptr;
+    m_nGroupQuantity      = 0;
+    m_sGroupName          = nullptr;
+    m_nGroupTex           = nullptr;
+    m_nShowOrder          = 100;
+    m_nNotUsedQuantity    = 0;
+    m_sSpecTechniqueName  = nullptr;
     m_dwSpecTechniqueARGB = 0xFFFFFFFF;
 
-    m_nSlotsQnt = 0;
-    m_idBadTexture = nullptr;
-    m_idBadPic = nullptr;
-    m_pPicOffset = nullptr;
+    m_nSlotsQnt     = 0;
+    m_idBadTexture  = nullptr;
+    m_idBadPic      = nullptr;
+    m_pPicOffset    = nullptr;
     m_dwNormalColor = nullptr;
     m_dwSelectColor = nullptr;
-    m_dwCurColor = nullptr;
+    m_dwCurColor    = nullptr;
 }
 
 CXI_SCROLLIMAGE::~CXI_SCROLLIMAGE()
@@ -52,73 +51,59 @@ CXI_SCROLLIMAGE::~CXI_SCROLLIMAGE()
 void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
 {
     int n;
-    if (m_bUse && !m_Image.empty())
-    {
-        if (m_bDoMove)
-        {
+    if (m_bUse && !m_Image.empty()) {
+        if (m_bDoMove) {
             m_fCurrentDistance += .01f * Delta_Time * m_fDeltaMove;
-            if ((m_fCurrentDistance >= m_fMoveDistance && m_fDeltaMove >= 0.f) ||
-                (m_fCurrentDistance <= m_fMoveDistance && m_fDeltaMove <= 0.f))
+            if ((m_fCurrentDistance >= m_fMoveDistance && m_fDeltaMove >= 0.f)
+                || (m_fCurrentDistance <= m_fMoveDistance && m_fDeltaMove <= 0.f))
                 m_fCurrentDistance = m_fMoveDistance;
-            const auto fDelta = ChangeDinamicParameters(m_fCurrentDistance);
+            auto const fDelta = ChangeDinamicParameters(m_fCurrentDistance);
             m_fCurrentDistance += fDelta;
             m_fMoveDistance += fDelta;
-            if (m_fMoveDistance == m_fCurrentDistance)
-            {
+            if (m_fMoveDistance == m_fCurrentDistance) {
                 m_bLockStatus = false;
-                m_bDoMove = false;
+                m_bDoMove     = false;
 
                 // Set new current image
-                auto *tmpAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-                if (tmpAttr != nullptr)
-                    tmpAttr->SetAttributeUseDword("current", m_nCurImage);
+                auto* tmpAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+                if (tmpAttr != nullptr) tmpAttr->SetAttributeUseDword("current", m_nCurImage);
 
                 ChangeDinamicParameters(0);
             }
             for (n = 0; n < m_nSlotsQnt; n++)
                 m_dwCurColor[n] = m_dwNormalColor[n];
-        }
-        else
-        {
-            if (m_bDoBlind && bSelected)
-            {
-                if ((m_nBlindCounter -= Delta_Time) <= 0)
-                {
+        } else {
+            if (m_bDoBlind && bSelected) {
+                if ((m_nBlindCounter -= Delta_Time) <= 0) {
                     m_nBlindCounter = m_nMaxBlindCounter;
-                    m_bColorType = !m_bColorType;
+                    m_bColorType    = !m_bColorType;
                 }
 
-                for (n = 0; n < m_nSlotsQnt; n++)
-                {
-                    const int ad = ALPHA(m_dwNormalColor[n]);
-                    const int rd = RED(m_dwNormalColor[n]);
-                    const int gd = GREEN(m_dwNormalColor[n]);
-                    const int bd = BLUE(m_dwNormalColor[n]);
-                    const int al = ALPHA(m_dwSelectColor[n]);
-                    const int rl = RED(m_dwSelectColor[n]);
-                    const int gl = GREEN(m_dwSelectColor[n]);
-                    const int bl = BLUE(m_dwSelectColor[n]);
-                    int a, r, g, b;
-                    if (m_bColorType)
-                    {
-                        a = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
-                        r = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        g = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        b = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
+                for (n = 0; n < m_nSlotsQnt; n++) {
+                    int const ad = ALPHA(m_dwNormalColor[n]);
+                    int const rd = RED(m_dwNormalColor[n]);
+                    int const gd = GREEN(m_dwNormalColor[n]);
+                    int const bd = BLUE(m_dwNormalColor[n]);
+                    int const al = ALPHA(m_dwSelectColor[n]);
+                    int const rl = RED(m_dwSelectColor[n]);
+                    int const gl = GREEN(m_dwSelectColor[n]);
+                    int const bl = BLUE(m_dwSelectColor[n]);
+                    int       a, r, g, b;
+                    if (m_bColorType) {
+                        a               = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
+                        r               = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        g               = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        b               = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
                         m_dwCurColor[n] = ARGB(ad + a, rd + r, gd + g, bd + b);
-                    }
-                    else
-                    {
-                        a = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
-                        r = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        g = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        b = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
+                    } else {
+                        a               = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
+                        r               = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        g               = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        b               = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
                         m_dwCurColor[n] = ARGB(al - a, rl - r, gl - g, bl - b);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 for (n = 0; n < m_nSlotsQnt; n++)
                     m_dwCurColor[n] = m_dwNormalColor[n];
             }
@@ -126,18 +111,18 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
 
         // create select border
         XI_ONLYONETEX_VERTEX pV[4];
-        FXYRECT textureRect;
+        FXYRECT              textureRect;
         for (auto i = 0; i < 4; i++)
             pV[i].pos.z = 1.f;
         pPictureService->GetTexturePos(m_nBorderPicture, textureRect);
-        pV[0].tu = textureRect.left;
-        pV[0].tv = textureRect.top;
-        pV[1].tu = textureRect.left;
-        pV[1].tv = textureRect.bottom;
-        pV[2].tu = textureRect.right;
-        pV[2].tv = textureRect.top;
-        pV[3].tu = textureRect.right;
-        pV[3].tv = textureRect.bottom;
+        pV[0].tu    = textureRect.left;
+        pV[0].tv    = textureRect.top;
+        pV[1].tu    = textureRect.left;
+        pV[1].tv    = textureRect.bottom;
+        pV[2].tu    = textureRect.right;
+        pV[2].tv    = textureRect.top;
+        pV[3].tu    = textureRect.right;
+        pV[3].tv    = textureRect.bottom;
         pV[0].pos.x = static_cast<float>(m_pCenter.x - m_ImageSize.x / 2);
         pV[0].pos.y = static_cast<float>(m_pCenter.y - m_ImageSize.y / 2);
         pV[1].pos.x = static_cast<float>(m_pCenter.x - m_ImageSize.x / 2);
@@ -148,64 +133,51 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
         pV[3].pos.y = static_cast<float>(m_pCenter.y + m_ImageSize.y / 2);
 
         // show select border
-        if (m_bShowBorder /*&& !m_bLockStatus*/ && m_nShowOrder < 0)
-        {
+        if (m_bShowBorder /*&& !m_bLockStatus*/ && m_nShowOrder < 0) {
             m_rs->TextureSet(0, m_texBorder);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX),
-                                  "iScrollImages_border");
+            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
         }
 
         XI_ONETEX_VERTEX v[4];
 
-        auto j = 0;
-        FXYRECT rectTex;
-        SCROLLEntity *pScroll;
-        auto curShowOrder = m_nShowOrder;
+        auto          j = 0;
+        FXYRECT       rectTex;
+        SCROLLEntity* pScroll;
+        auto          curShowOrder = m_nShowOrder;
         // if(m_bLockStatus) curShowOrder = m_nSlotsQnt-1;
-        if (curShowOrder >= m_nSlotsQnt)
-            curShowOrder = m_nSlotsQnt - 1;
+        if (curShowOrder >= m_nSlotsQnt) curShowOrder = m_nSlotsQnt - 1;
         bool bDoShowBorder = false;
 
-        for (n = 0; n < m_nSlotsQnt; n++)
-        {
+        for (n = 0; n < m_nSlotsQnt; n++) {
             pScroll = m_pScroll;
-            while (pScroll != nullptr)
-            {
+            while (pScroll != nullptr) {
                 FXYRECT pos;
 
-                if (m_Image[pScroll->imageNum].slots[n].ptex != -1)
-                {
+                if (m_Image[pScroll->imageNum].slots[n].ptex != -1) {
                     m_rs->TextureSet(0, m_Image[pScroll->imageNum].slots[n].ptex);
-                    rectTex.left = 0.f;
-                    rectTex.top = 0.f;
-                    rectTex.right = 1.f;
+                    rectTex.left   = 0.f;
+                    rectTex.top    = 0.f;
+                    rectTex.right  = 1.f;
                     rectTex.bottom = 1.f;
-                }
-                else if (m_Image[pScroll->imageNum].slots[n].img != -1)
-                {
+                } else if (m_Image[pScroll->imageNum].slots[n].img != -1) {
                     // get texture rectangle
                     pPictureService->GetTexturePos(m_Image[pScroll->imageNum].slots[n].img, rectTex);
                     m_rs->TextureSet(0, m_nGroupTex[m_Image[pScroll->imageNum].slots[n].tex]);
-                }
-                else
-                {
+                } else {
                     if (m_idBadPic[n] != -1 && m_idBadTexture[n] != -1)
                     // partial use of texture for a "bad" picture
                     {
                         m_rs->TextureSet(0, m_nGroupTex[m_idBadTexture[n]]);
                         pPictureService->GetTexturePos(m_idBadPic[n], rectTex);
-                    }
-                    else // "bad" picture for the whole texture
+                    } else  // "bad" picture for the whole texture
                     {
-                        if (m_idBadTexture[n] != -1)
-                        {
+                        if (m_idBadTexture[n] != -1) {
                             m_rs->TextureSet(0, m_idBadTexture[n]);
-                            rectTex.left = 0.f;
-                            rectTex.top = 0.f;
-                            rectTex.right = 1.f;
+                            rectTex.left   = 0.f;
+                            rectTex.top    = 0.f;
+                            rectTex.right  = 1.f;
                             rectTex.bottom = 1.f;
-                        }
-                        else // do not show non-existent picture
+                        } else  // do not show non-existent picture
                         {
                             pScroll = pScroll->next;
                             continue;
@@ -213,27 +185,23 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                     }
                 }
 
-                pos.right = (pos.left = pScroll->pCenter.x - m_ImageSize.x / 2.f) + m_ImageSize.x;
+                pos.right  = (pos.left = pScroll->pCenter.x - m_ImageSize.x / 2.f) + m_ImageSize.x;
                 pos.bottom = (pos.top = pScroll->pCenter.y - m_ImageSize.y / 2.f + m_pPicOffset[n]) + m_ImageSize.y;
-                if (pos.left < m_rect.left)
-                {
-                    if (pos.right <= m_rect.left)
-                    {
+                if (pos.left < m_rect.left) {
+                    if (pos.right <= m_rect.left) {
                         pScroll = pScroll->next;
                         continue;
                     }
-                    const float texCorrect = (m_rect.left - pos.left) / (pos.right - pos.left);
+                    float const texCorrect = (m_rect.left - pos.left) / (pos.right - pos.left);
                     rectTex.left += texCorrect * (rectTex.right - rectTex.left);
                     pos.left = static_cast<float>(m_rect.left);
                 }
-                if (pos.right > m_rect.right)
-                {
-                    if (pos.left >= m_rect.right)
-                    {
+                if (pos.right > m_rect.right) {
+                    if (pos.left >= m_rect.right) {
                         pScroll = pScroll->next;
                         continue;
                     }
-                    const float texCorrect = (m_rect.right - pos.right) / (pos.right - pos.left);
+                    float const texCorrect = (m_rect.right - pos.right) / (pos.right - pos.left);
                     rectTex.right += texCorrect * (rectTex.right - rectTex.left);
                     pos.right = static_cast<float>(m_rect.right);
                 }
@@ -249,61 +217,89 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                     v[0].color = v[1].color = v[2].color = v[3].color = m_dwCurColor[n];
                 else
                     v[0].color = v[1].color = v[2].color = v[3].color = m_dwNormalColor[n];
-                if (m_Image[pScroll->imageNum].slots[n].useSpecTechnique)
-                {
+                if (m_Image[pScroll->imageNum].slots[n].useSpecTechnique) {
                     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwSpecTechniqueARGB);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX),
-                                          m_sSpecTechniqueName);
-                }
-                else
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX),
-                                          "iScrollImages_main");
+                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), m_sSpecTechniqueName);
+                } else
+                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iScrollImages_main");
 
                 pScroll = pScroll->next;
             }
 
-            if (n == m_nSlotsQnt - 1) // show lines last
+            if (n == m_nSlotsQnt - 1)  // show lines last
             {
                 // out to screen the strings if that needed
-                if (m_bUseOneString || m_bUseTwoString)
-                {
+                if (m_bUseOneString || m_bUseTwoString) {
                     pScroll = m_pScroll;
-                    while (pScroll != nullptr)
-                    {
-                        if (m_bUseOneString)
-                        {
+                    while (pScroll != nullptr) {
+                        if (m_bUseOneString) {
                             if (m_Image[pScroll->imageNum].str1 != -1L)
                                 ptrOwner->PrintIntoWindow(
-                                    m_rect.left, m_rect.right, m_nOneStrFont, m_dwOneStrForeColor, m_dwOneStrBackColor,
-                                    m_nOneStrAlign, true, m_nOneStrScale, m_screenSize.x, m_screenSize.y,
-                                    static_cast<int32_t>(pScroll->pCenter.x + m_lOneStrX), m_rect.top + m_lOneStrOffset,
+                                    m_rect.left,
+                                    m_rect.right,
+                                    m_nOneStrFont,
+                                    m_dwOneStrForeColor,
+                                    m_dwOneStrBackColor,
+                                    m_nOneStrAlign,
+                                    true,
+                                    m_nOneStrScale,
+                                    m_screenSize.x,
+                                    m_screenSize.y,
+                                    static_cast<int32_t>(pScroll->pCenter.x + m_lOneStrX),
+                                    m_rect.top + m_lOneStrOffset,
                                     pStringService->GetString(m_Image[pScroll->imageNum].str1),
                                     static_cast<int>(m_ImageSize.x * pScroll->fCurScale),
                                     static_cast<int>(-24 * m_nOneStrScale));
                             else if (!m_Image[pScroll->imageNum].string1.empty())
                                 ptrOwner->PrintIntoWindow(
-                                    m_rect.left, m_rect.right, m_nOneStrFont, m_dwOneStrForeColor, m_dwOneStrBackColor,
-                                    m_nOneStrAlign, true, m_nOneStrScale, m_screenSize.x, m_screenSize.y,
-                                    static_cast<int32_t>(pScroll->pCenter.x + m_lOneStrX), m_rect.top + m_lOneStrOffset,
+                                    m_rect.left,
+                                    m_rect.right,
+                                    m_nOneStrFont,
+                                    m_dwOneStrForeColor,
+                                    m_dwOneStrBackColor,
+                                    m_nOneStrAlign,
+                                    true,
+                                    m_nOneStrScale,
+                                    m_screenSize.x,
+                                    m_screenSize.y,
+                                    static_cast<int32_t>(pScroll->pCenter.x + m_lOneStrX),
+                                    m_rect.top + m_lOneStrOffset,
                                     m_Image[pScroll->imageNum].string1.c_str(),
                                     static_cast<int>(m_ImageSize.x * pScroll->fCurScale),
                                     static_cast<int>(-24 * m_nOneStrScale));
                         }
-                        if (m_bUseTwoString)
-                        {
+                        if (m_bUseTwoString) {
                             if (m_Image[pScroll->imageNum].str2 != -1L)
                                 ptrOwner->PrintIntoWindow(
-                                    m_rect.left, m_rect.right, m_nTwoStrFont, m_dwTwoStrForeColor, m_dwTwoStrBackColor,
-                                    m_nTwoStrAlign, true, m_nTwoStrScale, m_screenSize.x, m_screenSize.y,
-                                    static_cast<int32_t>(pScroll->pCenter.x + m_lTwoStrX), m_rect.top + m_lTwoStrOffset,
+                                    m_rect.left,
+                                    m_rect.right,
+                                    m_nTwoStrFont,
+                                    m_dwTwoStrForeColor,
+                                    m_dwTwoStrBackColor,
+                                    m_nTwoStrAlign,
+                                    true,
+                                    m_nTwoStrScale,
+                                    m_screenSize.x,
+                                    m_screenSize.y,
+                                    static_cast<int32_t>(pScroll->pCenter.x + m_lTwoStrX),
+                                    m_rect.top + m_lTwoStrOffset,
                                     pStringService->GetString(m_Image[pScroll->imageNum].str2),
                                     static_cast<int>(m_ImageSize.x * pScroll->fCurScale),
                                     static_cast<int>(-24 * m_nTwoStrScale));
                             if (!m_Image[pScroll->imageNum].string2.empty())
                                 ptrOwner->PrintIntoWindow(
-                                    m_rect.left, m_rect.right, m_nTwoStrFont, m_dwTwoStrForeColor, m_dwTwoStrBackColor,
-                                    m_nTwoStrAlign, true, m_nTwoStrScale, m_screenSize.x, m_screenSize.y,
-                                    static_cast<int32_t>(pScroll->pCenter.x + m_lTwoStrX), m_rect.top + m_lTwoStrOffset,
+                                    m_rect.left,
+                                    m_rect.right,
+                                    m_nTwoStrFont,
+                                    m_dwTwoStrForeColor,
+                                    m_dwTwoStrBackColor,
+                                    m_nTwoStrAlign,
+                                    true,
+                                    m_nTwoStrScale,
+                                    m_screenSize.x,
+                                    m_screenSize.y,
+                                    static_cast<int32_t>(pScroll->pCenter.x + m_lTwoStrX),
+                                    m_rect.top + m_lTwoStrOffset,
                                     m_Image[pScroll->imageNum].string2.c_str(),
                                     static_cast<int>(m_ImageSize.x * pScroll->fCurScale),
                                     static_cast<int>(-24 * m_nTwoStrScale));
@@ -314,107 +310,97 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                 }
             }
 
-            if (m_bShowBorder && n == curShowOrder)
-            {
+            if (m_bShowBorder && n == curShowOrder) {
                 // show select border
                 m_rs->TextureSet(0, m_texBorder);
-                m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX),
-                                      "iScrollImages_border");
+                m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
                 bDoShowBorder = true;
             }
         }
 
-        if (m_bShowBorder && !bDoShowBorder)
-        {
+        if (m_bShowBorder && !bDoShowBorder) {
             // show select border
             m_rs->TextureSet(0, m_texBorder);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX),
-                                  "iScrollImages_border");
+            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
         }
     }
 }
 
-bool CXI_SCROLLIMAGE::Init(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2, VDX9RENDER *rs,
-                           XYRECT &hostRect, XYPOINT &ScreenSize)
+bool CXI_SCROLLIMAGE::Init(
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize))
-        return false;
+    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
 }
 
-void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, const char *name2)
+void CXI_SCROLLIMAGE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
-    int i, n;
-    char param[256];
-    char param1[256];
-    const char *tmpstr;
+    int         i, n;
+    char        param[256];
+    char        param1[256];
+    char const* tmpstr;
 
     // Set space
     m_rAbsolutePosition = GetIniLongRect(ini1, name1, ini2, name2, "position", m_hostRect);
     GetAbsoluteRect(m_rAbsolutePosition, 0);
-    m_pCenter.x = (m_rAbsolutePosition.right + m_rAbsolutePosition.left) / 2;
-    m_pCenter.y = (m_rAbsolutePosition.top + m_rAbsolutePosition.bottom) / 2;
+    m_pCenter.x         = (m_rAbsolutePosition.right + m_rAbsolutePosition.left) / 2;
+    m_pCenter.y         = (m_rAbsolutePosition.top + m_rAbsolutePosition.bottom) / 2;
     m_pntCenterOffset.x = GetIniLong(ini1, name1, ini2, name2, "centerXoffset", m_pCenter.x - m_rAbsolutePosition.left);
     m_pntCenterOffset.y = GetIniLong(ini1, name1, ini2, name2, "centerYoffset", m_pCenter.y - m_rAbsolutePosition.top);
-    m_pCenter.x = m_rAbsolutePosition.left + m_pntCenterOffset.x;
-    m_pCenter.y = m_rAbsolutePosition.top + m_pntCenterOffset.y;
+    m_pCenter.x         = m_rAbsolutePosition.left + m_pntCenterOffset.x;
+    m_pCenter.y         = m_rAbsolutePosition.top + m_pntCenterOffset.y;
 
     // set center of scrolling list
     m_fDeltaMoveBase = GetIniFloat(ini1, name1, ini2, name2, "fMoveDelta", 1.f);
-    m_nSpeedMul = GetIniLong(ini1, name1, ini2, name2, "speedMul", 5);
+    m_nSpeedMul      = GetIniLong(ini1, name1, ini2, name2, "speedMul", 5);
 
     // set image size
     m_ImageSize = GetIniLongPoint(ini1, name1, ini2, name2, "imageSize", XYPOINT(128, 128));
 
     // set parameters for blend & minimize far images
-    m_fScale = GetIniFloat(ini1, name1, ini2, name2, "fBoundScale", 1.f);
-    m_lDelta = GetIniLong(ini1, name1, ini2, name2, "wDelta", 0);
+    m_fScale       = GetIniFloat(ini1, name1, ini2, name2, "fBoundScale", 1.f);
+    m_lDelta       = GetIniLong(ini1, name1, ini2, name2, "wDelta", 0);
     m_dwBlendColor = GetIniARGB(ini1, name1, ini2, name2, "blendColor", 0xFFFFFFFF);
 
     //
     m_nMaxBlindCounter = GetIniLong(ini1, name1, ini2, name2, "blindDelay", 2000);
-    m_bDoBlind = true;
-    m_bColorType = true;
-    m_nBlindCounter = m_nMaxBlindCounter;
+    m_bDoBlind         = true;
+    m_bColorType       = true;
+    m_nBlindCounter    = m_nMaxBlindCounter;
 
     m_nSlotsQnt = GetIniLong(ini1, name1, ini2, name2, "LayerQuantity", 0);
 
-    if (m_nSlotsQnt > 0)
-    {
-        m_dwCurColor = new uint32_t[m_nSlotsQnt];
+    if (m_nSlotsQnt > 0) {
+        m_dwCurColor    = new uint32_t[m_nSlotsQnt];
         m_dwNormalColor = new uint32_t[m_nSlotsQnt];
         m_dwSelectColor = new uint32_t[m_nSlotsQnt];
-        m_pPicOffset = new int32_t[m_nSlotsQnt];
-        m_idBadTexture = new int32_t[m_nSlotsQnt];
-        m_idBadPic = new int32_t[m_nSlotsQnt];
-        if (!m_dwCurColor || !m_dwNormalColor || !m_dwSelectColor || !m_pPicOffset || !m_idBadTexture || !m_idBadPic)
-        {
+        m_pPicOffset    = new int32_t[m_nSlotsQnt];
+        m_idBadTexture  = new int32_t[m_nSlotsQnt];
+        m_idBadPic      = new int32_t[m_nSlotsQnt];
+        if (!m_dwCurColor || !m_dwNormalColor || !m_dwSelectColor || !m_pPicOffset || !m_idBadTexture || !m_idBadPic) {
             throw std::runtime_error("allocate memory error");
         }
     }
 
     // set parameters for blind
-    for (i = 0; i < m_nSlotsQnt; i++)
-    {
+    for (i = 0; i < m_nSlotsQnt; i++) {
         sprintf_s(param, "dwNormalColorARGB%d", i + 1);
         m_dwCurColor[i] = m_dwNormalColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, ARGB(255, 128, 128, 128));
         sprintf_s(param, "dwSelectColorARGB%d", i + 1);
         m_dwSelectColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, ARGB(255, 64, 64, 64));
         sprintf_s(param, "PicOffset%d", i + 1);
-        m_pPicOffset[i] = GetIniLong(ini1, name1, ini2, name2, param, 0);
+        m_pPicOffset[i]   = GetIniLong(ini1, name1, ini2, name2, param, 0);
         m_idBadTexture[i] = -1;
-        m_idBadPic[i] = -1;
+        m_idBadPic[i]     = -1;
     }
 
     // set stringes
     m_bUseOneString = GetIniBool(ini1, name1, ini2, name2, "UseOneString", false);
     m_bUseTwoString = GetIniBool(ini1, name1, ini2, name2, "UseTwoString", false);
-    if (m_bUseOneString)
-    {
+    if (m_bUseOneString) {
         m_nOneStrScale = GetIniFloat(ini1, name1, ini2, name2, "scale1", 1.f);
         if (ReadIniString(ini1, name1, ini2, name2, "font1", param, sizeof(param), ""))
-            if ((m_nOneStrFont = m_rs->LoadFont(param)) == -1)
-                core.Trace("can not load font:'%s'", param);
+            if ((m_nOneStrFont = m_rs->LoadFont(param)) == -1) core.Trace("can not load font:'%s'", param);
         m_lOneStrX = GetIniLong(ini1, name1, ini2, name2, "dwXOffset1", 0);
         if (m_lOneStrX > 0)
             m_nOneStrAlign = PR_ALIGN_RIGHT;
@@ -422,16 +408,14 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
             m_nOneStrAlign = PR_ALIGN_LEFT;
         else
             m_nOneStrAlign = PR_ALIGN_CENTER;
-        m_lOneStrOffset = GetIniLong(ini1, name1, ini2, name2, "dwYOffset1", 0);
+        m_lOneStrOffset     = GetIniLong(ini1, name1, ini2, name2, "dwYOffset1", 0);
         m_dwOneStrForeColor = GetIniARGB(ini1, name1, ini2, name2, "dwForeColor1", 0xFFFFFFFF);
         m_dwOneStrBackColor = GetIniARGB(ini1, name1, ini2, name2, "dwBackColor1", 0);
     }
-    if (m_bUseTwoString)
-    {
+    if (m_bUseTwoString) {
         m_nTwoStrScale = GetIniFloat(ini1, name1, ini2, name2, "scale2", 1.f);
         if (ReadIniString(ini1, name1, ini2, name2, "font2", param, sizeof(param), ""))
-            if ((m_nTwoStrFont = m_rs->LoadFont(param)) == -1)
-                core.Trace("can not load font:'%s'", param);
+            if ((m_nTwoStrFont = m_rs->LoadFont(param)) == -1) core.Trace("can not load font:'%s'", param);
         m_lTwoStrX = GetIniLong(ini1, name1, ini2, name2, "dwXOffset2", 0);
         if (m_lTwoStrX > 0)
             m_nTwoStrAlign = PR_ALIGN_RIGHT;
@@ -439,61 +423,45 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
             m_nTwoStrAlign = PR_ALIGN_LEFT;
         else
             m_nTwoStrAlign = PR_ALIGN_CENTER;
-        m_lTwoStrOffset = GetIniLong(ini1, name1, ini2, name2, "dwYOffset2", 0);
+        m_lTwoStrOffset     = GetIniLong(ini1, name1, ini2, name2, "dwYOffset2", 0);
         m_dwTwoStrForeColor = GetIniARGB(ini1, name1, ini2, name2, "dwForeColor2", 0xFFFFFFFF);
         m_dwTwoStrBackColor = GetIniARGB(ini1, name1, ini2, name2, "dwBackColor2", 0);
     }
 
-    ATTRIBUTES *pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pAttribute != nullptr)
-    {
+    ATTRIBUTES* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pAttribute != nullptr) {
         // get special technique name and color
-        m_dwSpecTechniqueARGB = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
-        const char *sTechnique = pAttribute->GetAttribute("SpecTechniqueName");
-        if (sTechnique != nullptr)
-        {
-            const auto len = strlen(sTechnique) + 1;
-            if ((m_sSpecTechniqueName = new char[len]) == nullptr)
-            {
-                throw std::runtime_error("Allocate memory error");
-            }
+        m_dwSpecTechniqueARGB  = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
+        char const* sTechnique = pAttribute->GetAttribute("SpecTechniqueName");
+        if (sTechnique != nullptr) {
+            auto const len = strlen(sTechnique) + 1;
+            if ((m_sSpecTechniqueName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
             memcpy(m_sSpecTechniqueName, sTechnique, len);
         }
         // get images quantity
-        size_t listSize = pAttribute->GetAttributeAsDword("ListSize", 0);
+        size_t listSize    = pAttribute->GetAttributeAsDword("ListSize", 0);
         m_nNotUsedQuantity = pAttribute->GetAttributeAsDword("NotUsed", 0);
         listSize += m_nNotUsedQuantity;
         // create images array
         m_Image.resize(listSize);
         m_nCurImage = pAttribute->GetAttributeAsDword("current", 0);
-        if (m_nCurImage >= m_Image.size() || m_nCurImage < 0)
-            m_nCurImage = 0;
+        if (m_nCurImage >= m_Image.size() || m_nCurImage < 0) m_nCurImage = 0;
         pAttribute->SetAttributeUseDword("current", m_nCurImage);
 
         // get textures
-        ATTRIBUTES *pA = pAttribute->GetAttributeClass("ImagesGroup");
-        if (pA != nullptr)
-        {
+        ATTRIBUTES* pA = pAttribute->GetAttributeClass("ImagesGroup");
+        if (pA != nullptr) {
             m_nGroupQuantity = pA->GetAttributesNum();
-            if (m_nGroupQuantity != 0)
-            {
-                m_nGroupTex = new int32_t[m_nGroupQuantity];
-                m_sGroupName = new char *[m_nGroupQuantity];
-                if (m_nGroupTex == nullptr || m_sGroupName == nullptr)
-                {
-                    throw std::runtime_error("allocate memory error");
-                }
-                for (i = 0; i < m_nGroupQuantity; i++)
-                {
-                    const char *stmp = pA->GetAttribute(i);
-                    if (stmp == nullptr)
-                        continue;
-                    const auto len = strlen(stmp) + 1;
+            if (m_nGroupQuantity != 0) {
+                m_nGroupTex  = new int32_t[m_nGroupQuantity];
+                m_sGroupName = new char*[m_nGroupQuantity];
+                if (m_nGroupTex == nullptr || m_sGroupName == nullptr) { throw std::runtime_error("allocate memory error"); }
+                for (i = 0; i < m_nGroupQuantity; i++) {
+                    char const* stmp = pA->GetAttribute(i);
+                    if (stmp == nullptr) continue;
+                    auto const len  = strlen(stmp) + 1;
                     m_sGroupName[i] = new char[len];
-                    if (m_sGroupName[i] == nullptr)
-                    {
-                        throw std::runtime_error("allocate memory error");
-                    }
+                    if (m_sGroupName[i] == nullptr) { throw std::runtime_error("allocate memory error"); }
                     memcpy(m_sGroupName[i], stmp, len);
                     m_nGroupTex[i] = pPictureService->GetTextureID(m_sGroupName[i]);
                 }
@@ -501,39 +469,30 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
         }
 
         // get bad picture
-        for (n = 0; n < m_nSlotsQnt; n++)
-        {
-            const char *sBadPict;
+        for (n = 0; n < m_nSlotsQnt; n++) {
+            char const* sBadPict;
             sprintf_s(param, "BadPicture%d", n + 1);
-            if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr)
-            {
+            if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr) {
                 m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
-                m_idBadPic[n] = -1;
-            }
-            else
-            {
+                m_idBadPic[n]     = -1;
+            } else {
                 sprintf_s(param, "BadTex%d", n + 1);
                 m_idBadTexture[n] = pAttribute->GetAttributeAsDword(param, -1);
-                if (m_idBadTexture[n] >= 0)
-                {
+                if (m_idBadTexture[n] >= 0) {
                     sprintf_s(param, "BadPic%d", n + 1);
-                    m_idBadPic[n] =
-                        pPictureService->GetImageNum(m_sGroupName[m_idBadTexture[n]], pAttribute->GetAttribute(param));
-                }
-                else
+                    m_idBadPic[n] = pPictureService->GetImageNum(m_sGroupName[m_idBadTexture[n]], pAttribute->GetAttribute(param));
+                } else
                     m_idBadPic[n] = -1;
-                if (m_idBadPic[n] == -1)
-                    m_idBadTexture[n] = -1;
+                if (m_idBadPic[n] == -1) m_idBadTexture[n] = -1;
             }
         }
 
         // get all scroll entity
-        for (i = 0; i < m_Image.size(); i++)
-        {
-            char attrName[256];
-            const char *sStringName;
+        for (i = 0; i < m_Image.size(); i++) {
+            char        attrName[256];
+            char const* sStringName;
             sprintf_s(attrName, "pic%d", i + 1);
-            ATTRIBUTES *pListEntity = pAttribute->GetAttributeClass(attrName);
+            ATTRIBUTES* pListEntity = pAttribute->GetAttributeClass(attrName);
 
             // Fill image descriptor by default value
             //------------------------------------------------------
@@ -542,57 +501,40 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
             m_Image[i].string2.clear();
 
             m_Image[i].slots.clear();
-            if (m_nSlotsQnt > 0)
-            {
-                m_Image[i].slots.resize(m_nSlotsQnt);
-            }
+            if (m_nSlotsQnt > 0) { m_Image[i].slots.resize(m_nSlotsQnt); }
 
-            if (pListEntity != nullptr)
-            {
+            if (pListEntity != nullptr) {
                 // set one string
-                if (m_bUseOneString)
-                {
+                if (m_bUseOneString) {
                     sStringName = pListEntity->GetAttribute("str1");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string1 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str1 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set two string
-                if (m_bUseTwoString)
-                {
+                if (m_bUseTwoString) {
                     sStringName = pListEntity->GetAttribute("str2");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string2 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str2 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set pictures
-                const char *tmpStr;
-                for (n = 0; n < m_nSlotsQnt; n++)
-                {
+                char const* tmpStr;
+                for (n = 0; n < m_nSlotsQnt; n++) {
                     sprintf_s(param, "name%d", n + 1);
                     tmpStr = pListEntity->GetAttribute(param);
-                    if (tmpStr != nullptr)
-                    {
-                        m_Image[i].slots[n].saveName = tmpStr;
-                    }
+                    if (tmpStr != nullptr) { m_Image[i].slots[n].saveName = tmpStr; }
                     sprintf_s(param, "tex%d", n + 1);
                     m_Image[i].slots[n].tex = pListEntity->GetAttributeAsDword(param, -1);
                     sprintf_s(param, "img%d", n + 1);
-                    if (m_Image[i].slots[n].tex != -1)
-                    {
-                        m_Image[i].slots[n].img = pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex],
-                                                                               pListEntity->GetAttribute(param));
-                    }
-                    else
-                    {
+                    if (m_Image[i].slots[n].tex != -1) {
+                        m_Image[i].slots[n].img =
+                            pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex], pListEntity->GetAttribute(param));
+                    } else {
                         m_Image[i].slots[n].img = -1;
                     }
                     sprintf_s(param, "spec%d", n + 1);
@@ -603,22 +545,18 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
     }
 
     // get border picture
-    m_nShowOrder = GetIniLong(ini1, name1, ini2, name2, "borderShowOrder", 100); // boredrShowUp
-    if (ReadIniString(ini1, name1, ini2, name2, "border", param, sizeof(param), ""))
-    {
-        tmpstr = GetSubStr(param, param1, sizeof(param1));
-        const auto len = strlen(param1) + 1;
-        if ((m_sBorderGroupName = new char[len]) == nullptr)
-            throw std::runtime_error("allocate memory error");
+    m_nShowOrder = GetIniLong(ini1, name1, ini2, name2, "borderShowOrder", 100);  // boredrShowUp
+    if (ReadIniString(ini1, name1, ini2, name2, "border", param, sizeof(param), "")) {
+        tmpstr         = GetSubStr(param, param1, sizeof(param1));
+        auto const len = strlen(param1) + 1;
+        if ((m_sBorderGroupName = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");
         memcpy(m_sBorderGroupName, param1, len);
-        m_texBorder = pPictureService->GetTextureID(m_sBorderGroupName);
+        m_texBorder      = pPictureService->GetTextureID(m_sBorderGroupName);
         m_nBorderPicture = pPictureService->GetImageNum(m_sBorderGroupName, tmpstr);
-        m_bShowBorder = m_texBorder != -1;
-    }
-    else
-    {
-        m_bShowBorder = false;
-        m_texBorder = -1;
+        m_bShowBorder    = m_texBorder != -1;
+    } else {
+        m_bShowBorder      = false;
+        m_texBorder        = -1;
         m_sBorderGroupName = nullptr;
     }
 
@@ -628,33 +566,29 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE *ini1, const char *name1, INIFILE *ini2, c
 
 float CXI_SCROLLIMAGE::ChangeDinamicParameters(float fXDelta)
 {
-    if (m_Image.empty())
-        return 0.f;
+    if (m_Image.empty()) return 0.f;
     int n;
 
-    float curScale;
-    bool bIncrement = true;
-    float curXCenter = m_pCenter.x + fXDelta;
-    int curImage = m_nCurImage;
-    const int32_t lrBorderDist = m_rect.right - m_pCenter.x;
-    const int32_t llBorderDist = m_pCenter.x - m_rect.left;
+    float         curScale;
+    bool          bIncrement   = true;
+    float         curXCenter   = m_pCenter.x + fXDelta;
+    int           curImage     = m_nCurImage;
+    int32_t const lrBorderDist = m_rect.right - m_pCenter.x;
+    int32_t const llBorderDist = m_pCenter.x - m_rect.left;
 
-    int newCurImage = m_nCurImage;
+    int   newCurImage   = m_nCurImage;
     float fNewCurCenter = curXCenter;
 
-    SCROLLEntity *pPrevScroll = nullptr;
-    SCROLLEntity *pScroll = m_pScroll;
+    SCROLLEntity* pPrevScroll = nullptr;
+    SCROLLEntity* pScroll     = m_pScroll;
 
     int32_t aDeleteImageIndex[200];
     int32_t nDeleteImageQuantity = 0;
 
-    while (true)
-    {
-        if (pScroll == nullptr)
-        {
+    while (true) {
+        if (pScroll == nullptr) {
             pScroll = new SCROLLEntity;
-            if (pScroll == nullptr)
-                throw std::runtime_error("allocate memory error");
+            if (pScroll == nullptr) throw std::runtime_error("allocate memory error");
 
             if (pPrevScroll == nullptr)
                 m_pScroll = pScroll;
@@ -664,57 +598,41 @@ float CXI_SCROLLIMAGE::ChangeDinamicParameters(float fXDelta)
             pScroll->next = nullptr;
         }
 
-        while (true)
-        {
+        while (true) {
             pScroll->imageNum = curImage;
-            for (n = 0; n < m_nSlotsQnt; n++)
-            {
-                if (!m_Image[curImage].slots[n].saveName.empty())
-                {
-                    if (m_Image[curImage].slots[n].ptex == -1)
-                    {
+            for (n = 0; n < m_nSlotsQnt; n++) {
+                if (!m_Image[curImage].slots[n].saveName.empty()) {
+                    if (m_Image[curImage].slots[n].ptex == -1) {
                         m_Image[curImage].slots[n].ptex = GetTexFromEvent(
-                            core.Event("GetInterfaceTexture", "sls", m_Image[curImage].slots[n].saveName.c_str(),
-                                       curImage, m_nodeName));
+                            core.Event("GetInterfaceTexture", "sls", m_Image[curImage].slots[n].saveName.c_str(), curImage, m_nodeName));
                         break;
                     }
                 }
             }
-            if (n == m_nSlotsQnt || m_Image[curImage].slots[n].ptex != -1)
-                break;
+            if (n == m_nSlotsQnt || m_Image[curImage].slots[n].ptex != -1) break;
 
             // delete current save from list
             m_Image.erase(m_Image.begin() + curImage);
             // move all already used pictures
-            for (SCROLLEntity *pSTmp = m_pScroll; pSTmp != nullptr && pSTmp != pScroll; pSTmp = pSTmp->next)
-                if (pSTmp->imageNum > curImage)
-                    pSTmp->imageNum--;
-            if (!bIncrement)
-                curImage--;
+            for (SCROLLEntity* pSTmp = m_pScroll; pSTmp != nullptr && pSTmp != pScroll; pSTmp = pSTmp->next)
+                if (pSTmp->imageNum > curImage) pSTmp->imageNum--;
+            if (!bIncrement) curImage--;
             //
-            if (curImage < 0 || curImage >= m_Image.size())
-                break;
+            if (curImage < 0 || curImage >= m_Image.size()) break;
         }
-        if (curImage < 0 || curImage >= m_Image.size())
-            break;
+        if (curImage < 0 || curImage >= m_Image.size()) break;
 
         // Calculate color
-        if (curXCenter >= m_pCenter.x)
-        {
+        if (curXCenter >= m_pCenter.x) {
             pScroll->colorMul = static_cast<float>(curXCenter - m_pCenter.x) / lrBorderDist;
-        }
-        else
-        {
+        } else {
             pScroll->colorMul = static_cast<float>(m_pCenter.x - curXCenter) / llBorderDist;
         }
 
         // Calculate current scale
-        if (curXCenter >= m_pCenter.x)
-        {
+        if (curXCenter >= m_pCenter.x) {
             curScale = 1.f - (curXCenter - m_pCenter.x) / lrBorderDist * (1.f - m_fScale);
-        }
-        else
-        {
+        } else {
             curScale = 1.f - (m_pCenter.x - curXCenter) / llBorderDist * (1.f - m_fScale);
         }
 
@@ -723,103 +641,82 @@ float CXI_SCROLLIMAGE::ChangeDinamicParameters(float fXDelta)
         pScroll->pCenter.x = curXCenter;
         pScroll->pCenter.y = static_cast<float>(m_pCenter.y);
 
-        float lpos = curXCenter - m_ImageSize.x * .5f;
-        const float rpos = curXCenter + m_ImageSize.x * .5f;
+        float       lpos = curXCenter - m_ImageSize.x * .5f;
+        float const rpos = curXCenter + m_ImageSize.x * .5f;
 
-        if (m_pCenter.x >= lpos && m_pCenter.x <= rpos)
-        {
-            newCurImage = curImage;
+        if (m_pCenter.x >= lpos && m_pCenter.x <= rpos) {
+            newCurImage   = curImage;
             fNewCurCenter = curXCenter;
         }
 
-        if (bIncrement && rpos > m_rect.right - m_lDelta) // end pass to right
+        if (bIncrement && rpos > m_rect.right - m_lDelta)  // end pass to right
         {
             // remove the next (unused texture)
             curImage++;
-            if (curImage >= m_Image.size())
-                curImage = 0;
+            if (curImage >= m_Image.size()) curImage = 0;
             aDeleteImageIndex[nDeleteImageQuantity++] = curImage;
             // continue displaying the next icon from the center
-            curImage = m_nCurImage;
+            curImage   = m_nCurImage;
             curXCenter = m_pCenter.x + fXDelta;
-            if (curXCenter >= m_pCenter.x)
-            {
+            if (curXCenter >= m_pCenter.x) {
                 curScale = 1.f - (curXCenter - m_pCenter.x) / lrBorderDist * (1.f - m_fScale);
-            }
-            else
-            {
+            } else {
                 curScale = 1.f - (m_pCenter.x - curXCenter) / llBorderDist * (1.f - m_fScale);
             }
-            lpos = curXCenter - m_ImageSize.x * .5f * curScale;
+            lpos       = curXCenter - m_ImageSize.x * .5f * curScale;
             bIncrement = false;
-        }
-        else if (!bIncrement && lpos < m_rect.left + m_lDelta) // end pass to left is all end
+        } else if (!bIncrement && lpos < m_rect.left + m_lDelta)  // end pass to left is all end
         {
             // remove the previous (unused texture)
             curImage--;
-            if (curImage < 0)
-                curImage = m_Image.size() - 1;
+            if (curImage < 0) curImage = m_Image.size() - 1;
             aDeleteImageIndex[nDeleteImageQuantity++] = curImage;
             break;
         }
 
         // next image
-        if (bIncrement)
-        {
+        if (bIncrement) {
             curImage++;
-            if (curImage >= m_Image.size())
-                curImage = 0;
+            if (curImage >= m_Image.size()) curImage = 0;
             curXCenter = rpos + m_lDelta + m_ImageSize.x * 0.5f;
-        }
-        else
-        {
+        } else {
             curImage--;
-            if (curImage < 0)
-                curImage = m_Image.size() - 1;
+            if (curImage < 0) curImage = m_Image.size() - 1;
             curXCenter = lpos - m_lDelta - m_ImageSize.x * 0.5f;
         }
 
         pPrevScroll = pScroll;
-        pScroll = pScroll->next;
+        pScroll     = pScroll->next;
     }
 
-    if (pScroll->next != nullptr)
-    {
-        SCROLLEntity *pScr = pScroll->next;
-        pScroll->next = nullptr;
-        while (pScr != nullptr)
-        {
+    if (pScroll->next != nullptr) {
+        SCROLLEntity* pScr = pScroll->next;
+        pScroll->next      = nullptr;
+        while (pScr != nullptr) {
             pScroll = pScr;
-            pScr = pScr->next;
+            pScr    = pScr->next;
             delete pScroll;
         }
     }
 
     int32_t i;
     pScroll = m_pScroll;
-    for (pScroll = m_pScroll; pScroll; pScroll = pScroll->next)
-    {
+    for (pScroll = m_pScroll; pScroll; pScroll = pScroll->next) {
         for (i = 0; i < nDeleteImageQuantity; i++)
-            if (aDeleteImageIndex[i] == pScroll->imageNum)
-                aDeleteImageIndex[i] = -1;
+            if (aDeleteImageIndex[i] == pScroll->imageNum) aDeleteImageIndex[i] = -1;
     }
-    for (i = 0; i < nDeleteImageQuantity; i++)
-    {
+    for (i = 0; i < nDeleteImageQuantity; i++) {
         curImage = aDeleteImageIndex[i];
-        if (curImage < 0)
-            continue;
-        for (n = 0; n < m_nSlotsQnt; n++)
-        {
-            if (!m_Image[curImage].slots[n].saveName.empty() && m_Image[curImage].slots[n].ptex != -1)
-            {
+        if (curImage < 0) continue;
+        for (n = 0; n < m_nSlotsQnt; n++) {
+            if (!m_Image[curImage].slots[n].saveName.empty() && m_Image[curImage].slots[n].ptex != -1) {
                 core.Event("DelInterfaceTexture", "ss", m_Image[curImage].slots[n].saveName.c_str(), m_nodeName);
                 m_Image[curImage].slots[n].ptex = -1;
             }
         }
     }
 
-    if (newCurImage != m_nCurImage)
-    {
+    if (newCurImage != m_nCurImage) {
         m_nCurImage = newCurImage;
         core.Event("ChangeSelectScrollImage", "sl", m_nodeName, m_nCurImage);
         return fNewCurCenter - m_pCenter.x - fXDelta;
@@ -835,13 +732,10 @@ void CXI_SCROLLIMAGE::ReleaseAll()
     STORM_DELETE(m_sSpecTechniqueName);
 
     if (m_idBadPic && m_idBadTexture)
-        for (i = 0; i < m_nSlotsQnt; i++)
-        {
-            if (m_idBadPic[i] == -1)
-            {
+        for (i = 0; i < m_nSlotsQnt; i++) {
+            if (m_idBadPic[i] == -1) {
                 TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
-            }
-            else
+            } else
                 m_idBadTexture[i] = -1;
             m_idBadPic[i] = -1;
         }
@@ -849,20 +743,15 @@ void CXI_SCROLLIMAGE::ReleaseAll()
     STORM_DELETE(m_idBadPic);
     STORM_DELETE(m_idBadTexture);
 
-    if (!m_Image.empty())
-    {
-        m_Image.clear();
-    }
+    if (!m_Image.empty()) { m_Image.clear(); }
 
-    while (m_pScroll != nullptr)
-    {
-        SCROLLEntity *rootScroll = m_pScroll;
-        m_pScroll = m_pScroll->next;
+    while (m_pScroll != nullptr) {
+        SCROLLEntity* rootScroll = m_pScroll;
+        m_pScroll                = m_pScroll->next;
         delete rootScroll;
     }
 
-    for (i = 0; i < m_nGroupQuantity; i++)
-    {
+    for (i = 0; i < m_nGroupQuantity; i++) {
         PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName[i], m_nGroupTex[i]);
         STORM_DELETE(m_sGroupName[i]);
     }
@@ -881,30 +770,25 @@ void CXI_SCROLLIMAGE::ReleaseAll()
     STORM_DELETE(m_pPicOffset);
 
     m_nGroupQuantity = 0;
-    m_nSlotsQnt = 0;
+    m_nSlotsQnt      = 0;
 }
 
 int CXI_SCROLLIMAGE::CommandExecute(int wActCode)
 {
     int i;
-    if (m_bUse && !m_Image.empty() && m_pScroll != nullptr)
-    {
-        if (m_bLockStatus)
-            return -1;
+    if (m_bUse && !m_Image.empty() && m_pScroll != nullptr) {
+        if (m_bLockStatus) return -1;
 
-        switch (wActCode)
-        {
+        switch (wActCode) {
         case ACTION_RIGHTSTEP:
         case ACTION_SPEEDRIGHT:
             i = GetRightQuantity();
-            if (i == 0)
-                break;
-            if (wActCode == ACTION_RIGHTSTEP)
-                i = 1;
-            m_bLockStatus = true;
-            m_bDoMove = true;
+            if (i == 0) break;
+            if (wActCode == ACTION_RIGHTSTEP) i = 1;
+            m_bLockStatus      = true;
+            m_bDoMove          = true;
             m_fCurrentDistance = 0.f;
-            m_fMoveDistance = GetShiftDistance(i);
+            m_fMoveDistance    = GetShiftDistance(i);
             if (wActCode == ACTION_SPEEDRIGHT)
                 m_fDeltaMove = -m_fDeltaMoveBase * m_nSpeedMul;
             else
@@ -914,14 +798,12 @@ int CXI_SCROLLIMAGE::CommandExecute(int wActCode)
         case ACTION_LEFTSTEP:
         case ACTION_SPEEDLEFT:
             i = GetLeftQuantity();
-            if (i == 0)
-                break;
-            if (wActCode == ACTION_LEFTSTEP)
-                i = 1;
-            m_bLockStatus = true;
-            m_bDoMove = true;
+            if (i == 0) break;
+            if (wActCode == ACTION_LEFTSTEP) i = 1;
+            m_bLockStatus      = true;
+            m_bDoMove          = true;
             m_fCurrentDistance = 0.f;
-            m_fMoveDistance = GetShiftDistance(-i);
+            m_fMoveDistance    = GetShiftDistance(-i);
             if (wActCode == ACTION_SPEEDLEFT)
                 m_fDeltaMove = m_fDeltaMoveBase * m_nSpeedMul;
             else
@@ -929,17 +811,14 @@ int CXI_SCROLLIMAGE::CommandExecute(int wActCode)
             break;
 
         case ACTION_MOUSECLICK:
-            if (IsCurrentNode())
-            {
+            if (IsCurrentNode()) {
                 i = FindClickedImageNum();
-                if (i == 0)
-                    return ACTION_ACTIVATE;
-                if (i == 10000)
-                    return -1;
-                m_bLockStatus = true;
-                m_bDoMove = true;
+                if (i == 0) return ACTION_ACTIVATE;
+                if (i == 10000) return -1;
+                m_bLockStatus      = true;
+                m_bDoMove          = true;
                 m_fCurrentDistance = 0.f;
-                m_fMoveDistance = GetShiftDistance(i);
+                m_fMoveDistance    = GetShiftDistance(i);
                 if (i > 0)
                     m_fDeltaMove = -m_fDeltaMoveBase * m_nSpeedMul;
                 else
@@ -953,21 +832,19 @@ int CXI_SCROLLIMAGE::CommandExecute(int wActCode)
 
 bool CXI_SCROLLIMAGE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable &&
-        m_bUse)
-    {
+    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bUse) {
         return true;
     }
 
     return false;
 }
 
-void CXI_SCROLLIMAGE::ChangePosition(XYRECT &rNewPos)
+void CXI_SCROLLIMAGE::ChangePosition(XYRECT& rNewPos)
 {
-    const int32_t nLeftOffset = rNewPos.left - m_rect.left;
-    const int32_t nTopOffset = rNewPos.top - m_rect.top;
-    const int32_t nRightOffset = rNewPos.right - m_rect.right;
-    const int32_t nBottomOffset = rNewPos.bottom - m_rect.bottom;
+    int32_t const nLeftOffset   = rNewPos.left - m_rect.left;
+    int32_t const nTopOffset    = rNewPos.top - m_rect.top;
+    int32_t const nRightOffset  = rNewPos.right - m_rect.right;
+    int32_t const nBottomOffset = rNewPos.bottom - m_rect.bottom;
 
     m_rAbsolutePosition.left += nLeftOffset;
     m_rAbsolutePosition.top += nTopOffset;
@@ -989,95 +866,81 @@ void CXI_SCROLLIMAGE::SaveParametersToIni()
     char pcWriteParam[2048];
 
     auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
-    if (!pIni)
-    {
+    if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
     // save position
-    sprintf_s(pcWriteParam, sizeof(pcWriteParam), "%d,%d,%d,%d", m_rAbsolutePosition.left, m_rAbsolutePosition.top,
-              m_rAbsolutePosition.right, m_rAbsolutePosition.bottom);
+    sprintf_s(
+        pcWriteParam,
+        sizeof(pcWriteParam),
+        "%d,%d,%d,%d",
+        m_rAbsolutePosition.left,
+        m_rAbsolutePosition.top,
+        m_rAbsolutePosition.right,
+        m_rAbsolutePosition.bottom);
     pIni->WriteString(m_nodeName, "position", pcWriteParam);
 }
 
 void CXI_SCROLLIMAGE::ChangeScroll(int nScrollItemNum)
 {
-    ATTRIBUTES *pAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pAttr != nullptr)
-    {
+    ATTRIBUTES* pAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pAttr != nullptr) {
         // check whether the whole list needs to be changed
-        if (nScrollItemNum == -1 || m_Image.size() != static_cast<int32_t>(pAttr->GetAttributeAsDword("NotUsed", 0) +
-                                                                           pAttr->GetAttributeAsDword("ListSize", 0)))
-        {
+        if (nScrollItemNum == -1
+            || m_Image.size()
+                != static_cast<int32_t>(pAttr->GetAttributeAsDword("NotUsed", 0) + pAttr->GetAttributeAsDword("ListSize", 0))) {
             RefreshScroll();
             return;
         }
 
         int nScrollLastNum;
-        if (nScrollItemNum != -1)
-        {
-            nScrollLastNum = nScrollItemNum + 1;
-        }
+        if (nScrollItemNum != -1) { nScrollLastNum = nScrollItemNum + 1; }
 
-        int i, n;
-        char sAttrName[256];
-        char param[256];
-        ATTRIBUTES *pAttribute;
-        const char *sStringName;
-        for (i = nScrollItemNum; i < nScrollLastNum; i++)
-        {
+        int         i, n;
+        char        sAttrName[256];
+        char        param[256];
+        ATTRIBUTES* pAttribute;
+        char const* sStringName;
+        for (i = nScrollItemNum; i < nScrollLastNum; i++) {
             m_Image[i].Clear();
 
             sprintf_s(sAttrName, "pic%d", i + 1);
             pAttribute = pAttr->GetAttributeClass(sAttrName);
 
-            if (pAttribute != nullptr)
-            {
+            if (pAttribute != nullptr) {
                 // set one string
-                if (m_bUseOneString)
-                {
+                if (m_bUseOneString) {
                     sStringName = pAttribute->GetAttribute("str1");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string1 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str1 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set two string
-                if (m_bUseTwoString)
-                {
+                if (m_bUseTwoString) {
                     sStringName = pAttribute->GetAttribute("str2");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string2 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str2 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set pictures
-                const char *tmpStr;
-                for (n = 0; n < m_nSlotsQnt; n++)
-                {
+                char const* tmpStr;
+                for (n = 0; n < m_nSlotsQnt; n++) {
                     sprintf_s(param, "name%d", n + 1);
                     tmpStr = pAttribute->GetAttribute(param);
-                    if (tmpStr != nullptr)
-                    {
-                        m_Image[i].slots[n].saveName = tmpStr;
-                    }
+                    if (tmpStr != nullptr) { m_Image[i].slots[n].saveName = tmpStr; }
                     sprintf_s(param, "tex%d", n + 1);
                     m_Image[i].slots[n].tex = pAttribute->GetAttributeAsDword(param, -1);
                     sprintf_s(param, "img%d", n + 1);
-                    if (m_Image[i].slots[n].tex != -1)
-                    {
-                        m_Image[i].slots[n].img = pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex],
-                                                                               pAttribute->GetAttribute(param));
-                    }
-                    else
-                    {
+                    if (m_Image[i].slots[n].tex != -1) {
+                        m_Image[i].slots[n].img =
+                            pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex], pAttribute->GetAttribute(param));
+                    } else {
                         m_Image[i].slots[n].img = -1;
                     }
                     sprintf_s(param, "spec%d", n + 1);
@@ -1087,73 +950,53 @@ void CXI_SCROLLIMAGE::ChangeScroll(int nScrollItemNum)
         }
     }
 
-    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity)
-        m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
-    if (m_nCurImage < 0)
-        m_nCurImage = 0;
-    ATTRIBUTES *pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pA != nullptr)
-    {
-        pA->SetAttributeUseDword("current", m_nCurImage);
-    }
+    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity) m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
+    if (m_nCurImage < 0) m_nCurImage = 0;
+    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pA != nullptr) { pA->SetAttributeUseDword("current", m_nCurImage); }
     ChangeDinamicParameters(0);
 }
 
 void CXI_SCROLLIMAGE::DeleteImage(int imgNum)
 {
-    if (imgNum < 0 || imgNum >= m_Image.size())
-        return;
-    if (m_Image.size() <= m_nNotUsedQuantity)
-        return;
+    if (imgNum < 0 || imgNum >= m_Image.size()) return;
+    if (m_Image.size() <= m_nNotUsedQuantity) return;
 
     m_Image.erase(m_Image.begin() + imgNum);
 
-    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity)
-        m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
-    if (m_nCurImage < 0)
-        m_nCurImage = 0;
-    ATTRIBUTES *pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pA != nullptr)
-    {
-        pA->SetAttributeUseDword("current", m_nCurImage);
-    }
+    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity) m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
+    if (m_nCurImage < 0) m_nCurImage = 0;
+    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pA != nullptr) { pA->SetAttributeUseDword("current", m_nCurImage); }
     ChangeDinamicParameters(0);
 }
 
 void CXI_SCROLLIMAGE::RefreshScroll()
 {
-    int i, n;
+    int  i, n;
     char param[256];
     // UpdateTexturesGroup();
 
     STORM_DELETE(m_sSpecTechniqueName);
 
-    for (i = 0; i < m_nSlotsQnt; i++)
-    {
-        if (m_idBadPic[i] == -1)
-        {
+    for (i = 0; i < m_nSlotsQnt; i++) {
+        if (m_idBadPic[i] == -1) {
             TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
-        }
-        else
+        } else
             m_idBadTexture[i] = -1;
         m_idBadPic[i] = -1;
     }
 
-    if (!m_Image.empty())
-    {
-        m_Image.clear();
-    }
+    if (!m_Image.empty()) { m_Image.clear(); }
 
-    while (m_pScroll != nullptr)
-    {
-        SCROLLEntity *rootScroll = m_pScroll;
-        m_pScroll = m_pScroll->next;
+    while (m_pScroll != nullptr) {
+        SCROLLEntity* rootScroll = m_pScroll;
+        m_pScroll                = m_pScroll->next;
         delete rootScroll;
     }
 
     // release old groups
-    for (i = 0; i < m_nGroupQuantity; i++)
-    {
+    for (i = 0; i < m_nGroupQuantity; i++) {
         PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName[i], m_nGroupTex[i]);
         STORM_DELETE(m_sGroupName[i]);
     }
@@ -1162,58 +1005,41 @@ void CXI_SCROLLIMAGE::RefreshScroll()
 
     m_nNotUsedQuantity = 0;
 
-    ATTRIBUTES *pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pAttribute != nullptr)
-    {
+    ATTRIBUTES* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pAttribute != nullptr) {
         // get special technique name and color
-        m_dwSpecTechniqueARGB = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
-        const char *sTechnique = pAttribute->GetAttribute("SpecTechniqueName");
-        if (sTechnique != nullptr)
-        {
-            const auto len = strlen(sTechnique) + 1;
-            if ((m_sSpecTechniqueName = new char[len]) == nullptr)
-            {
-                throw std::runtime_error("Allocate memory error");
-            }
+        m_dwSpecTechniqueARGB  = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
+        char const* sTechnique = pAttribute->GetAttribute("SpecTechniqueName");
+        if (sTechnique != nullptr) {
+            auto const len = strlen(sTechnique) + 1;
+            if ((m_sSpecTechniqueName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
             memcpy(m_sSpecTechniqueName, sTechnique, len);
         }
         // get images quantity
-        size_t listSize = pAttribute->GetAttributeAsDword("ListSize", 0);
+        size_t listSize    = pAttribute->GetAttributeAsDword("ListSize", 0);
         m_nNotUsedQuantity = pAttribute->GetAttributeAsDword("NotUsed", 0);
         listSize += m_nNotUsedQuantity;
         // create images array
         m_Image.resize(listSize);
         m_nCurImage = pAttribute->GetAttributeAsDword("current", 0);
-        if (m_nCurImage >= m_Image.size())
-            m_nCurImage = m_Image.size() - 1;
-        if (m_nCurImage < 0)
-            m_nCurImage = 0;
+        if (m_nCurImage >= m_Image.size()) m_nCurImage = m_Image.size() - 1;
+        if (m_nCurImage < 0) m_nCurImage = 0;
 
         // get textures
-        ATTRIBUTES *pA = pAttribute->GetAttributeClass("ImagesGroup");
-        if (pA != nullptr)
-        {
+        ATTRIBUTES* pA = pAttribute->GetAttributeClass("ImagesGroup");
+        if (pA != nullptr) {
             m_nGroupQuantity = pA->GetAttributesNum();
-            if (m_nGroupQuantity != 0)
-            {
+            if (m_nGroupQuantity != 0) {
                 // set new groups
-                m_nGroupTex = new int32_t[m_nGroupQuantity];
-                m_sGroupName = new char *[m_nGroupQuantity];
-                if (m_nGroupTex == nullptr || m_sGroupName == nullptr)
-                {
-                    throw std::runtime_error("allocate memory error");
-                }
-                for (i = 0; i < m_nGroupQuantity; i++)
-                {
-                    const char *stmp = pA->GetAttribute(i);
-                    if (stmp == nullptr)
-                        continue;
-                    const auto len = strlen(stmp) + 1;
+                m_nGroupTex  = new int32_t[m_nGroupQuantity];
+                m_sGroupName = new char*[m_nGroupQuantity];
+                if (m_nGroupTex == nullptr || m_sGroupName == nullptr) { throw std::runtime_error("allocate memory error"); }
+                for (i = 0; i < m_nGroupQuantity; i++) {
+                    char const* stmp = pA->GetAttribute(i);
+                    if (stmp == nullptr) continue;
+                    auto const len  = strlen(stmp) + 1;
                     m_sGroupName[i] = new char[len];
-                    if (m_sGroupName[i] == nullptr)
-                    {
-                        throw std::runtime_error("allocate memory error");
-                    }
+                    if (m_sGroupName[i] == nullptr) { throw std::runtime_error("allocate memory error"); }
                     memcpy(m_sGroupName[i], stmp, len);
                     m_nGroupTex[i] = pPictureService->GetTextureID(m_sGroupName[i]);
                 }
@@ -1221,39 +1047,30 @@ void CXI_SCROLLIMAGE::RefreshScroll()
         }
 
         // get bad picture
-        for (n = 0; n < m_nSlotsQnt; n++)
-        {
-            const char *sBadPict;
+        for (n = 0; n < m_nSlotsQnt; n++) {
+            char const* sBadPict;
             sprintf_s(param, "BadPicture%d", n + 1);
-            if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr)
-            {
+            if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr) {
                 m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
-                m_idBadPic[n] = -1;
-            }
-            else
-            {
+                m_idBadPic[n]     = -1;
+            } else {
                 sprintf_s(param, "BadTex%d", n + 1);
                 m_idBadTexture[n] = pAttribute->GetAttributeAsDword(param, -1);
-                if (m_idBadTexture[n] >= 0)
-                {
+                if (m_idBadTexture[n] >= 0) {
                     sprintf_s(param, "BadPic%d", n + 1);
-                    m_idBadPic[n] =
-                        pPictureService->GetImageNum(m_sGroupName[m_idBadTexture[n]], pAttribute->GetAttribute(param));
-                }
-                else
+                    m_idBadPic[n] = pPictureService->GetImageNum(m_sGroupName[m_idBadTexture[n]], pAttribute->GetAttribute(param));
+                } else
                     m_idBadPic[n] = -1;
-                if (m_idBadPic[n] == -1)
-                    m_idBadTexture[n] = -1;
+                if (m_idBadPic[n] == -1) m_idBadTexture[n] = -1;
             }
         }
 
         // get all scroll entity
-        for (i = 0; i < m_Image.size(); i++)
-        {
-            char attrName[256];
-            const char *sStringName;
+        for (i = 0; i < m_Image.size(); i++) {
+            char        attrName[256];
+            char const* sStringName;
             sprintf_s(attrName, "pic%d", i + 1);
-            ATTRIBUTES *pListEntity = pAttribute->GetAttributeClass(attrName);
+            ATTRIBUTES* pListEntity = pAttribute->GetAttributeClass(attrName);
 
             // Fill image descriptor by default value
             //------------------------------------------------------
@@ -1262,57 +1079,40 @@ void CXI_SCROLLIMAGE::RefreshScroll()
             m_Image[i].string2.clear();
 
             m_Image[i].slots.clear();
-            if (m_nSlotsQnt > 0)
-            {
-                m_Image[i].slots.resize(m_nSlotsQnt);
-            }
+            if (m_nSlotsQnt > 0) { m_Image[i].slots.resize(m_nSlotsQnt); }
 
-            if (pListEntity != nullptr)
-            {
+            if (pListEntity != nullptr) {
                 // set one string
-                if (m_bUseOneString)
-                {
+                if (m_bUseOneString) {
                     sStringName = pListEntity->GetAttribute("str1");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string1 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str1 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set two string
-                if (m_bUseTwoString)
-                {
+                if (m_bUseTwoString) {
                     sStringName = pListEntity->GetAttribute("str2");
-                    if (sStringName != nullptr && sStringName[0] == '#')
-                    {
+                    if (sStringName != nullptr && sStringName[0] == '#') {
                         m_Image[i].string2 = std::string_view(sStringName).substr(1);
-                    }
-                    else
+                    } else
                         m_Image[i].str2 = pStringService->GetStringNum(sStringName);
                 }
 
                 // set pictures
-                const char *tmpStr;
-                for (n = 0; n < m_nSlotsQnt; n++)
-                {
+                char const* tmpStr;
+                for (n = 0; n < m_nSlotsQnt; n++) {
                     sprintf_s(param, "name%d", n + 1);
                     tmpStr = pListEntity->GetAttribute(param);
-                    if (tmpStr != nullptr)
-                    {
-                        m_Image[i].slots[n].saveName = tmpStr;
-                    }
+                    if (tmpStr != nullptr) { m_Image[i].slots[n].saveName = tmpStr; }
                     sprintf_s(param, "tex%d", n + 1);
                     m_Image[i].slots[n].tex = pListEntity->GetAttributeAsDword(param, -1);
                     sprintf_s(param, "img%d", n + 1);
-                    if (m_Image[i].slots[n].tex != -1)
-                    {
-                        m_Image[i].slots[n].img = pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex],
-                                                                               pListEntity->GetAttribute(param));
-                    }
-                    else
-                    {
+                    if (m_Image[i].slots[n].tex != -1) {
+                        m_Image[i].slots[n].img =
+                            pPictureService->GetImageNum(m_sGroupName[m_Image[i].slots[n].tex], pListEntity->GetAttribute(param));
+                    } else {
                         m_Image[i].slots[n].img = -1;
                     }
                     sprintf_s(param, "spec%d", n + 1);
@@ -1322,15 +1122,10 @@ void CXI_SCROLLIMAGE::RefreshScroll()
         }
     }
 
-    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity)
-        m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
-    if (m_nCurImage < 0)
-        m_nCurImage = 0;
-    ATTRIBUTES *pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pA != nullptr)
-    {
-        pA->SetAttributeUseDword("current", m_nCurImage);
-    }
+    if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity) m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
+    if (m_nCurImage < 0) m_nCurImage = 0;
+    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pA != nullptr) { pA->SetAttributeUseDword("current", m_nCurImage); }
 
     ChangeDinamicParameters(0);
 }
@@ -1341,16 +1136,15 @@ int CXI_SCROLLIMAGE::FindClickedImageNum() const
     int i = 0;
 
     const FXYPOINT fp = ptrOwner->GetMousePoint();
-    SCROLLEntity *pscroll;
-    for (pscroll = m_pScroll; pscroll != nullptr; pscroll = pscroll->next)
-    {
-        float flx = .5f * pscroll->fCurScale * m_ImageSize.x;
-        const float frx = pscroll->pCenter.x + flx;
-        flx = pscroll->pCenter.x - flx;
+    SCROLLEntity*  pscroll;
+    for (pscroll = m_pScroll; pscroll != nullptr; pscroll = pscroll->next) {
+        float       flx = .5f * pscroll->fCurScale * m_ImageSize.x;
+        float const frx = pscroll->pCenter.x + flx;
+        flx             = pscroll->pCenter.x - flx;
 
-        float fty = .5f * pscroll->fCurScale * m_ImageSize.y;
-        const float fby = pscroll->pCenter.y + fty;
-        fty = pscroll->pCenter.y - fty;
+        float       fty = .5f * pscroll->fCurScale * m_ImageSize.y;
+        float const fby = pscroll->pCenter.y + fty;
+        fty             = pscroll->pCenter.y - fty;
 
         if (pscroll->pCenter.x >= m_pCenter.x)
             i++;
@@ -1359,122 +1153,95 @@ int CXI_SCROLLIMAGE::FindClickedImageNum() const
         else
             i--;
 
-        if (fp.x >= flx && fp.x <= frx && fp.y >= fty && fp.y <= fby)
-            break;
+        if (fp.x >= flx && fp.x <= frx && fp.y >= fty && fp.y <= fby) break;
     }
 
-    if (pscroll == nullptr)
-        return 10000;
-    for (n = 0; n < m_nSlotsQnt; n++)
-    {
+    if (pscroll == nullptr) return 10000;
+    for (n = 0; n < m_nSlotsQnt; n++) {
         /*        if( m_Image[pscroll->imageNum].img[n]!=-1 ||
               m_Image[pscroll->imageNum].saveName!=null ) break;*/
-        if (m_Image[pscroll->imageNum].slots[n].tex != -1 || m_Image[pscroll->imageNum].slots[n].ptex != -1 ||
-            !m_Image[pscroll->imageNum].slots[n].saveName.empty())
+        if (m_Image[pscroll->imageNum].slots[n].tex != -1 || m_Image[pscroll->imageNum].slots[n].ptex != -1
+            || !m_Image[pscroll->imageNum].slots[n].saveName.empty())
             break;
     }
-    if (n >= m_nSlotsQnt)
-        return 10000;
-    if (i < 0)
-        return i;
-    if (i == 0)
-        return 0;
+    if (n >= m_nSlotsQnt) return 10000;
+    if (i < 0) return i;
+    if (i == 0) return 0;
     return i - 1;
 }
 
 int CXI_SCROLLIMAGE::GetRightQuantity() const
 {
-    if (m_pScroll == nullptr || m_Image.empty())
-        return 0;
+    if (m_pScroll == nullptr || m_Image.empty()) return 0;
     int q = 0;
-    for (SCROLLEntity *pscr = m_pScroll; pscr != nullptr; pscr = pscr->next)
+    for (SCROLLEntity* pscr = m_pScroll; pscr != nullptr; pscr = pscr->next)
         q++;
 
     int i = m_pScroll->imageNum;
     int n;
-    for (n = 0; n < q; n++)
-    {
+    for (n = 0; n < q; n++) {
         int j;
-        for (j = 0; j < m_nSlotsQnt; j++)
-        {
-            if (m_Image[i].slots[j].img != -1 || !m_Image[i].slots[j].saveName.empty())
-                break;
+        for (j = 0; j < m_nSlotsQnt; j++) {
+            if (m_Image[i].slots[j].img != -1 || !m_Image[i].slots[j].saveName.empty()) break;
         }
-        if (j >= m_nSlotsQnt)
-            break;
+        if (j >= m_nSlotsQnt) break;
         i++;
-        if (i >= m_Image.size())
-            i = 0;
-        if (i == m_pScroll->imageNum)
-            break;
+        if (i >= m_Image.size()) i = 0;
+        if (i == m_pScroll->imageNum) break;
     }
-    if (n == 0)
-        return 0;
+    if (n == 0) return 0;
     return n - 1;
 }
 
 int CXI_SCROLLIMAGE::GetLeftQuantity() const
 {
-    if (m_pScroll == nullptr || m_Image.empty())
-        return 0;
+    if (m_pScroll == nullptr || m_Image.empty()) return 0;
     int q = 0;
-    for (SCROLLEntity *pscr = m_pScroll; pscr != nullptr; pscr = pscr->next)
+    for (SCROLLEntity* pscr = m_pScroll; pscr != nullptr; pscr = pscr->next)
         q++;
 
     int i = m_pScroll->imageNum;
     int n;
-    for (n = 0; n < q; n++)
-    {
+    for (n = 0; n < q; n++) {
         int j;
-        for (j = 0; j < m_nSlotsQnt; j++)
-        {
-            if (m_Image[i].slots[j].img != -1 || !m_Image[i].slots[j].saveName.empty())
-                break;
+        for (j = 0; j < m_nSlotsQnt; j++) {
+            if (m_Image[i].slots[j].img != -1 || !m_Image[i].slots[j].saveName.empty()) break;
         }
-        if (j >= m_nSlotsQnt)
-            break;
+        if (j >= m_nSlotsQnt) break;
         i--;
-        if (i < 0)
-            i = m_Image.size() - 1;
-        if (i == m_pScroll->imageNum)
-            break;
+        if (i < 0) i = m_Image.size() - 1;
+        if (i == m_pScroll->imageNum) break;
     }
-    if (n == 0)
-        return 0;
+    if (n == 0) return 0;
     return n - 1;
 }
 
 float CXI_SCROLLIMAGE::GetShiftDistance(int shiftIdx) const
 {
-    int i = 0;
-    const int n = shiftIdx < 0 ? -shiftIdx : shiftIdx;
+    int       i = 0;
+    int const n = shiftIdx < 0 ? -shiftIdx : shiftIdx;
 
-    bool bNoFindRight = true;
-    auto fright = static_cast<float>(m_pCenter.x);
-    SCROLLEntity *pprev = m_pScroll;
-    SCROLLEntity *pscr;
-    for (pscr = m_pScroll; pscr != nullptr; pscr = pscr->next)
-    {
+    bool          bNoFindRight = true;
+    auto          fright       = static_cast<float>(m_pCenter.x);
+    SCROLLEntity* pprev        = m_pScroll;
+    SCROLLEntity* pscr;
+    for (pscr = m_pScroll; pscr != nullptr; pscr = pscr->next) {
         if (pscr->pCenter.x >= m_pCenter.x)
             pprev = pscr;
-        else if (bNoFindRight)
-        {
+        else if (bNoFindRight) {
             bNoFindRight = false;
-            fright = pprev->pCenter.x;
+            fright       = pprev->pCenter.x;
         }
-        if (i == n)
-            break;
+        if (i == n) break;
         i++;
     }
 
-    if (pscr != nullptr)
-    {
+    if (pscr != nullptr) {
         if (bNoFindRight)
             fright -= pscr->pCenter.x;
         else
             fright = pscr->pCenter.x - fright;
-        if (shiftIdx < 0)
-            return -fright;
+        if (shiftIdx < 0) return -fright;
         return fright;
     }
     return 0.f;
@@ -1484,9 +1251,9 @@ XYRECT CXI_SCROLLIMAGE::GetCursorRect()
 {
     XYRECT retVal;
 
-    retVal.left = m_pCenter.x - m_ImageSize.x / 2;
-    retVal.top = m_pCenter.y - m_ImageSize.y / 2;
-    retVal.right = m_pCenter.x + m_ImageSize.x / 2;
+    retVal.left   = m_pCenter.x - m_ImageSize.x / 2;
+    retVal.top    = m_pCenter.y - m_ImageSize.y / 2;
+    retVal.right  = m_pCenter.x + m_ImageSize.x / 2;
     retVal.bottom = m_pCenter.y + m_ImageSize.y / 2;
 
     return retVal;
@@ -1497,61 +1264,46 @@ void CXI_SCROLLIMAGE::UpdateTexturesGroup()
     // m_sGroupName m_nGroupTex m_nGroupQuantity
     int i;
 
-    char **pPrevGroup = m_sGroupName;
-    int32_t *prevTex = m_nGroupTex;
-    const int nPrevQ = m_nGroupQuantity;
+    char**    pPrevGroup = m_sGroupName;
+    int32_t*  prevTex    = m_nGroupTex;
+    int const nPrevQ     = m_nGroupQuantity;
 
     // get textures
-    ATTRIBUTES *pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-    if (pAttribute == nullptr)
-        return;
+    ATTRIBUTES* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    if (pAttribute == nullptr) return;
 
-    ATTRIBUTES *pA = pAttribute->GetAttributeClass("ImagesGroup");
-    if (pA != nullptr)
-    {
+    ATTRIBUTES* pA = pAttribute->GetAttributeClass("ImagesGroup");
+    if (pA != nullptr) {
         m_nGroupQuantity = pA->GetAttributesNum();
-        if (m_nGroupQuantity != 0)
-        {
-            m_nGroupTex = new int32_t[m_nGroupQuantity];
-            m_sGroupName = new char *[m_nGroupQuantity];
-            if (m_nGroupTex == nullptr || m_sGroupName == nullptr)
-            {
-                throw std::runtime_error("allocate memory error");
-            }
-            for (i = 0; i < m_nGroupQuantity; i++)
-            {
-                const char *stmp = pA->GetAttribute(i);
-                if (stmp == nullptr)
-                {
+        if (m_nGroupQuantity != 0) {
+            m_nGroupTex  = new int32_t[m_nGroupQuantity];
+            m_sGroupName = new char*[m_nGroupQuantity];
+            if (m_nGroupTex == nullptr || m_sGroupName == nullptr) { throw std::runtime_error("allocate memory error"); }
+            for (i = 0; i < m_nGroupQuantity; i++) {
+                char const* stmp = pA->GetAttribute(i);
+                if (stmp == nullptr) {
                     m_sGroupName[i] = nullptr;
-                    m_nGroupTex[i] = -1;
+                    m_nGroupTex[i]  = -1;
                     continue;
                 }
 
-                const int itmp = FindTexGroupFromOld(pPrevGroup, stmp, nPrevQ);
-                if (itmp != -1)
-                {
-                    m_sGroupName[i] = pPrevGroup[itmp];
-                    m_nGroupTex[i] = prevTex[itmp];
+                int const itmp = FindTexGroupFromOld(pPrevGroup, stmp, nPrevQ);
+                if (itmp != -1) {
+                    m_sGroupName[i]  = pPrevGroup[itmp];
+                    m_nGroupTex[i]   = prevTex[itmp];
                     pPrevGroup[itmp] = nullptr;
-                    prevTex[itmp] = -1;
-                }
-                else
-                {
-                    const auto len = strlen(stmp) + 1;
+                    prevTex[itmp]    = -1;
+                } else {
+                    auto const len  = strlen(stmp) + 1;
                     m_sGroupName[i] = new char[len];
-                    if (m_sGroupName[i] == nullptr)
-                    {
-                        throw std::runtime_error("allocate memory error");
-                    }
+                    if (m_sGroupName[i] == nullptr) { throw std::runtime_error("allocate memory error"); }
                     memcpy(m_sGroupName[i], stmp, len);
                     m_nGroupTex[i] = pPictureService->GetTextureID(m_sGroupName[i]);
                 }
             }
 
             // delete old groups
-            for (i = 0; i < nPrevQ; i++)
-            {
+            for (i = 0; i < nPrevQ; i++) {
                 PICTURE_TEXTURE_RELEASE(pPictureService, pPrevGroup[i], prevTex[i]);
                 STORM_DELETE(pPrevGroup[i]);
             }
@@ -1561,14 +1313,11 @@ void CXI_SCROLLIMAGE::UpdateTexturesGroup()
     }
 }
 
-int CXI_SCROLLIMAGE::FindTexGroupFromOld(char **pGroupList, const char *groupName, int listSize)
+int CXI_SCROLLIMAGE::FindTexGroupFromOld(char** pGroupList, char const* groupName, int listSize)
 {
-    if (pGroupList == nullptr || groupName == nullptr)
-        return -1;
-    for (int i = 0; i < listSize; i++)
-    {
-        if (pGroupList[i] != nullptr && storm::iEquals(pGroupList[i], groupName))
-            return i;
+    if (pGroupList == nullptr || groupName == nullptr) return -1;
+    for (int i = 0; i < listSize; i++) {
+        if (pGroupList[i] != nullptr && storm::iEquals(pGroupList[i], groupName)) return i;
     }
     return -1;
 }
@@ -1583,35 +1332,28 @@ void CXI_SCROLLIMAGE::IMAGEDESCRIBE::Clear()
     string2.clear();
 }
 
-uint32_t CXI_SCROLLIMAGE::MessageProc(int32_t msgcode, MESSAGE &message)
+uint32_t CXI_SCROLLIMAGE::MessageProc(int32_t msgcode, MESSAGE& message)
 {
-    switch (msgcode)
-    {
-    case 0: // enable / disable display of the frame
+    switch (msgcode) {
+    case 0:  // enable / disable display of the frame
         m_bShowBorder = message.Long() != 0;
         break;
-    case 1: // set new current picture
+    case 1:  // set new current picture
     {
         m_nCurImage = message.Long();
-        if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity)
-            m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
-        if (m_nCurImage < 0)
-            m_nCurImage = 0;
+        if (m_nCurImage >= m_Image.size() - m_nNotUsedQuantity) m_nCurImage = m_Image.size() - m_nNotUsedQuantity - 1;
+        if (m_nCurImage < 0) m_nCurImage = 0;
 
         m_bLockStatus = false;
-        m_bDoMove = false;
+        m_bDoMove     = false;
 
         // Set new current image
-        ATTRIBUTES *tmpAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
-        if (tmpAttr != nullptr)
-            tmpAttr->SetAttributeUseDword("current", m_nCurImage);
+        ATTRIBUTES* tmpAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+        if (tmpAttr != nullptr) tmpAttr->SetAttributeUseDword("current", m_nCurImage);
 
         ChangeDinamicParameters(0);
-    }
-    break;
-    case 2:
-        return GetMousePointedPictureNum();
-        break;
+    } break;
+    case 2: return GetMousePointedPictureNum(); break;
     }
 
     return 0;
@@ -1620,36 +1362,26 @@ uint32_t CXI_SCROLLIMAGE::MessageProc(int32_t msgcode, MESSAGE &message)
 int32_t CXI_SCROLLIMAGE::GetMousePointedPictureNum() const
 {
     const FXYPOINT mp = ptrOwner->GetMousePoint();
-    if (mp.x < m_rect.left || mp.x > m_rect.right || mp.y < m_rect.top || mp.y > m_rect.bottom)
-    {
-        return -1;
-    }
+    if (mp.x < m_rect.left || mp.x > m_rect.right || mp.y < m_rect.top || mp.y > m_rect.bottom) { return -1; }
 
-    const float curXCenter = m_pScroll ? m_pScroll->pCenter.x : (m_rect.left + m_rect.right) / 2;
-    int32_t n = 0;
-    if (mp.x < curXCenter)
-    {
+    float const curXCenter = m_pScroll ? m_pScroll->pCenter.x : (m_rect.left + m_rect.right) / 2;
+    int32_t     n          = 0;
+    if (mp.x < curXCenter) {
         // number reduction count
         float fLeft = curXCenter - m_ImageSize.x * 0.5f;
-        for (n = 0; mp.x < fLeft; n--)
-        {
+        for (n = 0; mp.x < fLeft; n--) {
             fLeft -= m_lDelta + m_ImageSize.x;
         }
-    }
-    else
-    {
+    } else {
         // count to increase the number
         float fRight = curXCenter + m_ImageSize.x * 0.5f;
-        for (n = 0; mp.x > fRight; n++)
-        {
+        for (n = 0; mp.x > fRight; n++) {
             fRight += m_lDelta + m_ImageSize.x;
         }
     }
 
     n += m_nCurImage;
-    if (n >= m_Image.size())
-        n -= m_Image.size();
-    if (n < 0)
-        n += m_Image.size();
+    if (n >= m_Image.size()) n -= m_Image.size();
+    if (n < 0) n += m_Image.size();
     return n;
 }

@@ -1,27 +1,27 @@
 #pragma once
 
-#include <windows.h>
 #include <vector>
+
+#include <windows.h>
 
 class SDBG_STATICLIST
 {
     std::vector<HWND> hOwn;
-    HWND hMain;
-    int32_t nLines;
+    HWND              hMain;
+    int32_t           nLines;
 
-  public:
+public:
     SDBG_STATICLIST()
     {
-        hMain = nullptr;
+        hMain  = nullptr;
         nLines = 0;
     };
 
-    ~SDBG_STATICLIST(){};
+    ~SDBG_STATICLIST() {};
 
     bool Init(int32_t lines, RECT rParent, RECT rChild, HINSTANCE hInstance, HWND _hmain)
     {
-        if (lines == 0)
-            return false;
+        if (lines == 0) return false;
 
         hMain = _hmain;
 
@@ -29,12 +29,20 @@ class SDBG_STATICLIST
         int32_t height = (rChild.bottom - rChild.top) / lines;
         int32_t line_y = rChild.top;
 
-        for (int32_t n = 0; n < lines; n++)
-        {
-            hOwn[n] = CreateWindow("STATIC", "", WS_CHILD | WS_VISIBLE | WS_BORDER, rChild.left, line_y,
-                                   rChild.right - rChild.left, height, hMain, NULL, hInstance, NULL);
-            if (hOwn[n] == nullptr)
-            {
+        for (int32_t n = 0; n < lines; n++) {
+            hOwn[n] = CreateWindow(
+                "STATIC",
+                "",
+                WS_CHILD | WS_VISIBLE | WS_BORDER,
+                rChild.left,
+                line_y,
+                rChild.right - rChild.left,
+                height,
+                hMain,
+                NULL,
+                hInstance,
+                NULL);
+            if (hOwn[n] == nullptr) {
                 lines = n;
                 return false;
             }
@@ -44,10 +52,9 @@ class SDBG_STATICLIST
         return true;
     };
 
-    void SetText(int32_t n, const char *pText)
+    void SetText(int32_t n, char const* pText)
     {
-        if (n >= nLines)
-            return;
+        if (n >= nLines) return;
         SetWindowText(hOwn[n], pText);
         ShowWindow(hOwn[n], SW_NORMAL);
     }

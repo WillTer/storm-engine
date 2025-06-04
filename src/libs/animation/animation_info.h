@@ -10,39 +10,41 @@
 
 #pragma once
 
-#include "action_info.h"
-#include "bone.h"
-#include <libs/util/storm_assert.h>
 #include <string>
 #include <vector>
+
+#include <libs/util/storm_assert.h>
+
+#include "action_info.h"
+#include "bone.h"
 
 class AnimationInfo final
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
-    AnimationInfo(const char *animationName);
+public:
+    AnimationInfo(char const* animationName);
     ~AnimationInfo();
     // Set the number of frames in the animation
     void SetNumFrames(int32_t _numFrames);
     // Create bones
     void CreateBones(int32_t numbones);
     // Create action
-    ActionInfo *AddAction(const char *anctionName, int32_t startframe, int32_t endframe);
+    ActionInfo* AddAction(char const* anctionName, int32_t startframe, int32_t endframe);
     // Set execution speed
     void SetFPS(float _fps);
 
     // --------------------------------------------------------------------------------------------
     // Working with animation
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     // Number of bones
     int32_t NumBones();
     // Access to the bone
-    Bone &GetBone(int32_t iBone);
+    Bone& GetBone(int32_t iBone);
     // Compare with current name
-    bool operator==(const char *animationName);
+    bool operator==(char const* animationName);
     // Increment reference count
     void AddRef();
     // Decrement reference count
@@ -52,34 +54,34 @@ class AnimationInfo final
     // Get downtime
     int32_t GetDowntime();
     // Get animation name
-    const char *GetName();
+    char const* GetName();
     // Find action by name
-    ActionInfo *FindAction(const char *actionName);
+    ActionInfo* FindAction(char const* actionName);
     // Get animation time
     int32_t GetAniNumFrames();
     // Access to user data
-    std::unordered_map<std::string, std::string> &GetUserData();
+    std::unordered_map<std::string, std::string>& GetUserData();
     // Get animation speed
     float GetFPS();
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    char name[64]; // Animation name
+private:
+    char name[64];  // Animation name
 
-    int32_t numFrames; // The number of frames in the entire animation
-    float fps;         // Frames per second
+    int32_t numFrames;  // The number of frames in the entire animation
+    float   fps;        // Frames per second
 
-    Bone *bone;       // Bones with animation keys
-    int32_t numBones; // The number of bones in the skeleton
+    Bone*   bone;      // Bones with animation keys
+    int32_t numBones;  // The number of bones in the skeleton
 
-    std::vector<ActionInfo> actions; // Actions
+    std::vector<ActionInfo> actions;  // Actions
 
-    int32_t refCounter; // Reference counter for this animation
-    int32_t downtime;   // Downtime
+    int32_t refCounter;  // Reference counter for this animation
+    int32_t downtime;    // Downtime
 
-    std::unordered_map<std::string, std::string> userData; // User data
+    std::unordered_map<std::string, std::string> userData;  // User data
 };
 
 //============================================================================================
@@ -89,18 +91,15 @@ class AnimationInfo final
 // Set the number of frames in the animation
 inline void AnimationInfo::SetNumFrames(int32_t _numFrames)
 {
-    if (_numFrames < 0)
-        _numFrames = 0;
+    if (_numFrames < 0) _numFrames = 0;
     numFrames = _numFrames;
 }
 
 // Set execution speed
 inline void AnimationInfo::SetFPS(float _fps)
 {
-    if (_fps < 0.0f)
-        fps = 0.0f;
-    if (_fps > 1000000.0f)
-        fps = 1000000.0f;
+    if (_fps < 0.0f) fps = 0.0f;
+    if (_fps > 1000000.0f) fps = 1000000.0f;
     fps = _fps;
 }
 
@@ -111,7 +110,7 @@ inline int32_t AnimationInfo::NumBones()
 }
 
 // Access to the bone
-inline Bone &AnimationInfo::GetBone(int32_t iBone)
+inline Bone& AnimationInfo::GetBone(int32_t iBone)
 {
     Assert(iBone >= 0 && iBone < numBones);
     return bone[iBone];
@@ -133,16 +132,12 @@ inline void AnimationInfo::RelRef()
 // Add downtime
 inline void AnimationInfo::AddDowntime(int32_t dltTime)
 {
-    if (refCounter == 0)
-    {
-        if (dltTime <= 10)
-            dltTime = 10;
+    if (refCounter == 0) {
+        if (dltTime <= 10) dltTime = 10;
         downtime += dltTime;
-    }
-    else
+    } else
         downtime = 0;
-    if (downtime < 0)
-        downtime = 0;
+    if (downtime < 0) downtime = 0;
 }
 
 // Get downtime
@@ -152,7 +147,7 @@ inline int32_t AnimationInfo::GetDowntime()
 }
 
 // Get animation name
-inline const char *AnimationInfo::GetName()
+inline char const* AnimationInfo::GetName()
 {
     return name;
 }
@@ -164,7 +159,7 @@ inline int32_t AnimationInfo::GetAniNumFrames()
 }
 
 // Access to user data
-inline std::unordered_map<std::string, std::string> &AnimationInfo::GetUserData()
+inline std::unordered_map<std::string, std::string>& AnimationInfo::GetUserData()
 {
     return userData;
 }

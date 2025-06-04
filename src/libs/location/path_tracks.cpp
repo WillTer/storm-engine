@@ -9,66 +9,61 @@
 #include "path_tracks.h"
 
 #include <libs/core/core.h>
-
-#include "camera_tracks_file.h"
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
 
+#include "camera_tracks_file.h"
 
 //============================================================================================
 
 PathTracks::PathTracks()
 {
-    point = nullptr;
+    point     = nullptr;
     numPoints = 0;
 }
 
 PathTracks::~PathTracks()
 {
     delete point;
-    point = nullptr;
+    point     = nullptr;
     numPoints = 0;
 }
 
 //============================================================================================
 
 // Upload track to PathTracks
-bool PathTracks::Load(const char *fileName)
+bool PathTracks::Load(char const* fileName)
 {
     // Loading the file into memory
     Assert(sizeof(AntFileTrackElement) == sizeof(Point));
 
     delete point;
-    point = nullptr;
+    point     = nullptr;
     numPoints = 0;
 
-    char *data = nullptr;
+    char*    data = nullptr;
     uint32_t size = 0;
-    if (fio->LoadFile(fileName, &data, &size) == FALSE || !data)
-    {
+    if (fio->LoadFile(fileName, &data, &size) == FALSE || !data) {
         core.Trace("Camera tracks file %s not loaded...", fileName);
         return false;
     }
     // Checking the title
-    if (((AntFileHeader *)data)->id != ANTFILE_ID)
-    {
+    if (((AntFileHeader*)data)->id != ANTFILE_ID) {
         core.Trace("Camera tracks file %s is invalidate...", fileName);
         delete data;
         return false;
     }
-    if (((AntFileHeader *)data)->ver != ANTFILE_VER)
-    {
+    if (((AntFileHeader*)data)->ver != ANTFILE_VER) {
         core.Trace("Camera tracks file %s have incorrect version...", fileName);
         delete data;
         return false;
     }
-    const int32_t nPoints = ((AntFileHeader *)data)->framesCount;
-    const int32_t nStringSize = ((AntFileHeader *)data)->stringsTableSize;
-    const int32_t nBoneCount = ((AntFileHeader *)data)->bonesCount;
+    int32_t const nPoints     = ((AntFileHeader*)data)->framesCount;
+    int32_t const nStringSize = ((AntFileHeader*)data)->stringsTableSize;
+    int32_t const nBoneCount  = ((AntFileHeader*)data)->bonesCount;
     // Checking file sizes
-    if (size < sizeof(AntFileHeader) + sizeof(char) * nStringSize + sizeof(AntFileBone) * nBoneCount +
-                   sizeof(AntFileTrackElement) * nPoints)
-    {
+    if (size
+        < sizeof(AntFileHeader) + sizeof(char) * nStringSize + sizeof(AntFileBone) * nBoneCount + sizeof(AntFileTrackElement) * nPoints) {
         core.Trace("Camera tracks file %s is invalidate...", fileName);
         delete data;
         return false;
@@ -76,15 +71,17 @@ bool PathTracks::Load(const char *fileName)
     // save the data
     point = new Point[nPoints];
     Assert(point);
-    memcpy(point, (uint8_t *)data + sizeof(AntFileHeader) + nStringSize + sizeof(AntFileBone) * nBoneCount,
-           sizeof(AntFileTrackElement) * nPoints);
+    memcpy(
+        point,
+        (uint8_t*)data + sizeof(AntFileHeader) + nStringSize + sizeof(AntFileBone) * nBoneCount,
+        sizeof(AntFileTrackElement) * nPoints);
     numPoints = nPoints;
 
     return true;
 }
 
 // Draw track
-void PathTracks::Draw(VDX9RENDER *render)
+void PathTracks::Draw(VDX9RENDER* render)
 {
     /*render.FlushBufferedLines();
     for(int32_t i = 0; i < numPoints - 1; i++)
@@ -98,18 +95,15 @@ void PathTracks::Draw(VDX9RENDER *render)
 }
 
 // Get track point
-bool PathTracks::GetPoint(float index, Vector &cp, Quaternion &cq) const
+bool PathTracks::GetPoint(float index, Vector& cp, Quaternion& cq) const
 {
     Assert(point);
-    if (index < 0.0 || index >= 1.f)
-        return false;
+    if (index < 0.0 || index >= 1.f) return false;
     index *= numPoints;
     auto i1 = static_cast<int32_t>(index);
     auto i2 = i1 + 1;
-    if (i1 >= numPoints)
-        i1 = numPoints - 1;
-    if (i2 >= numPoints)
-        i2 = numPoints - 1;
+    if (i1 >= numPoints) i1 = numPoints - 1;
+    if (i2 >= numPoints) i2 = numPoints - 1;
     cp.Lerp(point[i1].p, point[i2].p, index - i1);
     cq.SLerp(point[i1].q, point[i2].q, index - i1);
     return true;

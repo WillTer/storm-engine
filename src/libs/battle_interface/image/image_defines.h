@@ -4,16 +4,14 @@
 
 #define BI_IMAGE_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
-struct BI_IMAGE_VERTEX
-{
-    CVECTOR pos;
-    float w;
+struct BI_IMAGE_VERTEX {
+    CVECTOR  pos;
+    float    w;
     uint32_t col;
-    float tu, tv;
+    float    tu, tv;
 };
 
-enum BIImageType
-{
+enum BIImageType {
     BIType_square,
     BIType_clocksquare,
 
@@ -22,43 +20,35 @@ enum BIImageType
 
 class IBIImage
 {
-  protected:
-    IBIImage()
-    {
-    }
+protected:
+    IBIImage() {}
 
-  public:
-    virtual ~IBIImage()
-    {
-    }
+public:
+    virtual ~IBIImage() {}
 
-    virtual void SetColor(uint32_t color) = 0;
+    virtual void SetColor(uint32_t color)                                                  = 0;
     virtual void SetPosition(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom) = 0;
-    virtual void Set3DPosition(const CVECTOR &vPos, float fWidth, float fHeight) = 0;
-    virtual void SetUV(const FRECT &uv) = 0;
+    virtual void Set3DPosition(const CVECTOR& vPos, float fWidth, float fHeight)           = 0;
+    virtual void SetUV(const FRECT& uv)                                                    = 0;
 
     virtual void CutSide(float fleft, float fright, float ftop, float fbottom) = 0;
-    virtual void CutClock(float fBegin, float fEnd, float fFactor) = 0;
+    virtual void CutClock(float fBegin, float fEnd, float fFactor)             = 0;
 };
 
 class IBIString
 {
-  protected:
-    IBIString()
-    {
-    }
+protected:
+    IBIString() {}
 
-  public:
-    virtual ~IBIString()
-    {
-    }
+public:
+    virtual ~IBIString() {}
 
-    virtual void SetColor(uint32_t color) = 0;
-    virtual void SetScale(float fScale) = 0;
-    virtual void SetFont(const char *pcFontName) = 0;
-    virtual void SetAlign(int32_t nHorzAlign, int32_t nVertAlign) = 0;
+    virtual void SetColor(uint32_t color)                                                  = 0;
+    virtual void SetScale(float fScale)                                                    = 0;
+    virtual void SetFont(char const* pcFontName)                                           = 0;
+    virtual void SetAlign(int32_t nHorzAlign, int32_t nVertAlign)                          = 0;
     virtual void SetPosition(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom) = 0;
-    virtual void SetString(const char *pcStr) = 0;
+    virtual void SetString(char const* pcStr)                                              = 0;
 };
 
 #define ImagePrioritet_MaxValue 100000

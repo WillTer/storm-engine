@@ -1,16 +1,14 @@
 #include "data_cache.h"
 
 #include <libs/core/core.h>
-#include <libs/util/string_compare.hpp>
-
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
-
+#include <libs/util/string_compare.hpp>
 
 bool ReadingAlreadyComplete;
 
 // Constructor / destructor
-DataCache::DataCache(IParticleManager *pManager)
+DataCache::DataCache(IParticleManager* pManager)
 {
     Master = pManager;
 }
@@ -21,7 +19,7 @@ DataCache::~DataCache()
 }
 
 // Put data for the system in the cache
-void DataCache::CacheSystem(const char *FileName)
+void DataCache::CacheSystem(char const* FileName)
 {
     // NameWithExt.AddExtention(".xps");
     // NameWithExt.Lower();
@@ -29,25 +27,23 @@ void DataCache::CacheSystem(const char *FileName)
     // std::string LongFileName = "resource\\particles\\";
     // LongFileName+=FileName;
     // LongFileName.AddExtention(".xps");
-    auto path = std::filesystem::path() / "resource" / "particles" / FileName;
+    auto path    = std::filesystem::path() / "resource" / "particles" / FileName;
     auto pathStr = path.extension().string();
-    if (!storm::iEquals(pathStr, ".xps"))
-        path += ".xps";
+    if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();
     std::transform(pathStr.begin(), pathStr.end(), pathStr.begin(), tolower);
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
 
     auto sysFile = fio->_CreateFile(pathStr.c_str(), std::ios::binary | std::ios::in);
 
-    if (!sysFile.is_open())
-    {
+    if (!sysFile.is_open()) {
         core.Trace("Particles: '%s' File not found !!!", pathStr.c_str());
         return;
     }
 
-    const auto FileSize = fio->_GetFileSize(pathStr.c_str());
+    auto const FileSize = fio->_GetFileSize(pathStr.c_str());
 
-    auto *pMemBuffer = new uint8_t[FileSize];
+    auto* pMemBuffer = new uint8_t[FileSize];
     fio->_ReadFile(sysFile, pMemBuffer, FileSize);
 
     // Create data from file ...
@@ -61,57 +57,52 @@ void DataCache::CacheSystem(const char *FileName)
 // Reset cache
 void DataCache::ResetCache()
 {
-    for (auto n = 0; n < Cache.size(); n++)
-    {
-        if (Cache[n].pData)
-            Cache[n].pData->Release();
+    for (auto n = 0; n < Cache.size(); n++) {
+        if (Cache[n].pData) Cache[n].pData->Release();
     }
 
     Cache.clear();
 }
 
 // Get a pointer to data for a particle system
-DataSource *DataCache::GetParticleSystemDataSource(const char *FileName)
+DataSource* DataCache::GetParticleSystemDataSource(char const* FileName)
 {
     // std::string NameWithExt = FileName;
     // NameWithExt.AddExtention(".xps");
     // NameWithExt.Lower();
-    std::filesystem::path path = FileName;
-    auto pathStr = path.extension().string();
-    if (!storm::iEquals(pathStr, ".xps"))
-        path += ".xps";
+    std::filesystem::path path    = FileName;
+    auto                  pathStr = path.extension().string();
+    if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();
     std::transform(pathStr.begin(), pathStr.end(), pathStr.begin(), tolower);
 
-    for (auto n = 0; n < Cache.size(); n++)
-    {
-        if (Cache[n].FileName == pathStr)
-            return Cache[n].pData;
+    for (auto n = 0; n < Cache.size(); n++) {
+        if (Cache[n].FileName == pathStr) return Cache[n].pData;
     }
 
     return nullptr;
 }
 
 // Check pointer for validity
-bool DataCache::ValidatePointer(DataSource *pData)
+bool DataCache::ValidatePointer(DataSource* pData)
 {
     for (auto n = 0; n < Cache.size(); n++)
-        if (Cache[n].pData == pData) // fix
+        if (Cache[n].pData == pData)  // fix
             return true;
 
     return false;
 }
 
-void DataCache::CreateDataSource(void *pBuffer, uint32_t BufferSize, const char *SourceFileName)
+void DataCache::CreateDataSource(void* pBuffer, uint32_t BufferSize, char const* SourceFileName)
 {
     LoadedDataSource NewDataSource;
     NewDataSource.FileName = SourceFileName;
-    NewDataSource.pData = new DataSource(Master);
+    NewDataSource.pData    = new DataSource(Master);
     Cache.push_back(NewDataSource);
 
     // core.Trace("\nCreate data source for file %s", SourceFileName);
 
-    auto *ReadFile = new MemFile;
+    auto* ReadFile = new MemFile;
     ReadFile->OpenRead(pBuffer, BufferSize);
     NewDataSource.pData->Load(ReadFile);
     ReadFile->Close();
@@ -123,7 +114,7 @@ uint32_t DataCache::GetCachedCount() const
     return Cache.size();
 }
 
-const char *DataCache::GetCachedNameByIndex(uint32_t Index)
+char const* DataCache::GetCachedNameByIndex(uint32_t Index)
 {
     return Cache[Index].FileName.c_str();
 }

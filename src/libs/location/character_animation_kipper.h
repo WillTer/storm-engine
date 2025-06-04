@@ -16,32 +16,30 @@
 
 class VDX9RENDER;
 
-class CharacterAnimationKipper : public Entity
+class CharacterAnimationKipper: public Entity
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     CharacterAnimationKipper();
     virtual ~CharacterAnimationKipper();
 
     // Initialization
     bool Init() override;
-    void LockTexture(const char *texture);
+    void LockTexture(char const* texture);
 
-    void ProcessStage(Stage, uint32_t) override
-    {
-    }
+    void ProcessStage(Stage, uint32_t) override {}
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    VDX9RENDER *rs;
+private:
+    VDX9RENDER* rs;
 
-    AnimationService *asr;
-    Animation *aniMan;
-    Animation *aniWoman;
+    AnimationService* asr;
+    Animation*        aniMan;
+    Animation*        aniWoman;
 
     int32_t lockTextures[16];
     int32_t numLTextures;

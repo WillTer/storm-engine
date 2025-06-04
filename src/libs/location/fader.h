@@ -13,28 +13,24 @@
 #include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
-
-class Fader : public Entity
+class Fader: public Entity
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     Fader();
     ~Fader() override;
 
     // Initialization
     bool Init() override;
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -52,42 +48,40 @@ class Fader : public Entity
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    VDX9RENDER *rs;
-    IDirect3DTexture9 *tex;
+private:
+    VDX9RENDER*        rs;
+    IDirect3DTexture9* tex;
 
-    bool isWork;
-    bool haveFrame;
-    bool fadeIn;
-    bool isStart;
-    bool isAutodelete;
-    bool endFade;
+    bool  isWork;
+    bool  haveFrame;
+    bool  fadeIn;
+    bool  isStart;
+    bool  isAutodelete;
+    bool  endFade;
     float fadeSpeed;
     float alpha;
     float w, h;
 
-    struct
-    {
+    struct {
         float x, y, z, rhw;
         float u, v;
     } drawbuf_base[6];
 
-    struct
-    {
-        float x, y, z, rhw;
+    struct {
+        float    x, y, z, rhw;
         uint32_t color;
-        float u, v;
+        float    u, v;
     } drawbuf_back[6], drawbuf_front[6];
 
-    bool eventStart;
-    bool eventEnd;
+    bool    eventStart;
+    bool    eventEnd;
     int32_t deleteMe;
 
     int32_t textureID;
     int32_t textureBackID;
     int32_t tipsID;
 
-  public:
+public:
     static int32_t numberOfTips;
     static int32_t currentTips;
 };

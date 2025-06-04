@@ -10,75 +10,75 @@
 
 #pragma once
 
-#include "l_types.h"
 #include <libs/model/model.h>
+
+#include "l_types.h"
 
 class LGeometry
 {
-    struct Object
-    {
+    struct Object {
         Object() : model(0)
         {
-            name = nullptr;
+            name     = nullptr;
             nameReal = nullptr;
-            m = nullptr;
+            m        = nullptr;
             lBufSize = 0;
         };
-        char *name;       // The path of the .col file
-        char *nameReal;   // Model name
-        MODEL *m;         // Pointer to the model
-        entid_t model;    // Model
-        int32_t lBufSize; // Color buffer size for this model
+        char*   name;      // The path of the .col file
+        char*   nameReal;  // Model name
+        MODEL*  m;         // Pointer to the model
+        entid_t model;     // Model
+        int32_t lBufSize;  // Color buffer size for this model
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     LGeometry();
     virtual ~LGeometry();
 
     // Set path to models
-    void SetModelsPath(const char *mPath);
+    void SetModelsPath(char const* mPath);
     // Set path for current weather
-    void SetLightPath(const char *lPath);
+    void SetLightPath(char const* lPath);
     // Add object
-    void AddObject(const char *name, entid_t model);
+    void AddObject(char const* name, entid_t model);
     // Process data
-    bool Process(VDX9RENDER *rs, int32_t numLights);
+    bool Process(VDX9RENDER* rs, int32_t numLights);
     // Draw normals
-    void DrawNormals(VDX9RENDER *rs);
+    void DrawNormals(VDX9RENDER* rs);
     // Update colors in buffers
-    void UpdateColors(VDX9RENDER *rs);
+    void UpdateColors(VDX9RENDER* rs);
     // Trace the ray through all models
-    float Trace(const CVECTOR &src, const CVECTOR &dst);
+    float Trace(const CVECTOR& src, const CVECTOR& dst);
     // Save lighting
     bool Save();
 
     std::vector<Object> object;
-    int32_t numObjects;
-    int32_t maxObjects;
+    int32_t             numObjects;
+    int32_t             maxObjects;
 
     std::vector<Vertex> vrt;
-    int32_t numVrt;
-    int32_t maxVrt;
+    int32_t             numVrt;
+    int32_t             maxVrt;
 
     std::vector<Triangle> trg;
-    int32_t numTrg;
-    int32_t maxTrg;
+    int32_t               numTrg;
+    int32_t               maxTrg;
 
     std::vector<VertexBuffer> vbuffer;
-    int32_t numVBuffers;
-    int32_t maxVBuffers;
+    int32_t                   numVBuffers;
+    int32_t                   maxVBuffers;
 
-    lighter::Shadow *shadows;
+    lighter::Shadow* shadows;
 
     CVECTOR min, max;
-    float radius;
+    float   radius;
 
     bool useColor;
 
-    CVECTOR *drawbuf;
+    CVECTOR* drawbuf;
 
     char modelsPath[512];
     char lightPath[512];

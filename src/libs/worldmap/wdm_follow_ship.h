@@ -12,23 +12,23 @@
 
 #include "wdm_enemy_ship.h"
 
-class WdmFollowShip : public WdmEnemyShip
+class WdmFollowShip: public WdmEnemyShip
 {
     // --------------------------------------------------------------------------------------------
     // construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmFollowShip();
     ~WdmFollowShip() override;
 
-  protected:
+protected:
     // Setting parameters
-    bool Load(const char *modelName) override;
+    bool Load(char const* modelName) override;
     // Find the force pulling in the right direction
     void FindMoveForce() override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
 };

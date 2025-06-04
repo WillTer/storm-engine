@@ -1,13 +1,9 @@
 #include "point.h"
 
 // Constructor / destructor
-PointEmitter::PointEmitter(ParticleSystem *pSystem) : BaseEmitter(pSystem)
-{
-}
+PointEmitter::PointEmitter(ParticleSystem* pSystem) : BaseEmitter(pSystem) {}
 
-PointEmitter::~PointEmitter()
-{
-}
+PointEmitter::~PointEmitter() {}
 
 // Get a position for the emission of new particles
 Vector PointEmitter::GetNewParticlePosition(float DeltaTime)

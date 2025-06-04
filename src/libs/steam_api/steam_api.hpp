@@ -1,8 +1,7 @@
 #pragma once
 
-#include <memory>
-
 #include <cstdint>
+#include <memory>
 
 namespace steamapi
 {
@@ -11,12 +10,12 @@ class SteamApi;
 namespace detail
 {
 std::unique_ptr<SteamApi> factory(bool);
-} // namespace detail
+}  // namespace detail
 
 class SteamApi
 {
-  public:
-    static SteamApi &getInstance(const bool mock = true)
+public:
+    static SteamApi& getInstance(bool const mock = true)
     {
         static std::unique_ptr<SteamApi> steam_api = detail::factory(mock);
         return *steam_api;
@@ -29,30 +28,26 @@ class SteamApi
         return false;
     }
 
-    virtual void InitAchievements()
-    {
-    }
+    virtual void InitAchievements() {}
 
-    virtual void DeleteAchievements()
-    {
-    }
+    virtual void DeleteAchievements() {}
 
-    virtual uint32_t SetAchievementState(const char *ID)
+    virtual uint32_t SetAchievementState(char const* ID)
     {
         return 0;
     }
 
-    virtual uint32_t GetAchievementState(const char *ID)
+    virtual uint32_t GetAchievementState(char const* ID)
     {
         return 0;
     }
 
-    virtual uint32_t SetStatValue(const char *ID, uint32_t Value)
+    virtual uint32_t SetStatValue(char const* ID, uint32_t Value)
     {
         return 0;
     }
 
-    virtual uint32_t GetStatValue(const char *ID)
+    virtual uint32_t GetStatValue(char const* ID)
     {
         return 0;
     }
@@ -72,18 +67,14 @@ class SteamApi
         return 0;
     }
 
-    virtual bool ClearAchievement(const char *ID)
+    virtual bool ClearAchievement(char const* ID)
     {
         return 0;
     }
 
-    virtual void InitSteamDLC()
-    {
-    }
+    virtual void InitSteamDLC() {}
 
-    virtual void DeleteSteamDLC()
-    {
-    }
+    virtual void DeleteSteamDLC() {}
 
     virtual bool isDLCActive(uint32_t nDLC)
     {
@@ -105,8 +96,6 @@ class SteamApi
         return false;
     }
 
-    virtual void RunCallbacks()
-    {
-    }
+    virtual void RunCallbacks() {}
 };
-} // namespace steamapi
+}  // namespace steamapi

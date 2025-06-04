@@ -1,21 +1,20 @@
 #pragma once
 
+#include <filesystem>
+
 #include <libs/geometry/geos.h>
 #include <libs/math/matrix.h>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 
-#include <filesystem>
-
 #define FLAGLXVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
-struct FLAGLXVERTEX
-{
+struct FLAGLXVERTEX {
     CVECTOR pos;
-    float tu, tv;
+    float   tu, tv;
 };
 
-class FLAG : public Entity
+class FLAG: public Entity
 {
     // parameters obtained from INI file //
     // -------------------------------------
@@ -25,61 +24,56 @@ class FLAG : public Entity
     int FRENCH_FLAG_TEX;
     int PIRATE_FLAG_TEX;
 
-    float FLAGVECTORLEN; // flag segment length
-    float ALFA_DEPEND;   // the rate of change of the swing angle
-    float BETA_DEPEND;   // rotation rate
-    float ALFA_RAND;     // the maximum value of the random change in the angle Alpha
-    float BETA_RAND;     // the maximum value of the random change in the angle Beta
-    float fWindAm;       // Flag swing amplitude
-    float fRotAm;        // Flag rotation amplitude
-    float DOWNVAL;       // the value of the decrement on Y
-    float fAlfaMax;      // maximum angle (for the end of the flag)
+    float FLAGVECTORLEN;  // flag segment length
+    float ALFA_DEPEND;    // the rate of change of the swing angle
+    float BETA_DEPEND;    // rotation rate
+    float ALFA_RAND;      // the maximum value of the random change in the angle Alpha
+    float BETA_RAND;      // the maximum value of the random change in the angle Beta
+    float fWindAm;        // Flag swing amplitude
+    float fRotAm;         // Flag rotation amplitude
+    float DOWNVAL;        // the value of the decrement on Y
+    float fAlfaMax;       // maximum angle (for the end of the flag)
     float fAlfaStep;
-    float fBetaMax; // maximum angle (for the end of the flag)
+    float fBetaMax;  // maximum angle (for the end of the flag)
     float fBetaStep;
-    int FlagTextureQuantity;
-    int FlagTextureQuantityRow;
+    int   FlagTextureQuantity;
+    int   FlagTextureQuantityRow;
     float fWindMaxValue;
-    int MinSegmentQuantity;
+    int   MinSegmentQuantity;
     //-------------------------------------
 
-    bool bUse;
-    bool bFirstRun;
-    bool verticesNeedUpdate_ = true;
-    VDX9RENDER *RenderService;
+    bool        bUse;
+    bool        bFirstRun;
+    bool        verticesNeedUpdate_ = true;
+    VDX9RENDER* RenderService;
     std::string textureName_;
-    int32_t texl;
+    int32_t     texl;
 
-    struct WIND
-    {
-        float base; // amplitude of wind fluctuations from 0 to 1.0
-        struct
-        {
+    struct WIND {
+        float base;  // amplitude of wind fluctuations from 0 to 1.0
+        struct {
             float x, y, z;
         } ang;
     };
 
-    WIND globalWind;
+    WIND                            globalWind;
     std::filesystem::file_time_type ft_old;
 
-  public:
+public:
     FLAG();
     ~FLAG() override;
-    void SetDevice();
-    bool Init() override;
-    void Execute(uint32_t Delta_Time);
-    void Realize(uint32_t Delta_Time);
-    bool CreateState(ENTITY_STATE_GEN *state_gen);
-    bool LoadState(ENTITY_STATE *state);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    void     SetDevice();
+    bool     Init() override;
+    void     Execute(uint32_t Delta_Time);
+    void     Realize(uint32_t Delta_Time);
+    bool     CreateState(ENTITY_STATE_GEN* state_gen);
+    bool     LoadState(ENTITY_STATE* state);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -90,83 +84,81 @@ class FLAG : public Entity
         }
     }
 
-    uint32_t AttributeChanged(ATTRIBUTES *attributes) override;
+    uint32_t AttributeChanged(ATTRIBUTES* attributes) override;
 
-  private:
-    struct FLAGDATA
-    {
-        uint16_t vectQuant; // number of segmentes(square) into flags
+private:
+    struct FLAGDATA {
+        uint16_t vectQuant;  // number of segmentes(square) into flags
 
         bool triangle;
         bool isSpecialFlag;
         bool isShip;
 
-        CVECTOR spos;      // start flags position
-        CVECTOR dv;        // delta flags start position to along
-        CVECTOR dhv, ddhv; // delta from position to flag top&bottom and delta for this value
+        CVECTOR spos;       // start flags position
+        CVECTOR dv;         // delta flags start position to along
+        CVECTOR dhv, ddhv;  // delta from position to flag top&bottom and delta for this value
 
         CVECTOR curpos, dHV;
-        int lineNum;
-        int windIdx, curIdx;
-        bool bDecreaze;
+        int     lineNum;
+        int     windIdx, curIdx;
+        bool    bDecreaze;
 
-        uint32_t sv, nv; // start vertex into buffer and quantity vertex
-        uint32_t st, nt; // start treangle into buffer and quantity vertex
+        uint32_t sv, nv;  // start vertex into buffer and quantity vertex
+        uint32_t st, nt;  // start treangle into buffer and quantity vertex
 
-        int flagNum; // number of flag
-        int grNum;   // number of flag group
-        NODE *nod;
-        CMatrix *pMatWorld;
+        int      flagNum;  // number of flag
+        int      grNum;    // number of flag group
+        NODE*    nod;
+        CMatrix* pMatWorld;
 
         int texNumC;
         int texNumR;
 
-        FLAGDATA *next;
+        FLAGDATA* next;
 
         float Alfa;
         float Beta;
 
-        int HostGroup;
+        int  HostGroup;
         bool bDeleted;
         bool bDisabled = false;
     };
 
-    int flagQuantity;
-    FLAGDATA **flist;
+    int        flagQuantity;
+    FLAGDATA** flist;
 
-    struct GROUPDATA
-    {
-        int nation;
-        entid_t model_id;
-        bool bDeleted;
-        bool isShip;
-        entid_t ship_id{};
-        ATTRIBUTES *char_attributes = nullptr;
+    struct GROUPDATA {
+        int         nation;
+        entid_t     model_id;
+        bool        bDeleted;
+        bool        isShip;
+        entid_t     ship_id {};
+        ATTRIBUTES* char_attributes = nullptr;
     };
 
-    int groupQuantity;
-    GROUPDATA *gdata;
+    int        groupQuantity;
+    GROUPDATA* gdata;
 
     void FirstRun();
     void SetTextureCoordinate();
     void SetTreangle() const;
-    void DoMove(FLAGDATA *pr, float delta_time) const;
-    void AddLabel(GEOS::LABEL &gl, NODE *nod, bool isSpecialFlag, bool isShip, int groupNumber);
+    void DoMove(FLAGDATA* pr, float delta_time) const;
+    void AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip, int groupNumber);
     void SetAll();
     void LoadIni();
     void GroupSTORM_DELETE(entid_t m_id);
     void DoSTORM_DELETE();
     void SetAdd(int flagNum);
     void MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id);
-    void UpdateTexture(const std::string_view &texturePath);
+    void UpdateTexture(std::string_view const& texturePath);
 
-    FLAGLXVERTEX *vertBuf;
-    uint16_t *indxBuf;
+    FLAGLXVERTEX* vertBuf;
+    uint16_t*     indxBuf;
 
     CMatrix rootMatrix;
 
-    int32_t vBuf, iBuf;
+    int32_t  vBuf, iBuf;
     uint32_t nVert, nIndx;
-    bool bYesDeleted;
-    int wFlagLast;
+    bool     bYesDeleted;
+    int      wFlagLast;
 };

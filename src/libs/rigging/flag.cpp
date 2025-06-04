@@ -1,4 +1,5 @@
 #include "flag.h"
+
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/v_file_service.h>
@@ -8,20 +9,20 @@
 #include <libs/util/string_compare.hpp>
 #include <libs/weather/weather_base.h>
 
-static const char *RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+static char const* RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
 
 FLAG::FLAG()
 {
-    bUse = false;
+    bUse          = false;
     RenderService = nullptr;
-    bFirstRun = true;
-    texl = -1;
-    flist = nullptr;
-    flagQuantity = 0;
-    gdata = nullptr;
+    bFirstRun     = true;
+    texl          = -1;
+    flist         = nullptr;
+    flagQuantity  = 0;
+    gdata         = nullptr;
     groupQuantity = 0;
-    bYesDeleted = false;
-    wFlagLast = 0;
+    bYesDeleted   = false;
+    wFlagLast     = 0;
     vBuf = iBuf = -1;
     nVert = nIndx = 0;
 }
@@ -33,8 +34,7 @@ FLAG::~FLAG()
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
 
-    while (flagQuantity > 0)
-    {
+    while (flagQuantity > 0) {
         flagQuantity--;
         STORM_DELETE(flist[flagQuantity]);
     }
@@ -52,70 +52,56 @@ bool FLAG::Init()
 void FLAG::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (!RenderService)
-    {
-        throw std::runtime_error("No service: dx9render");
-    }
+    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
     globalWind.ang.x = 0.f;
     globalWind.ang.y = 0.f;
     globalWind.ang.z = 1.f;
-    globalWind.base = 1.f;
+    globalWind.base  = 1.f;
     LoadIni();
     texl = RenderService->TextureCreate(textureName_.c_str());
 }
 
-bool FLAG::CreateState(ENTITY_STATE_GEN *state_gen)
+bool FLAG::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool FLAG::LoadState(ENTITY_STATE *state)
+bool FLAG::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
 void FLAG::Execute(uint32_t Delta_Time)
 {
-    if (bFirstRun)
-    {
+    if (bFirstRun) {
         FirstRun();
-    }
-    else
-    {
+    } else {
         SetTextureCoordinate();
     }
 
-    if (bYesDeleted)
-        DoSTORM_DELETE();
-    if (bUse)
-    {
+    if (bYesDeleted) DoSTORM_DELETE();
+    if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
-        {
+        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) {
             auto ft_new = fio->_GetLastWriteTime(RIGGING_INI_FILE);
-            if (ft_old != ft_new)
-            {
-                LoadIni();
-            }
+            if (ft_old != ft_new) { LoadIni(); }
         }
 
         // get the wind value
-        if (const auto ei = core.GetEntityId("weather"))
-        {
-            auto *wb = static_cast<WEATHER_BASE *>(core.GetEntityPointer(ei));
+        if (auto const ei = core.GetEntityId("weather")) {
+            auto* wb         = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ei));
             globalWind.ang.x = wb->GetFloat(whf_wind_angle);
             globalWind.ang.z = cosf(globalWind.ang.x);
             globalWind.ang.x = sinf(globalWind.ang.x);
-            globalWind.base = wb->GetFloat(whf_wind_speed) / fWindMaxValue;
+            globalWind.base  = wb->GetFloat(whf_wind_speed) / fWindMaxValue;
         }
 
         // calculation of the shape of the flag
-        vertBuf = static_cast<FLAGLXVERTEX *>(RenderService->LockVertexBuffer(vBuf));
-        if (vertBuf)
-        {
-            const auto dt = static_cast<float>(Delta_Time) * 0.02f;
+        vertBuf = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+        if (vertBuf) {
+            auto const dt = static_cast<float>(Delta_Time) * 0.02f;
             for (auto fn = 0; fn < flagQuantity; fn++)
                 DoMove(flist[fn], dt);
             RenderService->UnLockVertexBuffer(vBuf);
@@ -125,8 +111,7 @@ void FLAG::Execute(uint32_t Delta_Time)
 
 void FLAG::Realize(uint32_t Delta_Time)
 {
-    if (bUse)
-    {
+    if (bUse) {
         //_asm rdtsc _asm mov rtm,eax
 
         RenderService->TextureSet(0, texl);
@@ -136,84 +121,72 @@ void FLAG::Realize(uint32_t Delta_Time)
         RenderService->SetTransform(D3DTS_WORLD, rootMatrix);
 
         // draw nature flag
-        if (nVert != 0 && nIndx != 0)
-            RenderService->DrawBuffer(vBuf, sizeof(FLAGLXVERTEX), iBuf, 0, nVert, 0, nIndx, "ShipFlag");
+        if (nVert != 0 && nIndx != 0) RenderService->DrawBuffer(vBuf, sizeof(FLAGLXVERTEX), iBuf, 0, nVert, 0, nIndx, "ShipFlag");
         //_asm rdtsc  _asm sub eax,rtm _asm mov rtm,eax
         // Print info
         // RenderService->Print(0,220,"Flags tics= %d",rtm);
     }
 }
 
-uint64_t FLAG::ProcessMessage(MESSAGE &message)
+uint64_t FLAG::ProcessMessage(MESSAGE& message)
 {
-    const auto code = message.Long();
+    auto const code = message.Long();
 
-    switch (code)
-    {
+    switch (code) {
         //**********************
         // Start Initialisation
         //----------------------
     case MSG_FLAG_INIT: {
-        const auto eidModel = message.EntityID();
-        const auto nNation = message.Long();
+        auto const eidModel = message.EntityID();
+        auto const nNation  = message.Long();
 
-        MODEL *host_mdl = static_cast<MODEL *>(core.GetEntityPointer(eidModel));
-        if (host_mdl == nullptr)
-        {
+        MODEL* host_mdl = static_cast<MODEL*>(core.GetEntityPointer(eidModel));
+        if (host_mdl == nullptr) {
             core.Trace("Missing INIT message to FLAG: bad MODEL");
             return 0;
         }
 
-        if (groupQuantity == 0)
-        {
-            gdata = new GROUPDATA[1];
+        if (groupQuantity == 0) {
+            gdata         = new GROUPDATA[1];
             groupQuantity = 1;
-        }
-        else
-        {
-            auto *const oldgdata = gdata;
-            gdata = new GROUPDATA[groupQuantity + 1];
+        } else {
+            auto* const oldgdata = gdata;
+            gdata                = new GROUPDATA[groupQuantity + 1];
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
             delete oldgdata;
             groupQuantity++;
         }
         gdata[groupQuantity - 1].model_id = eidModel;
-        gdata[groupQuantity - 1].nation = nNation;
+        gdata[groupQuantity - 1].nation   = nNation;
         gdata[groupQuantity - 1].bDeleted = false;
-        gdata[groupQuantity - 1].isShip = true;
+        gdata[groupQuantity - 1].isShip   = true;
 
-        if (message.GetFormat().size() >= 4)
-        {
-            entid_t eidShip = message.EntityID();
+        if (message.GetFormat().size() >= 4) {
+            entid_t eidShip                  = message.EntityID();
             gdata[groupQuantity - 1].ship_id = eidShip;
             gdata[groupQuantity - 1].char_attributes =
-                ((VAI_OBJBASE *)core.GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
+                ((VAI_OBJBASE*)core.GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
         }
 
-        NODE *nod;
-        GEOS::INFO gi;
+        NODE*       nod;
+        GEOS::INFO  gi;
         GEOS::LABEL gl;
-        int i, j;
-        for (j = 0; true; j++)
-        {
+        int         i, j;
+        for (j = 0; true; j++) {
             nod = host_mdl->GetNode(j);
-            if (nod == nullptr || nod->geo == nullptr)
-                break;
+            if (nod == nullptr || nod->geo == nullptr) break;
 
             nod->geo->GetInfo(gi);
-            for (i = 0; i < gi.nlabels; i++)
-            {
+            for (i = 0; i < gi.nlabels; i++) {
                 nod->geo->GetLabel(i, gl);
 
-                const std::string_view &group_name = gl.group_name;
+                std::string_view const& group_name = gl.group_name;
 
-                if (group_name.starts_with("sflag")) // special flag
+                if (group_name.starts_with("sflag"))  // special flag
                 {
                     int groupNumber = atoi(group_name.substr(5).data());
                     AddLabel(gl, nod, true, true, groupNumber);
-                }
-                else if (group_name.starts_with("flag"))
-                {
+                } else if (group_name.starts_with("flag")) {
                     // ordinary flag
                     int groupNumber = atoi(group_name.substr(4).data());
                     AddLabel(gl, nod, false, true, groupNumber);
@@ -221,66 +194,52 @@ uint64_t FLAG::ProcessMessage(MESSAGE &message)
             }
         }
         bFirstRun = true;
-    }
-    break;
+    } break;
 
     case MSG_FLAG_INIT_TOWN: {
         entid_t eidModel = message.EntityID();
-        int32_t nNation = message.Long();
+        int32_t nNation  = message.Long();
 
-        MODEL *host_mdl;
-        host_mdl = (MODEL *)core.GetEntityPointer(eidModel);
-        if (host_mdl == nullptr)
-        {
-            core.Trace("Missing INIT message to FLAG: bad MODEL");
-        }
+        MODEL* host_mdl;
+        host_mdl = (MODEL*)core.GetEntityPointer(eidModel);
+        if (host_mdl == nullptr) { core.Trace("Missing INIT message to FLAG: bad MODEL"); }
 
-        if (groupQuantity == 0)
-        {
+        if (groupQuantity == 0) {
             gdata = new GROUPDATA[1];
-            if (gdata == nullptr)
-                throw std::runtime_error("Not memory allocation");
+            if (gdata == nullptr) throw std::runtime_error("Not memory allocation");
             groupQuantity = 1;
-        }
-        else
-        {
-            GROUPDATA *oldgdata = gdata;
-            gdata = new GROUPDATA[groupQuantity + 1];
-            if (gdata == 0)
-                throw std::runtime_error("Not memory allocation");
+        } else {
+            GROUPDATA* oldgdata = gdata;
+            gdata               = new GROUPDATA[groupQuantity + 1];
+            if (gdata == 0) throw std::runtime_error("Not memory allocation");
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
             delete oldgdata;
             groupQuantity++;
         }
         gdata[groupQuantity - 1].model_id = eidModel;
-        gdata[groupQuantity - 1].nation = nNation;
+        gdata[groupQuantity - 1].nation   = nNation;
         gdata[groupQuantity - 1].bDeleted = false;
-        gdata[groupQuantity - 1].isShip = false;
+        gdata[groupQuantity - 1].isShip   = false;
 
-        NODE *nod;
-        GEOS::INFO gi;
+        NODE*       nod;
+        GEOS::INFO  gi;
         GEOS::LABEL gl;
-        int i, j;
-        for (j = 0; true; j++)
-        {
+        int         i, j;
+        for (j = 0; true; j++) {
             nod = host_mdl->GetNode(j);
-            if (nod == nullptr || nod->geo == nullptr)
-                break;
+            if (nod == nullptr || nod->geo == nullptr) break;
 
             nod->geo->GetInfo(gi);
-            for (i = 0; i < gi.nlabels; i++)
-            {
+            for (i = 0; i < gi.nlabels; i++) {
                 nod->geo->GetLabel(i, gl);
 
-                const std::string_view &group_name = gl.group_name;
+                std::string_view const& group_name = gl.group_name;
 
-                if (group_name.starts_with("sflag")) // special flag
+                if (group_name.starts_with("sflag"))  // special flag
                 {
                     int groupNumber = atoi(group_name.substr(5).data());
                     AddLabel(gl, nod, true, false, groupNumber);
-                }
-                else if (group_name.starts_with("flag"))
-                {
+                } else if (group_name.starts_with("flag")) {
                     // ordinary flag
                     int groupNumber = atoi(group_name.substr(4).data());
                     AddLabel(gl, nod, false, false, groupNumber);
@@ -288,68 +247,55 @@ uint64_t FLAG::ProcessMessage(MESSAGE &message)
             }
         }
         bFirstRun = true;
-    }
-    break;
+    } break;
 
-    case MSG_FLAG_DEL_GROUP:
-        GroupSTORM_DELETE(message.EntityID());
-        break;
+    case MSG_FLAG_DEL_GROUP: GroupSTORM_DELETE(message.EntityID()); break;
 
-    case MSG_FLAG_TO_NEWHOST: // format "lili" (msg_code,oldmodel_id,groupNum,newmodel_id)
+    case MSG_FLAG_TO_NEWHOST:  // format "lili" (msg_code,oldmodel_id,groupNum,newmodel_id)
     {
-        const auto oldModelID = message.EntityID();
-        const auto flagGroupNum = message.Long();
-        const auto newModelID = message.EntityID();
+        auto const oldModelID   = message.EntityID();
+        auto const flagGroupNum = message.Long();
+        auto const newModelID   = message.EntityID();
         MoveOtherHost(newModelID, flagGroupNum, oldModelID);
-    }
-    break;
+    } break;
     }
     return 0;
 }
 
 void FLAG::SetTextureCoordinate()
 {
-    if (bUse && verticesNeedUpdate_)
-    {
-        int i;
+    if (bUse && verticesNeedUpdate_) {
+        int     i;
         int32_t sIdx;
-        float stu, addtu, dtu;
-        float stv, addtv, dtv;
+        float   stu, addtu, dtu;
+        float   stv, addtv, dtv;
 
-        auto *pv = static_cast<FLAGLXVERTEX *>(RenderService->LockVertexBuffer(vBuf));
-        if (pv)
-        {
-            for (auto fn = 0; fn < flagQuantity; fn++)
-            {
-                if (flist[fn] == nullptr || flist[fn]->bDisabled)
-                    continue;
-                sIdx = flist[fn]->sv;
+        auto* pv = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+        if (pv) {
+            for (auto fn = 0; fn < flagQuantity; fn++) {
+                if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
+                sIdx  = flist[fn]->sv;
                 addtu = 1.f / static_cast<float>(FlagTextureQuantity);
                 addtv = 1.f / (float)FlagTextureQuantityRow;
-                stu = addtu * flist[fn]->texNumC;
-                stv = addtv * flist[fn]->texNumR;
-                if (flist[fn]->triangle)
-                {
+                stu   = addtu * flist[fn]->texNumC;
+                stv   = addtv * flist[fn]->texNumR;
+                if (flist[fn]->triangle) {
                     dtu = addtu / static_cast<float>(flist[fn]->vectQuant + 1);
                     dtv = .5f / static_cast<float>(flist[fn]->vectQuant + 1);
-                }
-                else
-                {
+                } else {
                     dtu = addtu / static_cast<float>(flist[fn]->vectQuant);
                     dtv = 0.f;
                 }
-                for (i = 0; i <= flist[fn]->vectQuant; i++)
-                {
-                    pv[sIdx].tu = stu;
+                for (i = 0; i <= flist[fn]->vectQuant; i++) {
+                    pv[sIdx].tu   = stu;
                     pv[sIdx++].tv = stv;
-                    pv[sIdx].tu = stu;
+                    pv[sIdx].tu   = stu;
                     pv[sIdx++].tv = stv + addtv;
 
                     stu += dtu;
                     stv += dtv;
                 }
-                if (flist[fn]->triangle)
-                {
+                if (flist[fn]->triangle) {
                     pv[sIdx].tv = stv;
                     pv[sIdx].tu = stu;
                 }
@@ -360,24 +306,21 @@ void FLAG::SetTextureCoordinate()
     }
 }
 
-void FLAG::DoMove(FLAGDATA *pr, float delta_time) const
+void FLAG::DoMove(FLAGDATA* pr, float delta_time) const
 {
-    if (pr == nullptr || pr->bDisabled)
-        return;
+    if (pr == nullptr || pr->bDisabled) return;
     CVECTOR cPos;
     cPos = *pr->pMatWorld * pr->spos;
 
     auto xMul = globalWind.ang.x;
     auto zMul = globalWind.ang.z;
 
-    if ((pr->Alfa +=
-         (ALFA_DEPEND + ALFA_RAND * static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * delta_time) > PIm2)
+    if ((pr->Alfa += (ALFA_DEPEND + ALFA_RAND * static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * delta_time) > PIm2)
         pr->Alfa = 0.f;
-    if ((pr->Beta +=
-         (BETA_DEPEND + BETA_RAND * static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * delta_time) > PIm2)
+    if ((pr->Beta += (BETA_DEPEND + BETA_RAND * static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * delta_time) > PIm2)
         pr->Beta = 0.f;
-    auto Alfa = -pr->Alfa;
-    auto Beta = -pr->Beta;
+    auto Alfa  = -pr->Alfa;
+    auto Beta  = -pr->Beta;
     auto sAlfa = sinf(Alfa);
     auto cAlfa = cosf(Alfa);
     auto sBeta = sinf(Beta);
@@ -400,15 +343,14 @@ void FLAG::DoMove(FLAGDATA *pr, float delta_time) const
     auto hIncr = pr->dhv.y;
 
     auto tmp = fAlfaStep + fAlfaMax / static_cast<float>(pr->vectQuant);
-    auto sa = sinf(tmp);
-    auto ca = cosf(tmp);
-    tmp = fBetaStep + fBetaMax / static_cast<float>(pr->vectQuant);
-    auto sb = sinf(tmp);
-    auto cb = cosf(tmp);
+    auto sa  = sinf(tmp);
+    auto ca  = cosf(tmp);
+    tmp      = fBetaStep + fBetaMax / static_cast<float>(pr->vectQuant);
+    auto sb  = sinf(tmp);
+    auto cb  = cosf(tmp);
 
-    for (auto i = 0; i <= pr->vectQuant; i++)
-    {
-        tmp = fWindAm * (sAlfa - oldSa);
+    for (auto i = 0; i <= pr->vectQuant; i++) {
+        tmp       = fWindAm * (sAlfa - oldSa);
         dopVect.y = fWindAm * (cAlfa - oldCa);
         dopVect.x = tmp * zMul;
         dopVect.z = tmp * xMul;
@@ -419,28 +361,24 @@ void FLAG::DoMove(FLAGDATA *pr, float delta_time) const
         sIdx++;
 
         // calculate the new angle (sines \ cosines)
-        tmp = sAlfa;
+        tmp   = sAlfa;
         sAlfa = sAlfa * ca + sa * cAlfa;
         cAlfa = cAlfa * ca - tmp * sa;
 
         // calculate the new angle (sines \ cosines)
-        tmp = sBeta;
+        tmp   = sBeta;
         sBeta = sBeta * cb + sb * cBeta;
         cBeta = cBeta * cb - tmp * sb;
 
         hIncr -= pr->ddhv.y;
         tmp = hIncr * (sBeta - oldSb) * fRotAm;
-        if (tmp > hIncr || tmp < -hIncr)
-        {
+        if (tmp > hIncr || tmp < -hIncr) {
             dhVect.y = 0.f;
             dhVect.x = hIncr * zMul;
             dhVect.z = hIncr * xMul;
-        }
-        else
-        {
+        } else {
             auto fT = hIncr * hIncr - tmp * tmp;
-            if (fT < 0.f)
-                fT = -fT;
+            if (fT < 0.f) fT = -fT;
             dhVect.y = sqrtf(hIncr * hIncr - tmp * tmp);
             dhVect.x = tmp * zMul;
             dhVect.z = tmp * xMul;
@@ -450,61 +388,52 @@ void FLAG::DoMove(FLAGDATA *pr, float delta_time) const
         cPos += incrVect;
     }
 
-    if (pr->triangle)
-    {
+    if (pr->triangle) {
         dopVect.x = fWindAm * (sAlfa - oldSa);
         dopVect.z = dopVect.x * xMul;
         dopVect.x *= zMul;
-        dopVect.y = -fWindAm * (cAlfa - oldCa);
+        dopVect.y         = -fWindAm * (cAlfa - oldCa);
         vertBuf[sIdx].pos = cPos + dopVect;
     }
 }
 
-void FLAG::AddLabel(GEOS::LABEL &gl, NODE *nod, bool isSpecialFlag, bool isShip, int groupNumber)
+void FLAG::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip, int groupNumber)
 {
-    FLAGDATA *fd;
+    FLAGDATA* fd;
 
     // for fail parameters do not set of data
-    if (nod == nullptr)
-        return;
+    if (nod == nullptr) return;
 
     int fn;
     for (fn = 0; fn < flagQuantity; fn++)
-        if (flist[fn] != nullptr && flist[fn]->HostGroup == groupQuantity - 1 && flist[fn]->grNum == groupNumber &&
-            flist[fn]->nod == nod && flist[fn]->isSpecialFlag == isSpecialFlag)
-        {
+        if (flist[fn] != nullptr && flist[fn]->HostGroup == groupQuantity - 1 && flist[fn]->grNum == groupNumber && flist[fn]->nod == nod
+            && flist[fn]->isSpecialFlag == isSpecialFlag) {
             fd = flist[fn];
             break;
         }
-    if (fn == flagQuantity)
-    {
+    if (fn == flagQuantity) {
         // create new flag
-        fd = new FLAGDATA{};
-        fd->triangle = true; // this is Vimpel
+        fd                = new FLAGDATA {};
+        fd->triangle      = true;  // this is Vimpel
         fd->isSpecialFlag = isSpecialFlag;
-        fd->isShip = isShip;
-        fd->pMatWorld = &nod->glob_mtx;
-        fd->nod = nod;
-        fd->grNum = groupNumber;
-        fd->Alfa = 0.f;
-        fd->Beta = 0.f;
-        fd->HostGroup = groupQuantity - 1;
-        fd->bDeleted = false;
+        fd->isShip        = isShip;
+        fd->pMatWorld     = &nod->glob_mtx;
+        fd->nod           = nod;
+        fd->grNum         = groupNumber;
+        fd->Alfa          = 0.f;
+        fd->Beta          = 0.f;
+        fd->HostGroup     = groupQuantity - 1;
+        fd->bDeleted      = false;
 
-        if (flagQuantity == 0)
-        {
-            flist = new FLAGDATA *[1];
-            if (flist == nullptr)
-                throw std::runtime_error("Not memory allocation");
+        if (flagQuantity == 0) {
+            flist = new FLAGDATA*[1];
+            if (flist == nullptr) throw std::runtime_error("Not memory allocation");
             flagQuantity = 1;
-        }
-        else
-        {
-            auto *const oldflist = flist;
-            flist = new FLAGDATA *[flagQuantity + 1];
-            if (flist == nullptr)
-                throw std::runtime_error("Not memory allocation");
-            memcpy(flist, oldflist, sizeof(FLAGDATA *) * flagQuantity);
+        } else {
+            auto* const oldflist = flist;
+            flist                = new FLAGDATA*[flagQuantity + 1];
+            if (flist == nullptr) throw std::runtime_error("Not memory allocation");
+            memcpy(flist, oldflist, sizeof(FLAGDATA*) * flagQuantity);
             delete oldflist;
             flagQuantity++;
         }
@@ -519,19 +448,18 @@ void FLAG::AddLabel(GEOS::LABEL &gl, NODE *nod, bool isSpecialFlag, bool isShip,
     cv.y = gl.m[3][1];
     cv.z = gl.m[3][2];*/
     // set flag point
-    switch (gl.name[1])
-    {
-    case '2': // bottom begin of flag
+    switch (gl.name[1]) {
+    case '2':  // bottom begin of flag
         fd->dhv = cv;
         break;
-    case '3': // top end of flag (or center of the flag end for triangle flag)
+    case '3':  // top end of flag (or center of the flag end for triangle flag)
         fd->ddhv = cv;
         break;
-    case '4': // bottom ebd of flag
-        fd->dv = cv;
-        fd->triangle = false; // this not Vimpel - that Flag
+    case '4':  // bottom ebd of flag
+        fd->dv       = cv;
+        fd->triangle = false;  // this not Vimpel - that Flag
         break;
-    default: // case 1: top begin of flag
+    default:  // case 1: top begin of flag
         fd->spos = cv;
     }
 }
@@ -547,16 +475,12 @@ void FLAG::SetTreangle() const
 {
     int i, idx;
 
-    auto *pt = static_cast<uint16_t *>(RenderService->LockIndexBuffer(iBuf));
-    if (pt)
-    {
-        for (auto fn = 0; fn < flagQuantity; fn++)
-        {
-            if (flist[fn] == nullptr || flist[fn]->bDisabled)
-                continue;
+    auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
+    if (pt) {
+        for (auto fn = 0; fn < flagQuantity; fn++) {
+            if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
             idx = flist[fn]->st;
-            for (i = 0; i < static_cast<int>(flist[fn]->nt); i++)
-            {
+            for (i = 0; i < static_cast<int>(flist[fn]->nt); i++) {
                 pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv);
                 pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 1);
                 pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 2);
@@ -573,32 +497,23 @@ void FLAG::LoadIni()
     char section[256];
     char param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
-    {
-        ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE);
-    }
+    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
     auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
-    if (!ini)
-    {
-        throw std::runtime_error("rigging.ini file not found!");
-    }
+    if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "FLAGS");
 
     auto texChange = false;
-    int tmp;
+    int  tmp;
     // load texture parameters
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "flagall.tga");
     UpdateTexture(param);
 
-    if (core.GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS)
-    {
-        FlagTextureQuantity = static_cast<int>(ini->GetInt(section, "TextureCount", 10));
+    if (core.GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS) {
+        FlagTextureQuantity    = static_cast<int>(ini->GetInt(section, "TextureCount", 10));
         FlagTextureQuantityRow = 1;
-    }
-    else
-    {
-        FlagTextureQuantity = static_cast<int>(ini->GetInt(section, "TextureCountColumn", 4));
+    } else {
+        FlagTextureQuantity    = static_cast<int>(ini->GetInt(section, "TextureCountColumn", 4));
         FlagTextureQuantityRow = static_cast<int>(ini->GetInt(section, "TextureCountRow", 8));
     }
 
@@ -618,10 +533,10 @@ void FLAG::LoadIni()
     // the maximum value of the random change in the angle Beta
     BETA_RAND = ini->GetFloat(section, "beta_rand", 0.1f);
     // maximum angle (for the end of the flag)
-    fAlfaMax = ini->GetFloat(section, "fAlfaMax", 4.71f);
+    fAlfaMax  = ini->GetFloat(section, "fAlfaMax", 4.71f);
     fAlfaStep = ini->GetFloat(section, "fAlfaStep", .2f);
     // maximum angle (for the end of the flag)
-    fBetaMax = ini->GetFloat(section, "fBetaMax", 7.85f);
+    fBetaMax  = ini->GetFloat(section, "fBetaMax", 7.85f);
     fBetaStep = ini->GetFloat(section, "fBetaStep", .3f);
     // Parameters of forming the shape of the flag and its fluctuation
     // amplitude of the flag guideline
@@ -637,23 +552,18 @@ void FLAG::LoadIni()
     // UNGUARD
 }
 
-uint32_t FLAG::AttributeChanged(ATTRIBUTES *attributes)
+uint32_t FLAG::AttributeChanged(ATTRIBUTES* attributes)
 {
-    const std::string_view attributeName = attributes->GetThisName();
+    std::string_view const attributeName = attributes->GetThisName();
 
-    if (storm::iEquals(attributeName, "texture"))
-    {
+    if (storm::iEquals(attributeName, "texture")) {
         UpdateTexture(attributes->GetValue());
-    }
-    else if (storm::iEquals(attributeName, "textureColumns"))
-    {
+    } else if (storm::iEquals(attributeName, "textureColumns")) {
         FlagTextureQuantity = atoll(attributes->GetValue().c_str());
         verticesNeedUpdate_ = true;
-    }
-    else if (storm::iEquals(attributeName, "textureRows"))
-    {
+    } else if (storm::iEquals(attributeName, "textureRows")) {
         FlagTextureQuantityRow = atoll(attributes->GetValue().c_str());
-        verticesNeedUpdate_ = true;
+        verticesNeedUpdate_    = true;
     }
 
     return Entity::AttributeChanged(attributes);
@@ -663,19 +573,17 @@ void FLAG::FirstRun()
 {
     if (wFlagLast)
         SetAdd(wFlagLast);
-    else
-    {
+    else {
         SetAll();
 
         rootMatrix.SetIdentity();
     }
 
-    if (nVert)
-    {
+    if (nVert) {
         bUse = true;
         iBuf = RenderService->CreateIndexBuffer(nIndx * 2);
         SetTreangle();
-        vBuf = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
+        vBuf                = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
         verticesNeedUpdate_ = true;
         SetTextureCoordinate();
         nIndx /= 3;
@@ -689,10 +597,9 @@ void FLAG::GroupSTORM_DELETE(entid_t m_id)
 {
     // find a group corresponding to the resulting model
     for (auto gn = 0; gn < groupQuantity; gn++)
-        if (gdata[gn].model_id == m_id)
-        {
-            gdata[gn].bDeleted = true; // mark it as deleted
-            bYesDeleted = true;
+        if (gdata[gn].model_id == m_id) {
+            gdata[gn].bDeleted = true;  // mark it as deleted
+            bYesDeleted        = true;
             break;
         }
 }
@@ -701,45 +608,37 @@ void FLAG::DoSTORM_DELETE()
 {
     // go through all deleted groups and remove the flags they contain
     auto ngn = 0;
-    nVert = 0;
-    nIndx = 0;
-    for (auto gn = 0; gn < groupQuantity; gn++)
-    {
-        auto gs = 0; // number of unremoved flags in the group
+    nVert    = 0;
+    nIndx    = 0;
+    for (auto gn = 0; gn < groupQuantity; gn++) {
+        auto gs = 0;  // number of unremoved flags in the group
         for (auto fn = 0; fn < flagQuantity; fn++)
-            if (flist[fn] != nullptr && flist[fn]->HostGroup == gn)
-            {
+            if (flist[fn] != nullptr && flist[fn]->HostGroup == gn) {
                 // if the flag is marked as deleted, then physically delete
-                if (gdata[gn].bDeleted || flist[fn]->bDeleted || flist[fn]->nv <= 0 || flist[fn]->nt <= 0)
-                {
+                if (gdata[gn].bDeleted || flist[fn]->bDeleted || flist[fn]->nv <= 0 || flist[fn]->nt <= 0) {
                     flist[fn]->bDeleted = true;
                     continue;
                 }
 
                 flist[fn]->HostGroup = ngn;
-                flist[fn]->sv = nVert;
-                flist[fn]->st = nIndx;
+                flist[fn]->sv        = nVert;
+                flist[fn]->st        = nIndx;
                 nVert += flist[fn]->nv;
                 nIndx += flist[fn]->nt * 3;
                 gs++;
             }
         // if all flags are removed from the group, then delete the group
-        if (gs == 0)
-            continue;
+        if (gs == 0) continue;
 
         // write the group to its position
-        if (ngn < gn)
-            memcpy(&gdata[ngn], &gdata[gn], sizeof(GROUPDATA));
+        if (ngn < gn) memcpy(&gdata[ngn], &gdata[gn], sizeof(GROUPDATA));
         ngn++;
     }
 
     auto nfn = 0;
-    for (auto fn = 0; fn < flagQuantity; fn++)
-    {
-        if (flist[fn] == nullptr)
-            continue;
-        if (flist[fn]->bDeleted)
-        {
+    for (auto fn = 0; fn < flagQuantity; fn++) {
+        if (flist[fn] == nullptr) continue;
+        if (flist[fn]->bDeleted) {
             delete flist[fn];
             flist[fn] = nullptr;
             continue;
@@ -749,8 +648,7 @@ void FLAG::DoSTORM_DELETE()
     }
 
     nIndx /= 3;
-    if (nfn == 0 || ngn == 0)
-    {
+    if (nfn == 0 || ngn == 0) {
         VERTEX_BUFFER_RELEASE(RenderService, vBuf);
         INDEX_BUFFER_RELEASE(RenderService, iBuf);
         flagQuantity = groupQuantity = 0;
@@ -758,35 +656,29 @@ void FLAG::DoSTORM_DELETE()
         flist = nullptr;
         delete gdata;
         gdata = nullptr;
-    }
-    else if (nfn != flagQuantity || ngn != groupQuantity)
-    {
+    } else if (nfn != flagQuantity || ngn != groupQuantity) {
         VERTEX_BUFFER_RELEASE(RenderService, vBuf);
         INDEX_BUFFER_RELEASE(RenderService, iBuf);
         vBuf = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
         iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
 
-        flagQuantity = nfn;
+        flagQuantity  = nfn;
         groupQuantity = ngn;
 
-        auto *const oldflist = flist;
-        flist = new FLAGDATA *[flagQuantity];
-        if (flist)
-        {
-            memcpy(flist, oldflist, sizeof(FLAGDATA *) * flagQuantity);
+        auto* const oldflist = flist;
+        flist                = new FLAGDATA*[flagQuantity];
+        if (flist) {
+            memcpy(flist, oldflist, sizeof(FLAGDATA*) * flagQuantity);
             delete oldflist;
-        }
-        else
+        } else
             flist = oldflist;
 
-        auto *const oldgdata = gdata;
-        gdata = new GROUPDATA[groupQuantity];
-        if (gdata)
-        {
+        auto* const oldgdata = gdata;
+        gdata                = new GROUPDATA[groupQuantity];
+        if (gdata) {
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
             delete oldgdata;
-        }
-        else
+        } else
             gdata = oldgdata;
 
         SetTreangle();
@@ -794,109 +686,95 @@ void FLAG::DoSTORM_DELETE()
         SetTextureCoordinate();
     }
 
-    wFlagLast = flagQuantity;
+    wFlagLast   = flagQuantity;
     bYesDeleted = false;
-    bUse = flagQuantity > 0;
+    bUse        = flagQuantity > 0;
 }
 
 void FLAG::SetAdd(int flagNum)
 {
-    VDATA *pvdat;
+    VDATA* pvdat;
     // set vertex and index buffers
     nIndx *= 3;
-    for (auto fn = flagNum; fn < flagQuantity; fn++)
-    {
-        if (flist[fn] == nullptr)
-            continue;
+    for (auto fn = flagNum; fn < flagQuantity; fn++) {
+        if (flist[fn] == nullptr) continue;
         CVECTOR bmpos, empos;
-        float len;
+        float   len;
 
-        auto p0 = flist[fn]->spos;
-        auto p1 = flist[fn]->dv;
-        auto p2 = flist[fn]->dhv;
-        auto p3 = flist[fn]->ddhv;
-        flist[fn]->spos = bmpos = (p0 + p1) * .5f; // the middle of the starting edge of the flag
+        auto p0         = flist[fn]->spos;
+        auto p1         = flist[fn]->dv;
+        auto p2         = flist[fn]->dhv;
+        auto p3         = flist[fn]->ddhv;
+        flist[fn]->spos = bmpos = (p0 + p1) * .5f;  // the middle of the starting edge of the flag
         // calculate the midpoint of the final edge of the flag
         if (flist[fn]->triangle)
             empos = p2;
         else
             empos = (p2 + p3) * .5f;
         flist[fn]->dhv = p0 - bmpos;
-        len = sqrtf(~(empos - bmpos)); // flag length
-        if (len < FLAGVECTORLEN)
-        {
+        len            = sqrtf(~(empos - bmpos));  // flag length
+        if (len < FLAGVECTORLEN) {
             delete flist[fn];
-            if (flagQuantity == 1)
-            {
+            if (flagQuantity == 1) {
                 delete flist;
-                flist = nullptr;
+                flist        = nullptr;
                 flagQuantity = 0;
-            }
-            else
-            {
-                auto *const oldflist = flist;
+            } else {
+                auto* const oldflist = flist;
                 flagQuantity--;
-                flist = new FLAGDATA *[flagQuantity];
-                if (flist == nullptr)
-                    flist = oldflist;
-                if (fn > 0)
-                    memcpy(flist, oldflist, sizeof(FLAGDATA *) * fn);
-                if (fn < flagQuantity)
-                    memcpy(&flist[fn], &oldflist[fn + 1], sizeof(FLAGDATA *) * (flagQuantity - fn));
-                if (flist != oldflist)
-                    delete oldflist;
+                flist = new FLAGDATA*[flagQuantity];
+                if (flist == nullptr) flist = oldflist;
+                if (fn > 0) memcpy(flist, oldflist, sizeof(FLAGDATA*) * fn);
+                if (fn < flagQuantity) memcpy(&flist[fn], &oldflist[fn + 1], sizeof(FLAGDATA*) * (flagQuantity - fn));
+                if (flist != oldflist) delete oldflist;
             }
-        }
-        else
-        {
+        } else {
             int32_t curTexNumC = 0;
             int32_t curTexNumR = 0;
 
             // set texture number
-            if (flist[fn]->isShip) // ship
+            if (flist[fn]->isShip)  // ship
             {
-                pvdat = core.Event("GetRiggingData", "sllla", "GetShipFlagTexNum", flist[fn]->triangle,
-                                   gdata[flist[fn]->HostGroup].nation, flist[fn]->isSpecialFlag,
-                                   gdata[flist[fn]->HostGroup].char_attributes);
+                pvdat = core.Event(
+                    "GetRiggingData",
+                    "sllla",
+                    "GetShipFlagTexNum",
+                    flist[fn]->triangle,
+                    gdata[flist[fn]->HostGroup].nation,
+                    flist[fn]->isSpecialFlag,
+                    gdata[flist[fn]->HostGroup].char_attributes);
+            } else {
+                pvdat = core.Event(
+                    "GetRiggingData",
+                    "slll",
+                    "GetTownFlagTexNum",
+                    flist[fn]->triangle,
+                    gdata[flist[fn]->HostGroup].nation,
+                    flist[fn]->isSpecialFlag);
             }
-            else
-            {
-                pvdat = core.Event("GetRiggingData", "slll", "GetTownFlagTexNum", flist[fn]->triangle,
-                                   gdata[flist[fn]->HostGroup].nation, flist[fn]->isSpecialFlag);
-            }
-            if (pvdat == nullptr)
-            {
+            if (pvdat == nullptr) {
                 curTexNumC = 0;
                 curTexNumR = 0;
-            }
-            else
-            {
-                if (pvdat->IsArray())
-                {
+            } else {
+                if (pvdat->IsArray()) {
                     pvdat->Get(curTexNumC, 0);
                     pvdat->Get(curTexNumR, 1);
-                }
-                else
-                {
+                } else {
                     pvdat->Get(curTexNumC);
                     curTexNumR = 0;
                 }
             }
 
-            if (curTexNumC == -1 || curTexNumR == -1)
-            {
+            if (curTexNumC == -1 || curTexNumR == -1) {
                 flist[fn]->bDisabled = true;
-            }
-            else
-            {
+            } else {
                 flist[fn]->bDisabled = false;
 
                 flist[fn]->texNumC = curTexNumC;
                 flist[fn]->texNumR = curTexNumR;
 
-                flist[fn]->vectQuant = (int)(len / FLAGVECTORLEN); // number of flag segments
-                if (flist[fn]->vectQuant < MinSegmentQuantity)
-                    flist[fn]->vectQuant = MinSegmentQuantity;
+                flist[fn]->vectQuant = (int)(len / FLAGVECTORLEN);  // number of flag segments
+                if (flist[fn]->vectQuant < MinSegmentQuantity) flist[fn]->vectQuant = MinSegmentQuantity;
                 // compute flag increment
                 flist[fn]->dv = (empos - bmpos) / static_cast<float>(flist[fn]->vectQuant);
                 if (flist[fn]->triangle)
@@ -906,14 +784,11 @@ void FLAG::SetAdd(int flagNum)
 
                 flist[fn]->sv = nVert;
                 flist[fn]->st = nIndx;
-                flist[fn]->vectQuant; // TODO: check this ~!~
-                if (flist[fn]->triangle)
-                {
+                flist[fn]->vectQuant;  // TODO: check this ~!~
+                if (flist[fn]->triangle) {
                     nVert += (flist[fn]->nv = flist[fn]->vectQuant * 2 + 3);
                     nIndx += (flist[fn]->nt = flist[fn]->vectQuant * 2 + 1) * 3;
-                }
-                else
-                {
+                } else {
                     nVert += (flist[fn]->nv = flist[fn]->vectQuant * 2 + 2);
                     nIndx += (flist[fn]->nt = flist[fn]->vectQuant * 2) * 3;
                 }
@@ -930,24 +805,19 @@ void FLAG::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
     // find the old group
     int oldgn;
     for (oldgn = 0; oldgn < groupQuantity; oldgn++)
-        if (gdata[oldgn].model_id == oldm_id)
-            break;
+        if (gdata[oldgn].model_id == oldm_id) break;
     // if there is no such group, then an empty return
-    if (oldgn == groupQuantity)
-        return;
+    if (oldgn == groupQuantity) return;
 
     // find a new group
     int newgn;
     for (newgn = 0; newgn < groupQuantity; newgn++)
-        if (gdata[newgn].model_id == newm_id)
-            break;
+        if (gdata[newgn].model_id == newm_id) break;
     // if there is no new group, then create it
-    if (newgn == groupQuantity)
-    {
-        auto *const oldgdata = gdata;
-        gdata = new GROUPDATA[groupQuantity + 1];
-        if (gdata == nullptr)
-            throw std::runtime_error("Not memory allocation");
+    if (newgn == groupQuantity) {
+        auto* const oldgdata = gdata;
+        gdata                = new GROUPDATA[groupQuantity + 1];
+        if (gdata == nullptr) throw std::runtime_error("Not memory allocation");
         memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
         delete oldgdata;
         groupQuantity++;
@@ -955,23 +825,20 @@ void FLAG::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
         // fill in the parameters of the new group
         gdata[newgn].bDeleted = false;
         gdata[newgn].model_id = newm_id;
-        gdata[newgn].nation = gdata[oldgn].nation;
+        gdata[newgn].nation   = gdata[oldgn].nation;
     }
 
     // find the flag we need
     int fn;
     for (fn = 0; fn < flagQuantity; fn++)
-        if (flist[fn] != nullptr && flist[fn]->grNum == flagNum && flist[fn]->HostGroup == oldgn)
-            break;
+        if (flist[fn] != nullptr && flist[fn]->grNum == flagNum && flist[fn]->HostGroup == oldgn) break;
     // reassign its owner to the new owner
-    if (fn < flagQuantity)
-        flist[fn]->HostGroup = newgn;
+    if (fn < flagQuantity) flist[fn]->HostGroup = newgn;
 }
 
-void FLAG::UpdateTexture(const std::string_view &texturePath)
+void FLAG::UpdateTexture(std::string_view const& texturePath)
 {
-    if (textureName_ != texturePath)
-    {
+    if (textureName_ != texturePath) {
         textureName_ = texturePath;
         RenderService->TextureRelease(texl);
         texl = RenderService->TextureCreate(textureName_.c_str());

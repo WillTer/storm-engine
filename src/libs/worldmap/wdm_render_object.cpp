@@ -9,9 +9,10 @@
 //============================================================================================
 
 #include "wdm_render_object.h"
+
 #include <libs/util/storm_assert.h>
 
-WdmRenderObject *WdmRenderObject::firstObject = nullptr;
+WdmRenderObject* WdmRenderObject::firstObject = nullptr;
 
 // ============================================================================================
 // Construction, destruction
@@ -19,38 +20,30 @@ WdmRenderObject *WdmRenderObject::firstObject = nullptr;
 
 WdmRenderObject::WdmRenderObject()
 {
-    killMe = false;
+    killMe        = false;
     isEnablePause = true;
-    if (firstObject)
-    {
+    if (firstObject) {
         for (prevObject = firstObject; prevObject->nextObject; prevObject = prevObject->nextObject)
             ;
         prevObject->nextObject = this;
-        nextObject = nullptr;
-    }
-    else
-    {
+        nextObject             = nullptr;
+    } else {
         firstObject = this;
-        prevObject = nullptr;
-        nextObject = nullptr;
+        prevObject  = nullptr;
+        nextObject  = nullptr;
     }
 }
 
 WdmRenderObject::~WdmRenderObject()
 {
-    if (prevObject == nullptr)
-    {
+    if (prevObject == nullptr) {
         Assert(WdmRenderObject::firstObject == this);
         firstObject = nextObject;
-        if (nextObject)
-            nextObject->prevObject = nullptr;
-    }
-    else
-    {
+        if (nextObject) nextObject->prevObject = nullptr;
+    } else {
         Assert(WdmRenderObject::firstObject != this);
         prevObject->nextObject = nextObject;
-        if (nextObject)
-            nextObject->prevObject = prevObject;
+        if (nextObject) nextObject->prevObject = prevObject;
     }
 }
 

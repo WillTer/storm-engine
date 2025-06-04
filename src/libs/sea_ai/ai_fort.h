@@ -12,29 +12,29 @@
 class AIShip;
 class AIGroup;
 
-class AIFort : public VAI_OBJBASE
+class AIFort: public VAI_OBJBASE
 {
-  public:
-    class AI_FORT : public VAI_INNEROBJ
+public:
+    class AI_FORT: public VAI_INNEROBJ
     {
-      private:
-        class TmpVAI_OBJBASE : public VAI_OBJBASE
+    private:
+        class TmpVAI_OBJBASE: public VAI_OBJBASE
         {
-          public:
+        public:
             TmpVAI_OBJBASE() : pFort(nullptr)
             {
                 mTmp.SetIdentity();
             }
 
-            CMatrix mTmp;
-            AI_FORT *pFort;
+            CMatrix  mTmp;
+            AI_FORT* pFort;
 
-            CMatrix *GetMatrix() override
+            CMatrix* GetMatrix() override
             {
                 return &GetModel()->mtx;
             };
 
-            MODEL *GetModel() const override
+            MODEL* GetModel() const override
             {
                 return pFort->GetModel();
             };
@@ -44,50 +44,45 @@ class AIFort : public VAI_OBJBASE
                 return pFort->GetModelEID();
             };
 
-            void Save(CSaveLoad *pSL) override {};
+            void Save(CSaveLoad* pSL) override {};
 
-            void Load(CSaveLoad *pSL) override {};
+            void Load(CSaveLoad* pSL) override {};
 
-            void Fire(const CVECTOR &vPos) override {};
+            void Fire(const CVECTOR& vPos) override {};
 
-            float Cannon_Trace(int32_t iBallOwner, const CVECTOR &src, const CVECTOR &dst) override
+            float Cannon_Trace(int32_t iBallOwner, const CVECTOR& src, const CVECTOR& dst) override
             {
                 return 2.0f;
             };
 
-            float Trace(const CVECTOR &vSrc, const CVECTOR &vDst) override
+            float Trace(const CVECTOR& vSrc, const CVECTOR& vDst) override
             {
                 return 2.0f;
             };
 
-            bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &vCenter, float radius,
-                      ADD_POLYGON_FUNC addpoly) override
+            bool Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& vCenter, float radius, ADD_POLYGON_FUNC addpoly) override
             {
                 return false;
             };
 
-            const char *GetCollideMaterialName() override
+            char const* GetCollideMaterialName() override
             {
                 return nullptr;
             };
 
-            bool GetCollideTriangle(TRIANGLE &triangle) override
+            bool GetCollideTriangle(TRIANGLE& triangle) override
             {
                 return false;
             };
 
-            void ProcessStage(Stage, uint32_t) override
-            {
-            }
+            void ProcessStage(Stage, uint32_t) override {}
 
-            bool Mount(ATTRIBUTES *) override
+            bool Mount(ATTRIBUTES*) override
             {
                 return false;
             }
 
-            void SetPos(const CVECTOR &vNewPos) override
-            {
-            }
+            void SetPos(const CVECTOR& vNewPos) override {}
 
             CVECTOR GetPos() const override
             {
@@ -108,21 +103,21 @@ class AIFort : public VAI_OBJBASE
         entid_t eidModel;
         entid_t eidBlot;
 
-      public:
-        CMatrix mOldMatrix;
-        CVECTOR vPos;
-        ATTRIBUTES *pFortLabelAP;
+    public:
+        CMatrix        mOldMatrix;
+        CVECTOR        vPos;
+        ATTRIBUTES*    pFortLabelAP;
         TmpVAI_OBJBASE tmpObject;
 
-        std::vector<AICannon> aCannons;   // fort cannons container
-        std::vector<AICannon> aCulverins; // fort culverins container
-        std::vector<AICannon> aMortars;   // fort mortars container
+        std::vector<AICannon> aCannons;    // fort cannons container
+        std::vector<AICannon> aCulverins;  // fort culverins container
+        std::vector<AICannon> aMortars;    // fort mortars container
 
         uint32_t dwCannonType, dwCulverinType, dwMortarType;
 
-        MODEL *GetModel() const
+        MODEL* GetModel() const
         {
-            return static_cast<MODEL *>(core.GetEntityPointer(GetModelEID()));
+            return static_cast<MODEL*>(core.GetEntityPointer(GetModelEID()));
         }
 
         void SetModelEID(entid_t _eidModel)
@@ -152,10 +147,8 @@ class AIFort : public VAI_OBJBASE
 
         uint32_t GetCannonType(uint32_t dwCannonIndex) const
         {
-            if (dwCannonIndex < aCannons.size())
-                return dwCannonType;
-            if (dwCannonIndex < aCannons.size() + aCulverins.size())
-                return dwCulverinType;
+            if (dwCannonIndex < aCannons.size()) return dwCannonType;
+            if (dwCannonIndex < aCannons.size() + aCulverins.size()) return dwCulverinType;
             return dwMortarType;
         }
 
@@ -164,36 +157,30 @@ class AIFort : public VAI_OBJBASE
             uint32_t i, dwDamagedNum = 0;
 
             for (i = 0; i < aCannons.size(); i++)
-                if (aCannons[i].isDamaged())
-                    dwDamagedNum++;
+                if (aCannons[i].isDamaged()) dwDamagedNum++;
             for (i = 0; i < aCulverins.size(); i++)
-                if (aCulverins[i].isDamaged())
-                    dwDamagedNum++;
+                if (aCulverins[i].isDamaged()) dwDamagedNum++;
             for (i = 0; i < aMortars.size(); i++)
-                if (aMortars[i].isDamaged())
-                    dwDamagedNum++;
+                if (aMortars[i].isDamaged()) dwDamagedNum++;
 
             return dwDamagedNum;
         }
 
         bool isNormalMode() const
         {
-            auto *pAFM = GetACharacter()->FindAClass(GetACharacter(), "Fort.Mode");
-            if (pAFM)
-                return (pAFM->GetAttributeAsDword() == FORT_NORMAL);
+            auto* pAFM = GetACharacter()->FindAClass(GetACharacter(), "Fort.Mode");
+            if (pAFM) return (pAFM->GetAttributeAsDword() == FORT_NORMAL);
             return false;
         }
 
-        AICannon *GetCannon(uint32_t dwCannonIndex)
+        AICannon* GetCannon(uint32_t dwCannonIndex)
         {
-            if (dwCannonIndex < aCannons.size())
-                return &aCannons[dwCannonIndex];
-            if (dwCannonIndex < aCannons.size() + aCulverins.size())
-                return &aCulverins[dwCannonIndex - aCannons.size()];
+            if (dwCannonIndex < aCannons.size()) return &aCannons[dwCannonIndex];
+            if (dwCannonIndex < aCannons.size() + aCulverins.size()) return &aCulverins[dwCannonIndex - aCannons.size()];
             return &aMortars[dwCannonIndex - (aCannons.size() + aCulverins.size())];
         }
 
-        AI_FORT(ATTRIBUTES *_pFortLabelAP)
+        AI_FORT(ATTRIBUTES* _pFortLabelAP)
         {
             SetObjType(AIOBJ_FORT);
 
@@ -202,7 +189,7 @@ class AIFort : public VAI_OBJBASE
             pFortLabelAP = _pFortLabelAP;
 
             vPos.x = pFortLabelAP->GetAttributeAsFloat("x");
-            vPos.y = 0.0f; // pFortLabelAP->GetAttributeAsFloat("y");
+            vPos.y = 0.0f;  // pFortLabelAP->GetAttributeAsFloat("y");
             vPos.z = pFortLabelAP->GetAttributeAsFloat("z");
         }
 
@@ -210,14 +197,14 @@ class AIFort : public VAI_OBJBASE
         {
             return vPos;
         };
-        CVECTOR GetAttackPoint(VAI_INNEROBJ *) override;
+        CVECTOR GetAttackPoint(VAI_INNEROBJ*) override;
 
-        CVECTOR GetFollowPoint(VAI_INNEROBJ *) override
+        CVECTOR GetFollowPoint(VAI_INNEROBJ*) override
         {
             return 0.0f;
         };
 
-        CVECTOR GetAbordagePoint(VAI_INNEROBJ *) override
+        CVECTOR GetAbordagePoint(VAI_INNEROBJ*) override
         {
             return 0.0f;
         };
@@ -232,8 +219,8 @@ class AIFort : public VAI_OBJBASE
             return 0.0f;
         };
 
-        void Save(CSaveLoad *pSL);
-        void Load(CSaveLoad *pSL, entid_t eid);
+        void Save(CSaveLoad* pSL);
+        void Load(CSaveLoad* pSL, entid_t eid);
 
         CVECTOR GetAng() const override
         {
@@ -245,7 +232,7 @@ class AIFort : public VAI_OBJBASE
             return {};
         }
 
-        void SetPos(const CVECTOR &vNewPos) override {};
+        void SetPos(const CVECTOR& vNewPos) override {};
 
         void SetAngleY(float fAngleY) override {};
     };
@@ -255,42 +242,41 @@ class AIFort : public VAI_OBJBASE
         return aForts.size();
     }
 
-    AI_FORT *FindFort(ATTRIBUTES *pACharacter);
+    AI_FORT* FindFort(ATTRIBUTES* pACharacter);
 
-    AI_FORT *GetFort(uint32_t k)
+    AI_FORT* GetFort(uint32_t k)
     {
         Assert(k < aForts.size());
         return aForts[k];
     }
 
-  private:
+private:
     CMatrix mtxFort;
 
-    DTimer dtFiredTimer;
-    AI_FORT *pLastTraceFort;
-    std::vector<AI_FORT *> aForts; // fort container
+    DTimer                dtFiredTimer;
+    AI_FORT*              pLastTraceFort;
+    std::vector<AI_FORT*> aForts;  // fort container
 
     float fMinCannonDamageDistance;
 
     // Ships lights
-    IShipLights *pShipsLights;
+    IShipLights* pShipsLights;
 
-    void AddFortHit(int32_t iCharacterIndex, CVECTOR &vHitPos);
-    float GetSpeedV0(uint32_t dwFortIndex);
-    bool ScanFortForCannons(AI_FORT *pFort, const char *pModelsDir, const char *pLocatorsName) const;
-    bool AddFort(ATTRIBUTES *pIslandAP, ATTRIBUTES *pFortAP, ATTRIBUTES *pFortCharacter, entid_t eidModel,
-                 entid_t eidBlot);
-    AI_FORT *FindFort(entid_t eidModel);
+    void     AddFortHit(int32_t iCharacterIndex, CVECTOR& vHitPos);
+    float    GetSpeedV0(uint32_t dwFortIndex);
+    bool     ScanFortForCannons(AI_FORT* pFort, char const* pModelsDir, char const* pLocatorsName) const;
+    bool     AddFort(ATTRIBUTES* pIslandAP, ATTRIBUTES* pFortAP, ATTRIBUTES* pFortCharacter, entid_t eidModel, entid_t eidBlot);
+    AI_FORT* FindFort(entid_t eidModel);
 
-  public:
-    static AIFort *pAIFort;
+public:
+    static AIFort* pAIFort;
 
     AIFort();
     ~AIFort() override;
 
     // AI section
-    bool isAttack(AIGroup *pGroup);
-    bool isDead(); // is group dead?
+    bool  isAttack(AIGroup* pGroup);
+    bool  isDead();  // is group dead?
     float GetPower();
 
     // inherit functions Entity
@@ -302,11 +288,8 @@ class AIFort : public VAI_OBJBASE
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -314,49 +297,47 @@ class AIFort : public VAI_OBJBASE
               LostRender(delta); break;
             case Stage::restore_render:
               RestoreRender(delta); break;*/
-        default:
-            break;
+        default: break;
         }
     }
 
-    bool CreateState(ENTITY_STATE_GEN *state_gen);
-    bool LoadState(ENTITY_STATE *state);
+    bool CreateState(ENTITY_STATE_GEN* state_gen);
+    bool LoadState(ENTITY_STATE* state);
 
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
-    uint32_t AttributeChanged(ATTRIBUTES *pAttribute) override;
+    uint32_t AttributeChanged(ATTRIBUTES* pAttribute) override;
 
     // inherit functions COLLISION_OBJECT
-    float Trace(const CVECTOR &vSrc, const CVECTOR &vDst) override;
+    float Trace(const CVECTOR& vSrc, const CVECTOR& vDst) override;
 
-    bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &vCenter, float radius,
-              ADD_POLYGON_FUNC addpoly) override
+    bool Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& vCenter, float radius, ADD_POLYGON_FUNC addpoly) override
     {
         return false;
     };
 
-    const char *GetCollideMaterialName() override
+    char const* GetCollideMaterialName() override
     {
         return nullptr;
     };
 
-    bool GetCollideTriangle(TRIANGLE &triangle) override
+    bool GetCollideTriangle(TRIANGLE& triangle) override
     {
         return false;
     };
 
     // inherit functions CANNON_TRACE_BASE
-    float Cannon_Trace(int32_t iBallOwner, const CVECTOR &vSrc, const CVECTOR &vDst) override;
+    float Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& vDst) override;
 
     // inherit functions VAI_OBJBASE
-    ATTRIBUTES *GetACharacter() override;
+    ATTRIBUTES* GetACharacter() override;
 
-    CMatrix *GetMatrix() override
+    CMatrix* GetMatrix() override
     {
         return &mtxFort;
     };
 
-    MODEL *GetModel() const override
+    MODEL* GetModel() const override
     {
         return nullptr;
     };
@@ -376,14 +357,14 @@ class AIFort : public VAI_OBJBASE
         return CVECTOR(0.0f, 0.0f, 0.0f);
     };
 
-    bool Mount(ATTRIBUTES *pAttribute) override;
+    bool Mount(ATTRIBUTES* pAttribute) override;
 
-    void Save(CSaveLoad *pSL) override;
-    void Load(CSaveLoad *pSL) override;
+    void Save(CSaveLoad* pSL) override;
+    void Load(CSaveLoad* pSL) override;
 
-    void Fire(const CVECTOR &vPos) override;
+    void Fire(const CVECTOR& vPos) override;
 
-    void SetPos(const CVECTOR &vNewPos) override {};
+    void SetPos(const CVECTOR& vNewPos) override {};
 
     CVECTOR GetBoxsize() const override
     {

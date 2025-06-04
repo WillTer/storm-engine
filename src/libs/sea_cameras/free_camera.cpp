@@ -1,13 +1,13 @@
 #include "free_camera.h"
+
 #include <libs/collide/collide.h>
 #include <libs/core/save_load.h>
-
 
 #define SENSITIVITY 0.0015f
 #define FOV 1.285f
 
-entid_t sphere;
-COLLIDE *pCollide;
+entid_t  sphere;
+COLLIDE* pCollide;
 
 FREE_CAMERA::FREE_CAMERA()
 {
@@ -15,21 +15,19 @@ FREE_CAMERA::FREE_CAMERA()
     SetActive(false);
 
     pIslandBase = nullptr;
-    pRS = nullptr;
-    vPos.z = 250.0f;
-    vPos.y = 3.0f;
-    fFov = FOV;
+    pRS         = nullptr;
+    vPos.z      = 250.0f;
+    vPos.y      = 3.0f;
+    fFov        = FOV;
 
     iLockX = 0;
     iLockY = 0;
 
     fCameraOnEarthHeight = 3.0f;
-    bCameraOnEarth = false;
+    bCameraOnEarth       = false;
 }
 
-FREE_CAMERA::~FREE_CAMERA()
-{
-}
+FREE_CAMERA::~FREE_CAMERA() {}
 
 bool FREE_CAMERA::Init()
 {
@@ -43,9 +41,9 @@ bool FREE_CAMERA::Init()
 
 void FREE_CAMERA::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE *>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
     Assert(pCollide);
 
     /*core.CreateEntity(&sphere,"modelr");
@@ -53,40 +51,37 @@ void FREE_CAMERA::SetDevice()
     core.AddToLayer(realize,sphere,10000);*/
 }
 
-bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN *state_gen) const
+bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen) const
 {
     state_gen->SetState("vv", sizeof(vPos), vPos, sizeof(vAng), vAng);
     return true;
 }
 
-bool FREE_CAMERA::LoadState(ENTITY_STATE *state)
+bool FREE_CAMERA::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
-    state->Struct(sizeof(vPos), (char *)&vPos);
-    state->Struct(sizeof(vAng), (char *)&vAng);
+    state->Struct(sizeof(vPos), (char*)&vPos);
+    state->Struct(sizeof(vAng), (char*)&vAng);
     return true;
 }
 
 void FREE_CAMERA::Execute(uint32_t Delta_Time)
 {
-    if (!isOn())
-        return;
+    if (!isOn()) return;
 
     SetPerspective(AttributesPointer->GetAttributeAsFloat("Perspective"));
 
     float persp;
     pRS->GetCamera(vPos, vAng, persp);
 
-    if (!pIslandBase)
-        pIslandBase = static_cast<ISLAND_BASE *>(core.GetEntityPointer(core.GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
 
     Move(core.GetDeltaTime());
 }
 
 void FREE_CAMERA::Move(uint32_t DeltaTime)
 {
-    if (!isActive())
-        return;
+    if (!isActive()) return;
 
     // POINT pnt;
     // GetCursorPos(&pnt);
@@ -100,30 +95,25 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
         vAng.x += SENSITIVITY * static_cast<float>(cs.fValue);
         // SetCursorPos(iLockX,iLockY);
     }
-    if (bCameraOnEarth && pIslandBase)
-    {
+    if (bCameraOnEarth && pIslandBase) {
         pIslandBase->GetDepth(vPos.x, vPos.z, &vPos.y);
         vPos.y += fCameraOnEarthHeight;
     }
-    const auto c0 = cosf(vAng.y);
-    const auto s0 = sinf(vAng.y);
-    const auto c1 = cosf(vAng.x);
-    const auto s1 = sinf(vAng.x);
-    auto c2 = cosf(vAng.z);
-    float s2 = sinf(vAng.z);
-    float speed = 5.0f * 0.001f * static_cast<float>(DeltaTime);
+    auto const c0    = cosf(vAng.y);
+    auto const s0    = sinf(vAng.y);
+    auto const c1    = cosf(vAng.x);
+    auto const s1    = sinf(vAng.x);
+    auto       c2    = cosf(vAng.z);
+    float      s2    = sinf(vAng.z);
+    float      speed = 5.0f * 0.001f * static_cast<float>(DeltaTime);
 
-    if (core.Controls->GetAsyncKeyState(VK_SHIFT))
-        speed *= 4.0f;
-    if (core.Controls->GetAsyncKeyState(VK_CONTROL))
-        speed *= 8.0f;
+    if (core.Controls->GetAsyncKeyState(VK_SHIFT)) speed *= 4.0f;
+    if (core.Controls->GetAsyncKeyState(VK_CONTROL)) speed *= 8.0f;
 
     core.Controls->GetControlState("FreeCamera_Forward", cs);
-    if (cs.state == CST_ACTIVE)
-        vPos += speed * CVECTOR(s0 * c1, -s1, c0 * c1);
+    if (cs.state == CST_ACTIVE) vPos += speed * CVECTOR(s0 * c1, -s1, c0 * c1);
     core.Controls->GetControlState("FreeCamera_Backward", cs);
-    if (cs.state == CST_ACTIVE)
-        vPos -= speed * CVECTOR(s0 * c1, -s1, c0 * c1);
+    if (cs.state == CST_ACTIVE) vPos -= speed * CVECTOR(s0 * c1, -s1, c0 * c1);
 
     /*if (core.Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
     if (core.Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
@@ -153,7 +143,7 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     delete pVW;*/
 }
 
-void FREE_CAMERA::Save(CSaveLoad *pSL)
+void FREE_CAMERA::Save(CSaveLoad* pSL)
 {
     pSL->SaveVector(vPos);
     pSL->SaveVector(vAng);
@@ -165,14 +155,14 @@ void FREE_CAMERA::Save(CSaveLoad *pSL)
     pSL->SaveFloat(fCameraOnEarthHeight);
 }
 
-void FREE_CAMERA::Load(CSaveLoad *pSL)
+void FREE_CAMERA::Load(CSaveLoad* pSL)
 {
-    vPos = pSL->LoadVector();
-    vAng = pSL->LoadVector();
-    fFov = pSL->LoadFloat();
+    vPos   = pSL->LoadVector();
+    vAng   = pSL->LoadVector();
+    fFov   = pSL->LoadFloat();
     iLockX = pSL->LoadLong();
     iLockY = pSL->LoadLong();
 
-    bCameraOnEarth = pSL->LoadDword() != 0;
+    bCameraOnEarth       = pSL->LoadDword() != 0;
     fCameraOnEarthHeight = pSL->LoadFloat();
 }

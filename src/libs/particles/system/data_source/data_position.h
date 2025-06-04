@@ -11,20 +11,20 @@ class DataPosition
 
     Vector Value;
 
-  public:
+public:
     // constructor / destructor
     DataPosition();
     virtual ~DataPosition();
 
     // Get value (Current time, Random factor [0..1])
-    const Vector &GetValue() const;
+    Vector const& GetValue() const;
 
     // Set value
-    void SetValue(const Vector &val);
+    void SetValue(Vector const& val);
 
-    void Load(MemFile *File);
-    void Write(MemFile *File) const;
+    void Load(MemFile* File);
+    void Write(MemFile* File) const;
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 };

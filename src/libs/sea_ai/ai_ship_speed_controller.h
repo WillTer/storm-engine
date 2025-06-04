@@ -3,7 +3,6 @@
 #include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
-
 // ============================================================================
 // master class AIShipSpeedController
 // Contain base virtual functions
@@ -12,14 +11,14 @@ class AIShip;
 
 class AIShipSpeedController
 {
-  private:
-    AIShip *pOurAIShip; // our AI ship pointer
+private:
+    AIShip* pOurAIShip;  // our AI ship pointer
 
     uint32_t dwSpeedNum;
-    float fSpeedSmooth, fSpeed, fSpeedTime, fTopSpeed;
-    float fGlobalMultiply;
+    float    fSpeedSmooth, fSpeed, fSpeedTime, fTopSpeed;
+    float    fGlobalMultiply;
 
-  public:
+public:
     void TopSpeed(float _fSpeed);
     void MulSpeed(float _fSpeed);
     void AddSpeed(float _fSpeed);
@@ -31,19 +30,19 @@ class AIShipSpeedController
     virtual void Realize(float);
 
     // set our ship pointer
-    void SetAIShip(AIShip *pShip)
+    void SetAIShip(AIShip* pShip)
     {
         pOurAIShip = pShip;
     }
 
-    AIShip *GetAIShip() const
+    AIShip* GetAIShip() const
     {
         return pOurAIShip;
     }
 
-    AIShipSpeedController(AIShip *pShip);
+    AIShipSpeedController(AIShip* pShip);
     virtual ~AIShipSpeedController();
 
-    void Save(CSaveLoad *pSL) const;
-    void Load(CSaveLoad *pSL);
+    void Save(CSaveLoad* pSL) const;
+    void Load(CSaveLoad* pSL);
 };

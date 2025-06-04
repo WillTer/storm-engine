@@ -12,35 +12,35 @@
 
 #include "wdm_camera.h"
 
-class WdmCameraStdCtrl : public WdmCamera
+class WdmCameraStdCtrl: public WdmCamera
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmCameraStdCtrl();
     ~WdmCameraStdCtrl() override;
 
     // --------------------------------------------------------------------------------------------
     // Functions that return key reactions
     // --------------------------------------------------------------------------------------------
-  public:
-    void CtrlProcess(float dltTime) override;
+public:
+    void  CtrlProcess(float dltTime) override;
     float MoveLeftRight(float dltTime) override;
     float MoveUpDown(float dltTime) override;
     float RotLeftRight(float dltTime) override;
     float ZoomInOut(float dltTime) override;
-    bool CurrentFreeMode() override;
-    bool GetHightHeight(float &height) override;
+    bool  CurrentFreeMode() override;
+    bool  GetHightHeight(float& height) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     bool GetCurFreeMode() const;
 
-  private:
-    bool isFree;
+private:
+    bool  isFree;
     float mdx, mdy, mzoom;
-    bool lastFreeMode;
+    bool  lastFreeMode;
 };

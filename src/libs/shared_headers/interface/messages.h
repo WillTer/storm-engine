@@ -90,8 +90,8 @@
 //============================================================================================
 // Video player messages
 //============================================================================================
-#define MSG_SET_VIDEO_PLAY 49000 //"s" video file name
-#define MSG_SET_VIDEO_FADE 49001 //"" Start Fade to Black
-#define MSG_SET_VIDEO_FLAGS 49002 //"l" flags (1<<0 - loop video)
+#define MSG_SET_VIDEO_PLAY 49000   //"s" video file name
+#define MSG_SET_VIDEO_FADE 49001   //"" Start Fade to Black
+#define MSG_SET_VIDEO_FLAGS 49002  //"l" flags (1<<0 - loop video)
 #define EVENT_END_VIDEO "EndVideoPlay"
 //============================================================================================

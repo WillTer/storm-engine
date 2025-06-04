@@ -4,15 +4,15 @@
 
 class BI_ManagerBase;
 
-class BI_BaseNode : public BI_ManagerNodeBase
+class BI_BaseNode: public BI_ManagerNodeBase
 {
-  public:
-    BI_BaseNode(BI_ManagerBase *pManager);
+public:
+    BI_BaseNode(BI_ManagerBase* pManager);
     ~BI_BaseNode() override;
 
     void Update() override;
 
-    int32_t Event(const char *pcEventName) override
+    int32_t Event(char const* pcEventName) override
     {
         return 0;
     }
@@ -32,17 +32,17 @@ class BI_BaseNode : public BI_ManagerNodeBase
         return false;
     }
 
-    BI_ManagerBase *Manager() const
+    BI_ManagerBase* Manager() const
     {
         return m_pManager;
     }
 
-    VDX9RENDER *Render() const
+    VDX9RENDER* Render() const
     {
         return m_pRS;
     }
 
-  protected:
-    BI_ManagerBase *m_pManager;
-    VDX9RENDER *m_pRS;
+protected:
+    BI_ManagerBase* m_pManager;
+    VDX9RENDER*     m_pRS;
 };

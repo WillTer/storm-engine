@@ -1,23 +1,23 @@
 #pragma once
 
-#include "sail_base.h"
-#include "sailone.h"
+#include <filesystem>
+
 #include <libs/core/vma.hpp>
 #include <libs/geometry/geos.h>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 
-#include <filesystem>
+#include "sail_base.h"
+#include "sailone.h"
 
 class VDATA;
 
-struct SAILGROUP
-{
+struct SAILGROUP {
     uint32_t nVert, nIndx;
-    int32_t vertBuf, indxBuf;
+    int32_t  vertBuf, indxBuf;
 };
 
-class SAIL : public SAIL_BASE
+class SAIL: public SAIL_BASE
 {
     // parameters loaded from INI file //
     // --------------------------------------
@@ -30,11 +30,11 @@ class SAIL : public SAIL_BASE
     float MAXTURNANGL;
     float TURNSTEPANGL;
     float ROLLINGSPEED;
-    int WINDVECTOR_TINCR;
-    int WINDVECTOR_TADD;
-    int WINDVECTOR_SINCR;
-    int WINDVECTOR_SADD;
-    int WINDVECTOR_QUANTITY;
+    int   WINDVECTOR_TINCR;
+    int   WINDVECTOR_TADD;
+    int   WINDVECTOR_SINCR;
+    int   WINDVECTOR_SADD;
+    int   WINDVECTOR_QUANTITY;
     float ts_min;
     float ts_xdep;
     float ts_zdep;
@@ -44,7 +44,7 @@ class SAIL : public SAIL_BASE
     float ss_min;
     float ss_xdep;
     float ss_zdep;
-    int texQuantity;
+    int   texQuantity;
     float texNumCommon;
     float texNumEnglish;
     float texNumTreangle;
@@ -68,68 +68,58 @@ class SAIL : public SAIL_BASE
     uint16_t SailQuantity;
     uint16_t SailCurNum;
 
-    float m_fMinSpeedVal; // minimum sail speed
+    float m_fMinSpeedVal;  // minimum sail speed
 
     // wind description
-    WIND globalWind;
-    float *WindVect;
+    WIND   globalWind;
+    float* WindVect;
     //------------------------------------------
 
     friend SAILONE;
-    bool bUse;
-    VDX9RENDER *RenderService;
-    D3DMATERIAL9 mat;
+    bool                            bUse;
+    VDX9RENDER*                     RenderService;
+    D3DMATERIAL9                    mat;
     std::filesystem::file_time_type ft_old;
-    int32_t texl;
-    int32_t m_nEmptyGerbTex;
+    int32_t                         texl;
+    int32_t                         m_nEmptyGerbTex;
 
-  public:
+public:
     SAIL();
     ~SAIL() override;
     // Entity func
-    bool Init() override;
-    void Realize(uint32_t Delta_Time);
-    void Execute(uint32_t Delta_Time);
-    bool CreateState(ENTITY_STATE_GEN *state_gen);
-    bool LoadState(ENTITY_STATE *state);
-    uint64_t ProcessMessage(MESSAGE &message) override;
-    void SetDevice();
+    bool     Init() override;
+    void     Realize(uint32_t Delta_Time);
+    void     Execute(uint32_t Delta_Time);
+    bool     CreateState(ENTITY_STATE_GEN* state_gen);
+    bool     LoadState(ENTITY_STATE* state);
+    uint64_t ProcessMessage(MESSAGE& message) override;
+    void     SetDevice();
     // Collision func
-    int LastTraceGroup;
-    float Trace(const CVECTOR &src, const CVECTOR &dst) override;
-    const char *GetCollideMaterialName() override;
-    bool GetCollideTriangle(TRIANGLE &triangle) override;
-    bool Clip(const PLANE *planes, int32_t nplanes, const CVECTOR &center, float radius,
-              ADD_POLYGON_FUNC addpoly) override;
-    float Cannon_Trace(int32_t iBallOwner, const CVECTOR &src, const CVECTOR &dst) override;
+    int         LastTraceGroup;
+    float       Trace(const CVECTOR& src, const CVECTOR& dst) override;
+    char const* GetCollideMaterialName() override;
+    bool        GetCollideTriangle(TRIANGLE& triangle) override;
+    bool        Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& center, float radius, ADD_POLYGON_FUNC addpoly) override;
+    float       Cannon_Trace(int32_t iBallOwner, const CVECTOR& src, const CVECTOR& dst) override;
 
     entid_t GetShipID() override
     {
         return gdata[LastTraceGroup].shipEI;
     }
 
-    SAILONE_BASE *FindSailForCharacter(int chrIdx, const char *nodeName, int grNum) override;
-    uint32_t AttributeChanged(ATTRIBUTES *pAttr) override;
+    SAILONE_BASE* FindSailForCharacter(int chrIdx, char const* nodeName, int grNum) override;
+    uint32_t      AttributeChanged(ATTRIBUTES* pAttr) override;
 
     void LostRender();
     void RestoreRender();
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-        case Stage::lost_render:
-            LostRender();
-            break;
-        case Stage::restore_render:
-            RestoreRender();
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
+        case Stage::realize: Realize(delta); break;
+        case Stage::lost_render: LostRender(); break;
+        case Stage::restore_render: RestoreRender(); break;
         }
     }
 
@@ -137,71 +127,70 @@ class SAIL : public SAIL_BASE
 
     SAILGROUP sg;
 
-  private:
+private:
     SAILTIME tm;
     // list of all sails
-    int sailQuantity;
-    SAILONE **slist;
+    int       sailQuantity;
+    SAILONE** slist;
     // list of all sail groups
     int groupQuantity;
 
-    struct GROUPDATA
-    {
-        bool bDeleted;
-        bool bYesShip;
+    struct GROUPDATA {
+        bool    bDeleted;
+        bool    bYesShip;
         entid_t shipEI;
         entid_t modelEI;
-        int sailQuantity;
-        int *sailIdx;
+        int     sailQuantity;
+        int*    sailIdx;
         // restrictive box
         CVECTOR boxCenter, boxSize;
-        float boxRadius;
+        float   boxRadius;
         // Effect on ship speed
         float shipSpeed;
         float maxSpeed;
-        float speed_c, speed_m; // real and maximum speed given by sails
-        int maxHole, curHole;
-        int maxSP;
+        float speed_c, speed_m;  // real and maximum speed given by sails
+        int   maxHole, curHole;
+        int   maxSP;
         // lowering \ raising sails
-        int curSailSet;
-        bool bFinalSailUp;
-        bool bFinalSailDo;
-        bool bFinalSailDoOld;
+        int   curSailSet;
+        bool  bFinalSailUp;
+        bool  bFinalSailDo;
+        bool  bFinalSailDoOld;
         float fSpeedMul;
         float fRollingSpeed;
         // sail color
         uint32_t dwSailsColor;
     };
 
-    GROUPDATA *gdata;
-    void FirstRun();
+    GROUPDATA* gdata;
+    void       FirstRun();
 
-    bool GetSailGrid();
-    void AddSailLabel(GEOS::LABEL &lbl, NODE *nod, bool bSailUp);
-    void SetAllSails(int groupNum);
-    void SetAllSails();
-    void SetAddSails(int firstSail);
-    void LoadSailIni();
-    void DoSailToNewHost(entid_t newMdlEI, entid_t hewHostEI, int grNum, NODE *nod, entid_t oldmodelEI);
-    void DoNoRopeSailToNewHost(entid_t newModel, entid_t newHost, entid_t oldHost);
-    void DeleteSailGroup();
-    int FindGroupForCharacter(int chrIdx) const;
-    int GetCharacterForGroup(int grNum) const;
-    SAILONE *FindSailFromData(int gn, const char *nodeName, const char *grName) const;
-    void SetSailTextures(int32_t grNum, VDATA *pvd) const;
-    void DoRandomsSailsDmg(int chrIdx, int gn, float fDmg);
-    void GetSailStatus(int chrIdx, int gn);
+    bool     GetSailGrid();
+    void     AddSailLabel(GEOS::LABEL& lbl, NODE* nod, bool bSailUp);
+    void     SetAllSails(int groupNum);
+    void     SetAllSails();
+    void     SetAddSails(int firstSail);
+    void     LoadSailIni();
+    void     DoSailToNewHost(entid_t newMdlEI, entid_t hewHostEI, int grNum, NODE* nod, entid_t oldmodelEI);
+    void     DoNoRopeSailToNewHost(entid_t newModel, entid_t newHost, entid_t oldHost);
+    void     DeleteSailGroup();
+    int      FindGroupForCharacter(int chrIdx) const;
+    int      GetCharacterForGroup(int grNum) const;
+    SAILONE* FindSailFromData(int gn, char const* nodeName, char const* grName) const;
+    void     SetSailTextures(int32_t grNum, VDATA* pvd) const;
+    void     DoRandomsSailsDmg(int chrIdx, int gn, float fDmg);
+    void     GetSailStatus(int chrIdx, int gn);
 
     // processing script requests
-    uint32_t ScriptProcessing(const char *name, MESSAGE &message);
+    uint32_t ScriptProcessing(char const* name, MESSAGE& message);
 
     bool bFirstRun;
-    int wFirstIndx;
+    int  wFirstIndx;
     bool bDeleteState;
     bool bCannonTrace;
 
     int32_t m_nMastCreatedCharacter;
-    char *m_sMastName;
+    char*   m_sMastName;
 
     int32_t m_nLastUpdate;
 };

@@ -21,35 +21,31 @@
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
-class SOUND : public Entity
+class SOUND: public Entity
 {
-  public:
+public:
     SOUND();
     ~SOUND() override;
 
-    bool Init() override;
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool         Init() override;
+    uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
+        case Stage::realize: Realize(delta); break;
         /*case Stage::lost_render:
             LostRender(delta); break;
         case Stage::restore_render:
             RestoreRender(delta); break;*/
-        default:
-            break;
+        default: break;
         }
     }
 
-  private:
-    VSoundService *soundService;
-    VDX9RENDER *renderer;
+private:
+    VSoundService* soundService;
+    VDX9RENDER*    renderer;
 };

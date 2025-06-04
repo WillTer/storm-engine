@@ -1,5 +1,6 @@
 #ifdef STORM_ENABLE_STEAM
 #include "achievements.hpp"
+
 #include <libs/core/core.h>
 
 #define _ACH_ID(id, name) {id, #id, name, "", 0, 0}
@@ -164,25 +165,23 @@ Stat_t g_Stats[] = {
 };
 
 CSteamStatsAchievements::CSteamStatsAchievements(int NumAchievements)
-    : m_iAppID(0), m_bInitialized(false),
-      m_CallbackUserStatsReceived(this, &CSteamStatsAchievements::OnUserStatsReceived),
-      m_CallbackUserStatsStored(this, &CSteamStatsAchievements::OnUserStatsStored),
-      m_CallbackAchievementStored(this, &CSteamStatsAchievements::OnAchievementStored)
+    : m_iAppID(0)
+    , m_bInitialized(false)
+    , m_CallbackUserStatsReceived(this, &CSteamStatsAchievements::OnUserStatsReceived)
+    , m_CallbackUserStatsStored(this, &CSteamStatsAchievements::OnUserStatsStored)
+    , m_CallbackAchievementStored(this, &CSteamStatsAchievements::OnAchievementStored)
 {
-    m_iAppID = SteamUtils()->GetAppID();
+    m_iAppID           = SteamUtils()->GetAppID();
     m_iNumAchievements = NumAchievements;
 
-    for (int iAch = 0; iAch < m_iNumAchievements; ++iAch)
-    {
-        Achievement_t &ach = g_Achievements[iAch];
-        Stat_t &stat = g_Stats[iAch];
+    for (int iAch = 0; iAch < m_iNumAchievements; ++iAch) {
+        Achievement_t& ach  = g_Achievements[iAch];
+        Stat_t&        stat = g_Stats[iAch];
     }
     RequestStats();
 }
 
-CSteamStatsAchievements::~CSteamStatsAchievements()
-{
-}
+CSteamStatsAchievements::~CSteamStatsAchievements() {}
 
 bool CSteamStatsAchievements::GetConnected()
 {
@@ -192,36 +191,23 @@ bool CSteamStatsAchievements::GetConnected()
 bool CSteamStatsAchievements::RequestStats()
 {
     // Is Steam loaded? If not we can't get stats.
-    if (SteamUser() == nullptr)
-    {
-        return false;
-    }
+    if (SteamUser() == nullptr) { return false; }
     // Is the user logged on?  If not we can't get stats.
-    if (!SteamUser()->BLoggedOn())
-    {
-        return false;
-    }
+    if (!SteamUser()->BLoggedOn()) { return false; }
     // Request user stats.
     return SteamUserStats()->RequestCurrentStats();
 }
 
 bool CSteamStatsAchievements::StoreStats()
 {
-    if (m_bInitialized)
-    {
+    if (m_bInitialized) {
         // load stats
-        for (int iStat = 0; iStat < m_iNumAchievements; ++iStat)
-        {
-            Stat_t &stat = g_Stats[iStat];
-            switch (stat.m_eStatType)
-            {
-            case STAT_INT:
-                SteamUserStats()->SetStat(stat.m_pchStatName, stat.m_iValue);
-                break;
+        for (int iStat = 0; iStat < m_iNumAchievements; ++iStat) {
+            Stat_t& stat = g_Stats[iStat];
+            switch (stat.m_eStatType) {
+            case STAT_INT: SteamUserStats()->SetStat(stat.m_pchStatName, stat.m_iValue); break;
 
-            case STAT_FLOAT:
-                SteamUserStats()->SetStat(stat.m_pchStatName, stat.m_flValue);
-                break;
+            case STAT_FLOAT: SteamUserStats()->SetStat(stat.m_pchStatName, stat.m_flValue); break;
 
             case STAT_AVGRATE:
                 SteamUserStats()->UpdateAvgRateStat(stat.m_pchStatName, stat.m_flAvgNumerator, stat.m_flAvgDenominator);
@@ -229,8 +215,7 @@ bool CSteamStatsAchievements::StoreStats()
                 SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_flValue);
                 break;
 
-            default:
-                break;
+            default: break;
             }
         }
         return SteamUserStats()->StoreStats();
@@ -238,11 +223,10 @@ bool CSteamStatsAchievements::StoreStats()
     return false;
 }
 
-bool CSteamStatsAchievements::SetAchievement(const char *ID)
+bool CSteamStatsAchievements::SetAchievement(char const* ID)
 {
     // Have we received a call back from Steam yet?
-    if (m_bInitialized)
-    {
+    if (m_bInitialized) {
         SteamUserStats()->SetAchievement(ID);
         return SteamUserStats()->StoreStats();
     }
@@ -250,10 +234,9 @@ bool CSteamStatsAchievements::SetAchievement(const char *ID)
     return false;
 }
 
-bool CSteamStatsAchievements::GetAchievement(const char *ID)
+bool CSteamStatsAchievements::GetAchievement(char const* ID)
 {
-    if (m_bInitialized)
-    {
+    if (m_bInitialized) {
         Achievement_t ach;
         SteamUserStats()->GetAchievement(ID, &ach.m_bAchieved);
         return ach.m_bAchieved;
@@ -262,15 +245,12 @@ bool CSteamStatsAchievements::GetAchievement(const char *ID)
     return false;
 }
 
-bool CSteamStatsAchievements::SetStat(const char *ID, uint32_t value)
+bool CSteamStatsAchievements::SetStat(char const* ID, uint32_t value)
 {
-    if (m_bInitialized)
-    {
-        for (int iAch = 0; iAch < m_iNumAchievements; ++iAch)
-        {
-            Stat_t &stat = g_Stats[iAch];
-            if (strcmp(ID, stat.m_pchStatName) == 0)
-            {
+    if (m_bInitialized) {
+        for (int iAch = 0; iAch < m_iNumAchievements; ++iAch) {
+            Stat_t& stat = g_Stats[iAch];
+            if (strcmp(ID, stat.m_pchStatName) == 0) {
                 stat.m_iValue = value;
                 SteamUserStats()->SetStat(stat.m_pchStatName, stat.m_iValue);
                 return true;
@@ -280,15 +260,12 @@ bool CSteamStatsAchievements::SetStat(const char *ID, uint32_t value)
     return false;
 }
 
-uint32_t CSteamStatsAchievements::GetStat(const char *ID)
+uint32_t CSteamStatsAchievements::GetStat(char const* ID)
 {
-    if (m_bInitialized)
-    {
-        for (int iAch = 0; iAch < m_iNumAchievements; ++iAch)
-        {
-            Stat_t &stat = g_Stats[iAch];
-            if (strcmp(ID, stat.m_pchStatName) == 0)
-            {
+    if (m_bInitialized) {
+        for (int iAch = 0; iAch < m_iNumAchievements; ++iAch) {
+            Stat_t& stat = g_Stats[iAch];
+            if (strcmp(ID, stat.m_pchStatName) == 0) {
                 SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_iValue);
                 return stat.m_iValue;
             }
@@ -300,73 +277,60 @@ uint32_t CSteamStatsAchievements::GetStat(const char *ID)
 
 bool CSteamStatsAchievements::ResetStats(bool bAchievementsToo)
 {
-    if (m_bInitialized)
-    {
-        return SteamUserStats()->ResetAllStats(bAchievementsToo);
-    }
+    if (m_bInitialized) { return SteamUserStats()->ResetAllStats(bAchievementsToo); }
     return false;
 }
 
-bool CSteamStatsAchievements::ClearAchievement(const char *ID)
+bool CSteamStatsAchievements::ClearAchievement(char const* ID)
 {
-    if (m_bInitialized)
-    {
-        return SteamUserStats()->ClearAchievement(ID);
-    }
+    if (m_bInitialized) { return SteamUserStats()->ClearAchievement(ID); }
     return false;
 }
 
-void CSteamStatsAchievements::OnUserStatsReceived(UserStatsReceived_t *pCallback)
+void CSteamStatsAchievements::OnUserStatsReceived(UserStatsReceived_t* pCallback)
 {
     // we may get callbacks for other games' stats arriving, ignore them
-    if (m_iAppID == pCallback->m_nGameID)
-    {
-        if (k_EResultOK == pCallback->m_eResult)
-        {
+    if (m_iAppID == pCallback->m_nGameID) {
+        if (k_EResultOK == pCallback->m_eResult) {
             m_bInitialized = true;
 
             // load achievements
-            for (int iAch = 0; iAch < m_iNumAchievements; ++iAch)
-            {
-                Achievement_t &ach = g_Achievements[iAch];
+            for (int iAch = 0; iAch < m_iNumAchievements; ++iAch) {
+                Achievement_t& ach = g_Achievements[iAch];
 
                 SteamUserStats()->GetAchievement(ach.m_pchAchievementID, &ach.m_bAchieved);
-                snprintf(ach.m_rgchName, sizeof(ach.m_rgchName), "%s",
-                         SteamUserStats()->GetAchievementDisplayAttribute(ach.m_pchAchievementID, "name"));
+                snprintf(
+                    ach.m_rgchName,
+                    sizeof(ach.m_rgchName),
+                    "%s",
+                    SteamUserStats()->GetAchievementDisplayAttribute(ach.m_pchAchievementID, "name"));
 
-                snprintf(ach.m_rgchDescription, sizeof(ach.m_rgchDescription), "%s",
-                         SteamUserStats()->GetAchievementDisplayAttribute(ach.m_pchAchievementID, "desc"));
+                snprintf(
+                    ach.m_rgchDescription,
+                    sizeof(ach.m_rgchDescription),
+                    "%s",
+                    SteamUserStats()->GetAchievementDisplayAttribute(ach.m_pchAchievementID, "desc"));
 
-                Stat_t &stat = g_Stats[iAch];
-                switch (stat.m_eStatType)
-                {
-                case STAT_INT:
-                    SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_iValue);
-                    break;
+                Stat_t& stat = g_Stats[iAch];
+                switch (stat.m_eStatType) {
+                case STAT_INT: SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_iValue); break;
 
                 case STAT_FLOAT:
-                case STAT_AVGRATE:
-                    SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_flValue);
-                    break;
+                case STAT_AVGRATE: SteamUserStats()->GetStat(stat.m_pchStatName, &stat.m_flValue); break;
 
-                default:
-                    break;
+                default: break;
                 }
             }
         }
     }
 }
 
-void CSteamStatsAchievements::OnUserStatsStored(UserStatsStored_t *pCallback)
+void CSteamStatsAchievements::OnUserStatsStored(UserStatsStored_t* pCallback)
 {
     // we may get callbacks for other games' stats arriving, ignore them
-    if (pCallback->m_nGameID == m_iAppID)
-    {
-        if (pCallback->m_eResult == k_EResultOK)
-        {
-        }
-        else if (pCallback->m_eResult == k_EResultInvalidParam)
-        {
+    if (pCallback->m_nGameID == m_iAppID) {
+        if (pCallback->m_eResult == k_EResultOK) {
+        } else if (pCallback->m_eResult == k_EResultInvalidParam) {
             UserStatsReceived_t callback;
             callback.m_eResult = k_EResultOK;
             callback.m_nGameID = m_iAppID;
@@ -375,19 +339,15 @@ void CSteamStatsAchievements::OnUserStatsStored(UserStatsStored_t *pCallback)
     }
 }
 
-void CSteamStatsAchievements::OnAchievementStored(UserAchievementStored_t *pCallback)
+void CSteamStatsAchievements::OnAchievementStored(UserAchievementStored_t* pCallback)
 {
     // we may get callbacks for other games' stats arriving, ignore them
-    if (m_iAppID == pCallback->m_nGameID)
-    {
-        if (pCallback->m_nMaxProgress == 0)
-        {
+    if (m_iAppID == pCallback->m_nGameID) {
+        if (pCallback->m_nMaxProgress == 0) {
             //            char buffer[128];
             //            snprintf( buffer, 128, "Achievement '%s' unlocked!", pCallback->m_rgchAchievementName );
             //            trace( buffer );
-        }
-        else
-        {
+        } else {
             //            char buffer[128];
             //            snprintf( buffer, 128, "Achievement '%s' progress callback, (%d,%d)\n",
             //            pCallback->m_rgchAchievementName, pCallback->m_nCurProgress, pCallback->m_nMaxProgress );
@@ -396,35 +356,24 @@ void CSteamStatsAchievements::OnAchievementStored(UserAchievementStored_t *pCall
     }
 }
 
-CSteamDLC::CSteamDLC()
-    : m_bInitialized(false), m_DLCcount(0), m_CallbackOverlayActivated(this, &CSteamDLC::OnOverlayActivated)
-{
-}
+CSteamDLC::CSteamDLC() : m_bInitialized(false), m_DLCcount(0), m_CallbackOverlayActivated(this, &CSteamDLC::OnOverlayActivated) {}
 
-CSteamDLC::~CSteamDLC()
-{
-}
+CSteamDLC::~CSteamDLC() {}
 
-void CSteamDLC::OnOverlayActivated(GameOverlayActivated_t *pCallback)
+void CSteamDLC::OnOverlayActivated(GameOverlayActivated_t* pCallback)
 {
     char buffer[128];
-    if (pCallback->m_bActive != 0)
-    {
+    if (pCallback->m_bActive != 0) {
         isOverlayActivated = true;
-    }
-    else
-    {
+    } else {
         isOverlayActivated = false;
     }
-    VDATA *pvdat = core.Event("evntSteamOverlayActivated", "l", isOverlayActivated);
+    VDATA* pvdat = core.Event("evntSteamOverlayActivated", "l", isOverlayActivated);
 }
 
 uint32_t CSteamDLC::getDLCCount()
 {
-    if (SteamUser() == nullptr)
-    {
-        return 0;
-    }
+    if (SteamUser() == nullptr) { return 0; }
 
     m_DLCcount = (uint32_t)SteamApps()->GetDLCCount();
 
@@ -433,24 +382,17 @@ uint32_t CSteamDLC::getDLCCount()
 
 uint32_t CSteamDLC::bGetDLCDataByIndex(uint32_t iDLC)
 {
-    if (SteamUser() == nullptr)
-    {
-        return 0;
-    }
+    if (SteamUser() == nullptr) { return 0; }
     m_bInitialized = SteamApps()->BGetDLCDataByIndex(iDLC, &pAppID, &pbAvailable, pchName, 128);
 
-    if (m_bInitialized)
-        return (uint32_t)pAppID;
+    if (m_bInitialized) return (uint32_t)pAppID;
 
     return 0;
 }
 
 bool CSteamDLC::isDLCInstalled(uint32_t nDLC)
 {
-    if (SteamUser() == nullptr)
-    {
-        return false;
-    }
+    if (SteamUser() == nullptr) { return false; }
 
     m_bInitialized = (SteamApps()->BIsSubscribedApp(nDLC) && SteamApps()->BIsDlcInstalled(nDLC));
 
@@ -459,15 +401,9 @@ bool CSteamDLC::isDLCInstalled(uint32_t nDLC)
 
 bool CSteamDLC::activateGameOverlay(uint32_t nAppId)
 {
-    if (SteamUser() == nullptr)
-    {
-        return false;
-    }
+    if (SteamUser() == nullptr) { return false; }
 
-    if (!SteamUtils()->IsOverlayEnabled())
-    {
-        return false;
-    }
+    if (!SteamUtils()->IsOverlayEnabled()) { return false; }
 
     SteamFriends()->ActivateGameOverlayToStore((AppId_t)nAppId, k_EOverlayToStoreFlag_None);
 

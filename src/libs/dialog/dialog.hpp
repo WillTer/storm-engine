@@ -9,50 +9,48 @@
 
 #include "link_describe.hpp"
 
-constexpr auto MAX_LINES = 5;
-constexpr auto SCROLL_LINE_TIME = 100;
+constexpr auto MAX_LINES         = 5;
+constexpr auto SCROLL_LINE_TIME  = 100;
 constexpr auto TILED_LINE_HEIGHT = 26;
-constexpr auto SBL = 6;
+constexpr auto SBL               = 6;
 #define TICK_SOUND "interface\\ok.wav"
 
 #define XI_TEX_FVF (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 class INIFILE;
 
-struct XI_TEX_VERTEX
-{
-    CVECTOR pos;
-    float rhw;
+struct XI_TEX_VERTEX {
+    CVECTOR  pos;
+    float    rhw;
     uint32_t color;
-    float u, v;
+    float    u, v;
 };
 
-constexpr auto BUTTON_STATE_UPENABLE = 1;
+constexpr auto BUTTON_STATE_UPENABLE   = 1;
 constexpr auto BUTTON_STATE_DOWNENABLE = 2;
-constexpr auto BUTTON_STATE_UPLIGHT = 4;
-constexpr auto BUTTON_STATE_DOWNLIGHT = 8;
+constexpr auto BUTTON_STATE_UPLIGHT    = 4;
+constexpr auto BUTTON_STATE_DOWNLIGHT  = 8;
 
 class VSoundService;
 
-class DIALOG final : public Entity
+class DIALOG final: public Entity
 {
-    static VDX9RENDER *RenderService;
+    static VDX9RENDER* RenderService;
 
-  public:
-    DIALOG(DIALOG &&) = delete;
-    DIALOG(const DIALOG &) = delete;
+public:
+    DIALOG(DIALOG&&)      = delete;
+    DIALOG(const DIALOG&) = delete;
     DIALOG();
     ~DIALOG();
 
-    bool Init();
-    void InitLinks(VDX9RENDER *pRS, D3DVIEWPORT9 &vp, INIFILE *pIni);
-    void Realize(uint32_t Delta_Time);
-    uint32_t AttributeChanged(ATTRIBUTES *pA);
-    uint64_t ProcessMessage(MESSAGE &message);
+    bool     Init();
+    void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
+    void     Realize(uint32_t Delta_Time);
+    uint32_t AttributeChanged(ATTRIBUTES* pA);
+    uint64_t ProcessMessage(MESSAGE& message);
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
         case Stage::realize:
@@ -65,7 +63,7 @@ class DIALOG final : public Entity
         }
     }
 
-  private:
+private:
     void EmergencyExit();
 
     // Nikita data
@@ -75,44 +73,41 @@ class DIALOG final : public Entity
     void UpdateDlgTexts();
     void UpdateDlgViewport();
 
-    struct DlgTextDescribe
-    {
-      private:
-        POINT offset;
-        int32_t nWindowWidth;
-        int32_t nFontID;
-        uint32_t dwColor;
-        float fScale;
-        int32_t nLineInterval;
+    struct DlgTextDescribe {
+    private:
+        POINT                    offset;
+        int32_t                  nWindowWidth;
+        int32_t                  nFontID;
+        uint32_t                 dwColor;
+        float                    fScale;
+        int32_t                  nLineInterval;
         std::vector<std::string> asText;
-        int32_t nShowQuantity;
+        int32_t                  nShowQuantity;
 
         std::vector<int32_t> pageBreaks_;
 
-      public:
+    public:
         int32_t currentLine_;
 
         ~DlgTextDescribe()
         {
-            if (RenderService && nFontID >= 0)
-                RenderService->UnloadFont(nFontID);
+            if (RenderService && nFontID >= 0) RenderService->UnloadFont(nFontID);
         }
 
-        void ChangeText(std::string_view text);
-        void Init(VDX9RENDER *pRS, D3DVIEWPORT9 &vp, INIFILE *pIni);
+        void    ChangeText(std::string_view text);
+        void    Init(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
         int32_t GetShowHeight();
-        void Show(int32_t nY);
-        bool IsLastPage();
-        void PrevPage();
-        void NextPage();
+        void    Show(int32_t nY);
+        bool    IsLastPage();
+        void    PrevPage();
+        void    NextPage();
     };
 
     DlgTextDescribe m_DlgText;
 
     storm::dialog::DlgLinkDescribe linkDescribe_;
 
-    struct BackParameters
-    {
+    struct BackParameters {
         int32_t m_idBackTex;
 
         FRECT m_frLeftTopUV;
@@ -130,29 +125,28 @@ class DIALOG final : public Entity
         FRECT m_frBorderInt;
         FRECT frBorderRect;
 
-        FRECT frCharacterNameRectLeftUV;
-        FRECT frCharacterNameRectRightUV;
-        FRECT frCharacterNameRectCenterUV;
+        FRECT  frCharacterNameRectLeftUV;
+        FRECT  frCharacterNameRectRightUV;
+        FRECT  frCharacterNameRectCenterUV;
         FPOINT fpCharacterNameOffset;
-        float fCharacterNameRectHeight;
-        float fCharacterNameRectLeftWidth;
-        float fCharacterNameRectCenterWidth;
-        float fCharacterNameRectRightWidth;
+        float  fCharacterNameRectHeight;
+        float  fCharacterNameRectLeftWidth;
+        float  fCharacterNameRectCenterWidth;
+        float  fCharacterNameRectRightWidth;
 
-        bool bShowDivider;
-        float nDividerHeight;
-        float nDividerOffsetX;
+        bool    bShowDivider;
+        float   nDividerHeight;
+        float   nDividerOffsetX;
         int32_t nDividerOffsetY;
     };
 
     BackParameters m_BackParams;
-    int32_t m_idVBufBack;
-    int32_t m_idIBufBack;
-    int32_t m_nVQntBack;
-    int32_t m_nIQntBack;
+    int32_t        m_idVBufBack;
+    int32_t        m_idIBufBack;
+    int32_t        m_nVQntBack;
+    int32_t        m_nIQntBack;
 
-    struct ButtonParameters
-    {
+    struct ButtonParameters {
         int32_t m_idTexture;
 
         FRECT frUpNormalButtonUV;
@@ -168,19 +162,19 @@ class DIALOG final : public Entity
     };
 
     ButtonParameters m_ButtonParams;
-    int32_t m_idVBufButton;
-    int32_t m_idIBufButton;
-    int32_t m_nVQntButton;
-    int32_t m_nIQntButton;
-    uint32_t m_dwButtonState;
+    int32_t          m_idVBufButton;
+    int32_t          m_idIBufButton;
+    int32_t          m_nVQntButton;
+    int32_t          m_nIQntButton;
+    uint32_t         m_dwButtonState;
 
-    int32_t m_nCharNameTextFont;
+    int32_t  m_nCharNameTextFont;
     uint32_t m_dwCharNameTextColor;
-    float m_fCharNameTextScale;
-    FPOINT m_fpCharNameTextOffset;
+    float    m_fCharNameTextScale;
+    FPOINT   m_fpCharNameTextOffset;
 
-    int32_t m_nScrBaseWidth;
-    int32_t m_nScrBaseHeight;
+    int32_t      m_nScrBaseWidth;
+    int32_t      m_nScrBaseHeight;
     static FRECT m_frScreenData;
 
     static float GetScrX(float fX)
@@ -214,17 +208,17 @@ class DIALOG final : public Entity
 
     void LoadFromIni();
 
-    static void GetRectFromIni(INIFILE *ini, const char *pcSection, const char *pcKey, FRECT &frect);
-    static void GetPointFromIni(INIFILE *ini, const char *pcSection, const char *pcKey, FPOINT &fpoint);
+    static void GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FRECT& frect);
+    static void GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FPOINT& fpoint);
 
-    VSoundService *snd;
-    entid_t charId, persId;
-    entid_t charMdl, persMdl;
-    D3DVIEWPORT9 textViewport;
+    VSoundService* snd;
+    entid_t        charId, persId;
+    entid_t        charMdl, persMdl;
+    D3DVIEWPORT9   textViewport;
 
     int32_t curSnd;
-    char soundName[256];
-    char charDefSnd[256];
+    char    soundName[256];
+    char    charDefSnd[256];
 
     bool forceEmergencyClose;
     char selectedLinkName[1024];
@@ -232,7 +226,7 @@ class DIALOG final : public Entity
     int unfadeTime;
 
     int32_t play;
-    bool start;
+    bool    start;
 
     bool bEditMode;
 };

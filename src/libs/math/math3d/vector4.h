@@ -11,12 +11,10 @@
 #pragma pack(push, 1)
 
 // Class for representing a vector with a weighting coefficient in 3D space
-struct Vector4
-{
-  public:
+struct Vector4 {
+public:
     union {
-        struct
-        {
+        struct {
             // The X component
             float x;
             // The Y component
@@ -27,8 +25,7 @@ struct Vector4
             float w;
         };
 
-        struct
-        {
+        struct {
             // Array representation
             float v4[4];
         };
@@ -37,7 +34,7 @@ struct Vector4
     // -----------------------------------------------------------
     // Constructors
     // -----------------------------------------------------------
-  public:
+public:
     // Empty constructor
     Vector4();
     // Fill with number
@@ -49,18 +46,18 @@ struct Vector4
     // Fill all components
     Vector4(float x, float y, float z, float w);
     // Fill 3 components, 1
-    Vector4(const float f[3]);
+    Vector4(float const f[3]);
     // Fill 3 components, 1
-    Vector4(const double d[3]);
+    Vector4(double const d[3]);
     // Fill 3 components, 1
-    Vector4(const Vector &v);
+    Vector4(Vector const& v);
     // Copy constructor
-    Vector4(const Vector4 &v);
+    Vector4(Vector4 const& v);
 
     // -----------------------------------------------------------
     // Operators
     // -----------------------------------------------------------
-  public:
+public:
     // Find the square of the length of a vector
     float operator~() const;
 
@@ -68,18 +65,18 @@ struct Vector4
     Vector4 operator-() const;
 
     // Assign
-    Vector4 &operator=(float f);
+    Vector4& operator=(float f);
     // Assign
-    Vector4 &operator=(double d);
+    Vector4& operator=(double d);
     // Assign
-    Vector4 &operator=(const Vector &v);
+    Vector4& operator=(Vector const& v);
     // Assign
-    Vector4 &operator=(const Vector4 &v);
+    Vector4& operator=(Vector4 const& v);
 
     // -----------------------------------------------------------
     // Transformation
     // -----------------------------------------------------------
-  public:
+public:
     // Normalize w component
     void Normalize();
 };
@@ -89,9 +86,7 @@ struct Vector4
 // ===========================================================
 
 // Empty constructor
-inline Vector4::Vector4()
-{
-}
+inline Vector4::Vector4() {}
 
 // Fill with number
 inline Vector4::Vector4(float f)
@@ -114,7 +109,7 @@ inline Vector4::Vector4(float x, float y, float z)
     this->x = x;
     this->y = y;
     this->z = z;
-    w = 1.0f;
+    w       = 1.0f;
 }
 
 // Fill all components
@@ -127,7 +122,7 @@ inline Vector4::Vector4(float x, float y, float z, float w)
 }
 
 // Fill 3 components, 1
-inline Vector4::Vector4(const float f[3])
+inline Vector4::Vector4(float const f[3])
 {
     x = f[0];
     y = f[1];
@@ -136,7 +131,7 @@ inline Vector4::Vector4(const float f[3])
 }
 
 // Fill 3 components, 1
-inline Vector4::Vector4(const double d[3])
+inline Vector4::Vector4(double const d[3])
 {
     x = static_cast<float>(d[0]);
     y = static_cast<float>(d[1]);
@@ -145,7 +140,7 @@ inline Vector4::Vector4(const double d[3])
 }
 
 // Fill 3 components, 1
-inline Vector4::Vector4(const Vector &vc)
+inline Vector4::Vector4(Vector const& vc)
 {
     x = vc.x;
     y = vc.y;
@@ -154,7 +149,7 @@ inline Vector4::Vector4(const Vector &vc)
 }
 
 // Copy constructor
-inline Vector4::Vector4(const Vector4 &v)
+inline Vector4::Vector4(Vector4 const& v)
 {
     x = v.x;
     y = v.y;
@@ -184,7 +179,7 @@ inline Vector4 Vector4::operator-() const
 }
 
 // Assign
-inline Vector4 &Vector4::operator=(float f)
+inline Vector4& Vector4::operator=(float f)
 {
     x = f;
     y = f;
@@ -194,7 +189,7 @@ inline Vector4 &Vector4::operator=(float f)
 }
 
 // Assign
-inline Vector4 &Vector4::operator=(double d)
+inline Vector4& Vector4::operator=(double d)
 {
     x = static_cast<float>(d);
     y = static_cast<float>(d);
@@ -204,7 +199,7 @@ inline Vector4 &Vector4::operator=(double d)
 }
 
 // Assign
-inline Vector4 &Vector4::operator=(const Vector &v)
+inline Vector4& Vector4::operator=(Vector const& v)
 {
     x = v.x;
     y = v.y;
@@ -214,7 +209,7 @@ inline Vector4 &Vector4::operator=(const Vector &v)
 }
 
 // Assign
-inline Vector4 &Vector4::operator=(const Vector4 &v)
+inline Vector4& Vector4::operator=(Vector4 const& v)
 {
     x = v.x;
     y = v.y;
@@ -230,11 +225,11 @@ inline Vector4 &Vector4::operator=(const Vector4 &v)
 // Normalize w component
 inline void Vector4::Normalize()
 {
-    const auto k = 1.0 / w;
-    x = static_cast<float>(k * x);
-    y = static_cast<float>(k * y);
-    z = static_cast<float>(k * z);
-    w = 1.0f;
+    auto const k = 1.0 / w;
+    x            = static_cast<float>(k * x);
+    y            = static_cast<float>(k * y);
+    z            = static_cast<float>(k * z);
+    w            = 1.0f;
 }
 
 #pragma pack(pop)

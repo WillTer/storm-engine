@@ -6,19 +6,17 @@
 
 namespace storm
 {
-struct WindowSize
-{
-    int width{};
-    int height{};
+struct WindowSize {
+    int width {};
+    int height {};
 };
 
 //! Abstract window
 class OSWindow
 {
-  public:
+public:
     // TODO: More events?
-    enum Event
-    {
+    enum Event {
         Unknown,
         //!< Invalid event
 
@@ -26,12 +24,12 @@ class OSWindow
         //!< Window gained focus
         FocusLost,
         //!< Window lost focus
-        Closed //!< Window was closed by user
+        Closed  //!< Window was closed by user
     };
 
-    using EventHandler = std::function<void(const Event &)>;
+    using EventHandler = std::function<void(Event const&)>;
 
-    virtual ~OSWindow(){};
+    virtual ~OSWindow() {};
 
     //! Show window
     virtual void Show() = 0;
@@ -58,23 +56,22 @@ class OSWindow
     //! Warp mouse
     virtual void WarpMouseInWindow(int x, int y) = 0;
     //! Set window title
-    virtual void SetTitle(const std::string &title) = 0;
+    virtual void SetTitle(std::string const& title) = 0;
     //! Set window gamma
-    virtual void SetGamma(const uint16_t (&red)[256], const uint16_t (&green)[256], const uint16_t (&blue)[256]) = 0;
+    virtual void SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256]) = 0;
 
     //! Subscribe for events
     //! \param handler event callback
     //! \return subscription id, which should be passed to unsubscribe()
-    virtual int Subscribe(const EventHandler &handler) = 0;
+    virtual int Subscribe(EventHandler const& handler) = 0;
     //! Unsubscribe from events
     //! \param id handler returned by subscribe()
     virtual void Unsubscribe(int id) = 0;
 
     //! Os-depended window handler (i.e. HWND on Windows)
-    virtual void *OSHandle() = 0;
+    virtual void* OSHandle() = 0;
 
     //! Create new window
-    static std::shared_ptr<OSWindow> Create(int width, int height, int preferred_display, bool fullscreen,
-                                            bool bordered);
+    static std::shared_ptr<OSWindow> Create(int width, int height, int preferred_display, bool fullscreen, bool bordered);
 };
-} // namespace storm
+}  // namespace storm

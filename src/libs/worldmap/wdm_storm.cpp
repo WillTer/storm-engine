@@ -10,30 +10,29 @@
 
 #include "wdm_storm.h"
 
+#include <libs/util/platform/platform.hpp>
+
 #include "wdm_camera.h"
 #include "wdm_cloud.h"
 #include "wdm_render_model.h"
 #include "world_map.h"
-#include <libs/util/platform/platform.hpp>
-
 
 //============================================================================================
 
-#define WDM_STORM_LIVETIME_MIN 60.0f  // Minimum storm lifetime (sec)
-#define WDM_STORM_LIVETIME_MAX 120.0f // Maximum storm lifetime (sec)
+#define WDM_STORM_LIVETIME_MIN 60.0f   // Minimum storm lifetime (sec)
+#define WDM_STORM_LIVETIME_MAX 120.0f  // Maximum storm lifetime (sec)
 
-#define WDM_STORM_ALPHA_BRN 0.1f // Spawn rate per second (0 to 1)
-#define WDM_STORM_ALPHA_KL 0.3f  // Die rate per second (from 1 to 0)
+#define WDM_STORM_ALPHA_BRN 0.1f  // Spawn rate per second (0 to 1)
+#define WDM_STORM_ALPHA_KL 0.3f   // Die rate per second (from 1 to 0)
 
-#define WDM_STORM_DIR_DIS 0.6f     // Directional spread (Orthogonal vectors addition, 1.0f = pi / 2)
-#define WDM_STORM_DIR_SPD_MIN 5.0f // Minimum travel speed
-#define WDM_STORM_DIR_SPD_MAX 8.0f // Maximum travel speed
-#define WDM_STORM_DIR_CHTIME                                                                                           \
-    0.03f // 1 / time_in_sec time of changing the direction of the cloud from the current one to the ship
+#define WDM_STORM_DIR_DIS 0.6f      // Directional spread (Orthogonal vectors addition, 1.0f = pi / 2)
+#define WDM_STORM_DIR_SPD_MIN 5.0f  // Minimum travel speed
+#define WDM_STORM_DIR_SPD_MAX 8.0f  // Maximum travel speed
+#define WDM_STORM_DIR_CHTIME 0.03f  // 1 / time_in_sec time of changing the direction of the cloud from the current one to the ship
 
-#define WDM_STORM_CLDRADIUS 30.0f // The radius of the spread of clouds in a storm
+#define WDM_STORM_CLDRADIUS 30.0f  // The radius of the spread of clouds in a storm
 
-#define WDM_STORM_CLOUDRAD 20.0f // Cloud size to activate
+#define WDM_STORM_CLOUDRAD 20.0f  // Cloud size to activate
 
 // ============================================================================================
 // Construction, destruction
@@ -53,38 +52,37 @@ WdmStorm::WdmStorm()
     // Angle relative to ship
     auto ang = rand() * 2.0f * 3.141592653589793f / (RAND_MAX + 1);
     // Radius to ship
-    auto r =
-        wdmObjects->stormBrnDistMin + rand() * (wdmObjects->stormBrnDistMax - wdmObjects->stormBrnDistMin) / RAND_MAX;
+    auto r = wdmObjects->stormBrnDistMin + rand() * (wdmObjects->stormBrnDistMax - wdmObjects->stormBrnDistMin) / RAND_MAX;
     // Position
-    pos = CVECTOR(((WdmRenderModel *)wdmObjects->playerShip)->mtx.Pos().x + r * sinf(ang), 30.0f,
-                  ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Pos().z + r * cosf(ang));
+    pos = CVECTOR(
+        ((WdmRenderModel*)wdmObjects->playerShip)->mtx.Pos().x + r * sinf(ang),
+        30.0f,
+        ((WdmRenderModel*)wdmObjects->playerShip)->mtx.Pos().z + r * cosf(ang));
     // Direction of movement
     // Direction to ship
-    dir = ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Pos() - pos;
+    dir   = ((WdmRenderModel*)wdmObjects->playerShip)->mtx.Pos() - pos;
     dir.y = 0.0f;
-    r = sqrtf(~dir);
-    if (r > 0.0f)
-        dir /= r;
+    r     = sqrtf(~dir);
+    if (r > 0.0f) dir /= r;
     // Arbitrary deviation from course
-    r = WDM_STORM_DIR_DIS * (1.0f - rand() * 2.0f / RAND_MAX);
+    r   = WDM_STORM_DIR_DIS * (1.0f - rand() * 2.0f / RAND_MAX);
     ang = dir.x;
     dir.x -= r * dir.z;
     dir.z += r * ang;
     // Ship direction
     r = rand() * 0.1f * WDM_STORM_DIR_DIS / RAND_MAX;
-    dir.x += ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Vz().x * r;
-    dir.z += ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Vz().z * r;
+    dir.x += ((WdmRenderModel*)wdmObjects->playerShip)->mtx.Vz().x * r;
+    dir.z += ((WdmRenderModel*)wdmObjects->playerShip)->mtx.Vz().z * r;
     // Normalize
     r = sqrtf(~dir);
-    if (r > 0.0f)
-        dir /= r;
+    if (r > 0.0f) dir /= r;
     // set the speed
     speed = WDM_STORM_DIR_SPD_MIN + rand() * (WDM_STORM_DIR_SPD_MAX - WDM_STORM_DIR_SPD_MIN) / RAND_MAX;
     // Lifetime
-    liveTime = WDM_STORM_LIVETIME_MIN + rand() * (WDM_STORM_LIVETIME_MAX - WDM_STORM_LIVETIME_MIN) / RAND_MAX;
+    liveTime  = WDM_STORM_LIVETIME_MIN + rand() * (WDM_STORM_LIVETIME_MAX - WDM_STORM_LIVETIME_MIN) / RAND_MAX;
     liveAlpha = 0.0f;
-    isBrn = true;
-    isKl = false;
+    isBrn     = true;
+    isKl      = false;
     // create clouds
     // Number of clouds
     // num = 3 + (rand () &amp; 3);
@@ -94,16 +92,13 @@ WdmStorm::WdmStorm()
     for (int32_t i = 0; i < 8; i++)
         w[i] = 0;
     // Spawn the clouds
-    int32_t x, z;
-    const auto globSign = (rand() & 1) != 0;
-    for (int32_t i = 0; i < num; i++)
-    {
-        cloud[i] = static_cast<WdmCloud *>(wdmObjects->wm->AddObject(new WdmCloud(), 101));
-        if (cloud[i])
-        {
+    int32_t    x, z;
+    auto const globSign = (rand() & 1) != 0;
+    for (int32_t i = 0; i < num; i++) {
+        cloud[i] = static_cast<WdmCloud*>(wdmObjects->wm->AddObject(new WdmCloud(), 101));
+        if (cloud[i]) {
             wdmObjects->wm->AddLObject(cloud[i], 900);
-            do
-            {
+            do {
                 x = rand() & 7;
                 z = rand() & 7;
             } while (((w[z] >> x) & 1) != 0);
@@ -112,14 +107,12 @@ WdmStorm::WdmStorm()
             cloudPos[i].y = 5.0f * (0.5f - rand() * 1.0f / RAND_MAX);
             cloudPos[i].z = 2.0f * WDM_STORM_CLDRADIUS * (0.5f - z / 7.0f);
             // Rotational speed
-            rotSpd[i] = 0.8f * (cloudPos[i].x * cloudPos[i].x + cloudPos[i].z * cloudPos[i].z) /
-                        (WDM_STORM_CLDRADIUS * WDM_STORM_CLDRADIUS);
-            if (rotSpd[i] > 1.0f)
-                rotSpd[i] = 1.0f;
+            rotSpd[i] =
+                0.8f * (cloudPos[i].x * cloudPos[i].x + cloudPos[i].z * cloudPos[i].z) / (WDM_STORM_CLDRADIUS * WDM_STORM_CLDRADIUS);
+            if (rotSpd[i] > 1.0f) rotSpd[i] = 1.0f;
             rotSpd[i] = 0.1f + 1.0f - rotSpd[i];
             rotSpd[i] *= 0.2f + rand() * 0.1f / RAND_MAX;
-            if (globSign)
-                rotSpd[i] = -rotSpd[i];
+            if (globSign) rotSpd[i] = -rotSpd[i];
             rotSpd[i] *= 1.0f;
         }
     }
@@ -130,11 +123,9 @@ WdmStorm::WdmStorm()
 
 WdmStorm::~WdmStorm()
 {
-    if (rainTexture >= 0)
-        wdmObjects->rs->TextureRelease(rainTexture);
+    if (rainTexture >= 0) wdmObjects->rs->TextureRelease(rainTexture);
     rainTexture = -1;
-    for (int32_t i = 0; i < num; i++)
-    {
+    for (int32_t i = 0; i < num; i++) {
         wdmObjects->wm->DeleteObject(cloud[i]);
     }
     // add to objects
@@ -147,13 +138,11 @@ bool WdmStorm::CheckIntersection(float x, float z, float r)
     r = (r + WDM_STORM_CLOUDRAD) * (r + WDM_STORM_CLOUDRAD);
     // loop through all the clouds
     for (int32_t i = 0; i < num; i++)
-        if (cloud[i])
-        {
-            const auto cx = pos.x + cloudPos[i].x;
-            const auto cz = pos.z + cloudPos[i].z;
-            const auto d = (cx - x) * (cx - x) + (cz - z) * (cz - z);
-            if (d < r)
-                return true;
+        if (cloud[i]) {
+            auto const cx = pos.x + cloudPos[i].x;
+            auto const cz = pos.z + cloudPos[i].z;
+            auto const d  = (cx - x) * (cx - x) + (cz - z) * (cz - z);
+            if (d < r) return true;
         }
     return false;
 }
@@ -161,18 +150,16 @@ bool WdmStorm::CheckIntersection(float x, float z, float r)
 // Calculations
 void WdmStorm::Update(float dltTime)
 {
-    if (isActiveTime >= 0.0f)
-        isActiveTime -= dltTime;
+    if (isActiveTime >= 0.0f) isActiveTime -= dltTime;
     // Direction vector to the ship
-    CVECTOR v; // = ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Pos() - pos; v.y = 0.0f;
+    CVECTOR v;  // = ((WdmRenderModel *)wdmObjects->playerShip)->mtx.Pos() - pos; v.y = 0.0f;
     wdmObjects->GetWind(pos.x, pos.z, v);
     float r = sqrtf(~v);
     // Change the direction slightly towards the direction of the ship
     // New direction vector
     float x = v.x;
     float z = v.z;
-    if (r > 0.0f)
-    {
+    if (r > 0.0f) {
         x /= r;
         z /= r;
     }
@@ -182,15 +169,13 @@ void WdmStorm::Update(float dltTime)
     if(k > 0.0f){ k = 1.0f/sqrtf(k); x *= k; z *= k; }*/
     // Vector blending coefficient
     float k = dltTime * WDM_STORM_DIR_CHTIME;
-    if (k > 1.0f)
-        k = 1.0f;
+    if (k > 1.0f) k = 1.0f;
     // Looking for a new direction
     dir.x += (x - dir.x) * k;
     dir.z += (z - dir.z) * k;
     // Normalize
     k = dir.x * dir.x + dir.z * dir.z;
-    if (k > 0.0f)
-    {
+    if (k > 0.0f) {
         k = 1.0f / sqrtf(k);
         dir.x *= k;
         dir.z *= k;
@@ -201,53 +186,42 @@ void WdmStorm::Update(float dltTime)
     isKl |= (pos.z < -wdmObjects->worldSizeZ * 1.4f || pos.z > wdmObjects->worldSizeZ * 1.4f);
     // Alpha from camera distance
     float alpha = (wdmObjects->camera->realHeight - pos.y - 10.0f) * 0.01f;
-    if (alpha < 0.0f)
-        alpha = 0.0f;
-    if (alpha > 1.0f)
-        alpha = 1.0f;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
     // Alpha from ship distance
-    if (r < wdmObjects->stormViewDistMin)
-        r = wdmObjects->stormViewDistMin;
-    if (r > wdmObjects->stormViewDistMax)
-        r = wdmObjects->stormViewDistMax;
+    if (r < wdmObjects->stormViewDistMin) r = wdmObjects->stormViewDistMin;
+    if (r > wdmObjects->stormViewDistMax) r = wdmObjects->stormViewDistMax;
     alpha *= 1.0f - (r - wdmObjects->stormViewDistMin) / (wdmObjects->stormViewDistMax - wdmObjects->stormViewDistMin);
     // live alpha
     alpha *= liveAlpha;
     // Clamp
-    if (alpha < 0.0f)
-        alpha = 0.0f;
-    if (alpha > 1.0f)
-        alpha = 1.0f;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
     // life
     liveTime -= dltTime;
     isKl |= (r >= wdmObjects->stormDistKill) | (liveTime <= 0.0f);
     isBrn &= !isKl;
-    if (isBrn)
-    {
+    if (isBrn) {
         liveAlpha += WDM_STORM_ALPHA_BRN * dltTime;
-        if (liveAlpha >= 1.0f)
-        {
+        if (liveAlpha >= 1.0f) {
             liveAlpha = 1.0f;
-            isBrn = false;
+            isBrn     = false;
         }
     }
-    if (isKl)
-    {
+    if (isKl) {
         liveAlpha -= WDM_STORM_ALPHA_KL * dltTime;
-        if (liveAlpha < 0.0f)
-        {
+        if (liveAlpha < 0.0f) {
             liveAlpha = 0.0f;
-            isKl = false;
-            killMe = true; // Remove ourselves
+            isKl      = false;
+            killMe    = true;  // Remove ourselves
         }
     }
     // Setting positions to clouds
     for (int32_t i = 0; i < num; i++)
-        if (cloud[i])
-        {
+        if (cloud[i]) {
             // Rotate the cloud around the center
-            const float rotAng = rotSpd[i] * dltTime;
-            CMatrix m(0.0f, rotAng, 0.0f);
+            float const rotAng = rotSpd[i] * dltTime;
+            CMatrix     m(0.0f, rotAng, 0.0f);
             cloudPos[i] = m * CVECTOR(cloudPos[i]);
             // Set alpha
             cloud[i]->globalAlpha = alpha;
@@ -257,92 +231,78 @@ void WdmStorm::Update(float dltTime)
     UpdateSaveData();
 }
 
-void WdmStorm::LRender(VDX9RENDER *rs)
+void WdmStorm::LRender(VDX9RENDER* rs)
 {
-    if (wdmObjects->isDebug)
-    {
+    if (wdmObjects->isDebug) {
         CMatrix mtr;
-        mtr.Pos() = pos;
+        mtr.Pos()   = pos;
         mtr.Pos().y = 0.1f;
         wdmObjects->DrawCircle(mtr, wdmObjects->stormZone, 0x2f202040);
         for (int32_t i = 0; i < num; i++)
-            if (cloud[i])
-            {
-                mtr.Pos() = pos + cloudPos[i];
+            if (cloud[i]) {
+                mtr.Pos()   = pos + cloudPos[i];
                 mtr.Pos().y = 0.1f;
                 wdmObjects->DrawCircle(mtr, WDM_STORM_CLOUDRAD, 0x4f000000);
             }
     }
 
     int32_t count = 0;
-    for (int32_t i = 0; i < num; i++)
-    {
-        if (cloud[i])
-        {
-            count = cloud[i]->FillRain(rainRect, count);
-        }
+    for (int32_t i = 0; i < num; i++) {
+        if (cloud[i]) { count = cloud[i]->FillRain(rainRect, count); }
     }
-    if (count)
-    {
+    if (count) {
         rs->TextureSet(0, rainTexture);
         rs->DrawRects(rainRect, count, "WdmRain", 1, 1);
     }
 }
 
 // Setting parameters
-void WdmStorm::SetSaveAttribute(ATTRIBUTES *save)
+void WdmStorm::SetSaveAttribute(ATTRIBUTES* save)
 {
     saveAttribute = save;
-    if (!saveAttribute)
-        return;
-    pos.x = saveAttribute->GetAttributeAsFloat("px", pos.x);
-    pos.y = saveAttribute->GetAttributeAsFloat("py", pos.y);
-    pos.z = saveAttribute->GetAttributeAsFloat("pz", pos.z);
-    dir.x = saveAttribute->GetAttributeAsFloat("dx", dir.x);
-    dir.y = saveAttribute->GetAttributeAsFloat("dy", dir.y);
-    dir.z = saveAttribute->GetAttributeAsFloat("dz", dir.z);
+    if (!saveAttribute) return;
+    pos.x        = saveAttribute->GetAttributeAsFloat("px", pos.x);
+    pos.y        = saveAttribute->GetAttributeAsFloat("py", pos.y);
+    pos.z        = saveAttribute->GetAttributeAsFloat("pz", pos.z);
+    dir.x        = saveAttribute->GetAttributeAsFloat("dx", dir.x);
+    dir.y        = saveAttribute->GetAttributeAsFloat("dy", dir.y);
+    dir.z        = saveAttribute->GetAttributeAsFloat("dz", dir.z);
     isActiveTime = saveAttribute->GetAttributeAsFloat("isActiveTime", isActiveTime);
-    liveTime = saveAttribute->GetAttributeAsFloat("liveTime", liveTime);
-    liveAlpha = saveAttribute->GetAttributeAsFloat("liveAlpha", liveAlpha);
-    speed = saveAttribute->GetAttributeAsFloat("speed", speed);
+    liveTime     = saveAttribute->GetAttributeAsFloat("liveTime", liveTime);
+    liveAlpha    = saveAttribute->GetAttributeAsFloat("liveAlpha", liveAlpha);
+    speed        = saveAttribute->GetAttributeAsFloat("speed", speed);
 
-    isBrn = saveAttribute->GetAttributeAsDword("isBrn", isBrn) != 0;
-    isKl = saveAttribute->GetAttributeAsDword("isKl", isKl) != 0;
+    isBrn     = saveAttribute->GetAttributeAsDword("isBrn", isBrn) != 0;
+    isKl      = saveAttribute->GetAttributeAsDword("isKl", isKl) != 0;
     isTornado = saveAttribute->GetAttributeAsDword("isTornado", isTornado) != 0;
 
     num = saveAttribute->GetAttributeAsDword("num", num);
 
-    for (uint8_t i = 0; i < 8; i++)
-    {
+    for (uint8_t i = 0; i < 8; i++) {
         cloudPosName[8] = '0' + i;
         cloudPosName[9] = 'x';
-        cloudPos[i].x = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].x);
+        cloudPos[i].x   = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].x);
         cloudPosName[9] = 'y';
-        cloudPos[i].y = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].y);
+        cloudPos[i].y   = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].y);
         cloudPosName[9] = 'z';
-        cloudPos[i].z = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].z);
-        rotSpdName[6] = '0' + i;
-        rotSpd[i] = saveAttribute->GetAttributeAsFloat(rotSpdName, rotSpd[i]);
+        cloudPos[i].z   = saveAttribute->GetAttributeAsFloat(cloudPosName, cloudPos[i].z);
+        rotSpdName[6]   = '0' + i;
+        rotSpd[i]       = saveAttribute->GetAttributeAsFloat(rotSpdName, rotSpd[i]);
     }
     UpdateSaveData();
 }
 
 void WdmStorm::DeleteUpdate()
 {
-    if (!saveAttribute)
-        return;
-    const char *pnt = saveAttribute->GetAttribute("needDelete");
-    if (pnt)
-    {
-        isKl = true;
-    }
+    if (!saveAttribute) return;
+    char const* pnt = saveAttribute->GetAttribute("needDelete");
+    if (pnt) { isKl = true; }
 }
 
 // Updating stored data
 void WdmStorm::UpdateSaveData()
 {
-    if (!saveAttribute)
-        return;
+    if (!saveAttribute) return;
     saveAttribute->SetAttributeUseFloat("px", pos.x);
     saveAttribute->SetAttributeUseFloat("py", pos.y);
     saveAttribute->SetAttributeUseFloat("pz", pos.z);
@@ -360,8 +320,7 @@ void WdmStorm::UpdateSaveData()
 
     saveAttribute->SetAttributeUseDword("num", num);
 
-    for (uint8_t i = 0; i < 8; i++)
-    {
+    for (uint8_t i = 0; i < 8; i++) {
         cloudPosName[8] = '0' + i;
         cloudPosName[9] = 'x';
         saveAttribute->SetAttributeUseFloat(cloudPosName, cloudPos[i].x);
@@ -380,11 +339,8 @@ void WdmStorm::UpdateSaveData()
     saveAttribute->SetAttribute("year", wdmObjects->attrYear);
 }
 
-const char *WdmStorm::GetId() const
+char const* WdmStorm::GetId() const
 {
-    if (saveAttribute)
-    {
-        return saveAttribute->GetThisName();
-    }
+    if (saveAttribute) { return saveAttribute->GetThisName(); }
     return "";
 }

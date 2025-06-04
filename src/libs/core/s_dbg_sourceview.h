@@ -1,17 +1,19 @@
 #pragma once
 
-#include "core_impl.h"
-#include <CommCtrl.h>
-#include <windows.h>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+// clang-format off
+#include <windows.h>
+#include <CommCtrl.h>
+// clang-format on
+
+#include "core_impl.h"
+
 LRESULT CALLBACK SourceViewWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 
-struct CURSOR_POS
-{
+struct CURSOR_POS {
     uint32_t line;
     uint32_t collumn;
     uint32_t x_pos;
@@ -20,35 +22,35 @@ struct CURSOR_POS
 class SOURCE_VIEW
 {
     friend LRESULT CALLBACK SourceViewWndProc(HWND, UINT, WPARAM, LPARAM);
-    HINSTANCE hInst;
-    HWND hMain;
-    RECT Pos;
-    HFONT hFont;
-    POINT pntDragPos;
-    std::string sCopyPasteBuffer;
-    bool bDrag;
-    uint32_t nFontHeight;
-    char *pSourceFile;
-    std::vector<uint32_t> pLineOffset;
-    uint32_t nLinesNum;
-    uint32_t nSourceFileSize;
-    int32_t nTopLine;
-    int32_t nClientLinesSize;
-    uint32_t nActiveLine;
-    uint32_t nControlLine;
-    char SourceFileName[MAX_PATH];
-    char ProgramDirectory[MAX_PATH];
-    uint32_t nStartSelection, nEndSelection;
-    CURSOR_POS Cursor;
+    HINSTANCE               hInst;
+    HWND                    hMain;
+    RECT                    Pos;
+    HFONT                   hFont;
+    POINT                   pntDragPos;
+    std::string             sCopyPasteBuffer;
+    bool                    bDrag;
+    uint32_t                nFontHeight;
+    char*                   pSourceFile;
+    std::vector<uint32_t>   pLineOffset;
+    uint32_t                nLinesNum;
+    uint32_t                nSourceFileSize;
+    int32_t                 nTopLine;
+    int32_t                 nClientLinesSize;
+    uint32_t                nActiveLine;
+    uint32_t                nControlLine;
+    char                    SourceFileName[MAX_PATH];
+    char                    ProgramDirectory[MAX_PATH];
+    uint32_t                nStartSelection, nEndSelection;
+    CURSOR_POS              Cursor;
 
     void DoStep(int32_t iCount);
 
-  public:
-    std::vector<std::string> aStrings;
-    HWND hOwn;
-    RECT CopyPasteRect;
-    std::vector<bool> pBookmarks;
-    std::string sFindStr;
+public:
+    std::vector<std::string>                  aStrings;
+    HWND                                      hOwn;
+    RECT                                      CopyPasteRect;
+    std::vector<bool>                         pBookmarks;
+    std::string                               sFindStr;
     std::unordered_map<std::string, uint32_t> htBookmarks;
 
     SOURCE_VIEW(HWND _hMain, HINSTANCE _hInst);
@@ -57,10 +59,10 @@ class SOURCE_VIEW
     void SetPosition(RECT _Pos);
     void SetFont(HFONT);
     void OnPaint();
-    bool OpenSourceFile(const char *_filename);
+    bool OpenSourceFile(char const* _filename);
     void LineUpDown(bool down, uint32_t nlines = 1);
     void UpdateGDIControls();
-    void SetProgramDirectory(const char *dir_name);
+    void SetProgramDirectory(char const* dir_name);
     void SetActiveLine(uint32_t line);
     void StartSelection(uint32_t x_pos);
     void MoveSelection(uint32_t x_pos);
@@ -77,7 +79,7 @@ class SOURCE_VIEW
 
     static char cDelimTable[256];
 
-    void SetCharacterMap(char *pMap, const char *pStr);
-    bool SetVariableOnChange(const char *pStr, bool bSet);
-    const char *GetToken(const char *pStr, std::string &sResult);
+    void        SetCharacterMap(char* pMap, char const* pStr);
+    bool        SetVariableOnChange(char const* pStr, bool bSet);
+    char const* GetToken(char const* pStr, std::string& sResult);
 };

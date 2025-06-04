@@ -1,7 +1,6 @@
 #pragma once
 
 #include "xi_2picture.h"
-#include "xi_v_img_scroll.h"
 #include "xi_border.h"
 #include "xi_bounder.h"
 #include "xi_button.h"
@@ -22,10 +21,10 @@
 #include "xi_quest_texts.h"
 #include "xi_quest_titles.h"
 #include "xi_rectangle.h"
+#include "xi_scroll_image.h"
 #include "xi_scrollbar.h"
 #include "xi_scrolled_pic.h"
 #include "xi_scroller.h"
-#include "xi_scroll_image.h"
 #include "xi_slide_line.h"
 #include "xi_slide_picture.h"
 #include "xi_status_line.h"
@@ -33,6 +32,7 @@
 #include "xi_table.h"
 #include "xi_text_button.h"
 #include "xi_title.h"
+#include "xi_v_img_scroll.h"
 #include "xi_video.h"
 #include "xi_video_rect.h"
 #include "xi_window.h"

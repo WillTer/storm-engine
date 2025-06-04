@@ -7,12 +7,12 @@ class Matrix;
 
 class IParticleSystem
 {
-  protected:
-    virtual ~IParticleSystem(){};
+protected:
+    virtual ~IParticleSystem() {};
 
-  public:
+public:
     // Create / delete
-    IParticleSystem(){};
+    IParticleSystem() {};
     virtual bool Release() = 0;
 
     // Update all particles
@@ -31,14 +31,14 @@ class IParticleSystem
     // Find out whether it's an auto-delete system or not
     virtual bool IsAutoDeleted() = 0;
     // Set transformation matrix for the system
-    virtual void SetTransform(const Matrix &transform) = 0;
-    virtual void GetTransform(Matrix &_matWorld) = 0;
+    virtual void SetTransform(Matrix const& transform) = 0;
+    virtual void GetTransform(Matrix& _matWorld)       = 0;
 
-    virtual void Teleport(const Matrix &transform) = 0;
+    virtual void Teleport(Matrix const& transform) = 0;
 
     virtual bool IsAlive() = 0;
 
-    virtual const char *GetName() = 0;
+    virtual char const* GetName() = 0;
 
     virtual void Stop() = 0;
 };

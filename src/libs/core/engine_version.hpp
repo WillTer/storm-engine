@@ -2,8 +2,7 @@
 
 namespace storm
 {
-enum class ENGINE_VERSION
-{
+enum class ENGINE_VERSION {
     UNKNOWN,
     SEA_DOGS,
     // 1.0 - Will likely never be supported
@@ -22,4 +21,4 @@ constexpr bool operator<(const ENGINE_VERSION first, const ENGINE_VERSION second
 {
     return static_cast<int>(first) < static_cast<int>(second);
 }
-} // namespace storm
+}  // namespace storm

@@ -14,10 +14,9 @@
 
 class WdmEnemyShip;
 
-class WdmIcon : public WdmInterfaceObject
+class WdmIcon: public WdmInterfaceObject
 {
-    struct Icon
-    {
+    struct Icon {
         float u;
         float alpha;
     };
@@ -25,23 +24,23 @@ class WdmIcon : public WdmInterfaceObject
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmIcon();
     ~WdmIcon() override;
 
     // Calculations
     void Update(float dltTime) override;
     // Rendering
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    WdmEnemyShip *lastShip;
-    int32_t texture;
-    Icon icon[2];
-    float islandAlpha;
-    float skipAlpha;
-    float stormAlpha;
+private:
+    WdmEnemyShip* lastShip;
+    int32_t       texture;
+    Icon          icon[2];
+    float         islandAlpha;
+    float         skipAlpha;
+    float         stormAlpha;
 };

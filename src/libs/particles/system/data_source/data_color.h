@@ -1,19 +1,20 @@
 #pragma once
 
-#include "../../i_common/color_vertex.h"
-#include "../../i_common/mem_file.h"
 #include <string>
 #include <vector>
+
+#include "../../i_common/color_vertex.h"
+#include "../../i_common/mem_file.h"
 
 class DataColor
 {
     std::string Name;
 
-    const Color ZeroColor;
+    Color const ZeroColor;
 
     std::vector<ColorVertex> ColorGraph;
 
-  public:
+public:
     // constructor / destructor
     DataColor();
     virtual ~DataColor();
@@ -23,25 +24,25 @@ class DataColor
 
     // Sets the "default"
     // two indices, Min = Max = Value
-    void SetDefaultValue(const Color &Value);
+    void SetDefaultValue(Color const& Value);
 
     // Set values
-    void SetValues(const ColorVertex *Values, uint32_t Count);
+    void SetValues(ColorVertex const* Values, uint32_t Count);
 
     // Get count of values
     uint32_t GetValuesCount() const;
 
     // Get min. value (by index)
-    const Color &GetMinValue(uint32_t Index);
+    Color const& GetMinValue(uint32_t Index);
 
     // Get max. value (by index)
-    const Color &GetMaxValue(uint32_t Index);
+    Color const& GetMaxValue(uint32_t Index);
 
-    void Load(MemFile *File);
-    void Write(MemFile *File);
+    void Load(MemFile* File);
+    void Write(MemFile* File);
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 
-    const ColorVertex &GetByIndex(uint32_t Index);
+    ColorVertex const& GetByIndex(uint32_t Index);
 };

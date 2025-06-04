@@ -2,8 +2,7 @@
 
 #include "../inode.h"
 
-enum ImagePointType
-{
+enum ImagePointType {
     IPType_LeftTop,
     IPType_Center,
     IPType_RightTop,
@@ -13,21 +12,21 @@ enum ImagePointType
 
 class CXI_IMAGE
 {
-  public:
+public:
     CXI_IMAGE();
     ~CXI_IMAGE();
 
-    void LoadFromFile(const char *sFileName);
-    void LoadFromBase(const char *sListName, const char *sPictureName, bool bGetSizeFromSource = false);
-    void LoadAccordingToString(const char *pcImageParam);
-    void SetPointerToTexture(IDirect3DTexture9 *pTex);
+    void LoadFromFile(char const* sFileName);
+    void LoadFromBase(char const* sListName, char const* sPictureName, bool bGetSizeFromSource = false);
+    void LoadAccordingToString(char const* pcImageParam);
+    void SetPointerToTexture(IDirect3DTexture9* pTex);
 
     void Draw();
     void Draw(int32_t nX, int32_t nY, ImagePointType alignment);
 
     void SetSize(int32_t nWidth, int32_t nHeight);
     void SetPosition(int32_t nX, int32_t nY, ImagePointType ptype = IPType_LeftTop);
-    void SetPosition(XYRECT &pos);
+    void SetPosition(XYRECT& pos);
     void SetUV(float fLeft, float fTop, float fRight, float fBottom);
     void SetDifferentPosition(int32_t nLeft, int32_t nTop, int32_t nWidth, int32_t nHeight, ImagePointType ptype = IPType_LeftTop);
 
@@ -67,21 +66,21 @@ class CXI_IMAGE
         m_bDisableDraw = bDisable;
     }
 
-  protected:
-    VDX9RENDER *m_rs;
+protected:
+    VDX9RENDER* m_rs;
 
-    bool m_bDisableDraw;
-    char *m_pcPictureListName;
-    int32_t m_nPictureNum;
+    bool     m_bDisableDraw;
+    char*    m_pcPictureListName;
+    int32_t  m_nPictureNum;
     FXYPOINT m_nLeftTopCutUV;
 
-    int32_t m_nTextureID;
-    IDirect3DTexture9 *m_pTexture;
+    int32_t            m_nTextureID;
+    IDirect3DTexture9* m_pTexture;
 
     FXYRECT m_frUV;
 
     XI_ONETEX_VERTEX m_vrtx[4];
-    uint32_t m_dwImageColor;
+    uint32_t         m_dwImageColor;
 
     XYPOINT m_pntSize;
     XYPOINT m_pntLeftTop;

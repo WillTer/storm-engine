@@ -4,16 +4,17 @@
 
 #include "../nodes/xi_image.h"
 #include "../xinterface.h"
+
 #include "list.h"
 
-GIEditor::GIEditor(XINTERFACE *pInterface)
+GIEditor::GIEditor(XINTERFACE* pInterface)
 {
     m_pGIOwner = pInterface;
-    m_pRS = pInterface->RenderService();
+    m_pRS      = pInterface->RenderService();
 
     m_bShowMode = false;
 
-    m_pEditableNode = nullptr;
+    m_pEditableNode     = nullptr;
     m_fLastKeyPressTime = -1.f;
 
     m_pImageBack = new CXI_IMAGE;
@@ -28,7 +29,7 @@ GIEditor::GIEditor(XINTERFACE *pInterface)
     m_pNodeList->SetPosition(120, 80, 360, 380);
     LinkEvent(m_pNodeList->m_pChangeSelected, static_cast<GIEditorEvent>(&GIEditor::ChangeNodeName));
 
-    m_bSubNameOn = false;
+    m_bSubNameOn   = false;
     m_pSubNameList = new GIEditorList(this);
     Assert(m_pSubNameList);
     m_pSubNameList->SetPosition(380, 80, 500, 380);
@@ -42,7 +43,7 @@ GIEditor::~GIEditor()
 
 void GIEditor::Release()
 {
-    m_pGIOwner = nullptr;
+    m_pGIOwner  = nullptr;
     m_bShowMode = false;
 
     STORM_DELETE(m_pImageBack);
@@ -52,21 +53,17 @@ void GIEditor::Release()
 
 void GIEditor::Render() const
 {
-    if (!m_bShowMode)
-        return;
+    if (!m_bShowMode) return;
 
-    const auto pntMouse = m_pGIOwner->GetMousePoint();
+    auto const pntMouse = m_pGIOwner->GetMousePoint();
     m_pNodeList->CheckMouseInside(pntMouse.x, pntMouse.y);
-    if (m_bSubNameOn)
-        m_pSubNameList->CheckMouseInside(pntMouse.x, pntMouse.y);
+    if (m_bSubNameOn) m_pSubNameList->CheckMouseInside(pntMouse.x, pntMouse.y);
 
     CONTROL_STATE cs;
     core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
-    if (cs.state == CST_ACTIVATED)
-    {
+    if (cs.state == CST_ACTIVATED) {
         m_pNodeList->MakeMouseClick(pntMouse.x, pntMouse.y);
-        if (m_bSubNameOn)
-            m_pSubNameList->MakeMouseClick(pntMouse.x, pntMouse.y);
+        if (m_bSubNameOn) m_pSubNameList->MakeMouseClick(pntMouse.x, pntMouse.y);
     }
 
     if (m_bSubNameOn)
@@ -76,40 +73,33 @@ void GIEditor::Render() const
 
     m_pImageBack->Draw();
     m_pNodeList->Render();
-    if (m_bSubNameOn)
-        m_pSubNameList->Render();
+    if (m_bSubNameOn) m_pSubNameList->Render();
 }
 
 bool GIEditor::ProcessControl()
 {
-    if (!m_bShowMode)
-    {
-        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 &&
-            core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState('E') < 0)
-        {
-            m_bShowMode = true;
+    if (!m_bShowMode) {
+        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+            && core.Controls->GetDebugAsyncKeyState('E') < 0) {
+            m_bShowMode  = true;
             m_bSubNameOn = false;
             return true;
         }
     }
 
-    if (m_bShowMode)
-    {
-        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 &&
-            core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState('Q') < 0)
+    if (m_bShowMode) {
+        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+            && core.Controls->GetDebugAsyncKeyState('Q') < 0)
             m_bShowMode = false;
 
         CONTROL_STATE cs;
         core.Controls->GetControlState("IStartButton", cs);
-        if (cs.state == CST_INACTIVATED)
-        {
+        if (cs.state == CST_INACTIVATED) {
             m_bShowMode = false;
-            if (!m_bSubNameOn)
-            {
+            if (!m_bSubNameOn) {
                 std::vector<std::string> aStr;
-                if (m_pEditableNode && m_pEditableNode->GetInternalNameList(aStr))
-                {
-                    m_bShowMode = true;
+                if (m_pEditableNode && m_pEditableNode->GetInternalNameList(aStr)) {
+                    m_bShowMode  = true;
                     m_bSubNameOn = false;
                     m_pSubNameList->RemoveAllStrings();
                     for (int32_t n = 0; n < aStr.size(); n++)
@@ -121,41 +111,35 @@ bool GIEditor::ProcessControl()
             }
         }
 
-        if (m_bSubNameOn && core.Controls->GetDebugAsyncKeyState(VK_ESCAPE) < 0)
-        {
-            m_bSubNameOn = false;
-        }
+        if (m_bSubNameOn && core.Controls->GetDebugAsyncKeyState(VK_ESCAPE) < 0) { m_bSubNameOn = false; }
 
         return true;
     }
 
-    if (!m_pEditableNode)
-        return false;
+    if (!m_pEditableNode) return false;
 
     auto bMove = false;
     auto bSize = false;
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) // moving
+    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // moving
     {
         bMove = true;
-        if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0) // change the size
+        if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)  // change the size
         {
             bMove = false;
             bSize = true;
         }
     }
 
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 &&
-        core.Controls->GetDebugAsyncKeyState('S') < 0)
-    {
+    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+        && core.Controls->GetDebugAsyncKeyState('S') < 0) {
         // save real rect to INI considering relative shift
-        const auto orig_rect = m_pEditableNode->m_rect;
+        auto const orig_rect = m_pEditableNode->m_rect;
         m_pEditableNode->GetAbsoluteRectForSave(m_pEditableNode->m_rect, m_pEditableNode->m_nAbsoluteRectVal);
         m_pEditableNode->SaveParametersToIni();
         m_pEditableNode->m_rect = orig_rect;
     }
 
-    if (bMove || bSize)
-    {
+    if (bMove || bSize) {
         int32_t nHorz = 0;
         if (core.Controls->GetDebugAsyncKeyState(VK_LEFT) < 0)
             if (core.Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
@@ -179,28 +163,21 @@ bool GIEditor::ProcessControl()
             else
                 nVert++;
 
-        if (nHorz != 0 || nVert != 0)
-        {
+        if (nHorz != 0 || nVert != 0) {
             if (m_fLastKeyPressTime < 0.f)
                 m_fLastKeyPressTime = 0.f;
-            else
-            {
+            else {
                 m_fLastKeyPressTime += core.GetDeltaTime() * .001f;
-                if (m_fLastKeyPressTime < 0.8f)
-                    nHorz = nVert = 0;
+                if (m_fLastKeyPressTime < 0.8f) nHorz = nVert = 0;
             }
-        }
-        else
+        } else
             m_fLastKeyPressTime = -1.f;
 
-        if (nHorz != 0 || nVert != 0)
-        {
+        if (nHorz != 0 || nVert != 0) {
             auto rectNew = m_pEditableNode->m_rect;
-            if (nHorz != 0)
-            {
+            if (nHorz != 0) {
                 rectNew.right += nHorz;
-                if (bMove)
-                    rectNew.left += nHorz;
+                if (bMove) rectNew.left += nHorz;
                 /*
                         if( rectNew.right < 0 ) rectNew.right = 0;
                         if(
@@ -208,11 +185,9 @@ bool GIEditor::ProcessControl()
  m_pGIOwner->GetScreenWidth();
                  * if( rectNew.right < rectNew.left ) rectNew.right = rectNew.left;*/
             }
-            if (nVert != 0)
-            {
+            if (nVert != 0) {
                 rectNew.bottom += nVert;
-                if (bMove)
-                    rectNew.top += nVert;
+                if (bMove) rectNew.top += nVert;
 
                 /*                if( rectNew.bottom < 0 ) rectNew.bottom = 0;
                         if( rectNew.top >
@@ -238,7 +213,7 @@ void GIEditor::MakeShowMode(bool bShow)
     m_bShowMode = bShow;
 }
 
-void GIEditor::SetEditNode(CINODE *pNode)
+void GIEditor::SetEditNode(CINODE* pNode)
 {
     m_pEditableNode = pNode;
 }
@@ -251,32 +226,28 @@ void GIEditor::ReCreate() const
     m_pNodeList->SetSelectIndex(0);
 }
 
-void GIEditor::AddNode(CINODE *pNode) const
+void GIEditor::AddNode(CINODE* pNode) const
 {
-    if (!pNode)
-        return;
+    if (!pNode) return;
     std::string sStr = pNode->m_nodeName;
     m_pNodeList->AddString(sStr);
 }
 
-void GIEditor::DelNode(CINODE *pNode) const
+void GIEditor::DelNode(CINODE* pNode) const
 {
-    if (!pNode)
-        return;
+    if (!pNode) return;
     m_pNodeList->RemoveString(pNode->m_nodeName);
 }
 
 void GIEditor::DrawSizeBox() const
 {
-    if (!m_pEditableNode)
-        return;
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) // showing
+    if (!m_pEditableNode) return;
+    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // showing
     {
         RS_LINE rsl[8];
-        for (int32_t n = 0; n < 8; n++)
-        {
+        for (int32_t n = 0; n < 8; n++) {
             rsl[n].dwColor = 0xFFFFFFFF;
-            rsl[n].vPos.z = 1.f;
+            rsl[n].vPos.z  = 1.f;
         }
         rsl[0].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
         rsl[0].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
@@ -301,12 +272,23 @@ void GIEditor::DrawSizeBox() const
         // boal -->
         // idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys,
         // left, top, "%s", str
-        const auto &screenSize = core.GetScreenSize();
-        const auto m_fontID = m_pGIOwner->GetRenderService()->LoadFont("interface_normal");
+        auto const& screenSize = core.GetScreenSize();
+        auto const  m_fontID   = m_pGIOwner->GetRenderService()->LoadFont("interface_normal");
         m_pGIOwner->GetRenderService()->ExtPrint(
-            m_fontID, 0xFFFFFFFF, 0, PR_ALIGN_LEFT, false, 1.0, screenSize.width, screenSize.height, 10, 10,
-            "(%d, %d) - (%d, %d) W - %d H - %d", static_cast<int>(m_pEditableNode->m_rect.left),
-            static_cast<int>(m_pEditableNode->m_rect.top), static_cast<int>(m_pEditableNode->m_rect.right),
+            m_fontID,
+            0xFFFFFFFF,
+            0,
+            PR_ALIGN_LEFT,
+            false,
+            1.0,
+            screenSize.width,
+            screenSize.height,
+            10,
+            10,
+            "(%d, %d) - (%d, %d) W - %d H - %d",
+            static_cast<int>(m_pEditableNode->m_rect.left),
+            static_cast<int>(m_pEditableNode->m_rect.top),
+            static_cast<int>(m_pEditableNode->m_rect.right),
             static_cast<int>(m_pEditableNode->m_rect.bottom),
             (static_cast<int>(m_pEditableNode->m_rect.right) - static_cast<int>(m_pEditableNode->m_rect.left)),
             (static_cast<int>(m_pEditableNode->m_rect.bottom) - static_cast<int>(m_pEditableNode->m_rect.top)));
@@ -317,8 +299,7 @@ void GIEditor::DrawSizeBox() const
 
 void GIEditor::ChangeNodeName()
 {
-    if (m_pNodeList->GetSelectString() == "Nothing" || m_pNodeList->GetSelectString() == "")
-    {
+    if (m_pNodeList->GetSelectString() == "Nothing" || m_pNodeList->GetSelectString() == "") {
         m_pEditableNode = nullptr;
         return;
     }
@@ -328,10 +309,8 @@ void GIEditor::ChangeNodeName()
 
 void GIEditor::ChangeSubNodeName() const
 {
-    if (!m_bSubNameOn)
-        return;
-    if (!m_pEditableNode)
-        return;
+    if (!m_bSubNameOn) return;
+    if (!m_pEditableNode) return;
 
     m_pEditableNode->SetInternalName(m_pSubNameList->GetSelectString());
 }

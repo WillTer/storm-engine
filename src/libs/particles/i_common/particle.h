@@ -8,12 +8,11 @@ class DataUV;
 class IEmitter;
 class GEOS;
 
-struct BB_ParticleData
-{
-    bool SpeedOriented; // Turn along the velocity vector ...
+struct BB_ParticleData {
+    bool SpeedOriented;  // Turn along the velocity vector ...
 
     // Pointer to the number of particles of this type, when removing a particle, you need to decrease it !!!
-    uint32_t *ActiveCount;
+    uint32_t* ActiveCount;
 
     // Physical position
     Vector PhysPos;
@@ -48,31 +47,31 @@ struct BB_ParticleData
     // ===========================================================================
     // Final position / angle for rendering
     Vector RenderPos;
-    float RenderAngle;
+    float  RenderAngle;
     Vector OldRenderPos;
-    float OldRenderAngle;
+    float  OldRenderAngle;
 
     // ===========================================================================
     // Distance to camera
     float CamDistance;
-    bool Visible;
+    bool  Visible;
 
     // ===========================================================================
     // Graphs
 
-    DataGraph *Graph_SpinDrag;
-    DataGraph *Graph_Drag;
-    DataGraph *Graph_Size;
-    DataGraph *Graph_Frames;
-    DataColor *Graph_Color;
-    DataUV *Graph_UV;
-    DataGraph *Graph_Transparency;
-    DataGraph *Graph_TrackX;
-    DataGraph *Graph_TrackY;
-    DataGraph *Graph_TrackZ;
-    DataGraph *Graph_PhysBlend;
-    DataGraph *graph_GravK;
-    DataGraph *graph_AddPower;
+    DataGraph* Graph_SpinDrag;
+    DataGraph* Graph_Drag;
+    DataGraph* Graph_Size;
+    DataGraph* Graph_Frames;
+    DataColor* Graph_Color;
+    DataUV*    Graph_UV;
+    DataGraph* Graph_Transparency;
+    DataGraph* Graph_TrackX;
+    DataGraph* Graph_TrackY;
+    DataGraph* Graph_TrackZ;
+    DataGraph* Graph_PhysBlend;
+    DataGraph* graph_GravK;
+    DataGraph* graph_AddPower;
 
     // ===========================================================================
     // Coefficients for randomization
@@ -91,17 +90,16 @@ struct BB_ParticleData
 
     // ===========================================================================
     // Pointer to the emitter that is attached to the particle
-    IEmitter *AttachedEmitter;
+    IEmitter* AttachedEmitter;
 
     // ===============================================
     // ID of the emitter to which the particle belongs
     uint32_t EmitterGUID;
 };
 
-struct MDL_ParticleData
-{
+struct MDL_ParticleData {
     // Pointer to the number of particles of this type, when removing a particle, you need to decrease it !!!
-    uint32_t *ActiveCount;
+    uint32_t* ActiveCount;
 
     // Physical position
     Vector PhysPos;
@@ -143,15 +141,15 @@ struct MDL_ParticleData
     // ===========================================================================
     // Graphs
 
-    DataGraph *Graph_SpinDragX;
-    DataGraph *Graph_SpinDragY;
-    DataGraph *Graph_SpinDragZ;
-    DataGraph *Graph_Drag;
-    DataGraph *Graph_TrackX;
-    DataGraph *Graph_TrackY;
-    DataGraph *Graph_TrackZ;
-    DataGraph *Graph_PhysBlend;
-    DataGraph *graph_GravK;
+    DataGraph* Graph_SpinDragX;
+    DataGraph* Graph_SpinDragY;
+    DataGraph* Graph_SpinDragZ;
+    DataGraph* Graph_Drag;
+    DataGraph* Graph_TrackX;
+    DataGraph* Graph_TrackY;
+    DataGraph* Graph_TrackZ;
+    DataGraph* Graph_PhysBlend;
+    DataGraph* graph_GravK;
 
     // ===========================================================================
     // Coefficients for randomization
@@ -167,11 +165,11 @@ struct MDL_ParticleData
 
     // ===========================================================================
     // Pointer to the model to render
-    GEOS *pScene;
+    GEOS* pScene;
 
     // ===========================================================================
     // Pointer to the emitter that is attached to the particle
-    IEmitter *AttachedEmitter;
+    IEmitter* AttachedEmitter;
 
     // ===============================================
     // ID of the emitter to which the particle belongs

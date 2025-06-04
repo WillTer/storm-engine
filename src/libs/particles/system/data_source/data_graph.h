@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../i_common/mem_file.h"
-
-#include "../../i_common/graph_vertex.h"
 #include <string>
 #include <vector>
+
+#include "../../i_common/graph_vertex.h"
+#include "../../i_common/mem_file.h"
 
 class DataGraph
 {
@@ -28,7 +28,7 @@ class DataGraph
     bool bRelative;
     bool bNegative;
 
-  public:
+public:
     // constructor / destructor
     DataGraph();
     virtual ~DataGraph();
@@ -46,8 +46,7 @@ class DataGraph
     float GetRandomValue(float Time, float LifeTime);
 
     // Set values
-    void SetValues(const GraphVertex *MinValues, uint32_t MinValuesSize, const GraphVertex *MaxValues,
-                   uint32_t MaxValuesSize);
+    void SetValues(GraphVertex const* MinValues, uint32_t MinValuesSize, GraphVertex const* MaxValues, uint32_t MaxValuesSize);
 
     // Set the "default"
     void SetDefaultValue(float MaxValue, float MinValue);
@@ -59,16 +58,16 @@ class DataGraph
     uint32_t GetMaxCount() const;
 
     // Get the value by index from the minimum graph
-    const GraphVertex &GetMinVertex(uint32_t Index);
+    GraphVertex const& GetMinVertex(uint32_t Index);
 
     // Get the value by index from the maximum graph
-    const GraphVertex &GetMaxVertex(uint32_t Index);
+    GraphVertex const& GetMaxVertex(uint32_t Index);
 
-    void Load(MemFile *File);
-    void Write(MemFile *File);
+    void Load(MemFile* File);
+    void Write(MemFile* File);
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 
     float GetMaxTime();
 
@@ -76,7 +75,7 @@ class DataGraph
     void ConvertDegToRad();
     void MultiplyBy(float Val);
     void Clamp(float MinValue, float MaxValue);
-    void Reverse(); // Graphs = 1.0f - Graph
+    void Reverse();  // Graphs = 1.0f - Graph
     void NormalToPercent();
     void PercentToNormal();
     void NormalToAlpha();

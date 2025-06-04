@@ -17,25 +17,25 @@ class ActionInfo;
 
 #define ACTIONPLAYEREVENTFLAGS ((ANI_MAX_EVENTS + 31) >> 5)
 
-class ActionPlayerImp : public ActionPlayer
+class ActionPlayerImp: public ActionPlayer
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     ActionPlayerImp();
     virtual ~ActionPlayerImp();
 
     // Set pointer to animation
-    void SetAnimation(AnimationImp *animation, int32_t index);
+    void SetAnimation(AnimationImp* animation, int32_t index);
 
     //--------------------------------------------------------------------------------------------
     // ActionPlayer
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Set current action
-    bool SetAction(const char *actionName) override;
-    const char *GetAction() const override;
+    bool        SetAction(char const* actionName) override;
+    char const* GetAction() const override;
     // Play control
     bool Play() override;
     void Pause() override;
@@ -49,7 +49,7 @@ class ActionPlayerImp : public ActionPlayer
     float SetPosition(float position) override;
     float GetPosition() const override;
     // Play type
-    void SetType(AnimationType atype) override;
+    void          SetType(AnimationType atype) override;
     AnimationType GetType() const override;
     // Playback speed coefficient
     float SetSpeed(float kSpeed = 1.0f) override;
@@ -62,12 +62,12 @@ class ActionPlayerImp : public ActionPlayer
     // Get a blending coefficient 0..1
     float GetBlend() override;
     // Get user data for this action
-    const char *GetData(const char *dataName) const override;
+    char const* GetData(char const* dataName) const override;
 
     //--------------------------------------------------------------------------------------------
     // ActionPlayerImp
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Take a step in time
     void Execute(int32_t dltTime);
     // Set position to the very beginning
@@ -75,19 +75,19 @@ class ActionPlayerImp : public ActionPlayer
     // Get the current time
     float GetCurrentFrame();
     // Quick access to blending ratios
-    float &Blend();
-    float &TimerBlend();
+    float& Blend();
+    float& TimerBlend();
     // Copy the state of another player
-    void CopyState(ActionPlayerImp &from);
+    void CopyState(ActionPlayerImp& from);
 
-  public:
+public:
     // Current blending ratio
     float kBlendCurrent;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Position movement
     void MoveNormal(float dlt);
     void MoveReverse(float dlt);
@@ -100,13 +100,13 @@ class ActionPlayerImp : public ActionPlayer
     // System stop
     void SysStop();
 
-  private:
+private:
     // Animation for this action
-    AnimationImp *ani;
+    AnimationImp* ani;
     // Index of this player
     int32_t playerIndex;
     // Information about the current action
-    ActionInfo *action;
+    ActionInfo* action;
     // Animation playback type
     AnimationType anitype;
     // Playing
@@ -132,12 +132,12 @@ class ActionPlayerImp : public ActionPlayer
 };
 
 // Quick access to the blending factor
-inline float &ActionPlayerImp::Blend()
+inline float& ActionPlayerImp::Blend()
 {
     return kBlend;
 }
 
-inline float &ActionPlayerImp::TimerBlend()
+inline float& ActionPlayerImp::TimerBlend()
 {
     return kBlendTimer;
 }

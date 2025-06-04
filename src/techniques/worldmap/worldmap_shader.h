@@ -1,4 +1,4 @@
-#define SHADER                                                                                                         \
+#define SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \

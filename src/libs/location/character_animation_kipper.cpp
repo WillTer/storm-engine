@@ -9,10 +9,10 @@
 //============================================================================================
 
 #include "character_animation_kipper.h"
+
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/renderer/dx9render.h>
-
 
 // ============================================================================================
 // Construction, destruction
@@ -20,24 +20,22 @@
 
 CharacterAnimationKipper::CharacterAnimationKipper()
 {
-    asr = nullptr;
-    aniMan = nullptr;
+    asr      = nullptr;
+    aniMan   = nullptr;
     aniWoman = nullptr;
     for (int32_t i = 0; i < sizeof(lockTextures) / sizeof(int32_t); i++)
         lockTextures[i] = -1;
     numLTextures = 0;
-    rs = nullptr;
+    rs           = nullptr;
 }
 
 CharacterAnimationKipper::~CharacterAnimationKipper()
 {
     delete aniMan;
     delete aniWoman;
-    if (rs)
-    {
+    if (rs) {
         for (int32_t i = 0; i < sizeof(lockTextures) / sizeof(int32_t); i++)
-            if (lockTextures[i] >= 0)
-                rs->TextureRelease(lockTextures[i]);
+            if (lockTextures[i] >= 0) rs->TextureRelease(lockTextures[i]);
     }
 }
 
@@ -45,31 +43,26 @@ CharacterAnimationKipper::~CharacterAnimationKipper()
 bool CharacterAnimationKipper::Init()
 {
     // check that the it's the only one
-    auto &&entities = core.GetEntityIds("CharacterAnimationKipper");
-    for (auto eid : entities)
-    {
-        if (core.GetEntityPointer(eid) == this)
-            continue;
+    auto&& entities = core.GetEntityIds("CharacterAnimationKipper");
+    for (auto eid: entities) {
+        if (core.GetEntityPointer(eid) == this) continue;
 
         core.Trace("CharacterAnimationKipper::Init() -> CharacterAnimationKipper already created");
         return false;
     }
 
-    rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    if (!rs)
-        throw std::runtime_error("No service: dx9render");
-    auto *asr = static_cast<AnimationService *>(core.GetService("AnimationServiceImp"));
-    if (!asr)
-        throw std::runtime_error("Anumation service not created!");
-    aniMan = asr->CreateAnimation("man");
+    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    if (!rs) throw std::runtime_error("No service: dx9render");
+    auto* asr = static_cast<AnimationService*>(core.GetService("AnimationServiceImp"));
+    if (!asr) throw std::runtime_error("Anumation service not created!");
+    aniMan   = asr->CreateAnimation("man");
     aniWoman = asr->CreateAnimation("towngirl");
     // LockTexture("dialog\dialog.tga");
     return true;
 }
 
-void CharacterAnimationKipper::LockTexture(const char *texture)
+void CharacterAnimationKipper::LockTexture(char const* texture)
 {
-    if (numLTextures >= sizeof(lockTextures) / sizeof(int32_t))
-        return;
+    if (numLTextures >= sizeof(lockTextures) / sizeof(int32_t)) return;
     lockTextures[numLTextures++] = rs->TextureCreate(texture);
 }

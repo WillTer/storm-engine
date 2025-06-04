@@ -10,39 +10,38 @@
 
 #pragma once
 
-#include "pillar.h"
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
+#include "pillar.h"
+
 class NoiseCloud
 {
-    struct Rect
-    {
-        float r, a;   // Radial position
-        float angle;  // Swing angle
-        float size;   // The size
-        float alpha;  // Overall transparency
-        float light;  // Illumination
-        float kLight; // Illumination value during backlighting
-        float tLight; // Time since last skylight
+    struct Rect {
+        float r, a;    // Radial position
+        float angle;   // Swing angle
+        float size;    // The size
+        float alpha;   // Overall transparency
+        float light;   // Illumination
+        float kLight;  // Illumination value during backlighting
+        float tLight;  // Time since last skylight
     };
 
-    struct Vertex
-    {
-        CVECTOR pos;
+    struct Vertex {
+        CVECTOR  pos;
         uint32_t color;
-        float u, v;
+        float    u, v;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
-    NoiseCloud(Pillar &_pillar);
+public:
+    NoiseCloud(Pillar& _pillar);
     virtual ~NoiseCloud();
 
     void Update(float dltTime);
-    void Draw(VDX9RENDER *rs);
+    void Draw(VDX9RENDER* rs);
 
     void SetGlobalAlpha(float a);
 
@@ -51,10 +50,10 @@ class NoiseCloud
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    Pillar &pillar;
-    float galpha;
+private:
+    Pillar& pillar;
+    float   galpha;
     int32_t lightCnt;
-    Rect rect[64];
-    Vertex buf[6 * 64];
+    Rect    rect[64];
+    Vertex  buf[6 * 64];
 };

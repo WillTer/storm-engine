@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../i_common/mem_file.h"
-
 #include <string>
+
+#include "../../i_common/mem_file.h"
 
 class DataString
 {
@@ -10,20 +10,20 @@ class DataString
 
     std::string Value;
 
-  public:
+public:
     // constructor / destructor
     DataString();
     virtual ~DataString();
 
     // Get value
-    const char *GetValue() const;
+    char const* GetValue() const;
 
     // Set value
-    void SetValue(const char *val);
+    void SetValue(char const* val);
 
-    void Load(MemFile *File);
-    void Write(MemFile *File) const;
+    void Load(MemFile* File);
+    void Write(MemFile* File) const;
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 };

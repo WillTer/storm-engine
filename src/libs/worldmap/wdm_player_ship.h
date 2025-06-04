@@ -12,12 +12,12 @@
 
 #include "wdm_ship.h"
 
-class WdmPlayerShip : public WdmShip
+class WdmPlayerShip: public WdmShip
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmPlayerShip();
     ~WdmPlayerShip() override;
 
@@ -27,7 +27,7 @@ class WdmPlayerShip : public WdmShip
 
     // Calculations
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // Check when exiting the map
     bool ExitFromMap();
@@ -38,7 +38,7 @@ class WdmPlayerShip : public WdmShip
 
     bool canSkip;
 
-  protected:
+protected:
     // Move the ship
     virtual void Move(float dltTime);
 
@@ -47,8 +47,8 @@ class WdmPlayerShip : public WdmShip
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    bool goForward;
+private:
+    bool  goForward;
     float actionRadius;
     float stormEventTime;
 };

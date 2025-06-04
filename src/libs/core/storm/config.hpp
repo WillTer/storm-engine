@@ -1,6 +1,7 @@
 #pragma once
 
-namespace storm {
+namespace storm
+{
 
 #ifdef _DEBUG
 constexpr bool kIsDebug = true;
@@ -16,4 +17,4 @@ constexpr bool kIsSafeMode = false;
 
 constexpr bool kValidateCollisionData = kIsSafeMode || kIsDebug;
 
-}
+}  // namespace storm

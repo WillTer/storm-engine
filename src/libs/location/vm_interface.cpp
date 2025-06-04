@@ -1,3 +1,5 @@
+#include <libs/core/vma.hpp>
+
 #include "blood.h"
 #include "character_animation_kipper.h"
 #include "characters_groups.h"
@@ -16,7 +18,6 @@
 #include "np_character.h"
 #include "player.h"
 #include "wide_screen.h"
-#include <libs/core/vma.hpp>
 
 CREATE_CLASS(Location)
 

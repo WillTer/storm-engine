@@ -20,18 +20,14 @@
 #define SD_SERVERMESSAGE (WM_USER + 0)
 #define SD_CLIENTMESSAGE (WM_USER + 1)
 
-class SERVICE // : public Entity
+class SERVICE  // : public Entity
 {
-  public:
+public:
     virtual ~SERVICE() = default;
 
-    virtual void RunStart()
-    {
-    }
+    virtual void RunStart() {}
 
-    virtual void RunEnd()
-    {
-    }
+    virtual void RunEnd() {}
 
     virtual uint32_t RunSection()
     {
@@ -43,12 +39,12 @@ class SERVICE // : public Entity
         return true;
     }
 
-    virtual bool LoadState(ENTITY_STATE *state)
+    virtual bool LoadState(ENTITY_STATE* state)
     {
         return true;
     }
 
-    virtual bool CreateState(ENTITY_STATE_GEN *state_gen)
+    virtual bool CreateState(ENTITY_STATE_GEN* state_gen)
     {
         return true;
     }

@@ -10,15 +10,16 @@
 
 #pragma once
 
-#include "wdm_ship.h"
 #include <libs/core/attributes.h>
 
-class WdmEnemyShip : public WdmShip
+#include "wdm_ship.h"
+
+class WdmEnemyShip: public WdmShip
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmEnemyShip();
     ~WdmEnemyShip() override;
 
@@ -26,10 +27,10 @@ class WdmEnemyShip : public WdmShip
     void Update(float dltTime) override;
 
     // Rendering debug information
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // Find the position for the ship relative to the player
-    static bool GeneratePosition(float objRadius, float brnDltAng, float &x, float &z);
+    static bool GeneratePosition(float objRadius, float brnDltAng, float& x, float& z);
 
     // Set life time
     void SetLiveTime(float time);
@@ -37,20 +38,20 @@ class WdmEnemyShip : public WdmShip
     float GetLiveTime() const;
 
     bool isEnableKill;
-    bool isEnemy; // If set, then attacks us
+    bool isEnemy;  // If set, then attacks us
     bool isEntryPlayer;
 
-    uint32_t type;
-    WdmEnemyShip *attack;
+    uint32_t      type;
+    WdmEnemyShip* attack;
 
     EnemyShipType shipType;
 
     bool canSkip;
 
     // Get attribute name
-    const char *GetAttributeName() const;
+    char const* GetAttributeName() const;
 
-  protected:
+protected:
     // Find the pulling force in the desired direction
     virtual void FindMoveForce();
     // Find the force that repels from the islands
@@ -64,27 +65,27 @@ class WdmEnemyShip : public WdmShip
     // Updating stored data
     virtual void UpdateSaveData();
 
-  public:
+public:
     // Setting parameters
-    virtual void SetSaveAttribute(ATTRIBUTES *save);
-    void DeleteUpdate();
+    virtual void SetSaveAttribute(ATTRIBUTES* save);
+    void         DeleteUpdate();
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 
-  protected:
-    float mx, mz; // Direction vector where to travel
-    float ix, iz; // Vector of repulsion from islands
-    float sx, sz; // Vector of repulsion from ships
-    float dx, dz; // Vector of the resulting direction
+protected:
+    float mx, mz;  // Direction vector where to travel
+    float ix, iz;  // Vector of repulsion from islands
+    float sx, sz;  // Vector of repulsion from ships
+    float dx, dz;  // Vector of the resulting direction
 
     // Whether should pay attention when pushing to the player
     bool isLookOnPlayer;
 
-    ATTRIBUTES *saveAttribute;
+    ATTRIBUTES* saveAttribute;
 
-  private:
+private:
     float brnAlpha;
     float deleteAlpha;
     float liveTime;
@@ -94,7 +95,6 @@ class WdmEnemyShip : public WdmShip
 // Get life time
 inline float WdmEnemyShip::GetLiveTime() const
 {
-    if (!isEnableKill)
-        return -1.0f;
+    if (!isEnableKill) return -1.0f;
     return liveTime >= 0.0f ? liveTime : 0.0f;
 }

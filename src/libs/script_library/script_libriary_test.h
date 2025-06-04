@@ -1,9 +1,9 @@
 #pragma once
 #include <libs/core/script_libriary.h>
 
-class SCRIPT_LIBRIARY_TEST : public SCRIPT_LIBRIARY
+class SCRIPT_LIBRIARY_TEST: public SCRIPT_LIBRIARY
 {
-  public:
+public:
     SCRIPT_LIBRIARY_TEST() {};
 
     ~SCRIPT_LIBRIARY_TEST() override {};

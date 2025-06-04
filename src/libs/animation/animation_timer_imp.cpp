@@ -9,6 +9,7 @@
 // ============================================================================================
 
 #include "animation_timer_imp.h"
+
 #include "animation_imp.h"
 
 // ============================================================================================
@@ -18,22 +19,19 @@
 AnimationTimerImp::AnimationTimerImp()
 {
     ani = nullptr;
-    for (int32_t i = 0; i < ANITM_PLAYERSMAX; i++)
-    {
+    for (int32_t i = 0; i < ANITM_PLAYERSMAX; i++) {
         playersMask[i] = 0;
         inverseMask[i] = 0;
     }
     curTime = 0.0f;
-    kTime = 0.0f;
-    value = 1.0f;
+    kTime   = 0.0f;
+    value   = 1.0f;
 }
 
-AnimationTimerImp::~AnimationTimerImp()
-{
-}
+AnimationTimerImp::~AnimationTimerImp() {}
 
 // Set animation
-void AnimationTimerImp::SetAnimation(AnimationImp *animation)
+void AnimationTimerImp::SetAnimation(AnimationImp* animation)
 {
     Assert(!ani && animation);
     ani = animation;
@@ -46,16 +44,14 @@ void AnimationTimerImp::SetAnimation(AnimationImp *animation)
 // Start timer (time in milliseconds)
 void AnimationTimerImp::Start(float time, float startTime)
 {
-    if (startTime < 0)
-        startTime = 0;
-    if (startTime >= time || time <= 0)
-    {
+    if (startTime < 0) startTime = 0;
+    if (startTime >= time || time <= 0) {
         Stop();
         return;
     }
     curTime = startTime;
-    kTime = 1.0f / time;
-    value = 0.0f;
+    kTime   = 1.0f / time;
+    value   = 0.0f;
     // if(value < 0.0f) value = 0.0f;
     // if(value > 1.0f) value = 1.0f;
     Execute(0);
@@ -65,31 +61,23 @@ void AnimationTimerImp::Start(float time, float startTime)
 void AnimationTimerImp::Stop()
 {
     curTime = 0.0f;
-    kTime = 0.0f;
-    value = 1.0f;
+    kTime   = 0.0f;
+    value   = 1.0f;
     // Set end values and stop animation where asked
     int32_t i;
-    for (i = 0; i < ANI_MAX_ACTIONS; i++)
-    {
-        if (playersMask[i >> 5] & (1 << (i & 31)))
-        {
-            if (inverseMask[i >> 5] & (1 << (i & 31)))
-            {
-                static_cast<ActionPlayerImp *>(&ani->Player(i))->TimerBlend() = 0.0f;
-                if (ani->Player(i).IsAutoStop())
-                    ani->Player(i).Stop();
-            }
-            else
-            {
-                static_cast<ActionPlayerImp *>(&ani->Player(i))->TimerBlend() = 1.0f;
+    for (i = 0; i < ANI_MAX_ACTIONS; i++) {
+        if (playersMask[i >> 5] & (1 << (i & 31))) {
+            if (inverseMask[i >> 5] & (1 << (i & 31))) {
+                static_cast<ActionPlayerImp*>(&ani->Player(i))->TimerBlend() = 0.0f;
+                if (ani->Player(i).IsAutoStop()) ani->Player(i).Stop();
+            } else {
+                static_cast<ActionPlayerImp*>(&ani->Player(i))->TimerBlend() = 1.0f;
             }
         }
     }
     // send an event
-    for (i = 0; i < ANI_MAX_ACTIONS; i++)
-    {
-        if (&ani->Timer(i) == this)
-            break;
+    for (i = 0; i < ANI_MAX_ACTIONS; i++) {
+        if (&ani->Timer(i) == this) break;
     }
     Assert(i < ANI_MAX_ACTIONS);
     ani->AteTimerstop(i);
@@ -99,10 +87,9 @@ void AnimationTimerImp::Stop()
 void AnimationTimerImp::ResetTimer()
 {
     curTime = 0.0f;
-    kTime = 0.0f;
-    value = 0.0f;
-    for (int32_t i = 0; i < ANITM_PLAYERSMAX; i++)
-    {
+    kTime   = 0.0f;
+    value   = 0.0f;
+    for (int32_t i = 0; i < ANITM_PLAYERSMAX; i++) {
         playersMask[i] = 0;
         inverseMask[i] = 0;
     }
@@ -133,15 +120,12 @@ void AnimationTimerImp::SetPlayer(int32_t playerIndex, bool isInverse)
     // set ourselves
     playersMask[playerIndex >> 5] |= 1 << (playerIndex & 31);
     // Determine what to use
-    if (isInverse)
-    {
+    if (isInverse) {
         inverseMask[playerIndex >> 5] |= 1 << (playerIndex & 31);
-    }
-    else
-    {
+    } else {
         inverseMask[playerIndex >> 5] &= ~(1 << (playerIndex & 31));
     }
-    static_cast<ActionPlayerImp *>(&ani->Player(playerIndex))->TimerBlend() = 1.0f;
+    static_cast<ActionPlayerImp*>(&ani->Player(playerIndex))->TimerBlend() = 1.0f;
 }
 
 void AnimationTimerImp::ResetPlayer(int32_t playerIndex)
@@ -149,17 +133,15 @@ void AnimationTimerImp::ResetPlayer(int32_t playerIndex)
     Assert(playerIndex >= 0 && playerIndex < ANI_MAX_ACTIONS);
     // Uncheck the use box
     playersMask[playerIndex >> 5] &= ~(1 << (playerIndex & 31));
-    static_cast<ActionPlayerImp *>(&ani->Player(playerIndex))->TimerBlend() = 1.0f;
+    static_cast<ActionPlayerImp*>(&ani->Player(playerIndex))->TimerBlend() = 1.0f;
 }
 
 // Find out if ActionPlayer is being used
-bool AnimationTimerImp::IsUsedPlayer(int32_t playerIndex, bool *isInverse)
+bool AnimationTimerImp::IsUsedPlayer(int32_t playerIndex, bool* isInverse)
 {
     Assert(playerIndex >= 0 && playerIndex < ANI_MAX_ACTIONS);
-    if (playersMask[playerIndex >> 5] & (1 << (playerIndex & 31)))
-    {
-        if (isInverse)
-            *isInverse = (inverseMask[playerIndex >> 5] & (1 << (playerIndex & 31))) != 0;
+    if (playersMask[playerIndex >> 5] & (1 << (playerIndex & 31))) {
+        if (isInverse) *isInverse = (inverseMask[playerIndex >> 5] & (1 << (playerIndex & 31))) != 0;
         return true;
     }
     return false;
@@ -169,12 +151,8 @@ bool AnimationTimerImp::IsUsedPlayer(int32_t playerIndex, bool *isInverse)
 float AnimationTimerImp::GetPlayerValue(int32_t playerIndex)
 {
     Assert(playerIndex >= 0 && playerIndex < ANI_MAX_ACTIONS);
-    if (playersMask[playerIndex >> 5] & (1 << (playerIndex & 31)))
-    {
-        if ((inverseMask[playerIndex >> 5] & (1 << (playerIndex & 31))) != 0)
-        {
-            return kTime != 0 ? 1.0f - value : 0.0f;
-        }
+    if (playersMask[playerIndex >> 5] & (1 << (playerIndex & 31))) {
+        if ((inverseMask[playerIndex >> 5] & (1 << (playerIndex & 31))) != 0) { return kTime != 0 ? 1.0f - value : 0.0f; }
         return kTime != 0 ? value : 1.0f;
     }
     return 1.0f;
@@ -187,30 +165,22 @@ float AnimationTimerImp::GetPlayerValue(int32_t playerIndex)
 // Execute
 void AnimationTimerImp::Execute(int32_t dltTime)
 {
-    if (kTime != 0.0f)
-    {
+    if (kTime != 0.0f) {
         // calculate
         curTime += dltTime * 0.001f;
         value = curTime * kTime;
-        if (value > 1.0f)
-            value = 1.0f;
+        if (value > 1.0f) value = 1.0f;
         // Arranging blending coefficients
-        for (int32_t i = 0; i < ANI_MAX_ACTIONS; i++)
-        {
-            if (playersMask[i >> 5] & (1 << (i & 31)))
-            {
-                if (inverseMask[i >> 5] & (1 << (i & 31)))
-                {
-                    static_cast<ActionPlayerImp *>(&ani->Player(i))->TimerBlend() *= 1.0f - value;
-                }
-                else
-                {
-                    static_cast<ActionPlayerImp *>(&ani->Player(i))->TimerBlend() *= value;
+        for (int32_t i = 0; i < ANI_MAX_ACTIONS; i++) {
+            if (playersMask[i >> 5] & (1 << (i & 31))) {
+                if (inverseMask[i >> 5] & (1 << (i & 31))) {
+                    static_cast<ActionPlayerImp*>(&ani->Player(i))->TimerBlend() *= 1.0f - value;
+                } else {
+                    static_cast<ActionPlayerImp*>(&ani->Player(i))->TimerBlend() *= value;
                 }
             }
         }
         // Maybe it's time to stop
-        if (value == 1.0f)
-            Stop();
+        if (value == 1.0f) Stop();
     }
 }

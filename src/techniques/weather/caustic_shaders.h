@@ -1,4 +1,4 @@
-#define VERTEX_SHADER                                                                                                  \
+#define VERTEX_SHADER \
     asm { \
     vs_1_1 \
     dcl_position v0 \
@@ -26,7 +26,7 @@
     expp r3.z, r3.z \
     rcp oFog, r3.z}
 
-#define PIXEL_SHADER                                                                                                   \
+#define PIXEL_SHADER \
     asm { \
         ps_1_1 \
         def c0, 0.5, 0.5, 0.5, 0.0 \

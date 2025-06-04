@@ -30,16 +30,15 @@
 //
 // ============================================================================================
 
-#define PTC_ID ' CTP'          // File ID
-#define PTC_VERSION '10.1'     // File version
-#define PTC_PREVERSION1 '00.1' // Previous version of the file
-#define PTC_SPACEFLD '    '    // Spaces for easy reading
-#define PTC_WITHSEA ' AES'     // Marine location patch
-#define PTC_NOSEA ' HTE'       // Patch for a location without the sea
+#define PTC_ID ' CTP'           // File ID
+#define PTC_VERSION '10.1'      // File version
+#define PTC_PREVERSION1 '00.1'  // Previous version of the file
+#define PTC_SPACEFLD '    '     // Spaces for easy reading
+#define PTC_WITHSEA ' AES'      // Marine location patch
+#define PTC_NOSEA ' HTE'        // Patch for a location without the sea
 
 // File header
-struct PtcHeader
-{
+struct PtcHeader {
     int32_t id;                // File ID
     int32_t space0;            // Unused
     int32_t ver;               // File version
@@ -52,43 +51,38 @@ struct PtcHeader
     int32_t mapL, mapW;        // Collision map dimensions
     int32_t numIndeces;        // Index table size
     int32_t lineSize;          // The size of the row in the path lookup table
-    float minX, minY, minZ; // Minimum box border
-    float maxX, maxY, maxZ; // Maximum box border
+    float   minX, minY, minZ;  // Minimum box border
+    float   maxX, maxY, maxZ;  // Maximum box border
 };
 
-struct PtcTriangle
-{
-    unsigned short i[3]; // Vertex indices
-    unsigned short n;    // Normal to triangle
-    short nb[3];         // Neighbor indices
-    char mtl;            // Material index
-    char flags;
+struct PtcTriangle {
+    unsigned short i[3];   // Vertex indices
+    unsigned short n;      // Normal to triangle
+    short          nb[3];  // Neighbor indices
+    char           mtl;    // Material index
+    char           flags;
 };
 
-struct PtcVertex
-{
-    float x; // X Position
-    float y; // Y position
-    float z; // Z Position
+struct PtcVertex {
+    float x;  // X Position
+    float y;  // Y position
+    float z;  // Z Position
 };
 
-struct PtcNormal
-{
-    float x; // X direction
-    float y; // Y direction
-    float z; // Z direction
+struct PtcNormal {
+    float x;  // X direction
+    float y;  // Y direction
+    float z;  // Z direction
 };
 
-struct PtcMap
-{
-    int32_t start; // The beginning of the table of polygons included in the map cell
-    int32_t size;  // Size of the table of polygons included in the map cell
+struct PtcMap {
+    int32_t start;  // The beginning of the table of polygons included in the map cell
+    int32_t size;   // Size of the table of polygons included in the map cell
 };
 
-struct PtcMaterials
-{
-    int32_t numMaterials;     // Number of materials
-    char material[16][16]; // Material table
+struct PtcMaterials {
+    int32_t numMaterials;      // Number of materials
+    char    material[16][16];  // Material table
 };
 
 //============================================================================================

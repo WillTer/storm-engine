@@ -12,20 +12,19 @@
 
 #include "wdm_enemy_ship.h"
 
-class WdmWarringShip : public WdmEnemyShip
+class WdmWarringShip: public WdmEnemyShip
 {
-    struct MoveInfo
-    {
+    struct MoveInfo {
         CVECTOR v;
-        float dAng;
-        float time;
-        float kTime;
+        float   dAng;
+        float   time;
+        float   kTime;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmWarringShip();
     ~WdmWarringShip() override;
 
@@ -33,20 +32,20 @@ class WdmWarringShip : public WdmEnemyShip
     void Update(float dltTime) override;
 
     // Rendering
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
-  protected:
+protected:
     // All move calculations together
-    void Move(float dltTime) override{};
+    void Move(float dltTime) override {};
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Particles for cannon smoke
-    RS_RECT rect[24];
+    RS_RECT  rect[24];
     MoveInfo move[24];
-    int32_t numRects;
-    float brnTime;
-    int32_t texture;
+    int32_t  numRects;
+    float    brnTime;
+    int32_t  texture;
 };

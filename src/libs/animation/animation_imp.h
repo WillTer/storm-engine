@@ -19,41 +19,41 @@
 
 class AnimationServiceImp;
 
-class AnimationImp final : public Animation
+class AnimationImp final: public Animation
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
-    AnimationImp(int32_t id, AnimationInfo *animationInfo);
+public:
+    AnimationImp(int32_t id, AnimationInfo* animationInfo);
     ~AnimationImp() override;
 
     // Set pointer to animation service
-    static void SetAnimationService(AnimationServiceImp *animationService);
+    static void SetAnimationService(AnimationServiceImp* animationService);
 
     //--------------------------------------------------------------------------------------------
     // Animation
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Access the action player
-    ActionPlayer &Player(int32_t index) override;
+    ActionPlayer& Player(int32_t index) override;
     // Access the animation timer
-    AnimationTimer &Timer(int32_t index) override;
+    AnimationTimer& Timer(int32_t index) override;
     // Events
     // Set internal event
-    int32_t SetEvent(AnimationEvent event, int32_t index, AnimationEventListener *ael) override;
+    int32_t SetEvent(AnimationEvent event, int32_t index, AnimationEventListener* ael) override;
     // Delete internal event
     void DelEvent(int32_t eventID) override;
     // Set an external event handler
-    void SetEventListener(AnimationEventListener *ael) override;
+    void SetEventListener(AnimationEventListener* ael) override;
     // Access to bones
     // Get the number of bones in a skeleton
     int32_t GetNumBones() const override;
     // Get animation matrix for bone
-    CMatrix &GetAnimationMatrix(int32_t iBone) const override;
+    CMatrix& GetAnimationMatrix(int32_t iBone) const override;
     // misc
     // Get custom data for animation
-    const char *GetData(const char *dataName) const override;
+    char const* GetData(char const* dataName) const override;
     // Copy the state of one player to another
     void CopyPlayerState(int32_t indexSrc, int32_t indexDst, bool copyTimerState = false) override;
     // Get animation speed
@@ -65,7 +65,7 @@ class AnimationImp final : public Animation
     // Allow custom blending coefficients in ActionPlayer
     bool UserBlend(bool isBlend = true) override;
     bool IsUserBlend() override;
-	// Procedural head look
+    // Procedural head look
     bool HeadControl(bool isControllable) override;
     bool IsControllableHead() override;
     void RotateHead(float x, float y) override;
@@ -73,19 +73,19 @@ class AnimationImp final : public Animation
     //--------------------------------------------------------------------------------------------
     // AnimationImp
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Get thisID
     int32_t GetThisID();
     // Get pointer to AnimationInfo
-    AnimationInfo *GetAnimationInfo();
+    AnimationInfo* GetAnimationInfo();
     // Find action by name
-    ActionInfo *GetActionInfo(const char *actionName);
+    ActionInfo* GetActionInfo(char const* actionName);
     // Take a step in time
     void Execute(int32_t dltTime);
     // Calculate animation matrices
     void BuildAnimationMatrices();
     // Get a pointer to the animation srvis
-    static AnimationServiceImp *GetAniService();
+    static AnimationServiceImp* GetAniService();
     // AnimationPlayer events
     // A new action has been set for the player
     void ApeSetnewaction(int32_t index);
@@ -109,20 +109,20 @@ class AnimationImp final : public Animation
     void AteTimerstop(int32_t index);
 
     // External event
-    void AteExtern(int32_t plIndex, const char *evt);
+    void AteExtern(int32_t plIndex, char const* evt);
 
-  private:
+private:
     // Send events
     void SendEvent(AnimationEvent event, int32_t index);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // identifier
     int32_t thisID;
     // Animation pointer
-    AnimationInfo *aniInfo;
+    AnimationInfo* aniInfo;
     // Animations
     ActionPlayerImp action[ANI_MAX_ACTIONS];
     // Timers
@@ -132,18 +132,18 @@ class AnimationImp final : public Animation
     // Custom blending
     bool isUserBlend;
     // Skeleton matrices
-    CMatrix *matrix;
+    CMatrix* matrix;
     // Internal event subscribers
-    AnimationEventListener *ae_listeners[ae_numevents][ANIIMP_MAXLISTENERS];
+    AnimationEventListener* ae_listeners[ae_numevents][ANIIMP_MAXLISTENERS];
     // Subscribers to external events
-    AnimationEventListener *ae_listenersExt;
+    AnimationEventListener* ae_listenersExt;
     // Animation Service Pointer
-    static AnimationServiceImp *aniService;
-	// Procedural head look
-    bool isControllableHead;
+    static AnimationServiceImp* aniService;
+    // Procedural head look
+    bool    isControllableHead;
     int32_t headBoneIndex;
-    float customHeadAX;
-    float customHeadAY;
+    float   customHeadAX;
+    float   customHeadAY;
 };
 
 //============================================================================================
@@ -151,7 +151,7 @@ class AnimationImp final : public Animation
 //============================================================================================
 
 // Set pointer to animation service
-inline void AnimationImp::SetAnimationService(AnimationServiceImp *animationService)
+inline void AnimationImp::SetAnimationService(AnimationServiceImp* animationService)
 {
     Assert(aniService == nullptr);
     aniService = animationService;
@@ -168,19 +168,19 @@ inline int32_t AnimationImp::GetThisID()
 }
 
 // Get pointer to AnimationInfo
-inline AnimationInfo *AnimationImp::GetAnimationInfo()
+inline AnimationInfo* AnimationImp::GetAnimationInfo()
 {
     return aniInfo;
 }
 
 // Find action by name
-inline ActionInfo *AnimationImp::GetActionInfo(const char *actionName)
+inline ActionInfo* AnimationImp::GetActionInfo(char const* actionName)
 {
     return aniInfo->FindAction(actionName);
 }
 
 // Get a pointer to the animation service
-inline AnimationServiceImp *AnimationImp::GetAniService()
+inline AnimationServiceImp* AnimationImp::GetAniService()
 {
     return aniService;
 }
@@ -241,8 +241,7 @@ inline void AnimationImp::AteTimerstop(int32_t index)
 }
 
 // External event
-inline void AnimationImp::AteExtern(int32_t plIndex, const char *evt)
+inline void AnimationImp::AteExtern(int32_t plIndex, char const* evt)
 {
-    if (ae_listenersExt)
-        ae_listenersExt->Event(this, plIndex, evt);
+    if (ae_listenersExt) ae_listenersExt->Event(this, plIndex, evt);
 }

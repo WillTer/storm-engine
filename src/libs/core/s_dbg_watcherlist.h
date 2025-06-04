@@ -3,12 +3,12 @@
 #include "core_impl.h"
 #include "tm_list.h"
 
-class WATCHER_LIST : public TM_LIST
+class WATCHER_LIST: public TM_LIST
 {
-    HMENU hMenu;
+    HMENU                    hMenu;
     std::unique_ptr<INIFILE> ini;
 
-  public:
+public:
     WATCHER_LIST(HWND hwnd, HINSTANCE hinst);
     ~WATCHER_LIST();
     void ProcessMessage(uint64_t, uint64_t, uint64_t);

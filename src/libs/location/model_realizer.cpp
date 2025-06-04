@@ -1,53 +1,47 @@
 #include "model_realizer.h"
 
-#include "lights.h"
 #include <libs/core/core.h>
 #include <libs/math/c_vector4.h>
+
+#include "lights.h"
 
 // ============================================================================================
 // Construction, destruction
 // ============================================================================================
 
-extern float fCausticScale, fCausticDelta, fFogDensity, fCausticDistance;
+extern float    fCausticScale, fCausticDelta, fFogDensity, fCausticDistance;
 extern CVECTOR4 v4CausticColor;
-extern bool bCausticEnable;
-extern float fCausticFrame;
-extern int32_t iCausticTex[32];
+extern bool     bCausticEnable;
+extern float    fCausticFrame;
+extern int32_t  iCausticTex[32];
 
 LocModelRealizer::LocModelRealizer()
 {
     lights = nullptr;
-    bShow = true;
+    bShow  = true;
 }
 
-LocModelRealizer::~LocModelRealizer()
-{
-}
+LocModelRealizer::~LocModelRealizer() {}
 
 // Initialization
 bool LocModelRealizer::Init()
 {
-    rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
-    gs = static_cast<VGEOMETRY *>(core.GetService("geometry"));
+    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     return true;
 }
 
 // Execution
-void LocModelRealizer::Execute(uint32_t delta_time)
-{
-}
+void LocModelRealizer::Execute(uint32_t delta_time) {}
 
 void LocModelRealizer::Realize(uint32_t delta_time) const
 {
-    if (!bShow)
-        return;
-    auto *pE = core.GetEntityPointer(eid_model);
-    if (pE)
-    {
-        BOOL bLight0Enable;
+    if (!bShow) return;
+    auto* pE = core.GetEntityPointer(eid_model);
+    if (pE) {
+        BOOL     bLight0Enable;
         uint32_t dwLighting;
-        if (lights)
-        {
+        if (lights) {
             static CVECTOR camPos, camAng;
             rs->GetCamera(camPos, camAng, camAng.x);
 
@@ -62,33 +56,31 @@ void LocModelRealizer::Realize(uint32_t delta_time) const
         }
 
         pE->ProcessStage(Stage::realize, delta_time);
-        if (lights)
-        {
+        if (lights) {
             lights->UnsetLights();
             rs->SetRenderState(D3DRS_LIGHTING, dwLighting);
             rs->LightEnable(0, bLight0Enable);
         }
 
-        if (bCausticEnable)
-        {
+        if (bCausticEnable) {
             // constants
             // 10 - (caustic scale, caustic frame, 0, 0)
             // 11 - diffuse
             // 12 - (fog density, fog_start, 0, 0)
             // 13 - (0, 0, 0, 0)
 
-            fCausticDelta = fCausticFrame - static_cast<int32_t>(fCausticFrame);
-            const auto vec1 = CVECTOR4(fCausticScale, fCausticDelta, 0.0f, 0.0f);
-            const auto vec2 = CVECTOR4(fFogDensity, 0.0f, 0.0f, 0.0f);
-            const auto vec3 = CVECTOR4(0.0f, 0.0f, 0.0f, 0.0f);
-            const auto vec4 = CVECTOR4(0.0f, 1.0f, 0.0f, 0.0f);
-            const auto vec5 = CVECTOR4(1.0f / fCausticDistance, 1.0f, 0.0f, 0.0f);
-            rs->SetVertexShaderConstantF(10, reinterpret_cast<const float *>(&vec1), 1);
-            rs->SetVertexShaderConstantF(11, reinterpret_cast<const float *>(&v4CausticColor), 1);
-            rs->SetVertexShaderConstantF(12, reinterpret_cast<const float *>(&vec2), 1);
-            rs->SetVertexShaderConstantF(13, reinterpret_cast<const float *>(&vec3), 1);
-            rs->SetVertexShaderConstantF(14, reinterpret_cast<const float *>(&vec4), 1);
-            rs->SetVertexShaderConstantF(15, reinterpret_cast<const float *>(&vec5), 1);
+            fCausticDelta   = fCausticFrame - static_cast<int32_t>(fCausticFrame);
+            auto const vec1 = CVECTOR4(fCausticScale, fCausticDelta, 0.0f, 0.0f);
+            auto const vec2 = CVECTOR4(fFogDensity, 0.0f, 0.0f, 0.0f);
+            auto const vec3 = CVECTOR4(0.0f, 0.0f, 0.0f, 0.0f);
+            auto const vec4 = CVECTOR4(0.0f, 1.0f, 0.0f, 0.0f);
+            auto const vec5 = CVECTOR4(1.0f / fCausticDistance, 1.0f, 0.0f, 0.0f);
+            rs->SetVertexShaderConstantF(10, reinterpret_cast<float const*>(&vec1), 1);
+            rs->SetVertexShaderConstantF(11, reinterpret_cast<float const*>(&v4CausticColor), 1);
+            rs->SetVertexShaderConstantF(12, reinterpret_cast<float const*>(&vec2), 1);
+            rs->SetVertexShaderConstantF(13, reinterpret_cast<float const*>(&vec3), 1);
+            rs->SetVertexShaderConstantF(14, reinterpret_cast<float const*>(&vec4), 1);
+            rs->SetVertexShaderConstantF(15, reinterpret_cast<float const*>(&vec5), 1);
 
             rs->TextureSet(1, iCausticTex[static_cast<int32_t>(fCausticFrame) % 32]);
             rs->TextureSet(2, iCausticTex[(static_cast<int32_t>(fCausticFrame) + 1) % 32]);
@@ -102,17 +94,14 @@ void LocModelRealizer::Realize(uint32_t delta_time) const
 }
 
 // Messages
-uint64_t LocModelRealizer::ProcessMessage(MESSAGE &message)
+uint64_t LocModelRealizer::ProcessMessage(MESSAGE& message)
 {
-    switch (message.Long())
-    {
+    switch (message.Long()) {
     case 1:
         eid_model = message.EntityID();
-        lights = (Lights *)message.Pointer();
+        lights    = (Lights*)message.Pointer();
         break;
-    case 2:
-        bShow = message.Long() != 0;
-        break;
+    case 2: bShow = message.Long() != 0; break;
     }
     return 0;
 }

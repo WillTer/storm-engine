@@ -1,30 +1,27 @@
-#include "vcollide.h"
 #include <libs/core/core.h>
 
+#include "vcollide.h"
 
 LCOLL::LCOLL(layer_index_t idx) : boxRadius(0)
 {
     layerIndex_ = idx;
-    col = static_cast<COLLIDE *>(core.GetService("coll"));
-    if (!col)
-        throw std::runtime_error("No service: collide");
+    col         = static_cast<COLLIDE*>(core.GetService("coll"));
+    if (!col) throw std::runtime_error("No service: collide");
 }
 
-LCOLL::~LCOLL()
-{
-}
+LCOLL::~LCOLL() {}
 
-#define REALLOC_QUANT 1024 // mast be power of to due to AND
+#define REALLOC_QUANT 1024  // mast be power of to due to AND
 
-int32_t addedFaces;
-int32_t *sVrt = nullptr;
-CVECTOR *addVerts = nullptr;
+int32_t  addedFaces;
+int32_t* sVrt     = nullptr;
+CVECTOR* addVerts = nullptr;
 
-bool AddPolyColl(const CVECTOR *vr, int32_t nverts)
+bool AddPolyColl(const CVECTOR* vr, int32_t nverts)
 {
     // start vertex of face, max faces is REALLOC_QUANT
     if ((addedFaces & (REALLOC_QUANT - 1)) == 0)
-        sVrt = static_cast<int32_t *>(realloc(sVrt, sizeof(int32_t) * (addedFaces + REALLOC_QUANT)));
+        sVrt = static_cast<int32_t*>(realloc(sVrt, sizeof(int32_t) * (addedFaces + REALLOC_QUANT)));
 
     if (addedFaces == 0)
         sVrt[addedFaces] = nverts;
@@ -33,11 +30,9 @@ bool AddPolyColl(const CVECTOR *vr, int32_t nverts)
 
     // F0(v0,v1,v2), F1(v0,v1,v2,v3)...
     if (addedFaces == 0 || (sVrt[addedFaces - 1] & (REALLOC_QUANT - 1)) + nverts > REALLOC_QUANT)
-        addVerts = static_cast<CVECTOR *>(
-            realloc(addVerts, sizeof(int32_t) * (sVrt[addedFaces] / REALLOC_QUANT + REALLOC_QUANT)));
+        addVerts = static_cast<CVECTOR*>(realloc(addVerts, sizeof(int32_t) * (sVrt[addedFaces] / REALLOC_QUANT + REALLOC_QUANT)));
 
-    for (int32_t v = 0; v < nverts; v++)
-    {
+    for (int32_t v = 0; v < nverts; v++) {
         addVerts[sVrt[addedFaces] - nverts + v].x = vr[v].x;
         addVerts[sVrt[addedFaces] - nverts + v].y = vr[v].x;
         addVerts[sVrt[addedFaces] - nverts + v].z = vr[v].x;
@@ -47,39 +42,35 @@ bool AddPolyColl(const CVECTOR *vr, int32_t nverts)
     return true;
 }
 
-int32_t LCOLL::SetBox(const CVECTOR &boxSize, const CMatrix &transform, bool testOnly)
+int32_t LCOLL::SetBox(const CVECTOR& boxSize, CMatrix const& transform, bool testOnly)
 {
     // create box
     PLANE clip_p[6];
     memset(clip_p, 0, sizeof(plane));
     clip_p[0].Nx = clip_p[2].Ny = clip_p[4].Nz = 1.0f;
     clip_p[1].Nx = clip_p[3].Ny = clip_p[5].Nz = -1.0f;
-    clip_p[0].D = boxSize.x;
-    clip_p[1].D = -boxSize.x;
-    clip_p[2].D = boxSize.y;
-    clip_p[3].D = -boxSize.y;
-    clip_p[4].D = boxSize.z;
-    clip_p[5].D = -boxSize.z;
+    clip_p[0].D                                = boxSize.x;
+    clip_p[1].D                                = -boxSize.x;
+    clip_p[2].D                                = boxSize.y;
+    clip_p[3].D                                = -boxSize.y;
+    clip_p[4].D                                = boxSize.z;
+    clip_p[5].D                                = -boxSize.z;
 
     // transform planes
-    for (int32_t p = 0; p < 6; p++)
-    {
-        const auto x = clip_p[p].D * clip_p[p].Nx - transform.m[3][0];
-        const auto y = clip_p[p].D * clip_p[p].Ny - transform.m[3][1];
-        const auto z = clip_p[p].D * clip_p[p].Nz - transform.m[3][2];
-        const auto Nx =
-            transform.m[0][0] * clip_p[p].Nx + transform.m[0][1] * clip_p[p].Ny + transform.m[0][2] * clip_p[p].Nz;
-        const auto Ny =
-            transform.m[1][0] * clip_p[p].Nx + transform.m[1][1] * clip_p[p].Ny + transform.m[1][2] * clip_p[p].Nz;
-        const auto Nz =
-            transform.m[2][0] * clip_p[p].Nx + transform.m[2][1] * clip_p[p].Ny + transform.m[2][2] * clip_p[p].Nz;
-        const auto lx = transform.m[0][0] * x + transform.m[0][1] * y + transform.m[0][2] * z;
-        const auto ly = transform.m[1][0] * x + transform.m[1][1] * y + transform.m[1][2] * z;
-        const auto lz = transform.m[2][0] * x + transform.m[2][1] * y + transform.m[2][2] * z;
-        plane[p].Nx = Nx;
-        plane[p].Ny = Ny;
-        plane[p].Nz = Nz;
-        plane[p].D = (Nx * lx + Ny * ly + Nz * lz) * transform.m[3][3];
+    for (int32_t p = 0; p < 6; p++) {
+        auto const x  = clip_p[p].D * clip_p[p].Nx - transform.m[3][0];
+        auto const y  = clip_p[p].D * clip_p[p].Ny - transform.m[3][1];
+        auto const z  = clip_p[p].D * clip_p[p].Nz - transform.m[3][2];
+        auto const Nx = transform.m[0][0] * clip_p[p].Nx + transform.m[0][1] * clip_p[p].Ny + transform.m[0][2] * clip_p[p].Nz;
+        auto const Ny = transform.m[1][0] * clip_p[p].Nx + transform.m[1][1] * clip_p[p].Ny + transform.m[1][2] * clip_p[p].Nz;
+        auto const Nz = transform.m[2][0] * clip_p[p].Nx + transform.m[2][1] * clip_p[p].Ny + transform.m[2][2] * clip_p[p].Nz;
+        auto const lx = transform.m[0][0] * x + transform.m[0][1] * y + transform.m[0][2] * z;
+        auto const ly = transform.m[1][0] * x + transform.m[1][1] * y + transform.m[1][2] * z;
+        auto const lz = transform.m[2][0] * x + transform.m[2][1] * y + transform.m[2][2] * z;
+        plane[p].Nx   = Nx;
+        plane[p].Ny   = Ny;
+        plane[p].Nz   = Nz;
+        plane[p].D    = (Nx * lx + Ny * ly + Nz * lz) * transform.m[3][3];
     }
 
     boxCenter = transform.Pos();
@@ -92,18 +83,18 @@ int32_t LCOLL::SetBox(const CVECTOR &boxSize, const CMatrix &transform, bool tes
     // F0(v0,v1,v2), F1(v0,v1,v2,v3)...
     addVerts = nullptr;
 
-    const auto its = core.GetEntityIds(layerIndex_);
+    auto const its = core.GetEntityIds(layerIndex_);
     col->Clip(its, &plane[0], 6, boxCenter, boxRadius, AddPolyColl, nullptr, 0);
     return 0;
 }
 
-const CVECTOR *LCOLL::GetFace(int32_t &numVertices)
+const CVECTOR* LCOLL::GetFace(int32_t& numVertices)
 {
     numVertices = 0;
     return nullptr;
 }
 
-float LCOLL::Trace(const CVECTOR &src, const CVECTOR &dst)
+float LCOLL::Trace(const CVECTOR& src, const CVECTOR& dst)
 {
     return 2.0f;
 }

@@ -12,26 +12,26 @@
 
 #include "wdm_interface_object.h"
 
-class WdmDateLabel : public WdmInterfaceObject
+class WdmDateLabel: public WdmInterfaceObject
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmDateLabel();
     ~WdmDateLabel() override;
 
-    void SetAttributes(ATTRIBUTES *apnt);
+    void SetAttributes(ATTRIBUTES* apnt);
     // Rendering
-    void LRender(VDX9RENDER *rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     int32_t txTextBar;
     int32_t txSkyClock;
     int32_t txSkyClockFrame;
     int32_t dateFont;
-    char month[12][32];
+    char    month[12][32];
 };

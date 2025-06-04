@@ -1,14 +1,14 @@
 #pragma once
 
-//#define SEAFOAM_TRACE_INFORMATION
+// #define SEAFOAM_TRACE_INFORMATION
 
 #define TRACE_STEPS_Y 5
-#define TRACE_STEPS_Z 13 // 13
+#define TRACE_STEPS_Z 13  // 13
 #define MAX_SHIPS 64
 
 #define MAX_Z_STEP 2.5f
-#define FOAM_SHIFT_X 0.35f // .7
-#define FOAM_SHIFT_Z 0.1f  // .7
+#define FOAM_SHIFT_X 0.35f  // .7
+#define FOAM_SHIFT_Z 0.1f   // .7
 #define SPEED_DELTA_H 1.4f
 #define CONST_MINUS_Y 0.3f
 

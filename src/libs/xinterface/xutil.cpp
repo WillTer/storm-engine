@@ -1,8 +1,7 @@
-#include "xdefines.h"
-
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
+#include "xdefines.h"
 
 //////////////////////////////////////////////
 ///    DEFINE GLOBAL DATA                 ////
@@ -10,24 +9,32 @@
 entid_t g_idInterface;
 
 COMMANDDESCR pCommandsList[COMMAND_QUANTITY] = {
-    {"activate", ACTION_ACTIVATE},      {"deactivate", ACTION_DEACTIVATE}, {"select", ACTION_SELECT},
-    {"rightstep", ACTION_RIGHTSTEP},    {"leftstep", ACTION_LEFTSTEP},     {"upstep", ACTION_UPSTEP},
-    {"downstep", ACTION_DOWNSTEP},      {"speedleft", ACTION_SPEEDLEFT},   {"speedright", ACTION_SPEEDRIGHT},
-    {"speedup", ACTION_SPEEDUP},        {"speeddown", ACTION_SPEEDDOWN},   {"click", ACTION_MOUSECLICK},
-    {"dblclick", ACTION_MOUSEDBLCLICK}, {"rclick", ACTION_MOUSERCLICK},    {"dblrclick", ACTION_MOUSERDBLCLICK}};
+    {"activate", ACTION_ACTIVATE},
+    {"deactivate", ACTION_DEACTIVATE},
+    {"select", ACTION_SELECT},
+    {"rightstep", ACTION_RIGHTSTEP},
+    {"leftstep", ACTION_LEFTSTEP},
+    {"upstep", ACTION_UPSTEP},
+    {"downstep", ACTION_DOWNSTEP},
+    {"speedleft", ACTION_SPEEDLEFT},
+    {"speedright", ACTION_SPEEDRIGHT},
+    {"speedup", ACTION_SPEEDUP},
+    {"speeddown", ACTION_SPEEDDOWN},
+    {"click", ACTION_MOUSECLICK},
+    {"dblclick", ACTION_MOUSEDBLCLICK},
+    {"rclick", ACTION_MOUSERCLICK},
+    {"dblrclick", ACTION_MOUSERDBLCLICK}};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////  END GLOBAL DATA                   ////
 //////////////////////////////////////////////
 
-int FindCommand(const char *comName)
+int FindCommand(char const* comName)
 {
     int i;
     for (i = 0; i < COMMAND_QUANTITY; i++)
-        if (storm::iEquals(comName, pCommandsList[i].sName))
-            break;
-    if (i == COMMAND_QUANTITY)
-        return -1;
+        if (storm::iEquals(comName, pCommandsList[i].sName)) break;
+    if (i == COMMAND_QUANTITY) return -1;
     return i;
 }
 
@@ -35,10 +42,8 @@ int FindCommand(int comID)
 {
     int i;
     for (i = 0; i < COMMAND_QUANTITY; i++)
-        if (pCommandsList[i].code == comID)
-            break;
-    if (i == COMMAND_QUANTITY)
-        return -1;
+        if (pCommandsList[i].code == comID) break;
+    if (i == COMMAND_QUANTITY) return -1;
     return i;
 }
 
@@ -66,17 +71,15 @@ uint32_t ColorInterpolate(uint32_t sCol, uint32_t dCol, float m)
     return ARGB(a, r, g, b);
 }
 
-void DublicateString(char *&pDstStr, const char *pSrcStr)
+void DublicateString(char*& pDstStr, char const* pSrcStr)
 {
-    if (!pSrcStr || pSrcStr[0] == 0) // boal fix
+    if (!pSrcStr || pSrcStr[0] == 0)  // boal fix
     {
         pDstStr = nullptr;
-    }
-    else
-    {
+    } else {
         delete pDstStr;
-        const auto len = strlen(pSrcStr) + 1;
-        pDstStr = new char[len];
+        auto const len = strlen(pSrcStr) + 1;
+        pDstStr        = new char[len];
         Assert(pDstStr);
         memcpy(pDstStr, pSrcStr, len);
     }

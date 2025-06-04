@@ -3,15 +3,12 @@
 #include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
-
-class xiBaseVideo : public Entity
+class xiBaseVideo: public Entity
 {
-  public:
-    virtual void SetShowVideo(bool bShowVideo)
-    {
-    }
+public:
+    virtual void SetShowVideo(bool bShowVideo) {}
 
-    virtual IDirect3DTexture9 *GetCurrentVideoTexture()
+    virtual IDirect3DTexture9* GetCurrentVideoTexture()
     {
         return nullptr;
     }

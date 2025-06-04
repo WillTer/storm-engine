@@ -1,151 +1,131 @@
 #include "t_butterfly.h"
+
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
 #include <libs/util/rands.h>
 
-
 CVECTOR TButterfly::center;
 
 //--------------------------------------------------------------------
-TButterfly::TButterfly() : minY(0.f), maxY(MAX_HEIGHT), firstDraw(true), time(0.f)
-{
-}
+TButterfly::TButterfly() : minY(0.f), maxY(MAX_HEIGHT), firstDraw(true), time(0.f) {}
 
 //--------------------------------------------------------------------
-TButterfly::~TButterfly()
-{
-}
+TButterfly::~TButterfly() {}
 
 //--------------------------------------------------------------------
-void TButterfly::Initialize(const CVECTOR &_center, float _radius, int32_t _bufferIndex, int _tI, int _tJ)
+void TButterfly::Initialize(const CVECTOR& _center, float _radius, int32_t _bufferIndex, int _tI, int _tJ)
 {
-    bufferIndex = _bufferIndex;
-    centerPosition.x = _center.x + randCentered(_radius);
-    centerPosition.y = _center.y + randCentered(_radius);
-    centerPosition.z = _center.z + randCentered(_radius);
-    centerVelocity = !CVECTOR(randCentered(1.0f), 0.f /*randCentered(1.0f)*/, randCentered(1.0f));
-    displaceVector = !CVECTOR(randCentered(1.0f), randCentered(1.0f), randCentered(1.0f));
+    bufferIndex        = _bufferIndex;
+    centerPosition.x   = _center.x + randCentered(_radius);
+    centerPosition.y   = _center.y + randCentered(_radius);
+    centerPosition.z   = _center.z + randCentered(_radius);
+    centerVelocity     = !CVECTOR(randCentered(1.0f), 0.f /*randCentered(1.0f)*/, randCentered(1.0f));
+    displaceVector     = !CVECTOR(randCentered(1.0f), randCentered(1.0f), randCentered(1.0f));
     timeToNextDisplace = static_cast<int32_t>(rand(static_cast<float>(MAX_DISPLACE_TIME)));
-    tI = SINGLE_SIZE * _tI;
-    tJ = SINGLE_SIZE * _tJ;
+    tI                 = SINGLE_SIZE * _tI;
+    tJ                 = SINGLE_SIZE * _tJ;
 
-    if (rand() & 0x1)
-    {
+    if (rand() & 0x1) {
         // active, flying
         fullActiveTime = static_cast<int32_t>(randUpper(static_cast<float>(MAX_ACTIVITY_TIME)));
-        activeTime = static_cast<int32_t>(rand(static_cast<float>(fullActiveTime)));
-        waitTime = 0;
-        active = true;
-    }
-    else
-    {
+        activeTime     = static_cast<int32_t>(rand(static_cast<float>(fullActiveTime)));
+        waitTime       = 0;
+        active         = true;
+    } else {
         // inactive, not flying
-        waitTime = static_cast<int32_t>(rand(static_cast<float>(MAX_WAIT_TIME)));
+        waitTime         = static_cast<int32_t>(rand(static_cast<float>(MAX_WAIT_TIME)));
         centerPosition.y = minY;
-        fullActiveTime = static_cast<int32_t>(randUpper(static_cast<float>(MAX_ACTIVITY_TIME)));
-        activeTime = 0;
-        active = false;
+        fullActiveTime   = static_cast<int32_t>(randUpper(static_cast<float>(MAX_ACTIVITY_TIME)));
+        activeTime       = 0;
+        active           = false;
     }
 }
 
 //--------------------------------------------------------------------
-void TButterfly::Calculate(int32_t _dTime, COLLIDE *_collide, entity_container_cref its)
+void TButterfly::Calculate(int32_t _dTime, COLLIDE* _collide, entity_container_cref its)
 {
-    if (!active)
-    {
+    if (!active) {
         waitTime -= _dTime;
 
-        if (waitTime < 0)
-        {
+        if (waitTime < 0) {
             // start being active
             fullActiveTime = static_cast<int32_t>(randUpper(static_cast<float>(MAX_ACTIVITY_TIME)));
-            activeTime = 0;
-            waitTime = 0;
-            active = true;
+            activeTime     = 0;
+            waitTime       = 0;
+            active         = true;
             return;
         }
     }
 
     // active
     activeTime += _dTime;
-    if (activeTime > fullActiveTime)
-    {
-        if (fabsf(centerPosition.y - minY) < MIN_Y_DELTA)
-        {
+    if (activeTime > fullActiveTime) {
+        if (fabsf(centerPosition.y - minY) < MIN_Y_DELTA) {
             // near minY
             centerPosition.y = minY;
-            waitTime = static_cast<int32_t>(rand(static_cast<float>(MAX_WAIT_TIME)));
-            active = false;
+            waitTime         = static_cast<int32_t>(rand(static_cast<float>(MAX_WAIT_TIME)));
+            active           = false;
             return;
         }
         // far from minY
-        if (centerPosition.y < minY)
-        {
-            activeTime = 0;
+        if (centerPosition.y < minY) {
+            activeTime       = 0;
             centerPosition.y = minY;
         }
     }
 
-    const auto timeDelta = static_cast<float>(_dTime) / 1000.0f;
+    auto const timeDelta = static_cast<float>(_dTime) / 1000.0f;
 
     // calculate new velocity
     timeToNextDisplace -= _dTime;
-    if (timeToNextDisplace < 0)
-    {
-        displaceVector = !CVECTOR(randCentered(1.0f), 0.f, randCentered(1.0f));
+    if (timeToNextDisplace < 0) {
+        displaceVector     = !CVECTOR(randCentered(1.0f), 0.f, randCentered(1.0f));
         timeToNextDisplace = static_cast<int32_t>(rand(static_cast<float>(MAX_DISPLACE_TIME)));
     }
     centerVelocity = !(centerVelocity + (rand(DISPLACE_SPEED) * timeDelta) * displaceVector);
 
-    auto activity = 1.0f - activeTime / fullActiveTime; //~!~
-    if (activity < MIN_ACTIVITY)
-        activity = MIN_ACTIVITY;
+    auto activity = 1.0f - activeTime / fullActiveTime;  //~!~
+    if (activity < MIN_ACTIVITY) activity = MIN_ACTIVITY;
 
-    const auto velocityDelta = /*activity * */ VELOCITY * timeDelta;
-    time = fmodf(time + activity * timeDelta * WINGS_TIME_K, PI);
-    const auto yDeltaAbs = fabsf(velocityDelta * Y_SPEED);
+    auto const velocityDelta = /*activity * */ VELOCITY * timeDelta;
+    time                     = fmodf(time + activity * timeDelta * WINGS_TIME_K, PI);
+    auto const yDeltaAbs     = fabsf(velocityDelta * Y_SPEED);
 
     // trace and change velocity if needed
-    if ((activeTime < fullActiveTime) || (fabsf(centerPosition.y - minY) > (yDeltaAbs + MIN_Y_DELTA)))
-    {
-        const auto ray = _collide->Trace(
-            its, centerPosition,
-            centerPosition + CVECTOR(velocityDelta * centerVelocity.x, 0.f, velocityDelta * centerVelocity.z), nullptr,
+    if ((activeTime < fullActiveTime) || (fabsf(centerPosition.y - minY) > (yDeltaAbs + MIN_Y_DELTA))) {
+        auto const ray = _collide->Trace(
+            its,
+            centerPosition,
+            centerPosition + CVECTOR(velocityDelta * centerVelocity.x, 0.f, velocityDelta * centerVelocity.z),
+            nullptr,
             0);
-        if (ray <= 1.0f)
-            centerVelocity = -centerVelocity;
+        if (ray <= 1.0f) centerVelocity = -centerVelocity;
     }
 
     // calculate new position
     centerPosition.x += velocityDelta * centerVelocity.x;
     centerPosition.z += velocityDelta * centerVelocity.z;
 
-    if (activity > 0.5f)
-    {
-        const auto probable = ((rand() % RISE_IMPROBABILITY) != 1);
+    if (activity > 0.5f) {
+        auto const probable = ((rand() % RISE_IMPROBABILITY) != 1);
         if (probable)
             centerPosition.y += yDeltaAbs;
         else
             centerPosition.y -= yDeltaAbs;
-    }
-    else
-    {
-        const auto probable = ((rand() % FALL_IMPROBABILITY) != 1);
+    } else {
+        auto const probable = ((rand() % FALL_IMPROBABILITY) != 1);
         if (probable)
             centerPosition.y -= yDeltaAbs;
         else
             centerPosition.y += yDeltaAbs;
     }
 
-    if (centerPosition.y > maxY)
-        activeTime = fullActiveTime;
-    if (centerPosition.y < minY)
-        activeTime = 0;
+    if (centerPosition.y > maxY) activeTime = fullActiveTime;
+    if (centerPosition.y < minY) activeTime = 0;
 
     static auto maxRemoteDistance2 = 1.7f * MAX_REMOTE_DISTANCE;
-    if ((fabsf(centerPosition.x - center.x) + fabsf(centerPosition.z - center.z)) > maxRemoteDistance2)
-    {
+    if ((fabsf(centerPosition.x - center.x) + fabsf(centerPosition.z - center.z)) > maxRemoteDistance2) {
         // teleport near center
         centerPosition.x = center.x + randCentered(MAX_REMOTE_DISTANCE);
         centerPosition.y = center.y + randUpper(MAX_REMOTE_DISTANCE / 10.0f);
@@ -200,33 +180,30 @@ void TButterfly::Draw(HDC _dc)
 }
 
 //--------------------------------------------------------------------
-void TButterfly::Effect(const CVECTOR &_position)
+void TButterfly::Effect(const CVECTOR& _position)
 {
-    if (active)
-        return;
+    if (active) return;
 
-    if (fabsf(_position.x - centerPosition.x) + fabsf(_position.z - centerPosition.z) > MAX_EFFECT_RADIUS)
-        return;
+    if (fabsf(_position.x - centerPosition.x) + fabsf(_position.z - centerPosition.z) > MAX_EFFECT_RADIUS) return;
 
     fullActiveTime = static_cast<int32_t>(randUpper(static_cast<float>(MAX_ACTIVITY_TIME)));
-    activeTime = 0;
-    waitTime = 0;
-    active = true;
+    activeTime     = 0;
+    waitTime       = 0;
+    active         = true;
 }
 
 //--------------------------------------------------------------------
-void TButterfly::Draw(IVBufferManager *_ivManager)
+void TButterfly::Draw(IVBufferManager* _ivManager)
 {
-    uint16_t *iPointer;
-    tButterflyVertex *vPointer;
-    int32_t vOffset;
-    short shortVOffset;
+    uint16_t*         iPointer;
+    tButterflyVertex* vPointer;
+    int32_t           vOffset;
+    short             shortVOffset;
 
-    _ivManager->GetPointers(bufferIndex, &iPointer, (void **)&vPointer, &vOffset);
+    _ivManager->GetPointers(bufferIndex, &iPointer, (void**)&vPointer, &vOffset);
 
-    if (firstDraw)
-    {
-        firstDraw = false;
+    if (firstDraw) {
+        firstDraw    = false;
         shortVOffset = static_cast<short>(vOffset);
 
         iPointer[0] = 0 + shortVOffset;
@@ -241,7 +218,7 @@ void TButterfly::Draw(IVBufferManager *_ivManager)
         iPointer[7] = 3 + shortVOffset;
         iPointer[8] = 5 + shortVOffset;
 
-        iPointer[9] = 2 + shortVOffset;
+        iPointer[9]  = 2 + shortVOffset;
         iPointer[10] = 5 + shortVOffset;
         iPointer[11] = 4 + shortVOffset;
 
@@ -265,7 +242,7 @@ void TButterfly::Draw(IVBufferManager *_ivManager)
     }
 
     // position = center + CVECTOR(0.2f, 1.f, 0.2f);
-    auto alpha = atan2f(centerVelocity.z, centerVelocity.x);
+    auto           alpha = atan2f(centerVelocity.z, centerVelocity.x);
     static CVECTOR v0(-MODEL_SIDE, 0, -MODEL_SIDE);
     static CVECTOR v1(-MODEL_SIDE, 0, MODEL_SIDE);
     static CVECTOR v2(0, 0, -MODEL_SIDE);
@@ -303,15 +280,15 @@ void TButterfly::Draw(IVBufferManager *_ivManager)
 }
 
 //--------------------------------------------------------------------
-void TButterfly::Draw(VDX9RENDER *_renderer, MODEL *_model)
+void TButterfly::Draw(VDX9RENDER* _renderer, MODEL* _model)
 {
     CMatrix moveToPos, rightWingRotate, leftWingRotate;
     moveToPos.BuildPosition(centerPosition.x, centerPosition.y, centerPosition.z);
     // rightWingRotate.BuildRotateZ(time);
     // leftWingRotate.BuildRotateZ(-time);
-    _model->mtx.Vx() = centerVelocity ^ CVECTOR(0.0f, 1.0f, 0.0f);
-    _model->mtx.Vy() = CVECTOR(0.0f, 1.0f, 0.0f);
-    _model->mtx.Vz() = centerVelocity;
+    _model->mtx.Vx()  = centerVelocity ^ CVECTOR(0.0f, 1.0f, 0.0f);
+    _model->mtx.Vy()  = CVECTOR(0.0f, 1.0f, 0.0f);
+    _model->mtx.Vz()  = centerVelocity;
     _model->mtx.Pos() = centerPosition;
 }
 

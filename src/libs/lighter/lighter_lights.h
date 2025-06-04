@@ -10,38 +10,38 @@
 
 #pragma once
 
-#include "l_types.h"
 #include <libs/util/storm_assert.h>
+
+#include "l_types.h"
 
 class LighterLights
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     LighterLights();
     virtual ~LighterLights();
 
-    void AddAmbient(const CVECTOR &color);
-    void AddWeaterLights(const CVECTOR &color, const CVECTOR &dir);
-    void AddPointLight(const CVECTOR &color, const CVECTOR &pos, float att0, float att1, float att2, float range,
-                       const char *group);
+    void AddAmbient(const CVECTOR& color);
+    void AddWeaterLights(const CVECTOR& color, const CVECTOR& dir);
+    void AddPointLight(const CVECTOR& color, const CVECTOR& pos, float att0, float att1, float att2, float range, char const* group);
     void PostInit();
     void UpdateLights(int32_t lit);
 
     int32_t Num() const;
-    Light &operator[](int32_t i);
+    Light&  operator[](int32_t i);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     void SetDefLightParam(int32_t i);
 
-  private:
+private:
     std::vector<Light> light;
-    int32_t numLights;
-    int32_t maxLights;
+    int32_t            numLights;
+    int32_t            maxLights;
 };
 
 inline int32_t LighterLights::Num() const
@@ -49,7 +49,7 @@ inline int32_t LighterLights::Num() const
     return numLights;
 }
 
-inline Light &LighterLights::operator[](int32_t i)
+inline Light& LighterLights::operator[](int32_t i)
 {
     Assert(i >= 0 && i < numLights);
     return light[i];

@@ -1,11 +1,13 @@
 #include "list.h"
-#include "../nodes/xi_image.h"
-#include "editor_defines.h"
 
 #include <libs/core/controls.h>
 #include <libs/core/core.h>
 
-GIEditorList::GIEditorList(GIEditor *pEditor) : m_fUpPressTime(0), m_fDownPressTime(0), m_dwStatus(0)
+#include "../nodes/xi_image.h"
+
+#include "editor_defines.h"
+
+GIEditorList::GIEditorList(GIEditor* pEditor) : m_fUpPressTime(0), m_fDownPressTime(0), m_dwStatus(0)
 {
     m_pEditor = pEditor;
     Assert(m_pEditor);
@@ -28,15 +30,15 @@ GIEditorList::GIEditorList(GIEditor *pEditor) : m_fUpPressTime(0), m_fDownPressT
     Assert(m_pFont);
     m_pFont->SetHeight(10.f);
 
-    m_nSelectIndex = -1;
-    m_nTopIndex = 0;
+    m_nSelectIndex  = -1;
+    m_nTopIndex     = 0;
     m_nLineQuantity = 1;
 
     m_frStrOffset.bottom = m_frStrOffset.top = 10.f;
     m_frStrOffset.left = m_frStrOffset.right = 10.f;
-    m_fStrLineStep = 12.f;
+    m_fStrLineStep                           = 12.f;
 
-    m_fKeyRepeatDelay = 0.4f;
+    m_fKeyRepeatDelay    = 0.4f;
     m_fKeyRepeatInterval = 0.04f;
 }
 
@@ -53,24 +55,19 @@ void GIEditorList::Release()
     STORM_DELETE(m_pFont);
 }
 
-void GIEditorList::Create()
-{
-}
+void GIEditorList::Create() {}
 
 void GIEditorList::Render()
 {
-    if (m_pBackImage)
-        m_pBackImage->Draw();
-    if (m_pSelectImage && m_bShowSelect)
-        m_pSelectImage->Draw();
+    if (m_pBackImage) m_pBackImage->Draw();
+    if (m_pSelectImage && m_bShowSelect) m_pSelectImage->Draw();
 
-    auto fY = m_frBackRect.top + m_frStrOffset.top;
-    const auto fYEnd = m_frBackRect.bottom - m_frStrOffset.bottom;
-    const auto fX = m_frBackRect.left + m_frStrOffset.left;
-    auto fWidth = m_frBackRect.right - m_frStrOffset.right - fX;
+    auto       fY     = m_frBackRect.top + m_frStrOffset.top;
+    auto const fYEnd  = m_frBackRect.bottom - m_frStrOffset.bottom;
+    auto const fX     = m_frBackRect.left + m_frStrOffset.left;
+    auto       fWidth = m_frBackRect.right - m_frStrOffset.right - fX;
 
-    for (auto n = m_nTopIndex; n < m_aStrings.size() && fY < fYEnd; n++)
-    {
+    for (auto n = m_nTopIndex; n < m_aStrings.size() && fY < fYEnd; n++) {
         m_pFont->Print(fX, fY, "%s", m_aStrings[n].c_str());
         fY += m_fStrLineStep;
     }
@@ -78,38 +75,37 @@ void GIEditorList::Render()
 
 void GIEditorList::SetPosition(float fLeft, float fTop, float fRight, float fBottom)
 {
-    m_frBackRect.left = fLeft;
-    m_frBackRect.top = fTop;
-    m_frBackRect.right = fRight;
+    m_frBackRect.left   = fLeft;
+    m_frBackRect.top    = fTop;
+    m_frBackRect.right  = fRight;
     m_frBackRect.bottom = fBottom;
 
-    m_nLineQuantity = static_cast<int32_t>(
-        (m_frBackRect.bottom - m_frBackRect.top - m_frStrOffset.top - m_frStrOffset.bottom) / m_fStrLineStep);
+    m_nLineQuantity =
+        static_cast<int32_t>((m_frBackRect.bottom - m_frBackRect.top - m_frStrOffset.top - m_frStrOffset.bottom) / m_fStrLineStep);
 
     m_pBackImage->SetPosition(static_cast<int32_t>(m_frBackRect.left), static_cast<int32_t>(m_frBackRect.top));
-    m_pBackImage->SetSize(static_cast<int32_t>(m_frBackRect.right - m_frBackRect.left),
-                          static_cast<int32_t>(m_frBackRect.bottom - m_frBackRect.top));
+    m_pBackImage->SetSize(
+        static_cast<int32_t>(m_frBackRect.right - m_frBackRect.left), static_cast<int32_t>(m_frBackRect.bottom - m_frBackRect.top));
 
-    m_frSelectRect.left = fLeft + 4.f;
+    m_frSelectRect.left  = fLeft + 4.f;
     m_frSelectRect.right = fRight - 4.f;
 
     UpdateSelectPosition();
 }
 
-void GIEditorList::AddString(std::string &sNewStr)
+void GIEditorList::AddString(std::string& sNewStr)
 {
     m_aStrings.push_back(sNewStr);
 }
 
-void GIEditorList::RemoveString(const std::string &sStr)
+void GIEditorList::RemoveString(std::string const& sStr)
 {
     RemoveString(FindString(sStr));
 }
 
 void GIEditorList::RemoveString(int32_t nIndex)
 {
-    if (nIndex < 0 || nIndex >= m_aStrings.size())
-        return;
+    if (nIndex < 0 || nIndex >= m_aStrings.size()) return;
     m_aStrings.erase(m_aStrings.begin() + nIndex);
 }
 
@@ -120,18 +116,16 @@ void GIEditorList::RemoveAllStrings()
     SetSelectIndex(-1);
 }
 
-int32_t GIEditorList::FindString(const std::string &sStr)
+int32_t GIEditorList::FindString(std::string const& sStr)
 {
     for (int32_t n = 0; n < m_aStrings.size(); n++)
-        if (m_aStrings[n] == sStr)
-            return n;
+        if (m_aStrings[n] == sStr) return n;
     return -1;
 }
 
-std::string &GIEditorList::GetString(int32_t nIndex)
+std::string& GIEditorList::GetString(int32_t nIndex)
 {
-    if (nIndex >= 0 && nIndex < m_aStrings.size())
-        return m_aStrings[nIndex];
+    if (nIndex >= 0 && nIndex < m_aStrings.size()) return m_aStrings[nIndex];
     return m_sEmptyString;
 }
 
@@ -139,18 +133,14 @@ void GIEditorList::SetSelectIndex(int32_t nIndex)
 {
     m_nSelectIndex = nIndex;
 
-    if (m_nSelectIndex < m_nTopIndex)
-    {
+    if (m_nSelectIndex < m_nTopIndex) {
         m_nTopIndex = m_nSelectIndex;
-        if (m_nSelectIndex < 0)
-            m_nTopIndex = 0;
+        if (m_nSelectIndex < 0) m_nTopIndex = 0;
     }
 
-    if (m_nSelectIndex >= m_nTopIndex + m_nLineQuantity)
-    {
+    if (m_nSelectIndex >= m_nTopIndex + m_nLineQuantity) {
         m_nTopIndex = m_nSelectIndex - m_nLineQuantity;
-        if (m_nTopIndex >= m_aStrings.size())
-            m_nTopIndex = m_aStrings.size() - 1;
+        if (m_nTopIndex >= m_aStrings.size()) m_nTopIndex = m_aStrings.size() - 1;
     }
 
     UpdateSelectPosition();
@@ -160,27 +150,23 @@ void GIEditorList::SetSelectIndex(int32_t nIndex)
 
 bool GIEditorList::CheckMouseInside(float fX, float fY) const
 {
-    if (fX >= m_frBackRect.left && fX <= m_frBackRect.right && fY >= m_frBackRect.top && fY <= m_frBackRect.bottom)
-        return true;
+    if (fX >= m_frBackRect.left && fX <= m_frBackRect.right && fY >= m_frBackRect.top && fY <= m_frBackRect.bottom) return true;
     return false;
 }
 
 void GIEditorList::MakeMouseClick(float fX, float fY)
 {
     FXYRECT frString;
-    frString.left = m_frBackRect.left + m_frStrOffset.left;
-    frString.right = m_frBackRect.right - m_frStrOffset.right;
-    frString.top = m_frBackRect.top + m_frStrOffset.top;
+    frString.left   = m_frBackRect.left + m_frStrOffset.left;
+    frString.right  = m_frBackRect.right - m_frStrOffset.right;
+    frString.top    = m_frBackRect.top + m_frStrOffset.top;
     frString.bottom = m_frBackRect.bottom - m_frStrOffset.bottom;
 
-    if (fX >= frString.left && fX <= frString.right && fY >= frString.top && fY <= frString.bottom)
-    {
-        const auto fLineOffset = fY - frString.top;
-        int32_t nLineNum = 0;
-        if (m_fStrLineStep > 0.f)
-            nLineNum = static_cast<int32_t>(fLineOffset / m_fStrLineStep);
-        if (nLineNum != m_nSelectIndex)
-        {
+    if (fX >= frString.left && fX <= frString.right && fY >= frString.top && fY <= frString.bottom) {
+        auto const fLineOffset = fY - frString.top;
+        int32_t    nLineNum    = 0;
+        if (m_fStrLineStep > 0.f) nLineNum = static_cast<int32_t>(fLineOffset / m_fStrLineStep);
+        if (nLineNum != m_nSelectIndex) {
             m_dwStatus |= GIState_ListChange;
             SetSelectIndex(nLineNum);
         }
@@ -192,38 +178,26 @@ void GIEditorList::DoKeyChecking()
     CONTROL_STATE cs;
 
     core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
-    if (cs.state == CST_ACTIVATED)
-    {
+    if (cs.state == CST_ACTIVATED) {
         IncrementSelectedLine(true);
         m_fDownPressTime = 0.f;
-    }
-    else if (cs.state == CST_ACTIVE)
-    {
-        if (m_fDownPressTime < m_fKeyRepeatDelay)
-        {
+    } else if (cs.state == CST_ACTIVE) {
+        if (m_fDownPressTime < m_fKeyRepeatDelay) {
             m_fDownPressTime += core.GetDeltaTime() * .001f;
-        }
-        else
-        {
+        } else {
             IncrementSelectedLine(true);
             m_fDownPressTime = m_fKeyRepeatDelay - m_fKeyRepeatInterval;
         }
     }
 
     core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
-    if (cs.state == CST_ACTIVATED)
-    {
+    if (cs.state == CST_ACTIVATED) {
         IncrementSelectedLine(false);
         m_fUpPressTime = 0.f;
-    }
-    else if (cs.state == CST_ACTIVE)
-    {
-        if (m_fUpPressTime < m_fKeyRepeatDelay)
-        {
+    } else if (cs.state == CST_ACTIVE) {
+        if (m_fUpPressTime < m_fKeyRepeatDelay) {
             m_fUpPressTime += core.GetDeltaTime() * .001f;
-        }
-        else
-        {
+        } else {
             IncrementSelectedLine(false);
             m_fUpPressTime = m_fKeyRepeatDelay - m_fKeyRepeatInterval;
         }
@@ -232,39 +206,27 @@ void GIEditorList::DoKeyChecking()
 
 void GIEditorList::IncrementSelectedLine(bool bIncr)
 {
-    if (bIncr)
-    {
-        if (m_nSelectIndex < static_cast<int32_t>(m_aStrings.size()) - 1)
-        {
-            SetSelectIndex(m_nSelectIndex + 1);
-        }
-    }
-    else
-    {
-        if (m_nSelectIndex > 0)
-        {
-            SetSelectIndex(m_nSelectIndex - 1);
-        }
+    if (bIncr) {
+        if (m_nSelectIndex < static_cast<int32_t>(m_aStrings.size()) - 1) { SetSelectIndex(m_nSelectIndex + 1); }
+    } else {
+        if (m_nSelectIndex > 0) { SetSelectIndex(m_nSelectIndex - 1); }
     }
 }
 
 void GIEditorList::UpdateSelectPosition()
 {
     m_bShowSelect = false;
-    if (m_nSelectIndex < 0)
-        return;
+    if (m_nSelectIndex < 0) return;
 
-    const auto nIdx = m_nSelectIndex - m_nTopIndex;
-    if (nIdx < 0)
-        return;
+    auto const nIdx = m_nSelectIndex - m_nTopIndex;
+    if (nIdx < 0) return;
 
     m_frSelectRect.top = m_frBackRect.top + m_frStrOffset.top - 2.f + nIdx * m_fStrLineStep;
-    if (m_frSelectRect.top > m_frBackRect.bottom - m_frStrOffset.bottom - 2.f)
-        return;
+    if (m_frSelectRect.top > m_frBackRect.bottom - m_frStrOffset.bottom - 2.f) return;
 
     m_frSelectRect.bottom = m_frSelectRect.top + m_fStrLineStep;
-    m_bShowSelect = true;
+    m_bShowSelect         = true;
     m_pSelectImage->SetPosition(static_cast<int32_t>(m_frSelectRect.left), static_cast<int32_t>(m_frSelectRect.top));
-    m_pSelectImage->SetSize(static_cast<int32_t>(m_frSelectRect.right - m_frSelectRect.left),
-                            static_cast<int32_t>(m_frSelectRect.bottom - m_frSelectRect.top));
+    m_pSelectImage->SetSize(
+        static_cast<int32_t>(m_frSelectRect.right - m_frSelectRect.left), static_cast<int32_t>(m_frSelectRect.bottom - m_frSelectRect.top));
 }

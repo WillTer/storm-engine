@@ -12,40 +12,36 @@
 
 #include "wdm_render_object.h"
 
-class WdmSea : public WdmRenderObject
+class WdmSea: public WdmRenderObject
 {
 #pragma pack(push, 1)
 
-    struct Triangle
-    {
+    struct Triangle {
         uint16_t index[3];
     };
 
-    struct Vertex
-    {
-        float x, y, z;
+    struct Vertex {
+        float    x, y, z;
         uint32_t color;
-        float tu, tv;
+        float    tu, tv;
     };
 
-    struct WhiteHorses
-    {
-        float x;
-        float z;
-        float angle;
-        float size;
-        float speed;
-        float curTime;
-        float kTime;
+    struct WhiteHorses {
+        float   x;
+        float   z;
+        float   angle;
+        float   size;
+        float   speed;
+        float   curTime;
+        float   kTime;
         int32_t textureIndex;
     };
 
-    struct Flare
-    {
+    struct Flare {
         int32_t index;  // index of a used rectangle
-        float time;  // Lifetime 0 to 1
-        float k;     // The speed of time
-        float phase; // Phase defining the direction of rotation
+        float   time;   // Lifetime 0 to 1
+        float   k;      // The speed of time
+        float   phase;  // Phase defining the direction of rotation
     };
 
 #pragma pack(pop)
@@ -53,25 +49,25 @@ class WdmSea : public WdmRenderObject
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmSea();
     ~WdmSea() override;
 
     void Update(float dltTime) override;
 
-    void PRender(VDX9RENDER *rs) override;
-    void LRender(VDX9RENDER *rs) override;
+    void PRender(VDX9RENDER* rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Draw
-    void Render(VDX9RENDER *rs, const char *tech = nullptr) const;
+    void Render(VDX9RENDER* rs, char const* tech = nullptr) const;
     // Adjust texture coordinate transformations
-    void PresetMain(VDX9RENDER *rs) const;
+    void PresetMain(VDX9RENDER* rs) const;
 
-  private:
+private:
     // Geometry buffers
     int32_t vb, ib;
     // Waves
@@ -79,15 +75,15 @@ class WdmSea : public WdmRenderObject
     // Textures
     int32_t baseTexture;
     int32_t aniTextures[32];
-    float aniFrame;
+    float   aniFrame;
     int32_t whiteHorses[1];
-    float seaSizeX;
-    float seaSizeZ;
-    float aniTiling;
+    float   seaSizeX;
+    float   seaSizeZ;
+    float   aniTiling;
     // Flares
-    Flare flare[1024];
+    Flare   flare[1024];
     RS_RECT flareRect[1024];
     int32_t flareCount;
     int32_t flareTexture;
-    float flareCerateCounter;
+    float   flareCerateCounter;
 };

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ai_ship.h"
 #include <libs/core/vma.hpp>
+
+#include "ai_ship.h"
 
 // ============================================================================
 // Master class AIGroup
@@ -9,73 +10,73 @@
 // ============================================================================
 class AIGroup
 {
-  private:
-    DTimer dtCheckTask;
+private:
+    DTimer      dtCheckTask;
     std::string sCommand, sCommandGroup;
     std::string sGroupName;
     std::string sLocationNearOtherGroup;
     std::string sGroupType;
-    CVECTOR vInitGroupPos{};
-    CVECTOR vMovePoint{};
-    bool bFirstExecute;
+    CVECTOR     vInitGroupPos {};
+    CVECTOR     vMovePoint {};
+    bool        bFirstExecute;
 
-    ATTRIBUTES *pACommander;
+    ATTRIBUTES* pACommander;
 
     // ship container for this group
-    std::vector<AIShip *> aGroupShips;
+    std::vector<AIShip*> aGroupShips;
 
-  public:
+public:
     AIGroup() {};
-    AIGroup(const char *pGroupName);
+    AIGroup(char const* pGroupName);
     virtual ~AIGroup();
 
     // global group container, accessible for AIGroup and SEA_AI.
-    static std::vector<AIGroup *> AIGroups;
-    static float fDistanceBetweenGroupShips;
-    static float fDistanceBetweenGroupLines;
+    static std::vector<AIGroup*> AIGroups;
+    static float                 fDistanceBetweenGroupShips;
+    static float                 fDistanceBetweenGroupLines;
 
     // static functions
-    static AIGroup *FindGroup(ATTRIBUTES *pACharacter);
-    static AIGroup *FindGroup(const char *pGroupName);
-    static AIGroup *FindOrCreateGroup(const char *pGroupName);
-    static AIGroup *CreateNewGroup(const char *pGroupName);
-    static AIGroup *FindMainGroup();
-    static float GetAttackHP(const char *pGroupName, float fDistance);
-    static void SetXYZ_AY(const char *pGroupName, CVECTOR vPos, float _fAY);
-    static void GroupSetMove(const char *pGroupName, CVECTOR &vMovePoint);
-    static void GroupSetAttack(const char *cGroupName, const char *cGroupAttackingName);
-    static void GroupSetAttack(AIShip *pS1, AIShip *pS2);
-    static void GroupSetRunAway(const char *pGroupName);
-    static void GroupSetType(const char *pGroupName, const char *cGroupType);
-    static void GroupSetCommander(const char *pGroupName, ATTRIBUTES *_pACommander);
-    static void GroupSetLocationNearOtherGroup(const char *pGroupName, const char *pOtherGroupName);
-    static void ShipChangeGroup(ATTRIBUTES *pACharacter, const char *pGroupName);
-    static void SwapCharactersShips(ATTRIBUTES *pACharacter1, ATTRIBUTES *pACharacter2);
-    static void SetOfficerCharacter2Ship(ATTRIBUTES *pOfficerCharacter, ATTRIBUTES *pReplacedACharacter);
-    static void SailMainGroup(CVECTOR vPos, float fAngleY, ATTRIBUTES *pACharacter);
+    static AIGroup* FindGroup(ATTRIBUTES* pACharacter);
+    static AIGroup* FindGroup(char const* pGroupName);
+    static AIGroup* FindOrCreateGroup(char const* pGroupName);
+    static AIGroup* CreateNewGroup(char const* pGroupName);
+    static AIGroup* FindMainGroup();
+    static float    GetAttackHP(char const* pGroupName, float fDistance);
+    static void     SetXYZ_AY(char const* pGroupName, CVECTOR vPos, float _fAY);
+    static void     GroupSetMove(char const* pGroupName, CVECTOR& vMovePoint);
+    static void     GroupSetAttack(char const* cGroupName, char const* cGroupAttackingName);
+    static void     GroupSetAttack(AIShip* pS1, AIShip* pS2);
+    static void     GroupSetRunAway(char const* pGroupName);
+    static void     GroupSetType(char const* pGroupName, char const* cGroupType);
+    static void     GroupSetCommander(char const* pGroupName, ATTRIBUTES* _pACommander);
+    static void     GroupSetLocationNearOtherGroup(char const* pGroupName, char const* pOtherGroupName);
+    static void     ShipChangeGroup(ATTRIBUTES* pACharacter, char const* pGroupName);
+    static void     SwapCharactersShips(ATTRIBUTES* pACharacter1, ATTRIBUTES* pACharacter2);
+    static void     SetOfficerCharacter2Ship(ATTRIBUTES* pOfficerCharacter, ATTRIBUTES* pReplacedACharacter);
+    static void     SailMainGroup(CVECTOR vPos, float fAngleY, ATTRIBUTES* pACharacter);
 
-    static void GroupHelpMe(const char *pGroupName, AIShip *pMe, AIShip *pEnemy);
+    static void GroupHelpMe(char const* pGroupName, AIShip* pMe, AIShip* pEnemy);
 
     // AI section
-    bool isAttack(AIGroup *pGroup);
-    bool isDead(); // is group dead?
-    bool isMainGroup();
+    bool  isAttack(AIGroup* pGroup);
+    bool  isDead();  // is group dead?
+    bool  isMainGroup();
     float GetPower();
 
     // return group name
-    std::string &GetName()
+    std::string& GetName()
     {
         return sGroupName;
     };
 
     // extract / insert ship group
-    AIShip *ExtractShip(ATTRIBUTES *pACharacter);
-    void InsertShip(AIShip *pAIShip);
+    AIShip* ExtractShip(ATTRIBUTES* pACharacter);
+    void    InsertShip(AIShip* pAIShip);
 
     // add new ship to group
-    ATTRIBUTES *GetCommanderACharacter() const;
-    AIShip *GetMainShip();
-    void AddShip(entid_t _eidShip, ATTRIBUTES *pACharacter, ATTRIBUTES *pAShip);
+    ATTRIBUTES* GetCommanderACharacter() const;
+    AIShip*     GetMainShip();
+    void        AddShip(entid_t _eidShip, ATTRIBUTES* pACharacter, ATTRIBUTES* pAShip);
 
     void Unload() {};
 
@@ -83,6 +84,6 @@ class AIGroup
     void Realize(float fDeltaTime);
     void Execute(float fDeltaTime);
 
-    void Save(CSaveLoad *pSL);
-    void Load(CSaveLoad *pSL);
+    void Save(CSaveLoad* pSL);
+    void Load(CSaveLoad* pSL);
 };

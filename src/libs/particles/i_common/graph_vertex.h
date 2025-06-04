@@ -1,16 +1,13 @@
 #pragma once
 
-struct GraphVertex
-{
+struct GraphVertex {
     union {
-        struct
-        {
+        struct {
             float Time;
             float Val;
         };
 
-        struct
-        {
+        struct {
             float x;
             float y;
         };

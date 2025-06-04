@@ -1,11 +1,11 @@
 #pragma once
 
-#include <windows.h>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
-enum S_TOKEN_TYPE
-{
+#include <windows.h>
+
+enum S_TOKEN_TYPE {
     END_OF_PROGRAMM,
     INVALID_TOKEN,
     UNKNOWN,
@@ -135,10 +135,9 @@ enum S_TOKEN_TYPE
     TOKEN_TYPES_COUNT
 };
 
-struct INTFUNCDESC
-{
-    uint32_t dwArgsNum;
-    const char *pName;
+struct INTFUNCDESC {
+    uint32_t     dwArgsNum;
+    char const*  pName;
     S_TOKEN_TYPE ReturnType;
 };
 
@@ -146,66 +145,65 @@ struct INTFUNCDESC
 
 #define TOKENHASHTABLE_SIZE 256
 
-struct THLINE
-{
+struct THLINE {
     THLINE()
     {
-        dwNum = 0;
+        dwNum  = 0;
         pIndex = nullptr;
     };
     uint32_t dwNum;
-    uint8_t *pIndex;
+    uint8_t* pIndex;
 };
 
 class TOKEN
 {
-    THLINE KeywordsHash[TOKENHASHTABLE_SIZE];
-    S_TOKEN_TYPE eTokenType;
+    THLINE         KeywordsHash[TOKENHASHTABLE_SIZE];
+    S_TOKEN_TYPE   eTokenType;
     std::ptrdiff_t TokenDataBufferSize;
-    int32_t Lines_in_token;
-    char *pTokenData;
-    std::ptrdiff_t ProgramSteps[PROGRAM_STEPS_CACHE]{};
-    int32_t ProgramStepsNum;
-    char *Program;
-    char *ProgramBase;
-    uint32_t dwKeywordsNum;
+    int32_t        Lines_in_token;
+    char*          pTokenData;
+    std::ptrdiff_t ProgramSteps[PROGRAM_STEPS_CACHE] {};
+    int32_t        ProgramStepsNum;
+    char*          Program;
+    char*          ProgramBase;
+    uint32_t       dwKeywordsNum;
 
-  public:
+public:
     TOKEN();
     ~TOKEN();
-    void Release();
-    void Reset();
-    void SetProgram(char *pProgramBase, char *pProgramControl);
-    void SetProgramControl(char *pProgramControl);
-    char *GetProgramControl();
+    void  Release();
+    void  Reset();
+    void  SetProgram(char* pProgramBase, char* pProgramControl);
+    void  SetProgramControl(char* pProgramControl);
+    char* GetProgramControl();
 
-    char *GetProgramBase()
+    char* GetProgramBase()
     {
         return ProgramBase;
     };
     std::ptrdiff_t GetProgramOffset();
 
-    S_TOKEN_TYPE Get(bool bKeepData = false);
-    S_TOKEN_TYPE ProcessToken(char *&pointer, bool bKeepData = false);
-    S_TOKEN_TYPE GetType();
-    void CacheToken(const char *pointer);
-    bool StepBack();
-    int32_t SetTokenData(const char *pointer, bool bKeepControlSymbols = false);
-    std::ptrdiff_t SetNTokenData(const char *pointer, std::ptrdiff_t Data_size);
-    int32_t StopArgument(const char *pointer, bool bKeepControlSymbols = false);
-    void StartArgument(char *&pointer, bool bKeepControlSymbols = false);
-    const char *GetTypeName(S_TOKEN_TYPE code);
-    const char *GetTypeName();
-    const char *GetData();
-    bool Is(S_TOKEN_TYPE ttype);
-    bool IsNumber(const char *pointer);
-    bool IsFloatNumber(const char *pointer);
-    int32_t TokenLines();
-    void LowCase();
+    S_TOKEN_TYPE   Get(bool bKeepData = false);
+    S_TOKEN_TYPE   ProcessToken(char*& pointer, bool bKeepData = false);
+    S_TOKEN_TYPE   GetType();
+    void           CacheToken(char const* pointer);
+    bool           StepBack();
+    int32_t        SetTokenData(char const* pointer, bool bKeepControlSymbols = false);
+    std::ptrdiff_t SetNTokenData(char const* pointer, std::ptrdiff_t Data_size);
+    int32_t        StopArgument(char const* pointer, bool bKeepControlSymbols = false);
+    void           StartArgument(char*& pointer, bool bKeepControlSymbols = false);
+    char const*    GetTypeName(S_TOKEN_TYPE code);
+    char const*    GetTypeName();
+    char const*    GetData();
+    bool           Is(S_TOKEN_TYPE ttype);
+    bool           IsNumber(char const* pointer);
+    bool           IsFloatNumber(char const* pointer);
+    int32_t        TokenLines();
+    void           LowCase();
 
     S_TOKEN_TYPE FormatGet();
 
-    S_TOKEN_TYPE Keyword2TokenType(const char *pString);
-    uint32_t MakeHashValue(const char *string, uint32_t max_syms = 0);
-    bool InitializeHashTable();
+    S_TOKEN_TYPE Keyword2TokenType(char const* pString);
+    uint32_t     MakeHashValue(char const* string, uint32_t max_syms = 0);
+    bool         InitializeHashTable();
 };

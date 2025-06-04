@@ -5,31 +5,29 @@
 #include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
-class COMMON_CAMERA : public Entity
+class COMMON_CAMERA: public Entity
 {
-  private:
+private:
     bool bActive;
     bool bOn;
 
     float fPerspective;
 
-    entid_t eidObject;
-    VAI_OBJBASE *pAIObj;
+    entid_t      eidObject;
+    VAI_OBJBASE* pAIObj;
 
-  protected:
-    ATTRIBUTES *pACharacter;
+protected:
+    ATTRIBUTES* pACharacter;
 
-  public:
+public:
     bool FindShip()
     {
         Assert(pACharacter);
         // get entity id from loaded ships
-        auto &&entities = core.GetEntityIds("ship");
-        for (auto ship : entities)
-        {
-            auto *pObj = static_cast<VAI_OBJBASE *>(core.GetEntityPointer(ship));
-            if (pObj->GetACharacter() == pACharacter)
-            {
+        auto&& entities = core.GetEntityIds("ship");
+        for (auto ship: entities) {
+            auto* pObj = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+            if (pObj->GetACharacter() == pACharacter) {
                 SetEID(pObj->GetModelEID());
                 SetAIObj(pObj);
                 return true;
@@ -38,17 +36,17 @@ class COMMON_CAMERA : public Entity
         return false;
     }
 
-    MODEL *GetModelPointer() const
+    MODEL* GetModelPointer() const
     {
-        return static_cast<MODEL *>(core.GetEntityPointer(eidObject));
+        return static_cast<MODEL*>(core.GetEntityPointer(eidObject));
     }
 
-    void SetAIObj(VAI_OBJBASE *_pAIObj)
+    void SetAIObj(VAI_OBJBASE* _pAIObj)
     {
         pAIObj = _pAIObj;
     }
 
-    VAI_OBJBASE *GetAIObj() const
+    VAI_OBJBASE* GetAIObj() const
     {
         return pAIObj;
     }
@@ -63,7 +61,7 @@ class COMMON_CAMERA : public Entity
         return eidObject;
     };
 
-    virtual void SetCharacter(ATTRIBUTES *_pACharacter)
+    virtual void SetCharacter(ATTRIBUTES* _pACharacter)
     {
         pACharacter = _pACharacter;
     };
@@ -98,13 +96,13 @@ class COMMON_CAMERA : public Entity
         return bActive;
     };
 
-    virtual void Save(CSaveLoad *pSL) = 0;
-    virtual void Load(CSaveLoad *pSL) = 0;
+    virtual void Save(CSaveLoad* pSL) = 0;
+    virtual void Load(CSaveLoad* pSL) = 0;
 
     COMMON_CAMERA() : eidObject(0), pAIObj(nullptr), pACharacter(nullptr)
     {
-        bOn = false;
-        bActive = false;
+        bOn          = false;
+        bActive      = false;
         fPerspective = 1.285f;
     };
 

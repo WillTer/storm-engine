@@ -9,20 +9,19 @@
 class MODEL;
 class NODE;
 
-class ItemEntity : public Entity
+class ItemEntity: public Entity
 {
-  public:
+public:
     ItemEntity();
     ~ItemEntity() override;
 
-    bool Init() override;
-    void Realize(uint32_t delta_time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Realize(uint32_t delta_time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
             // case Stage::execute:
             //    Execute(delta); break;
         case Stage::realize:
@@ -35,53 +34,52 @@ class ItemEntity : public Entity
         }
     }
 
-  protected:
+protected:
     bool ReadAndCreate();
     void SetBeginData();
     void Release();
 
-    void SetModelToPosition(const CMatrix &mtx) const;
-    void SetTechnique(const char *pcTechnique) const;
-    bool TieToLocator(entid_t mdlEID, const char *pcLocName);
+    void SetModelToPosition(CMatrix const& mtx) const;
+    void SetTechnique(char const* pcTechnique) const;
+    bool TieToLocator(entid_t mdlEID, char const* pcLocName);
     void UnTieFromLocator();
     void EndEventProcess();
 
     void DrawIntoLocator();
 
-    void SetEventListener(entid_t mdlEID, entid_t mdlToTieEID, const char *pcLocName, const char *pcStartEvent,
-                          const char *pcEndEvent);
+    void    SetEventListener(entid_t mdlEID, entid_t mdlToTieEID, char const* pcLocName, char const* pcStartEvent, char const* pcEndEvent);
     entid_t GetModelEIDFromCharacterEID(entid_t chrEID);
 
-  protected: // data
-    bool m_bVisible;
+protected:  // data
+    bool    m_bVisible;
     entid_t m_eidModel;
-    MODEL *m_pModel;
+    MODEL*  m_pModel;
     CMatrix m_mtxpos;
 
-    bool m_bTieToLocator;
-    entid_t m_eidTieModel;
-    NODE *m_pMdlNode;
+    bool        m_bTieToLocator;
+    entid_t     m_eidTieModel;
+    NODE*       m_pMdlNode;
     std::string m_sTieLocName;
 
-    class EventListener : public AnimationEventListener
+    class EventListener: public AnimationEventListener
     {
-      public:
+    public:
         // Accept event
-        void Event(Animation *animation, int32_t playerIndex, const char *eventName) override;
+        void Event(Animation* animation, int32_t playerIndex, char const* eventName) override;
 
-        ItemEntity *item;
+        ItemEntity* item;
         std::string m_sStartEvent;
         std::string m_sEndEvent;
-        bool m_bStartWaiting;
-        entid_t m_eidListenedModel;
-        entid_t m_eidToTieModel;
+        bool        m_bStartWaiting;
+        entid_t     m_eidListenedModel;
+        entid_t     m_eidToTieModel;
         std::string m_sToTieLocator;
     };
 
     friend EventListener;
     EventListener m_eventListener;
 
-    VPARTICLE_SYSTEM *m_pParticle;
-    bool CreateParticle();
-    void DeleteParticle();
+    VPARTICLE_SYSTEM* m_pParticle;
+    bool              CreateParticle();
+    void              DeleteParticle();
 };

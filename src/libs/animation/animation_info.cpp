@@ -13,20 +13,19 @@
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 
-
 // ============================================================================================
 // Construction, destruction
 // ============================================================================================
 
-AnimationInfo::AnimationInfo(const char *animationName) : numFrames(0)
+AnimationInfo::AnimationInfo(char const* animationName) : numFrames(0)
 {
     Assert(strlen(animationName) < 64);
     strcpy_s(name, animationName);
-    bone = nullptr;
-    numBones = 0;
+    bone       = nullptr;
+    numBones   = 0;
     refCounter = 0;
-    downtime = 0;
-    fps = 15.0f;
+    downtime   = 0;
+    fps        = 15.0f;
 }
 
 AnimationInfo::~AnimationInfo()
@@ -40,17 +39,16 @@ void AnimationInfo::CreateBones(int32_t numbones)
     Assert(bone == nullptr || numBones == 0);
     Assert(numbones > 0 && numbones <= 256);
     numBones = numbones;
-    bone = new Bone[numBones];
+    bone     = new Bone[numBones];
 }
 
 // Create action
-ActionInfo *AnimationInfo::AddAction(const char *anctionName, int32_t startframe, int32_t endframe)
+ActionInfo* AnimationInfo::AddAction(char const* anctionName, int32_t startframe, int32_t endframe)
 {
     Assert(anctionName);
     // Looking for repetition
-    for (const auto &action : actions)
-        if (action == anctionName)
-            return nullptr;
+    for (auto const& action: actions)
+        if (action == anctionName) return nullptr;
 
     // It's okay - new action
     return &actions.emplace_back(anctionName, startframe, endframe);
@@ -61,16 +59,15 @@ ActionInfo *AnimationInfo::AddAction(const char *anctionName, int32_t startframe
 // --------------------------------------------------------------------------------------------
 
 // Compare with current name
-bool AnimationInfo::operator==(const char *animationName)
+bool AnimationInfo::operator==(char const* animationName)
 {
     return storm::iEquals(animationName, name);
 }
 
 // Find action by name
-ActionInfo *AnimationInfo::FindAction(const char *actionName)
+ActionInfo* AnimationInfo::FindAction(char const* actionName)
 {
-    for (auto &action : actions)
-        if (action == actionName)
-            return &action;
+    for (auto& action: actions)
+        if (action == actionName) return &action;
     return nullptr;
 }

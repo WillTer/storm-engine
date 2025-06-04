@@ -1,43 +1,36 @@
 #include <libs/util/utf8.h>
-#ifdef _WIN32 // S_DEBUG
+#ifdef _WIN32  // S_DEBUG
+#include <ShlObj.h>
+
 #include "compiler.h"
 #include "core_impl.h"
 #include "resource.h"
 #include "s_debug.h"
 #include "token.h"
-#include <ShlObj.h>
-
 
 LRESULT CALLBACK DebugWndProc(HWND, UINT, WPARAM, LPARAM);
 
 // #define PROJECT_NAME    "project.df"
-int FONT_HEIGHT = 15;
-const wchar_t *DClass = L"SEDebug";
+int            FONT_HEIGHT = 15;
+wchar_t const* DClass      = L"SEDebug";
 
 #define DBGWIN_WIDTH 900
 #define DBGWIN_HEIGHT 600
 
-extern S_DEBUG *CDebug;
-char filefilter[256] = {"Script file\0 *.c\0Any file\0*.*\0\0"};
+extern S_DEBUG* CDebug;
+char            filefilter[256] = {"Script file\0 *.c\0Any file\0*.*\0\0"};
 
 DWORD WINAPI BackgroundThreadProc(LPVOID lpParameter)
 {
-    if (CDebug->hMain == nullptr)
-        CDebug->OpenDebugWindow_NT(CDebug->hInst);
+    if (CDebug->hMain == nullptr) CDebug->OpenDebugWindow_NT(CDebug->hInst);
 
     MSG msg;
-    while (true)
-    {
-        if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
-        {
-            if (WM_QUIT == msg.message)
-            {
-                break;
-            }
+    while (true) {
+        if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE)) {
+            if (WM_QUIT == msg.message) { break; }
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-            if (CDebug->GetTraceMode() == TMODE_CLOSE)
-                break;
+            if (CDebug->GetTraceMode() == TMODE_CLOSE) break;
         }
     }
     CDebug->CloseDebugWindow();
@@ -54,43 +47,32 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
 {
     //    WORD wActive;
     //    bool bActive;
-    wchar_t BufferW[MAX_PATH];
-    wchar_t WinTextW[MAX_PATH];
+    wchar_t    BufferW[MAX_PATH];
+    wchar_t    WinTextW[MAX_PATH];
     BROWSEINFO bi;
 
-    if (CDebug->WatcherList)
-    {
-        CDebug->WatcherList->ProcessMessage(iMsg, wParam, lParam);
-    }
-    if (CDebug->SourceView)
-    {
-        CDebug->SourceView->ProcessMessage(iMsg, wParam, lParam);
-    }
+    if (CDebug->WatcherList) { CDebug->WatcherList->ProcessMessage(iMsg, wParam, lParam); }
+    if (CDebug->SourceView) { CDebug->SourceView->ProcessMessage(iMsg, wParam, lParam); }
 
-    switch (iMsg)
-    {
+    switch (iMsg) {
     case WM_COMMAND:
 
         HMENU hMenu;
         hMenu = GetMenu(CDebug->hMain);
-        if (hMenu)
-        {
+        if (hMenu) {
             MENUITEMINFO mii;
-            auto *const hFileSubMenu = GetSubMenu(hMenu, 0);
+            auto* const  hFileSubMenu = GetSubMenu(hMenu, 0);
 
-            for (uint32_t n = 0; n < static_cast<uint32_t>(GetMenuItemCount(hFileSubMenu)); n++)
-            {
-                if (GetMenuItemID(hFileSubMenu, n) == LOWORD(wParam))
-                {
-                    if (n < CDebug->nRFMOffset || n >= (CDebug->nRFMOffset + CDebug->nRecentFilesNum))
-                        continue;
+            for (uint32_t n = 0; n < static_cast<uint32_t>(GetMenuItemCount(hFileSubMenu)); n++) {
+                if (GetMenuItemID(hFileSubMenu, n) == LOWORD(wParam)) {
+                    if (n < CDebug->nRFMOffset || n >= (CDebug->nRFMOffset + CDebug->nRecentFilesNum)) continue;
 
-                    mii = {};
-                    mii.cbSize = sizeof(mii);
-                    mii.fMask = MIIM_TYPE;
-                    mii.fType = MFT_STRING;
+                    mii            = {};
+                    mii.cbSize     = sizeof(mii);
+                    mii.fMask      = MIIM_TYPE;
+                    mii.fType      = MFT_STRING;
                     mii.dwTypeData = BufferW;
-                    mii.cch = sizeof(BufferW);
+                    mii.cch        = sizeof(BufferW);
 
                     GetMenuItemInfo(hFileSubMenu, n, true, &mii);
 
@@ -106,40 +88,27 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             }
         }
 
-        switch (LOWORD(wParam))
-        {
-        case MENU_OPENFILE:
-            CDebug->OpenNewFile();
-            break;
-        case MENU_EXITDEBUG:
-            PostMessage(hwnd, WM_CLOSE, 0, 0);
-            return 0;
+        switch (LOWORD(wParam)) {
+        case MENU_OPENFILE: CDebug->OpenNewFile(); break;
+        case MENU_EXITDEBUG: PostMessage(hwnd, WM_CLOSE, 0, 0); return 0;
         case ID_FILE_CLOSEPROGRAM:
             core_internal.Exit();
             PostMessage(hwnd, WM_CLOSE, 0, 0);
             break;
-        case ID_OPTIONS_BREAKONVARIABLECHANGE:
-            CDebug->SourceView->VarChangeModal();
-            break;
+        case ID_OPTIONS_BREAKONVARIABLECHANGE: CDebug->SourceView->VarChangeModal(); break;
         case ID_VIEW_SOURCEVIEWER:
             CDebug->SetDbgDisplayMode(MODE_SOURCE_VIEW);
             // CheckMenuItem(?,
             break;
-        case ID_VIEW_ATTRIBUTEVIEWER:
-            CDebug->SetDbgDisplayMode(MODE_ATTRIBUTES_VIEW);
-            break;
+        case ID_VIEW_ATTRIBUTEVIEWER: CDebug->SetDbgDisplayMode(MODE_ATTRIBUTES_VIEW); break;
         case ID_OPTIONS_BREAKONERROR: {
             auto ini = fio->OpenIniFile(PROJECT_NAME);
-            if (!ini)
-                break;
-            if (ini->GetInt("options", "break_on_error", 0) == 1)
-            {
+            if (!ini) break;
+            if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), LOWORD(wParam), MF_UNCHECKED);
                 ini->WriteLong("options", "break_on_error", 0);
                 core_internal.Compiler->bBreakOnError = false;
-            }
-            else
-            {
+            } else {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), LOWORD(wParam), MF_CHECKED);
                 ini->WriteLong("options", "break_on_error", 1);
                 core_internal.Compiler->bBreakOnError = true;
@@ -148,23 +117,18 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         }
         case ID_FORMAT_DIALOG: {
             char Buffer[MAX_PATH];
-            if (CDebug->BrowseFileWP(Buffer, filefilter))
-            {
-                core_internal.Compiler->FormatDialog(Buffer);
-            }
-        }
-        break;
+            if (CDebug->BrowseFileWP(Buffer, filefilter)) { core_internal.Compiler->FormatDialog(Buffer); }
+        } break;
         case ID_FORMAT_ALLDIALOGS:
-            bi = {};
-            bi.hwndOwner = hwnd;
-            bi.pidlRoot = nullptr;
+            bi                = {};
+            bi.hwndOwner      = hwnd;
+            bi.pidlRoot       = nullptr;
             bi.pszDisplayName = BufferW;
-            bi.lpszTitle = TEXT("Select Dialog Folder");
-            bi.lpfn = nullptr;
-            bi.lParam = 0;
-            bi.iImage = 0;
-            if (SHGetPathFromIDList(SHBrowseForFolder(&bi), BufferW))
-            {
+            bi.lpszTitle      = TEXT("Select Dialog Folder");
+            bi.lpfn           = nullptr;
+            bi.lParam         = 0;
+            bi.iImage         = 0;
+            if (SHGetPathFromIDList(SHBrowseForFolder(&bi), BufferW)) {
                 std::string Buffer = utf8::ConvertWideToUtf8(BufferW);
                 core_internal.Compiler->FormatAllDialog(Buffer.c_str());
             }
@@ -172,14 +136,12 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         }
         break;
     case WM_SIZE:
-        if (CDebug->WatcherList)
-        {
+        if (CDebug->WatcherList) {
             CDebug->WatcherListRect.right = LOWORD(lParam);
             CDebug->WatcherList->SetPosition(CDebug->WatcherListRect);
         }
-        if (CDebug->SourceView)
-        {
-            CDebug->SourceViewRect.right = LOWORD(lParam);
+        if (CDebug->SourceView) {
+            CDebug->SourceViewRect.right  = LOWORD(lParam);
             CDebug->SourceViewRect.bottom = HIWORD(lParam);
             CDebug->SourceView->SetPosition(CDebug->SourceViewRect);
         }
@@ -198,17 +160,14 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
     //                ShowCursor(false);
         }*/
         break;
-    case WM_CLOSE:
-        CDebug->CloseDebugWindow();
-        return 0;
+    case WM_CLOSE: CDebug->CloseDebugWindow(); return 0;
     case WM_DESTROY:
         // CursorONOFF(false);
         break;
     case WM_CREATE: {
         // CursorONOFF(true);
 
-        if (CDebug->WatcherList)
-        {
+        if (CDebug->WatcherList) {
             GetClientRect(hwnd, &CDebug->WatcherListRect);
             CDebug->WatcherListRect.bottom = 199;
             // CDebug->WatcherListRect.right = LOWORD(lParam);
@@ -216,23 +175,18 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             CDebug->WatcherList->SetPosition(CDebug->WatcherListRect);
         }
 
-        if (CDebug->SourceView)
-        {
+        if (CDebug->SourceView) {
             GetClientRect(hwnd, &CDebug->SourceViewRect);
             CDebug->SourceViewRect.top = 200;
             CDebug->SourceView->SetPosition(CDebug->SourceViewRect);
         }
 
         auto ini = fio->OpenIniFile(PROJECT_NAME);
-        if (ini)
-        {
-            if (ini->GetInt("options", "break_on_error", 0) == 1)
-            {
+        if (ini) {
+            if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), ID_OPTIONS_BREAKONERROR, MF_CHECKED);
                 core_internal.Compiler->bBreakOnError = true;
-            }
-            else
-            {
+            } else {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), ID_OPTIONS_BREAKONERROR, MF_UNCHECKED);
                 core_internal.Compiler->bBreakOnError = false;
             }
@@ -240,8 +194,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
 
         break;
     }
-    case WM_SYSKEYDOWN:
-        return 1;
+    case WM_SYSKEYDOWN: return 1;
     case WM_SYSKEYUP:
         return 1;
 
@@ -283,18 +236,16 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
     return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
 
-void S_DEBUG::BreakOn(const char *filename, uint32_t line)
+void S_DEBUG::BreakOn(char const* filename, uint32_t line)
 {
     strcpy_s(BreakFileName, filename);
     BreakLineCode = line;
     ShowWindow(hMain, SW_NORMAL);
-    if (WatcherList)
-    {
+    if (WatcherList) {
         WatcherList->Refresh();
         InvalidateRect(WatcherList->GetWindowHandle(), nullptr, true);
     }
-    if (SourceView)
-    {
+    if (SourceView) {
         SourceView->OpenSourceFile(BreakFileName);
         // SourceView->SetActiveLine(BreakLineCode);
         char wintext[MAX_PATH];
@@ -308,12 +259,10 @@ void S_DEBUG::BreakOn(const char *filename, uint32_t line)
 S_DEBUG::~S_DEBUG()
 {
     CloseDebugWindow();
-    if (hFont)
-        DeleteObject(hFont);
+    if (hFont) DeleteObject(hFont);
     // if(pExpResBuffer) delete pExpResBuffer;
 
-    if (CDebug->hDebugThread)
-    {
+    if (CDebug->hDebugThread) {
         // DWORD dwExitCode;
         // GetExitCodeThread(CDebug->hDebugThread,&dwExitCode);
         // ExitThread(dwExitCode);
@@ -338,25 +287,37 @@ void S_DEBUG::Release()
 
 void S_DEBUG::Init()
 {
-    nDisplayMode = MODE_SOURCE_VIEW;
-    MainThreadID = GetCurrentThreadId();
-    BreakFileName[0] = 0;
-    BreakLineCode = 0;
-    hDebugThread = nullptr;
-    DebugThreadID = 0;
+    nDisplayMode        = MODE_SOURCE_VIEW;
+    MainThreadID        = GetCurrentThreadId();
+    BreakFileName[0]    = 0;
+    BreakLineCode       = 0;
+    hDebugThread        = nullptr;
+    DebugThreadID       = 0;
     ProgramDirectory[0] = 0;
-    sLastFileName[0] = 0;
-    hInst = nullptr;
-    hMain = nullptr;
-    WatcherList = nullptr;
-    SourceView = nullptr;
-    hFont = CreateFont(FONT_HEIGHT, 0, 0, 0,
-                       // FW_BOLD,
-                       FW_MEDIUM, false, false, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                       ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Courier New"));
+    sLastFileName[0]    = 0;
+    hInst               = nullptr;
+    hMain               = nullptr;
+    WatcherList         = nullptr;
+    SourceView          = nullptr;
+    hFont               = CreateFont(
+        FONT_HEIGHT,
+        0,
+        0,
+        0,
+        // FW_BOLD,
+        FW_MEDIUM,
+        false,
+        false,
+        false,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        ANTIALIASED_QUALITY,
+        VARIABLE_PITCH,
+        TEXT("Courier New"));
     //"arial");
     pExpResBuffer = nullptr;
-    bTrace = false;
+    bTrace        = false;
     Breaks.ReadProject(PROJECT_NAME);
 }
 
@@ -370,42 +331,49 @@ bool S_DEBUG::OpenDebugWindow(HINSTANCE hInstance)
 
 bool S_DEBUG::OpenDebugWindow_NT(HINSTANCE hInstance)
 {
-    if (hMain != nullptr)
-        return true;
+    if (hMain != nullptr) return true;
     // hInst =    hInstance;
 
     WNDCLASSEX wndclass;
 
-    wndclass.cbSize = sizeof(wndclass);
-    wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-    wndclass.lpfnWndProc = DebugWndProc;
-    wndclass.cbClsExtra = 0;
-    wndclass.cbWndExtra = sizeof(uint16_t);
-    wndclass.hInstance = hInstance;
-    wndclass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-    wndclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wndclass.cbSize        = sizeof(wndclass);
+    wndclass.style         = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+    wndclass.lpfnWndProc   = DebugWndProc;
+    wndclass.cbClsExtra    = 0;
+    wndclass.cbWndExtra    = sizeof(uint16_t);
+    wndclass.hInstance     = hInstance;
+    wndclass.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
+    wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
     wndclass.hbrBackground = static_cast<HBRUSH>(GetStockObject(LTGRAY_BRUSH));
-    wndclass.lpszMenuName = TEXT("DebugMenu"); // NULL;
+    wndclass.lpszMenuName  = TEXT("DebugMenu");  // NULL;
     wndclass.lpszClassName = DClass;
-    wndclass.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+    wndclass.hIconSm       = LoadIcon(nullptr, IDI_APPLICATION);
     RegisterClassEx(&wndclass);
 
-    const int32_t xs = GetSystemMetrics(SM_CXSCREEN);
-    const int32_t ys = GetSystemMetrics(SM_CYSCREEN);
+    int32_t const xs = GetSystemMetrics(SM_CXSCREEN);
+    int32_t const ys = GetSystemMetrics(SM_CYSCREEN);
     // MoveWindow(hMain,(xs - DBGWIN_WIDTH)/2,(ys - DBGWIN_HEIGHT)/2,DBGWIN_WIDTH,DBGWIN_HEIGHT,false);
 
-    hMain = CreateWindow(DClass, DClass,
-                         // WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_OVERLAPPED|WS_VISIBLE,
-                         WS_POPUP | WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, xs, ys,
-                         //(xs - DBGWIN_WIDTH)/2,(ys - DBGWIN_HEIGHT)/2,DBGWIN_WIDTH,DBGWIN_HEIGHT,
-                         NULL, NULL, hInstance, NULL);
+    hMain = CreateWindow(
+        DClass,
+        DClass,
+        // WS_POPUP|WS_SYSMENU|WS_CAPTION|WS_OVERLAPPED|WS_VISIBLE,
+        WS_POPUP | WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        0,
+        0,
+        xs,
+        ys,
+        //(xs - DBGWIN_WIDTH)/2,(ys - DBGWIN_HEIGHT)/2,DBGWIN_WIDTH,DBGWIN_HEIGHT,
+        NULL,
+        NULL,
+        hInstance,
+        NULL);
 
     ShowWindow(hMain, SW_NORMAL);
 
     MoveWindow(hMain, 0, 0, xs, ys - 32, false);
 
-    if (hMain == nullptr)
-        return false;
+    if (hMain == nullptr) return false;
 
     ProcessRegistry_Open();
 
@@ -438,21 +406,20 @@ bool S_DEBUG::OpenDebugWindow_NT(HINSTANCE hInstance)
     */
 
     InvalidateRect(nullptr, nullptr, 0);
-    WatcherListRect.left = 0;
-    WatcherListRect.top = 0;
-    WatcherListRect.right = DBGWIN_WIDTH;
-    WatcherListRect.bottom = 199; // DBGWIN_HEIGHT;
-    SourceViewRect.left = 0;
-    SourceViewRect.top = 200;
-    SourceViewRect.bottom = DBGWIN_HEIGHT;
-    SourceViewRect.right = DBGWIN_WIDTH;
+    WatcherListRect.left   = 0;
+    WatcherListRect.top    = 0;
+    WatcherListRect.right  = DBGWIN_WIDTH;
+    WatcherListRect.bottom = 199;  // DBGWIN_HEIGHT;
+    SourceViewRect.left    = 0;
+    SourceViewRect.top     = 200;
+    SourceViewRect.bottom  = DBGWIN_HEIGHT;
+    SourceViewRect.right   = DBGWIN_WIDTH;
 
     delete WatcherList;
     WatcherList = nullptr;
 
     WatcherList = new WATCHER_LIST(hMain, hInstance);
-    if (WatcherList)
-    {
+    if (WatcherList) {
         SendMessage(WatcherList->GetWindowHandle(), WM_SETFONT, (WPARAM)hFont, 0);
         WatcherList->SetFont(hFont);
     }
@@ -460,41 +427,35 @@ bool S_DEBUG::OpenDebugWindow_NT(HINSTANCE hInstance)
     SourceView = nullptr;
 
     SourceView = new SOURCE_VIEW(hMain, hInstance);
-    if (SourceView)
-    {
+    if (SourceView) {
         SourceView->SetFont(hFont);
         SourceView->SetProgramDirectory(ProgramDirectory);
     }
 
-    if (WatcherList)
-    {
+    if (WatcherList) {
         GetClientRect(hMain, &WatcherListRect);
         WatcherListRect.bottom = 199;
         WatcherList->SetPosition(WatcherListRect);
     }
 
-    if (SourceView)
-    {
+    if (SourceView) {
         GetClientRect(hMain, &SourceViewRect);
         SourceViewRect.top = 200;
         // SourceViewRect.bottom -= FONT_HEIGHT;
         SourceView->SetPosition(SourceViewRect);
-        if (BreakFileName[0] != 0)
-        {
+        if (BreakFileName[0] != 0) {
             SourceView->OpenSourceFile(BreakFileName);
             SourceView->SetActiveLine(BreakLineCode);
         }
     }
-    if (sLastFileName[0] != 0)
-        SourceView->OpenSourceFile(sLastFileName);
+    if (sLastFileName[0] != 0) SourceView->OpenSourceFile(sLastFileName);
 
     return true;
 }
 
 void S_DEBUG::CloseDebugWindow()
 {
-    if (hMain)
-        DestroyWindow(hMain);
+    if (hMain) DestroyWindow(hMain);
     hMain = nullptr;
     delete WatcherList;
     WatcherList = nullptr;
@@ -506,34 +467,29 @@ void S_DEBUG::CloseDebugWindow()
 
 bool S_DEBUG::IsDebug()
 {
-    if (hMain)
-        return true;
+    if (hMain) return true;
     return false;
 }
 
-bool S_DEBUG::SetOnDebugExpression(const char *pLValue, const char *pRValue)
+bool S_DEBUG::SetOnDebugExpression(char const* pLValue, char const* pRValue)
 {
     DATA Result;
     //    char * pC;
     Result.SetVCompiler(core_internal.Compiler);
-    if (core_internal.Compiler->SetOnDebugExpression(pLValue, pRValue, Result))
-        return true;
+    if (core_internal.Compiler->SetOnDebugExpression(pLValue, pRValue, Result)) return true;
     return false;
 }
 
-const char *S_DEBUG::ProcessExpression(const char *pExpression)
+char const* S_DEBUG::ProcessExpression(char const* pExpression)
 {
-    if (!pExpression || !strlen(pExpression))
-        return "";
-    DATA Result;
-    const char *pC;
+    if (!pExpression || !strlen(pExpression)) return "";
+    DATA        Result;
+    char const* pC;
     Result.SetVCompiler(core_internal.Compiler);
-    if (core_internal.Compiler->ProcessDebugExpression(pExpression, Result))
-    {
+    if (core_internal.Compiler->ProcessDebugExpression(pExpression, Result)) {
         Result.Convert(VAR_STRING);
-        if (Result.Get(pC))
-        {
-            const auto len = strlen(pC) + 1;
+        if (Result.Get(pC)) {
+            auto const len = strlen(pC) + 1;
             delete[] pExpResBuffer;
             pExpResBuffer = new char[len];
             memcpy(pExpResBuffer, pC, len);
@@ -543,45 +499,41 @@ const char *S_DEBUG::ProcessExpression(const char *pExpression)
     return "Invalid Expression";
 }
 
-uint32_t S_DEBUG::GetLineStatus(const char *_pFileName, uint32_t _linecode)
+uint32_t S_DEBUG::GetLineStatus(char const* _pFileName, uint32_t _linecode)
 {
     // nDebugTraceLineCode
     if (core_internal.Compiler->pRun_fi && !core_internal.Compiler->pRun_fi->decl_file_name.empty())
-        if (storm::iEquals(core_internal.Compiler->pRun_fi->decl_file_name, _pFileName))
-        {
-            if (_linecode == core_internal.Compiler->nDebugTraceLineCode)
-                return LST_CONTROL;
+        if (storm::iEquals(core_internal.Compiler->pRun_fi->decl_file_name, _pFileName)) {
+            if (_linecode == core_internal.Compiler->nDebugTraceLineCode) return LST_CONTROL;
         }
-    if (Breaks.Find(_pFileName, _linecode))
-        return LST_BREAKPOINT;
+    if (Breaks.Find(_pFileName, _linecode)) return LST_BREAKPOINT;
     return LST_NORMAL;
     // if(_linecode == 100) return LST_BREAKPOINT;
     // return LST_NORMAL;
 }
 
-bool S_DEBUG::BrowseFile(char *buffer, const char *filter)
+bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
 {
-    auto DirectoryName = fio->_GetCurrentDirectory();
-    wchar_t FilenameW[MAX_PATH];
-    OPENFILENAME ofn{};
-    FilenameW[0] = 0;
+    auto         DirectoryName = fio->_GetCurrentDirectory();
+    wchar_t      FilenameW[MAX_PATH];
+    OPENFILENAME ofn {};
+    FilenameW[0]         = 0;
     std::wstring FilterW = utf8::ConvertUtf8ToWide(filter);
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hInstance = hInst;
-    ofn.hwndOwner = hMain;
-    ofn.lpstrFilter = FilterW.c_str();
-    ofn.nFilterIndex = 1;
-    ofn.Flags = OFN_FILEMUSTEXIST;
-    ofn.lpstrFile = FilenameW;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrDefExt = FilterW.c_str();
-    ofn.lpstrTitle = TEXT("Open script source file");
-    const auto bRes = GetOpenFileName(&ofn);
+    ofn.lStructSize      = sizeof(ofn);
+    ofn.hInstance        = hInst;
+    ofn.hwndOwner        = hMain;
+    ofn.lpstrFilter      = FilterW.c_str();
+    ofn.nFilterIndex     = 1;
+    ofn.Flags            = OFN_FILEMUSTEXIST;
+    ofn.lpstrFile        = FilenameW;
+    ofn.nMaxFile         = MAX_PATH;
+    ofn.lpstrDefExt      = FilterW.c_str();
+    ofn.lpstrTitle       = TEXT("Open script source file");
+    auto const bRes      = GetOpenFileName(&ofn);
     fio->_SetCurrentDirectory(DirectoryName.c_str());
-    if (bRes)
-    {
+    if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
-        DirectoryName = DirectoryName + "\\" + ProgramDirectory + "\\";
+        DirectoryName        = DirectoryName + "\\" + ProgramDirectory + "\\";
         strcpy_s(buffer, MAX_PATH, Filename.c_str() + strlen(DirectoryName.c_str()));
         //    strcpy_s(buffer,MAX_PATH, file_name + strlen(DirectoryName));
         // strcpy_s(buffer,file_name);
@@ -590,27 +542,26 @@ bool S_DEBUG::BrowseFile(char *buffer, const char *filter)
     return false;
 }
 
-bool S_DEBUG::BrowseFileWP(char *buffer, const char *filter)
+bool S_DEBUG::BrowseFileWP(char* buffer, char const* filter)
 {
-    auto DirectoryName = fio->_GetCurrentDirectory();
-    wchar_t FilenameW[MAX_PATH];
-    OPENFILENAME ofn{};
-    FilenameW[0] = 0;
+    auto         DirectoryName = fio->_GetCurrentDirectory();
+    wchar_t      FilenameW[MAX_PATH];
+    OPENFILENAME ofn {};
+    FilenameW[0]         = 0;
     std::wstring FilterW = utf8::ConvertUtf8ToWide(filter);
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hInstance = hInst;
-    ofn.hwndOwner = hMain;
-    ofn.lpstrFilter = FilterW.c_str();
-    ofn.nFilterIndex = 1;
-    ofn.Flags = OFN_FILEMUSTEXIST;
-    ofn.lpstrFile = FilenameW;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrDefExt = FilterW.c_str();
-    ofn.lpstrTitle = TEXT("Open script source file");
-    const auto bRes = GetOpenFileName(&ofn);
+    ofn.lStructSize      = sizeof(ofn);
+    ofn.hInstance        = hInst;
+    ofn.hwndOwner        = hMain;
+    ofn.lpstrFilter      = FilterW.c_str();
+    ofn.nFilterIndex     = 1;
+    ofn.Flags            = OFN_FILEMUSTEXIST;
+    ofn.lpstrFile        = FilenameW;
+    ofn.nMaxFile         = MAX_PATH;
+    ofn.lpstrDefExt      = FilterW.c_str();
+    ofn.lpstrTitle       = TEXT("Open script source file");
+    auto const bRes      = GetOpenFileName(&ofn);
     fio->_SetCurrentDirectory(DirectoryName.c_str());
-    if (bRes)
-    {
+    if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
         strcpy_s(buffer, MAX_PATH, Filename.c_str());
         return true;
@@ -618,13 +569,11 @@ bool S_DEBUG::BrowseFileWP(char *buffer, const char *filter)
     return false;
 }
 
-void S_DEBUG::SetProgramDirectory(const char *dir_name)
+void S_DEBUG::SetProgramDirectory(char const* dir_name)
 {
-    if (dir_name)
-    {
+    if (dir_name) {
         strcpy_s(ProgramDirectory, dir_name);
-        if (SourceView)
-            SourceView->SetProgramDirectory(dir_name);
+        if (SourceView) SourceView->SetProgramDirectory(dir_name);
     }
 }
 
@@ -648,8 +597,7 @@ void S_DEBUG::SetTraceMode(uint32_t tmode)
     //    DWORD dwExitCode;
     nTraceMode = tmode;
     //    DWORD nRes;
-    switch (nTraceMode)
-    {
+    switch (nTraceMode) {
     case TMODE_WAIT:
         /*if(hDebugThread) break;
         hDebugThread = CreateThread(0,0,BackgroundThreadProc,0,0,&DebugThreadID);
@@ -669,59 +617,45 @@ void S_DEBUG::SetTraceMode(uint32_t tmode)
 
 void S_DEBUG::SetDbgDisplayMode(DBG_DISPLAY_MODE mode)
 {
-    if (nDisplayMode == mode)
-        return;
-    switch (mode)
-    {
-    case MODE_SOURCE_VIEW:
-
-        break;
-    case MODE_ATTRIBUTES_VIEW:
-
-        break;
+    if (nDisplayMode == mode) return;
+    switch (mode) {
+    case MODE_SOURCE_VIEW: break;
+    case MODE_ATTRIBUTES_VIEW: break;
     }
 }
 
 #define RECENT_FILES_MAX 8
 #define ID_RECENTFILE_OFFSET 5000
 
-void S_DEBUG::Add2RecentFiles(const char *pFileName)
+void S_DEBUG::Add2RecentFiles(const char* pFileName)
 {
-    HKEY hKey;
-    char buffer[MAX_PATH];
-    wchar_t knW[MAX_PATH];
-    bool bAdd;
-    uint32_t dwSize;
-    HMENU hMenu;
-    HMENU hFileSubMenu;
+    HKEY         hKey;
+    char         buffer[MAX_PATH];
+    wchar_t      knW[MAX_PATH];
+    bool         bAdd;
+    uint32_t     dwSize;
+    HMENU        hMenu;
+    HMENU        hFileSubMenu;
     MENUITEMINFO mii;
 
-    if (pFileName == nullptr)
-        return;
+    if (pFileName == nullptr) return;
 
     if (nRecentFilesNum >= RECENT_FILES_MAX)
         bAdd = false;
     else
         bAdd = true;
 
-    if (nRecentFilesIndex >= RECENT_FILES_MAX)
-    {
-        nRecentFilesIndex = 0;
-    }
+    if (nRecentFilesIndex >= RECENT_FILES_MAX) { nRecentFilesIndex = 0; }
     RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), 0, KEY_ALL_ACCESS, &hKey);
     if (!hKey)
-        if (RegCreateKey(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), &hKey) != ERROR_SUCCESS)
-            return;
+        if (RegCreateKey(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), &hKey) != ERROR_SUCCESS) return;
 
-    for (uint32_t n = 0; n < nRecentFilesNum; n++)
-    {
+    for (uint32_t n = 0; n < nRecentFilesNum; n++) {
         wsprintf(knW, L"file%d", n);
-        dwSize = sizeof(buffer);
+        dwSize    = sizeof(buffer);
         buffer[0] = 0;
-        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char *)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS)
-        {
-            if (storm::iEquals(buffer, pFileName))
-            {
+        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char*)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS) {
+            if (storm::iEquals(buffer, pFileName)) {
                 // already in recent files list
                 RegCloseKey(hKey);
                 return;
@@ -730,22 +664,20 @@ void S_DEBUG::Add2RecentFiles(const char *pFileName)
     }
 
     wsprintf(knW, L"file%d", nRecentFilesIndex);
-    RegSetValueEx(hKey, knW, 0, REG_SZ, (const unsigned char *)pFileName, strlen(pFileName) + 1);
+    RegSetValueEx(hKey, knW, 0, REG_SZ, (unsigned char const*)pFileName, strlen(pFileName) + 1);
 
-    if (!bAdd)
-    {
+    if (!bAdd) {
         hMenu = GetMenu(hMain);
-        if (hMenu)
-        {
+        if (hMenu) {
             std::wstring FileNameW = utf8::ConvertUtf8ToWide(pFileName);
-            hFileSubMenu = GetSubMenu(hMenu, 0);
-            mii = {};
-            mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_TYPE | MIIM_ID;
-            mii.fType = MFT_STRING;
-            mii.dwTypeData = const_cast<wchar_t *>(FileNameW.c_str());
-            mii.cch = FileNameW.length() + 1;
-            mii.wID = ID_RECENTFILE_OFFSET + nRecentFilesIndex;
+            hFileSubMenu           = GetSubMenu(hMenu, 0);
+            mii                    = {};
+            mii.cbSize             = sizeof(mii);
+            mii.fMask              = MIIM_TYPE | MIIM_ID;
+            mii.fType              = MFT_STRING;
+            mii.dwTypeData         = const_cast<wchar_t*>(FileNameW.c_str());
+            mii.cch                = FileNameW.length() + 1;
+            mii.wID                = ID_RECENTFILE_OFFSET + nRecentFilesIndex;
             SetMenuItemInfo(hFileSubMenu, nRFMOffset + nRecentFilesIndex, true, &mii);
         }
     }
@@ -753,32 +685,28 @@ void S_DEBUG::Add2RecentFiles(const char *pFileName)
     nRecentFilesIndex++;
     // RegSetValueEx(hKey,"Recent Files Index",0,REG_DWORD,(const unsigned char *)&nRecentFilesIndex,sizeof(DWORD));
 
-    if (bAdd && (nRecentFilesNum < RECENT_FILES_MAX))
-    {
+    if (bAdd && (nRecentFilesNum < RECENT_FILES_MAX)) {
         nRecentFilesNum++;
-        RegSetValueEx(hKey, TEXT("Recent Files Num"), 0, REG_DWORD, (const unsigned char *)&nRecentFilesNum,
-                      sizeof(uint32_t));
+        RegSetValueEx(hKey, TEXT("Recent Files Num"), 0, REG_DWORD, (unsigned char const*)&nRecentFilesNum, sizeof(uint32_t));
 
         hMenu = GetMenu(hMain);
-        if (hMenu)
-        {
+        if (hMenu) {
             std::wstring FileNameW = utf8::ConvertUtf8ToWide(pFileName);
-            hFileSubMenu = GetSubMenu(hMenu, 0);
-            mii = {};
-            mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_TYPE | MIIM_ID;
-            mii.fType = MFT_STRING;
-            mii.dwTypeData = const_cast<wchar_t *>(FileNameW.c_str());
-            mii.cch = FileNameW.length() + 1;
-            mii.wID = ID_RECENTFILE_OFFSET + nRecentFilesNum - 1;
+            hFileSubMenu           = GetSubMenu(hMenu, 0);
+            mii                    = {};
+            mii.cbSize             = sizeof(mii);
+            mii.fMask              = MIIM_TYPE | MIIM_ID;
+            mii.fType              = MFT_STRING;
+            mii.dwTypeData         = const_cast<wchar_t*>(FileNameW.c_str());
+            mii.cch                = FileNameW.length() + 1;
+            mii.wID                = ID_RECENTFILE_OFFSET + nRecentFilesNum - 1;
             InsertMenuItem(hFileSubMenu, nRFMOffset, true, &mii);
         }
-        if (nRecentFilesNum == 1)
-        {
-            mii = {};
+        if (nRecentFilesNum == 1) {
+            mii        = {};
             mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_TYPE;
-            mii.fType = MFT_SEPARATOR;
+            mii.fMask  = MIIM_TYPE;
+            mii.fType  = MFT_SEPARATOR;
             InsertMenuItem(hFileSubMenu, MENU_EXITDEBUG, false, &mii);
         }
     }
@@ -788,9 +716,9 @@ void S_DEBUG::Add2RecentFiles(const char *pFileName)
 
 bool S_DEBUG::ProcessRegistry_Open()
 {
-    HKEY hKey;
-    char buffer[MAX_PATH];
-    wchar_t knW[MAX_PATH];
+    HKEY     hKey;
+    char     buffer[MAX_PATH];
+    wchar_t  knW[MAX_PATH];
     uint32_t dwSize;
     uint32_t n;
 
@@ -798,17 +726,13 @@ bool S_DEBUG::ProcessRegistry_Open()
 
     RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), 0, KEY_ALL_ACCESS, &hKey);
     if (!hKey)
-        if (RegCreateKey(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), &hKey) != ERROR_SUCCESS)
-            return false;
+        if (RegCreateKey(HKEY_CURRENT_USER, TEXT("SDIIDEBUGGER"), &hKey) != ERROR_SUCCESS) return false;
 
-    dwSize = sizeof(uint32_t);
-    const auto nRes = RegQueryValueEx(hKey, TEXT("Recent Files Num"), nullptr, nullptr,
-                                      (unsigned char *)&nRecentFilesNum, (LPDWORD)&dwSize);
-    if (nRes != ERROR_SUCCESS)
-    {
+    dwSize          = sizeof(uint32_t);
+    auto const nRes = RegQueryValueEx(hKey, TEXT("Recent Files Num"), nullptr, nullptr, (unsigned char*)&nRecentFilesNum, (LPDWORD)&dwSize);
+    if (nRes != ERROR_SUCCESS) {
         // write default value
-        RegSetValueEx(hKey, TEXT("Recent Files Num"), 0, REG_DWORD, (const unsigned char *)&nRecentFilesNum,
-                      sizeof(uint32_t));
+        RegSetValueEx(hKey, TEXT("Recent Files Num"), 0, REG_DWORD, (unsigned char const*)&nRecentFilesNum, sizeof(uint32_t));
     }
 
     if (nRecentFilesNum < RECENT_FILES_MAX)
@@ -825,47 +749,42 @@ bool S_DEBUG::ProcessRegistry_Open()
       }
     */
 
-    auto *const hMenu = GetMenu(hMain);
-    if (hMenu)
-    {
+    auto* const hMenu = GetMenu(hMain);
+    if (hMenu) {
         MENUITEMINFO mii;
-        const HMENU hFileSubMenu = GetSubMenu(hMenu, 0);
+        const HMENU  hFileSubMenu = GetSubMenu(hMenu, 0);
 
-        for (n = 0; n < static_cast<uint32_t>(GetMenuItemCount(hFileSubMenu)); n++)
-        {
-            if (GetMenuItemID(hFileSubMenu, n) == MENU_EXITDEBUG)
-            {
+        for (n = 0; n < static_cast<uint32_t>(GetMenuItemCount(hFileSubMenu)); n++) {
+            if (GetMenuItemID(hFileSubMenu, n) == MENU_EXITDEBUG) {
                 nRFMOffset = n;
                 break;
             }
         }
 
-        for (n = 0; n < nRecentFilesNum; n++)
-        {
+        for (n = 0; n < nRecentFilesNum; n++) {
             wsprintf(knW, L"file%d", n);
-            dwSize = sizeof(buffer);
+            dwSize    = sizeof(buffer);
             buffer[0] = 0;
-            RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char *)buffer, (LPDWORD)&dwSize);
+            RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char*)buffer, (LPDWORD)&dwSize);
 
             std::wstring BufferW = utf8::ConvertUtf8ToWide(buffer);
 
-            mii = {};
-            mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_TYPE | MIIM_ID;
-            mii.fType = MFT_STRING;
-            mii.dwTypeData = const_cast<wchar_t *>(BufferW.c_str());
-            mii.cch = BufferW.length() + 1;
-            mii.wID = ID_RECENTFILE_OFFSET + n;
+            mii            = {};
+            mii.cbSize     = sizeof(mii);
+            mii.fMask      = MIIM_TYPE | MIIM_ID;
+            mii.fType      = MFT_STRING;
+            mii.dwTypeData = const_cast<wchar_t*>(BufferW.c_str());
+            mii.cch        = BufferW.length() + 1;
+            mii.wID        = ID_RECENTFILE_OFFSET + n;
             // InsertMenuItem(hFileSubMenu,MENU_EXITDEBUG,false,&mii);
             InsertMenuItem(hFileSubMenu, nRFMOffset, true, &mii);
         }
 
-        if (nRecentFilesNum)
-        {
-            mii = {};
+        if (nRecentFilesNum) {
+            mii        = {};
             mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_TYPE;
-            mii.fType = MFT_SEPARATOR;
+            mii.fMask  = MIIM_TYPE;
+            mii.fType  = MFT_SEPARATOR;
             InsertMenuItem(hFileSubMenu, MENU_EXITDEBUG, false, &mii);
         }
     }
@@ -874,37 +793,30 @@ bool S_DEBUG::ProcessRegistry_Open()
     return true;
 }
 
-int32_t S_DEBUG::GetRecentFileALine(const char *pFileName)
+int32_t S_DEBUG::GetRecentFileALine(char const* pFileName)
 {
-    HKEY hKey;
-    char buffer[MAX_PATH];
+    HKEY    hKey;
+    char    buffer[MAX_PATH];
     wchar_t knW[MAX_PATH];
 
     uint32_t dwSize;
     uint32_t dwLine;
 
-    if (pFileName == nullptr)
-        return 0;
+    if (pFileName == nullptr) return 0;
 
     RegOpenKeyEx(HKEY_CURRENT_USER, L"SDIIDEBUGGER", 0, KEY_ALL_ACCESS, &hKey);
-    if (!hKey)
-        return 0;
+    if (!hKey) return 0;
 
-    for (uint32_t n = 0; n < nRecentFilesNum; n++)
-    {
+    for (uint32_t n = 0; n < nRecentFilesNum; n++) {
         wsprintf(knW, L"file%d", n);
-        dwSize = sizeof(buffer);
+        dwSize    = sizeof(buffer);
         buffer[0] = 0;
-        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char *)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS)
-        {
-            if (storm::iEquals(buffer, pFileName))
-            {
+        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char*)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS) {
+            if (storm::iEquals(buffer, pFileName)) {
                 wsprintf(knW, L"line%d", n);
 
                 dwSize = sizeof(uint32_t);
-                if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char *)&dwLine, (LPDWORD)&dwSize) ==
-                    ERROR_SUCCESS)
-                {
+                if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char*)&dwLine, (LPDWORD)&dwSize) == ERROR_SUCCESS) {
                     RegCloseKey(hKey);
                     return dwLine;
                 }
@@ -917,32 +829,27 @@ int32_t S_DEBUG::GetRecentFileALine(const char *pFileName)
     return 0;
 }
 
-void S_DEBUG::SaveRecentFileALine(const char *pFileName, int32_t nLine)
+void S_DEBUG::SaveRecentFileALine(char const* pFileName, int32_t nLine)
 {
-    HKEY hKey;
-    char buffer[MAX_PATH];
-    wchar_t knW[MAX_PATH];
+    HKEY     hKey;
+    char     buffer[MAX_PATH];
+    wchar_t  knW[MAX_PATH];
     uint32_t dwSize;
 
-    if (pFileName == nullptr)
-        return;
+    if (pFileName == nullptr) return;
 
     RegOpenKeyEx(HKEY_CURRENT_USER, L"SDIIDEBUGGER", 0, KEY_ALL_ACCESS, &hKey);
     if (!hKey)
-        if (RegCreateKey(HKEY_CURRENT_USER, L"SDIIDEBUGGER", &hKey) != ERROR_SUCCESS)
-            return;
+        if (RegCreateKey(HKEY_CURRENT_USER, L"SDIIDEBUGGER", &hKey) != ERROR_SUCCESS) return;
 
-    for (uint32_t n = 0; n < nRecentFilesNum; n++)
-    {
+    for (uint32_t n = 0; n < nRecentFilesNum; n++) {
         wsprintf(knW, L"file%d", n);
-        dwSize = sizeof(buffer);
+        dwSize    = sizeof(buffer);
         buffer[0] = 0;
-        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char *)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS)
-        {
-            if (storm::iEquals(buffer, pFileName))
-            {
+        if (RegQueryValueEx(hKey, knW, nullptr, nullptr, (unsigned char*)buffer, (LPDWORD)&dwSize) == ERROR_SUCCESS) {
+            if (storm::iEquals(buffer, pFileName)) {
                 wsprintf(knW, L"line%d", n);
-                RegSetValueEx(hKey, knW, 0, REG_DWORD, (const unsigned char *)&nLine, sizeof(uint32_t));
+                RegSetValueEx(hKey, knW, 0, REG_DWORD, (unsigned char const*)&nLine, sizeof(uint32_t));
                 RegCloseKey(hKey);
                 return;
             }
@@ -954,8 +861,7 @@ void S_DEBUG::SaveRecentFileALine(const char *pFileName, int32_t nLine)
 void S_DEBUG::OpenNewFile()
 {
     char buffer[1024], wintext[1024];
-    if (CDebug->BrowseFile(buffer, filefilter))
-    {
+    if (CDebug->BrowseFile(buffer, filefilter)) {
         strcpy_s(CDebug->sLastFileName, buffer);
         CDebug->SourceView->OpenSourceFile(buffer);
         sprintf_s(wintext, "SDebug - %s", buffer);
@@ -964,4 +870,4 @@ void S_DEBUG::OpenNewFile()
         CDebug->Add2RecentFiles(buffer);
     }
 }
-#endif // S_DEBUG
+#endif  // S_DEBUG

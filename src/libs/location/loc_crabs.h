@@ -7,16 +7,15 @@
 #include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
-
 #include "loc_crab.h"
 
-class LocCrabs : public Entity
+class LocCrabs: public Entity
 {
-  public:
+public:
     LocCrabs();
     ~LocCrabs() override;
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Initialization
     bool Init() override;
     // Execution
@@ -26,11 +25,8 @@ class LocCrabs : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -42,10 +38,10 @@ class LocCrabs : public Entity
     }
 
     // Messages
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     //--------------------------------------------------------------------------------------------
-  private:
+private:
     LocCrab crab[32];
     int32_t num;
 };

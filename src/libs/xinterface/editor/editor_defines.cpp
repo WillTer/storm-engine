@@ -2,14 +2,12 @@
 
 #include <cstdint>
 
-void GIEditorObject::LinkEvent(GIEditorEventHandler *pEventHandler, const GIEditorEvent &pEventFunction)
+void GIEditorObject::LinkEvent(GIEditorEventHandler* pEventHandler, GIEditorEvent const& pEventFunction)
 {
     pEventHandler->AddEventFunction(this, pEventFunction);
 }
 
-GIEditorEventHandler::GIEditorEventHandler()
-{
-}
+GIEditorEventHandler::GIEditorEventHandler() {}
 
 GIEditorEventHandler::~GIEditorEventHandler()
 {
@@ -18,14 +16,13 @@ GIEditorEventHandler::~GIEditorEventHandler()
 
 bool GIEditorEventHandler::Execute()
 {
-    for (int32_t n = 0; n < m_aEventFuncs.size(); n++)
-    {
+    for (int32_t n = 0; n < m_aEventFuncs.size(); n++) {
         (m_aEventFuncs[n].pObj->*m_aEventFuncs[n].func)();
     }
     return true;
 }
 
-void GIEditorEventHandler::AddEventFunction(GIEditorObject *pObj, const GIEditorEvent &pEventFunction)
+void GIEditorEventHandler::AddEventFunction(GIEditorObject* pObj, GIEditorEvent const& pEventFunction)
 {
     FuncDescr fd;
     fd.pObj = pObj;

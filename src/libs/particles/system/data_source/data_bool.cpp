@@ -11,9 +11,7 @@ DataBool::DataBool()
     Value = false;
 }
 
-DataBool::~DataBool()
-{
-}
+DataBool::~DataBool() {}
 
 // Get value
 bool DataBool::GetValue() const
@@ -27,14 +25,14 @@ void DataBool::SetValue(bool val)
     Value = val;
 }
 
-void DataBool::Load(MemFile *File)
+void DataBool::Load(MemFile* File)
 {
     uint32_t dwValue = 0;
     File->ReadType(dwValue);
     SetValue(dwValue);
 
     static char AttribueName[128];
-    uint32_t NameLength = 0;
+    uint32_t    NameLength = 0;
     File->ReadType(NameLength);
     Assert(NameLength < 128);
     File->Read(AttribueName, NameLength);
@@ -42,25 +40,25 @@ void DataBool::Load(MemFile *File)
     SetName(AttribueName);
 }
 
-void DataBool::SetName(const char *szName)
+void DataBool::SetName(char const* szName)
 {
     // core.Trace("DataBool::SetName - '%s'", szName);
     Name = szName;
 }
 
-const char *DataBool::GetName() const
+char const* DataBool::GetName() const
 {
     return Name.c_str();
 }
 
-void DataBool::Write(MemFile *File) const
+void DataBool::Write(MemFile* File) const
 {
     uint32_t dwValue = GetValue();
     File->WriteType(dwValue);
 
     // save name
-    const uint32_t NameLength = Name.size();
-    auto NameLengthPlusZero = NameLength + 1;
+    uint32_t const NameLength         = Name.size();
+    auto           NameLengthPlusZero = NameLength + 1;
     File->WriteType(NameLengthPlusZero);
     Assert(NameLength < 128);
     File->Write(Name.c_str(), NameLength);

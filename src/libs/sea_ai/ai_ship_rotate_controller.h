@@ -3,7 +3,6 @@
 #include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
-
 // ============================================================================
 // master class AIShipRotateController
 // Contain base virtual functions
@@ -12,14 +11,14 @@ class AIShip;
 
 class AIShipRotateController
 {
-  private:
-    AIShip *pOurAIShip; // our AI ship pointer
+private:
+    AIShip* pOurAIShip;  // our AI ship pointer
 
     uint32_t dwRotateNum;
-    float fRotateMode, fRotateTime, fRotateSmooth, fRotate;
-    float fGlobalMultiply;
+    float    fRotateMode, fRotateTime, fRotateSmooth, fRotate;
+    float    fGlobalMultiply;
 
-  public:
+public:
     void AddRotate(float _fRotate);
     void SetGlobalMultiply(float _fGlobalMul);
 
@@ -29,19 +28,19 @@ class AIShipRotateController
     virtual void Realize(float);
 
     // set our ship pointer
-    void SetAIShip(AIShip *pShip)
+    void SetAIShip(AIShip* pShip)
     {
         pOurAIShip = pShip;
     }
 
-    AIShip *GetAIShip() const
+    AIShip* GetAIShip() const
     {
         return pOurAIShip;
     }
 
-    AIShipRotateController(AIShip *pShip);
+    AIShipRotateController(AIShip* pShip);
     virtual ~AIShipRotateController();
 
-    void Save(CSaveLoad *pSL) const;
-    void Load(CSaveLoad *pSL);
+    void Save(CSaveLoad* pSL) const;
+    void Load(CSaveLoad* pSL);
 };

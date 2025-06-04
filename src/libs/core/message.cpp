@@ -53,10 +53,10 @@ uintptr_t MESSAGE::Pointer()
     return get<uintptr_t>(params_[index - 1]);
 }
 
-ATTRIBUTES * MESSAGE::AttributePointer()
+ATTRIBUTES* MESSAGE::AttributePointer()
 {
     ValidateFormat('a');
-    return get<ATTRIBUTES *>(params_[index - 1]);
+    return get<ATTRIBUTES*>(params_[index - 1]);
 }
 
 entid_t MESSAGE::EntityID()
@@ -65,10 +65,10 @@ entid_t MESSAGE::EntityID()
     return get<entid_t>(params_[index - 1]);
 }
 
-VDATA * MESSAGE::ScriptVariablePointer()
+VDATA* MESSAGE::ScriptVariablePointer()
 {
     ValidateFormat('e');
-    return get<VDATA *>(params_[index - 1]);
+    return get<VDATA*>(params_[index - 1]);
 }
 
 CVECTOR MESSAGE::CVector()
@@ -77,7 +77,7 @@ CVECTOR MESSAGE::CVector()
     return get<CVECTOR>(params_[index - 1]);
 }
 
-const std::string & MESSAGE::String()
+std::string const& MESSAGE::String()
 {
     ValidateFormat('s');
     return get<std::string>(params_[index - 1]);
@@ -118,14 +118,14 @@ bool MESSAGE::SetEntity(entid_t value)
     return true;
 }
 
-bool MESSAGE::Set(VDATA *value)
+bool MESSAGE::Set(VDATA* value)
 {
     ValidateFormat('e');
     params_[index - 1] = value;
     return true;
 }
 
-bool MESSAGE::Set(ATTRIBUTES *value)
+bool MESSAGE::Set(ATTRIBUTES* value)
 {
     ValidateFormat('a');
     params_[index - 1] = value;
@@ -134,27 +134,24 @@ bool MESSAGE::Set(ATTRIBUTES *value)
 
 void MESSAGE::ValidateFormat(char c)
 {
-    if (format_.empty())
-        throw std::runtime_error("Read from empty message");
-    if (format_[index] != c)
-        throw std::runtime_error("Incorrect message data");
+    if (format_.empty()) throw std::runtime_error("Read from empty message");
+    if (format_[index] != c) throw std::runtime_error("Incorrect message data");
     index++;
 }
 
-void MESSAGE::Reset(const std::string_view &format)
+void MESSAGE::Reset(std::string_view const& format)
 {
     format_ = format;
     params_.resize(format_.size());
     index = 0;
 }
 
-void MESSAGE::ResetVA(const std::string_view &format, va_list&args)
+void MESSAGE::ResetVA(std::string_view const& format, va_list& args)
 {
-    index = 0;
+    index   = 0;
     format_ = format;
     params_.resize(format_.size());
-    std::transform(format_.begin(), format_.end(), params_.begin(),
-                   [&](const char c) { return GetParamValue(c, args); });
+    std::transform(format_.begin(), format_.end(), params_.begin(), [&](char const c) { return GetParamValue(c, args); });
 }
 
 char MESSAGE::GetCurrentFormatType()
@@ -162,7 +159,7 @@ char MESSAGE::GetCurrentFormatType()
     return format_[index];
 }
 
-const char * MESSAGE::StringPointer()
+char const* MESSAGE::StringPointer()
 {
     return String().c_str();
 }
@@ -177,37 +174,24 @@ bool MESSAGE::ParamValid() const
     return index < format_.length();
 }
 
-storm::MessageParam MESSAGE::GetParamValue(const char c, va_list&args)
+storm::MessageParam MESSAGE::GetParamValue(char const c, va_list& args)
 {
-    switch (c)
-    {
-    case 'b':
-        return va_arg(args, uint8_t);
-    case 'w':
-        return va_arg(args, uint16_t);
-    case 'l':
-        return va_arg(args, int32_t);
-    case 'u':
-        return va_arg(args, uint32_t);
-    case 'f':
-        return static_cast<float>(va_arg(args, double));
-    case 'd':
-        return va_arg(args, double);
-    case 'p':
-        return va_arg(args, uintptr_t);
-    case 'a':
-        return va_arg(args, ATTRIBUTES *);
-    case 'i':
-        return va_arg(args, entid_t);
-    case 'e':
-        return va_arg(args, VDATA *);
-    case 'c':
-        return va_arg(args, CVECTOR);
+    switch (c) {
+    case 'b': return va_arg(args, uint8_t);
+    case 'w': return va_arg(args, uint16_t);
+    case 'l': return va_arg(args, int32_t);
+    case 'u': return va_arg(args, uint32_t);
+    case 'f': return static_cast<float>(va_arg(args, double));
+    case 'd': return va_arg(args, double);
+    case 'p': return va_arg(args, uintptr_t);
+    case 'a': return va_arg(args, ATTRIBUTES*);
+    case 'i': return va_arg(args, entid_t);
+    case 'e': return va_arg(args, VDATA*);
+    case 'c': return va_arg(args, CVECTOR);
     case 's': {
-        char *ptr = va_arg(args, char *);
+        char* ptr = va_arg(args, char*);
         return std::string(ptr);
     }
-    default:
-        throw std::runtime_error(fmt::format("Unknown message format: '{}'", c));
+    default: throw std::runtime_error(fmt::format("Unknown message format: '{}'", c));
     }
 }

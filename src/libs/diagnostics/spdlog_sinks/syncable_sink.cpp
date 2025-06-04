@@ -6,10 +6,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <format>
 
+// clang-format off
 #include <windows.h>
 
 #include <fileapi.h>
 #include <io.h>
+// clang-format on
 #else
 #include <unistd.h>
 #endif
@@ -17,12 +19,12 @@
 #include <spdlog/common.h>
 #include <spdlog/pattern_formatter.h>
 
-storm::logging::sinks::syncable_sink::syncable_sink(const spdlog::filename_t &filename, bool truncate)
+storm::logging::sinks::syncable_sink::syncable_sink(spdlog::filename_t const& filename, bool truncate)
 {
     file_helper_.open(filename, truncate);
 }
 
-void storm::logging::sinks::syncable_sink::log(const spdlog::details::log_msg &msg)
+void storm::logging::sinks::syncable_sink::log(spdlog::details::log_msg const& msg)
 {
     spdlog::memory_buf_t formatted;
     formatter_->format(msg, formatted);
@@ -34,7 +36,7 @@ void storm::logging::sinks::syncable_sink::flush()
     file_helper_.flush();
 }
 
-void storm::logging::sinks::syncable_sink::set_pattern(const std::string &pattern)
+void storm::logging::sinks::syncable_sink::set_pattern(std::string const& pattern)
 {
     formatter_ = spdlog::details::make_unique<spdlog::pattern_formatter>(pattern);
 }
@@ -48,10 +50,7 @@ void storm::logging::sinks::syncable_sink::sync() const
 {
 #ifdef _WIN32
     const auto success = FlushFileBuffers(reinterpret_cast<HANDLE>(_get_osfhandle(_fileno(file_helper_.getfd()))));
-    if (!success)
-    {
-        OutputDebugStringA(std::format("failed to flush:{} ({})", file_helper_.filename(), GetLastError()).c_str());
-    }
+    if (!success) { OutputDebugStringA(std::format("failed to flush:{} ({})", file_helper_.filename(), GetLastError()).c_str()); }
 #else
     fsync(fileno(file_helper_.getfd()));
 #endif

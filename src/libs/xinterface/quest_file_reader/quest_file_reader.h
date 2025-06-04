@@ -1,71 +1,64 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include <libs/core/vma.hpp>
 
 namespace storm
 {
 class QuestFileReader
 {
-  public:
-    struct UserData
-    {
+public:
+    struct UserData {
         /// @note Constructor is needed for emplace_back
-        UserData(const std::string &id, const std::string &str) : id{id}, str{str}
-        {
-        }
+        UserData(std::string const& id, std::string const& str) : id {id}, str {str} {}
 
         std::string id;
         std::string str;
     };
 
-    struct QuestDescribe
-    {
-        struct TextDescribe
-        {
+    struct QuestDescribe {
+        struct TextDescribe {
             std::string id;
             std::string str;
         };
 
-        std::string questID;
-        std::string title;
+        std::string               questID;
+        std::string               title;
         std::vector<TextDescribe> texts;
     };
 
-  public:
+public:
     QuestFileReader();
     ~QuestFileReader();
 
-    void SetQuestTextFileName(const std::string_view &fileName);
+    void SetQuestTextFileName(std::string_view const& fileName);
 
-    bool GetQuestTitle(const std::string_view &questId, const std::string_view &questUniqueID, std::string &buffer);
+    bool GetQuestTitle(std::string_view const& questId, std::string_view const& questUniqueID, std::string& buffer);
 
-    std::string GetRecordText(const std::string_view &questID, const std::string_view &textID,
-                              const std::string_view &userData);
+    std::string GetRecordText(std::string_view const& questID, std::string_view const& textID, std::string_view const& userData);
 
-    static bool AssembleStringToBuffer(const std::string_view &src, std::string &buffer,
-                                       const std::vector<UserData> &userData);
-    static std::string GetInsertStringByID(const std::string_view &id, const std::vector<UserData> &userData);
-    static void FillUserDataList(const std::string_view &strData, std::vector<UserData> &userData);
+    static bool        AssembleStringToBuffer(std::string_view const& src, std::string& buffer, std::vector<UserData> const& userData);
+    static std::string GetInsertStringByID(std::string_view const& id, std::vector<UserData> const& userData);
+    static void        FillUserDataList(std::string_view const& strData, std::vector<UserData>& userData);
 
-  private:
-    void ReadUserData(const std::string_view &questID, int32_t recordIndex);
+private:
+    void ReadUserData(std::string_view const& questID, int32_t recordIndex);
 
-    void AddQuestsFromBuffer(const std::string_view &srcBuffer);
-    void AddQuestToList(const std::string_view &questID, const std::string_view &titleText);
-    void AddTextToQuest(const std::string_view &questID, const std::string_view &textID,
-                        const std::string_view &questText);
-    std::optional<size_t> FindQuestByID(const std::string_view &questID);
-    std::optional<size_t> FindTextByID(QuestDescribe &nQuest, const std::string_view &textID);
+    void AddQuestsFromBuffer(std::string_view const& srcBuffer);
+    void AddQuestToList(std::string_view const& questID, std::string_view const& titleText);
+    void AddTextToQuest(std::string_view const& questID, std::string_view const& textID, std::string_view const& questText);
+    std::optional<size_t> FindQuestByID(std::string_view const& questID);
+    std::optional<size_t> FindTextByID(QuestDescribe& nQuest, std::string_view const& textID);
 
-  private:
+private:
     std::vector<std::string> questFileNames_;
 
     std::vector<QuestDescribe> quests_;
 
-    std::string curQuestID_;
+    std::string           curQuestID_;
     std::vector<UserData> questData_;
 };
-} // namespace storm
+}  // namespace storm

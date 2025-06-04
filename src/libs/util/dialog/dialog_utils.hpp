@@ -5,13 +5,17 @@
 #include <string>
 #include <vector>
 
-namespace storm::dialog {
+namespace storm::dialog
+{
 
-using GetStringWidthFunction = std::function<int32_t (const std::string_view &text)>;
+using GetStringWidthFunction = std::function<int32_t(std::string_view const& text)>;
 
-std::vector<int32_t> SplitIntoPages(const size_t line_count, const int32_t page_height, const std::vector<int32_t> &forced_breaks = {});
+std::vector<int32_t> SplitIntoPages(size_t const line_count, int32_t const page_height, std::vector<int32_t> const& forced_breaks = {});
 
-void AddToStringArrayLimitedByWidth(const std::string_view &text, int32_t nLimitWidth,
-                                    std::vector<std::string> &asOutTextList, const GetStringWidthFunction &get_string_width);
+void AddToStringArrayLimitedByWidth(
+    std::string_view const&       text,
+    int32_t                       nLimitWidth,
+    std::vector<std::string>&     asOutTextList,
+    GetStringWidthFunction const& get_string_width);
 
-} // namespace storm::dialog
+}  // namespace storm::dialog

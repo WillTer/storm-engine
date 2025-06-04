@@ -2,16 +2,16 @@
 
 #include "../battle_command.h"
 
-class BIManCommandList : public BICommandList
+class BIManCommandList: public BICommandList
 {
-  public:
-    BIManCommandList(entid_t eid, ATTRIBUTES *pA, VDX9RENDER *rs);
+public:
+    BIManCommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs);
     ~BIManCommandList() override;
 
     void FillIcons() override;
     void Init() override;
 
-  protected:
+protected:
     void Release();
 
     int32_t CommandAdding();

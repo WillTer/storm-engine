@@ -10,63 +10,61 @@
 
 #pragma once
 
-#include "pillar.h"
 #include <libs/math/matrix.h>
 #include <libs/model/model.h>
 #include <libs/sound_service/v_sound_service.h>
 
+#include "pillar.h"
 
 class Debris
 {
-    struct ModelInfo
-    {
-        float a, r;
-        float y, ay;
-        float alpha;
-        float scale;
-        float maxSpeed;
+    struct ModelInfo {
+        float   a, r;
+        float   y, ay;
+        float   alpha;
+        float   scale;
+        float   maxSpeed;
         CVECTOR ang;
-        MODEL *mdl;
+        MODEL*  mdl;
     };
 
-    struct Model
-    {
-        MODEL *mdl;
-        float prt;
-        float maxSpeed;
+    struct Model {
+        MODEL* mdl;
+        float  prt;
+        float  maxSpeed;
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
-    Debris(Pillar &_pillar);
+public:
+    Debris(Pillar& _pillar);
     virtual ~Debris();
 
     void Init();
 
     void Update(float dltTime);
-    void Draw(VDX9RENDER *rs);
+    void Draw(VDX9RENDER* rs);
 
     void SetGlobalAlpha(float a);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    void AddModel(const char *modelNamem, float prt, float spd);
-    void NormalazedModels();
-    MODEL *SelectModel(float &maxSpd);
-    bool IsShip();
+private:
+    void   AddModel(char const* modelNamem, float prt, float spd);
+    void   NormalazedModels();
+    MODEL* SelectModel(float& maxSpd);
+    bool   IsShip();
 
-  private:
-    VSoundService *soundService;
-    float lastPlayTime;
-    Pillar &pillar;
-    float galpha;
-    Model mdl[16];     // Uploaded models
-    int32_t numModels; // Number of models
+private:
+    VSoundService* soundService;
+    float          lastPlayTime;
+    Pillar&        pillar;
+    float          galpha;
+    Model          mdl[16];    // Uploaded models
+    int32_t        numModels;  // Number of models
 
-    ModelInfo fly[64];  // Flying models
-    int32_t flyCounter; // Number of flying models
+    ModelInfo fly[64];     // Flying models
+    int32_t   flyCounter;  // Number of flying models
 };

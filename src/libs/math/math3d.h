@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-#include <xmmintrin.h> // espkk # remove inline asm # 30/Dec/2017
+#include <xmmintrin.h>  // espkk # remove inline asm # 30/Dec/2017
 
 // #define inline __forceinline
 
@@ -79,9 +79,9 @@ inline int32_t fceil(float f)
 }
 
 // Fast fasb in memory
-inline float &ffabs(float &f)
+inline float& ffabs(float& f)
 {
-    *(uint32_t *)&f &= 0x7fffffff;
+    *(uint32_t*)&f &= 0x7fffffff;
     return f;
 }
 
@@ -106,38 +106,32 @@ inline float RRnd(float min, float max)
 // Limit float
 inline float Clampf(float v, float min = 0.0f, float max = 1.0f)
 {
-    if (v < min)
-        v = min;
-    if (v > max)
-        v = max;
+    if (v < min) v = min;
+    if (v > max) v = max;
     return v;
 }
 
 // Limit float
-inline float Clampfr(float &v, float min = 0.0f, float max = 1.0f)
+inline float Clampfr(float& v, float min = 0.0f, float max = 1.0f)
 {
-    if (v < min)
-        v = min;
-    if (v > max)
-        v = max;
+    if (v < min) v = min;
+    if (v > max) v = max;
     return v;
 }
 
 // Bring the angle to the range 0..2PI
 inline float NormAngle2PI(float angle)
 {
-    static const auto pi = 3.14159265358979323846f;
-    if (angle >= 0.0f && angle <= 2 * pi)
-        return angle;
+    static auto const pi = 3.14159265358979323846f;
+    if (angle >= 0.0f && angle <= 2 * pi) return angle;
     return (angle / (2.0f * pi) - static_cast<int32_t>(angle / (2.0f * pi))) * 2.0f * pi;
 }
 
 // Bring the angle to the range -PI..PI
 inline float NormAnglePI(float angle)
 {
-    static const auto pi = 3.14159265358979323846f;
-    if (angle >= -pi && angle <= pi)
-        return angle;
+    static auto const pi = 3.14159265358979323846f;
+    if (angle >= -pi && angle <= pi) return angle;
     return (angle / (2.0f * pi) - static_cast<int32_t>(angle / (2.0f * pi))) * 2.0f * pi - pi;
 }
 
@@ -145,10 +139,8 @@ inline float NormAnglePI(float angle)
 inline float safeACos(float ang)
 {
     auto d = static_cast<double>(ang);
-    if (d < -1.0)
-        d = -1.0;
-    if (d > 1.0)
-        d = 1.0;
+    if (d < -1.0) d = -1.0;
+    if (d > 1.0) d = 1.0;
     d = acos(d);
     return static_cast<float>(d);
 }
@@ -157,10 +149,8 @@ inline float safeACos(float ang)
 inline float safeASin(float ang)
 {
     auto d = static_cast<double>(ang);
-    if (d < -1.0)
-        d = -1.0;
-    if (d > 1.0)
-        d = 1.0;
+    if (d < -1.0) d = -1.0;
+    if (d > 1.0) d = 1.0;
     d = acos(d);
     return static_cast<float>(d);
 }

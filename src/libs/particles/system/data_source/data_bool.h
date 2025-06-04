@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../../i_common/mem_file.h"
 #include <string>
+
+#include "../../i_common/mem_file.h"
 
 class DataBool
 {
@@ -9,7 +10,7 @@ class DataBool
 
     bool Value;
 
-  public:
+public:
     // constructor / destructor
     DataBool();
     virtual ~DataBool();
@@ -21,9 +22,9 @@ class DataBool
     void SetValue(bool val);
 
     // Save / Load ...
-    void Load(MemFile *File);
-    void Write(MemFile *File) const;
+    void Load(MemFile* File);
+    void Write(MemFile* File) const;
 
-    void SetName(const char *szName);
-    const char *GetName() const;
+    void        SetName(char const* szName);
+    char const* GetName() const;
 };

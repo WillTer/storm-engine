@@ -48,7 +48,7 @@
 
 // define int32_t parameters
 
-#define whi_weather_update 0 // if weather.ini update this flag one cycle is 1
+#define whi_weather_update 0  // if weather.ini update this flag one cycle is 1
 #define whi_fog_enable 1
 #define whi_harmonics_num 2
 #define whi_rain_drops_num 3
@@ -81,16 +81,16 @@
 #define whs_sunglow_texture 0
 #define whs_rainbow_texture 1
 
-class WEATHER_BASE : public Entity
+class WEATHER_BASE: public Entity
 {
-  public:
+public:
     WEATHER_BASE() {};
 
     ~WEATHER_BASE() override {};
 
-    virtual int32_t GetInt(uint32_t dwCode) = 0;
-    virtual uint32_t GetColor(uint32_t, CVECTOR *) = 0;
-    virtual uint32_t GetColor(uint32_t) = 0;
-    virtual float GetFloat(uint32_t) = 0;
-    virtual void GetVector(uint32_t, CVECTOR *) = 0;
+    virtual int32_t  GetInt(uint32_t dwCode)       = 0;
+    virtual uint32_t GetColor(uint32_t, CVECTOR*)  = 0;
+    virtual uint32_t GetColor(uint32_t)            = 0;
+    virtual float    GetFloat(uint32_t)            = 0;
+    virtual void     GetVector(uint32_t, CVECTOR*) = 0;
 };

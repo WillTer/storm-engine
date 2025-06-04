@@ -1,9 +1,8 @@
 #include <libs/diagnostics/logging.hpp>
-
+#include <libs/util/fs.h>
 #include <spdlog/spdlog.h>
 
 #include "spdlog_sinks/syncable_sink.hpp"
-#include <libs/util/fs.h>
 
 namespace
 {
@@ -16,13 +15,10 @@ namespace storm::logging
 {
 
 // TODO: loggers with periodic flush shall be thread safe; we should measure performance diff and decide what to do
-logger_ptr getOrCreateLogger(const std::string &name, const spdlog::level::level_enum level, const bool truncate)
+logger_ptr getOrCreateLogger(std::string const& name, spdlog::level::level_enum const level, bool const truncate)
 {
     auto logger = spdlog::get(name);
-    if (logger)
-    {
-        return logger;
-    }
+    if (logger) { return logger; }
 
     auto path = fs::GetLogsPath() / name;
     path += kLogExtension;
@@ -33,4 +29,4 @@ logger_ptr getOrCreateLogger(const std::string &name, const spdlog::level::level
     return logger;
 }
 
-} // namespace storm::logging
+}  // namespace storm::logging

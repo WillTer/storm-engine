@@ -32,39 +32,36 @@
 #define TX_FLAGS_CUBEMAP 2
 
 // Formats
-enum TX_FORMAT
-{
+enum TX_FORMAT {
     TXF_A8R8G8B8 = 21,
     TXF_X8R8G8B8 = 22,
-    TXF_R5G6B5 = 23,
+    TXF_R5G6B5   = 23,
     TXF_A1R5G5B5 = 25,
     TXF_A4R4G4B4 = 26,
-    TXF_P8 = 41,
-    TXF_L8 = 50,
-    TXF_V8U8 = 60,
-    TXF_L6V5U5 = 61,
-    TXF_DXT1 = '1TXD',
-    TXF_DXT2 = '2TXD',
-    TXF_DXT3 = '3TXD',
-    TXF_DXT4 = '4TXD',
-    TXF_DXT5 = '5TXD',
+    TXF_P8       = 41,
+    TXF_L8       = 50,
+    TXF_V8U8     = 60,
+    TXF_L6V5U5   = 61,
+    TXF_DXT1     = '1TXD',
+    TXF_DXT2     = '2TXD',
+    TXF_DXT3     = '3TXD',
+    TXF_DXT4     = '4TXD',
+    TXF_DXT5     = '5TXD',
 };
 
 #pragma pack(push, 1)
 
 // File header
-struct TX_FILE_HEADER
-{
-    int32_t flags;         // info flags
-    int32_t width, height; // texture size
-    int32_t nmips;         // number mip levels
-    TX_FORMAT format;   // texture format
-    int32_t mip_size;      // size of mip 0 (width*height*pixel_size)
+struct TX_FILE_HEADER {
+    int32_t   flags;          // info flags
+    int32_t   width, height;  // texture size
+    int32_t   nmips;          // number mip levels
+    TX_FORMAT format;         // texture format
+    int32_t   mip_size;       // size of mip 0 (width*height*pixel_size)
 };
 
 // Pallette color
-struct TX_PALETTE_COLOR
-{
+struct TX_PALETTE_COLOR {
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -72,8 +69,7 @@ struct TX_PALETTE_COLOR
 };
 
 // Texture pallete
-struct TX_PALETTE
-{
+struct TX_PALETTE {
     TX_PALETTE_COLOR color[256];
 };
 

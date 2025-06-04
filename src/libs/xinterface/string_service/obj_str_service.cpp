@@ -1,7 +1,6 @@
 #include "obj_str_service.h"
 
 #include <libs/core/core.h>
-
 #include <libs/shared_headers/interface/messages.h>
 
 OBJ_STRSERVICE::OBJ_STRSERVICE()
@@ -16,54 +15,45 @@ OBJ_STRSERVICE::~OBJ_STRSERVICE()
 
 bool OBJ_STRSERVICE::Init()
 {
-    m_pStrService = static_cast<VSTRSERVICE *>(core.GetService("STRSERVICE"));
-    if (!m_pStrService)
-        throw std::runtime_error("No service: strservice");
+    m_pStrService = static_cast<VSTRSERVICE*>(core.GetService("STRSERVICE"));
+    if (!m_pStrService) throw std::runtime_error("No service: strservice");
 
     return true;
 }
 
-uint64_t OBJ_STRSERVICE::ProcessMessage(MESSAGE &message)
+uint64_t OBJ_STRSERVICE::ProcessMessage(MESSAGE& message)
 {
-    switch (message.Long())
-    {
+    switch (message.Long()) {
     case MSG_STRSERVICE_OPEN_FILE: {
-        const std::string &param = message.String();
-        if (m_pStrService != nullptr)
-            return m_pStrService->OpenUsersStringFile(param.c_str());
+        std::string const& param = message.String();
+        if (m_pStrService != nullptr) return m_pStrService->OpenUsersStringFile(param.c_str());
         return -1;
-    }
-    break;
+    } break;
     case MSG_STRSERVICE_CLOSE_FILE: {
-        const auto fileID = message.Long();
+        auto const fileID = message.Long();
         m_pStrService->CloseUsersStringFile(fileID);
-    }
-    break;
+    } break;
     case MSG_STRSERVICE_TRANSLATE_STRING: {
-        const auto nUsrID = message.Long();
-        auto *pvdat = message.ScriptVariablePointer();
-        auto *const inStr = pvdat == nullptr ? nullptr : pvdat->GetString();
-        pvdat = message.ScriptVariablePointer();
-        char *outStr = nullptr;
-        if (m_pStrService != nullptr)
-            outStr = m_pStrService->TranslateFromUsers(nUsrID, inStr);
+        auto const  nUsrID = message.Long();
+        auto*       pvdat  = message.ScriptVariablePointer();
+        auto* const inStr  = pvdat == nullptr ? nullptr : pvdat->GetString();
+        pvdat              = message.ScriptVariablePointer();
+        char* outStr       = nullptr;
+        if (m_pStrService != nullptr) outStr = m_pStrService->TranslateFromUsers(nUsrID, inStr);
         if (outStr != nullptr && pvdat != nullptr)
             pvdat->Set(outStr);
         else
             pvdat->Set("");
-    }
-    break;
+    } break;
     case MSG_STRSERVICE_GET_LANGUAGE: {
-        auto *pvdat = message.ScriptVariablePointer();
-        char *outStr = nullptr;
-        if (m_pStrService != nullptr)
-            outStr = m_pStrService->GetLanguage();
+        auto* pvdat  = message.ScriptVariablePointer();
+        char* outStr = nullptr;
+        if (m_pStrService != nullptr) outStr = m_pStrService->GetLanguage();
         if (outStr != nullptr && pvdat != nullptr)
             pvdat->Set(outStr);
         else
             pvdat->Set("");
-    }
-    break;
+    } break;
     }
 
     return 0;

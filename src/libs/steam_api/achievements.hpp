@@ -4,8 +4,7 @@
 
 #define ACHIEVEMENTS_NUM 73
 
-enum EAchievements
-{
+enum EAchievements {
     ACH_01 = 0,
     ACH_02 = 1,
     ACH_03 = 2,
@@ -84,32 +83,29 @@ enum EAchievements
     ACH_81 = 81,
 };
 
-struct Achievement_t
-{
+struct Achievement_t {
     EAchievements m_eAchievementID;
-    const char *m_pchAchievementID;
-    char m_rgchName[128];
-    char m_rgchDescription[256];
-    bool m_bAchieved;
-    int m_iIconImage;
+    char const*   m_pchAchievementID;
+    char          m_rgchName[128];
+    char          m_rgchDescription[256];
+    bool          m_bAchieved;
+    int           m_iIconImage;
 };
 
-enum EStatTypes
-{
-    STAT_INT = 0,
-    STAT_FLOAT = 1,
+enum EStatTypes {
+    STAT_INT     = 0,
+    STAT_FLOAT   = 1,
     STAT_AVGRATE = 2,
 };
 
-struct Stat_t
-{
-    int m_ID;
-    EStatTypes m_eStatType;
-    const char *m_pchStatName;
-    int m_iValue;
-    float m_flValue;
-    float m_flAvgNumerator;
-    float m_flAvgDenominator;
+struct Stat_t {
+    int         m_ID;
+    EStatTypes  m_eStatType;
+    char const* m_pchStatName;
+    int         m_iValue;
+    float       m_flValue;
+    float       m_flAvgNumerator;
+    float       m_flAvgDenominator;
 };
 
 class ISteamUser;
@@ -119,26 +115,26 @@ class ISteamUtils;
 
 class CSteamStatsAchievements
 {
-  private:
-    int64 m_iAppID;                 // Our current AppID
-    Achievement_t *m_pAchievements; // Achievements data
-    uint32_t m_iNumAchievements;    // The number of Achievements
-    bool m_bInitialized;            // Have we called Request stats and received the callback?
-    Stat_t *m_pStats;
+private:
+    int64          m_iAppID;            // Our current AppID
+    Achievement_t* m_pAchievements;     // Achievements data
+    uint32_t       m_iNumAchievements;  // The number of Achievements
+    bool           m_bInitialized;      // Have we called Request stats and received the callback?
+    Stat_t*        m_pStats;
 
-  public:
+public:
     CSteamStatsAchievements(int NumAchievements);
     ~CSteamStatsAchievements();
 
-    bool RequestStats();
-    bool SetAchievement(const char *ID);
-    bool GetAchievement(const char *ID);
-    bool SetStat(const char *ID, uint32_t value);
-    uint32_t GetStat(const char *ID);
-    bool StoreStats();
-    bool GetConnected();
-    bool ResetStats(bool bAchievementsToo);
-    bool ClearAchievement(const char *ID);
+    bool     RequestStats();
+    bool     SetAchievement(char const* ID);
+    bool     GetAchievement(char const* ID);
+    bool     SetStat(char const* ID, uint32_t value);
+    uint32_t GetStat(char const* ID);
+    bool     StoreStats();
+    bool     GetConnected();
+    bool     ResetStats(bool bAchievementsToo);
+    bool     ClearAchievement(char const* ID);
 
     STEAM_CALLBACK(CSteamStatsAchievements, OnUserStatsReceived, UserStatsReceived_t, m_CallbackUserStatsReceived);
     STEAM_CALLBACK(CSteamStatsAchievements, OnUserStatsStored, UserStatsStored_t, m_CallbackUserStatsStored);
@@ -147,22 +143,22 @@ class CSteamStatsAchievements
 
 class CSteamDLC
 {
-  private:
-    bool m_bInitialized;
+private:
+    bool     m_bInitialized;
     uint32_t m_DLCcount;
-    char pchName[128];
-    bool pbAvailable;
-    AppId_t pAppID;
-    bool isOverlayActivated;
+    char     pchName[128];
+    bool     pbAvailable;
+    AppId_t  pAppID;
+    bool     isOverlayActivated;
 
-  public:
+public:
     CSteamDLC();
     ~CSteamDLC();
 
-    bool isDLCInstalled(uint32_t nDLC);
+    bool     isDLCInstalled(uint32_t nDLC);
     uint32_t bGetDLCDataByIndex(uint32_t iDLC);
     uint32_t getDLCCount();
-    bool activateGameOverlay(uint32_t nAppId);
+    bool     activateGameOverlay(uint32_t nAppId);
 
     STEAM_CALLBACK(CSteamDLC, OnOverlayActivated, GameOverlayActivated_t, m_CallbackOverlayActivated);
 };

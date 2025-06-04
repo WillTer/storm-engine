@@ -13,7 +13,6 @@
 #include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 
-
 class Animation;
 
 class PathTracer;
@@ -22,11 +21,11 @@ class PathTracer;
 
 class ModelArray
 {
-    class UVSlider : public MODEL::RenderTuner
+    class UVSlider: public MODEL::RenderTuner
     {
-      public:
-        void Set(MODEL *model, VDX9RENDER *rs) override;
-        void Restore(MODEL *model, VDX9RENDER *rs) override;
+    public:
+        void Set(MODEL* model, VDX9RENDER* rs) override;
+        void Restore(MODEL* model, VDX9RENDER* rs) override;
 
         float u0, v0;
         float us0, vs0;
@@ -34,69 +33,65 @@ class ModelArray
         float us1, vs1;
     };
 
-    class Relection : public MODEL::RenderTuner
+    class Relection: public MODEL::RenderTuner
     {
-      public:
-        void Set(MODEL *model, VDX9RENDER *rs) override;
-        void Restore(MODEL *model, VDX9RENDER *rs) override;
+    public:
+        void     Set(MODEL* model, VDX9RENDER* rs) override;
+        void     Restore(MODEL* model, VDX9RENDER* rs) override;
         uint32_t tfactor;
     };
 
-    struct Rotator
-    {
+    struct Rotator {
         float rx, ry, rz;
     };
 
-    struct LocationModel
-    {
-        entid_t modelrealizer; // Model renderer
-        entid_t id;            // Model
-        uint32_t hash;         // Hash value for quick search
+    struct LocationModel {
+        entid_t  modelrealizer;  // Model renderer
+        entid_t  id;             // Model
+        uint32_t hash;           // Hash value for quick search
         union {
             uint32_t flags;
 
-            struct
-            {
+            struct {
                 uint32_t isVisible : 1;
             };
         };
 
-        UVSlider *slider;
-        Rotator *rotator;
-        Relection *reflection;
-        char name[MA_MAX_NAME_LENGTH]; // Model name
+        UVSlider*  slider;
+        Rotator*   rotator;
+        Relection* reflection;
+        char       name[MA_MAX_NAME_LENGTH];  // Model name
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     ModelArray();
     virtual ~ModelArray();
 
     // Create model
-    int32_t CreateModel(const char *modelName, const char *technique, int32_t level, bool isVisible = true,
-                        void *pLights = nullptr);
+    int32_t CreateModel(char const* modelName, char const* technique, int32_t level, bool isVisible = true, void* pLights = nullptr);
     // Delete model
     void DeleteModel(int32_t modelIndex);
     // Set animation to the model
-    bool SetAnimation(int32_t modelIndex, const char *modelAni);
+    bool SetAnimation(int32_t modelIndex, char const* modelAni);
     // Find model index by name
-    int32_t FindModel(const char *modelName);
+    int32_t FindModel(char const* modelName);
 
     // Check if the index is correct
     bool IsValidateIndex(int32_t index) const;
     // Get model name
-    const char *GetModelName(int32_t index);
+    char const* GetModelName(int32_t index);
 
     // Number of models
     int32_t Models() const;
     // Getting model ID by index
     entid_t ID(int32_t modelIndex);
     // Getting a model by index
-    MODEL *operator[](int32_t modelIndex);
+    MODEL* operator[](int32_t modelIndex);
     // Getting animation by index
-    Animation *GetAnimation(int32_t modelIndex);
+    Animation* GetAnimation(int32_t modelIndex);
     // Getting the renderer ID by index
     entid_t RealizerID(int32_t modelIndex);
 
@@ -118,28 +113,28 @@ class ModelArray
     void UpdateShadowPath();
 
     // Check the visibility of two points
-    bool VisibleTest(const CVECTOR &p1, const CVECTOR &p2);
+    bool VisibleTest(const CVECTOR& p1, const CVECTOR& p2);
     // Trace the ray through the location
-    float Trace(const CVECTOR &src, const CVECTOR &dst);
-    bool GetCollideTriangle(TRIANGLE &trg) const;
-    void Clip(PLANE *p, int32_t numPlanes, CVECTOR &cnt, float rad, bool (*fnc)(const CVECTOR *vtx, int32_t num));
+    float Trace(const CVECTOR& src, const CVECTOR& dst);
+    bool  GetCollideTriangle(TRIANGLE& trg) const;
+    void  Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool (*fnc)(const CVECTOR* vtx, int32_t num));
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
-    uint32_t CalcHashString(const char *str);
-    static void UpdatePath(std::string &path);
+private:
+    uint32_t    CalcHashString(char const* str);
+    static void UpdatePath(std::string& path);
 
-  private:
+private:
     // Location models
     std::vector<LocationModel> model;
-    int32_t numModels;
-    int32_t maxModels;
-    TRIANGLE ctrg;
-    bool isHavecTrg;
+    int32_t                    numModels;
+    int32_t                    maxModels;
+    TRIANGLE                   ctrg;
+    bool                       isHavecTrg;
 
-  public:
+public:
     std::string modelspath;
     std::string texturespath;
     std::string lightpath;
@@ -154,9 +149,8 @@ inline bool ModelArray::IsValidateIndex(int32_t index) const
 }
 
 // Get model name
-inline const char *ModelArray::GetModelName(int32_t index)
+inline char const* ModelArray::GetModelName(int32_t index)
 {
-    if (index >= 0 && index < numModels)
-        return model[index].name;
+    if (index >= 0 && index < numModels) return model[index].name;
     return nullptr;
 }

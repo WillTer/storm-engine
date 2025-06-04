@@ -4,13 +4,13 @@
 #include "debug-trap.h"
 #else
 #include <stdexcept>
+
 #include <fmt/format.h>
 #endif
 
-inline void __Storm_Assert__(bool expression, const char *file, int32_t line, const char *str)
+inline void __Storm_Assert__(bool expression, char const* file, int32_t line, char const* str)
 {
-    if (!expression)
-    {
+    if (!expression) {
 #ifdef EX_OFF
         psnip_trap();
 #else

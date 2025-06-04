@@ -1,43 +1,42 @@
 #pragma once
 
-#include "ai_helper.h"
 #include <libs/core/d_timer.h>
 #include <libs/geometry/geometry.h>
 #include <libs/sea/sea_base.h>
 #include <libs/ship/ship_base.h>
 
-class AISeaGoods : public Entity
+#include "ai_helper.h"
+
+class AISeaGoods: public Entity
 {
-  private:
-    struct item_t
-    {
-        char sGoodName[48];
+private:
+    struct item_t {
+        char    sGoodName[48];
         int32_t iCharIndex, iQuantity;
-        float fTime;
+        float   fTime;
         CVECTOR vPos, vNormal;
     };
 
-    struct goods_t
-    {
-        std::string sModel;
+    struct goods_t {
+        std::string         sModel;
         std::vector<item_t> aItems;
-        GEOS *pGeo;
+        GEOS*               pGeo;
 
         goods_t() {};
     };
 
-    std::vector<goods_t *> aGoods;
-    std::vector<SHIP_BASE *> aShips;
+    std::vector<goods_t*>   aGoods;
+    std::vector<SHIP_BASE*> aShips;
 
-    VGEOMETRY *pGeoService;
-    SEA_BASE *pSea;
-    item_t TmpItem;
+    VGEOMETRY*  pGeoService;
+    SEA_BASE*   pSea;
+    item_t      TmpItem;
     std::string sModelPath, sTmpModel;
-    DTimer dtCheckShips;
-    bool bDeleteGoodAnyway;
-    float fDistanceMultiply;
+    DTimer      dtCheckShips;
+    bool        bDeleteGoodAnyway;
+    float       fDistanceMultiply;
 
-  public:
+public:
     AISeaGoods();
     ~AISeaGoods() override;
 
@@ -49,11 +48,8 @@ class AISeaGoods : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -64,5 +60,5 @@ class AISeaGoods : public Entity
         }
     }
 
-    uint32_t AttributeChanged(ATTRIBUTES *pAttributeChanged) override;
+    uint32_t AttributeChanged(ATTRIBUTES* pAttributeChanged) override;
 };

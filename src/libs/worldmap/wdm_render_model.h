@@ -10,46 +10,46 @@
 
 #pragma once
 
+#include <libs/math/matrix.h>
+
 #include "wdm_objects.h"
 #include "wdm_render_object.h"
-
-#include <libs/math/matrix.h>
 
 class GEOS;
 class VGEOMETRY;
 
-class WdmRenderModel : public WdmRenderObject
+class WdmRenderModel: public WdmRenderObject
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     WdmRenderModel();
     ~WdmRenderModel() override;
 
-    virtual bool Load(const char *modelName);
+    virtual bool Load(char const* modelName);
 
-    void PRender(VDX9RENDER *rs) override;
-    void MRender(VDX9RENDER *rs) override;
-    void LRender(VDX9RENDER *rs) override;
+    void PRender(VDX9RENDER* rs) override;
+    void MRender(VDX9RENDER* rs) override;
+    void LRender(VDX9RENDER* rs) override;
 
-    void SetTech(const char *t, const char *ta);
+    void    SetTech(char const* t, char const* ta);
     int32_t GetTexture(int32_t stage) const;
-    void SetTexture(int32_t stage, int32_t id) const;
+    void    SetTexture(int32_t stage, int32_t id) const;
 
     CMatrix mtx;
-    float alpha;
+    float   alpha;
 
-  public:
-    void Render(VDX9RENDER *rs) const;
+public:
+    void Render(VDX9RENDER* rs) const;
 
-    GEOS *geo;
-    const char *tech;
-    const char *techa;
+    GEOS*       geo;
+    char const* tech;
+    char const* techa;
 
     // Positioned circle
     CVECTOR center;
-    float radius;
+    float   radius;
 
     bool drawCircle;
 };

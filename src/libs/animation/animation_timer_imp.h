@@ -16,22 +16,22 @@
 
 class AnimationImp;
 
-class AnimationTimerImp : public AnimationTimer
+class AnimationTimerImp: public AnimationTimer
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     AnimationTimerImp();
     ~AnimationTimerImp() override;
 
     // Set animation
-    void SetAnimation(AnimationImp *animation);
+    void SetAnimation(AnimationImp* animation);
 
     //--------------------------------------------------------------------------------------------
     // AnimationTimer
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Start timer (time in milliseconds)
     void Start(float time, float startTime = 0.0f) override;
     // Stop timer
@@ -48,23 +48,23 @@ class AnimationTimerImp : public AnimationTimer
     void SetPlayer(int32_t playerIndex, bool isInverse = false) override;
     void ResetPlayer(int32_t playerIndex) override;
     // Find out if ActionPlayer is being used
-    bool IsUsedPlayer(int32_t playerIndex, bool *isInverse = nullptr) override;
+    bool IsUsedPlayer(int32_t playerIndex, bool* isInverse = nullptr) override;
     // Get the blending value for the player (if not used then 1.0f)
     float GetPlayerValue(int32_t playerIndex) override;
 
     //--------------------------------------------------------------------------------------------
     // AnimationTimerImp
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Execute
     void Execute(int32_t dltTime);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Animation
-    AnimationImp *ani;
+    AnimationImp* ani;
     // Timer options
     float curTime;
     float kTime;

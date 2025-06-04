@@ -3,10 +3,10 @@
 
 class DTimer
 {
-  private:
+private:
     float fCurrent, fMin, fMax;
 
-  public:
+public:
     DTimer()
     {
         Setup(0.0f, 1.0f);
@@ -22,15 +22,15 @@ class DTimer
     void Setup(float _fCurrent, float _fMin, float _fMax)
     {
         fCurrent = _fCurrent;
-        fMin = _fMin;
-        fMax = _fMax;
+        fMin     = _fMin;
+        fMax     = _fMax;
     }
 
     void Setup(float _fCurrent, float _fMax)
     {
         fCurrent = _fCurrent;
-        fMin = _fMax;
-        fMax = _fMax;
+        fMin     = _fMax;
+        fMax     = _fMax;
     }
 
     bool Update(uint32_t dwDeltaTime)
@@ -41,8 +41,7 @@ class DTimer
     bool Update(float fDeltaTime)
     {
         fCurrent -= fDeltaTime;
-        if (fCurrent <= 0.0f)
-        {
+        if (fCurrent <= 0.0f) {
             fCurrent = fMin + FRAND(fMax - fMin);
             return true;
         }

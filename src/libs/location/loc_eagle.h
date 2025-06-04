@@ -12,9 +12,9 @@
 
 #include <libs/model/model.h>
 
-class LocEagle : public Entity
+class LocEagle: public Entity
 {
-  public:
+public:
     LocEagle();
     ~LocEagle() override;
 
@@ -25,8 +25,7 @@ class LocEagle : public Entity
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
+        switch (stage) {
         case Stage::execute:
             Execute(delta);
             break;
@@ -41,9 +40,9 @@ class LocEagle : public Entity
 
     entid_t mdl;
     CVECTOR cnt;
-    float kTime, time;
-    float y, dltY;
-    float kRad, dltRad;
-    float ay;
-    float kAy, timeAy;
+    float   kTime, time;
+    float   y, dltY;
+    float   kRad, dltRad;
+    float   ay;
+    float   kAy, timeAy;
 };

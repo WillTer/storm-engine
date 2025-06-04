@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ai_flow_graph.h"
 #include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
+#include "ai_flow_graph.h"
 
 // ============================================================================
 // master class AIShipMoveController
@@ -13,22 +13,22 @@ class AIShip;
 
 class AIShipMoveController
 {
-  private:
+private:
     entid_t eidSphere;
 
-    AIShip *pOurAIShip; // our AI ship pointer
+    AIShip* pOurAIShip;  // our AI ship pointer
 
-    bool bStopped;      // if ship stopped
-    CVECTOR vDestPoint; // destination point
+    bool    bStopped;    // if ship stopped
+    CVECTOR vDestPoint;  // destination point
     CVECTOR vRetardForce, vDeflectForce;
 
     float fMoveTime;
 
     uint32_t dwCurPnt;
 
-    AIFlowGraph::VectorPath *pVPath;
+    AIFlowGraph::VectorPath* pVPath;
 
-  public:
+public:
     // init/execute/realize section
     virtual bool Init();
     virtual void Execute(float);
@@ -51,19 +51,19 @@ class AIShipMoveController
     };
 
     // set our ship pointer
-    void SetAIShip(AIShip *pShip)
+    void SetAIShip(AIShip* pShip)
     {
         pOurAIShip = pShip;
     }
 
-    AIShip *GetAIShip() const
+    AIShip* GetAIShip() const
     {
         return pOurAIShip;
     }
 
-    AIShipMoveController(AIShip *pShip);
+    AIShipMoveController(AIShip* pShip);
     virtual ~AIShipMoveController();
 
-    void Save(CSaveLoad *pSL) const;
-    void Load(CSaveLoad *pSL);
+    void Save(CSaveLoad* pSL) const;
+    void Load(CSaveLoad* pSL);
 };

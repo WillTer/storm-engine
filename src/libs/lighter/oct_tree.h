@@ -14,50 +14,49 @@
 
 class OctTree
 {
-    struct OTNode
-    {
-        OTNode(const CVECTOR &_min, const CVECTOR &_max);
+    struct OTNode {
+        OTNode(const CVECTOR& _min, const CVECTOR& _max);
         ~OTNode();
-        OTNode *node[8]; // Children
-        CVECTOR min;     // Minimum value
-        CVECTOR max;     // Maximum value
-        Vertex **vrt;    // Vertex indices
-        int32_t num;        // Number of vertices
+        OTNode*  node[8];  // Children
+        CVECTOR  min;      // Minimum value
+        CVECTOR  max;      // Maximum value
+        Vertex** vrt;      // Vertex indices
+        int32_t  num;      // Number of vertices
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     OctTree();
     virtual ~OctTree();
 
     // Initialize tree
-    void Init(LGeometry *g);
+    void Init(LGeometry* g);
     // Find vertices in a given radius
-    void FindVerts(const CVECTOR &pos, float r);
+    void FindVerts(const CVECTOR& pos, float r);
 
     std::vector<OctFndVerts> verts;
-    int32_t numVerts;
-    int32_t maxVerts;
+    int32_t                  numVerts;
+    int32_t                  maxVerts;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Adding vertices
-    bool AddVertex(OTNode *node, Vertex *v);
+    bool AddVertex(OTNode* node, Vertex* v);
     // Optimizing the tree
-    void Optimize(OTNode *node);
+    void Optimize(OTNode* node);
     // Search
-    void FindVerts(OTNode *node);
+    void FindVerts(OTNode* node);
 
-    int32_t Check(OTNode *node, Vertex *v, int32_t num);
+    int32_t Check(OTNode* node, Vertex* v, int32_t num);
 
-  private:
-    Vertex *vrt;
+private:
+    Vertex* vrt;
     int32_t numVrt;
-    OTNode *root;
+    OTNode* root;
     CVECTOR vertsPos, vertsPosMin, vertsPosMax;
-    float vertsR;
+    float   vertsR;
 };

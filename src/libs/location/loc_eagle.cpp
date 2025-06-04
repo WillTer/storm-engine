@@ -10,25 +10,25 @@
 
 #include "loc_eagle.h"
 
-#include "location.h"
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>
 #include <libs/shared_headers/messages.h>
 
+#include "location.h"
 
 LocEagle::LocEagle() : mdl(0), cnt()
 {
-    time = 1.0f;
-    kTime = 1.0f;
-    y = 0.0f;
-    dltY = 0.0f;
-    kRad = 1.0f;
+    time   = 1.0f;
+    kTime  = 1.0f;
+    y      = 0.0f;
+    dltY   = 0.0f;
+    kRad   = 1.0f;
     dltRad = 0.0f;
-    kAy = 1.0f;
+    kAy    = 1.0f;
     timeAy = 0.0f;
-    ay = rand() * 6.5f / RAND_MAX;
+    ay     = rand() * 6.5f / RAND_MAX;
 }
 
 LocEagle::~LocEagle()
@@ -40,43 +40,34 @@ LocEagle::~LocEagle()
 bool LocEagle::Init()
 {
     // The point we fly around
-    const auto loc = core.GetEntityId("location");
-    auto *location = static_cast<Location *>(core.GetEntityPointer(loc));
-    if (!location)
-        return false;
+    auto const loc      = core.GetEntityId("location");
+    auto*      location = static_cast<Location*>(core.GetEntityPointer(loc));
+    if (!location) return false;
     cnt = location->GetPtcData().middle + CVECTOR(0.0f, 30.0f, 0.0f);
     // Path for textures
-    auto *gs = static_cast<VGEOMETRY *>(core.GetService("geometry"));
-    if (!gs)
-    {
+    auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    if (!gs) {
         core.Trace("Can't create geometry service!");
         return false;
     }
     // Model
-    if (!(mdl = core.CreateEntity("modelr")))
-        return false;
+    if (!(mdl = core.CreateEntity("modelr"))) return false;
     core.AddToLayer(REALIZE, mdl, 20);
     gs->SetTexturePath("Animals\\");
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "Animals\\eagle"))
-    {
+    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "Animals\\eagle")) {
         gs->SetTexturePath("");
         return false;
     }
     gs->SetTexturePath("");
     // Animation
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_ANI, "eagle"))
-        return false;
+    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_ANI, "eagle")) return false;
     // Start playing the animation
-    auto *m = static_cast<MODEL *>(core.GetEntityPointer(mdl));
-    if (!m)
-        return false;
-    auto *ani = m->GetAnimation();
-    if (!ani)
-        return false;
-    if (!ani->Player(0).SetAction("flight"))
-        return false;
-    if (!ani->Player(0).Play())
-        return false;
+    auto* m = static_cast<MODEL*>(core.GetEntityPointer(mdl));
+    if (!m) return false;
+    auto* ani = m->GetAnimation();
+    if (!ani) return false;
+    if (!ani->Player(0).SetAction("flight")) return false;
+    if (!ani->Player(0).Play()) return false;
     // include in the execution list
     // core.LayerCreate("execute", true, false);
     core.SetLayerType(EXECUTE, layer_type_t::execute);
@@ -88,36 +79,30 @@ bool LocEagle::Init()
 void LocEagle::Execute(uint32_t delta_time)
 {
     // Model
-    auto *m = static_cast<MODEL *>(core.GetEntityPointer(mdl));
-    if (!m)
-        return;
+    auto* m = static_cast<MODEL*>(core.GetEntityPointer(mdl));
+    if (!m) return;
     // Updating position
-    const auto dltTime = delta_time * 0.001f;
+    auto const dltTime = delta_time * 0.001f;
     time += kTime * dltTime;
-    if (time >= 1.0f)
-    {
-        dltY = ((rand() & 15) * (2.0f / 15.0f) - 1.0f) * 1.0f - y;
-        time = 0.0f;
-        kTime = 1.0f / (2.0f + rand() * (20.0f / RAND_MAX));
+    if (time >= 1.0f) {
+        dltY   = ((rand() & 15) * (2.0f / 15.0f) - 1.0f) * 1.0f - y;
+        time   = 0.0f;
+        kTime  = 1.0f / (2.0f + rand() * (20.0f / RAND_MAX));
         dltRad = (0.5f + ((rand() & 7) * (1.0f / 7.0f) * 0.7f)) - kRad;
     }
     timeAy -= dltTime;
-    if (timeAy <= 0.0f)
-    {
-        if (rand() & 3)
-        {
+    if (timeAy <= 0.0f) {
+        if (rand() & 3) {
             // Fast
             timeAy = 10.0f + rand() * (10.0f / RAND_MAX);
-            kAy = 1.0f;
-        }
-        else
-        {
+            kAy    = 1.0f;
+        } else {
             // Slow
             timeAy = 1.0f + rand() * (2.0f / RAND_MAX);
-            kAy = 0.4f;
-            time = 0.0f;
-            kTime = 1.0f / (1.0f + rand() * (1.0f / RAND_MAX));
-            dltY = -1.0f - y;
+            kAy    = 0.4f;
+            time   = 0.0f;
+            kTime  = 1.0f / (1.0f + rand() * (1.0f / RAND_MAX));
+            dltY   = -1.0f - y;
         }
     }
     ay += dltTime * kAy * 0.1f / kRad;

@@ -1,73 +1,70 @@
 #pragma once
 
-#include "../xdefines.h"
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
+#include "../xdefines.h"
+
 class MODEL;
 class NODE;
 class CMatrix;
 
-class InterfaceBackScene : public Entity
+class InterfaceBackScene: public Entity
 {
-    struct LightParam
-    {
+    struct LightParam {
         bool bUse;
 
-        int32_t indexLight;
+        int32_t   indexLight;
         D3DLIGHT9 lightSource;
         D3DLIGHT9 lightOldSource;
 
         uint32_t dwFlareColor;
-        float fMinFlareColor;
-        float fMaxFlareColor;
+        float    fMinFlareColor;
+        float    fMaxFlareColor;
 
         D3DCOLORVALUE colorMin, colorMax;
-        float fColorTimer;
-        float fColorPeriod;
-        float fAddPeriod;
-        float fAddPeriodMax;
+        float         fColorTimer;
+        float         fColorPeriod;
+        float         fAddPeriod;
+        float         fAddPeriodMax;
 
         float fRangeMin, fRangeMax;
         float fRangeTimer;
         float fRangePeriod;
 
-        MODEL *pModel;
+        MODEL*  pModel;
         entid_t eiModel;
 
         CVECTOR vLightPos;
-        NODE *pLightSrcNode;
+        NODE*   pLightSrcNode;
 
         LightParam()
         {
-            bUse = false;
-            pModel = nullptr;
+            bUse          = false;
+            pModel        = nullptr;
             pLightSrcNode = nullptr;
-            fColorTimer = 0.0f;
+            fColorTimer   = 0.0f;
         }
 
         ~LightParam();
         void UpdateParams(float fTime);
     };
 
-  public:
+public:
     InterfaceBackScene();
     ~InterfaceBackScene() override;
 
-    bool Init() override;
-    void Execute(uint32_t Delta_Time);
-    void Realize(uint32_t Delta_Time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Execute(uint32_t Delta_Time);
+    void     Realize(uint32_t Delta_Time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -78,54 +75,58 @@ class InterfaceBackScene : public Entity
         }
     }
 
-  protected:
-    VDX9RENDER *m_pRS;
+protected:
+    VDX9RENDER* m_pRS;
 
     entid_t m_eiModel;
-    MODEL *m_pModel;
+    MODEL*  m_pModel;
     entid_t m_eiLocators;
-    MODEL *m_pLocators;
+    MODEL*  m_pLocators;
 
     FXYPOINT m_pntOldMouse;
-    CVECTOR m_vCamPos;
-    CVECTOR m_vCamAng;
-    float m_fCamPerspective;
+    CVECTOR  m_vCamPos;
+    CVECTOR  m_vCamAng;
+    float    m_fCamPerspective;
 
-    std::vector<LightParam *> m_aLights;
+    std::vector<LightParam*> m_aLights;
 
-    struct MenuDescr
-    {
-        bool bSelectable;
-        entid_t eiActive;
-        MODEL *pActive;
-        entid_t eiPassive;
-        MODEL *pPassive;
+    struct MenuDescr {
+        bool        bSelectable;
+        entid_t     eiActive;
+        MODEL*      pActive;
+        entid_t     eiPassive;
+        MODEL*      pPassive;
         std::string sEventName;
 
         MenuDescr() : eiActive(0), eiPassive(0)
         {
-            pActive = nullptr;
-            pPassive = nullptr;
+            pActive     = nullptr;
+            pPassive    = nullptr;
             bSelectable = false;
         }
 
         ~MenuDescr();
-        void Set(CMatrix *pMtx, const char *pcActiveName, const char *pcPassiveName, const char *pcEvent,
-                 const char *pcPathName, const char *pcTechniqueName);
+        void
+        Set(CMatrix*    pMtx,
+            char const* pcActiveName,
+            char const* pcPassiveName,
+            char const* pcEvent,
+            char const* pcPathName,
+            char const* pcTechniqueName);
     };
 
-    std::vector<MenuDescr *> m_aMenuDescr;
-    int32_t m_nSelectMenuIndex;
+    std::vector<MenuDescr*> m_aMenuDescr;
+    int32_t                 m_nSelectMenuIndex;
 
-    void LoadModel(const char *pcModelName);
-    void SetCameraPosition(const char *pcLocatorName);
-    void SetShipPosition(const char *pcLocName, ATTRIBUTES *pAChar) const;
+    void LoadModel(char const* pcModelName);
+    void SetCameraPosition(char const* pcLocatorName);
+    void SetShipPosition(char const* pcLocName, ATTRIBUTES* pAChar) const;
 
-    bool FindLocator(const char *pcLocName, CMatrix *pMtx, CVECTOR *pPos, float *pYAng) const;
-    void SetLocatorPosition(MODEL *pModel, const char *pcLocName, CVECTOR &pos, NODE *&pNodPtr);
+    bool FindLocator(char const* pcLocName, CMatrix* pMtx, CVECTOR* pPos, float* pYAng) const;
+    void SetLocatorPosition(MODEL* pModel, char const* pcLocName, CVECTOR& pos, NODE*& pNodPtr);
 
     void ReleaseMenuList();
-    void CreateMenuList(int32_t nStartIndex, ATTRIBUTES *pAMenu);
+    void CreateMenuList(int32_t nStartIndex, ATTRIBUTES* pAMenu);
     void ChooseNextMenu();
     void ChoosePrevMenu();
     void SetNewMenu(int32_t nNewSelectIndex);
@@ -134,25 +135,24 @@ class InterfaceBackScene : public Entity
 
     int32_t CheckMousePos(float fX, float fY);
 
-    void InitLight(ATTRIBUTES *pAParam);
+    void InitLight(ATTRIBUTES* pAParam);
     void SetLight();
     void RestoreLight();
     void FlareShow(int32_t idx);
 
-    void InitAniModel(ATTRIBUTES *pAParam);
-    void InitStaticModel(ATTRIBUTES *pAParam);
+    void InitAniModel(ATTRIBUTES* pAParam);
+    void InitStaticModel(ATTRIBUTES* pAParam);
 
-    struct AniModelDescr
-    {
+    struct AniModelDescr {
         entid_t ei;
-        MODEL *pModel;
+        MODEL*  pModel;
 
-        bool bUseTFactor;
+        bool     bUseTFactor;
         uint32_t dwTFactor;
 
         AniModelDescr() : ei(0), dwTFactor(0)
         {
-            pModel = nullptr;
+            pModel      = nullptr;
             bUseTFactor = false;
         }
 
@@ -163,59 +163,53 @@ class InterfaceBackScene : public Entity
         }
     };
 
-    std::vector<AniModelDescr *> m_apAniModel;
+    std::vector<AniModelDescr*> m_apAniModel;
 
     // a fly is a migratory bird!
-    struct Particle
-    {
+    struct Particle {
         CVECTOR pos;
-        float angle;
-        float size;
-        float alpha;
+        float   angle;
+        float   size;
+        float   alpha;
     };
 
-    struct ParticleEx : public Particle
-    {
+    struct ParticleEx: public Particle {
         uint32_t color;
-        float frame;
+        float    frame;
     };
 
-    struct ParticleFly : public ParticleEx
-    {
+    struct ParticleFly: public ParticleEx {
         float ax, ay;
         float kx, ky;
         float a, k;
     };
 
-    struct LampFlys
-    {
+    struct LampFlys {
         CVECTOR pos;
-        float radius;
+        float   radius;
         int32_t start;
         int32_t num;
     };
 
-    struct Vertex
-    {
-        CVECTOR pos;
+    struct Vertex {
+        CVECTOR  pos;
         uint32_t color;
-        float u, v;
+        float    u, v;
     };
 
-    std::vector<LampFlys> flys;
-    int32_t numFlys;
-    int32_t maxFlys;
+    std::vector<LampFlys>    flys;
+    int32_t                  numFlys;
+    int32_t                  maxFlys;
     std::vector<ParticleFly> fly;
-    int32_t numFly;
-    int32_t flyTex;
-    Vertex buffer[256 * 6];
+    int32_t                  numFly;
+    int32_t                  flyTex;
+    Vertex                   buffer[256 * 6];
 
     CVECTOR m_vFlarePos;
-    float m_fFlareSize;
+    float   m_fFlareSize;
     int32_t m_nFlareTexture;
 
-    void AddLampFlys(CVECTOR &pos);
+    void AddLampFlys(CVECTOR& pos);
     void ProcessedFlys(float dltTime);
-    void DrawParticles(void *prts, int32_t num, int32_t size, int32_t texture, const char *tech, bool isEx = false,
-                       int32_t numU = 0);
+    void DrawParticles(void* prts, int32_t num, int32_t size, int32_t texture, char const* tech, bool isEx = false, int32_t numU = 0);
 };

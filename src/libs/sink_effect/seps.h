@@ -6,7 +6,6 @@
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
-
 #define MAX_PS_TEXTURES 8
 #define VERTEXS_ON_PARTICLE 6
 
@@ -47,17 +46,15 @@
 
 namespace sink_effect
 {
-struct PARTICLE_VERTEX
-{
-    CVECTOR pos;
+struct PARTICLE_VERTEX {
+    CVECTOR  pos;
     uint32_t color;
-    float tu, tv;
+    float    tu, tv;
 };
 
 #define PARTICLE_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
-struct PARTICLE
-{
+struct PARTICLE {
     CVECTOR pos;
     CVECTOR ang;
     CVECTOR v;
@@ -77,23 +74,22 @@ struct PARTICLE
     float speed_chaos;
     float speedVal;
 
-    int32_t lifetime;
-    int32_t time;
+    int32_t  lifetime;
+    int32_t  time;
     uint32_t color;
-    bool live;
-    bool done;
+    bool     live;
+    bool     done;
 
     uint32_t flow_track_index;
 };
 
 #define TRACK_EVENT_MAX 16
 
-struct TRACK_EVENT
-{
+struct TRACK_EVENT {
     int32_t time;
-    float value;
+    float   value;
 };
-} // namespace sink_effect
+}  // namespace sink_effect
 
 class PARTICLES;
 
@@ -109,67 +105,67 @@ class SEPS_PS
 
     bool bTrackAngle;
 
-    VDX9RENDER *RenderService;
-    VGEOMETRY *gs;
+    VDX9RENDER* RenderService;
+    VGEOMETRY*  gs;
 
     int32_t TextureID[MAX_PS_TEXTURES];
     int32_t TexturesNum;
 
-    int32_t ParticlesNum;
-    sink_effect::PARTICLE *Particle;
+    int32_t                ParticlesNum;
+    sink_effect::PARTICLE* Particle;
 
-    IDirect3DVertexBuffer9 *VBuffer;
+    IDirect3DVertexBuffer9* VBuffer;
 
     CVECTOR Camera_EmitterPos;
     CVECTOR Camera_EmitterPosA;
     CVECTOR Emitter;
     CVECTOR EmitterDirection;
-    float DirectionDeviation;
+    float   DirectionDeviation;
     int32_t EmitterIniTime;
 
     CVECTOR vWindDirection;
-    float fWindPower;
-    float fWindEffect;
-    float Gravity;
-    float Inispeed;
-    float SpeedDeviation;
+    float   fWindPower;
+    float   fWindEffect;
+    float   Gravity;
+    float   Inispeed;
+    float   SpeedDeviation;
     int32_t Lifetime;
     int32_t Emitdelta;
-    float Spin;
-    float SpinDeviation;
-    float Weight;
-    float WeightDeviation;
-    float ESpace;
+    float   Spin;
+    float   SpinDeviation;
+    float   Weight;
+    float   WeightDeviation;
+    float   ESpace;
     int32_t Delay;
 
     //---------------------------------
 
     uint32_t nEmitted;
-    float EmissionTime;   // time for emitting one particle
-    int32_t DeltaTimeSLE; // SinceLastEmission
-    bool EmitParticle();
-    int32_t nSystemLifeTime;
+    float    EmissionTime;  // time for emitting one particle
+    int32_t  DeltaTimeSLE;  // SinceLastEmission
+    bool     EmitParticle();
+    int32_t  nSystemLifeTime;
     // void  AddTrackPoint(CVECTOR pos);
-    CVECTOR *pFlowTrack;
+    CVECTOR* pFlowTrack;
     uint32_t nFlowTrackSize;
-    bool bUseFlowTrack;
-    void SetFlowTrack(uint32_t index);
-    float fTrackPointRadius;
-    float EmissionTimeRand;
-    float CurrentEmissionTimeRand;
-    bool bLayOnSurface;
-    void LayOnSurface(uint32_t index);
-    entid_t SurfaceID;
-    void UseSurface(entid_t surface_id);
-    float fSurfaceOffset;
-    char *TechniqueName;
+    bool     bUseFlowTrack;
+    void     SetFlowTrack(uint32_t index);
+    float    fTrackPointRadius;
+    float    EmissionTimeRand;
+    float    CurrentEmissionTimeRand;
+    bool     bLayOnSurface;
+    void     LayOnSurface(uint32_t index);
+    entid_t  SurfaceID;
+    void     UseSurface(entid_t surface_id);
+    float    fSurfaceOffset;
+    char*    TechniqueName;
     uint32_t ParticleColor;
 
     //---------------------------------
 
     CVECTOR CameraPos;
     CVECTOR CameraAng;
-    float Perspective;
+    float   Perspective;
 
     CMatrix Matrix;
 
@@ -181,8 +177,8 @@ class SEPS_PS
     bool bLinkEmitter;
     bool bRandomDirection;
 
-    SEPS_PS *l_PTR;
-    SEPS_PS *r_PTR;
+    SEPS_PS* l_PTR;
+    SEPS_PS* r_PTR;
 
     entid_t LinkObject;
     CVECTOR LinkPos;
@@ -192,10 +188,10 @@ class SEPS_PS
     int32_t EmitIndex;
     int32_t EmitTimeDelta;
 
-  public:
+public:
     SEPS_PS();
     ~SEPS_PS();
-    bool Init(INIFILE *ini, char *psname);
+    bool Init(INIFILE* ini, char* psname);
     void UpdateVertexBuffer();
     void Realize(uint32_t DeltaTime);
     void Execute(uint32_t DeltaTime);
@@ -205,22 +201,22 @@ class SEPS_PS
 
     void SetParticlesTracks(uint32_t DeltaTime);
 
-    float GetTrackValue(sink_effect::TRACK_EVENT *Track, int32_t Time);
-    bool BuildTrack(INIFILE *ini, sink_effect::TRACK_EVENT *Track, const char *psname, const char *key_name);
-    void SetEmitter(CVECTOR p, CVECTOR a);
-    void LinkToObject(entid_t id, CVECTOR _LinkPos);
-    void SetDelay(int32_t _delay);
-    void TryEmitParticle();
+    float GetTrackValue(sink_effect::TRACK_EVENT* Track, int32_t Time);
+    bool  BuildTrack(INIFILE* ini, sink_effect::TRACK_EVENT* Track, char const* psname, char const* key_name);
+    void  SetEmitter(CVECTOR p, CVECTOR a);
+    void  LinkToObject(entid_t id, CVECTOR _LinkPos);
+    void  SetDelay(int32_t _delay);
+    void  TryEmitParticle();
 
     // nodes --------------------------------------------------------
-    SEPS_PS *GetLeftNode();
-    SEPS_PS *GetRightNode();
-    void SetLeftNode(SEPS_PS *node);
-    void SetRightNode(SEPS_PS *node);
-    void AttachTo(SEPS_PS *link_after_PTR, SEPS_PS **Root, SEPS_PS **Top);
-    void Attach(SEPS_PS **Root, SEPS_PS **Top);
-    void Deattach(SEPS_PS **Root, SEPS_PS **Top);
-    void ProcessOrder(SEPS_PS **Root, SEPS_PS **Top);
+    SEPS_PS* GetLeftNode();
+    SEPS_PS* GetRightNode();
+    void     SetLeftNode(SEPS_PS* node);
+    void     SetRightNode(SEPS_PS* node);
+    void     AttachTo(SEPS_PS* link_after_PTR, SEPS_PS** Root, SEPS_PS** Top);
+    void     Attach(SEPS_PS** Root, SEPS_PS** Top);
+    void     Deattach(SEPS_PS** Root, SEPS_PS** Top);
+    void     ProcessOrder(SEPS_PS** Root, SEPS_PS** Top);
     //---------------------------------------------------------------
 
     void SetLifeTime(uint32_t time)

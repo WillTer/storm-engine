@@ -10,16 +10,15 @@
 
 #pragma once
 
-#include "ai_character.h"
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 
+#include "ai_character.h"
 
-class NPCharacter : public AICharacter
+class NPCharacter: public AICharacter
 {
-  protected:
-    enum NPCTask
-    {
+protected:
+    enum NPCTask {
         npct_unknow = 0,
         npct_none,
         // No task, the character is controlled from the outside
@@ -40,8 +39,7 @@ class NPCharacter : public AICharacter
         npct_max
     };
 
-    struct Task
-    {
+    struct Task {
         NPCTask task;
         CVECTOR to;
         entid_t target;
@@ -49,8 +47,7 @@ class NPCharacter : public AICharacter
         union {
             uint32_t flags;
 
-            struct
-            {
+            struct {
                 uint32_t isRun : 1;
                 uint32_t isFight : 1;
                 uint32_t isFollowInit : 1;
@@ -58,40 +55,39 @@ class NPCharacter : public AICharacter
         };
     };
 
-    struct EnemyState
-    {
-        NPCharacter *chr; // Pointer to the enemy
-        float look;       // Enemy direction towards us (cos)
-        float dir;        // The location of the enemy relative to us (cos)
-        float state;      // Enemy Condition Coefficient
+    struct EnemyState {
+        NPCharacter* chr;    // Pointer to the enemy
+        float        look;   // Enemy direction towards us (cos)
+        float        dir;    // The location of the enemy relative to us (cos)
+        float        state;  // Enemy Condition Coefficient
     };
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
     // --------------------------------------------------------------------------------------------
-  public:
+public:
     NPCharacter();
     ~NPCharacter() override;
 
     bool PostInit() override;
 
-    uint32_t ChlProcessMessage(int32_t messageID, MESSAGE &message) override;
-    void Move(float dltTime) override;
-    void Update(float dltTime) override;
+    uint32_t ChlProcessMessage(int32_t messageID, MESSAGE& message) override;
+    void     Move(float dltTime) override;
+    void     Update(float dltTime) override;
 
     //--------------------------------------------------------------------------------------------
     //
     //--------------------------------------------------------------------------------------------
-  public:
+public:
     // Get attacking character
-    Character *GetAttackedCharacter() const;
+    Character* GetAttackedCharacter() const;
 
     // --------------------------------------------------------------------------------------------
     // Tasks
     // --------------------------------------------------------------------------------------------
 
     // Set a new task
-    bool SetNewTask(NPCTask tsk, MESSAGE &message);
+    bool SetNewTask(NPCTask tsk, MESSAGE& message);
 
     bool InitFollowChartacter(entid_t eid);
     bool InitFightChartacter(entid_t eid);
@@ -99,7 +95,7 @@ class NPCharacter : public AICharacter
     // --------------------------------------------------------------------------------------------
     // Executing tasks
     // --------------------------------------------------------------------------------------------
-  protected:
+protected:
     // Completing the task of following a character
     void UpdateFollowCharacter(float dltTime);
     // Execution of the escape task
@@ -109,18 +105,18 @@ class NPCharacter : public AICharacter
 
     // The fight
     // Combat behavior
-    void DoFightAction(float dltTime, NPCharacter *enemy);
+    void DoFightAction(float dltTime, NPCharacter* enemy);
     // Combat behavior - idle
-    void DoFightActionAnalysisNone(float dltTime, NPCharacter *enemy);
+    void DoFightActionAnalysisNone(float dltTime, NPCharacter* enemy);
     // Combat behavior - attack
-    void DoFightAttack(Character *enemy, int32_t enemyCounter, bool wishDefence);
+    void DoFightAttack(Character* enemy, int32_t enemyCounter, bool wishDefence);
     // Combat behavior - block, parry
     void DoFightBlock(bool needParry = false);
 
     // Get energy
     float GetEnergy() const;
     // Get energy for action
-    float GetActEnergy(const char *act) const;
+    float GetActEnergy(char const* act) const;
 
     // Events
 
@@ -143,93 +139,90 @@ class NPCharacter : public AICharacter
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
-  private:
+private:
     // Cannot further execute the command
     void FailureCommand(NPCTask task) const;
     // Making decisions
     void FightTick();
     // Get task type by name
-    static NPCTask GetTaskID(const char *taskName);
+    static NPCTask GetTaskID(char const* taskName);
     // Get task name by type
-    static const char *GetTaskName(NPCTask t);
+    static char const* GetTaskName(NPCTask t);
     // Check event
-    static bool PrTest(float probability, float &testTime);
+    static bool PrTest(float probability, float& testTime);
     static bool PrTest(float probability);
 
-  protected:
-    Task task;           // The task to be performed
-    NPCTask lastSetTask; // Last task set
+protected:
+    Task    task;         // The task to be performed
+    NPCTask lastSetTask;  // Last task set
 
-  private:
-    Task taskstack[16];   // Task stack
-    int32_t stackPointer; // Stack pointer
+private:
+    Task    taskstack[16];  // Task stack
+    int32_t stackPointer;   // Stack pointer
 
     // Groups object
     entid_t charactersGroups;
 
     // Fight system
-    float fightLevel; // Behavior level in combat 0..1
+    float fightLevel;  // Behavior level in combat 0..1
 
     // Attacks
-    float attackCur;      // The rate of increase in the probability of attack, in parrots
-    float attackPrbFast;  // fgt_attack_fast probability
-    float attackPrbForce; // fgt_attack_force probability
-    float attackPrbRound; // fgt_attack_round probability
-    float attackPrbBreak; // fgt_attack_break probability
-    float attackPrbFeint; // fgt_attack_feint probability
+    float attackCur;       // The rate of increase in the probability of attack, in parrots
+    float attackPrbFast;   // fgt_attack_fast probability
+    float attackPrbForce;  // fgt_attack_force probability
+    float attackPrbRound;  // fgt_attack_round probability
+    float attackPrbBreak;  // fgt_attack_break probability
+    float attackPrbFeint;  // fgt_attack_feint probability
 
     // Defence
-    float defenceCur;      // Rate of rise of block probability, in parrots
-    float blockTime;       // Block time
-    float defencePrbBlock; // fgt_block probability
-    float defencePrbParry; // fgt_parry probability
-    bool isRecoilEnable;   // Is a rebound allowed?
+    float defenceCur;       // Rate of rise of block probability, in parrots
+    float blockTime;        // Block time
+    float defencePrbBlock;  // fgt_block probability
+    float defencePrbParry;  // fgt_parry probability
+    bool  isRecoilEnable;   // Is a rebound allowed?
 
     // Shooting
-    float fireCur;     // The rate of rise of the probability of a shot, in parrots
-    bool isFireEnable; // Is the shot allowed
+    float fireCur;       // The rate of rise of the probability of a shot, in parrots
+    bool  isFireEnable;  // Is the shot allowed
 
-    float fightTick;    // Time until the next decision tick
-    bool wantToAttack;  // Desire to attack
-    bool wantToDefence; // Desire to defend
-    bool wantToFire;    // Desire to shoot
+    float fightTick;      // Time until the next decision tick
+    bool  wantToAttack;   // Desire to attack
+    bool  wantToDefence;  // Desire to defend
+    bool  wantToFire;     // Desire to shoot
 
     // The current state of the enemy
-    bool isFgtChanged;
+    bool        isFgtChanged;
     FightAction enemyFgtType;
 
-    bool bMusketer; //~!~
+    bool  bMusketer;  //~!~
     float fMusketerDistance;
     float fMusketerTime, fMusketerFireTime, fMusketerCheckFireTime;
-    bool bMusketerNoMove; //~!~
-    bool bTryAnyTarget;
+    bool  bMusketerNoMove;  //~!~
+    bool  bTryAnyTarget;
 
-    void SetEscapeTask(Character *c);
+    void SetEscapeTask(Character* c);
 };
 
 // Get attacking character
-inline Character *NPCharacter::GetAttackedCharacter() const
+inline Character* NPCharacter::GetAttackedCharacter() const
 {
-    if (task.task != npct_fight)
-        return nullptr;
-    return static_cast<Character *>(core.GetEntityPointer(task.target));
+    if (task.task != npct_fight) return nullptr;
+    return static_cast<Character*>(core.GetEntityPointer(task.target));
 }
 
 // Check event
-inline bool NPCharacter::PrTest(float probability, float &testTime)
+inline bool NPCharacter::PrTest(float probability, float& testTime)
 {
-    if (testTime < 1.0f / 5.0f)
-        return false;
+    if (testTime < 1.0f / 5.0f) return false;
     testTime = rand() * (0.02f / RAND_MAX);
-    if (probability <= 0.0f)
-        return false;
-    const auto r = rand() * (1.0f / RAND_MAX);
+    if (probability <= 0.0f) return false;
+    auto const r = rand() * (1.0f / RAND_MAX);
     return r < probability;
 }
 
 // Check event
 inline bool NPCharacter::PrTest(float probability)
 {
-    const auto r = rand() * (1.0f / RAND_MAX);
+    auto const r = rand() * (1.0f / RAND_MAX);
     return r < probability;
 }

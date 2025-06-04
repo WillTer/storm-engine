@@ -12,12 +12,11 @@
 
 namespace ANFILE
 {
-struct HEADER
-{
+struct HEADER {
     int32_t nFrames;
     int32_t nJoints;
-    float framesPerSec;
+    float   framesPerSec;
 };
-}; // namespace ANFILE
+};  // namespace ANFILE
 
 #pragma pack(pop)

@@ -1,40 +1,36 @@
 #pragma once
 
 #include "../base_video.h"
-#ifdef _WIN32 // FIX_LINUX ddraw.h and amstream.h
+#ifdef _WIN32  // FIX_LINUX ddraw.h and amstream.h
 #include <amstream.h>
 #include <ddraw.h>
 #endif
 
 #define XI_AVIVIDEO_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
-struct XI_AVIVIDEO_VERTEX
-{
+struct XI_AVIVIDEO_VERTEX {
     CVECTOR pos;
-    float w;
-    float tu, tv;
+    float   w;
+    float   tu, tv;
 };
 
-class CAviPlayer : public xiBaseVideo
+class CAviPlayer: public xiBaseVideo
 {
-    VDX9RENDER *rs;
-    bool m_bShowVideo;
+    VDX9RENDER* rs;
+    bool        m_bShowVideo;
 
-  public:
+public:
     CAviPlayer();
     ~CAviPlayer() override;
-    bool Init() override;
-    void Execute(uint32_t delta_time);
-    void Realize(uint32_t delta_time);
-    uint64_t ProcessMessage(MESSAGE &message) override;
+    bool     Init() override;
+    void     Execute(uint32_t delta_time);
+    void     Realize(uint32_t delta_time);
+    uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {
-        switch (stage)
-        {
-        case Stage::execute:
-            Execute(delta);
-            break;
+        switch (stage) {
+        case Stage::execute: Execute(delta); break;
         case Stage::realize:
             Realize(delta);
             break;
@@ -50,35 +46,35 @@ class CAviPlayer : public xiBaseVideo
         m_bShowVideo = bShowVideo;
     }
 
-    IDirect3DTexture9 *GetCurrentVideoTexture() override
+    IDirect3DTexture9* GetCurrentVideoTexture() override
     {
         return pTex;
     }
 
-  protected:
+protected:
     bool m_bContinue;
 
-#ifdef _WIN32 // FIX_LINUX ddraw.h and amstream.h
-    IDirectDraw *pDD;
-    IDirectDrawSurface *pPrimarySurface;
-    IDirectDrawSurface *pVideoSurface;
+#ifdef _WIN32  // FIX_LINUX ddraw.h and amstream.h
+    IDirectDraw*        pDD;
+    IDirectDrawSurface* pPrimarySurface;
+    IDirectDrawSurface* pVideoSurface;
 
-    IAMMultiMediaStream *pAMStream;
-    IMediaStream *pPrimaryVidStream;
-    IDirectDrawMediaStream *pDDStream;
-    IDirectDrawStreamSample *pSample;
+    IAMMultiMediaStream*     pAMStream;
+    IMediaStream*            pPrimaryVidStream;
+    IDirectDrawMediaStream*  pDDStream;
+    IDirectDrawStreamSample* pSample;
 #endif
 
     POINT dstPnt;
-    RECT lockRect;
+    RECT  lockRect;
 
     XI_AVIVIDEO_VERTEX v[4];
 
-    IDirect3DSurface9 *pTmpRenderTarget;
-    IDirect3DTexture9 *pTex;
+    IDirect3DSurface9* pTmpRenderTarget;
+    IDirect3DTexture9* pTex;
 
     void ReleaseAll();
-    bool PlayMedia(const char *fileName);
+    bool PlayMedia(char const* fileName);
     bool GetInterfaces();
     void CleanupInterfaces();
 
@@ -86,5 +82,5 @@ class CAviPlayer : public xiBaseVideo
     bool m_bMakeUninitializeDD;
 
     std::string filename;
-    bool bLoop{false};
+    bool        bLoop {false};
 };
