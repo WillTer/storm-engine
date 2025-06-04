@@ -299,7 +299,7 @@ void SoundService::resume(SoundID id, int32_t time /* = 0*/)
         return;
     }
 
-    resume_sound(m_playing_sounds[id.index()]);
+    resume_sound(m_playing_sounds[id.index()], time);
 }
 
 uint32_t SoundService::get_position(SoundID id)
