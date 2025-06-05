@@ -15,7 +15,8 @@ CREATE_CLASS(HULL)
 #define DELTA_TIME(x) ((x) * 0.001f)
 #define DELTA_TIME_ROTATE(x) ((x) * 0.01f)
 
-static const auto MAST_INI_FILE = RESOURCE_INI_DIR / "mast.ini";
+// FIXME: hardcode
+constexpr std::string_view MAST_INI_FILE = "mast.ini";
 
 float MAST_MOVE_STEP      = 0.2f;
 float MAST_FALL_STEP      = .05f;
@@ -105,8 +106,8 @@ void MAST::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(MAST_INI_FILE)) {
-            auto ft_new = fio->_GetLastWriteTime(MAST_INI_FILE);
+        if (std::filesystem::exists(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE)) {
+            auto ft_new = std::filesystem::last_write_time(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
             if (ft_old != ft_new) { LoadIni(); }
         }
         doMove(Delta_Time);
@@ -368,8 +369,10 @@ void MAST::LoadIni()
     // GUARD(MAST::LoadIni());
     char section[256];
 
-    if (fio->_FileOrDirectoryExists(MAST_INI_FILE)) { ft_old = fio->_GetLastWriteTime(MAST_INI_FILE); }
-    auto ini = fio->OpenIniFile(MAST_INI_FILE);
+    if (std::filesystem::exists(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE)) {
+        ft_old = std::filesystem::last_write_time(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
+    }
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
     if (!ini) { throw std::runtime_error("mast.ini file not found!"); }
 
     sprintf_s(section, "MAST");

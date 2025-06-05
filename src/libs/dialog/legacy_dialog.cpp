@@ -20,7 +20,8 @@ CREATE_CLASS(LegacyDialog)
 namespace
 {
 
-auto const                 DIALOG_INI_FILE_PATH      = RESOURCE_INI_DIR / "dialog.ini";
+// FIXME: hardcode
+constexpr std::string_view DIALOG_INI_FILE_PATH      = "dialog.ini";
 constexpr std::string_view DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
 
 constexpr uint32_t const COLOR_NORMAL          = 0xFFFFFFFF;
@@ -279,7 +280,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
 
 void LegacyDialog::LoadIni()
 {
-    auto ini = fio->OpenIniFile(DIALOG_INI_FILE_PATH);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / DIALOG_INI_FILE_PATH);
 
     mainFont_ = LoadFont("mainfont", *ini, *RenderService);
     nameFont_ = LoadFont("namefont", *ini, *RenderService);

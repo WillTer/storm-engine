@@ -60,7 +60,7 @@ bool GEOMETRY::Init()
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
-    auto ini = fio->OpenIniFile(core.EngineIniFileName());
+    auto ini = fio->open_ini_file(core.EngineIniFileName());
     if (ini) { geoLog = ini->GetInt(nullptr, "geometry_log", 0) == 1; }
 
     return true;
@@ -100,14 +100,14 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
 
     GEOS* gp;
     try {
-        auto const model_path = RESOURCE_MODELS_DIR / (std::string(file_name) + ".gm");
+        auto const model_path = fio->base_directory_path(BaseDirectory::Models) / (std::string(file_name) + ".gm");
         if (light_file_name == nullptr || strlen(light_file_name) == 0) {
             gp = ::CreateGeometry(model_path.string().c_str(), nullptr, GSR, flags);
         } else {
             auto const* elf = light_file_name;
             if (elf[0] == '\\') elf++;
             if (elf[0] == '\\') elf++;
-            auto const light_path = RESOURCE_MODELS_DIR / (std::string(file_name) + "_" + elf + ".col");
+            auto const light_path = fio->base_directory_path(BaseDirectory::Models) / (std::string(file_name) + "_" + elf + ".col");
 
             gp = ::CreateGeometry(model_path.string().c_str(), light_path.string().c_str(), GSR, flags);
         }
@@ -172,10 +172,10 @@ void GEOM_SERVICE_R::SetRenderService(VDX9RENDER* render_service)
     if (vertexDecl_ == nullptr) RenderService->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-std::fstream GEOM_SERVICE_R::OpenFile(char const* fname)
+std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 {
     if (RenderService) { RenderService->ProgressView(); }
-    auto fileS = fio->_CreateFile(fname, std::ios::binary | std::ios::in);
+    auto fileS = std::ifstream(fname, std::ios::binary);
     if (!fileS.is_open()) {
         if (storm::iEquals(&fname[strlen(fname) - 4], ".col")) {
             //    core.Trace("geometry::can't open file %s", fname);
@@ -189,17 +189,18 @@ std::fstream GEOM_SERVICE_R::OpenFile(char const* fname)
 
 int GEOM_SERVICE_R::FileSize(char const* fname)
 {
-    return fio->_GetFileSize(fname);
+    return fio->file_size(fname);
 }
 
-bool GEOM_SERVICE_R::ReadFile(std::fstream& fileS, void* data, int32_t bytes)
+bool GEOM_SERVICE_R::ReadFile(std::ifstream& fileS, void* data, int32_t bytes)
 {
-    return fio->_ReadFile(fileS, data, bytes);
+    fileS.read(reinterpret_cast<char*>(data), bytes);
+    return true;
 }
 
-void GEOM_SERVICE_R::CloseFile(std::fstream& fileS)
+void GEOM_SERVICE_R::CloseFile(std::ifstream& fileS)
 {
-    fio->_CloseFile(fileS);
+    fileS.close();
 }
 
 void* GEOM_SERVICE_R::malloc(int32_t bytes)

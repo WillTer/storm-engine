@@ -10,7 +10,8 @@
 #include <libs/util/string_compare.hpp>
 #include <libs/weather/weather_base.h>
 
-static auto const RIGGING_INI_FILE = RESOURCE_INI_DIR / "rigging.ini";
+// FIXME: hardcode
+constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
 FLAG::FLAG()
 {
@@ -85,8 +86,9 @@ void FLAG::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) {
-            auto ft_new = fio->_GetLastWriteTime(RIGGING_INI_FILE);
+        auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
+        if (std::filesystem::exists(file_path)) {
+            auto ft_new = std::filesystem::last_write_time(file_path);
             if (ft_old != ft_new) { LoadIni(); }
         }
 
@@ -498,8 +500,9 @@ void FLAG::LoadIni()
     char section[256];
     char param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile(RIGGING_INI_FILE);
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
+    if (std::filesystem::exists(file_path)) { ft_old = std::filesystem::last_write_time(file_path); }
+    auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "FLAGS");

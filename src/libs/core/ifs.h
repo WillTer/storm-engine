@@ -7,7 +7,7 @@
 #define KNF_KEY 0x1
 #define KNF_COMMENTARY 0x2
 
-class FILE_SERVICE;
+class FileService;
 
 class KEY_NODE
 {
@@ -79,7 +79,7 @@ typedef struct {
 
 class IFS: public INIFILE
 {
-    friend FILE_SERVICE;
+    friend FileService;
 
 protected:
     SECTION* SectionSNode;
@@ -96,7 +96,7 @@ protected:
     void Format(char* file_data, int32_t file_size);
     bool VoidSym(char symbol);
 
-    VFILE_SERVICE*        fs;
+    IFileService*        fs;
     std::filesystem::path FileName;
     bool                  bDataChanged;
     uint32_t              Reference;
@@ -129,7 +129,7 @@ public:
     }
 #undef IFS_NOT_IMPLEMENTED
 
-    IFS(VFILE_SERVICE* _fs);
+    IFS(IFileService* _fs);
     ~IFS();
 
     bool LoadFile(std::filesystem::path const& file_path);

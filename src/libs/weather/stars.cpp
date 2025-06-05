@@ -8,7 +8,6 @@
 #include "astronomy.h"
 #include "weather_base.h"
 
-
 Astronomy::STARS::STARS()
 {
     aStars.reserve(16384);
@@ -95,11 +94,11 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
 
     if (sCatalog == nullptr) { return; }
 
-    auto fileS = fio->_CreateFile(sCatalog, std::ios::binary | std::ios::in);
+    auto fileS = std::ifstream(sCatalog, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
     uint32_t dwSize;
-    fio->_ReadFile(fileS, &dwSize, sizeof(dwSize));
+    fileS.read(reinterpret_cast<char*>(&dwSize), sizeof(dwSize));
 
     static D3DVERTEXELEMENT9 VertexElem[] = {
         {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
@@ -115,19 +114,22 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
     auto*       pVColors = static_cast<uint32_t*>(pRS->LockVertexBuffer(iVertexBufferColors));
 
     auto bRecalculateData = true;
-    auto outfileS         = fio->_CreateFile(RESOURCE_DIR / "star.dat", std::ios::binary | std::ios::in);
-    if (outfileS.is_open()) {
-        uint32_t       dwFileLen = fio->_GetFileSize(RESOURCE_DIR / "star.dat");
-        uint32_t const stride    = (sizeof(Star) + sizeof(CVECTOR) + sizeof(uint32_t));
-        if (dwFileLen == dwSize * stride) {
+    // FIXME: hardcode
+    auto in_stream = std::ifstream(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
+    if (in_stream.is_open()) {
+        in_stream.seekg(0, std::ios::end);
+        size_t file_size = in_stream.tellg();
+        in_stream.seekg(0, std::ios::beg);
+
+        uint32_t const stride = (sizeof(Star) + sizeof(CVECTOR) + sizeof(uint32_t));
+        if (file_size == dwSize * stride) {
             aStars.resize(aStars.size() + dwSize);
-            fio->_SetFilePointer(outfileS, 0, std::ios::beg);
-            fio->_ReadFile(outfileS, aStars.data(), sizeof(Star) * dwSize);
-            fio->_ReadFile(outfileS, pVPos, sizeof(CVECTOR) * dwSize);
-            fio->_ReadFile(outfileS, pVColors, sizeof(uint32_t) * dwSize);
+            in_stream.seekg(0, std::ios::beg);
+            in_stream.read(reinterpret_cast<char*>(aStars.data()), sizeof(Star) * dwSize);
+            in_stream.read(reinterpret_cast<char*>(pVPos), sizeof(CVECTOR) * dwSize);
+            in_stream.read(reinterpret_cast<char*>(pVColors), sizeof(uint32_t) * dwSize);
             bRecalculateData = false;
         }
-        fio->_CloseFile(outfileS);
     }
 
     if (bRecalculateData) {
@@ -137,10 +139,10 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
             aStars.push_back(Star {});
             auto& s = aStars.back();
 
-            fio->_ReadFile(fileS, &s.fRA, sizeof(s.fRA));
-            fio->_ReadFile(fileS, &s.fDec, sizeof(s.fDec));
-            fio->_ReadFile(fileS, &s.fMag, sizeof(s.fMag));
-            fio->_ReadFile(fileS, &s.cSpectr[0], sizeof(s.cSpectr));
+            fileS.read(reinterpret_cast<char*>(&s.fRA), sizeof(s.fRA));
+            fileS.read(reinterpret_cast<char*>(&s.fDec), sizeof(s.fDec));
+            fileS.read(reinterpret_cast<char*>(&s.fMag), sizeof(s.fMag));
+            fileS.read(&s.cSpectr[0], sizeof(s.cSpectr));
             s.dwColor = Spectr[s.cSpectr[0]];
 
             if (s.fMag < fMaxMag) fMaxMag = s.fMag;
@@ -156,18 +158,16 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
         // core.Trace("Stars: min = %.3f, max = %.3f", fMinMag, fMaxMag);
 
         // write all the buffers to a file in order not to recalculate the next time
-        outfileS = fio->_CreateFile(RESOURCE_DIR / "star.dat", std::ios::binary | std::ios::out);
-        if (!outfileS.is_open()) {
-            fio->_WriteFile(outfileS, aStars.data(), sizeof(Star) * dwSize);
-            fio->_WriteFile(outfileS, pVPos, sizeof(CVECTOR) * dwSize);
-            fio->_WriteFile(outfileS, pVColors, sizeof(uint32_t) * dwSize);
-            fio->_CloseFile(outfileS);
+        auto out_stream = std::ofstream(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
+        if (!out_stream.is_open()) {
+            out_stream.write(reinterpret_cast<char*>(aStars.data()), sizeof(Star) * dwSize);
+            out_stream.write(reinterpret_cast<char*>(pVPos), sizeof(CVECTOR) * dwSize);
+            out_stream.write(reinterpret_cast<char*>(pVColors), sizeof(uint32_t) * dwSize);
         }
     }
 
     pRS->UnLockVertexBuffer(iVertexBuffer);
     pRS->UnLockVertexBuffer(iVertexBufferColors);
-    fio->_CloseFile(fileS);
 }
 
 void Astronomy::STARS::Realize(double dDeltaTime, double dHour)

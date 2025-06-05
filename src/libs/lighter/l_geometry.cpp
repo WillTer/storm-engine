@@ -68,9 +68,9 @@ void LGeometry::AddObject(char const* name, entid_t model)  // unused method?
         object.resize(maxObjects);
     }
     object[numObjects].nameReal = std::string(modelsPath) + name + ".gm";
-    object[numObjects].path     = RESOURCE_MODELS_DIR / modelsPath / (std::string(name) + "_" + lightPath + ".col");
-    object[numObjects].model    = model;
-    object[numObjects].m        = static_cast<MODEL*>(core.GetEntityPointer(model));
+    object[numObjects].path = fio->base_directory_path(BaseDirectory::Models) / modelsPath / (std::string(name) + "_" + lightPath + ".col");
+    object[numObjects].model = model;
+    object[numObjects].m     = static_cast<MODEL*>(core.GetEntityPointer(model));
     if (object[numObjects].m == nullptr) {
         core.Trace("Location lighter: can't get pointer to model %s", name);
     } else {
@@ -355,7 +355,7 @@ float LGeometry::Trace(const CVECTOR& src, const CVECTOR& dst)
 bool LGeometry::Save()
 {
     // Save the current path
-    auto oldPath = fio->_GetCurrentDirectory();
+    auto oldPath = fio->current_directory();
     // Saving objects
     bool          result  = true;
     int32_t const bufSize = 16384;
@@ -363,7 +363,7 @@ bool LGeometry::Save()
     for (int32_t i = 0, pnt = 0; i < numObjects; i++) {
         if (object[i].lBufSize <= 0) continue;
         // Create a path
-        fio->_SetCurrentDirectory(oldPath);
+        fio->set_current_directory(oldPath);
         if (!std::filesystem::create_directories(object[i].path.parent_path())) { continue; }
 
         FILE* fl = fopen(object[i].path.string().c_str(), "w+b");
@@ -388,7 +388,7 @@ bool LGeometry::Save()
         if (sv > 0) result &= (fwrite(buf, sv * sizeof(uint32_t), 1, fl) == 1);
         fclose(fl);
     }
-    fio->_SetCurrentDirectory(oldPath);
+    fio->set_current_directory(oldPath);
     delete[] buf;
     return result;
 }

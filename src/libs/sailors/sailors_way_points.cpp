@@ -316,8 +316,8 @@ int SailorsPoints::WriteToFile(std::string fileName)
 {
     // GUARD(SailorsPoints :: WriteToFile);
 
-    auto pIni = fio->OpenIniFile(fileName.c_str());
-    if (!pIni) pIni = fio->CreateIniFile(fileName.c_str(), false);
+    auto pIni = fio->open_ini_file(fileName.c_str());
+    if (!pIni) pIni = fio->create_ini_file(fileName.c_str(), false);
 
     if (!pIni) {
         core.Trace("Warning! Can`t open '%s' for write", fileName.c_str());
@@ -360,7 +360,7 @@ int SailorsPoints::ReadFromFile(std::string fileName)
     char param[256];
     char str[64];
 
-    auto pIni = fio->OpenIniFile(fileName.c_str());
+    auto pIni = fio->open_ini_file(fileName.c_str());
 
     if (!pIni) {
         core.Trace("Sailors : Can`t open '%s'", fileName.c_str());

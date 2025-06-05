@@ -27,10 +27,6 @@ CREATE_SERVICE(AnimationServiceImp)
 // Longest time span supplied by the AnimationManager
 #define ASRV_MAXDLTTIME 50
 
-// Paths
-static inline auto const ASKW_PATH_ANI = RESOURCE_ANIMATION_DIR;
-static inline auto const ASKW_PATH_JFA = RESOURCE_ANIMATION_DIR;
-
 // Keywords
 #define ASKW_JFA_FILE "animation"  // Skeleton and Animation File
 #define ASKW_STIME "start_time"    // Action start time
@@ -161,9 +157,9 @@ void AnimationServiceImp::Event(char const* eventName)
 int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
 {
     // Form the file name
-    auto const ani_path = ASKW_PATH_ANI / (std::string(animationName) + ".ani");
+    auto const ani_path = fio->base_directory_path(BaseDirectory::Animation) / (std::string(animationName) + ".ani");
     // Open the ini file describing the animation
-    auto ani = fio->OpenIniFile(ani_path);
+    auto ani = fio->open_ini_file(ani_path);
     if (!ani) {
         core.Trace("Cannot open animation file %s", ani_path.string().c_str());
         return -1;
@@ -176,14 +172,14 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
         return -1;
     }
 
-    auto const an_path = ASKW_PATH_JFA / an_file_name;
+    auto const an_path = fio->base_directory_path(BaseDirectory::Animation) / an_file_name;
 
     // Animation descriptor
     auto* info = new AnimationInfo(animationName);
     // read the bones
     if (!LoadAN(an_path.string().c_str(), info)) {
         delete info;
-        core.Trace("Animation file %s is damaged!", an_path.string().c_str());
+        core.Trace("Animation file %s is damaged!", an_file_name);
         return -1;
     }
     // Global user data
@@ -484,19 +480,17 @@ void AnimationServiceImp::LoadUserData(
 // load AN
 bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
 {
-    std::fstream fileS;
     try {
-        fileS = fio->_CreateFile(fname, std::ios::binary | std::ios::in);
+        auto fileS = std::ifstream(fname, std::ios::binary);
         if (!fileS.is_open()) {
             core.Trace("Cannot open file: %s", fname);
             return false;
         }
         // Reading the file header
         ANFILE::HEADER header;
-        if (!fio->_ReadFile(fileS, &header, sizeof(ANFILE::HEADER)) || header.nFrames <= 0 || header.nJoints <= 0
-            || header.framesPerSec < 0.0f || header.framesPerSec > 1000.0f) {
+        fileS.read(reinterpret_cast<char*>(&header), sizeof(ANFILE::HEADER));
+        if (header.nFrames <= 0 || header.nJoints <= 0 || header.framesPerSec < 0.0f || header.framesPerSec > 1000.0f) {
             core.Trace("Incorrect file header in animation file: %s", fname);
-            fio->_CloseFile(fileS);
             return false;
         }
         // Set animation time
@@ -507,12 +501,8 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
         info->CreateBones(header.nJoints);
         // Setting parents
         auto* const prntIndeces = new int32_t[header.nJoints];
-        if (!fio->_ReadFile(fileS, prntIndeces, header.nJoints * sizeof(int32_t))) {
-            core.Trace("Incorrect parent indeces block in animation file: %s", fname);
-            delete[] prntIndeces;
-            fio->_CloseFile(fileS);
-            return false;
-        }
+        fileS.read(reinterpret_cast<char*>(prntIndeces), header.nJoints * sizeof(int32_t));
+
         for (int32_t i = 1; i < header.nJoints; i++) {
             Assert(prntIndeces[i] >= 0 || prntIndeces[i] < header.nJoints);
             Assert(prntIndeces[i] != i);
@@ -521,12 +511,8 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
         delete[] prntIndeces;
         // Starting positions of bones
         auto* vrt = new CVECTOR[header.nJoints];
-        if (!fio->_ReadFile(fileS, vrt, header.nJoints * sizeof(CVECTOR))) {
-            core.Trace("Incorrect start joints position block block in animation file: %s", fname);
-            delete[] vrt;
-            fio->_CloseFile(fileS);
-            return false;
-        }
+        fileS.read(reinterpret_cast<char*>(vrt), header.nJoints * sizeof(CVECTOR));
+
         for (int32_t i = 0; i < header.nJoints; i++) {
             info->GetBone(i).SetNumFrames(header.nFrames, vrt[i], i == 0);
         }
@@ -534,21 +520,16 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
 
         // Root bone positions
         vrt = new CVECTOR[header.nFrames];
-        if (!fio->_ReadFile(fileS, vrt, header.nFrames * sizeof(CVECTOR))) {
-            core.Trace("Incorrect root joint position block block in animation file: %s", fname);
-            delete[] vrt;
-            fio->_CloseFile(fileS);
-            return false;
-        }
+        fileS.read(reinterpret_cast<char*>(vrt), header.nFrames * sizeof(CVECTOR));
         info->GetBone(0).SetPositions(vrt, header.nFrames);
         delete[] vrt;
 
         // Angles
         auto* ang = new Quaternion[header.nFrames];
         for (int32_t i = 0; i < header.nJoints; i++) {
-            if (!fio->_ReadFile(fileS, ang, header.nFrames * sizeof(*ang))) {
+            if (!fileS.read(reinterpret_cast<char*>(ang), header.nFrames * sizeof(*ang))) {
                 core.Trace("Incorrect joint angle block (%i) block in animation file: %s", i, fname);
-                fio->_CloseFile(fileS);
+
                 return false;
             }
             info->GetBone(i).SetAngles(ang, header.nFrames);
@@ -564,11 +545,8 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
         }
         //-----------------------------------------------
 
-        // Close the file
-        fio->_CloseFile(fileS);
         return true;
     } catch (...) {
-        if (fileS.is_open()) { fio->_CloseFile(fileS); }
         core.Trace("Error reading animation file: %s", fname);
         return false;
     }

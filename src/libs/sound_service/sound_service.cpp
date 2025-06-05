@@ -103,7 +103,7 @@ bool SoundService::Init()
     if (!m_device) { return false; }
 
     constexpr float sec_to_ms_mult = 1000.0F;
-    if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
+    if (auto const ini = fio->open_ini_file(core.EngineIniFileName())) {
         m_fade_time = std::chrono::milliseconds(static_cast<uint64_t>(ini->GetFloat("sound", "fade_time", FADE_DEFAULT) * sec_to_ms_mult));
     }
 
@@ -175,7 +175,7 @@ SoundID SoundService::play(
     float const          max_distance /* = -1.0f*/,
     float const          volume /* = 1.0f*/)
 {
-    std::filesystem::path sound_path = RESOURCE_SOUNDS_DIR / name;
+    std::filesystem::path sound_path = fio->base_directory_path(BaseDirectory::Sounds) / name;
 
     float alias_min_distance = min_distance;
     float alias_max_distance = max_distance;
@@ -185,7 +185,7 @@ SoundID SoundService::play(
         auto& alias = m_aliases[name];
 
         // play sound from the alias ...
-        sound_path = RESOURCE_SOUNDS_DIR / alias.sound_files.pickRandom();
+        sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.sound_files.pickRandom();
         if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
@@ -435,11 +435,11 @@ void SoundService::load_alias_file(std::string const& filename)
     constexpr int const section_name_length = 128;
     static char         section_name[section_name_length];
 
-    auto ini_path = RESOURCE_INI_ALIASES_DIR / filename;
+    auto ini_path = fio->base_directory_path(BaseDirectory::Aliases) / filename;
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_path.string().c_str()); }
 
-    auto alias_ini = fio->OpenIniFile(ini_path);
+    auto alias_ini = fio->open_ini_file(ini_path);
     if (!alias_ini) { return; }
 
     if (alias_ini->GetSectionName(section_name, section_name_length)) {
@@ -452,7 +452,7 @@ void SoundService::load_alias_file(std::string const& filename)
 
 void SoundService::init_aliases()
 {
-    auto const filenames = fio->_GetPathsOrFilenamesByMask(RESOURCE_INI_ALIASES_DIR, "*.ini", false);
+    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.ini", false);
     for (auto const& cur_name: filenames) {
         load_alias_file(cur_name);
     }
@@ -665,7 +665,7 @@ void SoundService::reset_scheme()
 bool SoundService::add_scheme(std::string_view const& scheme_name)
 {
     static char temp_string[COMMON_STRING_LENGTH];
-    auto        ini = fio->OpenIniFile(SCHEME_INI_NAME);
+    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / SCHEME_INI_NAME);
 
     if (!ini) { return false; }
 

@@ -30,9 +30,10 @@ bool BLAST::Init()
     if (!rs) return false;
 
     //    int32_t n;
-    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "particles" / "particles.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: %s/particles/particles.ini", RESOURCE_INI_DIR.string().c_str());
+        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
 

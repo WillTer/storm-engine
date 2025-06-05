@@ -223,7 +223,7 @@ void CoreImpl::ProcessEngineIniFile()
 
     bEngineIniProcessed = true;
 
-    auto engine_ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
+    auto engine_ini = fio->open_ini_file(fs::ENGINE_INI_FILE_NAME);
     if (!engine_ini) throw std::runtime_error("no 'engine.ini' file");
 
     auto res = engine_ini->ReadString(nullptr, "program_directory", String, sizeof(String), "");
@@ -500,12 +500,11 @@ bool CoreImpl::SaveState(char const* file_name)
 {
     if (!file_name) { throw std::logic_error("Bad file name of save"); }
 
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::out);
+    auto fileS = std::ofstream(file_name, std::ios::binary);
 
     if (!fileS.is_open()) { return false; }
 
     Compiler->SaveState(fileS);
-    fio->_CloseFile(fileS);
 
     return true;
 }
@@ -513,9 +512,7 @@ bool CoreImpl::SaveState(char const* file_name)
 // force core to load state file at the start of next game loop, return false if no state file
 bool CoreImpl::InitiateStateLoading(char const* file_name)
 {
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open()) { return false; }
-    fio->_CloseFile(fileS);
+    if (!std::filesystem::exists(file_name)) { return false; }
     delete[] State_file_name;
 
     auto const len  = strlen(file_name) + 1;
@@ -531,10 +528,9 @@ void CoreImpl::ProcessStateLoading()
     State_loading = true;
     EraseEntities();
 
-    auto fileS = fio->_CreateFile(State_file_name, std::ios::binary | std::ios::in);
+    auto fileS = std::ifstream(State_file_name, std::ios::binary);
     if (!fileS.is_open()) { return; }
     Compiler->LoadState(fileS);
-    fio->_CloseFile(fileS);
 
     delete[] State_file_name;
     State_file_name = nullptr;
@@ -762,12 +758,12 @@ void CoreImpl::DumpEntitiesInfo()
     std::this_thread::sleep_for(std::chrono::milliseconds(200));*/
 }
 
-void* CoreImpl::GetSaveData(char const* file_name, int32_t& data_size)
+void* CoreImpl::GetSaveData(std::filesystem::path const& file_name, int32_t& data_size)
 {
     return Compiler->GetSaveData(file_name, data_size);
 }
 
-bool CoreImpl::SetSaveData(char const* file_name, void* data_ptr, int32_t data_size)
+bool CoreImpl::SetSaveData(std::filesystem::path const& file_name, void* data_ptr, int32_t data_size)
 {
     return Compiler->SetSaveData(file_name, data_ptr, data_size);
 }

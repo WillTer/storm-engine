@@ -35,7 +35,8 @@ Lighter::~Lighter() {}
 bool Lighter::Init()
 {
     // Checking if ini file exists
-    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "loclighter.ini");
     if (!ini) return false;
     auto const isLoading = ini->GetInt(nullptr, "loading", 0);
     autoTrace            = ini->GetInt(nullptr, "autotrace", 0) != 0;

@@ -51,7 +51,8 @@ bool SEAFOAM::Init()
     renderer     = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
 
-    psIni = fio->OpenIniFile(RESOURCE_INI_DIR / "particles.ini");
+    // FIXME: hardcode
+    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
 
     InitializeShipFoam();
 

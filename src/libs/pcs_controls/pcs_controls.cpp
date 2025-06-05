@@ -28,7 +28,7 @@ PCS_CONTROLS::PCS_CONTROLS()
     nMouseWheel = 0;
     memset(&ControlsTab[0], 0, sizeof(ControlsTab));
 
-    auto pIni = fio->OpenIniFile(core.EngineIniFileName());
+    auto pIni = fio->open_ini_file(core.EngineIniFileName());
     if (pIni) { m_bIsOffDebugKeys = pIni->GetInt("controls", "ondebugkeys", 0) == 0; }
 
     input_          = Input::Create();

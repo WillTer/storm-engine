@@ -13,7 +13,8 @@
 #define USER_BLOCK_BEGINER '{'
 #define USER_BLOCK_ENDING '}'
 
-static auto const sLanguageFile = RESOURCE_INI_DIR / "texts" / "language.ini";
+// FIXME: hardcode
+constexpr std::string_view sLanguageFile = "texts\\language.ini";
 
 static VSTRSERVICE* g_StringServicePointer = nullptr;
 static int32_t      g_idGlobLanguageFileID = -1;
@@ -171,9 +172,9 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     if (m_sLanguage != nullptr && storm::iEquals(sLanguage, m_sLanguage)) return;
 
     // initialize ini file
-    auto langIni = fio->OpenIniFile(sLanguageFile);
+    auto langIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / sLanguageFile);
     if (!langIni) {
-        core.Trace("ini file %s not found!", sLanguageFile.string().c_str());
+        core.Trace("ini file %s not found!", sLanguageFile.data());
         return;
     }
 
@@ -225,10 +226,10 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     if (RenderService) {
         auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
-            fullIniPath = RESOURCE_INI_DIR / param;
+            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / param;
         } else {
             core.Trace("Warning: Not found font record for language %s", m_sLanguage);
-            fullIniPath = RESOURCE_INI_DIR / "fonts.ini";
+            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini";
         }
         RenderService->SetFontIniFileName(fullIniPath.string().c_str());
     }
@@ -253,8 +254,8 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     }
 
     // initialize ini file
-    auto const ini_path = RESOURCE_INI_DIR / "texts" / m_sLanguageDir / m_sIniFileName;
-    auto       ini      = fio->OpenIniFile(ini_path);
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Ini) / "texts" / m_sLanguageDir / m_sIniFileName;
+    auto       ini      = fio->open_ini_file(ini_path);
     if (!ini) {
         core.Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
         return;
@@ -404,7 +405,7 @@ void STRSERVICE::LoadIni()
     char param[256];
 
     // initialize ini file
-    auto ini = fio->OpenIniFile(sLanguageFile);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / sLanguageFile);
     if (!ini) {
         core.Trace("Error: Language ini file not found!");
         return;
@@ -482,14 +483,14 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     auto pUSB = std::make_unique<UsersStringBlock>();
 
     // strings reading
-    auto const ini_path = RESOURCE_INI_DIR / "texts" / m_sLanguageDir / fileName;
-    auto       fileS    = fio->_CreateFile(ini_path, std::ios::binary | std::ios::in);
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Ini) / "texts" / m_sLanguageDir / fileName;
+    auto       fileS    = std::ifstream(ini_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::warn("WARNING! Strings file \"{}\" does not exist", fileName);
         return -1;
     }
 
-    int32_t const filesize = fio->_GetFileSize(ini_path);
+    int32_t const filesize = fio->file_size(ini_path);
 
     if (filesize <= 0) {
         spdlog::warn("WARNING! Strings file \"{}\" has zero size", fileName);
@@ -499,13 +500,7 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     auto fileBuf = new char[filesize + 1];
     if (fileBuf == nullptr) { throw std::runtime_error("Allocate memory error"); }
 
-    if (!fio->_ReadFile(fileS, fileBuf, filesize)) {
-        core.Trace("Can`t read strings file: %s", fileName);
-        fio->_CloseFile(fileS);
-        delete[] fileBuf;
-        return -1;
-    }
-    fio->_CloseFile(fileS);
+    fileS.read(fileBuf, filesize);
     fileBuf[filesize] = 0;
 
     pUSB->nref     = 1;
@@ -1060,7 +1055,7 @@ uint32_t _InterfaceCreateFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) return IFUNCRESULT_FAILED;
     char const*   sFolderName = pDat->GetString();
-    int32_t const nSuccess    = fio->_CreateDirectory(sFolderName);
+    int32_t const nSuccess    = fio->create_directory(sFolderName);
 
     pDat = (VDATA*)pS->Push();
     if (!pDat) return IFUNCRESULT_FAILED;
@@ -1074,7 +1069,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     char const* sFolderName = pDat->GetString();
-    int32_t     nSuccess    = fio->_FileOrDirectoryExists(sFolderName);
+    int32_t     nSuccess    = std::filesystem::exists(sFolderName);
     pDat                    = (VDATA*)pS->Push();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     pDat->Set(nSuccess);
@@ -1083,7 +1078,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
 
 bool DeleteFolderWithCantainment(char const* sFolderName)
 {
-    return (fio->_RemoveDirectory(sFolderName) > 0);
+    return (fio->remove_directory(sFolderName) > 0);
 }
 
 uint32_t _InterfaceDeleteFolder(VS_STACK* pS)
@@ -1111,7 +1106,7 @@ uint32_t _InterfaceFindFolders(VS_STACK* pS)
     char const* sFindTemplate = pDat->GetString();
     auto        p             = std::filesystem::path(sFindTemplate);
     auto const  mask          = p.filename().string();
-    auto const  vFilenames    = fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
+    auto const  vFilenames    = fio->string_paths_by_mask(p.remove_filename(), mask, false, true, false);
     int32_t     n             = 0;
     for (std::string curName: vFilenames) {
         char pctmp[64];

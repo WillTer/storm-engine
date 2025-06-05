@@ -191,9 +191,10 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     AllRelease();
 
     if (ChooserGroup == nullptr) return false;
-    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "helpchooser.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "helpchooser.ini");
     if (!ini) {
-        core.Trace("Can`t open INI file \"%s/helpchooser.ini\"", RESOURCE_INI_DIR.string().c_str());
+        core.Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
 

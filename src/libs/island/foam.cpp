@@ -697,11 +697,16 @@ void CoastFoam::Save()
 {
     if (!bCanEdit) return;
 
-    char       cKey[128], cSection[128], cTemp[1024];
-    auto const sID = RESOURCE_FOAM_DIR / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
-    fio->_DeleteFile(sID);
+    char cKey[128];
+    char cSection[128];
+    char cTemp[1024];
 
-    auto pI = fio->CreateIniFile(sID, false);
+    // FIXME: hardcode
+    auto const sID =
+        fio->base_directory_path(BaseDirectory::Foam) / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    std::filesystem::remove(sID);
+
+    auto pI = fio->create_ini_file(sID, false);
     if (!pI) return;
 
     pI->WriteLong(nullptr, "NumFoams", aFoams.size());
@@ -758,8 +763,9 @@ void CoastFoam::Load()
 {
     char cSection[256], cKey[256], cTemp[1024];
 
-    auto const sID = RESOURCE_FOAM_DIR / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
-    auto       pI  = fio->OpenIniFile(sID);
+    auto const sID =
+        fio->base_directory_path(BaseDirectory::Foam) / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    auto pI = fio->open_ini_file(sID);
     if (!pI) return;
 
     clear();

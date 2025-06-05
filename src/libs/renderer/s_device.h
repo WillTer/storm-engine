@@ -372,9 +372,9 @@ public:
 
     void MakeScreenShot();
     bool
-    LoadTextureSurface(std::fstream& fileS, IDirect3DSurface9* suface, uint32_t mipSize, uint32_t width, uint32_t height, bool isSwizzled);
+    LoadTextureSurface(std::ifstream& fileS, IDirect3DSurface9* suface, uint32_t mipSize, uint32_t width, uint32_t height, bool isSwizzled);
     uint32_t LoadCubmapSide(
-        std::fstream&          fileS,
+        std::ifstream&         fileS,
         IDirect3DCubeTexture9* tex,
         D3DCUBEMAP_FACES       face,
         uint32_t               numMips,

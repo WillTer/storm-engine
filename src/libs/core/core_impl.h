@@ -97,9 +97,9 @@ public:
     VDATA*   Event(std::string_view const& event_name, MESSAGE& message) override;
     uint32_t PostEvent(char const* Event_name, uint32_t post_time, char const* Format, ...) override;
 
-    void* GetSaveData(char const* file_name, int32_t& data_size) override;
+    void* GetSaveData(std::filesystem::path const& file_name, int32_t& data_size) override;
 
-    bool SetSaveData(char const* file_name, void* data_ptr, int32_t data_size) override;
+    bool SetSaveData(std::filesystem::path const& file_name, void* data_ptr, int32_t data_size) override;
 
     uint32_t SetScriptFunction(IFUNCINFO* pFuncInfo) override;
 

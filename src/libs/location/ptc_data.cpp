@@ -65,7 +65,7 @@ bool PtcData::Load(char const* path)
     std::vector<char> buf = {};
     middle                = 0.0f;
     // Loading data
-    if (!fio->LoadFile(path, buf)) {
+    if (!fio->read_file_to_mem(path, buf)) {
         core.Trace("Ptc(\"%s\") -> file not found", path);
         return false;
     }

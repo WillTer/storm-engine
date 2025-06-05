@@ -134,7 +134,8 @@ void BALLSPLASH::Execute(uint32_t dTime)
 //--------------------------------------------------------------------
 void BALLSPLASH::InitializeSplashes()
 {
-    auto psIni = fio->OpenIniFile(RESOURCE_INI_DIR / "particles.ini");
+    // FIXME: hardcode
+    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
 
     for (auto i = 0; i < MAX_SPLASHES; ++i) {
         splashes[i].Release();

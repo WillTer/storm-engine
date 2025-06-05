@@ -79,54 +79,62 @@ public:
     bool TestSection(char const* section_name) override;
 };
 
-class FILE_SERVICE: public VFILE_SERVICE
+class FileService: public IFileService
 {
 protected:
-    // INIFILE_R * OpenFiles[_MAX_OPEN_INI_FILES];
-    IFS*     OpenFiles[_MAX_OPEN_INI_FILES];
-    uint32_t Files_Num;
-    uint32_t Max_File_Index;
+    IFS*     m_opened_files[_MAX_OPEN_INI_FILES];
+    uint32_t m_files_count;
+    uint32_t m_max_file_index;
+
+private:
+    std::filesystem::path m_resource_dir;
+    std::filesystem::path m_ini_dir;
+    std::filesystem::path m_aliases_dir;
+    std::filesystem::path m_sounds_dir;
+    std::filesystem::path m_videos_dir;
+    std::filesystem::path m_animation_dir;
+    std::filesystem::path m_models_dir;
+    std::filesystem::path m_foam_dir;
+    std::filesystem::path m_techniques_dir;
+    std::filesystem::path m_particles_dir;
+    std::filesystem::path m_textures_dir;
+    std::filesystem::path m_sea_dir;
 
 public:
-    FILE_SERVICE();
-    ~FILE_SERVICE();
-    std::fstream             _CreateFile(std::filesystem::path const& file_path, std::ios::openmode mode) override;
-    void                     _CloseFile(std::fstream& stream) override;
-    void                     _SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir) override;
-    bool                     _DeleteFile(std::filesystem::path const& file_path) override;
-    bool                     _WriteFile(std::fstream& fileS, void const* s, std::streamsize count) override;
-    bool                     _ReadFile(std::fstream& fileS, void* s, std::streamsize count) override;
-    bool                     _FileOrDirectoryExists(std::filesystem::path const& path) override;
-    std::vector<std::string> _GetPathsOrFilenamesByMask(
+    FileService();
+    ~FileService() override;
+    bool                     write_file(std::fstream& fileS, void const* s, std::streamsize count) override;
+    bool                     read_file(std::fstream& fileS, void* s, std::streamsize count) override;
+    std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& path,
-        char const*                  mask,
-        bool                         getPaths,
-        bool                         onlyDirs  = false,
-        bool                         onlyFiles = true,
-        bool                         recursive = false) override;
-    std::vector<std::filesystem::path> _GetFsPathsByMask(
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false) override;
+    std::vector<std::filesystem::path> paths_by_mask(
         std::filesystem::path const& path,
-        char const*                  mask,
-        bool                         getPaths,
-        bool                         onlyDirs  = false,
-        bool                         onlyFiles = true,
-        bool                         recursive = false) override;
-    std::time_t                     _ToTimeT(std::filesystem::file_time_type tp) override;
-    std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path) override;
-    void                            _FlushFileBuffers(std::fstream& fileS) override;
-    std::string                     _GetCurrentDirectory() override;
-    std::string                     _GetExecutableDirectory() override;
-    std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path) override;
-    void                            _SetCurrentDirectory(std::filesystem::path const& path) override;
-    bool                            _CreateDirectory(std::filesystem::path const& path) override;
-    std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path) override;
-    bool                            LoadFile(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
-    // ini files section
-    void                     Close();  // Close what?..
-    std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file_path, bool fail_if_exist) override;
-    std::unique_ptr<INIFILE> OpenIniFile(std::filesystem::path const& file_path) override;
-    void                     RefDec(INIFILE* ini_obj);
-    void                     FlushIniFiles();
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false) override;
+    std::time_t           to_time_t(std::filesystem::file_time_type tp) override;
+    void                  flush_file_buffers(std::fstream& fileS) override;
+    std::string           current_directory() override;
+    std::string           executable_directory() override;
+    std::uintmax_t        file_size(std::filesystem::path const& file_path) override;
+    void                  set_current_directory(std::filesystem::path const& path) override;
+    bool                  create_directory(std::filesystem::path const& path) override;
+    std::uintmax_t        remove_directory(std::filesystem::path const& path) override;
+    bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
+    uint64_t              path_fingerprint(std::filesystem::path const& path) override;
+    std::filesystem::path base_directory_path(BaseDirectory dir) override;
 
-    uint64_t GetPathFingerprint(std::filesystem::path const& path) override;
+    // ini files section
+    void                     close_ini_files();
+    std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file_path, bool fail_if_exist) override;
+    std::unique_ptr<INIFILE> open_ini_file(std::filesystem::path const& file_path) override;
+    void                     ref_decrement(INIFILE* ini_obj);
+    void                     flush_ini_files();
 };

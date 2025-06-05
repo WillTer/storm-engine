@@ -273,11 +273,11 @@ protected:
     void ReleaseOld();
     void ReleaseDinamicPic(char const* sPicName);
     // save load functions
-    bool  SFLB_DoSaveFileData(char const* saveName, char const* saveData) const;
-    bool  SFLB_GetSaveFileData(char const* saveName, int32_t bufSize, char* buf);
+    bool  SFLB_DoSaveFileData(std::filesystem::path const& saveName, char const* saveData) const;
+    bool  SFLB_GetSaveFileData(std::filesystem::path const& saveName, int32_t bufSize, char* buf);
     char* SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, int32_t& fileSize);
-    bool  NewSaveFileName(char const* fileName) const;
-    void  DeleteSaveFile(char const* fileName);
+    bool  NewSaveFileName(std::filesystem::path const& fileName) const;
+    void  DeleteSaveFile(std::filesystem::path const& fileName);
     // node control
     void AddNodeToList(CINODE* nod, int32_t priority = 80);
     // locked function

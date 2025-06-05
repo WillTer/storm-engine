@@ -279,7 +279,7 @@ KEY_NODE* SECTION::GetRoot()
 
 //=============================================================================================================
 
-IFS::IFS(VFILE_SERVICE* _fs)
+IFS::IFS(IFileService* _fs)
 {
     fs           = _fs;
     bDataChanged = false;
@@ -326,34 +326,21 @@ bool IFS::LoadFile(std::filesystem::path const& file_path)
 {
     if (!std::filesystem::exists(file_path)) { return false; }
 
-    auto fileS = fs->_CreateFile(file_path, std::ios::binary | std::ios::in);
+    auto fileS = std::ifstream(file_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::trace("Unable to load file: {}", file_path.string());
         return false;
     }
 
-    auto const file_size = fs->_GetFileSize(file_path);
-
-    auto* const file_data = new char[file_size + 1];  // +1 for zero at the end
-    if (file_data == nullptr) {
-        fs->_CloseFile(fileS);
-        return false;
-    }
-    file_data[file_size] = 0;
-
-    if (!fs->_ReadFile(fileS, file_data, file_size)) {
-        delete[] file_data;
-        fs->_CloseFile(fileS);
-        return false;
-    }
-
-    fs->_CloseFile(fileS);
+    std::vector<char> file_data = {};
+    auto const        file_size = fs->file_size(file_path);
+    file_data.resize(file_size + 1);
+    fileS.read(file_data.data(), file_size);
+    file_data[file_size] = '\0';
 
     FileName = file_path;
 
-    Format(file_data, file_size + 1);
-
-    delete[] file_data;
+    Format(file_data.data(), file_data.size());
 
     return true;
 }
@@ -470,8 +457,8 @@ bool IFS::FlushFile()
 
     if (bDataChanged == false) { return true; }
 
-    fs->_DeleteFile(FileName);
-    auto fileS = fio->_CreateFile(FileName, std::ios::binary | std::ios::out);
+    std::filesystem::remove(FileName);
+    auto fileS = std::ofstream(FileName, std::ios::binary);
     if (!fileS.is_open()) {
         /*trace("file: (%s)",FileName);*/
         throw std::runtime_error("cant create file");
@@ -484,44 +471,44 @@ bool IFS::FlushFile()
         if (section_node->GetName() != nullptr) {
             // write section name -----------------------------------------------------------------
             buff[0] = SECTION_A;
-            if (!fs->_WriteFile(fileS, buff, 1)) { throw std::runtime_error("Failed to write to file"); }
+            fileS.write(buff, 1);
 
             write_size = strlen(section_node->GetName());
-            if (!fs->_WriteFile(fileS, section_node->GetName(), write_size)) { throw std::runtime_error("Failed to write to file"); }
+            fileS.write(section_node->GetName(), write_size);
 
             buff[0] = SECTION_B;
-            if (!fs->_WriteFile(fileS, buff, 1)) { throw std::runtime_error("Failed to write to file"); }
+            fileS.write(buff, 1);
 
             buff[0] = INI_LINEFEED[0];
             buff[1] = INI_LINEFEED[1];
-            if (!fs->_WriteFile(fileS, buff, 2)) { throw std::runtime_error("Failed to write to file"); }
+            fileS.write(buff, 2);
         }
 
         auto* node = section_node->GetRoot();
-        while (node) {
+        while (node != nullptr) {
             auto const flags = node->SetFlags(0);
-            if (flags & KNF_COMMENTARY) {
+            if ((flags & KNF_COMMENTARY) == KNF_COMMENTARY) {
                 // write commented line ---------------------------------------------------------------
                 write_size = strlen(node->GetName());
-                if (!fs->_WriteFile(fileS, node->GetName(), write_size)) { throw std::runtime_error("Failed to write to file"); }
+                fileS.write(node->GetName(), write_size);
                 buff[0] = INI_LINEFEED[0];
                 buff[1] = INI_LINEFEED[1];
-                if (!fs->_WriteFile(fileS, buff, 2)) { throw std::runtime_error("Failed to write to file"); }
-            } else if (flags & KNF_KEY) {
+                fileS.write(buff, 2);
+            } else if ((flags & KNF_KEY) == KNF_KEY) {
                 // write key -------------------------------------------------------------------------
                 write_size = strlen(node->GetName());
-                if (!fs->_WriteFile(fileS, node->GetName(), write_size)) { throw std::runtime_error("Failed to write to file"); }
+                fileS.write(node->GetName(), write_size);
                 if (node->GetValue() != nullptr) {
-                    if (!fs->_WriteFile(fileS, &INI_VOIDSYMS[0], 1)) { throw std::runtime_error("Failed to write to file"); }
+                    fileS.write(&INI_VOIDSYMS[0], 1);
                     buff[0] = INI_EQUAL;
-                    if (!fs->_WriteFile(fileS, buff, 1)) { throw std::runtime_error("Failed to write to file"); }
-                    if (!fs->_WriteFile(fileS, &INI_VOIDSYMS[0], 1)) { throw std::runtime_error("Failed to write to file"); }
+                    fileS.write(buff, 1);
+                    fileS.write(&INI_VOIDSYMS[0], 1);
                     write_size = strlen(node->GetValue());
-                    if (!fs->_WriteFile(fileS, node->GetValue(), write_size)) { throw std::runtime_error("Failed to write to file"); }
+                    fileS.write(node->GetValue(), write_size);
                 }
                 buff[0] = INI_LINEFEED[0];
                 buff[1] = INI_LINEFEED[1];
-                if (!fs->_WriteFile(fileS, buff, 2)) { throw std::runtime_error("Failed to write to file"); }
+                fileS.write(buff, 2);
             } else {
                 throw std::runtime_error("invalid key flag");
             }
@@ -531,12 +518,9 @@ bool IFS::FlushFile()
 
         buff[0] = INI_LINEFEED[0];
         buff[1] = INI_LINEFEED[1];
-        if (!fs->_WriteFile(fileS, buff, 2)) { throw std::runtime_error("Failed to write to file"); }
+        fileS.write(buff, 2);
     }
 
-    fs->_CloseFile(fileS);
-
-    // UNGUARD
     return false;
 }
 

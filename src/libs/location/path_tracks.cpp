@@ -42,7 +42,7 @@ bool PathTracks::Load(char const* fileName)
     numPoints = 0;
 
     std::vector<char> data = {};
-    if (!fio->LoadFile(fileName, data) || data.empty()) {
+    if (!fio->read_file_to_mem(fileName, data) || data.empty()) {
         core.Trace("Camera tracks file %s not loaded...", fileName);
         return false;
     }

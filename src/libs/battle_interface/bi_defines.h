@@ -5,8 +5,6 @@
 #include <libs/renderer/dx9render.h>
 #include <libs/util/storm_assert.h>
 
-static inline auto const INI_FILE_NAME = RESOURCE_INI_DIR / "interfaces" / "battle_interface.ini";
-
 #define FULLRECT(r) \
     { \
         r.left   = 0.f; \

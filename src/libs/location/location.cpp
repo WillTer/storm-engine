@@ -474,7 +474,7 @@ int32_t Location::LoadStaticModel(char const* modelName, char const* tech, int32
 
 bool Location::LoadCharacterPatch(char const* ptcName)
 {
-    auto const path = RESOURCE_MODELS_DIR / (model.modelspath + ptcName + ".ptc");
+    auto const path = fio->base_directory_path(BaseDirectory::Models) / (model.modelspath + ptcName + ".ptc");
     // load the patch
     auto const result = ptc.Load(path.string().c_str());
     if (!result) core.Trace("Can't loaded patch data file %s.ptc for npc.", ptcName);
@@ -499,7 +499,7 @@ bool Location::LoadGrass(char const* modelName, char const* texture)
     if (!grs) return false;
     if (texture && texture[0]) grs->SetTexture(texture);
 
-    auto const nm = RESOURCE_MODELS_DIR / (model.modelspath + modelName + ".grs");
+    auto const nm = fio->base_directory_path(BaseDirectory::Models) / (model.modelspath + modelName + ".grs");
     if (grs->LoadData(nm.string().c_str())) return true;
     core.Trace("Can't load grass data file: %s", nm.string().c_str());
     core.EraseEntity(grass);

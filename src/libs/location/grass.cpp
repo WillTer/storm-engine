@@ -170,7 +170,7 @@ bool Grass::LoadData(char const* patchName)
     block = nullptr;
     // Load the data file
     std::vector<char> load = {};
-    if (!fio->LoadFile(patchName, load)) { return false; }
+    if (!fio->read_file_to_mem(patchName, load)) { return false; }
     try {
         // Check the data
         if (load.size() < sizeof(GRSHeader)) throw std::runtime_error("invalide file size");

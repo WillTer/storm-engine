@@ -144,7 +144,7 @@ void CXI_PICTURE::SaveParametersToIni()
 {
     char pcWriteParam[2048];
 
-    auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
+    auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
@@ -171,8 +171,8 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
 {
-    auto const path       = RESOURCE_TEXTURES_DIR / dirName;
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(path, "*.tx", false);
+    auto const path       = fio->base_directory_path(BaseDirectory::Textures) / dirName;
+    auto const vFilenames = fio->string_paths_by_mask(path, "*.tx", false);
     if (!vFilenames.empty()) {
         char param[512];
         int  findQ = rand() % vFilenames.size();

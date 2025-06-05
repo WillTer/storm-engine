@@ -2,7 +2,8 @@
 
 #include <libs/core/default_paths.h>
 
-static inline auto const ANIMALS_INI_FILE = RESOURCE_INI_DIR / "animals.ini";
+// FIXME: hardcode
+constexpr std::string_view ANIMALS_INI_FILE = "animals.ini";
 
 extern char const ANIMALS_SEAGULL_FILENAME[];
 extern char       ANIMALS_SEAGULLS_SECTION[];

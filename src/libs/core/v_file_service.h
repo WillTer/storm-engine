@@ -8,49 +8,60 @@
 
 class INIFILE;
 
-class VFILE_SERVICE
+enum class BaseDirectory {
+    None,
+    Resource,
+    Ini,
+    Aliases,
+    Sounds,
+    Videos,
+    Animation,
+    Models,
+    Foam,
+    Techniques,
+    Particles,
+    Textures,
+    Sea,
+};
+
+class IFileService
 {
 public:
-    // VFILE_SERVICE()= 0;
-    virtual ~VFILE_SERVICE() {}
+    virtual ~IFileService() = default;
 
-    virtual std::fstream             _CreateFile(std::filesystem::path const& file_path, std::ios::openmode mode)    = 0;
-    virtual void                     _CloseFile(std::fstream& fileS)                                                 = 0;
-    virtual void                     _SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir) = 0;
-    virtual bool                     _DeleteFile(std::filesystem::path const& file_path)                             = 0;
-    virtual bool                     _WriteFile(std::fstream& fileS, void const* s, std::streamsize count)           = 0;
-    virtual bool                     _ReadFile(std::fstream& fileS, void* s, std::streamsize count)                  = 0;
-    virtual bool                     _FileOrDirectoryExists(std::filesystem::path const& path)                       = 0;
-    virtual std::vector<std::string> _GetPathsOrFilenamesByMask(
+    virtual bool                     write_file(std::fstream& fileS, void const* s, std::streamsize count) = 0;
+    virtual bool                     read_file(std::fstream& fileS, void* s, std::streamsize count)        = 0;
+    virtual std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& source_path,
-        char const*                  mask,
-        bool                         getPaths,
-        bool                         onlyDirs  = false,
-        bool                         onlyFiles = true,
-        bool                         recursive = false) = 0;
-    virtual std::vector<std::filesystem::path> _GetFsPathsByMask(
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false) = 0;
+    virtual std::vector<std::filesystem::path> paths_by_mask(
         std::filesystem::path const& source_path,
-        char const*                  mask,
-        bool                         getPaths,
-        bool                         onlyDirs  = false,
-        bool                         onlyFiles = true,
-        bool                         recursive = false)                                                                                             = 0;
-    virtual std::time_t                     _ToTimeT(std::filesystem::file_time_type tp)                                    = 0;
-    virtual std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path)                       = 0;
-    virtual void                            _FlushFileBuffers(std::fstream& fileS)                                          = 0;
-    virtual std::string                     _GetCurrentDirectory()                                                          = 0;
-    virtual std::string                     _GetExecutableDirectory()                                                       = 0;
-    virtual std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path)                            = 0;
-    virtual void                            _SetCurrentDirectory(std::filesystem::path const& path)                         = 0;
-    virtual bool                            _CreateDirectory(std::filesystem::path const& path)                             = 0;
-    virtual std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path)                             = 0;
-    virtual bool                            LoadFile(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false)                                                                                    = 0;
+    virtual std::time_t    to_time_t(std::filesystem::file_time_type tp)                                           = 0;
+    virtual void           flush_file_buffers(std::fstream& fileS)                                                 = 0;
+    virtual std::string    current_directory()                                                                     = 0;
+    virtual std::string    executable_directory()                                                                  = 0;
+    virtual std::uintmax_t file_size(std::filesystem::path const& file_path)                                       = 0;
+    virtual void           set_current_directory(std::filesystem::path const& path)                                = 0;
+    virtual bool           create_directory(std::filesystem::path const& path)                                     = 0;
+    virtual std::uintmax_t remove_directory(std::filesystem::path const& path)                                     = 0;
+    virtual bool           read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
 
     // ini files section
-    virtual std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file, bool fail_if_exist) = 0;
-    virtual std::unique_ptr<INIFILE> OpenIniFile(std::filesystem::path const& file)                       = 0;
+    virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
+    virtual std::unique_ptr<INIFILE> open_ini_file(std::filesystem::path const& file)                       = 0;
 
-    virtual uint64_t GetPathFingerprint(std::filesystem::path const& path) = 0;
+    virtual uint64_t path_fingerprint(std::filesystem::path const& path) = 0;
+
+    virtual std::filesystem::path base_directory_path(BaseDirectory dir) = 0;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -134,4 +145,4 @@ public:
 };
 
 //
-extern VFILE_SERVICE* fio;
+extern IFileService* fio;

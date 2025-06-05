@@ -8,7 +8,8 @@
 
 #define ERROR_MUL 1.0f
 
-static auto const LISTS_INIFILE = RESOURCE_INI_DIR / "interfaces" / "pictures.ini";
+// FIXME: hardcode
+constexpr std::string_view LISTS_INIFILE = "interfaces\\pictures.ini";
 
 XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 {
@@ -203,7 +204,7 @@ void XSERVICE::LoadAllPicturesInfo()
     char param[255];
 
     // initialize ini file
-    auto ini = fio->OpenIniFile(LISTS_INIFILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / LISTS_INIFILE);
     if (!ini) { throw std::runtime_error("ini file not found!"); }
 
     m_dwListQuantity  = 0;

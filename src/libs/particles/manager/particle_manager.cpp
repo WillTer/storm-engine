@@ -95,12 +95,12 @@ bool ParticleManager::OpenProject(char const* FileName)
     CloseProject();
     ShortProjectName = FileName;
 
-    auto path    = RESOURCE_PARTICLES_DIR / FileName;
+    auto path    = fio->base_directory_path(BaseDirectory::Particles) / FileName;
     auto pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".prj")) path += ".prj";
     pathStr = path.string();
 
-    auto IniFile = fio->OpenIniFile(pathStr.c_str());
+    auto IniFile = fio->open_ini_file(pathStr.c_str());
     if (!IniFile) {
         core.Trace("Can't find project '%s'", pathStr.c_str());
         return false;
@@ -623,7 +623,7 @@ void ParticleManager::OpenDefaultProject()
 
     SetProjectTexture("particles_list.tga");
 
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(RESOURCE_PARTICLES_DIR, "*.xps", false);
+    auto const vFilenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Particles), "*.xps", false);
     for (std::string curName: vFilenames) {
         pDataCache->CacheSystem(curName.c_str());
     }

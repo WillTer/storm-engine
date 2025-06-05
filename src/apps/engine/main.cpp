@@ -84,6 +84,8 @@ int main(int argc, char* argv[])
     }
 #endif
 
+    setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
+
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
     // Init diagnostics
@@ -111,7 +113,7 @@ int main(int argc, char* argv[])
     core_private->Init();
 
     // Read config
-    auto ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
+    auto ini = fio->open_ini_file(fs::ENGINE_INI_FILE_NAME);
 
     uint32_t dwMaxFPS = 0;
     bool     bSteam   = false;

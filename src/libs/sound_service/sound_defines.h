@@ -4,8 +4,8 @@
 
 #include <libs/core/default_paths.h>
 
-auto const ALIAS_INI       = RESOURCE_INI_DIR / "sound_alias.ini";
-auto const SCHEME_INI_NAME = RESOURCE_INI_DIR / "sound_scheme.ini";
+// FIXME: hardcode
+constexpr std::string_view SCHEME_INI_NAME = "sound_scheme.ini";
 
 ///////////////////////////////////////////////////////////////////
 // CONSTANTS

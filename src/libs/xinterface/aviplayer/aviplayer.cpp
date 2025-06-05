@@ -141,7 +141,7 @@ uint64_t CAviPlayer::ProcessMessage(MESSAGE& message)
     switch (message.Long()) {
     case MSG_SET_VIDEO_PLAY: {
         std::string const& param = message.String();
-        filename                 = (RESOURCE_VIDEOS_DIR / param).string();
+        filename                 = (fio->base_directory_path(BaseDirectory::Videos) / param).string();
         if (!PlayMedia(filename.c_str())) {
             CleanupInterfaces();
             core.PostEvent("ievntEndVideo", 1, nullptr);

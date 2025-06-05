@@ -187,7 +187,7 @@ bool SEA::Init()
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     CreateVertexDeclaration();
     {
-        auto pEngineIni = fio->OpenIniFile(core.EngineIniFileName());
+        auto pEngineIni = fio->open_ini_file(core.EngineIniFileName());
         bIniFoamEnable  = (pEngineIni) ? pEngineIni->GetInt("Sea", "FoamEnable", 1) != 0 : false;
     }
 
@@ -222,8 +222,8 @@ bool SEA::Init()
     for (i = 0; i < FRAMES; i++) {
         char              str[256];
         std::vector<char> pFBuffer = {};
-        sprintf_s(str, "%s\\sea%.4d.tga", RESOURCE_SEA_DIR.string().c_str(), i);
-        fio->LoadFile(str, pFBuffer);
+        sprintf_s(str, "%s\\sea%.4d.tga", fio->base_directory_path(BaseDirectory::Sea).string().c_str(), i);
+        fio->read_file_to_mem(str, pFBuffer);
         if (pFBuffer.empty()) {
             core.Trace("Sea: Can't load %s", str);
             return false;

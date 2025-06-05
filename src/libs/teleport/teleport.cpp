@@ -242,17 +242,13 @@ void TMPTELEPORT::XChange(TELEPORT_DESCR& d1, TELEPORT_DESCR& d2)
 bool FINDFILESINTODIRECTORY::Init()
 {
     if (AttributesPointer) {
-        char const* dirName  = AttributesPointer->GetAttribute("dir");
-        char const* maskName = AttributesPointer->GetAttribute("mask");
-        char const* curMask;
-        if (maskName) {
-            curMask = maskName;
-        } else {
-            curMask = "*.*";
-        }
+        char const* const dirName  = AttributesPointer->GetAttribute("dir");
+        char const* const maskName = AttributesPointer->GetAttribute("mask");
+        char const* const curMask  = maskName != nullptr ? maskName : "*.*";
+
         auto       file_idx   = 0;
         auto*      pA         = AttributesPointer->CreateSubAClass(AttributesPointer, "filelist");
-        auto const vFilenames = fio->_GetPathsOrFilenamesByMask(dirName, curMask, false);
+        auto const vFilenames = fio->string_paths_by_mask(dirName, curMask, false);
         for (std::string filename: vFilenames) {
             std::string const sname = "id" + std::to_string(file_idx);
             pA->SetAttribute(sname, filename);
@@ -270,33 +266,25 @@ bool FINDDIALOGNODES::Init()
         char const* fileName = AttributesPointer->GetAttribute("file");
         auto*       pA       = AttributesPointer->CreateSubAClass(AttributesPointer, "nodelist");
         if (fileName && pA) {
-            auto fileS = fio->_CreateFile(fileName, std::ios::binary | std::ios::in);
+            auto fileS = std::ifstream(fileName, std::ios::binary);
             if (!fileS.is_open()) {
                 core.Trace("WARNING! Can`t dialog file %s", fileName);
                 return false;
             }
 
-            int32_t const filesize = fio->_GetFileSize(fileName);
+            int32_t const filesize = fio->file_size(fileName);
             if (filesize == 0) {
                 core.Trace("Empty dialog file %s", fileName);
-                fio->_CloseFile(fileS);
                 return false;
             }
 
             auto* const fileBuf = new char[filesize + 1];
             if (fileBuf == nullptr) {
                 core.Trace("Can`t create buffer for read dialog file %s", fileName);
-                fio->_CloseFile(fileS);
                 return false;
             }
 
-            if (!fio->_ReadFile(fileS, fileBuf, filesize)) {
-                core.Trace("Can`t read dialog file: %s", fileName);
-                fio->_CloseFile(fileS);
-                delete[] fileBuf;
-                return false;
-            }
-            fio->_CloseFile(fileS);
+            fileS.read(fileBuf, filesize);
             fileBuf[filesize] = 0;
 
             // now there is a buffer - start analyzing it

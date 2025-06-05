@@ -180,7 +180,7 @@ uint64_t PARTICLES::ProcessMessage(MESSAGE& message)
 
 PARTICLE_SYSTEM* PARTICLES::CreateSystem(char const* pFileName, uint32_t LifeTime)
 {
-    auto        path    = RESOURCE_PARTICLES_DIR / pFileName;
+    auto        path    = fio->base_directory_path(BaseDirectory::Particles) / pFileName;
     std::string pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();

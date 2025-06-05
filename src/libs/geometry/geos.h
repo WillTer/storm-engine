@@ -244,12 +244,12 @@ class GEOM_SERVICE
 {
 public:
     virtual ~GEOM_SERVICE() {};
-    virtual std::fstream OpenFile(char const* fname)                              = 0;
-    virtual bool         ReadFile(std::fstream& fileS, void* data, int32_t bytes) = 0;
-    virtual int          FileSize(char const* fname)                              = 0;
-    virtual void         CloseFile(std::fstream& fileS)                           = 0;
-    virtual void*        malloc(int32_t bytes)                                    = 0;
-    virtual void         free(void* ptr)                                          = 0;
+    virtual std::ifstream OpenFile(char const* fname)                               = 0;
+    virtual bool          ReadFile(std::ifstream& fileS, void* data, int32_t bytes) = 0;
+    virtual int           FileSize(char const* fname)                               = 0;
+    virtual void          CloseFile(std::ifstream& fileS)                           = 0;
+    virtual void*         malloc(int32_t bytes)                                     = 0;
+    virtual void          free(void* ptr)                                           = 0;
 
     virtual GEOS::ID CreateTexture(char const* fname)      = 0;
     virtual void     ReleaseTexture(GEOS::ID tex)          = 0;

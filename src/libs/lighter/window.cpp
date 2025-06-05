@@ -956,7 +956,8 @@ int32_t Window::SelPreset()
     if (ins > 0) {
         if (lastPreset != ins) {
             // Load the name
-            auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
+            // FIXME: hardcode
+            auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "loclighter.ini");
             if (ini) {
                 char sect[32];
                 sprintf_s(sect, "prs%i", ins);
@@ -977,7 +978,8 @@ void Window::SavePreset(int32_t prs)
 {
     if (prs < 0) return;
     // Checking if able to work
-    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "loclighter.ini");
     if (!ini) return;
     char sect[32];
     sprintf_s(sect, "prs%i", prs);
@@ -1037,7 +1039,8 @@ void Window::LoadPreset(int32_t prs)
 {
     if (prs < 0) return;
     // Checking if able to work
-    auto ini = fio->OpenIniFile(RESOURCE_INI_DIR / "loclighter.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "loclighter.ini");
     if (!ini) return;
     char sect[32];
     sprintf_s(sect, "prs%i", prs);

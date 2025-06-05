@@ -67,7 +67,7 @@ bool FONT::Init(char const* font_name, char const* iniName)
     int32_t ltmp;
     char*   pData;
 
-    auto ini = fio->OpenIniFile(iniName);
+    auto ini = fio->open_ini_file(iniName);
     if (ini == nullptr) return false;
 
     if (ini->GetInt(font_name, "AspectHeightConstant", 0) == 1) {
