@@ -1,5 +1,7 @@
 #include "ifs.h"
 
+#include <array>
+
 #include "core_impl.h"
 #include "vma.hpp"
 
@@ -326,14 +328,14 @@ bool IFS::LoadFile(std::filesystem::path const& file_path)
 {
     if (!std::filesystem::exists(file_path)) { return false; }
 
-    auto fileS = std::ifstream(file_path, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(file_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::trace("Unable to load file: {}", file_path.string());
         return false;
     }
 
     std::vector<char> file_data = {};
-    auto const        file_size = fs->file_size(file_path);
+    auto const        file_size = std::filesystem::file_size(file_path);
     file_data.resize(file_size + 1);
     fileS.read(file_data.data(), file_size);
     file_data[file_size] = '\0';
@@ -458,7 +460,7 @@ bool IFS::FlushFile()
     if (bDataChanged == false) { return true; }
 
     std::filesystem::remove(FileName);
-    auto fileS = std::ofstream(FileName, std::ios::binary);
+    auto fileS = fio->open_file<std::ofstream>(FileName, std::ios::binary);
     if (!fileS.is_open()) {
         /*trace("file: (%s)",FileName);*/
         throw std::runtime_error("cant create file");
@@ -802,6 +804,22 @@ bool IFS::GetFloatNext(SEARCH_DATA* sd, char const* section_name, char const* ke
         return true;
     }
     return false;
+}
+
+std::string IFS::GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name)
+{
+    std::array<char, 256> buffer = {};
+    ReadString(sd, section_name, key_name, buffer.data(), buffer.size());
+
+    return std::string(buffer.data());
+}
+
+std::string IFS::GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name, std::string const& def_val)
+{
+    std::array<char, 256> buffer = {};
+    if (ReadString(sd, section_name, key_name, buffer.data(), buffer.size(), "")) { return std::string(buffer.data()); }
+
+    return def_val;
 }
 
 void IFS::AddString(char const* section_name, char const* key_name, char const* string)

@@ -86,6 +86,9 @@ int main(int argc, char* argv[])
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
+    // Load parameters of file service
+    fio->load_service_parameters_from_config(fs::ENGINE_INI_FILE_NAME);
+
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
     // Init diagnostics

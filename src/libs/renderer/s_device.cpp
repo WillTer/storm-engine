@@ -1292,7 +1292,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     if (file_path.extension().string() != ".tx") { file_path.replace_extension(file_path.extension().string() + ".tx"); }
 
     // Opening the file
-    auto fileS = std::ifstream(file_path, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(file_path, std::ios::binary);
     if (!fileS.is_open()) {
         // try to load without '.tx' (e.g. raw Targa)
         std::filesystem::path path_to_tex {file_path};
@@ -1501,7 +1501,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     if (texLog) {
         char s[256];
         if (totSize == 0) { std::filesystem::remove("texLoad.txt"); }
-        auto fileS2 = std::ofstream("texLoad.txt", std::ios::binary | std::ios::app);
+        auto fileS2 = fio->open_file<std::ofstream>("texLoad.txt", std::ios::binary | std::ios::app);
         totSize += Textures[t].dwSize;
         sprintf_s(
             s, "%.2f, size: %d, %d * %d, %s\n", totSize / 1024.0f / 1024.0f, Textures[t].dwSize, head.width, head.height, Textures[t].name);
@@ -1646,8 +1646,8 @@ bool DX9RENDER::TextureRelease(int32_t texid)
     if (Textures[texid].ref != 0) { return false; }
     if (Textures[texid].name != nullptr) {
         if (texLog) {
-            auto      fileS = std::fstream("texLoad.txt", std::ios::binary | std::ios::in | std::ios::out);
-            int const bytes = fio->file_size("texLoad.txt");
+            auto      fileS = fio->open_file("texLoad.txt", std::ios::binary | std::ios::in | std::ios::out);
+            int const bytes = std::filesystem::file_size("texLoad.txt");
             auto      buf   = new char[bytes + 1];
             fileS.read(buf, bytes);
             buf[bytes] = 0;

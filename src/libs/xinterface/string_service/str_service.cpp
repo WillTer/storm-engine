@@ -484,13 +484,13 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
 
     // strings reading
     auto const ini_path = fio->base_directory_path(BaseDirectory::Ini) / "texts" / m_sLanguageDir / fileName;
-    auto       fileS    = std::ifstream(ini_path, std::ios::binary);
+    auto       fileS    = fio->open_file<std::ifstream>(ini_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::warn("WARNING! Strings file \"{}\" does not exist", fileName);
         return -1;
     }
 
-    int32_t const filesize = fio->file_size(ini_path);
+    int32_t const filesize = std::filesystem::file_size(ini_path);
 
     if (filesize <= 0) {
         spdlog::warn("WARNING! Strings file \"{}\" has zero size", fileName);

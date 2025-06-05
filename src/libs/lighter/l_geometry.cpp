@@ -355,7 +355,7 @@ float LGeometry::Trace(const CVECTOR& src, const CVECTOR& dst)
 bool LGeometry::Save()
 {
     // Save the current path
-    auto oldPath = fio->current_directory();
+    auto oldPath = std::filesystem::current_path();
     // Saving objects
     bool          result  = true;
     int32_t const bufSize = 16384;
@@ -363,11 +363,11 @@ bool LGeometry::Save()
     for (int32_t i = 0, pnt = 0; i < numObjects; i++) {
         if (object[i].lBufSize <= 0) continue;
         // Create a path
-        fio->set_current_directory(oldPath);
+        std::filesystem::current_path(oldPath);
         if (!std::filesystem::create_directories(object[i].path.parent_path())) { continue; }
 
-        FILE* fl = fopen(object[i].path.string().c_str(), "w+b");
-        if (!fl) {
+        auto stream = fio->open_file(object[i].path, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+        if (!stream.is_open()) {
             result = false;
             continue;
         }
@@ -381,14 +381,14 @@ bool LGeometry::Save()
             buf[sv++] =
                 (static_cast<uint32_t>(c.x) << 16) | (static_cast<uint32_t>(c.y) << 8) | (static_cast<uint32_t>(c.z) << 0) | 0xff000000;
             if (sv >= bufSize) {
-                result = (fwrite(buf, sv * sizeof(uint32_t), 1, fl) == 1);
+                stream.write(reinterpret_cast<char*>(buf), sv * sizeof(uint32_t));
+                result = true;
                 sv     = 0;
             }
         }
-        if (sv > 0) result &= (fwrite(buf, sv * sizeof(uint32_t), 1, fl) == 1);
-        fclose(fl);
+        if (sv > 0) { result &= true; }
     }
-    fio->set_current_directory(oldPath);
+    std::filesystem::current_path(oldPath);
     delete[] buf;
     return result;
 }

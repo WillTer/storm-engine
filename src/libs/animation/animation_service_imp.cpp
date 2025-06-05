@@ -481,7 +481,7 @@ void AnimationServiceImp::LoadUserData(
 bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
 {
     try {
-        auto fileS = std::ifstream(fname, std::ios::binary);
+        auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
         if (!fileS.is_open()) {
             core.Trace("Cannot open file: %s", fname);
             return false;

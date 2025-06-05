@@ -426,7 +426,7 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
     if (mzShadow.Load(path.string() + ".zap")) { return true; }
 
     // try to load tga file
-    auto fileS = std::ifstream(path, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(path, std::ios::binary);
     if (fileS.is_open()) {
         TGA_H tga_head;
 
@@ -530,7 +530,7 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     bool bLoad = mzDepth.Load(fileName + ".zap");
 
     if (!bLoad) {
-        auto fileS = std::ifstream(fileName, std::ios::binary);
+        auto fileS = fio->open_file<std::ifstream>(fileName, std::ios::binary);
         if (fileS.is_open()) {
             fileS.read(reinterpret_cast<char*>(&tga_head), sizeof(tga_head));
             iDMapSize = tga_head.width;
@@ -669,7 +669,7 @@ bool ISLAND::SaveTga8(char* fname, uint8_t* pBuffer, uint32_t dwSizeX, uint32_t 
     tga_head.bpp    = 8;
     tga_head.attr8  = 8;
 
-    auto fileS = std::ofstream(fname, std::ios::binary);
+    auto fileS = fio->open_file<std::ofstream>(fname, std::ios::binary);
     if (!fileS.is_open()) {
         core.Trace("Island: Can't create island file! %s", fname);
         return false;

@@ -2671,7 +2671,7 @@ void XINTERFACE::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
     strcpy_s(FullPath, fileName);
 
     PrecreateDirForFile(FullPath);
-    auto fileS = std::ofstream(FullPath, std::ios::binary);
+    auto fileS = fio->open_file<std::ofstream>(FullPath, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
     char* pOutBuffer = nullptr;
@@ -2691,10 +2691,10 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
 
     if (fileName.empty() || pAttr == nullptr) { return; }
 
-    auto fileS = std::ifstream(fileName.data(), std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(fileName.data(), std::ios::binary);
     if (!fileS.is_open()) { return; }
 
-    uint32_t const fileSize = fio->file_size(fileName.data());
+    uint32_t const fileSize = std::filesystem::file_size(fileName.data());
     if (fileSize == 0) {
         core.Event("evntOptionsBreak");
         return;

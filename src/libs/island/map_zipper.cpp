@@ -103,7 +103,7 @@ bool MapZipper::Load(std::string sFileName)
 {
     UnInit();
 
-    auto stream = std::ifstream(sFileName.c_str(), std::ios::binary);
+    auto stream = fio->open_file<std::ifstream>(sFileName.c_str(), std::ios::binary);
     if (!stream.is_open()) { return false; }
     stream.read(reinterpret_cast<char*>(&dwSizeX), sizeof(dwSizeX));
     stream.read(reinterpret_cast<char*>(&dwDX), sizeof(dwDX));
@@ -120,7 +120,7 @@ bool MapZipper::Load(std::string sFileName)
 
 bool MapZipper::Save(std::string sFileName)
 {
-    auto stream = std::ofstream(sFileName.c_str(), std::ios::binary);
+    auto stream = fio->open_file<std::ofstream>(sFileName.c_str(), std::ios::binary);
     if (!stream.is_open()) { return false; }
     stream.write(reinterpret_cast<char*>(&dwSizeX), sizeof(dwSizeX));
     stream.write(reinterpret_cast<char*>(&dwDX), sizeof(dwDX));

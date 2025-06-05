@@ -94,7 +94,7 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
 
     if (sCatalog == nullptr) { return; }
 
-    auto fileS = std::ifstream(sCatalog, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(sCatalog, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
     uint32_t dwSize;
@@ -115,7 +115,7 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
 
     auto bRecalculateData = true;
     // FIXME: hardcode
-    auto in_stream = std::ifstream(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
+    auto in_stream = fio->open_file<std::ifstream>(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
     if (in_stream.is_open()) {
         in_stream.seekg(0, std::ios::end);
         size_t file_size = in_stream.tellg();
@@ -158,7 +158,7 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
         // core.Trace("Stars: min = %.3f, max = %.3f", fMinMag, fMaxMag);
 
         // write all the buffers to a file in order not to recalculate the next time
-        auto out_stream = std::ofstream(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
+        auto out_stream = fio->open_file<std::ofstream>(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
         if (!out_stream.is_open()) {
             out_stream.write(reinterpret_cast<char*>(aStars.data()), sizeof(Star) * dwSize);
             out_stream.write(reinterpret_cast<char*>(pVPos), sizeof(CVECTOR) * dwSize);

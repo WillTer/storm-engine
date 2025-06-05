@@ -29,8 +29,14 @@ class IFileService
 public:
     virtual ~IFileService() = default;
 
-    virtual bool                     write_file(std::fstream& fileS, void const* s, std::streamsize count) = 0;
-    virtual bool                     read_file(std::fstream& fileS, void* s, std::streamsize count)        = 0;
+    template <typename Stream = std::fstream>
+    Stream open_file(std::filesystem::path const& file_path, std::ios::openmode mode)
+    {
+        return Stream(transform_path(file_path), mode);
+    }
+
+    virtual std::filesystem::path transform_path(std::filesystem::path const& path) = 0;
+
     virtual std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& source_path,
         std::string const&           mask,
@@ -46,14 +52,14 @@ public:
         bool                         only_files = true,
         bool                         recursive  = false)                                                                                    = 0;
     virtual std::time_t    to_time_t(std::filesystem::file_time_type tp)                                           = 0;
-    virtual void           flush_file_buffers(std::fstream& fileS)                                                 = 0;
-    virtual std::string    current_directory()                                                                     = 0;
     virtual std::string    executable_directory()                                                                  = 0;
-    virtual std::uintmax_t file_size(std::filesystem::path const& file_path)                                       = 0;
     virtual void           set_current_directory(std::filesystem::path const& path)                                = 0;
     virtual bool           create_directory(std::filesystem::path const& path)                                     = 0;
     virtual std::uintmax_t remove_directory(std::filesystem::path const& path)                                     = 0;
     virtual bool           read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
+
+    // Update IFileService internal variables according to configuration
+    virtual void load_service_parameters_from_config(std::filesystem::path const& config_file) = 0;
 
     // ini files section
     virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
@@ -124,6 +130,9 @@ public:
     virtual float GetFloat(char const* section_name, char const* key_name)                 = 0;
     virtual float GetFloat(char const* section_name, char const* key_name, float def_val)  = 0;
     virtual bool  GetFloatNext(char const* section_name, char const* key_name, float* val) = 0;
+
+    virtual std::string GetString(char const* section_name, char const* key_name)                             = 0;
+    virtual std::string GetString(char const* section_name, char const* key_name, std::string const& def_val) = 0;
 
     // virtual void    SetSearch(void *)= 0;
 

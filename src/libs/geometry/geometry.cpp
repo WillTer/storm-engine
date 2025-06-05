@@ -175,7 +175,7 @@ void GEOM_SERVICE_R::SetRenderService(VDX9RENDER* render_service)
 std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 {
     if (RenderService) { RenderService->ProgressView(); }
-    auto fileS = std::ifstream(fname, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
     if (!fileS.is_open()) {
         if (storm::iEquals(&fname[strlen(fname) - 4], ".col")) {
             //    core.Trace("geometry::can't open file %s", fname);
@@ -189,7 +189,7 @@ std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 
 int GEOM_SERVICE_R::FileSize(char const* fname)
 {
-    return fio->file_size(fname);
+    return std::filesystem::file_size(fname);
 }
 
 bool GEOM_SERVICE_R::ReadFile(std::ifstream& fileS, void* data, int32_t bytes)

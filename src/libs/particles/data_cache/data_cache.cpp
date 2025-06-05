@@ -29,14 +29,14 @@ void DataCache::CacheSystem(char const* FileName)
     std::transform(pathStr.begin(), pathStr.end(), pathStr.begin(), tolower);
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
 
-    auto sysFile = std::ifstream(pathStr, std::ios::binary);
+    auto sysFile = fio->open_file<std::ifstream>(pathStr, std::ios::binary);
 
     if (!sysFile.is_open()) {
         core.Trace("Particles: '%s' File not found !!!", pathStr.c_str());
         return;
     }
 
-    auto const FileSize = fio->file_size(pathStr.c_str());
+    auto const FileSize = std::filesystem::file_size(pathStr.c_str());
 
     auto* pMemBuffer = new uint8_t[FileSize];
     sysFile.read(reinterpret_cast<char*>(pMemBuffer), FileSize);

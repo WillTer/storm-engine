@@ -500,7 +500,7 @@ bool CoreImpl::SaveState(char const* file_name)
 {
     if (!file_name) { throw std::logic_error("Bad file name of save"); }
 
-    auto fileS = std::ofstream(file_name, std::ios::binary);
+    auto fileS = fio->open_file<std::ofstream>(file_name, std::ios::binary);
 
     if (!fileS.is_open()) { return false; }
 
@@ -528,7 +528,7 @@ void CoreImpl::ProcessStateLoading()
     State_loading = true;
     EraseEntities();
 
-    auto fileS = std::ifstream(State_file_name, std::ios::binary);
+    auto fileS = fio->open_file<std::ifstream>(State_file_name, std::ios::binary);
     if (!fileS.is_open()) { return; }
     Compiler->LoadState(fileS);
 

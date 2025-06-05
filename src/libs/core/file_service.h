@@ -58,6 +58,9 @@ public:
     float GetFloat(char const* section_name, char const* key_name, float def_val) override;
     bool  GetFloatNext(char const* section_name, char const* key_name, float* val) override;
 
+    std::string GetString(char const* section_name, char const* key_name) override;
+    std::string GetString(char const* section_name, char const* key_name, std::string const& def_val) override;
+
     void DeleteKey(char const* section_name, char const* key_name) override;
 
     void DeleteKey(char const* section_name, char const* key_name, char const* key_value) override;
@@ -100,11 +103,14 @@ private:
     std::filesystem::path m_textures_dir;
     std::filesystem::path m_sea_dir;
 
+    bool m_use_lowercase;
+
 public:
     FileService();
     ~FileService() override;
-    bool                     write_file(std::fstream& fileS, void const* s, std::streamsize count) override;
-    bool                     read_file(std::fstream& fileS, void* s, std::streamsize count) override;
+
+    std::filesystem::path transform_path(std::filesystem::path const& path) override;
+
     std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& path,
         std::string const&           mask,
@@ -120,16 +126,15 @@ public:
         bool                         only_files = true,
         bool                         recursive  = false) override;
     std::time_t           to_time_t(std::filesystem::file_time_type tp) override;
-    void                  flush_file_buffers(std::fstream& fileS) override;
-    std::string           current_directory() override;
     std::string           executable_directory() override;
-    std::uintmax_t        file_size(std::filesystem::path const& file_path) override;
     void                  set_current_directory(std::filesystem::path const& path) override;
     bool                  create_directory(std::filesystem::path const& path) override;
     std::uintmax_t        remove_directory(std::filesystem::path const& path) override;
     bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
+
+    void load_service_parameters_from_config(std::filesystem::path const& config_file) override;
 
     // ini files section
     void                     close_ini_files();

@@ -80,21 +80,6 @@ FileService::FileService()
         m_opened_files[n] = nullptr;
     }
 
-    // if (auto const ini = fio->open_ini_file(core.EngineIniFileName())) {
-    //     m_resource_dir    = ini->GetString("paths", "resource", RESOURCE_DIR_DEFAULT);
-    //     m_ini_dir         = ini->GetString("paths", "ini", INI_DIR_DEFAULT);
-    //     m_aliases_dir     = ini->GetString("paths", "aliases", ALIASES_DIR_DEFAULT);
-    //     m_sounds_dir      = ini->GetString("paths", "sounds", SOUNDS_DIR_DEFAULT);
-    //     m_videos_dir      = ini->GetString("paths", "videos", VIDEOS_DIR_DEFAULT);
-    //     m_animation_dir   = ini->GetString("paths", "animation", ANIMATION_DIR_DEFAULT);
-    //     m_models_dir      = ini->GetString("paths", "models", MODELS_DIR_DEFAULT);
-    //     m_foam_dir        = ini->GetString("paths", "foam", FOAM_DIR_DEFAULT);
-    //     m_techniques_dir  = ini->GetString("paths", "techniques", TECHNIQUES_DIR_DEFAULT);
-    //     m_particles_dir   = ini->GetString("paths", "particles", PARTICLES_DIR_DEFAULT);
-    //     m_textures_dir    = ini->GetString("paths", "textures", TEXTURES_DIR_DEFAULT);
-    //     m_sea_dir         = ini->GetString("paths", "sea", SEA_DIR_DEFAULT);
-    // }
-
     m_resource_dir   = RESOURCE_DIR_DEFAULT;
     m_ini_dir        = INI_DIR_DEFAULT;
     m_aliases_dir    = ALIASES_DIR_DEFAULT;
@@ -107,6 +92,7 @@ FileService::FileService()
     m_particles_dir  = PARTICLES_DIR_DEFAULT;
     m_textures_dir   = TEXTURES_DIR_DEFAULT;
     m_sea_dir        = SEA_DIR_DEFAULT;
+    m_use_lowercase  = false;
 }
 
 FileService::~FileService()
@@ -114,28 +100,17 @@ FileService::~FileService()
     close_ini_files();
 }
 
-bool FileService::write_file(std::fstream& fileS, void const* s, std::streamsize count)
+std::filesystem::path FileService::transform_path(std::filesystem::path const& path)
 {
-    fileS.exceptions(std::fstream::failbit | std::fstream::badbit);
-    try {
-        fileS.write(reinterpret_cast<char const*>(s), count);
-        return true;
-    } catch (std::fstream::failure const& e) {
-        spdlog::error("Failed to WriteFile: {}", e.what());
-        return false;
-    }
-}
+    auto path_transformed = path.lexically_normal().string();
 
-bool FileService::read_file(std::fstream& fileS, void* s, std::streamsize count)
-{
-    fileS.exceptions(std::fstream::failbit | std::fstream::badbit);
-    try {
-        fileS.read(reinterpret_cast<char*>(s), count);
-        return true;
-    } catch (std::fstream::failure const& e) {
-        spdlog::error("Failed to ReadFile: {}", e.what());
-        return false;
+    if (m_use_lowercase) {
+        std::transform(path_transformed.begin(), path_transformed.end(), path_transformed.begin(), [](unsigned char const ch) {
+            return std::tolower(ch);
+        });
     }
+
+    return path_transformed;
 }
 
 std::vector<std::string> FileService::string_paths_by_mask(
@@ -171,18 +146,6 @@ std::time_t FileService::to_time_t(std::filesystem::file_time_type tp)
     return system_clock::to_time_t(sctp);
 }
 
-void FileService::flush_file_buffers(std::fstream& fileS)
-{
-    fileS.flush();
-}
-
-std::string FileService::current_directory()
-{
-    auto const  curPath = std::filesystem::current_path().string();
-    std::string result(curPath.begin(), curPath.end());
-    return result;
-}
-
 std::string FileService::executable_directory()
 {
     char*             path   = SDL_GetBasePath();
@@ -190,11 +153,6 @@ std::string FileService::executable_directory()
     SDL_free(path);
 
     return result;
-}
-
-std::uintmax_t FileService::file_size(std::filesystem::path const& file_path)
-{
-    return std::filesystem::file_size(file_path);
 }
 
 void FileService::set_current_directory(std::filesystem::path const& path)
@@ -220,11 +178,12 @@ std::unique_ptr<INIFILE> FileService::create_ini_file(std::filesystem::path cons
 {
     if (std::filesystem::exists(file_path) && fail_if_exist) { return nullptr; }
 
-    auto stream = std::fstream(file_path, std::ios::binary | std::ios::out);
+    auto stream = open_file<std::ofstream>(file_path, std::ios::binary);
     if (!stream.is_open()) {
         spdlog::error("Can't create ini file: {}", file_path.string());
         return nullptr;
     }
+    stream.close();
 
     return open_ini_file(file_path);
 }
@@ -290,7 +249,7 @@ void FileService::close_ini_files()
 
 bool FileService::read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer)
 {
-    auto stream = std::fstream(file_path, std::ios::binary | std::ios::in);
+    auto stream = open_file<std::ifstream>(file_path, std::ios::binary);
     if (!stream.is_open()) {
         spdlog::trace("Can't load file: {}", file_path.string());
         return false;
@@ -348,6 +307,26 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     }
 
     return executable_directory();
+}
+
+void FileService::load_service_parameters_from_config(std::filesystem::path const& config_file)
+{
+    if (auto const ini = fio->open_ini_file(config_file)) {
+        m_resource_dir   = ini->GetString("paths", "resource", RESOURCE_DIR_DEFAULT.string());
+        m_ini_dir        = ini->GetString("paths", "ini", INI_DIR_DEFAULT.string());
+        m_aliases_dir    = ini->GetString("paths", "aliases", ALIASES_DIR_DEFAULT.string());
+        m_sounds_dir     = ini->GetString("paths", "sounds", SOUNDS_DIR_DEFAULT.string());
+        m_videos_dir     = ini->GetString("paths", "videos", VIDEOS_DIR_DEFAULT.string());
+        m_animation_dir  = ini->GetString("paths", "animation", ANIMATION_DIR_DEFAULT.string());
+        m_models_dir     = ini->GetString("paths", "models", MODELS_DIR_DEFAULT.string());
+        m_foam_dir       = ini->GetString("paths", "foam", FOAM_DIR_DEFAULT.string());
+        m_techniques_dir = ini->GetString("paths", "techniques", TECHNIQUES_DIR_DEFAULT.string());
+        m_particles_dir  = ini->GetString("paths", "particles", PARTICLES_DIR_DEFAULT.string());
+        m_textures_dir   = ini->GetString("paths", "textures", TEXTURES_DIR_DEFAULT.string());
+        m_sea_dir        = ini->GetString("paths", "sea", SEA_DIR_DEFAULT.string());
+
+        m_use_lowercase = ini->GetInt("compatibility", "use_lowercase_paths", 0) != 0;
+    }
 }
 
 //=================================================================================================
@@ -454,6 +433,16 @@ float INIFILE_T::GetFloat(char const* section_name, char const* key_name, float 
 bool INIFILE_T::GetFloatNext(char const* section_name, char const* key_name, float* val)
 {
     return ifs_PTR->GetFloatNext(&Search, section_name, key_name, val);
+}
+
+std::string INIFILE_T::GetString(char const* section_name, char const* key_name)
+{
+    return ifs_PTR->GetString(&Search, section_name, key_name);
+}
+
+std::string INIFILE_T::GetString(char const* section_name, char const* key_name, std::string const& def_val)
+{
+    return ifs_PTR->GetString(&Search, section_name, key_name, def_val);
 }
 
 void INIFILE_T::DeleteKey(char const* section_name, char const* key_name)

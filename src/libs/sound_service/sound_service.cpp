@@ -194,6 +194,9 @@ SoundID SoundService::play(
         if (alias.volume > std::numeric_limits<float>::epsilon()) { alias_volume = alias.volume; }
     }
 
+    // Normalize and set to lowercase
+    sound_path = fio->transform_path(sound_path);
+
     SoundID const id = sound_type == SoundType::MusicStereo
         ? prepare_music(sound_path.string(), fade_time)
         : prepare_sound(sound_path.string(), sound_type, start_position, alias_min_distance, alias_max_distance);
@@ -206,7 +209,7 @@ SoundID SoundService::play(
     if constexpr (TRACE_INFORMATION) {
         core.Trace(
             "Sound attached, name %s, idx = %d, channel = %p, state = %d",
-            sound_path.c_str(),
+            sound_path.string().c_str(),
             sound_idx,
             sound.source.get(),
             sound.source->get_state());

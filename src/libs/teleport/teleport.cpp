@@ -266,13 +266,13 @@ bool FINDDIALOGNODES::Init()
         char const* fileName = AttributesPointer->GetAttribute("file");
         auto*       pA       = AttributesPointer->CreateSubAClass(AttributesPointer, "nodelist");
         if (fileName && pA) {
-            auto fileS = std::ifstream(fileName, std::ios::binary);
+            auto fileS = fio->open_file<std::ifstream>(fileName, std::ios::binary);
             if (!fileS.is_open()) {
                 core.Trace("WARNING! Can`t dialog file %s", fileName);
                 return false;
             }
 
-            int32_t const filesize = fio->file_size(fileName);
+            int32_t const filesize = std::filesystem::file_size(fileName);
             if (filesize == 0) {
                 core.Trace("Empty dialog file %s", fileName);
                 return false;
