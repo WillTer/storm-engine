@@ -1,6 +1,8 @@
 #include "file_service.h"
 
+#include <algorithm>
 #include <exception>
+#include <fstream>
 #include <string>
 
 #include <SDL2/SDL.h>
@@ -15,20 +17,18 @@
 #define INI_EQUAL '='
 #define VOIDSYMS_NUM 2
 #define INI_SIGNATURE ";[SE2IF]"
-char const INI_LINEFEED[3]            = {0xd, 0xa, 0};
-char const INI_VOIDSYMS[VOIDSYMS_NUM] = {0x20, 0x9};
 
 namespace
 {
 FILE_SERVICE file_service;
 }
 
-extern VFILE_SERVICE* fio = &file_service;
+VFILE_SERVICE* fio = &file_service;
 
 void FILE_SERVICE::FlushIniFiles()
 {
     for (uint32_t n = 0; n <= Max_File_Index; n++) {
-        if (OpenFiles[n] == nullptr) continue;
+        if (OpenFiles[n] == nullptr) { continue; }
         OpenFiles[n]->FlushFile();
     }
 }
@@ -37,8 +37,9 @@ FILE_SERVICE::FILE_SERVICE()
 {
     Files_Num      = 0;
     Max_File_Index = 0;
-    for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++)
+    for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++) {
         OpenFiles[n] = nullptr;
+    }
 }
 
 FILE_SERVICE::~FILE_SERVICE()
@@ -185,7 +186,10 @@ std::string FILE_SERVICE::_GetCurrentDirectory()
 
 std::string FILE_SERVICE::_GetExecutableDirectory()
 {
-    std::string result(SDL_GetBasePath());
+    char*             path   = SDL_GetBasePath();
+    std::string const result = path;
+    SDL_free(path);
+
     return result;
 }
 
@@ -215,67 +219,56 @@ std::uintmax_t FILE_SERVICE::_RemoveDirectory(std::filesystem::path const& path)
 
 std::unique_ptr<INIFILE> FILE_SERVICE::CreateIniFile(std::filesystem::path const& file_path, bool fail_if_exist)
 {
-    auto fileS = _CreateFile(file_path, std::ios::binary | std::ios::in);
-    if (fileS.is_open() && fail_if_exist) {
-        _CloseFile(fileS);
-        return nullptr;
-    }
-    _CloseFile(fileS);
-    fileS = _CreateFile(file_path, std::ios::binary | std::ios::out);
-    if (!fileS.is_open()) {
+    if (std::filesystem::exists(file_path) && fail_if_exist) { return nullptr; }
+
+    auto stream = std::fstream(file_path, std::ios::binary | std::ios::out);
+    if (!stream.is_open()) {
         spdlog::error("Can't create ini file: {}", file_path.string());
         return nullptr;
     }
-    _CloseFile(fileS);
+
     return OpenIniFile(file_path);
 }
 
 std::unique_ptr<INIFILE> FILE_SERVICE::OpenIniFile(std::filesystem::path const& file_path)
 {
-    for (auto n = 0; n <= Max_File_Index; n++) {
-        if (OpenFiles[n] == nullptr) continue;
-        if (OpenFiles[n]->GetFileName() == file_path) {
-            OpenFiles[n]->IncReference();
+    for (uint32_t i = 0; i <= Max_File_Index; i++) {
+        if (OpenFiles[i] == nullptr) { continue; }
+        if (OpenFiles[i]->GetFileName() == file_path) {
+            OpenFiles[i]->IncReference();
 
-            auto v = std::make_unique<INIFILE_T>(OpenFiles[n]);
-            if (!v) throw std::runtime_error("Failed to create INIFILE_T");
+            auto v = std::make_unique<INIFILE_T>(OpenFiles[i]);
+            if (!v) { throw std::runtime_error("Failed to create INIFILE_T"); }
             return v;
         }
     }
 
     for (auto n = 0; n < _MAX_OPEN_INI_FILES; n++) {
-        if (OpenFiles[n] != nullptr) continue;
+        if (OpenFiles[n] != nullptr) { continue; }
 
         OpenFiles[n] = new IFS(this);
-        if (OpenFiles[n] == nullptr) throw std::runtime_error("Failed to create IFS");
+        if (OpenFiles[n] == nullptr) { throw std::runtime_error("Failed to create IFS"); }
         if (!OpenFiles[n]->LoadFile(file_path)) {
             delete OpenFiles[n];
             OpenFiles[n] = nullptr;
             return nullptr;
         }
-        if (Max_File_Index < n) Max_File_Index = n;
+        Max_File_Index = std::max<uint32_t>(Max_File_Index, n);
         OpenFiles[n]->IncReference();
-        //        POP_CONTROL(0)
-        // INIFILE_T object belonged to entity and must be deleted by entity
-        // OpenFiles[n]->inifile_T = new INIFILE_T(OpenFiles[n]);
-        // if(OpenFiles[n]->inifile_T == null) throw std::runtime_error();
-        // return OpenFiles[n]->inifile_T;
 
         auto v = std::make_unique<INIFILE_T>(OpenFiles[n]);
-        if (!v) throw std::runtime_error("Failed to create INIFILE_T");
+        if (!v) { throw std::runtime_error("Failed to create INIFILE_T"); }
         return v;
     }
-    //    POP_CONTROL(0)
-    ////UNGUARD
+
     return nullptr;
 }
 
 void FILE_SERVICE::RefDec(INIFILE* ini_obj)
 {
     for (uint32_t n = 0; n <= Max_File_Index; n++) {
-        if (OpenFiles[n] != ini_obj) continue;
-        // OpenFiles[n]->SearchData = &OpenFiles[n]->Search;
-        if (OpenFiles[n]->GetReference() == 0) throw std::runtime_error("Reference error");
+        if (OpenFiles[n] != ini_obj) { continue; }
+        if (OpenFiles[n]->GetReference() == 0) { throw std::runtime_error("Reference error"); }
         OpenFiles[n]->DecReference();
         if (OpenFiles[n]->GetReference() == 0) {
             delete OpenFiles[n];
@@ -283,38 +276,33 @@ void FILE_SERVICE::RefDec(INIFILE* ini_obj)
         }
         return;
     }
+
     throw std::runtime_error("bad inifile object");
-    // UNGUARD
 }
 
 void FILE_SERVICE::Close()
 {
     for (uint32_t n = 0; n < _MAX_OPEN_INI_FILES; n++) {
-        if (OpenFiles[n] == nullptr) continue;
+        if (OpenFiles[n] == nullptr) { continue; }
         delete OpenFiles[n];
         OpenFiles[n] = nullptr;
     }
 }
 
-bool FILE_SERVICE::LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize)
+bool FILE_SERVICE::LoadFile(std::filesystem::path const& file_path, std::vector<char>& out_buffer)
 {
-    if (ppBuffer == nullptr) return false;
-
-    auto fileS = fio->_CreateFile(file_path, std::ios::binary | std::ios::in);
-    if (!fileS.is_open()) {
+    auto stream = std::fstream(file_path, std::ios::binary | std::ios::in);
+    if (!stream.is_open()) {
         spdlog::trace("Can't load file: {}", file_path.string());
         return false;
     }
-    auto const dwLowSize = _GetFileSize(file_path);
-    if (dwSize) { *dwSize = dwLowSize; }
-    if (dwLowSize == 0) {
-        *ppBuffer = nullptr;
-        return false;
-    }
 
-    *ppBuffer = new char[dwLowSize];
-    _ReadFile(fileS, *ppBuffer, dwLowSize);
-    _CloseFile(fileS);
+    auto const size = std::filesystem::file_size(file_path);
+    if (size == 0) { return false; }
+
+    out_buffer.resize(size);
+    stream.read(out_buffer.data(), out_buffer.size());
+
     return true;
 }
 
@@ -362,29 +350,31 @@ std::string convert_path(char const* path)
 
 uint64_t FILE_SERVICE::GetPathFingerprint(std::filesystem::path const& path)
 {
-    uint64_t result = 0U;
+    if (!exists(path)) { return 0; }
 
-    if (exists(path)) {
-        if (is_directory(path)) {
-            for (auto const& entry: std::filesystem::directory_iterator(path)) {
-                result += GetPathFingerprint(entry);
-            }
-        } else if (is_regular_file(path)) {
-            auto const timestamp = last_write_time(path).time_since_epoch().count();
-            result += timestamp;
-        }
+    auto const fingerprint = [](auto const& file) {
+        return static_cast<uint64_t>(std::filesystem::last_write_time(file).time_since_epoch().count());
+    };
+
+    if (is_regular_file(path)) { return fingerprint(path); }
+
+    if (!is_directory(path)) { return 0; }
+
+    uint64_t timestamp = 0;
+    for (auto const& entry: std::filesystem::recursive_directory_iterator(path)) {
+        if (is_regular_file(entry)) { timestamp = std::max(timestamp, fingerprint(entry)); }
     }
 
-    return result;
+    return timestamp;
 }
 
 //=================================================================================================
 
 INIFILE_T::~INIFILE_T()
 {
-    if (auto fileService = dynamic_cast<FILE_SERVICE*>(fio); fileService) {
+    if (auto* file_service = dynamic_cast<FILE_SERVICE*>(fio); file_service) {
         try {
-            fileService->RefDec(ifs_PTR);
+            file_service->RefDec(ifs_PTR);
         } catch (std::exception const& e) {
             spdlog::error(e.what());
         }

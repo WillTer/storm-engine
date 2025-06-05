@@ -169,24 +169,25 @@ bool Grass::LoadData(char const* patchName)
     delete block;
     block = nullptr;
     // Load the data file
-    uint8_t* load = nullptr;
-    uint32_t size = 0;
-    if (!fio->LoadFile(patchName, (char**)&load, &size)) return false;
+    std::vector<char> load = {};
+    if (!fio->LoadFile(patchName, load)) { return false; }
     try {
         // Check the data
-        if (size < sizeof(GRSHeader)) throw std::runtime_error("invalide file size");
-        auto& hdr = *(GRSHeader*)load;
+        if (load.size() < sizeof(GRSHeader)) throw std::runtime_error("invalide file size");
+        auto& hdr = *(GRSHeader*)load.data();
         if (hdr.id != GRASS_ID) throw std::runtime_error("invalide file id");
         if (hdr.ver != GRASS_VER) throw std::runtime_error("invalide file version");
         auto const minisize = hdr.miniX * hdr.miniZ;
         auto const elements = hdr.numElements;
-        if (size != sizeof(GRSHeader) + minisize * sizeof(GRSMiniMapElement) + elements * sizeof(GRSMapElement))
+        if (load.size() != (sizeof(GRSHeader) + (minisize * sizeof(GRSMiniMapElement)) + (elements * sizeof(GRSMapElement)))) {
             throw std::runtime_error("incorrect file data -> file size");
-        if (hdr.miniX <= 0 || hdr.miniX > 100000 || hdr.miniZ <= 0 || hdr.miniZ > 100000)
+        }
+        if (hdr.miniX <= 0 || hdr.miniX > 100000 || hdr.miniZ <= 0 || hdr.miniZ > 100000) {
             throw std::runtime_error("incorrect file data -> miniX, miniZ");
+        }
         // Create a minimap
         miniMap = new GRSMiniMapElement[minisize];
-        memcpy(miniMap, load + sizeof(GRSHeader), minisize * sizeof(GRSMiniMapElement));
+        memcpy(miniMap, load.data() + sizeof(GRSHeader), minisize * sizeof(GRSMiniMapElement));
         miniX = hdr.miniX;
         miniZ = hdr.miniZ;
         // Last check
@@ -200,7 +201,7 @@ bool Grass::LoadData(char const* patchName)
             translate[i] = static_cast<uint8_t>((i * 255) / 15);
         }
         block           = new GRSMapElementEx[elements];
-        auto* const src = (GRSMapElement*)(load + sizeof(GRSHeader) + minisize * sizeof(GRSMiniMapElement));
+        auto* const src = (GRSMapElement*)(load.data() + sizeof(GRSHeader) + (minisize * sizeof(GRSMiniMapElement)));
         for (int32_t i = 0; i < elements; i++) {
             auto&            sb = src[i];
             GRSMapElementEx& b  = block[i];
@@ -222,9 +223,9 @@ bool Grass::LoadData(char const* patchName)
         // Correcting the position of the blades of grass from local to world
         for (int32_t z = 0; z < miniZ; z++) {
             GRSMiniMapElement* line = &miniMap[z * miniX];
-            float const        cz   = startZ + z * GRASS_BLK_DST;
+            float const        cz   = startZ + (z * GRASS_BLK_DST);
             for (int32_t x = 0; x < miniX; x++) {
-                float const      cx    = startX + x * GRASS_BLK_DST;
+                float const      cx    = startX + (x * GRASS_BLK_DST);
                 GRSMapElementEx* el    = block + line[x].start;
                 int32_t const    count = line[x].num[0];
                 for (int32_t i = 0; i < count; i++) {
@@ -235,7 +236,7 @@ bool Grass::LoadData(char const* patchName)
 
             // cache non-empty blocks
             for (int32_t x = 0; x < miniX; x++) {
-                if (miniMap[z * miniX + x].num[0] != 0) { cachedMiniMap.emplace_back(x, z); }
+                if (miniMap[(z * miniX) + x].num[0] != 0) { cachedMiniMap.emplace_back(x, z); }
             }
         }
     } catch (std::exception const& e) {
@@ -245,7 +246,6 @@ bool Grass::LoadData(char const* patchName)
         delete block;
         block = nullptr;
     }
-    delete load;
     return true;
 }
 

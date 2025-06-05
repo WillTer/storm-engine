@@ -10,9 +10,12 @@
 
 #pragma once
 
+#include <vector>
+
 #include <libs/math/c_vector.h>
 
 #include "ptc.h"
+
 
 #define PTCDATA_MAXSTEPS 32
 
@@ -94,7 +97,7 @@ private:
     // private:
 public:
     // Data block
-    char* data;
+    std::vector<char> data;
 
     // Geometry
     PtcTriangle* triangle;      // Geometry triangles

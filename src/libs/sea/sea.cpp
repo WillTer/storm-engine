@@ -220,22 +220,21 @@ bool SEA::Init()
     uint32_t i;
 
     for (i = 0; i < FRAMES; i++) {
-        char     str[256];
-        char*    pFBuffer = nullptr;
-        uint32_t dwSize;
+        char              str[256];
+        std::vector<char> pFBuffer = {};
         sprintf_s(str, "%s\\sea%.4d.tga", RESOURCE_SEA_DIR.string().c_str(), i);
-        fio->LoadFile(str, &pFBuffer, &dwSize);
-        if (!pFBuffer) {
+        fio->LoadFile(str, pFBuffer);
+        if (pFBuffer.empty()) {
             core.Trace("Sea: Can't load %s", str);
             return false;
         }
 
-        auto* pFB = pFBuffer + sizeof(TGA_H);
+        auto* pFB = pFBuffer.data() + sizeof(TGA_H);
 
         auto* pBuffer = new uint8_t[XWIDTH * YWIDTH];
         aTmpBumps.push_back(pBuffer);
 
-        for (uint32_t y = 0; y < YWIDTH; y++)
+        for (uint32_t y = 0; y < YWIDTH; y++) {
             for (uint32_t x = 0; x < XWIDTH; x++) {
                 uint8_t const bB = (*pFB);
                 // bB = byte(float(bB - 79.0f) * 255.0f / (139.0f - 79.0f));
@@ -244,8 +243,7 @@ bool SEA::Init()
                 pBuffer[x + y * XWIDTH] = bB & 0xFF;
                 pFB += sizeof(uint32_t);
             }
-
-        STORM_DELETE(pFBuffer);
+        }
     }
 
     for (i = 0; i < FRAMES; i++) {

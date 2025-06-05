@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 
 #include <libs/core/v_file_service.h>
 
@@ -121,9 +120,9 @@ public:
     void                            _SetCurrentDirectory(std::filesystem::path const& path) override;
     bool                            _CreateDirectory(std::filesystem::path const& path) override;
     std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path) override;
-    bool                            LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize) override;
+    bool                            LoadFile(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
     // ini files section
-    void                     Close();
+    void                     Close();  // Close what?..
     std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file_path, bool fail_if_exist) override;
     std::unique_ptr<INIFILE> OpenIniFile(std::filesystem::path const& file_path) override;
     void                     RefDec(INIFILE* ini_obj);

@@ -6,16 +6,6 @@
 #include <string>
 #include <vector>
 
-inline bool starts_with(std::string const& str, std::string const& prefix)
-{
-    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
-}
-
-inline bool ends_with(std::string const& str, std::string const& suffix)
-{
-    return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
-}
-
 class INIFILE;
 
 class VFILE_SERVICE
@@ -44,17 +34,17 @@ public:
         bool                         getPaths,
         bool                         onlyDirs  = false,
         bool                         onlyFiles = true,
-        bool                         recursive = false)                                                                                = 0;
-    virtual std::time_t                     _ToTimeT(std::filesystem::file_time_type tp)                       = 0;
-    virtual std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path)          = 0;
-    virtual void                            _FlushFileBuffers(std::fstream& fileS)                             = 0;
-    virtual std::string                     _GetCurrentDirectory()                                             = 0;
-    virtual std::string                     _GetExecutableDirectory()                                          = 0;
-    virtual std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path)               = 0;
-    virtual void                            _SetCurrentDirectory(std::filesystem::path const& path)            = 0;
-    virtual bool                            _CreateDirectory(std::filesystem::path const& path)                = 0;
-    virtual std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path)                = 0;
-    virtual bool LoadFile(std::filesystem::path const& file_path, char** ppBuffer, uint32_t* dwSize = nullptr) = 0;
+        bool                         recursive = false)                                                                                             = 0;
+    virtual std::time_t                     _ToTimeT(std::filesystem::file_time_type tp)                                    = 0;
+    virtual std::filesystem::file_time_type _GetLastWriteTime(std::filesystem::path const& file_path)                       = 0;
+    virtual void                            _FlushFileBuffers(std::fstream& fileS)                                          = 0;
+    virtual std::string                     _GetCurrentDirectory()                                                          = 0;
+    virtual std::string                     _GetExecutableDirectory()                                                       = 0;
+    virtual std::uintmax_t                  _GetFileSize(std::filesystem::path const& file_path)                            = 0;
+    virtual void                            _SetCurrentDirectory(std::filesystem::path const& path)                         = 0;
+    virtual bool                            _CreateDirectory(std::filesystem::path const& path)                             = 0;
+    virtual std::uintmax_t                  _RemoveDirectory(std::filesystem::path const& path)                             = 0;
+    virtual bool                            LoadFile(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
 
     // ini files section
     virtual std::unique_ptr<INIFILE> CreateIniFile(std::filesystem::path const& file, bool fail_if_exist) = 0;

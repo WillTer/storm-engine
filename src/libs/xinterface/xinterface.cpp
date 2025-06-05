@@ -912,7 +912,7 @@ void XINTERFACE::LoadIni()
         float iniRatio;
         char  splitPlatform[23], *platformW, *platformH;
         do {
-            if (starts_with(platform, "PC_SCREEN_")) {
+            if (std::string(platform).starts_with("PC_SCREEN_")) {
                 strcpy_s(splitPlatform, platform);
                 platformW = std::strtok(splitPlatform, "_:");  // PC
                 platformW = std::strtok(nullptr, "_:");        // SCREEN
