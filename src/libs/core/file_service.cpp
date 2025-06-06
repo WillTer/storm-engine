@@ -101,7 +101,7 @@ std::filesystem::path FileService::transform_path(std::filesystem::path const& p
 
     if (m_use_lowercase) {
         auto const exe_path = executable_directory();  // Convert part relative to executable only
-        auto       it       = std::mismatch(exe_path.begin(), exe_path.end(), path_transformed.begin()).second;
+        auto       it       = std::mismatch(exe_path.begin(), exe_path.end(), path_transformed.begin(), path_transformed.end()).second;
         std::transform(it, path_transformed.end(), it, [](unsigned char const ch) { return std::tolower(ch); });
     }
 
