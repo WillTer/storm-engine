@@ -465,7 +465,7 @@ void VANT_BASE::AddLabel(GEOS::LABEL& lbl, NODE* nod)
             vlist               = new VANTDATA*[vantQuantity + 1];
             if (vlist == nullptr) throw std::runtime_error("Not memory allocate");
             memcpy(vlist, oldvlist, sizeof(VANTDATA*) * vantQuantity);
-            delete oldvlist;
+            delete[] oldvlist;
             vantQuantity++;
         }
 

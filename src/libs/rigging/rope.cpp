@@ -508,7 +508,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
             ROPEDATA** oldrlist = rlist;
             rlist               = new ROPEDATA*[ropeQuantity + 1];
             memcpy(rlist, oldrlist, sizeof(ROPEDATA*) * ropeQuantity);
-            delete oldrlist;
+            delete[] oldrlist;
             ropeQuantity++;
         }
         rd = rlist[ropeQuantity - 1] = new ROPEDATA {};

@@ -903,7 +903,7 @@ void SAIL::AddSailLabel(GEOS::LABEL& lbl, NODE* nod, bool bSailUp)
             SAILONE** oldslist = slist;
             slist              = new SAILONE*[sailQuantity + 1];
             memcpy(slist, oldslist, sizeof(SAILONE*) * sailQuantity);
-            delete oldslist;
+            delete[] oldslist;
         } else
             slist = new SAILONE*[1];
         cs = slist[sailQuantity] = new SAILONE;

@@ -595,22 +595,23 @@ DX9RENDER::~DX9RENDER()
 
     S_RELEASE(rectsVBuffer, 8);
 
-    delete progressImage;
+    delete[] progressImage;
     progressImage = nullptr;
-    delete progressBackImage;
+    delete[] progressBackImage;
     progressBackImage = nullptr;
-    delete progressTipsImage;
+    delete[] progressTipsImage;
     progressTipsImage = nullptr;
 
     for (int i = 0; i < nFontQuantity; i++) {
-        delete FontList[i].font;
+        FontList[i].font.reset();
 
-        delete FontList[i].name;
+        delete[] FontList[i].name;
     }
     nFontQuantity = 0;
-    delete fontIniFileName;
+    delete[] fontIniFileName;
 
-    STORM_DELETE(DX9sphereVertex);
+    delete[] DX9sphereVertex;
+    DX9sphereVertex = nullptr;
     ReleaseDevice();
 }
 
@@ -854,7 +855,7 @@ bool DX9RENDER::ReleaseDevice()
         if (Textures[t].ref && Textures[t].loaded && Textures[t].d3dtex) {
             if (CHECKD3DERR(Textures[t].d3dtex->Release()) == false) res = false;
             Textures[t].ref = NULL;
-            delete Textures[t].name;
+            delete[] Textures[t].name;
         }
 
     if (d3d9 != nullptr && CHECKD3DERR(d3d9->Release()) == false) res = false;
@@ -1299,7 +1300,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         path_to_tex.replace_extension();
         if (exists(path_to_tex)) { return TextureLoadUsingD3DX(path_to_tex.string().c_str(), t); }
         if (bTrace) { core.Trace("Can't load texture %s", file_path.string().c_str()); }
-        delete Textures[t].name;
+        delete[] Textures[t].name;
         Textures[t].name = nullptr;
         return false;
     }
@@ -1661,7 +1662,7 @@ bool DX9RENDER::TextureRelease(int32_t texid)
             delete[] buf;
         }
 
-        delete Textures[texid].name;
+        delete[] Textures[texid].name;
         Textures[texid].name = nullptr;
     }
     if (Textures[texid].loaded == false) { return false; }
@@ -2445,7 +2446,7 @@ int32_t DX9RENDER::Print(int32_t nFontNum, uint32_t color, int32_t x, int32_t y,
 int32_t DX9RENDER::StringWidth(std::string_view const& string, int32_t nFontNum, float fScale, int32_t scrWidth)
 {
     if (nFontNum < 0 || nFontNum >= nFontQuantity) return 0;
-    FONT* pFont = FontList[nFontNum].font;
+    auto& pFont = FontList[nFontNum].font;
     if (FontList[nFontNum].ref == 0 || pFont == nullptr) return 0;
 
     int32_t const xs = screen_size.x;
@@ -2486,7 +2487,7 @@ int32_t DX9RENDER::ExtPrint(
     // GUARD(DX9RENDER::ExtPrint)
 
     if (nFontNum < 0 || nFontNum >= nFontQuantity) return 0;
-    FONT* pFont = FontList[nFontNum].font;
+    auto& pFont = FontList[nFontNum].font;
     if (FontList[nFontNum].ref == 0 || pFont == nullptr) return 0;
 
     va_list args;
@@ -2556,9 +2557,9 @@ int32_t DX9RENDER::LoadFont(char const* fontName)
             return i;
         }
     if (nFontQuantity < MAX_FONTS) {
-        if ((FontList[i].font = new FONT(*this, *d3d9)) == nullptr) throw std::runtime_error("allocate memory error");
+        if ((FontList[i].font = std::make_unique<FONT>(*this, *d3d9)) == nullptr) throw std::runtime_error("allocate memory error");
         if (!FontList[i].font->Init(fontName, fontIniFileName)) {
-            delete FontList[i].font;
+            FontList[i].font.reset();
             core.Trace("Can't init font %s", fontName);
             return -1L;
         }
@@ -2674,9 +2675,9 @@ bool DX9RENDER::SetFontIniFileName(char const* iniName)
     strcpy_s(fontIniFileName, len, iniName);
 
     for (int n = 0; n < nFontQuantity; n++) {
-        delete FontList[n].font;
+        FontList[n].font.reset();
 
-        if ((FontList[n].font = new FONT(*this, *d3d9)) == nullptr) throw std::runtime_error("allocate memory error");
+        if ((FontList[n].font = std::make_unique<FONT>(*this, *d3d9)) == nullptr) throw std::runtime_error("allocate memory error");
         FontList[n].font->Init(FontList[n].name, fontIniFileName);
         if (FontList[n].ref == 0) FontList[n].font->TempUnload();
     }
@@ -3591,7 +3592,7 @@ void DX9RENDER::SetProgressImage(char const* image)
     int32_t const s = strlen(image) + 1;
     if (s > progressImageSize) {
         progressImageSize = s;
-        delete progressImage;
+        delete[] progressImage;
         progressImage = new char[progressImageSize];
     }
     strcpy_s(progressImage, s, image);
@@ -3606,7 +3607,7 @@ void DX9RENDER::SetProgressBackImage(char const* image)
     int32_t const s = strlen(image) + 1;
     if (s > progressBackImageSize) {
         progressBackImageSize = s;
-        delete progressBackImage;
+        delete[] progressBackImage;
         progressBackImage = new char[progressBackImageSize];
     }
     strcpy_s(progressBackImage, s, image);
@@ -3621,7 +3622,7 @@ void DX9RENDER::SetTipsImage(char const* image)
     int32_t const s = strlen(image) + 1;
     if (s > progressTipsImageSize) {
         progressTipsImageSize = s;
-        delete progressTipsImage;
+        delete[] progressTipsImage;
         progressTipsImage = new char[progressTipsImageSize];
     }
     memcpy(progressTipsImage, image, s);

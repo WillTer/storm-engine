@@ -62,7 +62,7 @@ void PCS_CONTROLS::Release()
 {
     int32_t n;
     for (n = 0; n < nControlsNum; n++) {
-        delete pUserControls[n].name;
+        delete[] pUserControls[n].name;
     }
 
     nControlsNum = 0;

@@ -31,7 +31,7 @@ ModelProcessor::ModelProcessor(ParticleManager* pManager) : Parser()
 
 ModelProcessor::~ModelProcessor()
 {
-    delete pMemArray;
+    delete[] pMemArray;
 }
 
 MDL_ParticleData* ModelProcessor::AllocParticle() const

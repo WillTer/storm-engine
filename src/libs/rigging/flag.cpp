@@ -437,7 +437,7 @@ void FLAG::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip,
             flist                = new FLAGDATA*[flagQuantity + 1];
             if (flist == nullptr) throw std::runtime_error("Not memory allocation");
             memcpy(flist, oldflist, sizeof(FLAGDATA*) * flagQuantity);
-            delete oldflist;
+            delete[] oldflist;
             flagQuantity++;
         }
         flist[flagQuantity - 1] = fd;

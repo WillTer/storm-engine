@@ -281,7 +281,7 @@ void SEA::BuildVolumeTexture()
     uint32_t              i, j;
 
     for (auto const& normal: aNormals)
-        delete normal;
+        delete[] normal;
     aNormals.clear();
 
     D3DLOCKED_BOX box[4];
@@ -444,7 +444,8 @@ void SEA::BuildVolumeTexture()
                                 ARGB(0x80, blue, green, red);
                     }
         }
-        STORM_DELETE(pVectors);
+        delete[] pVectors;
+        pVectors = nullptr;
     }
 
     if (pVolumeTexture)
@@ -452,10 +453,11 @@ void SEA::BuildVolumeTexture()
             pVolumeTexture->UnlockBox(i);
 
     for (auto const& vector: aVectors)
-        delete vector;
+        delete[] vector;
     aVectors.clear();
     // aVectors.DelAllWithPointers();
-    STORM_DELETE(pDst);
+    delete[] pDst;
+    pDst = nullptr;
 }
 
 bool SEA::EditMode_Update()

@@ -662,8 +662,10 @@ CTechnique::~CTechnique()
         block_t* pB = &pBlocks[i];
         for (j = 0; j < pB->dwNumTechniques; j++) {
             technique_t* pTech = &pB->pTechniques[j];
-            for (k = 0; k < pTech->dwNumPasses; k++)
-                STORM_DELETE(pTech->pPasses[k].pPass);
+            for (k = 0; k < pTech->dwNumPasses; k++) {
+                delete[] pTech->pPasses[k].pPass;
+                pTech->pPasses[k].pPass = nullptr;
+            }
             free(pTech->pPasses);
         }
         STORM_DELETE(pB->pParams);
@@ -671,7 +673,9 @@ CTechnique::~CTechnique()
         free(pB->pTechniques);
     }
     for (i = 0; i < dwNumShaders; i++) {
-        STORM_DELETE(pShaders[i].pName);
+        delete[] pShaders[i].pName;
+        pShaders[i].pName = nullptr;
+
         STORM_DELETE(pShaders[i].pDecl);
         if (pShaders[i].pPixelShader != nullptr) {
             pShaders[i].pPixelShader->Release();

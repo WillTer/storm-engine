@@ -33,7 +33,7 @@ namespace
 {
 auto& getExecutableDir()
 {
-    static auto const executableDir = fio->executable_directory();
+    static auto const executableDir = std::filesystem::path(fio->executable_directory());
     return executableDir;
 }
 auto& getLogsArchive()

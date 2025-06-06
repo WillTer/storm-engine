@@ -57,10 +57,10 @@ struct INDEX_BUFFER {
 };
 
 struct FONTEntity {
-    char*    name;
-    uint32_t hash;
-    FONT*    font;
-    int32_t  ref;
+    char*                 name;
+    uint32_t              hash;
+    std::unique_ptr<FONT> font;
+    int32_t               ref;
 };
 
 struct VideoTextureEntity {

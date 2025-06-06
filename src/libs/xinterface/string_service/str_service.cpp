@@ -98,36 +98,40 @@ STRSERVICE::~STRSERVICE()
 
     if (m_psStrName != nullptr) {
         for (i = 0; i < m_nStringQuantity; i++)
-            if (m_psStrName[i] != nullptr) delete m_psStrName[i];
-        delete m_psStrName;
+            if (m_psStrName[i] != nullptr) delete[] m_psStrName[i];
+        delete[] m_psStrName;
         m_psStrName = nullptr;
     }
     if (m_psString != nullptr) {
         for (i = 0; i < m_nStringQuantity; i++)
-            if (m_psString[i] != nullptr) delete m_psString[i];
-        delete m_psString;
+            if (m_psString[i] != nullptr) delete[] m_psString[i];
+        delete[] m_psString;
         m_psString = nullptr;
     }
-    STORM_DELETE(m_sIniFileName);
-    STORM_DELETE(m_sLanguage);
-    STORM_DELETE(m_sLanguageDir);
+
+    delete[] m_sIniFileName;
+    delete[] m_sLanguage;
+    delete[] m_sLanguageDir;
+    m_sIniFileName = nullptr;
+    m_sLanguage    = nullptr;
+    m_sLanguageDir = nullptr;
 
     while (m_pUsersBlocks != nullptr) {
         auto* pUSB     = m_pUsersBlocks;
         m_pUsersBlocks = m_pUsersBlocks->next;
         if (pUSB->psStrName != nullptr) {
             for (i = 0; i < pUSB->nStringsQuantity; i++)
-                if (pUSB->psStrName[i] != nullptr) delete pUSB->psStrName[i];
-            delete pUSB->psStrName;
+                if (pUSB->psStrName[i] != nullptr) delete[] pUSB->psStrName[i];
+            delete[] pUSB->psStrName;
             pUSB->psStrName = nullptr;
         }
         if (pUSB->psString != nullptr) {
             for (i = 0; i < pUSB->nStringsQuantity; i++)
-                if (pUSB->psString[i] != nullptr) delete pUSB->psString[i];
-            delete pUSB->psString;
+                if (pUSB->psString[i] != nullptr) delete[] pUSB->psString[i];
+            delete[] pUSB->psString;
             pUSB->psString = nullptr;
         }
-        delete pUSB->fileName;
+        delete[] pUSB->fileName;
         pUSB->nStringsQuantity = 0;
         delete pUSB;
         pUSB = nullptr;
@@ -561,19 +565,19 @@ void STRSERVICE::CloseUsersStringFile(int32_t id)
         pPrev->next = pUSB->next;
 
     if (pUSB->fileName != nullptr) {
-        delete pUSB->fileName;
+        delete[] pUSB->fileName;
         pUSB->fileName = nullptr;
     }
     if (pUSB->psStrName != nullptr) {
         for (i = 0; i < pUSB->nStringsQuantity; i++)
-            if (pUSB->psStrName[i] != nullptr) delete pUSB->psStrName[i];
-        delete pUSB->psStrName;
+            if (pUSB->psStrName[i] != nullptr) delete[] pUSB->psStrName[i];
+        delete[] pUSB->psStrName;
         pUSB->psStrName = nullptr;
     }
     if (pUSB->psString != nullptr) {
         for (i = 0; i < pUSB->nStringsQuantity; i++)
-            if (pUSB->psString[i] != nullptr) delete pUSB->psString[i];
-        delete pUSB->psString;
+            if (pUSB->psString[i] != nullptr) delete[] pUSB->psString[i];
+        delete[] pUSB->psString;
         pUSB->psString = nullptr;
     }
     delete pUSB;
