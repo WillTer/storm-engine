@@ -467,7 +467,7 @@ void DIALOG::LoadFromIni()
     }
 
     char param[512];
-    pIni->ReadString("BACKPARAM", "texture", param, sizeof(param) - 1, "dialog\\interface.tga");
+    pIni->ReadString("BACKPARAM", "texture", param, sizeof(param) - 1, "dialog/interface.tga");
     m_BackParams.m_idBackTex = RenderService->TextureCreate(param);
 
     FPOINT fpScrSize, fpScrOffset;

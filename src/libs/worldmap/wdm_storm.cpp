@@ -118,7 +118,7 @@ WdmStorm::WdmStorm()
     }
     // add to objects
     wdmObjects->AddStorm(this);
-    rainTexture = wdmObjects->rs->TextureCreate("\\WorldMap\\rain.tga");
+    rainTexture = wdmObjects->rs->TextureCreate("worldmap/rain.tga");
 }
 
 WdmStorm::~WdmStorm()

@@ -466,7 +466,7 @@ void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
 
         headModel_ = core.CreateEntity("MODELR");
         auto gs    = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-        gs->SetTexturePath("characters\\");
+        gs->SetTexturePath("characters/");
 
         core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_GEO, headModelPath_.c_str());
         core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_ANI, headModelPath_.c_str());

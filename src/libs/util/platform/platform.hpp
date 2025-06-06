@@ -1,8 +1,8 @@
 #pragma once
 #ifdef _WIN32
 
-#define PATH_SEP '\\'
-#define WRONG_PATH_SEP '/'
+#define PATH_SEP '/'
+#define WRONG_PATH_SEP '\\'
 
 inline char const* convert_path_sep(char const* cPath)
 {

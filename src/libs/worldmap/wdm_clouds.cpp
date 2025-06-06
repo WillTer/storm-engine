@@ -225,8 +225,8 @@ WdmClouds::WdmClouds()
     for (int32_t i = 0; i < sizeof(clouds) / sizeof(Cloud); i++) {
         clouds[i].Reset(true);
     }
-    texture = wdmObjects->rs->TextureCreate("\\WorldMap\\clouds.tga");
-    light   = wdmObjects->rs->TextureCreate("\\WorldMap\\cloudslight.tga");
+    texture = wdmObjects->rs->TextureCreate("worldmap/clouds.tga");
+    light   = wdmObjects->rs->TextureCreate("worldmap/cloudslight.tga");
 }
 
 WdmClouds::~WdmClouds()

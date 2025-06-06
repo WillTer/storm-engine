@@ -91,7 +91,7 @@ void LOCATOR::LocateForI(VDATA* pData)
     auto const* pAFilesPath = pA->FindAClass(pA, "filespath.models");
     sprintf_s(
         sFileLocators,
-        "%s\\%s",
+        "%s/%s",
         (pAFilesPath) ? static_cast<char const*>(pAFilesPath->GetThisAttr()) : "",
         static_cast<char const*>(pA->GetAttribute("locators")));
     rs->SetLoadTextureEnable(false);

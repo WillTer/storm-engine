@@ -191,7 +191,7 @@ bool SEA::Init()
         bIniFoamEnable  = (pEngineIni) ? pEngineIni->GetInt("Sea", "FoamEnable", 1) != 0 : false;
     }
 
-    iFoamTexture = rs->TextureCreate("weather\\sea\\pena\\pena.tga");
+    iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 
     rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
 
@@ -222,7 +222,7 @@ bool SEA::Init()
     for (i = 0; i < FRAMES; i++) {
         char              str[256];
         std::vector<char> pFBuffer = {};
-        sprintf_s(str, "%s\\sea%.4d.tga", fio->base_directory_path(BaseDirectory::Sea).string().c_str(), i);
+        sprintf_s(str, "%s/sea%.4d.tga", fio->base_directory_path(BaseDirectory::Sea).string().c_str(), i);
         fio->read_file_to_mem(str, pFBuffer);
         if (pFBuffer.empty()) {
             core.Trace("Sea: Can't load %s", str);

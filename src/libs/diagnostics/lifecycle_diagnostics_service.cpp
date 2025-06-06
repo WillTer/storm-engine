@@ -33,7 +33,7 @@ namespace
 {
 auto& getExecutableDir()
 {
-    static auto const executableDir = std::filesystem::path {std::filesystem::u8path(fio->executable_directory())};
+    static auto const executableDir = fio->executable_directory();
     return executableDir;
 }
 auto& getLogsArchive()
@@ -181,28 +181,7 @@ LifecycleDiagnosticsService::~LifecycleDiagnosticsService()
 LifecycleDiagnosticsService::Guard LifecycleDiagnosticsService::initialize(bool const enableCrashReports)
 {
     loggingService_->initialize();
-
-    if (!initialized_) {
-        // TODO: make this crossplatform
-        auto* options = sentry_options_new();
-#ifdef _DEBUG
-        sentry_options_set_debug(options, true);
-#endif
-        sentry_options_set_logger(options, log_sentry, nullptr);
-        sentry_options_set_dsn(options, "https://1798a1bcfb654cbd8ce157b381964525@o572138.ingest.sentry.io/5721165");
-        sentry_options_set_release(options, STORM_BUILD_WATERMARK);
-        sentry_options_set_database_path(options, (fs::GetStashPath() / "sentry-db").c_str());
-#ifdef _WIN32
-        sentry_options_set_handler_path(options, (getExecutableDir() / "crashpad_handler.exe").c_str());
-#else
-        sentry_options_set_handler_path(options, (getExecutableDir() / "crashpad_handler").c_str());
-#endif
-        sentry_options_add_attachment(options, getLogsArchive().c_str());
-        sentry_options_set_on_crash(options, beforeCrash, this);
-        sentry_options_set_system_crash_reporter_enabled(options, enableCrashReports);
-
-        initialized_ = sentry_init(options) == 0;
-    }
+    initialized_ = true;
 
     return Guard(*this);
 }
@@ -210,8 +189,6 @@ LifecycleDiagnosticsService::Guard LifecycleDiagnosticsService::initialize(bool 
 void LifecycleDiagnosticsService::terminate() const
 {
     loggingService_->terminate();
-
-    if (initialized_) { sentry_close(); }
 }
 
 void LifecycleDiagnosticsService::notifyAfterRun() const

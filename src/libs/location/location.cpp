@@ -99,7 +99,7 @@ bool Location::Init()
     lightsid     = core.CreateEntity("Lights");
     loceffectsid = core.CreateEntity("LocationEffects");
 
-    enemyBarsTexture = rs->TextureCreate("LocEfx\\state_bars.tga");
+    enemyBarsTexture = rs->TextureCreate("locefx/state_bars.tga");
 
     lighter = core.CreateEntity("Lighter");
     // cubeShotMaker = core.CreateEntity("CubeShotMakerCam");
@@ -1156,7 +1156,7 @@ void Location::LoadCaustic() const
 
     char tex[256];
     for (int32_t i = 0; i < 32; i++) {
-        sprintf_s(tex, "weather\\caustic\\caustic%.2d.tga", i);
+        sprintf_s(tex, "weather/caustic/caustic%.2d.tga", i);
         iCausticTex[i] = rs->TextureCreate(tex);
     }
 }

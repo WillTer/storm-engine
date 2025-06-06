@@ -299,8 +299,8 @@ void SAIL::Execute(uint32_t Delta_Time)
         // ====================================================
         // If the ini-file has been changed, read the info from it
         auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
-        if (std::filesystem::exists(file_path)) {
-            auto ft_new = std::filesystem::last_write_time(file_path);
+        if (fio->is_path_exists(file_path)) {
+            auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) {
                 int oldWindQnt = WINDVECTOR_QUANTITY;
                 LoadSailIni();
@@ -1101,8 +1101,8 @@ void SAIL::SetAllSails()
     if (sg.nVert == 0) return;
     sg.nIndx += 1152;
 
-    if (texl == -1) texl = RenderService->TextureCreate("ships\\parus_hole.tga");
-    if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships\\emptygerald.tga");
+    if (texl == -1) texl = RenderService->TextureCreate("ships/parus_hole.tga");
+    if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships/emptygerald.tga");
 
     sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
     sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
@@ -1151,7 +1151,7 @@ void SAIL::LoadSailIni()
     char section[256], param[256];
 
     auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
-    if (std::filesystem::exists(file_path)) { ft_old = std::filesystem::last_write_time(file_path); }
+    if (fio->is_path_exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 

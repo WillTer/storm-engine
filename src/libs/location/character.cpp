@@ -900,9 +900,9 @@ void Character::SetSignModel()
     if (!signModelName[0]) { return; }
     // Path to textures
     VGEOMETRY* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-    if (gs) gs->SetTexturePath("quest_signs\\");
+    if (gs) gs->SetTexturePath("quest_signs/");
     // Path to the model
-    std::string path = "quest_signs\\";
+    std::string path = "quest_signs/";
     path += signModelName;
     // Create and load the model
     if (!(sign = core.CreateEntity("modelr"))) {
@@ -2509,9 +2509,9 @@ bool Character::zLoadModel(MESSAGE& message)
     std::string const& ani  = message.String();
     // Path to textures
     auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-    if (gs) gs->SetTexturePath("characters\\");
+    if (gs) gs->SetTexturePath("characters/");
     // Path to the model
-    strcpy_s(mpath, "characters\\");
+    strcpy_s(mpath, "characters/");
     strcat_s(mpath, name.c_str());
     // Create and load the model
     if (!(mdl = core.CreateEntity("modelr"))) {

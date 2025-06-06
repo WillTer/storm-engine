@@ -272,7 +272,7 @@ bool FINDDIALOGNODES::Init()
                 return false;
             }
 
-            int32_t const filesize = std::filesystem::file_size(fileName);
+            int32_t const filesize = fio->file_size(fileName);
             if (filesize == 0) {
                 core.Trace("Empty dialog file %s", fileName);
                 return false;

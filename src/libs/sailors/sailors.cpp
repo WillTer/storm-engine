@@ -661,7 +661,7 @@ bool ShipWalk::Init(entid_t _shipID, int editorMode, char const* shipType, std::
         shipModel = ship->GetModel();
 
         // Load points
-        std::string fileName = "RESOURCE\\MODELS\\Ships\\SAILORSPOINTS\\";
+        std::string fileName = "resource/models/ships/sailorspoints/";
         fileName += shipType;
         fileName += ".ini";
 

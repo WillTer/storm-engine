@@ -26,15 +26,10 @@ namespace
 FileService file_service;
 
 template <typename DirIterator>
-auto iter_directory(DirIterator& it, std::error_code& ec, std::string const& mask, bool get_paths, bool only_dirs, bool only_files)
+auto iter_directory(DirIterator& it, std::string const& mask, bool get_paths, bool only_dirs, bool only_files)
     -> std::vector<std::filesystem::path>
 {
     std::vector<std::filesystem::path> result;
-
-    if (ec) {
-        spdlog::warn("Failed to open save folder: {}", ec.message());
-        return result;
-    }
 
     // Transform wildcard expression to regex:
     // 1. Add \ before every . in original mask (to match exactly dot)
@@ -105,10 +100,13 @@ std::filesystem::path FileService::transform_path(std::filesystem::path const& p
     auto path_transformed = path.lexically_normal().string();
 
     if (m_use_lowercase) {
-        std::transform(path_transformed.begin(), path_transformed.end(), path_transformed.begin(), [](unsigned char const ch) {
-            return std::tolower(ch);
-        });
+        auto const exe_path = executable_directory();  // Convert part relative to executable only
+        auto       it       = std::mismatch(exe_path.begin(), exe_path.end(), path_transformed.begin()).second;
+        std::transform(it, path_transformed.end(), it, [](unsigned char const ch) { return std::tolower(ch); });
     }
+
+    // Always use unix format
+    std::replace(path_transformed.begin(), path_transformed.end(), '\\', '/');
 
     return path_transformed;
 }
@@ -127,16 +125,20 @@ std::vector<std::string> FileService::string_paths_by_mask(
 std::vector<std::filesystem::path> FileService::paths_by_mask(
     std::filesystem::path const& path, std::string const& mask, bool get_paths, bool only_dirs, bool only_files, bool recursive)
 {
-    std::filesystem::path const src_path = std::filesystem::path(path);
+    std::filesystem::path const src_path = transform_path(path);
 
-    std::error_code ec;
-    if (recursive) {
-        auto it = std::filesystem::recursive_directory_iterator(src_path, ec);
-        return iter_directory(it, ec, mask, get_paths, only_dirs, only_files);
-    }
+    auto const iter = [&](auto&& it, auto const& ec) -> std::vector<std::filesystem::path> {
+        if (ec) {
+            spdlog::warn("Failed to open folder \"{}\": {}", src_path.string(), ec.message());
+            return {};
+        }
 
-    auto it = std::filesystem::directory_iterator(src_path, ec);
-    return iter_directory(it, ec, mask, get_paths, only_dirs, only_files);
+        return iter_directory(it, mask, get_paths, only_dirs, only_files);
+    };
+
+    std::error_code ec = {};
+    return recursive ? iter(std::filesystem::recursive_directory_iterator(src_path, ec), ec)
+                     : iter(std::filesystem::directory_iterator(src_path, ec), ec);
 }
 
 std::time_t FileService::to_time_t(std::filesystem::file_time_type tp)
@@ -155,19 +157,44 @@ std::string FileService::executable_directory()
     return result;
 }
 
-void FileService::set_current_directory(std::filesystem::path const& path)
+std::filesystem::path FileService::current_path()
 {
-    std::filesystem::current_path(path);
+    return std::filesystem::current_path();
 }
 
-bool FileService::create_directory(std::filesystem::path const& path)
+void FileService::current_path(std::filesystem::path const& path)
 {
-    return std::filesystem::create_directories(path);
+    std::filesystem::current_path(transform_path(path));
 }
 
-std::uintmax_t FileService::remove_directory(std::filesystem::path const& path)
+bool FileService::create_directories(std::filesystem::path const& path)
 {
-    return std::filesystem::remove_all(path);
+    return std::filesystem::create_directories(transform_path(path));
+}
+
+void FileService::remove(std::filesystem::path const& path)
+{
+    std::filesystem::remove(transform_path(path));
+}
+
+std::uintmax_t FileService::remove_all(std::filesystem::path const& path)
+{
+    return std::filesystem::remove_all(transform_path(path));
+}
+
+uintmax_t FileService::file_size(std::filesystem::path const& file_path)
+{
+    return std::filesystem::file_size(transform_path(file_path));
+}
+
+bool FileService::is_path_exists(std::filesystem::path const& path)
+{
+    return std::filesystem::exists(transform_path(path));
+}
+
+std::filesystem::file_time_type FileService::last_write_time(std::filesystem::path const& path)
+{
+    return std::filesystem::last_write_time(transform_path(path));
 }
 
 //------------------------------------------------------------------------------------------------
@@ -176,7 +203,7 @@ std::uintmax_t FileService::remove_directory(std::filesystem::path const& path)
 
 std::unique_ptr<INIFILE> FileService::create_ini_file(std::filesystem::path const& file_path, bool fail_if_exist)
 {
-    if (std::filesystem::exists(file_path) && fail_if_exist) { return nullptr; }
+    if (fio->is_path_exists(file_path) && fail_if_exist) { return nullptr; }
 
     auto stream = open_file<std::ofstream>(file_path, std::ios::binary);
     if (!stream.is_open()) {
@@ -255,7 +282,7 @@ bool FileService::read_file_to_mem(std::filesystem::path const& file_path, std::
         return false;
     }
 
-    auto const size = std::filesystem::file_size(file_path);
+    auto const size = fio->file_size(file_path);
     if (size == 0) { return false; }
 
     out_buffer.resize(size);
@@ -270,18 +297,19 @@ bool FileService::read_file_to_mem(std::filesystem::path const& file_path, std::
 
 uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
 {
-    if (!exists(path)) { return 0; }
+    if (!is_path_exists(path)) { return 0; }
 
-    auto const fingerprint = [](auto const& file) {
+    auto const path_transformed = transform_path(path);
+    auto const fingerprint      = [](auto const& file) {
         return static_cast<uint64_t>(std::filesystem::last_write_time(file).time_since_epoch().count());
     };
 
-    if (is_regular_file(path)) { return fingerprint(path); }
+    if (is_regular_file(path_transformed)) { return fingerprint(path_transformed); }
 
-    if (!is_directory(path)) { return 0; }
+    if (!is_directory(path_transformed)) { return 0; }
 
     uint64_t timestamp = 0;
-    for (auto const& entry: std::filesystem::recursive_directory_iterator(path)) {
+    for (auto const& entry: std::filesystem::recursive_directory_iterator(path_transformed)) {
         if (is_regular_file(entry)) { timestamp = std::max(timestamp, fingerprint(entry)); }
     }
 

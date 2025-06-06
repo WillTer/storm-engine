@@ -409,7 +409,7 @@ void CoastFoam::InitNewFoam(Foam* pF)
     pF->sTexture   = "foam.tga";
     pF->iNumFoams  = 2;
 
-    pF->iTexture = rs->TextureCreate(("weather\\coastfoam\\" + pF->sTexture).c_str());
+    pF->iTexture = rs->TextureCreate(("weather/coastfoam/" + pF->sTexture).c_str());
 }
 
 void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
@@ -704,7 +704,7 @@ void CoastFoam::Save()
     // FIXME: hardcode
     auto const sID =
         fio->base_directory_path(BaseDirectory::Foam) / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
-    std::filesystem::remove(sID);
+    fio->remove(sID);
 
     auto pI = fio->create_ini_file(sID, false);
     if (!pI) return;
@@ -801,7 +801,7 @@ void CoastFoam::Load()
 
         pI->ReadString(cSection, "Texture", cTemp, sizeof(cTemp), "foam.tga");
         pF->sTexture = cTemp;
-        pF->iTexture = rs->TextureCreate((std::string("weather\\coastfoam\\") + cTemp).c_str());
+        pF->iTexture = rs->TextureCreate((std::string("weather/coastfoam/") + cTemp).c_str());
         pF->Type     = static_cast<FOAMTYPE>(pI->GetInt(cSection, "Type", FOAM_TYPE_2));
 
         for (int32_t j = 0; j < ((iNumParts) ? iNumParts : 100000); j++) {

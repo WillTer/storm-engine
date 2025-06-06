@@ -68,9 +68,9 @@ bool Tornado::Init()
     if (!ibpnt) return false;
     pillar.FillIndexBuffer(ibpnt);
     rs->UnLockIndexBuffer(ib);
-    noiseCloud.texture      = rs->TextureCreate("Tornado\\trncloud.tga");
-    particles.txtPillarPrts = rs->TextureCreate("Tornado\\pillarprts.tga");
-    particles.txtGroundPrts = rs->TextureCreate("Tornado\\groundprts.tga");
+    noiseCloud.texture      = rs->TextureCreate("tornado/trncloud.tga");
+    particles.txtPillarPrts = rs->TextureCreate("tornado/pillarprts.tga");
+    particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
     particles.SetSea();
     particles.Update(0.0f);
     debris.Init();

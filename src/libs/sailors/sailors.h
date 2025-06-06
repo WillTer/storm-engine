@@ -117,12 +117,12 @@ public:
 
     std::vector<ShipMan>     shipMan;
     std::vector<std::string> shipManModels_ = {
-        "Lowcharacters\\Lo_Man_1",
-        "Lowcharacters\\Lo_Man_2",
-        "Lowcharacters\\Lo_Man_3",
-        "Lowcharacters\\Lo_Man_Kamzol_1",
-        "Lowcharacters\\Lo_Man_Kamzol_2",
-        "Lowcharacters\\Lo_Man_Kamzol_3"};
+        "lowcharacters/lo_man_1",
+        "lowcharacters/lo_man_2",
+        "lowcharacters/lo_man_3",
+        "lowcharacters/lo_man_kamzol_1",
+        "lowcharacters/lo_man_kamzol_2",
+        "lowcharacters/lo_man_kamzol_3"};
 };
 
 class Sailors: public Entity

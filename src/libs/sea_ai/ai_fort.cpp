@@ -320,7 +320,7 @@ bool AIFort::ScanFortForCannons(AI_FORT* pFort, char const* pModelsDir, char con
     auto const path    = std::filesystem::path() / pModelsDir / pLocatorsName;
     auto const pathStr = path.string();
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
-    // sLocatorsName.Format("%s\\%s", pModelsDir, pLocatorsName);
+    // sLocatorsName.Format("%s/%s", pModelsDir, pLocatorsName);
     model_id = core.CreateEntity("MODELR");
     core.Send_Message(model_id, "ls", MSG_MODEL_LOAD_GEO, (char*)pathStr.c_str());
 

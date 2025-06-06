@@ -128,7 +128,7 @@ uint32_t AISeaGoods::AttributeChanged(ATTRIBUTES* pAttribute)
         aGoods.push_back(pG);
         pG->sModel = sTmpModel;
         pG->aItems.push_back(TmpItem);
-        pG->pGeo = pGeoService->CreateGeometry((sModelPath + "\\" + sTmpModel).c_str(), nullptr, 0);
+        pG->pGeo = pGeoService->CreateGeometry((sModelPath + "/" + sTmpModel).c_str(), nullptr, 0);
         return 0;
     }
 

@@ -256,6 +256,8 @@ void CoreImpl::ProcessEngineIniFile()
             if (iScriptVersion != ENGINE_SCRIPT_VERSION) {
 #ifdef _WIN32  // FIX_LINUX Cursor
                 ShowCursor(true);
+#else
+                SDL_ShowCursor(SDL_ENABLE);
 #endif
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
                 Compiler->ExitProgram();
@@ -512,7 +514,7 @@ bool CoreImpl::SaveState(char const* file_name)
 // force core to load state file at the start of next game loop, return false if no state file
 bool CoreImpl::InitiateStateLoading(char const* file_name)
 {
-    if (!std::filesystem::exists(file_name)) { return false; }
+    if (!fio->is_path_exists(file_name)) { return false; }
     delete[] State_file_name;
 
     auto const len  = strlen(file_name) + 1;

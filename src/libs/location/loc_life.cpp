@@ -47,7 +47,7 @@ bool LocLife::Init(Location* loc)
         core.Trace("Can't create geometry service!");
         return false;
     }
-    gs->SetTexturePath("Animals\\");
+    gs->SetTexturePath("animals/");
     if (!core.Send_Message(model, "ls", MSG_MODEL_LOAD_GEO, GetModelName())) {
         gs->SetTexturePath("");
         return false;

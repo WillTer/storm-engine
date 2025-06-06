@@ -34,9 +34,9 @@ WdmCloud::WdmCloud()
     texture     = -1;
     BuildCloud(4 + (rand() & 3));
     // Init
-    texture   = wdmObjects->rs->TextureCreate("\\WorldMap\\clouds.tga");
-    light     = wdmObjects->rs->TextureCreate("\\WorldMap\\stormlight.tga");
-    lightning = wdmObjects->rs->TextureCreate("\\WorldMap\\lightnings.tga");
+    texture   = wdmObjects->rs->TextureCreate("worldmap/clouds.tga");
+    light     = wdmObjects->rs->TextureCreate("worldmap/stormlight.tga");
+    lightning = wdmObjects->rs->TextureCreate("worldmap/lightnings.tga");
     //
     constAlpha        = 1.0f;
     lightningWaitTime = 0.0f;

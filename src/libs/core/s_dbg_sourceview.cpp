@@ -468,11 +468,11 @@ bool SOURCE_VIEW::OpenSourceFile(char const* _filename)
 
     if (SourceFileName[0] != 0) { CDebug->SaveRecentFileALine(SourceFileName, nActiveLine); }
 
-    auto DirectoryName = std::filesystem::current_path() / ProgramDirectory / _filename;
+    auto DirectoryName = fio->current_path() / ProgramDirectory / _filename;
 
     auto fileS = fio->open_file<std::ifstream>(DirectoryName.c_str(), std::ios::binary);
     if (!fileS.is_open()) { return false; }
-    uint32_t const nDataSize = std::filesystem::file_size(DirectoryName.c_str());
+    uint32_t const nDataSize = fio->file_size(DirectoryName.c_str());
 
     nTopLine = 0;
     delete[] pSourceFile;

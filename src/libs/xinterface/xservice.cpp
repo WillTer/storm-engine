@@ -9,7 +9,7 @@
 #define ERROR_MUL 1.0f
 
 // FIXME: hardcode
-constexpr std::string_view LISTS_INIFILE = "interfaces\\pictures.ini";
+constexpr std::string_view LISTS_INIFILE = "interfaces/pictures.ini";
 
 XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 {
@@ -57,7 +57,7 @@ int32_t XSERVICE::GetTextureID(char const* sImageListName)
             if (storm::iEquals(m_pList[i].sImageListName, sImageListName)) {
                 if (m_pList[i].textureQuantity <= 0) {
                     char sTexName[256];
-                    sprintf_s(sTexName, "INTERFACES\\%s", m_pList[i].sTextureName);
+                    sprintf_s(sTexName, "interfaces/%s", m_pList[i].sTextureName);
                     m_pList[i].textureID       = m_pRS->TextureCreate(sTexName);
                     m_pList[i].textureQuantity = 1;
                 } else

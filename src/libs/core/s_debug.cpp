@@ -514,7 +514,7 @@ uint32_t S_DEBUG::GetLineStatus(char const* _pFileName, uint32_t _linecode)
 
 bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
 {
-    auto         DirectoryName = std::filesystem::current_path();
+    auto         DirectoryName = fio->current_path();
     wchar_t      FilenameW[MAX_PATH];
     OPENFILENAME ofn {};
     FilenameW[0]         = 0;
@@ -530,7 +530,7 @@ bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
     ofn.lpstrDefExt      = FilterW.c_str();
     ofn.lpstrTitle       = TEXT("Open script source file");
     auto const bRes      = GetOpenFileName(&ofn);
-    std::filesystem::current_path(DirectoryName);
+    fio->current_path(DirectoryName);
     if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
         DirectoryName        = DirectoryName / ProgramDirectory;
@@ -544,7 +544,7 @@ bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
 
 bool S_DEBUG::BrowseFileWP(char* buffer, char const* filter)
 {
-    auto         DirectoryName = std::filesystem::current_path();
+    auto         DirectoryName = fio->current_path();
     wchar_t      FilenameW[MAX_PATH];
     OPENFILENAME ofn {};
     FilenameW[0]         = 0;
@@ -560,7 +560,7 @@ bool S_DEBUG::BrowseFileWP(char* buffer, char const* filter)
     ofn.lpstrDefExt      = FilterW.c_str();
     ofn.lpstrTitle       = TEXT("Open script source file");
     auto const bRes      = GetOpenFileName(&ofn);
-    std::filesystem::current_path(DirectoryName);
+    fio->current_path(DirectoryName);
     if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
         strcpy_s(buffer, MAX_PATH, Filename.c_str());

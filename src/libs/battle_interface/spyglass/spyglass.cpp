@@ -99,27 +99,28 @@ bool ISPYGLASS::Init()
     m_pImgRender = new BIImageRender(rs);
     Assert(m_pImgRender);
 
-    m_Lens.LoadFromAttr(m_pImgRender, GetAttr("lens"), "battle_interface\\spyglass\\eye_badTub.tga", 0, 0, 1024, 768, 8000);
-    m_ShipImage.LoadFromAttr(m_pImgRender, GetAttr("shipsign.ship"), "battle_interface\\ship_icons1.tga", 80, 600, 144, 664, 9000);
-    m_ShipBack.LoadFromAttr(m_pImgRender, GetAttr("shipsign.back"), "battle_interface\\shipbackicon.tga", 80, 600, 208, 728, 10000);
-    m_ShipHP.LoadFromAttr(m_pImgRender, GetAttr("shipsign.hp"), "battle_interface\\ShipState.tga", 80, 600, 208, 728, 10000);
-    m_ShipSP.LoadFromAttr(m_pImgRender, GetAttr("shipsign.sp"), "battle_interface\\ShipState.tga", 80, 600, 208, 728, 10000);
-    m_Class.LoadFromAttr(m_pImgRender, GetAttr("shipsign.class"), "battle_interface\\ShipClass.tga", 80, 600, 208, 728, 10000);
+    // FIXME: hardcode
+    m_Lens.LoadFromAttr(m_pImgRender, GetAttr("lens"), "battle_interface/spyglass/eye_badTub.tga", 0, 0, 1024, 768, 8000);
+    m_ShipImage.LoadFromAttr(m_pImgRender, GetAttr("shipsign.ship"), "battle_interface/ship_icons1.tga", 80, 600, 144, 664, 9000);
+    m_ShipBack.LoadFromAttr(m_pImgRender, GetAttr("shipsign.back"), "battle_interface/shipbackicon.tga", 80, 600, 208, 728, 10000);
+    m_ShipHP.LoadFromAttr(m_pImgRender, GetAttr("shipsign.hp"), "battle_interface/ShipState.tga", 80, 600, 208, 728, 10000);
+    m_ShipSP.LoadFromAttr(m_pImgRender, GetAttr("shipsign.sp"), "battle_interface/ShipState.tga", 80, 600, 208, 728, 10000);
+    m_Class.LoadFromAttr(m_pImgRender, GetAttr("shipsign.class"), "battle_interface/ShipClass.tga", 80, 600, 208, 728, 10000);
     m_Nation.LoadFromAttr(m_pImgRender, GetAttr("info.nation"), "flagall.tga", 210, 600, 274, 632, 10000);
-    m_Cannon.LoadFromAttr(m_pImgRender, GetAttr("info.cannon"), "battle_interface\\list_icon2.tga", 320, 600, 384, 664, 10000);
-    m_Sail.LoadFromAttr(m_pImgRender, GetAttr("info.speed"), "battle_interface\\list_icon2.tga", 420, 600, 484, 664, 10000);
-    m_Charge.LoadFromAttr(m_pImgRender, GetAttr("info.charge"), "battle_interface\\list_icon2.tga", 520, 600, 584, 664, 10000);
-    m_SailTo.LoadFromAttr(m_pImgRender, GetAttr("info.sailto"), "battle_interface\\list_icon2.tga", 620, 600, 684, 664,
+    m_Cannon.LoadFromAttr(m_pImgRender, GetAttr("info.cannon"), "battle_interface/list_icon2.tga", 320, 600, 384, 664, 10000);
+    m_Sail.LoadFromAttr(m_pImgRender, GetAttr("info.speed"), "battle_interface/list_icon2.tga", 420, 600, 484, 664, 10000);
+    m_Charge.LoadFromAttr(m_pImgRender, GetAttr("info.charge"), "battle_interface/list_icon2.tga", 520, 600, 584, 664, 10000);
+    m_SailTo.LoadFromAttr(m_pImgRender, GetAttr("info.sailto"), "battle_interface/list_icon2.tga", 620, 600, 684, 664,
                           10000);  // boal
 
     // captain image data
-    m_CaptainBack.LoadFromAttr(m_pImgRender, GetAttr("captain.back"), "battle_interface\\shipbackicon.tga", 816, 600, 944, 728, 10000);
-    m_CaptainFace.LoadFromAttr(m_pImgRender, GetAttr("captain.face"), "battle_interface\\portraits\\face_0.tga", 816, 600, 880, 664, 9000);
-    m_ImgCaptainFencing.LoadFromAttr(m_pImgRender, GetAttr("captain.fencing"), "interfaces\\skills.tga", 680, 600, 764, 664, 10000);
-    m_ImgCaptainCannon.LoadFromAttr(m_pImgRender, GetAttr("captain.cannon"), "interfaces\\skills.tga", 552, 600, 616, 664, 10000);
-    m_ImgCaptainAccuracy.LoadFromAttr(m_pImgRender, GetAttr("captain.accuracy"), "interfaces\\skills.tga", 424, 600, 488, 664, 10000);
-    m_ImgCaptainNavigation.LoadFromAttr(m_pImgRender, GetAttr("captain.navigation"), "interfaces\\skills.tga", 296, 600, 360, 664, 10000);
-    m_ImgCaptainBoarding.LoadFromAttr(m_pImgRender, GetAttr("captain.boarding"), "interfaces\\skills.tga", 168, 600, 232, 664, 10000);
+    m_CaptainBack.LoadFromAttr(m_pImgRender, GetAttr("captain.back"), "battle_interface/shipbackicon.tga", 816, 600, 944, 728, 10000);
+    m_CaptainFace.LoadFromAttr(m_pImgRender, GetAttr("captain.face"), "battle_interface/portraits/face_0.tga", 816, 600, 880, 664, 9000);
+    m_ImgCaptainFencing.LoadFromAttr(m_pImgRender, GetAttr("captain.fencing"), "interfaces/skills.tga", 680, 600, 764, 664, 10000);
+    m_ImgCaptainCannon.LoadFromAttr(m_pImgRender, GetAttr("captain.cannon"), "interfaces/skills.tga", 552, 600, 616, 664, 10000);
+    m_ImgCaptainAccuracy.LoadFromAttr(m_pImgRender, GetAttr("captain.accuracy"), "interfaces/skills.tga", 424, 600, 488, 664, 10000);
+    m_ImgCaptainNavigation.LoadFromAttr(m_pImgRender, GetAttr("captain.navigation"), "interfaces/skills.tga", 296, 600, 360, 664, 10000);
+    m_ImgCaptainBoarding.LoadFromAttr(m_pImgRender, GetAttr("captain.boarding"), "interfaces/skills.tga", 168, 600, 232, 664, 10000);
 
     // captain text data
     m_TextCaptainName.LoadFromAttr(rs, GetAttr("captext.capname"), "?", 210, 640);
@@ -626,7 +627,7 @@ void ISPYGLASS::ChangeTargetData(
 
     if (m_CaptainFace.pImage) {
         if (nFace >= 0)
-            sprintf_s(param, sizeof(param), "battle_interface\\portraits\\face_%d.tga", nFace);
+            sprintf_s(param, sizeof(param), "battle_interface/portraits/face_%d.tga", nFace);
         else
             sprintf_s(param, sizeof(param), "%s", pcFaceTexture);
         FRECT frUV;

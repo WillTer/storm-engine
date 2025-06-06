@@ -36,7 +36,7 @@ void DataCache::CacheSystem(char const* FileName)
         return;
     }
 
-    auto const FileSize = std::filesystem::file_size(pathStr.c_str());
+    auto const FileSize = fio->file_size(pathStr.c_str());
 
     auto* pMemBuffer = new uint8_t[FileSize];
     sysFile.read(reinterpret_cast<char*>(pMemBuffer), FileSize);

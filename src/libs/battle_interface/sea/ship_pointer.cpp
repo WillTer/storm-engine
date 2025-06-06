@@ -60,7 +60,6 @@ bool SHIPPOINTER::Init()
         return false;
     }
 
-    //"battle_interface\\shippointer.tga");
     m_idFriendTex = rs->TextureCreate(pA->GetAttribute("friend"));
     m_idEnemyTex  = rs->TextureCreate(pA->GetAttribute("enemy"));
 

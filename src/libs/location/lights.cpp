@@ -55,7 +55,7 @@ bool Lights::Init()
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "lights.ini");
     if (!ini) {
-        core.Trace("Location lights not inited -> RESOURCES\\Ini\\lights.ini not found");
+        core.Trace("Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
     char lName[256];

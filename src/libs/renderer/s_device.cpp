@@ -1198,7 +1198,7 @@ int32_t DX9RENDER::TextureCreate(char const* fname)
 
             int32_t j;
             for (j = dwLen - 1; j >= 0; j--)
-                if (fname[j] == '\\') break;
+                if (fname[j] == '/') break;
 
             _fname[0] = 0;
             strncpy_s(_fname, fname, j + 1);
@@ -1500,7 +1500,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     //---------------------------------------------------------------
     if (texLog) {
         char s[256];
-        if (totSize == 0) { std::filesystem::remove("texLoad.txt"); }
+        if (totSize == 0) { fio->remove("texLoad.txt"); }
         auto fileS2 = fio->open_file<std::ofstream>("texLoad.txt", std::ios::binary | std::ios::app);
         totSize += Textures[t].dwSize;
         sprintf_s(
@@ -1647,7 +1647,7 @@ bool DX9RENDER::TextureRelease(int32_t texid)
     if (Textures[texid].name != nullptr) {
         if (texLog) {
             auto      fileS = fio->open_file("texLoad.txt", std::ios::binary | std::ios::in | std::ios::out);
-            int const bytes = std::filesystem::file_size("texLoad.txt");
+            int const bytes = fio->file_size("texLoad.txt");
             auto      buf   = new char[bytes + 1];
             fileS.read(buf, bytes);
             buf[bytes] = 0;
@@ -2287,14 +2287,14 @@ void DX9RENDER::RecompileEffects()
 #ifdef _WIN32  // Effects
     effects_.release();
 
-    std::filesystem::path cur_path = std::filesystem::current_path();
-    std::filesystem::current_path(std::filesystem::path(fio->executable_directory()));
+    auto const cur_path = fio->current_path();
+    fio->current_path(fio->executable_directory());
     for (auto const& p: std::filesystem::recursive_directory_iterator(fio->base_directory_path(BaseDirectory::Techniques)))
         if (is_regular_file(p) && p.path().extension() == ".fx") {
             auto s = p.path().string();  // hug microsoft
             effects_.compile(s.c_str());
         }
-    std::filesystem::current_path(cur_path);
+    fio->current_path(cur_path);
 #endif
 }
 
@@ -3639,7 +3639,7 @@ void DX9RENDER::StartProgressView()
         // Loading the texture
         loadFrame        = 0;
         isInPViewProcess = true;
-        int32_t const t  = TextureCreate("Loading\\progress.tga");
+        int32_t const t  = TextureCreate("loading/progress.tga");
         isInPViewProcess = false;
         if (t < 0) {
             core.Trace("Progress error!");

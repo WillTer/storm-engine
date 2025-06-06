@@ -125,12 +125,20 @@ public:
         bool                         only_dirs  = false,
         bool                         only_files = true,
         bool                         recursive  = false) override;
-    std::time_t           to_time_t(std::filesystem::file_time_type tp) override;
-    std::string           executable_directory() override;
-    void                  set_current_directory(std::filesystem::path const& path) override;
-    bool                  create_directory(std::filesystem::path const& path) override;
-    std::uintmax_t        remove_directory(std::filesystem::path const& path) override;
+    std::time_t to_time_t(std::filesystem::file_time_type tp) override;
+    std::string executable_directory() override;
+
+    std::filesystem::path current_path() override;
+    void                  current_path(std::filesystem::path const& path) override;
+    bool                  create_directories(std::filesystem::path const& path) override;
+    void                  remove(std::filesystem::path const& path) override;
+    std::uintmax_t        remove_all(std::filesystem::path const& path) override;
     bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
+
+    uintmax_t                       file_size(std::filesystem::path const& file_path) override;
+    bool                            is_path_exists(std::filesystem::path const& path) override;
+    std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) override;
+
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
 

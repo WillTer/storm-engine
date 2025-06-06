@@ -326,7 +326,7 @@ bool IFS::VoidSym(char symbol)
 
 bool IFS::LoadFile(std::filesystem::path const& file_path)
 {
-    if (!std::filesystem::exists(file_path)) { return false; }
+    if (!fio->is_path_exists(file_path)) { return false; }
 
     auto fileS = fio->open_file<std::ifstream>(file_path, std::ios::binary);
     if (!fileS.is_open()) {
@@ -335,7 +335,7 @@ bool IFS::LoadFile(std::filesystem::path const& file_path)
     }
 
     std::vector<char> file_data = {};
-    auto const        file_size = std::filesystem::file_size(file_path);
+    auto const        file_size = fio->file_size(file_path);
     file_data.resize(file_size + 1);
     fileS.read(file_data.data(), file_size);
     file_data[file_size] = '\0';
@@ -459,7 +459,7 @@ bool IFS::FlushFile()
 
     if (bDataChanged == false) { return true; }
 
-    std::filesystem::remove(FileName);
+    fio->remove(FileName);
     auto fileS = fio->open_file<std::ofstream>(FileName, std::ios::binary);
     if (!fileS.is_open()) {
         /*trace("file: (%s)",FileName);*/

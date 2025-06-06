@@ -33,7 +33,7 @@ void Astronomy::PLANETS::Init(ATTRIBUTES* pAP)
     ReleasePlanets();
     aPlanets.clear();
 
-    pGS->SetTexturePath("Weather\\Astronomy\\Planets\\");
+    pGS->SetTexturePath("weather/astronomy/planets/");
 
     // ATTRIBUTES * pAScale = pAP->FindAClass(pAP, "Planets.Scale");
     // fPlanetScale = ((pAScale) ? pAScale->GetAttributeAsFloat() : 1.0f);
@@ -59,10 +59,10 @@ void Astronomy::PLANETS::Init(ATTRIBUTES* pAP)
             p.fMagMin      = (pAMag) ? pAMag->GetAttributeAsFloat("Min") : 14.0f;
             p.fAngle       = PId2 + FRAND(PI);
 
-            // string sFilename = string("Weather\\Planets\\") + pAPlanets->GetAttributeName(i);
+            // string sFilename = string("Weather/Planets/") + pAPlanets->GetAttributeName(i);
             // p.pGeo = Astronomy::pGS->CreateGeometry(sFilename, 0, 0);
 
-            p.iTexture = pRS->TextureCreate(("Weather\\Astronomy\\Planets\\" + sName + ".tga").c_str());
+            p.iTexture = pRS->TextureCreate(("weather/astronomy/planets/" + sName + ".tga").c_str());
         }
 
     auto fMaxDistance = 1e-10f;

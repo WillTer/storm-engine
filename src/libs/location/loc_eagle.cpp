@@ -53,8 +53,8 @@ bool LocEagle::Init()
     // Model
     if (!(mdl = core.CreateEntity("modelr"))) return false;
     core.AddToLayer(REALIZE, mdl, 20);
-    gs->SetTexturePath("Animals\\");
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "Animals\\eagle")) {
+    gs->SetTexturePath("animals/");
+    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "animals/eagle")) {
         gs->SetTexturePath("");
         return false;
     }

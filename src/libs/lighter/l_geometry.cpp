@@ -355,7 +355,7 @@ float LGeometry::Trace(const CVECTOR& src, const CVECTOR& dst)
 bool LGeometry::Save()
 {
     // Save the current path
-    auto oldPath = std::filesystem::current_path();
+    auto oldPath = fio->current_path();
     // Saving objects
     bool          result  = true;
     int32_t const bufSize = 16384;
@@ -363,8 +363,8 @@ bool LGeometry::Save()
     for (int32_t i = 0, pnt = 0; i < numObjects; i++) {
         if (object[i].lBufSize <= 0) continue;
         // Create a path
-        std::filesystem::current_path(oldPath);
-        if (!std::filesystem::create_directories(object[i].path.parent_path())) { continue; }
+        fio->current_path(oldPath);
+        if (!fio->create_directories(object[i].path.parent_path())) { continue; }
 
         auto stream = fio->open_file(object[i].path, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
         if (!stream.is_open()) {
@@ -388,7 +388,7 @@ bool LGeometry::Save()
         }
         if (sv > 0) { result &= true; }
     }
-    std::filesystem::current_path(oldPath);
+    fio->current_path(oldPath);
     delete[] buf;
     return result;
 }

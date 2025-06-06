@@ -176,7 +176,7 @@ void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
     if (!vFilenames.empty()) {
         char param[512];
         int  findQ = rand() % vFilenames.size();
-        sprintf(param, "%s\\%s", dirName, vFilenames[findQ].c_str());
+        sprintf(param, "%s/%s", dirName, vFilenames[findQ].c_str());
         int const paramlen = strlen(param);
         if (paramlen < sizeof(param) && paramlen >= 3) { param[paramlen - 3] = 0; }
         SetNewPicture(false, param);

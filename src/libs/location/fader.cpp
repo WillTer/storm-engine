@@ -195,7 +195,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         rs->SetProgressImage(_name.c_str());
         // Hint texture
         if (numberOfTips > 0) {
-            std::string const texturePath = "interfaces\\int_border.tga";
+            std::string const texturePath = "interfaces/int_border.tga";
             if (tipsID >= 0) { rs->TextureRelease(tipsID); }
             tipsID = rs->TextureCreate(texturePath.c_str());
             rs->SetTipsImage(texturePath.c_str());
@@ -209,7 +209,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         rs->SetProgressBackImage(_name.c_str());
         // Hint texture
         if (numberOfTips > 0) {
-            // sprintf_s(_name, "tips\\tips_%.4u.tga", rand() % numberOfTips);
+            // sprintf_s(_name, "tips/tips_%.4u.tga", rand() % numberOfTips);
             auto* const pTipsName = rs->GetTipsImage();
             if (pTipsName) {
                 if (tipsID >= 0) { rs->TextureRelease(tipsID); }

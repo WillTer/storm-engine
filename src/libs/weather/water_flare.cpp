@@ -4,7 +4,7 @@
 #include <libs/math/math_inlines.h>
 #include <stdio.h>
 
-#define WATERFLARE_DIR "WEATHER\\SEA\\FLARE\\"
+#define WATERFLARE_DIR "weather/sea/flare/"
 
 WATERFLARE::WATERFLARE()
 {

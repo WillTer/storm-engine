@@ -75,8 +75,8 @@ bool ReadCacheFingerprint(uint64_t& fingerprint)
 
 void WipeCache(uint64_t const fingerprint)
 {
-    remove_all(GetCacheFolder());
-    create_directory(GetCacheFolder());
+    fio->remove_all(GetCacheFolder());
+    fio->create_directories(GetCacheFolder());
     auto cache_state = fio->open_file<std::ofstream>(GetCacheFolder() / kCacheStateFile, std::ofstream::binary);
     if (cache_state) { cache_state.write(reinterpret_cast<char const*>(&fingerprint), sizeof(fingerprint)); }
 }
@@ -210,10 +210,10 @@ void COMPILER::SetProgramDirectory(char const* dir_name)
     delete[] ProgramDirectory;
     ProgramDirectory = nullptr;
     if (dir_name) {
-        auto const len   = strlen(dir_name) + strlen("\\") + 1;
+        auto const len   = strlen(dir_name) + strlen("/") + 1;
         ProgramDirectory = new char[len];
         strcpy_s(ProgramDirectory, len, dir_name);
-        strcat_s(ProgramDirectory, len, "\\");
+        strcat_s(ProgramDirectory, len, "/");
     }
 #ifdef _WIN32  // S_DEBUG
     CDebug->SetProgramDirectory(dir_name);
@@ -248,10 +248,10 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
         for(n=0;file_name[n];n++)
         {
           buffer[m] = file_name[n];
-          if(buffer[m] == '\\')
+          if(buffer[m] == '/')
           {
             m++;
-            buffer[m] = '\\';
+            buffer[m] = '/';
           }
           m++;
         }
@@ -264,7 +264,7 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
 
     auto fileS = fio->open_file<std::ifstream>(fName, std::ios::binary);
     if (!fileS.is_open()) { return nullptr; }
-    auto const fsize = std::filesystem::file_size(fName);
+    auto const fsize = fio->file_size(fName);
 
     auto* const pData = static_cast<char*>(new char[fsize + 1]);
     fileS.read(pData, fsize);
@@ -1721,7 +1721,7 @@ bool COMPILER::Compile(SEGMENT_DESC& Segment, char* pInternalCode, uint32_t pInt
     }
 
     if (bWriteCodeFile) {
-        auto fName = std::filesystem::path(Segment.name.c_str()).filename().string();
+        auto fName = fio->transform_path(Segment.name.c_str()).filename().string();
         strcpy_s(file_name, fName.c_str());
         strcat_s(file_name, ".b");
         auto fileS = fio->open_file<std::ofstream>(file_name, std::ios::binary);
@@ -5884,7 +5884,7 @@ bool COMPILER::SetSaveData(std::filesystem::path const& file_name, void* save_da
     auto fileS = fio->open_file(file_name, std::ios::binary | std::ios::in | std::ios::out);
     if (!fileS.is_open()) { return false; }
 
-    uint32_t const dwFileSize = std::filesystem::file_size(file_name);
+    uint32_t const dwFileSize = fio->file_size(file_name);
     auto*          pVDat      = static_cast<VDATA*>(core_internal.GetScriptVariable("savefile_info"));
     if (pVDat && pVDat->GetString())
         sprintf_s(exdh.sFileInfo, sizeof(exdh.sFileInfo), "%s", pVDat->GetString());
@@ -5917,7 +5917,7 @@ void* COMPILER::GetSaveData(std::filesystem::path const& file_name, int32_t& dat
         return nullptr;
     }
 
-    auto const file_size = std::filesystem::file_size(file_name);
+    auto const file_size = fio->file_size(file_name);
     if (file_size < sizeof(EXTDATA_HEADER) + sizeof(uint32_t)) {
         data_size = 0;
         return nullptr;
@@ -6516,7 +6516,7 @@ void COMPILER::FormatDialog(char const* file_name)
 
     uint32_t nTxt = 0;
 
-    // sprintf_s(sFileName,"PROGRAM\\%sc",file_name);
+    // sprintf_s(sFileName,"PROGRAM/%sc",file_name);
     strcpy_s(sFileName, file_name);
 
     char* pFileData = LoadFile(file_name, FileSize, true);
@@ -6525,7 +6525,7 @@ void COMPILER::FormatDialog(char const* file_name)
     auto fileS = fio->open_file<std::ofstream>(sFileName, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
-    // sprintf_s(sFileName,"PROGRAM\\%s",file_name);
+    // sprintf_s(sFileName,"PROGRAM/%s",file_name);
     strcpy_s(sFileName, file_name);
     sFileName[strlen(sFileName) - 1] = 0;
     strcat_s(sFileName, "h");
@@ -6541,9 +6541,9 @@ void COMPILER::FormatDialog(char const* file_name)
     uint32_t       n;
     uint32_t const nFullNameLen = strlen(file_name);
     for (n = nFullNameLen; n > 0; n--) {
-        if (file_name[n] == '\\') break;
+        if (file_name[n] == '/') break;
     }
-    sprintf_s(sFileName, "DIALOGS%s", file_name + n);
+    sprintf_s(sFileName, "dialogs%s", file_name + n);
     sFileName[strlen(sFileName) - 1] = 0;
     strcat_s(sFileName, "h");
 

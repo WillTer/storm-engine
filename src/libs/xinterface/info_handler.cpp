@@ -232,7 +232,7 @@ bool InfoHandler::DoPreOut()
                 pV[3].tv                                      = 1.f;
 
                 char _name[MAX_PATH];
-                sprintf(_name, "interfaces\\int_border.tga");
+                sprintf(_name, "interfaces/int_border.tga");
                 int tipsID = m_rs->TextureCreate(_name);
                 if (tipsID) {
                     m_rs->SetTipsImage(_name);

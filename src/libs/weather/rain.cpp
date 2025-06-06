@@ -35,8 +35,8 @@ RAIN::RAIN()
     iVBSeaDrops = -1;
     iSeaDropTex = -1;
 
-    sDropsTexture    = "weather\\rain_drops.tga";
-    sSeaDropsTexture = "weather\\sea_rain_drops.tga";
+    sDropsTexture    = "weather/rain_drops.tga";
+    sSeaDropsTexture = "weather/sea_rain_drops.tga";
 }
 
 RAIN::~RAIN()

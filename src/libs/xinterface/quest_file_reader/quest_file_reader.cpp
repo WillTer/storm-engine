@@ -242,7 +242,7 @@ void QuestFileReader::SetQuestTextFileName(std::string_view const& fileName)
     }
 
     /// Obtain file size
-    uint32_t const filesize = std::filesystem::file_size(fileName.data());
+    uint32_t const filesize = fio->file_size(fileName.data());
     if (filesize == 0) {
         core.Trace("Empty quest log file %s", std::string(fileName).c_str());
         return;

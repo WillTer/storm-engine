@@ -123,19 +123,19 @@ WdmSea::WdmSea()
     wdmObjects->rs->UnLockVertexBuffer(vb);
     // Loading textures
     char buf[256];
-    baseTexture = wdmObjects->rs->TextureCreate("\\WorldMap\\Sea\\sea.tga");
+    baseTexture = wdmObjects->rs->TextureCreate("/worldmap/sea/sea.tga");
     for (int32_t i = 0; i < sizeof(aniTextures) / sizeof(int32_t); i++) {
-        sprintf_s(buf, "\\WorldMap\\Sea\\Ani\\wave_%.4i.tga", i);
+        sprintf_s(buf, "/worldmap/sea/ani/wave_%.4i.tga", i);
         aniTextures[i] = wdmObjects->rs->TextureCreate(buf);
     }
     for (int32_t i = 0; i < sizeof(whiteHorses) / sizeof(int32_t); i++) {
-        sprintf_s(buf, "\\WorldMap\\Sea\\WhiteHorses\\wh%.3i.tga", i);
+        sprintf_s(buf, "/worldmap/sea/whitehorses/wh%.3i.tga", i);
         whiteHorses[i] = -1;  // wdmObjects->rs->TextureCreate(buf);
     }
     for (int32_t i = 0; i < sizeof(flare) / sizeof(flare[0]); i++) {
         flare[i].index = -1;
     }
-    flareTexture       = wdmObjects->rs->TextureCreate("\\WorldMap\\Sea\\flare.tga");
+    flareTexture       = wdmObjects->rs->TextureCreate("/worldmap/sea/flare.tga");
     flareCount         = 0;
     flareCerateCounter = 0.0f;
 }

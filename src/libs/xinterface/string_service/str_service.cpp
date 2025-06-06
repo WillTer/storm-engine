@@ -14,7 +14,7 @@
 #define USER_BLOCK_ENDING '}'
 
 // FIXME: hardcode
-constexpr std::string_view sLanguageFile = "texts\\language.ini";
+constexpr std::string_view sLanguageFile = "texts/language.ini";
 
 static VSTRSERVICE* g_StringServicePointer = nullptr;
 static int32_t      g_idGlobLanguageFileID = -1;
@@ -490,7 +490,7 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
         return -1;
     }
 
-    int32_t const filesize = std::filesystem::file_size(ini_path);
+    int32_t const filesize = fio->file_size(ini_path);
 
     if (filesize <= 0) {
         spdlog::warn("WARNING! Strings file \"{}\" has zero size", fileName);
@@ -859,13 +859,13 @@ uint32_t _LanguageGetFaderPic(VS_STACK* pS)
         if (g_StringServicePointer->GetLanguage() != nullptr) {
             int nInLen;
             for (nInLen = strlen(strPicName); nInLen > 0; nInLen--)
-                if (strPicName[nInLen - 1] == '\\') break;
+                if (strPicName[nInLen - 1] == '/') break;
             if (nInLen > 0) {
                 strncpy_s(newPicName, strPicName, nInLen);
                 newPicName[nInLen] = 0;
             }
             strcat_s(newPicName, g_StringServicePointer->GetLanguage());
-            strcat_s(newPicName, "\\");
+            strcat_s(newPicName, "/");
             strcat_s(newPicName, &strPicName[nInLen]);
         } else {
             strcpy_s(newPicName, strPicName);
@@ -1055,7 +1055,7 @@ uint32_t _InterfaceCreateFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) return IFUNCRESULT_FAILED;
     char const*   sFolderName = pDat->GetString();
-    int32_t const nSuccess    = fio->create_directory(sFolderName);
+    int32_t const nSuccess    = fio->create_directories(sFolderName);
 
     pDat = (VDATA*)pS->Push();
     if (!pDat) return IFUNCRESULT_FAILED;
@@ -1069,7 +1069,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     char const* sFolderName = pDat->GetString();
-    int32_t     nSuccess    = std::filesystem::exists(sFolderName);
+    int32_t     nSuccess    = fio->is_path_exists(sFolderName);
     pDat                    = (VDATA*)pS->Push();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     pDat->Set(nSuccess);
@@ -1078,7 +1078,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
 
 bool DeleteFolderWithCantainment(char const* sFolderName)
 {
-    return (fio->remove_directory(sFolderName) > 0);
+    return (fio->remove_all(sFolderName) > 0);
 }
 
 uint32_t _InterfaceDeleteFolder(VS_STACK* pS)
@@ -1104,7 +1104,7 @@ uint32_t _InterfaceFindFolders(VS_STACK* pS)
     pDat           = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     char const* sFindTemplate = pDat->GetString();
-    auto        p             = std::filesystem::path(sFindTemplate);
+    auto        p             = fio->transform_path(sFindTemplate);
     auto const  mask          = p.filename().string();
     auto const  vFilenames    = fio->string_paths_by_mask(p.remove_filename(), mask, false, true, false);
     int32_t     n             = 0;

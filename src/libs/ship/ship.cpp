@@ -1355,7 +1355,7 @@ bool SHIP::Mount(ATTRIBUTES* _pAShip)
     bUse = uniIDX == 0;
 
     char temp_str[1024];
-    sprintf_s(temp_str, "ships\\%s\\%s", cShipIniName, cShipIniName);
+    sprintf_s(temp_str, "ships/%s/%s", cShipIniName, cShipIniName);
 
     model_id = core.CreateEntity("MODELR");
     core.Send_Message(GetModelEID(), "ls", MSG_MODEL_LOAD_GEO, temp_str);

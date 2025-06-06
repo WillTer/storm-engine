@@ -82,9 +82,9 @@ int  vrtSize;
 GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath)
 {
     if (light_file_name != nullptr) {
-        sprintf_s(lightPath, "%s\\%s", lmPath, file_name);
+        sprintf_s(lightPath, "%s/%s", lmPath, file_name);
         // strcpy_s(lightPath, light_file_name);
-        auto* const bs = strrchr(lightPath, '\\');
+        auto* const bs = strrchr(lightPath, '/');
         if (bs != nullptr) *bs = 0;
     }
 
@@ -105,8 +105,8 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
             gp = ::CreateGeometry(model_path.string().c_str(), nullptr, GSR, flags);
         } else {
             auto const* elf = light_file_name;
-            if (elf[0] == '\\') elf++;
-            if (elf[0] == '\\') elf++;
+            if (elf[0] == '/') elf++;
+            if (elf[0] == '/') elf++;
             auto const light_path = fio->base_directory_path(BaseDirectory::Models) / (std::string(file_name) + "_" + elf + ".col");
 
             gp = ::CreateGeometry(model_path.string().c_str(), light_path.string().c_str(), GSR, flags);
@@ -189,7 +189,7 @@ std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 
 int GEOM_SERVICE_R::FileSize(char const* fname)
 {
-    return std::filesystem::file_size(fname);
+    return fio->file_size(fname);
 }
 
 bool GEOM_SERVICE_R::ReadFile(std::ifstream& fileS, void* data, int32_t bytes)
@@ -217,7 +217,7 @@ GEOS::ID GEOM_SERVICE_R::CreateTexture(char const* fname)
 {
     char tex[256];
     if (storm::iEquals(fname, "shadow.tga")) {
-        sprintf_s(tex, "lighting\\%s\\%s", lightPath, fname);
+        sprintf_s(tex, "lighting/%s/%s", lightPath, fname);
     } else {
         strcpy_s(tex, texturePath);
         strcat_s(tex, fname);

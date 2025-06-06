@@ -30,7 +30,7 @@
 #define GRASS_TEX_DELTA (1.0f / 256.0f)
 #define GRASS_MAX_POINTS 8192
 
-#define GRASS_DEFTEXTURE "Grass\\grass.tga"
+#define GRASS_DEFTEXTURE "grass/grass.tga"
 
 // ============================================================================================
 // Construction, destruction

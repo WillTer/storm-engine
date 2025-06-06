@@ -5,9 +5,9 @@
 #include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
 
-#define FILE_PATH "TextureSequence\\%s.tga"
+#define FILE_PATH "texturesequence/%s.tga"
 // FIXME: hardcode
-constexpr std::string_view INI_FILENAME = "TextureSequence.ini";
+constexpr std::string_view INI_FILENAME = "texturesequence.ini";
 
 #define TS_VERTEX_FRMT (D3DFVF_XYZRHW | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2)
 

@@ -824,10 +824,10 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
         if (param[0] == 0) {
             systTime = std::time(nullptr);
         } else {
-            if (!std::filesystem::exists(param.c_str())) {
+            if (!fio->is_path_exists(param.c_str())) {
                 systTime = std::time(nullptr);
             } else {
-                systTime = fio->to_time_t(std::filesystem::last_write_time(param.c_str()));
+                systTime = fio->to_time_t(fio->last_write_time(param.c_str()));
             }
         }
         auto const locTime = std::localtime(&systTime);
@@ -884,7 +884,7 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
 }
 
 // FIXME: hardcode
-constexpr std::string_view RESOURCE_FILENAME = "interfaces\\interfaces.ini";
+constexpr std::string_view RESOURCE_FILENAME = "interfaces/interfaces.ini";
 
 void XINTERFACE::LoadIni()
 {
@@ -2310,7 +2310,7 @@ void XINTERFACE::AddFindData(std::filesystem::path filePath)
     auto* p = new SAVE_FIND_DATA;
     if (p) {
         auto const sSaveFileName = filePath.filename().u8string();
-        p->time                  = std::filesystem::last_write_time(filePath);
+        p->time                  = fio->last_write_time(filePath);
         p->file_size             = 0;  // original code always passed 0 to file_size
         p->next                  = m_pSaveFindRoot;
         m_pSaveFindRoot          = p;
@@ -2361,7 +2361,7 @@ char* XINTERFACE::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, in
     {
         // get file name for searching (whith full path)
         char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-        if (sSavePath != nullptr) { fio->create_directory(sSavePath); }
+        if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
 
         // start save file finding
         auto const vFilePaths = fio->paths_by_mask(sSavePath, "", true);
@@ -2395,17 +2395,16 @@ bool XINTERFACE::NewSaveFileName(std::filesystem::path const& fileName) const
 {
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
 
-    return sSavePath == nullptr ? !std::filesystem::exists(fileName)
-                                : !std::filesystem::exists(std::filesystem::path(sSavePath) / fileName);
+    return sSavePath == nullptr ? !fio->is_path_exists(fileName) : !fio->is_path_exists(std::filesystem::path(sSavePath) / fileName);
 }
 
 void XINTERFACE::DeleteSaveFile(std::filesystem::path const& fileName)
 {
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
     if (sSavePath == nullptr) {
-        std::filesystem::remove(fileName);
+        fio->remove(fileName);
     } else {
-        std::filesystem::remove(std::filesystem::path(sSavePath) / fileName);
+        fio->remove(std::filesystem::path(sSavePath) / fileName);
     }
 }
 
@@ -2694,7 +2693,7 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
     auto fileS = fio->open_file<std::ifstream>(fileName.data(), std::ios::binary);
     if (!fileS.is_open()) { return; }
 
-    uint32_t const fileSize = std::filesystem::file_size(fileName.data());
+    uint32_t const fileSize = fio->file_size(fileName.data());
     if (fileSize == 0) {
         core.Event("evntOptionsBreak");
         return;
@@ -2778,7 +2777,7 @@ int XINTERFACE::LoadIsExist()
 
     char        param[1024];
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-    if (sSavePath != nullptr) { fio->create_directory(sSavePath); }
+    if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
 
     bool       bFindFile  = false;
     auto const vFilenames = fio->string_paths_by_mask(sSavePath, "*", true);
@@ -2808,11 +2807,11 @@ void XINTERFACE::PrecreateDirForFile(char const* pcFullFileName)
     sprintf_s(path, sizeof(path), "%s", pcFullFileName);
     int32_t n;
     for (n = strlen(pcFullFileName) - 1; n > 0; n--)
-        if (path[n] == '\\') {
+        if (path[n] == '\\' || path[n] == '/') {
             path[n] = 0;
             break;
         }
-    if (n > 0) fio->create_directory(path);
+    if (n > 0) fio->create_directories(path);
 }
 
 // controls Container
