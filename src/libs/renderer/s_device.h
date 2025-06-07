@@ -383,7 +383,7 @@ public:
         bool                   isSwizzled);
 
     // core interface
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void RunStart() override;
     void RunEnd() override;
 

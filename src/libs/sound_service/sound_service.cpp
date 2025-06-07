@@ -29,29 +29,6 @@ constexpr float FADE_DEFAULT   = 0.5F;
 constexpr size_t STREAM_BUFFER_COUNT = 2;
 constexpr size_t BUFFER_SAMPLE_COUNT = 16384;
 
-void analyse_name_string_and_add_to_alias(SoundService::Alias& alias, std::string const& name)
-{
-    std::string file_name   = name;
-    float       probability = DEFAULT_PROBABILITY;
-
-    if (auto pos = name.find_first_of(','); pos != std::string::npos) {
-        sscanf(name.substr(pos + 1).c_str(), "%f", &probability);
-
-        // Remove probability from file name
-        file_name = name.substr(0, pos);
-    }
-
-    alias.sound_files.emplace(probability, file_name);
-
-    if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", file_name.c_str(), probability); }
-}
-
-void free_sound(SoundService::PlayingSound& sound)
-{
-    sound.is_free = true;
-    sound.source.reset();
-}
-
 class Tracer: public DebugTracer
 {
     void trace_message(
@@ -64,6 +41,23 @@ class Tracer: public DebugTracer
         core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
     }
 };
+
+struct AliasSoundFile {
+    std::string name;
+    float       probability;
+
+    void from_toml(toml::value const& v)
+    {
+        name        = toml::find<std::string>(v, "name");
+        probability = toml::find_or(v, "probability", DEFAULT_PROBABILITY);
+    }
+};
+
+void free_sound(SoundService::PlayingSound& sound)
+{
+    sound.is_free = true;
+    sound.source.reset();
+}
 
 }  // namespace
 
@@ -90,12 +84,18 @@ SoundService::~SoundService()
     }
 }
 
-bool SoundService::Init()
+bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
     m_is_initialized = false;
 
-    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    if (!service_locator) {
+        core.Trace("%s: service locator is null", __func__);
+        return false;
+    }
 
+    SERVICE::Init(service_locator);
+
+    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     if (m_renderer == nullptr) { return false; }
 
     m_device =
@@ -408,54 +408,50 @@ void SoundService::stop(SoundID id, int32_t time)
     stop_sound(m_playing_sounds[id.index()], time);
 }
 
-void SoundService::add_alias(INIFILE& ini_file, std::string_view const& section_name)
+void SoundService::add_alias(std::string const& section_name, toml::value const& section)
 {
-    if (section_name.empty()) { return; }
+    if (section.is_empty()) { return; }
 
-    static char temp_string[COMMON_STRING_LENGTH];
-
-    if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.data()); }
+    if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.c_str()); }
 
     m_aliases.emplace(
         section_name,
         Alias {
-            .min_distance = ini_file.GetFloat(section_name.data(), "minDistance", -1.0F),
-            .max_distance = ini_file.GetFloat(section_name.data(), "maxDistance", -1.0F),
-            .volume       = ini_file.GetFloat(section_name.data(), "volume", -1.0F),
+            .min_distance = toml::find_or(section, "min_distance", -1.0F),
+            .max_distance = toml::find_or(section, "max_distance", -1.0F),
+            .volume       = toml::find_or(section, "volume", -1.0F),
         });
 
-    Alias& alias = m_aliases[std::string(section_name)];
-    if (ini_file.ReadString(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH, "")) {
-        analyse_name_string_and_add_to_alias(alias, temp_string);
-        while (ini_file.ReadStringNext(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH)) {
-            analyse_name_string_and_add_to_alias(alias, temp_string);
-        }
+    Alias&     alias       = m_aliases[std::string(section_name)];
+    auto const sound_files = toml::find<std::vector<AliasSoundFile>>(section, "sound_files");
+    for (auto const& sound_file: sound_files) {
+        alias.sound_files.emplace(sound_file.probability, sound_file.name);
+        if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", sound_file.name.c_str(), sound_file.probability); }
     }
 }
 
 void SoundService::load_alias_file(std::string const& filename)
 {
-    constexpr int const section_name_length = 128;
-    static char         section_name[section_name_length];
+    if (!m_service_locator) {
+        core.Trace("%s: m_service_locator is null", __func__);
+        return;
+    }
 
-    auto ini_path = fio->base_directory_path(BaseDirectory::Aliases) / filename;
+    auto config_file = fio->base_directory_path(BaseDirectory::Aliases) / filename;
 
-    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_path.string().c_str()); }
+    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto alias_ini = fio->open_ini_file(ini_path);
-    if (!alias_ini) { return; }
+    auto const  config_loader = m_service_locator->get<storm::config::IConfigLoader>();
+    auto const& data          = config_loader->open_config_cached(config_file);
 
-    if (alias_ini->GetSectionName(section_name, section_name_length)) {
-        add_alias(*alias_ini, section_name);
-        while (alias_ini->GetSectionNameNext(section_name, section_name_length)) {
-            add_alias(*alias_ini, section_name);
-        }
+    for (auto const& [section, table]: data.as_table()) {
+        add_alias(section, table);
     }
 }
 
 void SoundService::init_aliases()
 {
-    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.ini", false);
+    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.toml", false);
     for (auto const& cur_name: filenames) {
         load_alias_file(cur_name);
     }

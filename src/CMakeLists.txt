@@ -16,6 +16,7 @@ storm_exe(
         fmt
         sentry::sentry
         spdlog::spdlog
+        toml11::toml11
         SDL2-storm
         Zlib-storm
         storm-audio

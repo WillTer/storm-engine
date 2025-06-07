@@ -54,8 +54,10 @@ void GEOMETRY::SetVBConvertFunc(VERTEX_TRANSFORM _transform_func)
 
 static bool geoLog = false;
 
-bool GEOMETRY::Init()
+bool GEOMETRY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    SERVICE::Init(service_locator);
+
     RenderService = static_cast<VDX9RENDER*>(core.GetService(RenderServiceName));
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);

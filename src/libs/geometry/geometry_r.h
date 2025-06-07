@@ -14,19 +14,19 @@ class GEOMETRY final: public VGEOMETRY
 
 public:
     GEOMETRY();
-    bool         Init();
-    bool         LoadState(ENTITY_STATE* state);
-    GEOS*        CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath);
-    void         DeleteGeometry(GEOS*);
-    ANIMATION*   LoadAnimation(char const* anim);
-    void         SetTechnique(char const* name);
-    void         SetVBConvertFunc(VERTEX_TRANSFORM _transform_func);
-    ANIMATION_VB GetAnimationVBDesc(int32_t avb);
+    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         LoadState(ENTITY_STATE* state) override;
+    GEOS*        CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath) override;
+    void         DeleteGeometry(GEOS*) override;
+    ANIMATION*   LoadAnimation(char const* anim) override;
+    void         SetTechnique(char const* name) override;
+    void         SetVBConvertFunc(VERTEX_TRANSFORM _transform_func) override;
+    ANIMATION_VB GetAnimationVBDesc(int32_t avb) override;
 
-    char const* GetTexturePath();
-    void        SetTexturePath(char const*);
+    char const* GetTexturePath() override;
+    void        SetTexturePath(char const*) override;
 
-    void SetCausticMode(bool bSet = false);
+    void SetCausticMode(bool bSet = false) override;
 };
 
 class GEOM_SERVICE_R final: public GEOM_SERVICE

@@ -806,22 +806,6 @@ bool IFS::GetFloatNext(SEARCH_DATA* sd, char const* section_name, char const* ke
     return false;
 }
 
-std::string IFS::GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name)
-{
-    std::array<char, 256> buffer = {};
-    ReadString(sd, section_name, key_name, buffer.data(), buffer.size());
-
-    return std::string(buffer.data());
-}
-
-std::string IFS::GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name, std::string const& def_val)
-{
-    std::array<char, 256> buffer = {};
-    if (ReadString(sd, section_name, key_name, buffer.data(), buffer.size(), "")) { return std::string(buffer.data()); }
-
-    return def_val;
-}
-
 void IFS::AddString(char const* section_name, char const* key_name, char const* string)
 {
     if (key_name == nullptr) throw std::runtime_error("zero key");

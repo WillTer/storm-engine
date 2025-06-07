@@ -122,8 +122,6 @@ public:
     IFS_NOT_IMPLEMENTED(float GetFloat(char const* section_name, char const* key_name))
     IFS_NOT_IMPLEMENTED(float GetFloat(char const* section_name, char const* key_name, float def_val))
     IFS_NOT_IMPLEMENTED(bool GetFloatNext(char const* section_name, char const* key_name, float* val))
-    IFS_NOT_IMPLEMENTED(std::string GetString(char const* section_name, char const* key_name))
-    IFS_NOT_IMPLEMENTED(std::string GetString(char const* section_name, char const* key_name, std::string const& def_val))
 
     bool CaseSensitive(bool yes)
     {
@@ -172,9 +170,6 @@ public:
     float GetFloat(SEARCH_DATA* sd, char const* section_name, char const* key_name);
     float GetFloat(SEARCH_DATA* sd, char const* section_name, char const* key_name, float def_val);
     bool  GetFloatNext(SEARCH_DATA* sd, char const* section_name, char const* key_name, float* val);
-
-    std::string GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name);
-    std::string GetString(SEARCH_DATA* sd, char const* section_name, char const* key_name, std::string const& def_val);
 
     void AddString(char const* section_name, char const* key_name, char const* string) override;
     void WriteString(char const* section_name, char const* key_name, char const* string) override;

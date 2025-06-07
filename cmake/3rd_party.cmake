@@ -50,13 +50,19 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+    toml11
+    GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+    GIT_TAG        v4.4.0
+)
+
+FetchContent_Declare(
     storm-audio
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
-    GIT_TAG         9e74230c3e7f9daf0409fba7810041c4110271d4
+    GIT_TAG         3e23f57f6f726813cb3a195d683cb3e31b425d07
     GIT_SHALLOW     ON
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt toml11 storm-audio)
  
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)
@@ -72,7 +78,7 @@ endif()
 add_library(SDL2-storm INTERFACE)
 target_link_libraries(SDL2-storm
     INTERFACE
-        $<$<PLATFORM_ID:Windows>:SDL2::SDL2-static SDL2::SDL2main>
+        $<$<PLATFORM_ID:Windows>:SDL2::SDL2-static>
         $<$<PLATFORM_ID:Linux>:${SDL2_LIBRARIES}>
 )
 target_include_directories(SDL2-storm

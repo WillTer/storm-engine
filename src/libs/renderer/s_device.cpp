@@ -417,8 +417,10 @@ DX9RENDER::DX9RENDER()
 static bool  texLog = false;
 static float fSin   = 0.0f;
 
-bool DX9RENDER::Init()
+bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    SERVICE::Init(service_locator);
+
     if (auto* sentinelService = core.GetService("LostDeviceSentinel"); !sentinelService) {
         throw std::runtime_error("Cannot create LostDeviceSentinel! Abort");
     }

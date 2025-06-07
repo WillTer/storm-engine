@@ -3,6 +3,7 @@
 #include <filesystem>
 
 static inline auto const RESOURCE_DIR_DEFAULT   = std::filesystem::path("resource");
+static inline auto const PROGRAM_DIR_DEFAULT    = std::filesystem::path("program");
 static inline auto const INI_DIR_DEFAULT        = RESOURCE_DIR_DEFAULT / "ini";
 static inline auto const ALIASES_DIR_DEFAULT    = INI_DIR_DEFAULT / "aliases";
 static inline auto const SOUNDS_DIR_DEFAULT     = RESOURCE_DIR_DEFAULT / "sounds";

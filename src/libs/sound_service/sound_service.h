@@ -54,7 +54,7 @@ public:
 
     SoundService();
     ~SoundService() override;
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
 
     uint32_t RunSection() override
     {
@@ -132,7 +132,7 @@ private:
 
     // Aliases ------------------------------------------------------------
 
-    void add_alias(INIFILE& ini_file, std::string_view const& section_name);
+    void add_alias(std::string const& section_name, toml::value const& section);
     void load_alias_file(std::string const& filename) override;
     void init_aliases();
 

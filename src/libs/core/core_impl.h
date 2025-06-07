@@ -12,7 +12,7 @@
 class CoreImpl final: public CorePrivate
 {
 public:
-    void Init();
+    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
 
     void InitBase();
     void ReleaseBase();
@@ -146,6 +146,8 @@ public:
 
 private:
     void loadCompatibilitySettings(INIFILE& inifile);
+
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 
     EntityManager entity_manager_;
 

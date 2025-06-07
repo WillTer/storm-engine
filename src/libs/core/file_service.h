@@ -58,9 +58,6 @@ public:
     float GetFloat(char const* section_name, char const* key_name, float def_val) override;
     bool  GetFloatNext(char const* section_name, char const* key_name, float* val) override;
 
-    std::string GetString(char const* section_name, char const* key_name) override;
-    std::string GetString(char const* section_name, char const* key_name, std::string const& def_val) override;
-
     void DeleteKey(char const* section_name, char const* key_name) override;
 
     void DeleteKey(char const* section_name, char const* key_name, char const* key_value) override;
@@ -91,6 +88,7 @@ protected:
 
 private:
     std::filesystem::path m_resource_dir;
+    std::filesystem::path m_program_dir;
     std::filesystem::path m_ini_dir;
     std::filesystem::path m_aliases_dir;
     std::filesystem::path m_sounds_dir;
@@ -142,7 +140,7 @@ public:
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
 
-    void load_service_parameters_from_config(std::filesystem::path const& config_file) override;
+    void load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file) override;
 
     // ini files section
     void                     close_ini_files();

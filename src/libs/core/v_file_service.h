@@ -6,11 +6,14 @@
 #include <string>
 #include <vector>
 
+#include <libs/core/service_locator.hpp>
+
 class INIFILE;
 
 enum class BaseDirectory {
     None,
     Resource,
+    Program,
     Ini,
     Aliases,
     Sounds,
@@ -65,7 +68,8 @@ public:
     virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) = 0;
 
     // Update IFileService internal variables according to configuration
-    virtual void load_service_parameters_from_config(std::filesystem::path const& config_file) = 0;
+    // TODO: move locator to class constructor
+    virtual void load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file) = 0;
 
     // ini files section
     virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
@@ -76,6 +80,7 @@ public:
     virtual std::filesystem::path base_directory_path(BaseDirectory dir) = 0;
 };
 
+/// LEGACY API
 //------------------------------------------------------------------------------------------------
 // handle with text files in format:
 //
@@ -136,9 +141,6 @@ public:
     virtual float GetFloat(char const* section_name, char const* key_name)                 = 0;
     virtual float GetFloat(char const* section_name, char const* key_name, float def_val)  = 0;
     virtual bool  GetFloatNext(char const* section_name, char const* key_name, float* val) = 0;
-
-    virtual std::string GetString(char const* section_name, char const* key_name)                             = 0;
-    virtual std::string GetString(char const* section_name, char const* key_name, std::string const& def_val) = 0;
 
     // virtual void    SetSearch(void *)= 0;
 

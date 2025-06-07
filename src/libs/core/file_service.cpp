@@ -76,6 +76,7 @@ FileService::FileService()
     }
 
     m_resource_dir   = RESOURCE_DIR_DEFAULT;
+    m_program_dir    = PROGRAM_DIR_DEFAULT;
     m_ini_dir        = INI_DIR_DEFAULT;
     m_aliases_dir    = ALIASES_DIR_DEFAULT;
     m_sounds_dir     = SOUNDS_DIR_DEFAULT;
@@ -320,6 +321,7 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
 {
     switch (dir) {
     case BaseDirectory::Resource: return m_resource_dir;
+    case BaseDirectory::Program: return m_program_dir;
     case BaseDirectory::Ini: return m_ini_dir;
     case BaseDirectory::Aliases: return m_aliases_dir;
     case BaseDirectory::Sounds: return m_sounds_dir;
@@ -337,24 +339,26 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     return executable_directory();
 }
 
-void FileService::load_service_parameters_from_config(std::filesystem::path const& config_file)
+void FileService::load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file)
 {
-    if (auto const ini = fio->open_ini_file(config_file)) {
-        m_resource_dir   = ini->GetString("paths", "resource", RESOURCE_DIR_DEFAULT.string());
-        m_ini_dir        = ini->GetString("paths", "ini", INI_DIR_DEFAULT.string());
-        m_aliases_dir    = ini->GetString("paths", "aliases", ALIASES_DIR_DEFAULT.string());
-        m_sounds_dir     = ini->GetString("paths", "sounds", SOUNDS_DIR_DEFAULT.string());
-        m_videos_dir     = ini->GetString("paths", "videos", VIDEOS_DIR_DEFAULT.string());
-        m_animation_dir  = ini->GetString("paths", "animation", ANIMATION_DIR_DEFAULT.string());
-        m_models_dir     = ini->GetString("paths", "models", MODELS_DIR_DEFAULT.string());
-        m_foam_dir       = ini->GetString("paths", "foam", FOAM_DIR_DEFAULT.string());
-        m_techniques_dir = ini->GetString("paths", "techniques", TECHNIQUES_DIR_DEFAULT.string());
-        m_particles_dir  = ini->GetString("paths", "particles", PARTICLES_DIR_DEFAULT.string());
-        m_textures_dir   = ini->GetString("paths", "textures", TEXTURES_DIR_DEFAULT.string());
-        m_sea_dir        = ini->GetString("paths", "sea", SEA_DIR_DEFAULT.string());
+    auto const  config_loader = locator.get<storm::config::IConfigLoader>();
+    auto const& data          = config_loader->open_config_cached(config_file);
 
-        m_use_lowercase = ini->GetInt("compatibility", "use_lowercase_paths", 0) != 0;
-    }
+    m_resource_dir   = toml::find_or(data, "paths", "resource", RESOURCE_DIR_DEFAULT.string());
+    m_program_dir    = toml::find_or(data, "paths", "program", PROGRAM_DIR_DEFAULT.string());
+    m_ini_dir        = toml::find_or(data, "paths", "ini", INI_DIR_DEFAULT.string());
+    m_aliases_dir    = toml::find_or(data, "paths", "aliases", ALIASES_DIR_DEFAULT.string());
+    m_sounds_dir     = toml::find_or(data, "paths", "sounds", SOUNDS_DIR_DEFAULT.string());
+    m_videos_dir     = toml::find_or(data, "paths", "videos", VIDEOS_DIR_DEFAULT.string());
+    m_animation_dir  = toml::find_or(data, "paths", "animation", ANIMATION_DIR_DEFAULT.string());
+    m_models_dir     = toml::find_or(data, "paths", "models", MODELS_DIR_DEFAULT.string());
+    m_foam_dir       = toml::find_or(data, "paths", "foam", FOAM_DIR_DEFAULT.string());
+    m_techniques_dir = toml::find_or(data, "paths", "techniques", TECHNIQUES_DIR_DEFAULT.string());
+    m_particles_dir  = toml::find_or(data, "paths", "particles", PARTICLES_DIR_DEFAULT.string());
+    m_textures_dir   = toml::find_or(data, "paths", "textures", TEXTURES_DIR_DEFAULT.string());
+    m_sea_dir        = toml::find_or(data, "paths", "sea", SEA_DIR_DEFAULT.string());
+
+    m_use_lowercase = toml::find_or(data, "compatibility", "use_lowercase_paths", false);
 }
 
 //=================================================================================================
@@ -461,16 +465,6 @@ float INIFILE_T::GetFloat(char const* section_name, char const* key_name, float 
 bool INIFILE_T::GetFloatNext(char const* section_name, char const* key_name, float* val)
 {
     return ifs_PTR->GetFloatNext(&Search, section_name, key_name, val);
-}
-
-std::string INIFILE_T::GetString(char const* section_name, char const* key_name)
-{
-    return ifs_PTR->GetString(&Search, section_name, key_name);
-}
-
-std::string INIFILE_T::GetString(char const* section_name, char const* key_name, std::string const& def_val)
-{
-    return ifs_PTR->GetString(&Search, section_name, key_name, def_val);
 }
 
 void INIFILE_T::DeleteKey(char const* section_name, char const* key_name)

@@ -138,8 +138,9 @@ STRSERVICE::~STRSERVICE()
     }
 }
 
-bool STRSERVICE::Init()
+bool STRSERVICE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    SERVICE::Init(service_locator);
     // GUARD(bool STRSERVICE::Init())
     LoadIni();
     // UNGUARD

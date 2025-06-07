@@ -6,7 +6,7 @@
 class CorePrivate: public Core
 {
 public:
-    virtual void Init() = 0;
+    virtual void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) = 0;
 
     virtual void InitBase()    = 0;
     virtual void ReleaseBase() = 0;

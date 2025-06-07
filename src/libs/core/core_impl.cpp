@@ -79,7 +79,7 @@ void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
     window_ = std::move(window);
 }
 
-void CoreImpl::Init()
+void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
     Initialized         = false;
     bEngineIniProcessed = false;
@@ -90,6 +90,7 @@ void CoreImpl::Init()
     Controls            = nullptr;
     fTimeScale          = 1.0f;
     Compiler            = new COMPILER;
+    m_service_locator   = service_locator;
 
     /* TODO: place this outside CoreImpl */
     SetLayerType(EXECUTE, layer_type_t::execute);
@@ -447,7 +448,7 @@ void* CoreImpl::GetService(char const* service_name)
     auto const class_code = MakeHashValue(service_name);
     pClass->SetHash(class_code);
 
-    if (!service_PTR->Init()) {
+    if (!service_PTR->Init(m_service_locator)) {
         CheckAutoExceptions(0);
         return nullptr;
     }
