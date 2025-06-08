@@ -1,7 +1,7 @@
 #include "foam.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math3d/plane.h>
 #include <libs/math/math_inlines.h>

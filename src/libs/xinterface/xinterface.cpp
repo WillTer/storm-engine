@@ -3,7 +3,7 @@
 #include <cstdio>
 
 #include <SDL2/SDL.h>
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "back_scene/back_scene.h"
@@ -824,7 +824,7 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
         if (param[0] == 0) {
             systTime = std::time(nullptr);
         } else {
-            if (!fio->is_path_exists(param.c_str())) {
+            if (!fio->exists(param.c_str())) {
                 systTime = std::time(nullptr);
             } else {
                 systTime = fio->to_time_t(fio->last_write_time(param.c_str()));
@@ -891,7 +891,7 @@ void XINTERFACE::LoadIni()
     // GUARD(XINTERFACE::LoadIni());
     char section[256];
 
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / RESOURCE_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
     auto windowSize = core.GetWindow()->GetWindowSize();
@@ -1022,7 +1022,7 @@ void XINTERFACE::LoadDialog(char const* sFileName)
         return;
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
 
     sprintf_s(section, "MAIN");
 
@@ -1140,7 +1140,7 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
         }
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
 
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }
@@ -2395,7 +2395,7 @@ bool XINTERFACE::NewSaveFileName(std::filesystem::path const& fileName) const
 {
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
 
-    return sSavePath == nullptr ? !fio->is_path_exists(fileName) : !fio->is_path_exists(std::filesystem::path(sSavePath) / fileName);
+    return sSavePath == nullptr ? !fio->exists(fileName) : !fio->exists(std::filesystem::path(sSavePath) / fileName);
 }
 
 void XINTERFACE::DeleteSaveFile(std::filesystem::path const& fileName)

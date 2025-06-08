@@ -5,8 +5,8 @@
 #include <thread>
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
 #include <libs/renderer/tga.h>

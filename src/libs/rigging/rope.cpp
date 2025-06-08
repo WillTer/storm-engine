@@ -1,11 +1,12 @@
 #include "rope.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
+
 
 extern void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 
@@ -683,7 +684,7 @@ void ROPE::LoadIni()
     char param[256];
 
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "rigging.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "rigging.ini");
     if (!ini) throw std::runtime_error("rigging.ini file not found!");
 
     sprintf_s(section, "ROPES");

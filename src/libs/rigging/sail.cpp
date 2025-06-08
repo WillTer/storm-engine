@@ -1,9 +1,9 @@
 #include "sail.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>
@@ -13,6 +13,7 @@
 #include <libs/ship/ship_base.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/weather/weather_base.h>
+
 
 #define WIND_SPEED_MAX 12.f
 
@@ -298,8 +299,8 @@ void SAIL::Execute(uint32_t Delta_Time)
         int i;
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
-        if (fio->is_path_exists(file_path)) {
+        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        if (fio->exists(file_path)) {
             auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) {
                 int oldWindQnt = WINDVECTOR_QUANTITY;
@@ -1150,8 +1151,8 @@ void SAIL::LoadSailIni()
     // GUARD(SAIL::LoadSailIni());
     char section[256], param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
-    if (fio->is_path_exists(file_path)) { ft_old = fio->last_write_time(file_path); }
+    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 

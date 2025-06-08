@@ -11,9 +11,10 @@
 #include "lighter.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
+
 
 // ============================================================================================
 // Construction, destruction
@@ -36,7 +37,7 @@ bool Lighter::Init()
 {
     // Checking if ini file exists
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "loclighter.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "loclighter.ini");
     if (!ini) return false;
     auto const isLoading = ini->GetInt(nullptr, "loading", 0);
     autoTrace            = ini->GetInt(nullptr, "autotrace", 0) != 0;

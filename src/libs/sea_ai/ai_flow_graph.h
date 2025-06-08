@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/c_vector.h>
 #include <libs/math/math_inlines.h>
 #include <libs/util/storm_assert.h>

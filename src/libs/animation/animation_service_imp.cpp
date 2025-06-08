@@ -11,8 +11,8 @@
 #include "animation_service_imp.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/util/string_compare.hpp>
 
 #include "an_file.h"

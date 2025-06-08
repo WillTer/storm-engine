@@ -5,8 +5,6 @@
 
 #include <zlib.h>
 
-#include "default_paths.h"
-
 #ifdef _WIN32  // S_DEBUG
 #include "s_debug.h"
 #else
@@ -16,6 +14,7 @@
 
 #include <SDL_timer.h>
 #include <libs/diagnostics/logging.hpp>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/storm_assert.h>

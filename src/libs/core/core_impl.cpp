@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <SDL2/SDL.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
@@ -220,20 +221,17 @@ bool CoreImpl::Initialize()
 
 void CoreImpl::ProcessEngineIniFile()
 {
-    char String[MAX_PATH];
-
     bEngineIniProcessed = true;
 
-    auto engine_ini = fio->open_ini_file(fs::ENGINE_INI_FILE_NAME);
-    if (!engine_ini) throw std::runtime_error("no 'engine.ini' file");
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const config        = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
 
-    auto res = engine_ini->ReadString(nullptr, "program_directory", String, sizeof(String), "");
-    if (res) { Compiler->SetProgramDirectory(String); }
+    auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
+    Compiler->SetProgramDirectory(program_dir.string().c_str());
 
-    res = engine_ini->ReadString(nullptr, "controls", String, sizeof(String), "");
-    if (res) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(String));
-        if (core_internal.Controls == nullptr) core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls"));
+    if (auto const controls_name = config->try_get<std::string>("script", "controls"); controls_name.has_value()) {
+        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_name.value().c_str()));
+        if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
         Controls = nullptr;
@@ -241,28 +239,25 @@ void CoreImpl::ProcessEngineIniFile()
         core_internal.Controls = new CONTROLS;
     }
 
-    loadCompatibilitySettings(*engine_ini);
+    loadCompatibilitySettings(*config);
 
-    res = engine_ini->ReadString(nullptr, "run", String, sizeof(String), "");
-    if (res) {
-        if (!Compiler->CreateProgram(String)) throw std::runtime_error("fail to create program");
-        if (!Compiler->Run()) throw std::runtime_error("fail to run program");
+    auto entry_point = config->get<std::string>("script", "entry_point");
 
-        // Script version test
-        if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
-            int32_t iScriptVersion  = 0xFFFFFFFF;
-            auto*   pVScriptVersion = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
-            if (pVScriptVersion) pVScriptVersion->Get(iScriptVersion);
+    if (!Compiler->CreateProgram(entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
+    if (!Compiler->Run()) { throw std::runtime_error("fail to run program"); }
 
-            if (iScriptVersion != ENGINE_SCRIPT_VERSION) {
+    // Script version test
+    if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
+        auto  script_version      = std::numeric_limits<int32_t>::max();
+        auto* script_version_data = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
+        if (script_version_data != nullptr) { script_version_data->Get(script_version); }
+
+        if (script_version != ENGINE_SCRIPT_VERSION) {
 #ifdef _WIN32  // FIX_LINUX Cursor
-                ShowCursor(true);
-#else
-                SDL_ShowCursor(SDL_ENABLE);
+            ShowCursor(SDL_TRUE);
 #endif
-                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
-                Compiler->ExitProgram();
-            }
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
+            Compiler->ExitProgram();
         }
     }
 }
@@ -515,7 +510,7 @@ bool CoreImpl::SaveState(char const* file_name)
 // force core to load state file at the start of next game loop, return false if no state file
 bool CoreImpl::InitiateStateLoading(char const* file_name)
 {
-    if (!fio->is_path_exists(file_name)) { return false; }
+    if (!fio->exists(file_name)) { return false; }
     delete[] State_file_name;
 
     auto const len  = strlen(file_name) + 1;
@@ -903,17 +898,13 @@ void CoreImpl::collectCrashInfo() const
     Compiler->CollectCallStack();
 }
 
-void CoreImpl::loadCompatibilitySettings(INIFILE& inifile)
+void CoreImpl::loadCompatibilitySettings(storm::ConfigFile const& config_file_data)
 {
-    using namespace storm;
+    auto target_version = config_file_data.get<std::string>("compatibility", "target_version", "latest");
 
-    std::array<char, 128> strBuffer {};
-    inifile.ReadString("compatibility", "target_version", strBuffer.data(), strBuffer.size(), "latest");
-    std::string_view const target_engine_version = strBuffer.data();
-
-    targetVersion_ = getTargetEngineVersion(target_engine_version);
-    if (targetVersion_ == ENGINE_VERSION::UNKNOWN) {
-        spdlog::warn("Unknown target version '{}' in engine compatibility settings", target_engine_version);
-        targetVersion_ = ENGINE_VERSION::LATEST;
+    targetVersion_ = storm::getTargetEngineVersion(target_version);
+    if (targetVersion_ == storm::ENGINE_VERSION::UNKNOWN) {
+        spdlog::warn("Unknown target version '{}' in engine compatibility settings", target_version);
+        targetVersion_ = storm::ENGINE_VERSION::LATEST;
     }
 }

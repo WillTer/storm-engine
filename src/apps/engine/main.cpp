@@ -2,12 +2,13 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <libs/config/config_loader.h>
 #include <libs/core/core_private.h>
 #include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
+#include <libs/filesystem/config_loader.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -93,11 +94,11 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
-    auto service_locator = std::make_shared<storm::ServiceLocator>();
-    service_locator->add<storm::config::IConfigLoader>(std::make_shared<storm::config::ConfigLoader>());
+    auto const service_locator = std::make_shared<storm::ServiceLocator>();
+    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>());
 
     // Load parameters of file service
-    fio->load_service_parameters_from_config(*service_locator, fs::ENGINE_TOML_FILE_NAME);
+    fio->load_service_parameters_from_config(*service_locator->get<storm::IConfigLoader>(), storm::fs::MAIN_CONFIG_PATH);
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
@@ -126,24 +127,24 @@ int main()
     core_private->Init(service_locator);
 
     // Read config
-    auto const  config_loader = service_locator->get<storm::config::IConfigLoader>();
-    auto const& data          = config_loader->open_config_cached(fs::ENGINE_TOML_FILE_NAME);
+    auto const config_loader = service_locator->get<storm::IConfigLoader>();
+    auto const config_file   = config_loader->open_config_cached(fs::ENGINE_TOML_FILE_NAME);
 
-    auto const max_fps = toml::find_or(data, "window", "max_fps", 0U);
-    if (!toml::find_or(data, "logs", true))  // disable logging
+    auto const max_fps = config_file->get("window", "max_fps", 0U);
+    if (!config_file->get("", "logs", true))  // disable logging
     {
         spdlog::set_level(spdlog::level::off);
     }
 
-    auto const width             = toml::find_or(data, "window", "width", 1024);
-    auto const height            = toml::find_or(data, "window", "height", 768);
-    auto const preferred_display = toml::find_or(data, "window", "display", 0);
-    auto const fullscreen        = toml::find_or(data, "window", "full_screen", false);
-    auto const show_borders      = toml::find_or(data, "window", "borders", false);
-    auto const run_in_background = toml::find_or(data, "window", "run_in_background", false);
-    auto const steam             = toml::find_or(data, "steam", false);
+    auto const width             = config_file->get("window", "width", 1024);
+    auto const height            = config_file->get("window", "height", 768);
+    auto const preferred_display = config_file->get("window", "display", 0);
+    auto const fullscreen        = config_file->get("window", "full_screen", false);
+    auto const show_borders      = config_file->get("window", "borders", false);
+    auto const run_in_background = config_file->get("window", "run_in_background", false);
+    auto const steam             = config_file->get("", "steam", false);
 
-    is_sound_in_background_enabled = run_in_background && toml::find_or(data, "window", "sound_in_background", true);
+    is_sound_in_background_enabled = run_in_background && config_file->get("window", "sound_in_background", true);
     // initialize SteamApi through evaluating its singleton
     try {
         steamapi::SteamApi::getInstance(!steam);

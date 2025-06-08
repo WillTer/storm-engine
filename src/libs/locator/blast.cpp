@@ -1,9 +1,10 @@
 #include "blast.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/messages.h>
+
 
 #define ANGLESPEED_MUL 0.2f
 
@@ -31,9 +32,9 @@ bool BLAST::Init()
 
     //    int32_t n;
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles" / "particles.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
+        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 

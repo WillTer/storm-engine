@@ -5,7 +5,7 @@
 #include <mutex>
 #include <thread>
 
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/util/fs.h>
 #include <spdlog/spdlog.h>
 
@@ -102,7 +102,7 @@ public:
             static auto terminate_handler = std::get_terminate();
             std::set_terminate([] { terminate_handler(); });
 
-            create_directories(fs::GetLogsPath());
+            create_directories(::fs::GetLogsPath());
 
             std::thread worker {[this] { loggingThread(); }};
             worker.detach();

@@ -2,9 +2,8 @@
 
 #include <memory>
 
-#include <libs/core/v_file_service.h>
-
 #include "ifs.h"
+#include "v_file_service.h"
 
 #define _MAX_OPEN_INI_FILES 1024
 
@@ -89,7 +88,7 @@ protected:
 private:
     std::filesystem::path m_resource_dir;
     std::filesystem::path m_program_dir;
-    std::filesystem::path m_ini_dir;
+    std::filesystem::path m_config_dir;
     std::filesystem::path m_aliases_dir;
     std::filesystem::path m_sounds_dir;
     std::filesystem::path m_videos_dir;
@@ -134,13 +133,13 @@ public:
     bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
 
     uintmax_t                       file_size(std::filesystem::path const& file_path) override;
-    bool                            is_path_exists(std::filesystem::path const& path) override;
+    bool                            exists(std::filesystem::path const& path) override;
     std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) override;
 
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
 
-    void load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file) override;
+    void load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file) override;
 
     // ini files section
     void                     close_ini_files();

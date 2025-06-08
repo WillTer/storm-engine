@@ -1,7 +1,7 @@
 #include "xservice.h"
 
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
@@ -204,7 +204,7 @@ void XSERVICE::LoadAllPicturesInfo()
     char param[255];
 
     // initialize ini file
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / LISTS_INIFILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / LISTS_INIFILE);
     if (!ini) { throw std::runtime_error("ini file not found!"); }
 
     m_dwListQuantity  = 0;

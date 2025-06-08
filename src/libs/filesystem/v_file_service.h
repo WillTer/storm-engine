@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <libs/core/service_locator.hpp>
+#include "i_config_loader.h"
 
 class INIFILE;
 
@@ -14,7 +14,7 @@ enum class BaseDirectory {
     None,
     Resource,
     Program,
-    Ini,
+    Config,
     Aliases,
     Sounds,
     Videos,
@@ -64,12 +64,12 @@ public:
     virtual bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
 
     virtual uintmax_t                       file_size(std::filesystem::path const& file_path)  = 0;
-    virtual bool                            is_path_exists(std::filesystem::path const& path)  = 0;
+    virtual bool                            exists(std::filesystem::path const& path)          = 0;
     virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) = 0;
 
     // Update IFileService internal variables according to configuration
     // TODO: move locator to class constructor
-    virtual void load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file) = 0;
+    virtual void load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file) = 0;
 
     // ini files section
     virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
@@ -80,7 +80,6 @@ public:
     virtual std::filesystem::path base_directory_path(BaseDirectory dir) = 0;
 };
 
-/// LEGACY API
 //------------------------------------------------------------------------------------------------
 // handle with text files in format:
 //

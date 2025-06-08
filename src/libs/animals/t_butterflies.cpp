@@ -1,7 +1,7 @@
 #include "t_butterflies.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/messages.h>
 
 #pragma warning(disable : 4244)
@@ -20,7 +20,7 @@ TButterflies::~TButterflies()
 //--------------------------------------------------------------------
 void TButterflies::LoadSettings()
 {
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / ANIMALS_INI_FILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / ANIMALS_INI_FILE);
     if (!ini) return;
 
     butterfliesCount = ini->GetInt(ANIMALS_BUTTERFLIES_SECTION, "count", BUTTERFLY_COUNT);

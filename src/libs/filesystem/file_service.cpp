@@ -7,10 +7,10 @@
 #include <string>
 
 #include <SDL2/SDL.h>
+#include <libs/core/core_impl.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 
-#include "core_impl.h"
 #include "default_paths.h"
 
 #define COMMENT ';'
@@ -75,19 +75,19 @@ FileService::FileService()
         m_opened_files[n] = nullptr;
     }
 
-    m_resource_dir   = RESOURCE_DIR_DEFAULT;
-    m_program_dir    = PROGRAM_DIR_DEFAULT;
-    m_ini_dir        = INI_DIR_DEFAULT;
-    m_aliases_dir    = ALIASES_DIR_DEFAULT;
-    m_sounds_dir     = SOUNDS_DIR_DEFAULT;
-    m_videos_dir     = VIDEOS_DIR_DEFAULT;
-    m_animation_dir  = ANIMATION_DIR_DEFAULT;
-    m_models_dir     = MODELS_DIR_DEFAULT;
-    m_foam_dir       = FOAM_DIR_DEFAULT;
-    m_techniques_dir = TECHNIQUES_DIR_DEFAULT;
-    m_particles_dir  = PARTICLES_DIR_DEFAULT;
-    m_textures_dir   = TEXTURES_DIR_DEFAULT;
-    m_sea_dir        = SEA_DIR_DEFAULT;
+    m_resource_dir   = storm::fs::RESOURCE_DIR_DEFAULT;
+    m_program_dir    = storm::fs::PROGRAM_DIR_DEFAULT;
+    m_config_dir     = storm::fs::CONFIG_DIR_DEFAULT;
+    m_aliases_dir    = storm::fs::ALIASES_DIR_DEFAULT;
+    m_sounds_dir     = storm::fs::SOUNDS_DIR_DEFAULT;
+    m_videos_dir     = storm::fs::VIDEOS_DIR_DEFAULT;
+    m_animation_dir  = storm::fs::ANIMATION_DIR_DEFAULT;
+    m_models_dir     = storm::fs::MODELS_DIR_DEFAULT;
+    m_foam_dir       = storm::fs::FOAM_DIR_DEFAULT;
+    m_techniques_dir = storm::fs::TECHNIQUES_DIR_DEFAULT;
+    m_particles_dir  = storm::fs::PARTICLES_DIR_DEFAULT;
+    m_textures_dir   = storm::fs::TEXTURES_DIR_DEFAULT;
+    m_sea_dir        = storm::fs::SEA_DIR_DEFAULT;
     m_use_lowercase  = false;
 }
 
@@ -188,7 +188,7 @@ uintmax_t FileService::file_size(std::filesystem::path const& file_path)
     return std::filesystem::file_size(transform_path(file_path));
 }
 
-bool FileService::is_path_exists(std::filesystem::path const& path)
+bool FileService::exists(std::filesystem::path const& path)
 {
     return std::filesystem::exists(transform_path(path));
 }
@@ -204,7 +204,7 @@ std::filesystem::file_time_type FileService::last_write_time(std::filesystem::pa
 
 std::unique_ptr<INIFILE> FileService::create_ini_file(std::filesystem::path const& file_path, bool fail_if_exist)
 {
-    if (fio->is_path_exists(file_path) && fail_if_exist) { return nullptr; }
+    if (fio->exists(file_path) && fail_if_exist) { return nullptr; }
 
     auto stream = open_file<std::ofstream>(file_path, std::ios::binary);
     if (!stream.is_open()) {
@@ -298,7 +298,7 @@ bool FileService::read_file_to_mem(std::filesystem::path const& file_path, std::
 
 uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
 {
-    if (!is_path_exists(path)) { return 0; }
+    if (!exists(path)) { return 0; }
 
     auto const path_transformed = transform_path(path);
     auto const fingerprint      = [](auto const& file) {
@@ -322,7 +322,7 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     switch (dir) {
     case BaseDirectory::Resource: return m_resource_dir;
     case BaseDirectory::Program: return m_program_dir;
-    case BaseDirectory::Ini: return m_ini_dir;
+    case BaseDirectory::Config: return m_config_dir;
     case BaseDirectory::Aliases: return m_aliases_dir;
     case BaseDirectory::Sounds: return m_sounds_dir;
     case BaseDirectory::Videos: return m_videos_dir;
@@ -339,26 +339,25 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     return executable_directory();
 }
 
-void FileService::load_service_parameters_from_config(storm::ServiceLocator& locator, std::filesystem::path const& config_file)
+void FileService::load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file)
 {
-    auto const  config_loader = locator.get<storm::config::IConfigLoader>();
-    auto const& data          = config_loader->open_config_cached(config_file);
+    auto const config = config_loader.open_config_cached(config_file);
 
-    m_resource_dir   = toml::find_or(data, "paths", "resource", RESOURCE_DIR_DEFAULT.string());
-    m_program_dir    = toml::find_or(data, "paths", "program", PROGRAM_DIR_DEFAULT.string());
-    m_ini_dir        = toml::find_or(data, "paths", "ini", INI_DIR_DEFAULT.string());
-    m_aliases_dir    = toml::find_or(data, "paths", "aliases", ALIASES_DIR_DEFAULT.string());
-    m_sounds_dir     = toml::find_or(data, "paths", "sounds", SOUNDS_DIR_DEFAULT.string());
-    m_videos_dir     = toml::find_or(data, "paths", "videos", VIDEOS_DIR_DEFAULT.string());
-    m_animation_dir  = toml::find_or(data, "paths", "animation", ANIMATION_DIR_DEFAULT.string());
-    m_models_dir     = toml::find_or(data, "paths", "models", MODELS_DIR_DEFAULT.string());
-    m_foam_dir       = toml::find_or(data, "paths", "foam", FOAM_DIR_DEFAULT.string());
-    m_techniques_dir = toml::find_or(data, "paths", "techniques", TECHNIQUES_DIR_DEFAULT.string());
-    m_particles_dir  = toml::find_or(data, "paths", "particles", PARTICLES_DIR_DEFAULT.string());
-    m_textures_dir   = toml::find_or(data, "paths", "textures", TEXTURES_DIR_DEFAULT.string());
-    m_sea_dir        = toml::find_or(data, "paths", "sea", SEA_DIR_DEFAULT.string());
+    m_resource_dir   = config->get("paths", "resource", storm::fs::RESOURCE_DIR_DEFAULT.string());
+    m_program_dir    = config->get("paths", "program", storm::fs::PROGRAM_DIR_DEFAULT.string());
+    m_config_dir     = config->get("paths", "config", storm::fs::CONFIG_DIR_DEFAULT.string());
+    m_aliases_dir    = config->get("paths", "aliases", storm::fs::ALIASES_DIR_DEFAULT.string());
+    m_sounds_dir     = config->get("paths", "sounds", storm::fs::SOUNDS_DIR_DEFAULT.string());
+    m_videos_dir     = config->get("paths", "videos", storm::fs::VIDEOS_DIR_DEFAULT.string());
+    m_animation_dir  = config->get("paths", "animation", storm::fs::ANIMATION_DIR_DEFAULT.string());
+    m_models_dir     = config->get("paths", "models", storm::fs::MODELS_DIR_DEFAULT.string());
+    m_foam_dir       = config->get("paths", "foam", storm::fs::FOAM_DIR_DEFAULT.string());
+    m_techniques_dir = config->get("paths", "techniques", storm::fs::TECHNIQUES_DIR_DEFAULT.string());
+    m_particles_dir  = config->get("paths", "particles", storm::fs::PARTICLES_DIR_DEFAULT.string());
+    m_textures_dir   = config->get("paths", "textures", storm::fs::TEXTURES_DIR_DEFAULT.string());
+    m_sea_dir        = config->get("paths", "sea", storm::fs::SEA_DIR_DEFAULT.string());
 
-    m_use_lowercase = toml::find_or(data, "compatibility", "use_lowercase_paths", false);
+    m_use_lowercase = config->get("compatibility", "use_lowercase_paths", false);
 }
 
 //=================================================================================================

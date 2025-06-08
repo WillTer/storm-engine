@@ -4,9 +4,9 @@
 #include <random>
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d/color.h>
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
@@ -39,17 +39,6 @@ class Tracer: public DebugTracer
         std::string const&           function_name) override
     {
         core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
-    }
-};
-
-struct AliasSoundFile {
-    std::string name;
-    float       probability;
-
-    void from_toml(toml::value const& v)
-    {
-        name        = toml::find<std::string>(v, "name");
-        probability = toml::find_or(v, "probability", DEFAULT_PROBABILITY);
     }
 };
 
@@ -408,25 +397,29 @@ void SoundService::stop(SoundID id, int32_t time)
     stop_sound(m_playing_sounds[id.index()], time);
 }
 
-void SoundService::add_alias(std::string const& section_name, toml::value const& section)
+void SoundService::add_alias(std::string const& section_name, storm::ConfigTable const& section)
 {
-    if (section.is_empty()) { return; }
-
     if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.c_str()); }
 
     m_aliases.emplace(
         section_name,
         Alias {
-            .min_distance = toml::find_or(section, "min_distance", -1.0F),
-            .max_distance = toml::find_or(section, "max_distance", -1.0F),
-            .volume       = toml::find_or(section, "volume", -1.0F),
+            .min_distance = storm::config::find(section, "min_distance", -1.0F),
+            .max_distance = storm::config::find(section, "max_distance", -1.0F),
+            .volume       = storm::config::find(section, "volume", -1.0F),
         });
 
     Alias&     alias       = m_aliases[std::string(section_name)];
-    auto const sound_files = toml::find<std::vector<AliasSoundFile>>(section, "sound_files");
+    auto const sound_files = storm::config::find<std::vector<storm::ConfigValue>>(section, "sound_files");
     for (auto const& sound_file: sound_files) {
-        alias.sound_files.emplace(sound_file.probability, sound_file.name);
-        if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", sound_file.name.c_str(), sound_file.probability); }
+        if (!sound_file.is_table()) { return; }
+
+        auto const table       = sound_file.as_table();
+        auto const name        = storm::config::find<std::string>(table, "name");
+        auto const probability = storm::config::find(table, "probability", DEFAULT_PROBABILITY);
+
+        alias.sound_files.emplace(probability, name);
+        if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", name.c_str(), probability); }
     }
 }
 
@@ -441,11 +434,12 @@ void SoundService::load_alias_file(std::string const& filename)
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto const  config_loader = m_service_locator->get<storm::config::IConfigLoader>();
-    auto const& data          = config_loader->open_config_cached(config_file);
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const config        = config_loader->open_config_cached(config_file);
 
-    for (auto const& [section, table]: data.as_table()) {
-        add_alias(section, table);
+    for (auto const& [section_name, section]: config->as_table()) {
+        if (!section.is_table()) { continue; }
+        add_alias(section_name, section.as_table());
     }
 }
 
@@ -664,7 +658,7 @@ void SoundService::reset_scheme()
 bool SoundService::add_scheme(std::string_view const& scheme_name)
 {
     static char temp_string[COMMON_STRING_LENGTH];
-    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / SCHEME_INI_NAME);
+    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / SCHEME_INI_NAME);
 
     if (!ini) { return false; }
 

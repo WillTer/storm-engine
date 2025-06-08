@@ -3,7 +3,7 @@
 #include <memory>
 #include <utility>
 
-#include <libs/config/i_config_loader.h>
+#include <libs/filesystem/i_config_loader.h>
 
 namespace storm
 {
@@ -14,7 +14,7 @@ class ServiceLocatorBase
 public:
     template <class C>
         requires((std::is_same_v<C, Args> || ...))
-    std::shared_ptr<C> get() const
+    std::shared_ptr<C> const& get() const
     {
         return std::get<std::shared_ptr<C>>(m_services);
     }
@@ -30,6 +30,6 @@ private:
     std::tuple<std::shared_ptr<Args>...> m_services;
 };
 
-using ServiceLocator = ServiceLocatorBase<config::IConfigLoader>;
+using ServiceLocator = ServiceLocatorBase<IConfigLoader>;
 
 }  // namespace storm

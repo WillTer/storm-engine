@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <libs/core/v_file_service.h>
+#include "v_file_service.h"
 
 #define KNF_KEY 0x1
 #define KNF_COMMENTARY 0x2
@@ -123,7 +123,7 @@ public:
     IFS_NOT_IMPLEMENTED(float GetFloat(char const* section_name, char const* key_name, float def_val))
     IFS_NOT_IMPLEMENTED(bool GetFloatNext(char const* section_name, char const* key_name, float* val))
 
-    bool CaseSensitive(bool yes)
+    bool CaseSensitive(bool /*yes*/) override
     {
         return false;
     }

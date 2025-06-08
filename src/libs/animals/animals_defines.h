@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 
 // FIXME: hardcode
 constexpr std::string_view ANIMALS_INI_FILE = "animals.ini";

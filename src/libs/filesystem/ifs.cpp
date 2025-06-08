@@ -2,8 +2,8 @@
 
 #include <array>
 
-#include "core_impl.h"
-#include "vma.hpp"
+#include <libs/core/core_impl.h>
+#include <libs/core/vma.hpp>
 
 #define COMMENT ';'
 #define SECTION_A '['
@@ -326,7 +326,7 @@ bool IFS::VoidSym(char symbol)
 
 bool IFS::LoadFile(std::filesystem::path const& file_path)
 {
-    if (!fio->is_path_exists(file_path)) { return false; }
+    if (!fio->exists(file_path)) { return false; }
 
     auto fileS = fio->open_file<std::ifstream>(file_path, std::ios::binary);
     if (!fileS.is_open()) {

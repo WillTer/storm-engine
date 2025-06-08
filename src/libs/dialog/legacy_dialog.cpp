@@ -4,8 +4,8 @@
 
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
@@ -14,6 +14,7 @@
 #include <libs/util/string_compare.hpp>
 
 #include "dialog.hpp"
+
 
 CREATE_CLASS(LegacyDialog)
 
@@ -280,7 +281,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
 
 void LegacyDialog::LoadIni()
 {
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / DIALOG_INI_FILE_PATH);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / DIALOG_INI_FILE_PATH);
 
     mainFont_ = LoadFont("mainfont", *ini, *RenderService);
     nameFont_ = LoadFont("namefont", *ini, *RenderService);

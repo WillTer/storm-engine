@@ -132,7 +132,7 @@ private:
 
     // Aliases ------------------------------------------------------------
 
-    void add_alias(std::string const& section_name, toml::value const& section);
+    void add_alias(std::string const& section_name, storm::ConfigTable const& section);
     void load_alias_file(std::string const& filename) override;
     void init_aliases();
 

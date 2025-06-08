@@ -1,11 +1,12 @@
 #include "seafoam.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
+
 
 CREATE_CLASS(SEAFOAM)
 
@@ -52,7 +53,7 @@ bool SEAFOAM::Init()
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
 
     // FIXME: hardcode
-    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
+    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     InitializeShipFoam();
 

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 
 // FIXME: hardcode
 constexpr std::string_view SCHEME_INI_NAME = "sound_scheme.ini";

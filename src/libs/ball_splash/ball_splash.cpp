@@ -1,8 +1,8 @@
 #include "ball_splash.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/messages.h>
 #include <stdio.h>
 
@@ -135,7 +135,7 @@ void BALLSPLASH::Execute(uint32_t dTime)
 void BALLSPLASH::InitializeSplashes()
 {
     // FIXME: hardcode
-    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
+    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     for (auto i = 0; i < MAX_SPLASHES; ++i) {
         splashes[i].Release();

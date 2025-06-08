@@ -1,8 +1,8 @@
 #include "dialog.hpp"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/util/dialog/dialog_utils.hpp>
 #include <libs/util/string_compare.hpp>
@@ -460,9 +460,9 @@ void DIALOG::DrawButtons()
 void DIALOG::LoadFromIni()
 {
     // FIXME: hardcode
-    auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "dialog.ini");
+    auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
     if (!pIni) {
-        core.Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
+        core.Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return;
     }
 
@@ -594,7 +594,7 @@ bool DIALOG::Init()
     textViewport.MaxZ   = 1.0f;
 
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "dialog.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
     m_DlgText.Init(RenderService, textViewport, ini.get());
     InitLinks(RenderService, textViewport, ini.get());
 

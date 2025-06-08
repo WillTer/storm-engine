@@ -1,7 +1,7 @@
 #include "xi_2picture.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 
 void SetRectanglePos(XI_ONETEX_VERTEX v[4], const FXYPOINT& center, const FXYPOINT& size)
 {

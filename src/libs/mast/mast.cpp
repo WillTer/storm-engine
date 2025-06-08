@@ -1,7 +1,7 @@
 #include "mast.h"
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/island/island_base.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/mast_msg.h>
@@ -106,8 +106,8 @@ void MAST::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->is_path_exists(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE)) {
-            auto ft_new = fio->last_write_time(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
+        if (fio->exists(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE)) {
+            auto ft_new = fio->last_write_time(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
             if (ft_old != ft_new) { LoadIni(); }
         }
         doMove(Delta_Time);
@@ -369,10 +369,10 @@ void MAST::LoadIni()
     // GUARD(MAST::LoadIni());
     char section[256];
 
-    if (fio->is_path_exists(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE)) {
-        ft_old = fio->last_write_time(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
+    if (fio->exists(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE)) {
+        ft_old = fio->last_write_time(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
     }
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / MAST_INI_FILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
     if (!ini) { throw std::runtime_error("mast.ini file not found!"); }
 
     sprintf_s(section, "MAST");

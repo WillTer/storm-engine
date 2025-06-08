@@ -5,16 +5,17 @@
 #include <SDL_timer.h>
 #include <fmt/chrono.h>
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
 
 #include "texture.h"
+
 
 #ifdef _WIN32
 #include <DxErr.h>
@@ -508,7 +509,7 @@ bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
         // get start ini file for fonts
         if (!ini->ReadString(nullptr, "startFontIniFile", str, sizeof(str) - 1, "")) {
             core.Trace("Not finded 'startFontIniFile' parameter into ENGINE.INI file");
-            sprintf_s(str, (fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini").string().c_str());
+            sprintf_s(str, (fio->base_directory_path(BaseDirectory::Config) / "fonts.ini").string().c_str());
         }
         auto const len = strlen(str) + 1;
         if ((fontIniFileName = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");

@@ -1,7 +1,7 @@
 #include "xi_picture.h"
 
-#include <libs/core/default_paths.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 

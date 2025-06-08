@@ -2,6 +2,7 @@
 
 // common includes
 #include "core.h"
+#include "service_locator.hpp"
 
 class CorePrivate: public Core
 {

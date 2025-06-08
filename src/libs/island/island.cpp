@@ -3,7 +3,7 @@
 #include <cstdio>
 
 #include <libs/core/core.h>
-#include <libs/core/default_paths.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/renderer/tga.h>
 #include <libs/shared_headers/messages.h>

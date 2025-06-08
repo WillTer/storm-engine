@@ -1,7 +1,7 @@
 #ifdef _WIN32  // S_DEBUG
 #include "s_dbg_breaktable.h"
 
-#include "file_service.h"
+#include <libs/filesystem/file_service.h>
 
 #define SECTION_NAME "breakpoints"
 
