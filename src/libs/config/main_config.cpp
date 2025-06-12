@@ -2,14 +2,60 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
+#include <toml.hpp>
 
 using namespace storm;
 
 namespace
 {
 
-constexpr int DEFAULT_WINDOW_WIDTH  = 1024;
-constexpr int DEFAULT_WINDOW_HEIGHT = 768;
+constexpr GeneralInfo DEFAULT_GENERAL_INFO = {
+    .use_steam   = false,
+    .enable_logs = true,
+};
+
+WindowInfo const DEFAULT_WINDOW_INFO = {
+    .width               = 1024,
+    .height              = 768,
+    .preferred_display   = 0,
+    .full_screen         = false,
+    .show_borders        = false,
+    .run_in_background   = false,
+    .sound_in_background = true,
+    .max_fps             = 0,
+    .font_config         = "",
+    .font_type           = "",
+};
+
+ScriptInfo const DEFAULT_SCRIPT_INFO = {
+    .entry_point       = "",
+    .controls          = "",
+    .enable_debuginfo  = false,
+    .enable_codefiles  = false,
+    .enable_runtimelog = false,
+    .enable_tracefiles = false,
+};
+
+CompatibilityInfo const DEFAULT_COMPATIBILITY_INFO = {
+    .target_version      = ENGINE_VERSION::LATEST,
+    .use_lowercase_paths = false,
+};
+
+PathsInfo const DEFAULT_PATHS_INFO = {
+    .resource   = storm::fs::RESOURCE_DIR_DEFAULT,
+    .program    = storm::fs::PROGRAM_DIR_DEFAULT,
+    .config     = storm::fs::CONFIG_DIR_DEFAULT,
+    .aliases    = storm::fs::ALIASES_DIR_DEFAULT,
+    .sounds     = storm::fs::SOUNDS_DIR_DEFAULT,
+    .videos     = storm::fs::VIDEOS_DIR_DEFAULT,
+    .animation  = storm::fs::ANIMATION_DIR_DEFAULT,
+    .models     = storm::fs::MODELS_DIR_DEFAULT,
+    .foam       = storm::fs::FOAM_DIR_DEFAULT,
+    .techniques = storm::fs::TECHNIQUES_DIR_DEFAULT,
+    .particles  = storm::fs::PARTICLES_DIR_DEFAULT,
+    .textures   = storm::fs::TEXTURES_DIR_DEFAULT,
+    .sea        = storm::fs::SEA_DIR_DEFAULT,
+};
 
 ENGINE_VERSION get_engine_version_from_string(std::string const& version)
 {
@@ -25,81 +71,125 @@ ENGINE_VERSION get_engine_version_from_string(std::string const& version)
 
 }  // namespace
 
+namespace toml
+{
+
+template <>
+struct from<storm::GeneralInfo> {
+    static storm::GeneralInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_GENERAL_INFO; }
+
+        return {
+            .use_steam   = toml::find_or(v, "steam", DEFAULT_GENERAL_INFO.use_steam),
+            .enable_logs = toml::find_or(v, "logs", DEFAULT_GENERAL_INFO.enable_logs),
+        };
+    }
+};
+
+template <>
+struct from<storm::WindowInfo> {
+    static storm::WindowInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_WINDOW_INFO; }
+
+        return {
+            .width               = toml::find_or(v, "width", DEFAULT_WINDOW_INFO.width),
+            .height              = toml::find_or(v, "height", DEFAULT_WINDOW_INFO.height),
+            .preferred_display   = toml::find_or(v, "preferred_display", DEFAULT_WINDOW_INFO.preferred_display),
+            .full_screen         = toml::find_or(v, "full_screen", DEFAULT_WINDOW_INFO.full_screen),
+            .show_borders        = toml::find_or(v, "show_borders", DEFAULT_WINDOW_INFO.show_borders),
+            .run_in_background   = toml::find_or(v, "run_in_background", DEFAULT_WINDOW_INFO.run_in_background),
+            .sound_in_background = toml::find_or(v, "sound_in_background", DEFAULT_WINDOW_INFO.sound_in_background),
+            .max_fps             = toml::find_or(v, "max_fps", DEFAULT_WINDOW_INFO.max_fps),
+            .font_config         = toml::find_or(v, "font_config", DEFAULT_WINDOW_INFO.font_config),
+            .font_type           = toml::find_or(v, "font_type", DEFAULT_WINDOW_INFO.font_type),
+        };
+    }
+};
+
+template <>
+struct from<storm::ScriptInfo> {
+    static storm::ScriptInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_SCRIPT_INFO; }
+
+        return {
+            .entry_point       = toml::find<std::string>(v, "entry_point"),
+            .controls          = toml::find_or(v, "controls", DEFAULT_SCRIPT_INFO.controls),
+            .enable_debuginfo  = toml::find_or(v, "debuginfo", DEFAULT_SCRIPT_INFO.enable_debuginfo),
+            .enable_codefiles  = toml::find_or(v, "codefiles", DEFAULT_SCRIPT_INFO.enable_codefiles),
+            .enable_runtimelog = toml::find_or(v, "runtimelog", DEFAULT_SCRIPT_INFO.enable_runtimelog),
+            .enable_tracefiles = toml::find_or(v, "tracefiles", DEFAULT_SCRIPT_INFO.enable_tracefiles),
+        };
+    }
+};
+
+template <>
+struct from<storm::CompatibilityInfo> {
+    static storm::CompatibilityInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_COMPATIBILITY_INFO; }
+
+        return {
+            .target_version      = get_engine_version_from_string(toml::find_or<std::string>(v, "target_version", "latest")),
+            .use_lowercase_paths = toml::find_or(v, "use_lowercase_paths", DEFAULT_COMPATIBILITY_INFO.use_lowercase_paths),
+        };
+    }
+};
+
+template <>
+struct from<storm::PathsInfo> {
+    static storm::PathsInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_PATHS_INFO; }
+
+        return {
+            .resource   = toml::find_or(v, "resource", DEFAULT_PATHS_INFO.resource.string()),
+            .program    = toml::find_or(v, "program", DEFAULT_PATHS_INFO.program.string()),
+            .config     = toml::find_or(v, "config", DEFAULT_PATHS_INFO.config.string()),
+            .aliases    = toml::find_or(v, "aliases", DEFAULT_PATHS_INFO.aliases.string()),
+            .sounds     = toml::find_or(v, "sounds", DEFAULT_PATHS_INFO.sounds.string()),
+            .videos     = toml::find_or(v, "videos", DEFAULT_PATHS_INFO.videos.string()),
+            .animation  = toml::find_or(v, "animation", DEFAULT_PATHS_INFO.animation.string()),
+            .models     = toml::find_or(v, "models", DEFAULT_PATHS_INFO.models.string()),
+            .foam       = toml::find_or(v, "foam", DEFAULT_PATHS_INFO.foam.string()),
+            .techniques = toml::find_or(v, "techniques", DEFAULT_PATHS_INFO.techniques.string()),
+            .particles  = toml::find_or(v, "particles", DEFAULT_PATHS_INFO.particles.string()),
+            .textures   = toml::find_or(v, "textures", DEFAULT_PATHS_INFO.textures.string()),
+            .sea        = toml::find_or(v, "sea", DEFAULT_PATHS_INFO.sea.string()),
+        };
+    }
+};
+
+}  // namespace toml
+
 GeneralInfo main_config::general_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
-
-    return {
-        .use_steam   = config_file->get("", "steam", false),
-        .enable_logs = config_file->get("", "logs", false),
-    };
+    return toml::get<GeneralInfo>(config_file);
 }
 
 WindowInfo main_config::window_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
-
-    return {
-        .width               = config_file->get("window", "width", DEFAULT_WINDOW_WIDTH),
-        .height              = config_file->get("window", "height", DEFAULT_WINDOW_HEIGHT),
-        .preferred_display   = config_file->get("window", "display", 0),
-        .full_screen         = config_file->get("window", "full_screen", false),
-        .show_borders        = config_file->get("window", "borders", false),
-        .run_in_background   = config_file->get("window", "run_in_background", false),
-        .sound_in_background = config_file->get("window", "sound_in_background", true),
-        .max_fps             = config_file->get("window", "max_fps", static_cast<uint32_t>(0)),
-        .font_config         = config_file->get<std::string>("window", "font_config", ""),
-        .font_type           = config_file->get<std::string>("window", "font_type", ""),
-    };
+    return toml::find_or(config_file, "window", DEFAULT_WINDOW_INFO);
 }
 
 ScriptInfo main_config::script_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
-
-    return {
-        .entry_point       = config_file->get<std::string>("script", "entry_point"),
-        .controls          = config_file->get<std::string>("script", "controls", ""),
-        .enable_debuginfo  = config_file->get("script", "debuginfo", false),
-        .enable_codefiles  = config_file->get("script", "codefiles", false),
-        .enable_runtimelog = config_file->get("script", "runtimelog", false),
-        .enable_tracefiles = config_file->get("script", "tracefiles", false),
-    };
+    return toml::find_or(config_file, "script", DEFAULT_SCRIPT_INFO);
 }
 
 CompatibilityInfo main_config::compatibility_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
-
-    auto version = get_engine_version_from_string(config_file->get<std::string>("compatibility", "target_version", "latest"));
-    if (version == storm::ENGINE_VERSION::UNKNOWN) {
-        core.Trace("Unknown target version '%s' in engine compatibility settings", version);
-        version = storm::ENGINE_VERSION::LATEST;
-    }
-
-    return {
-        .target_version      = version,
-        .use_lowercase_paths = config_file->get("compatibility", "use_lowercase_paths", false),
-    };
+    return toml::find_or(config_file, "compatibility", DEFAULT_COMPATIBILITY_INFO);
 }
 
 PathsInfo main_config::paths_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
-
-    return {
-        .resource   = config_file->get("paths", "resource", storm::fs::RESOURCE_DIR_DEFAULT.string()),
-        .program    = config_file->get("paths", "program", storm::fs::PROGRAM_DIR_DEFAULT.string()),
-        .config     = config_file->get("paths", "config", storm::fs::CONFIG_DIR_DEFAULT.string()),
-        .aliases    = config_file->get("paths", "aliases", storm::fs::ALIASES_DIR_DEFAULT.string()),
-        .sounds     = config_file->get("paths", "sounds", storm::fs::SOUNDS_DIR_DEFAULT.string()),
-        .videos     = config_file->get("paths", "videos", storm::fs::VIDEOS_DIR_DEFAULT.string()),
-        .animation  = config_file->get("paths", "animation", storm::fs::ANIMATION_DIR_DEFAULT.string()),
-        .models     = config_file->get("paths", "models", storm::fs::MODELS_DIR_DEFAULT.string()),
-        .foam       = config_file->get("paths", "foam", storm::fs::FOAM_DIR_DEFAULT.string()),
-        .techniques = config_file->get("paths", "techniques", storm::fs::TECHNIQUES_DIR_DEFAULT.string()),
-        .particles  = config_file->get("paths", "particles", storm::fs::PARTICLES_DIR_DEFAULT.string()),
-        .textures   = config_file->get("paths", "textures", storm::fs::TEXTURES_DIR_DEFAULT.string()),
-        .sea        = config_file->get("paths", "sea", storm::fs::SEA_DIR_DEFAULT.string()),
-    };
+    return toml::find_or(config_file, "paths", DEFAULT_PATHS_INFO);
 }
