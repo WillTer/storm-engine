@@ -13,6 +13,7 @@
 #include <unordered_map>
 
 #include <SDL_timer.h>
+#include <libs/config/main_config.h>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/debug-trap.h>
@@ -93,7 +94,7 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-COMPILER::COMPILER()
+COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     : bBreakOnError(false)
     , pRunCodeBase(nullptr)
     , CompilerStage(CS_SYSTEM)
@@ -123,6 +124,7 @@ COMPILER::COMPILER()
     , pIOBuffer(nullptr)
     , rAP(nullptr)
     , script_cache_mode_(kCacheDisabled)
+    , m_service_locator(service_locator)
 
 {
     LabelTable.SetStringDataSize(sizeof(uint32_t));
@@ -405,87 +407,24 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto engine_ini = fio->open_ini_file(core_internal.EngineIniFileName());
-    if (engine_ini) {
-        if (engine_ini->GetInt("script", "debuginfo", 0) == 0) {
-            bDebugInfo = false;
-            // FuncTab.KeepNameMode(false);
-            // VarTab.KeepNameMode(false);
-            // DefTab.KeepNameMode(false);
-            // EventTab.KeepNameMode(false);
-        } else {
-            bDebugInfo = true;
-            // FuncTab.KeepNameMode(true);
-            // VarTab.KeepNameMode(true);
-            // DefTab.KeepNameMode(true);
-            // EventTab.KeepNameMode(true);
-        }
-        if (engine_ini->GetInt("script", "codefiles", 0) == 0)
-            bWriteCodeFile = false;
-        else
-            bWriteCodeFile = true;
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const script_info   = storm::main_config::script_info(*config_loader);
 
-        if (engine_ini->GetInt("script", "runtimelog", 0) == 0)
-            bRuntimeLog = false;
-        else
-            bRuntimeLog = true;
-
-        script_cache_mode_ = engine_ini->GetInt("script", "cache_mode", kCacheDisabled);
-        if (script_cache_mode_ < kCacheDisabled || script_cache_mode_ > kCacheEnabledNoRuntimeCheck) {
-            script_cache_mode_ = kCacheDisabled;
-        }
-
-        // if(engine_ini->GetInt("script","tracefiles",0) == 0) bScriptTrace = false;
-        // else bScriptTrace = true;
-    }
+    bDebugInfo         = script_info.compilation_logs;
+    bWriteCodeFile     = script_info.create_codefiles;
+    bRuntimeLog        = script_info.runtime_logs;
+    script_cache_mode_ = script_info.cache_mode;
 
 #ifdef _WIN32  // S_DEBUG
-    auto ini = fio->open_ini_file(PROJECT_NAME);
-    if (ini) { bBreakOnError = (ini->GetInt("options", "break_on_error", 0) == 1); }
+    bBreakOnError = script_info.break_on_error;
 #endif
 }
 
 bool COMPILER::CreateProgram(char const* file_name)
 {
-    /*    INIFILE * engine_ini;
-
-    engine_ini = fio->OpenIniFile(core_internal.EngineIniFileName());
-    if(engine_ini != null)
-    {
-      if(engine_ini->GetInt("script","debuginfo",0) == 0)
-      {
-        bDebugInfo = false;
-        FuncTab.KeepNameMode(false);
-        VarTab.KeepNameMode(false);
-        DefTab.KeepNameMode(false);
-        EventTab.KeepNameMode(false);
-      }
-      else
-      {
-        bDebugInfo = true;
-        FuncTab.KeepNameMode(true);
-        VarTab.KeepNameMode(true);
-        DefTab.KeepNameMode(true);
-        EventTab.KeepNameMode(true);
-      }
-      if(engine_ini->GetInt("script","codefiles",0) == 0) bWriteCodeFile = false;
-      else bWriteCodeFile = true;
-
-
-      delete engine_ini;
-    }
-  //*/
     LoadPreprocess();
     bool const bRes = BC_LoadSegment(file_name);
 
-    /*    for(DWORD m=0;m<HASH_TABLE_SIZE;m++)
-      {
-        DTrace("HashIndex[%d]",m);
-        for(DWORD n=0;n<SCodec.HTable[m].nStringsNum;n++)
-        {
-          DTrace(SCodec.HTable[m].ppDat[n]);
-        }
-      }*/
     return bRes;
 }
 

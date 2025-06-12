@@ -475,7 +475,7 @@ bool S_DEBUG::SetOnDebugExpression(char const* pLValue, char const* pRValue)
 {
     DATA Result;
     //    char * pC;
-    Result.SetVCompiler(core_internal.Compiler);
+    Result.SetVCompiler(core_internal.Compiler.get());
     if (core_internal.Compiler->SetOnDebugExpression(pLValue, pRValue, Result)) return true;
     return false;
 }
@@ -485,7 +485,7 @@ char const* S_DEBUG::ProcessExpression(char const* pExpression)
     if (!pExpression || !strlen(pExpression)) return "";
     DATA        Result;
     char const* pC;
-    Result.SetVCompiler(core_internal.Compiler);
+    Result.SetVCompiler(core_internal.Compiler.get());
     if (core_internal.Compiler->ProcessDebugExpression(pExpression, Result)) {
         Result.Convert(VAR_STRING);
         if (Result.Get(pC)) {

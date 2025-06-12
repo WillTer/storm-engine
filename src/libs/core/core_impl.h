@@ -140,7 +140,7 @@ public:
 
     TIMER Timer;
 
-    COMPILER* Compiler;
+    std::unique_ptr<COMPILER> Compiler;
 
     bool Exit_flag;  // true if the program closing
 

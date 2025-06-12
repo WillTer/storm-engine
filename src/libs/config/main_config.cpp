@@ -56,6 +56,8 @@ ScriptInfo const DEFAULT_SCRIPT_INFO = {
     .compilation_logs = false,
     .create_codefiles = false,
     .runtime_logs     = false,
+    .break_on_error   = false,
+    .cache_mode       = 0,
 };
 
 CompatibilityInfo const DEFAULT_COMPATIBILITY_INFO = {
@@ -98,6 +100,14 @@ ENGINE_VERSION get_engine_version_from_string(std::string const& version)
     if (version == "latest") { return ENGINE_VERSION::LATEST; }
 
     return ENGINE_VERSION::UNKNOWN;
+}
+
+int get_cache_mode_from_string(std::string const& mode)
+{
+    if (mode == "enabled") { return 1; }
+    if (mode == "no_runtime_check") { return 2; }
+
+    return 0;
 }
 
 }  // namespace
@@ -184,6 +194,8 @@ struct from<storm::ScriptInfo> {
             .compilation_logs = toml::find_or(v, "compilation_logs", DEFAULT_SCRIPT_INFO.compilation_logs),
             .create_codefiles = toml::find_or(v, "create_codefiles", DEFAULT_SCRIPT_INFO.create_codefiles),
             .runtime_logs     = toml::find_or(v, "runtime_logs", DEFAULT_SCRIPT_INFO.runtime_logs),
+            .break_on_error   = toml::find_or(v, "break_on_error", DEFAULT_SCRIPT_INFO.break_on_error),
+            .cache_mode       = get_cache_mode_from_string(toml::find_or<std::string>(v, "cache_mode", "disabled")),
         };
     }
 };

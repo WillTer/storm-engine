@@ -64,7 +64,7 @@ void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
     Memory_Leak_flag    = false;
     Controls            = nullptr;
     fTimeScale          = 1.0f;
-    Compiler            = new COMPILER;
+    Compiler            = std::make_unique<COMPILER>(service_locator);
     m_service_locator   = service_locator;
 
     /* TODO: place this outside CoreImpl */

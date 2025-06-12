@@ -54,6 +54,8 @@ struct ScriptInfo {
     bool        compilation_logs;
     bool        create_codefiles;
     bool        runtime_logs;
+    bool        break_on_error;
+    int         cache_mode;
 };
 
 struct CompatibilityInfo {
