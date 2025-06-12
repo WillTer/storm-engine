@@ -145,8 +145,6 @@ public:
     bool Exit_flag;  // true if the program closing
 
 private:
-    void loadCompatibilitySettings(storm::ConfigFile const& config_file_data);
-
     std::shared_ptr<storm::ServiceLocator> m_service_locator;
 
     EntityManager entity_manager_;

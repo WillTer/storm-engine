@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <libs/config/main_config.h>
+
 #include "ifs.h"
 #include "v_file_service.h"
 
@@ -86,19 +88,7 @@ protected:
     uint32_t m_max_file_index;
 
 private:
-    std::filesystem::path m_resource_dir;
-    std::filesystem::path m_program_dir;
-    std::filesystem::path m_config_dir;
-    std::filesystem::path m_aliases_dir;
-    std::filesystem::path m_sounds_dir;
-    std::filesystem::path m_videos_dir;
-    std::filesystem::path m_animation_dir;
-    std::filesystem::path m_models_dir;
-    std::filesystem::path m_foam_dir;
-    std::filesystem::path m_techniques_dir;
-    std::filesystem::path m_particles_dir;
-    std::filesystem::path m_textures_dir;
-    std::filesystem::path m_sea_dir;
+    storm::PathsInfo m_paths;
 
     bool m_use_lowercase;
 
@@ -139,7 +129,7 @@ public:
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
 
-    void load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file) override;
+    void init_from_main_config(storm::IConfigLoader& config_loader) override;
 
     // ini files section
     void                     close_ini_files();

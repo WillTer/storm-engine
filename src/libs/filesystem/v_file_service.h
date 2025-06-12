@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "i_config_loader.h"
+#include <libs/config/i_config_loader.h>
 
 class INIFILE;
 
@@ -68,8 +68,7 @@ public:
     virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) = 0;
 
     // Update IFileService internal variables according to configuration
-    // TODO: move locator to class constructor
-    virtual void load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file) = 0;
+    virtual void init_from_main_config(storm::IConfigLoader& config_loader) = 0;
 
     // ini files section
     virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;

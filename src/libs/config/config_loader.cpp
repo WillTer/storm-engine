@@ -1,20 +1,22 @@
 #include "config_loader.h"
 
 #include <libs/core/core.h>
+#include <libs/filesystem/v_file_service.h>
 
 #include "config_file_toml.h"
-#include "v_file_service.h"
 
 using namespace storm;
 
+ConfigLoader::ConfigLoader(IFileService& file_service) : m_fs {file_service} {}
+
 std::shared_ptr<ConfigFile> ConfigLoader::open_config(std::filesystem::path const& path)
 {
-    if (!fio->exists(path)) {
+    if (!m_fs.exists(path)) {
         core.Trace("Config file \"%s\" not found", path.string().c_str());
         return nullptr;
     }
 
-    if (path.extension().string() == ".toml") { return std::make_shared<ConfigFileToml>(path); }
+    if (path.extension().string() == ".toml") { return std::make_shared<ConfigFileToml>(m_fs, path); }
     core.Trace("Config file extension \"%s\" is unknown", path.extension().string().c_str());
 
     return nullptr;

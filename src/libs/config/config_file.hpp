@@ -119,7 +119,7 @@ using ConfigTable = ConfigValue::Table;
 namespace config
 {
 
-static inline bool find(ConfigTable const& table, std::string const& path, ConfigValue& value)
+static inline bool search_in_table(ConfigTable const& table, std::string const& path, ConfigValue& value)
 {
     if (path.empty()) { return false; }
 
@@ -147,7 +147,7 @@ static inline bool find(ConfigTable const& table, std::string const& path, Confi
 
 static inline std::optional<ConfigValue> try_find_value(ConfigTable const& table, std::string const& path)
 {
-    if (ConfigValue value = {}; find(table, path, value)) { return value; }
+    if (ConfigValue value = {}; search_in_table(table, path, value)) { return value; }
     return std::nullopt;
 }
 
@@ -160,8 +160,7 @@ static inline ConfigValue find_value(ConfigTable const& table, std::string const
 template <typename T>
 static inline T find(ConfigTable const& table, std::string const& path)
 {
-    if (auto const value = try_find_value(table, path); value.has_value()) { return value.value().as<T>(); }
-    throw std::runtime_error("No config key \"" + path + "\"");
+    return find_value(table, path).as<T>();
 }
 
 template <typename T>

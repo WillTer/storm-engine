@@ -3,8 +3,6 @@
 #include <libs/core/core.h>
 #include <toml.hpp>
 
-#include "v_file_service.h"
-
 using namespace storm;
 
 namespace
@@ -50,9 +48,9 @@ std::vector<ConfigValue> convert_toml_array(toml::value const& arr)
 
 }  // namespace
 
-ConfigFileToml::ConfigFileToml(std::filesystem::path const& path)
+ConfigFileToml::ConfigFileToml(IFileService& file_service, std::filesystem::path const& path)
 {
-    auto stream = fio->open_file<std::ifstream>(path, std::ios::binary);
+    auto stream = file_service.open_file<std::ifstream>(path, std::ios::binary);
 
     try {
         auto const toml_table = toml::parse(stream, path.string());

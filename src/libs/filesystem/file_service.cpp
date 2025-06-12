@@ -75,20 +75,20 @@ FileService::FileService()
         m_opened_files[n] = nullptr;
     }
 
-    m_resource_dir   = storm::fs::RESOURCE_DIR_DEFAULT;
-    m_program_dir    = storm::fs::PROGRAM_DIR_DEFAULT;
-    m_config_dir     = storm::fs::CONFIG_DIR_DEFAULT;
-    m_aliases_dir    = storm::fs::ALIASES_DIR_DEFAULT;
-    m_sounds_dir     = storm::fs::SOUNDS_DIR_DEFAULT;
-    m_videos_dir     = storm::fs::VIDEOS_DIR_DEFAULT;
-    m_animation_dir  = storm::fs::ANIMATION_DIR_DEFAULT;
-    m_models_dir     = storm::fs::MODELS_DIR_DEFAULT;
-    m_foam_dir       = storm::fs::FOAM_DIR_DEFAULT;
-    m_techniques_dir = storm::fs::TECHNIQUES_DIR_DEFAULT;
-    m_particles_dir  = storm::fs::PARTICLES_DIR_DEFAULT;
-    m_textures_dir   = storm::fs::TEXTURES_DIR_DEFAULT;
-    m_sea_dir        = storm::fs::SEA_DIR_DEFAULT;
-    m_use_lowercase  = false;
+    m_paths.resource   = storm::fs::RESOURCE_DIR_DEFAULT;
+    m_paths.program    = storm::fs::PROGRAM_DIR_DEFAULT;
+    m_paths.config     = storm::fs::CONFIG_DIR_DEFAULT;
+    m_paths.aliases    = storm::fs::ALIASES_DIR_DEFAULT;
+    m_paths.sounds     = storm::fs::SOUNDS_DIR_DEFAULT;
+    m_paths.videos     = storm::fs::VIDEOS_DIR_DEFAULT;
+    m_paths.animation  = storm::fs::ANIMATION_DIR_DEFAULT;
+    m_paths.models     = storm::fs::MODELS_DIR_DEFAULT;
+    m_paths.foam       = storm::fs::FOAM_DIR_DEFAULT;
+    m_paths.techniques = storm::fs::TECHNIQUES_DIR_DEFAULT;
+    m_paths.particles  = storm::fs::PARTICLES_DIR_DEFAULT;
+    m_paths.textures   = storm::fs::TEXTURES_DIR_DEFAULT;
+    m_paths.sea        = storm::fs::SEA_DIR_DEFAULT;
+    m_use_lowercase    = false;
 }
 
 FileService::~FileService()
@@ -320,44 +320,31 @@ uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
 std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
 {
     switch (dir) {
-    case BaseDirectory::Resource: return m_resource_dir;
-    case BaseDirectory::Program: return m_program_dir;
-    case BaseDirectory::Config: return m_config_dir;
-    case BaseDirectory::Aliases: return m_aliases_dir;
-    case BaseDirectory::Sounds: return m_sounds_dir;
-    case BaseDirectory::Videos: return m_videos_dir;
-    case BaseDirectory::Animation: return m_animation_dir;
-    case BaseDirectory::Models: return m_models_dir;
-    case BaseDirectory::Foam: return m_foam_dir;
-    case BaseDirectory::Techniques: return m_techniques_dir;
-    case BaseDirectory::Particles: return m_particles_dir;
-    case BaseDirectory::Textures: return m_textures_dir;
-    case BaseDirectory::Sea: return m_sea_dir;
+    case BaseDirectory::Resource: return m_paths.resource;
+    case BaseDirectory::Program: return m_paths.program;
+    case BaseDirectory::Config: return m_paths.config;
+    case BaseDirectory::Aliases: return m_paths.aliases;
+    case BaseDirectory::Sounds: return m_paths.sounds;
+    case BaseDirectory::Videos: return m_paths.videos;
+    case BaseDirectory::Animation: return m_paths.animation;
+    case BaseDirectory::Models: return m_paths.models;
+    case BaseDirectory::Foam: return m_paths.foam;
+    case BaseDirectory::Techniques: return m_paths.techniques;
+    case BaseDirectory::Particles: return m_paths.particles;
+    case BaseDirectory::Textures: return m_paths.textures;
+    case BaseDirectory::Sea: return m_paths.sea;
     case BaseDirectory::None: return std::filesystem::path();
     }
 
     return executable_directory();
 }
 
-void FileService::load_service_parameters_from_config(storm::IConfigLoader& config_loader, std::filesystem::path const& config_file)
+void FileService::init_from_main_config(storm::IConfigLoader& config_loader)
 {
-    auto const config = config_loader.open_config_cached(config_file);
+    auto const compat = storm::main_config::compatibility_info(config_loader);
+    m_use_lowercase   = compat.use_lowercase_paths;
 
-    m_resource_dir   = config->get("paths", "resource", storm::fs::RESOURCE_DIR_DEFAULT.string());
-    m_program_dir    = config->get("paths", "program", storm::fs::PROGRAM_DIR_DEFAULT.string());
-    m_config_dir     = config->get("paths", "config", storm::fs::CONFIG_DIR_DEFAULT.string());
-    m_aliases_dir    = config->get("paths", "aliases", storm::fs::ALIASES_DIR_DEFAULT.string());
-    m_sounds_dir     = config->get("paths", "sounds", storm::fs::SOUNDS_DIR_DEFAULT.string());
-    m_videos_dir     = config->get("paths", "videos", storm::fs::VIDEOS_DIR_DEFAULT.string());
-    m_animation_dir  = config->get("paths", "animation", storm::fs::ANIMATION_DIR_DEFAULT.string());
-    m_models_dir     = config->get("paths", "models", storm::fs::MODELS_DIR_DEFAULT.string());
-    m_foam_dir       = config->get("paths", "foam", storm::fs::FOAM_DIR_DEFAULT.string());
-    m_techniques_dir = config->get("paths", "techniques", storm::fs::TECHNIQUES_DIR_DEFAULT.string());
-    m_particles_dir  = config->get("paths", "particles", storm::fs::PARTICLES_DIR_DEFAULT.string());
-    m_textures_dir   = config->get("paths", "textures", storm::fs::TEXTURES_DIR_DEFAULT.string());
-    m_sea_dir        = config->get("paths", "sea", storm::fs::SEA_DIR_DEFAULT.string());
-
-    m_use_lowercase = config->get("compatibility", "use_lowercase_paths", false);
+    m_paths = storm::main_config::paths_info(config_loader);
 }
 
 //=================================================================================================

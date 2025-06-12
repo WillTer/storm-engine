@@ -3,7 +3,7 @@
 #include <memory>
 #include <utility>
 
-#include <libs/filesystem/i_config_loader.h>
+#include <libs/config/i_config_loader.h>
 
 namespace storm
 {

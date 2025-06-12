@@ -2,12 +2,13 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <libs/config/config_loader.h>
+#include <libs/config/main_config.h>
 #include <libs/core/core_private.h>
 #include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
-#include <libs/filesystem/config_loader.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
@@ -95,10 +96,11 @@ int main()
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
     auto const service_locator = std::make_shared<storm::ServiceLocator>();
-    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>());
+    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
 
     // Load parameters of file service
-    fio->load_service_parameters_from_config(*service_locator->get<storm::IConfigLoader>(), storm::fs::MAIN_CONFIG_PATH);
+    auto const config_loader = service_locator->get<storm::IConfigLoader>();
+    fio->init_from_main_config(*config_loader);
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
@@ -127,33 +129,25 @@ int main()
     core_private->Init(service_locator);
 
     // Read config
-    auto const config_loader = service_locator->get<storm::IConfigLoader>();
-    auto const config_file   = config_loader->open_config_cached(fs::ENGINE_TOML_FILE_NAME);
+    auto const general_info = storm::main_config::general_info(*config_loader);
+    auto const window_info  = storm::main_config::window_info(*config_loader);
 
-    auto const max_fps = config_file->get("window", "max_fps", 0U);
-    if (!config_file->get("", "logs", true))  // disable logging
+    if (!general_info.enable_logs)  // disable logging
     {
         spdlog::set_level(spdlog::level::off);
     }
 
-    auto const width             = config_file->get("window", "width", 1024);
-    auto const height            = config_file->get("window", "height", 768);
-    auto const preferred_display = config_file->get("window", "display", 0);
-    auto const fullscreen        = config_file->get("window", "full_screen", false);
-    auto const show_borders      = config_file->get("window", "borders", false);
-    auto const run_in_background = config_file->get("window", "run_in_background", false);
-    auto const steam             = config_file->get("", "steam", false);
-
-    is_sound_in_background_enabled = run_in_background && config_file->get("window", "sound_in_background", true);
+    is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
     try {
-        steamapi::SteamApi::getInstance(!steam);
+        steamapi::SteamApi::getInstance(!general_info.use_steam);
     } catch (std::exception const& e) {
         spdlog::critical(e.what());
         return EXIT_FAILURE;
     }
 
-    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(width, height, preferred_display, fullscreen, show_borders);
+    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
+        window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
@@ -170,9 +164,9 @@ int main()
         SDL_PumpEvents();
         SDL_FlushEvents(0, SDL_LASTEVENT);
 
-        if (is_active || run_in_background) {
-            if (max_fps != 0U) {
-                auto const ms       = 1000U / max_fps;
+        if (is_active || window_info.run_in_background) {
+            if (window_info.max_fps != 0U) {
+                auto const ms       = 1000U / window_info.max_fps;
                 auto const new_time = SDL_GetTicks();
                 if (new_time - old_time < ms) { continue; }
                 old_time = new_time;

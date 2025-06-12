@@ -174,7 +174,7 @@ SoundID SoundService::play(
         auto& alias = m_aliases[name];
 
         // play sound from the alias ...
-        sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.sound_files.pickRandom();
+        sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.files.pickRandom();
         if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
@@ -397,32 +397,6 @@ void SoundService::stop(SoundID id, int32_t time)
     stop_sound(m_playing_sounds[id.index()], time);
 }
 
-void SoundService::add_alias(std::string const& section_name, storm::ConfigTable const& section)
-{
-    if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.c_str()); }
-
-    m_aliases.emplace(
-        section_name,
-        Alias {
-            .min_distance = storm::config::find(section, "min_distance", -1.0F),
-            .max_distance = storm::config::find(section, "max_distance", -1.0F),
-            .volume       = storm::config::find(section, "volume", -1.0F),
-        });
-
-    Alias&     alias       = m_aliases[std::string(section_name)];
-    auto const sound_files = storm::config::find<std::vector<storm::ConfigValue>>(section, "sound_files");
-    for (auto const& sound_file: sound_files) {
-        if (!sound_file.is_table()) { return; }
-
-        auto const table       = sound_file.as_table();
-        auto const name        = storm::config::find<std::string>(table, "name");
-        auto const probability = storm::config::find(table, "probability", DEFAULT_PROBABILITY);
-
-        alias.sound_files.emplace(probability, name);
-        if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", name.c_str(), probability); }
-    }
-}
-
 void SoundService::load_alias_file(std::string const& filename)
 {
     if (!m_service_locator) {
@@ -435,12 +409,8 @@ void SoundService::load_alias_file(std::string const& filename)
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
     auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const config        = config_loader->open_config_cached(config_file);
 
-    for (auto const& [section_name, section]: config->as_table()) {
-        if (!section.is_table()) { continue; }
-        add_alias(section_name, section.as_table());
-    }
+    m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
 }
 
 void SoundService::init_aliases()

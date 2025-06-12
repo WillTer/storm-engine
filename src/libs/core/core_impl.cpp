@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <SDL2/SDL.h>
+#include <libs/config/main_config.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -17,33 +18,6 @@ uint64_t get_performance_counter()
 {
     return SDL_GetPerformanceCounter();
 }
-
-namespace storm
-{
-namespace
-{
-ENGINE_VERSION getTargetEngineVersion(std::string_view const& version)
-{
-    using namespace std::string_view_literals;
-
-    if (iEquals(version, "sd"sv)) {
-        return ENGINE_VERSION::SEA_DOGS;
-    } else if (iEquals(version, "potc"sv)) {
-        return ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN;
-    } else if (iEquals(version, "ct"sv)) {
-        return ENGINE_VERSION::CARIBBEAN_TALES;
-    } else if (iEquals(version, "coas"sv)) {
-        return ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS;
-    } else if (iEquals(version, "teho"sv)) {
-        return ENGINE_VERSION::TO_EACH_HIS_OWN;
-    } else if (iEquals(version, "latest"sv)) {
-        return ENGINE_VERSION::LATEST;
-    }
-
-    return ENGINE_VERSION::UNKNOWN;
-}
-}  // namespace
-}  // namespace storm
 
 uint32_t dwNumberScriptCommandsExecuted = 0;
 
@@ -224,13 +198,13 @@ void CoreImpl::ProcessEngineIniFile()
     bEngineIniProcessed = true;
 
     auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const config        = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const script_info   = storm::main_config::script_info(*config_loader);
 
     auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
     Compiler->SetProgramDirectory(program_dir.string().c_str());
 
-    if (auto const controls_name = config->try_get<std::string>("script", "controls"); controls_name.has_value()) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_name.value().c_str()));
+    if (!script_info.controls.empty()) {
+        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(script_info.controls.c_str()));
         if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
@@ -239,11 +213,10 @@ void CoreImpl::ProcessEngineIniFile()
         core_internal.Controls = new CONTROLS;
     }
 
-    loadCompatibilitySettings(*config);
+    auto const compat_info = storm::main_config::compatibility_info(*config_loader);
+    targetVersion_         = compat_info.target_version;
 
-    auto entry_point = config->get<std::string>("script", "entry_point");
-
-    if (!Compiler->CreateProgram(entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
+    if (!Compiler->CreateProgram(script_info.entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
     if (!Compiler->Run()) { throw std::runtime_error("fail to run program"); }
 
     // Script version test
@@ -896,15 +869,4 @@ void CoreImpl::ForEachEntity(std::function<void(entptr_t)> const& f)
 void CoreImpl::collectCrashInfo() const
 {
     Compiler->CollectCallStack();
-}
-
-void CoreImpl::loadCompatibilitySettings(storm::ConfigFile const& config_file_data)
-{
-    auto target_version = config_file_data.get<std::string>("compatibility", "target_version", "latest");
-
-    targetVersion_ = storm::getTargetEngineVersion(target_version);
-    if (targetVersion_ == storm::ENGINE_VERSION::UNKNOWN) {
-        spdlog::warn("Unknown target version '{}' in engine compatibility settings", target_version);
-        targetVersion_ = storm::ENGINE_VERSION::LATEST;
-    }
 }

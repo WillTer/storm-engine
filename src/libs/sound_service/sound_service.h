@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#include <libs/config/sound_alias.h>
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
@@ -16,14 +17,6 @@ class INIFILE;
 class SoundService: public VSoundService
 {
 public:
-    struct Alias {
-        float min_distance;
-        float max_distance;
-        float volume;
-
-        storm::ProbabilityTable<std::string> sound_files;
-    };
-
     struct PlayingSound {
         std::shared_ptr<storm::audio::Source> source;
 
@@ -132,7 +125,6 @@ private:
 
     // Aliases ------------------------------------------------------------
 
-    void add_alias(std::string const& section_name, storm::ConfigTable const& section);
     void load_alias_file(std::string const& filename) override;
     void init_aliases();
 
@@ -152,7 +144,7 @@ private:
     std::vector<PlayingSound>       m_playing_sounds;
     std::vector<SoundSchemeChannel> m_sound_scheme_channels;
 
-    std::unordered_map<std::string, Alias>                     m_aliases;
+    std::unordered_map<std::string, storm::SoundAlias>         m_aliases;
     std::unordered_map<std::string, std::chrono::milliseconds> m_ogg_pos;
 
     std::unordered_multimap<std::string, CacheEntry> m_sound_cache;
