@@ -1,3 +1,4 @@
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
@@ -62,8 +63,9 @@ bool GEOMETRY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
-    auto ini = fio->open_ini_file(core.EngineIniFileName());
-    if (ini) { geoLog = ini->GetInt(nullptr, "geometry_log", 0) == 1; }
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const device_info   = storm::main_config::device_info(*config_loader);
+    geoLog                   = device_info.geometry_log;
 
     return true;
 }

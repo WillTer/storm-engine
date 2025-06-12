@@ -48,6 +48,10 @@ struct DeviceInfo {
     bool        drop_video_conveyor;
 };
 
+struct SoundInfo {
+    uint64_t fade_time_ms;
+};
+
 struct ScriptInfo {
     std::string entry_point;
     std::string controls;
@@ -94,6 +98,7 @@ namespace main_config
 GeneralInfo       general_info(IConfigLoader& config_loader);
 WindowInfo        window_info(IConfigLoader& config_loader);
 DeviceInfo        device_info(IConfigLoader& config_loader);
+SoundInfo         sound_info(IConfigLoader& config_loader);
 ScriptInfo        script_info(IConfigLoader& config_loader);
 CompatibilityInfo compatibility_info(IConfigLoader& config_loader);
 PathsInfo         paths_info(IConfigLoader& config_loader);

@@ -50,6 +50,10 @@ DeviceInfo const DEFAULT_DEVICE_INFO = {
     .drop_video_conveyor       = false,
 };
 
+SoundInfo const DEFAULT_SOUND_INFO = {
+    .fade_time_ms = 500,
+};
+
 ScriptInfo const DEFAULT_SCRIPT_INFO = {
     .entry_point      = "",
     .controls         = "",
@@ -183,6 +187,18 @@ struct from<storm::DeviceInfo> {
 };
 
 template <>
+struct from<storm::SoundInfo> {
+    static storm::SoundInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_SOUND_INFO; }
+
+        return {
+            .fade_time_ms = toml::find_or(v, "fade_time_ms", DEFAULT_SOUND_INFO.fade_time_ms),
+        };
+    }
+};
+
+template <>
 struct from<storm::ScriptInfo> {
     static storm::ScriptInfo from_toml(toml::value const& v)
     {
@@ -272,6 +288,12 @@ DeviceInfo main_config::device_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "device", DEFAULT_DEVICE_INFO);
+}
+
+SoundInfo main_config::sound_info(IConfigLoader& config_loader)
+{
+    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    return toml::find_or(config_file, "sound", DEFAULT_SOUND_INFO);
 }
 
 ScriptInfo main_config::script_info(IConfigLoader& config_loader)

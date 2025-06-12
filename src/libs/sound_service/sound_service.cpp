@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/core/vma.hpp>
 #include <libs/filesystem/default_paths.h>
@@ -91,10 +92,9 @@ bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    constexpr float sec_to_ms_mult = 1000.0F;
-    if (auto const ini = fio->open_ini_file(core.EngineIniFileName())) {
-        m_fade_time = std::chrono::milliseconds(static_cast<uint64_t>(ini->GetFloat("sound", "fade_time", FADE_DEFAULT) * sec_to_ms_mult));
-    }
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const sound_info    = storm::main_config::sound_info(*config_loader);
+    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
