@@ -71,8 +71,10 @@ public:
     virtual void init_from_main_config(storm::IConfigLoader& config_loader) = 0;
 
     // ini files section
-    virtual std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
-    virtual std::unique_ptr<INIFILE> open_ini_file(std::filesystem::path const& file)                       = 0;
+    [[deprecated("Ini config files are deprecated, rewrite configs for TOML parser in libs/config")]] virtual std::unique_ptr<INIFILE>
+    create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
+    [[deprecated("Ini config files are deprecated, rewrite configs for TOML parser in libs/config")]] virtual std::unique_ptr<INIFILE>
+    open_ini_file(std::filesystem::path const& file) = 0;
 
     virtual uint64_t path_fingerprint(std::filesystem::path const& path) = 0;
 

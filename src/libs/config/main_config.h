@@ -22,18 +22,38 @@ struct WindowInfo {
     bool        show_borders;
     bool        run_in_background;
     bool        sound_in_background;
+    bool        vsync;
     uint32_t    max_fps;
     std::string font_config;
     std::string font_type;
 };
 
+struct DeviceInfo {
+    int         adapter;
+    int         msaa_level;
+    float       fov_multiplier;
+    float       near_clip_plane;
+    float       far_clip_plane;
+    bool        post_process;
+    std::string screen_bpp;
+    std::string screenshot_ext;
+    bool        show_exinfo;
+    bool        lockable_back_buffer;
+    bool        use_large_back_buffer;
+    int         texture_degradation_level;
+    bool        show_fps;
+    bool        safe_rendering;
+    bool        texture_log;
+    bool        geometry_log;
+    bool        drop_video_conveyor;
+};
+
 struct ScriptInfo {
     std::string entry_point;
     std::string controls;
-    bool        enable_debuginfo;
-    bool        enable_codefiles;
-    bool        enable_runtimelog;
-    bool        enable_tracefiles;
+    bool        compilation_logs;
+    bool        create_codefiles;
+    bool        runtime_logs;
 };
 
 struct CompatibilityInfo {
@@ -57,14 +77,25 @@ struct PathsInfo {
     std::filesystem::path sea;
 };
 
+struct ProgressImageInfo {
+    float relative_x;
+    float relative_y;
+    float relative_width;
+    float relative_height;
+    int   h_frames_count;
+    int   v_frames_count;
+};
+
 namespace main_config
 {
 
 GeneralInfo       general_info(IConfigLoader& config_loader);
 WindowInfo        window_info(IConfigLoader& config_loader);
+DeviceInfo        device_info(IConfigLoader& config_loader);
 ScriptInfo        script_info(IConfigLoader& config_loader);
 CompatibilityInfo compatibility_info(IConfigLoader& config_loader);
 PathsInfo         paths_info(IConfigLoader& config_loader);
+ProgressImageInfo progress_image_info(IConfigLoader& config_loader);
 
 }  // namespace main_config
 

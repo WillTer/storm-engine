@@ -19,7 +19,7 @@ template <>
 struct from<storm::SoundAlias> {
     static storm::SoundAlias from_toml(toml::value const& v)
     {
-        // No files - no alias
+        // No sound_files - no alias
         if (!v.is_table() || !v.contains("sound_files") || !v.at("sound_files").is_array()) { return {}; }
 
         storm::ProbabilityTable<std::string> files = {};

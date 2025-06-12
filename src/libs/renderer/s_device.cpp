@@ -4,6 +4,7 @@
 
 #include <SDL_timer.h>
 #include <fmt/chrono.h>
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
@@ -15,7 +16,6 @@
 #include <libs/util/string_compare.hpp>
 
 #include "texture.h"
-
 
 #ifdef _WIN32
 #include <DxErr.h>
@@ -32,8 +32,8 @@ CREATE_SCRIPTLIBRIARY(DX9RENDER_SCRIPT_LIBRIARY)
 
 #define S_RELEASE(a, b) \
     if (a) { \
-        ULONG refc = a->Release(); \
-        a          = NULL; \
+        [[maybe_unused]] ULONG refc = a->Release(); \
+        a                           = NULL; \
     }
 
 namespace
@@ -435,117 +435,112 @@ bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
 
     create_directories(fs::GetScreenshotsPath());
 
-    auto ini = fio->open_ini_file(core.EngineIniFileName());
-    if (ini) {
-        // bPostProcessEnabled = ini->GetInt(0, "PostProcess", 0) == 1;
-        bPostProcessEnabled = false;  //~!~
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const window_info   = storm::main_config::window_info(*config_loader);
+    auto const device_info   = storm::main_config::device_info(*config_loader);
 
-        // screenshot format and extension
-        ini->ReadString(nullptr, "screenshot_format", str, sizeof(str), "jpg");
-        screenshotExt = str;
-        std::ranges::transform(screenshotExt, screenshotExt.begin(), [](unsigned char const c) { return std::tolower(c); });
+    bPostProcessEnabled = device_info.post_process;  // TODO: check it
+
+    // screenshot format and extension
+    screenshotExt = device_info.screenshot_ext;
 #ifdef _WIN32  // Screenshot
-        screenshotFormat = GetScreenshotFormat(str);
-        if (screenshotFormat == D3DXIFF_FORCE_DWORD) {
-            screenshotExt    = "jpg";
-            screenshotFormat = D3DXIFF_JPG;
-        }
+    screenshotFormat = GetScreenshotFormat(str);
+    if (screenshotFormat == D3DXIFF_FORCE_DWORD) {
+        screenshotExt    = "jpg";
+        screenshotFormat = D3DXIFF_JPG;
+    }
 #endif
 
-        bShowFps            = ini->GetInt(nullptr, "show_fps", 0) == 1;
-        bShowExInfo         = ini->GetInt(nullptr, "show_exinfo", 0) == 1;
-        bSafeRendering      = ini->GetInt(nullptr, "safe_render", 0) == 0;
-        bDropVideoConveyor  = ini->GetInt(nullptr, "DropVideoConveyor", 0) != 0;
-        texLog              = ini->GetInt(nullptr, "texture_log", 0) == 1;
-        bUseLargeBackBuffer = ini->GetInt(nullptr, "UseLargeBackBuffer", 0) != 0;
+    bShowFps            = device_info.show_fps;
+    bShowExInfo         = device_info.show_exinfo;
+    bSafeRendering      = device_info.safe_rendering;
+    bDropVideoConveyor  = device_info.drop_video_conveyor;
+    texLog              = device_info.texture_log;
+    bUseLargeBackBuffer = device_info.use_large_back_buffer;
 
-        bWindow = ini->GetInt(nullptr, "full_screen", 1) == 0;
+    bWindow = !window_info.full_screen;
 
-        nTextureDegradation = ini->GetInt(nullptr, "texture_degradation", 0);
+    nTextureDegradation = device_info.texture_degradation_level;
 
-        FovMultiplier = ini->GetFloat(nullptr, "fov_multiplier", 1.0f);
+    FovMultiplier = device_info.fov_multiplier;
 
-        screen_size.x      = ini->GetInt(nullptr, "screen_x", 1024);
-        screen_size.y      = ini->GetInt(nullptr, "screen_y", 768);
-        fNearClipPlane     = ini->GetFloat(nullptr, "NearClipPlane", 0.1f);
-        fFarClipPlane      = ini->GetFloat(nullptr, "FarClipPlane", 4000.0f);
-        bBackBufferCanLock = ini->GetInt(nullptr, "lockable_back_buffer", 0) != 0;
-        ini->ReadString(nullptr, "screen_bpp", str, sizeof(str), "D3DFMT_R5G6B5");
+    screen_size.x      = window_info.width;
+    screen_size.y      = window_info.height;
+    fNearClipPlane     = device_info.near_clip_plane;
+    fFarClipPlane      = device_info.far_clip_plane;
+    bBackBufferCanLock = device_info.lockable_back_buffer;
+    screen_bpp         = D3DFMT_R5G6B5;
+    stencil_format     = D3DFMT_D16;
+    if (device_info.screen_bpp == "D3DFMT_A8R8G8B8") {
+        screen_bpp     = D3DFMT_A8R8G8B8;
+        stencil_format = D3DFMT_D24S8;
+    }
+    if (device_info.screen_bpp == "D3DFMT_X8R8G8B8") {
+        screen_bpp     = D3DFMT_X8R8G8B8;
+        stencil_format = D3DFMT_D24S8;
+    }
+    if (device_info.screen_bpp == "D3DFMT_R5G6B5") {
         screen_bpp     = D3DFMT_R5G6B5;
         stencil_format = D3DFMT_D16;
-        if (storm::iEquals(str, "D3DFMT_A8R8G8B8")) {
-            screen_bpp     = D3DFMT_A8R8G8B8;
-            stencil_format = D3DFMT_D24S8;
-        }
-        if (storm::iEquals(str, "D3DFMT_X8R8G8B8")) {
-            screen_bpp     = D3DFMT_X8R8G8B8;
-            stencil_format = D3DFMT_D24S8;
-        }
-        if (storm::iEquals(str, "D3DFMT_R5G6B5")) {
-            screen_bpp     = D3DFMT_R5G6B5;
-            stencil_format = D3DFMT_D16;
-        }
+    }
 
-        // new renderer settings
-        vSyncEnabled = ini->GetInt(nullptr, "vsync", 0);
+    // new renderer settings
+    vSyncEnabled = window_info.vsync;
 
-        msaa = ini->GetInt(nullptr, "msaa", D3DMULTISAMPLE_NONE);
-        if (msaa != D3DMULTISAMPLE_NONE) {
-            if (msaa < D3DMULTISAMPLE_2_SAMPLES || msaa > D3DMULTISAMPLE_16_SAMPLES) { msaa = D3DMULTISAMPLE_16_SAMPLES; }
-        }
+    msaa = device_info.msaa_level;
+    if (msaa != D3DMULTISAMPLE_NONE) {
+        if (msaa < D3DMULTISAMPLE_2_SAMPLES || msaa > D3DMULTISAMPLE_16_SAMPLES) { msaa = D3DMULTISAMPLE_16_SAMPLES; }
+    }
 
-        videoAdapterIndex = ini->GetInt(nullptr, "adapter", std::numeric_limits<int32_t>::max());
+    videoAdapterIndex = device_info.adapter;
 
-        // stencil_format = D3DFMT_D24S8;
-        if (!InitDevice(bWindow, static_cast<HWND>(core.GetWindow()->OSHandle()), screen_size.x, screen_size.y)) return false;
+    // stencil_format = D3DFMT_D24S8;
+    if (!InitDevice(bWindow, static_cast<HWND>(core.GetWindow()->OSHandle()), screen_size.x, screen_size.y)) { return false; }
 
 #ifdef _WIN32  // Effects
-        RecompileEffects();
+    RecompileEffects();
 #else
-        pTechnique = std::make_unique<CTechnique>(this);
-        pTechnique->DecodeFiles();
+    pTechnique = std::make_unique<CTechnique>(this);
+    pTechnique->DecodeFiles();
 #endif
 
-        // get start ini file for fonts
-        if (!ini->ReadString(nullptr, "startFontIniFile", str, sizeof(str) - 1, "")) {
-            core.Trace("Not finded 'startFontIniFile' parameter into ENGINE.INI file");
-            sprintf_s(str, (fio->base_directory_path(BaseDirectory::Config) / "fonts.ini").string().c_str());
-        }
-        auto const len = strlen(str) + 1;
-        if ((fontIniFileName = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");
-        strcpy_s(fontIniFileName, len, str);
-        // get start font quantity
-        if (!ini->ReadString(nullptr, "font", str, sizeof(str) - 1, "")) {
-            core.Trace("Start font not defined");
-            sprintf_s(str, "normal");
-        }
-        if (LoadFont(str) == -1L) core.Trace("can not init start font: %s", str);
-        idFontCurrent = 0L;
-
-        // Progress image parameters
-        progressFramesPosX  = ini->GetFloat("ProgressImage", "RelativePosX", 0.85f);
-        progressFramesPosY  = ini->GetFloat("ProgressImage", "RelativePosY", 0.8f);
-        progressFramesWidth = ini->GetFloat("ProgressImage", "RelativeWidth", 0.0625f);
-        if (progressFramesWidth < 0.0f) progressFramesWidth = 0.0f;
-        if (progressFramesWidth > 10.0f) progressFramesWidth = 10.0f;
-        progressFramesHeight = ini->GetFloat("ProgressImage", "RelativeHeight", 0.0625f);
-        if (progressFramesHeight < 0.0f) progressFramesHeight = 0.0f;
-        if (progressFramesHeight > 10.0f) progressFramesHeight = 10.0f;
-        progressFramesCountX = static_cast<int32_t>(ini->GetFloat("ProgressImage", "HorisontalFramesCount", 8));
-        if (progressFramesCountX < 1) progressFramesCountX = 1;
-        if (progressFramesCountX > 64) progressFramesCountX = 64;
-        progressFramesCountY = static_cast<int32_t>(ini->GetFloat("ProgressImage", "VerticalFramesCount", 8));
-        if (progressFramesCountY < 1) progressFramesCountY = 1;
-        if (progressFramesCountY > 64) progressFramesCountY = 64;
-
-        CreateSphere();
-        auto*       pScriptRender = static_cast<VDATA*>(core.GetScriptVariable("Render"));
-        ATTRIBUTES* pARender      = pScriptRender->GetAClass();
-
-        pARender->SetAttributeUseDword("full_screen", !bWindow);
-        pARender->SetAttributeUseDword("screen_x", screen_size.x);
-        pARender->SetAttributeUseDword("screen_y", screen_size.y);
+    auto font_config = window_info.font_config;
+    // get start ini file for fonts
+    if (font_config.empty()) {
+        core.Trace("Not found 'font_config' parameter in engine.toml file (must be in 'window' section)");
+        font_config = (fio->base_directory_path(BaseDirectory::Config) / "fonts.ini").string();
     }
+
+    auto const len = font_config.size() + 1;
+    if ((fontIniFileName = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");
+    strcpy_s(fontIniFileName, len, font_config.c_str());
+
+    auto font_type = window_info.font_type;
+    // get start font quantity
+    if (font_type.empty()) {
+        core.Trace("Start font not defined (parameter 'font_type' in 'window' section), using 'normal'");
+        font_type = "normal";
+    }
+
+    if (LoadFont(font_type.c_str()) == -1L) core.Trace("can not init start font: %s", font_type.c_str());
+    idFontCurrent = 0L;
+
+    // Progress image parameters
+    auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
+    progressFramesPosX             = progress_image_info.relative_x;
+    progressFramesPosY             = progress_image_info.relative_y;
+    progressFramesWidth            = std::clamp(progress_image_info.relative_width, 0.0F, 10.0F);
+    progressFramesHeight           = std::clamp(progress_image_info.relative_height, 0.0F, 10.0F);
+    progressFramesCountX           = std::clamp(progress_image_info.h_frames_count, 1, 64);
+    progressFramesCountY           = std::clamp(progress_image_info.v_frames_count, 1, 64);
+
+    CreateSphere();
+    auto*       pScriptRender = static_cast<VDATA*>(core.GetScriptVariable("Render"));
+    ATTRIBUTES* pARender      = pScriptRender->GetAClass();
+
+    pARender->SetAttributeUseDword("full_screen", !bWindow);
+    pARender->SetAttributeUseDword("screen_x", screen_size.x);
+    pARender->SetAttributeUseDword("screen_y", screen_size.y);
 
     pDropConveyorVBuffer = nullptr;
     rectsVBuffer         = nullptr;
