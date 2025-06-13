@@ -1,7 +1,9 @@
 #pragma once
 
-#include "d3d9types.h"
-#include "windows.h"
+// clang-format off
+#include <windows.h>
+#include <d3d9types.h>
+// clang-format on
 
 #define SINK_SPLASH_TRACE_INFORMATION
 

@@ -96,7 +96,7 @@ inline int Utf8ToCodepoint(char const* utf8)
     unsigned char u1 = utf8[1];
     if (u0 >= 0xC0 && u0 <= 0xDF) return (u0 - 192) * 64 + (u1 - 128);
 
-    if (utf8[0] == 0xed && (utf8[1] & 0xa0) == 0xa0) return -1;  // code points, 0xd800 to 0xdfff
+    if (u0 == 0xed && (u1 & 0xa0) == 0xa0) return -1;  // code points, 0xd800 to 0xdfff
 
     if (l < 3) return -1;
     unsigned char u2 = utf8[2];

@@ -9,8 +9,3 @@ char const ANIMALS_FISHSCHOOL_FILENAME[]      = "fish01";
 char       ANIMALS_FISHSCHOOLS_SECTION[]      = "fish schools";
 char const ANIMALS_BUTTERFLY_FILENAME[]       = "fish01";
 char       ANIMALS_BUTTERFLIES_SECTION[]      = "butterflies";
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-
-static float const randDivider = 100.0f;
