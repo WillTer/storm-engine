@@ -521,6 +521,12 @@ void CoreImpl::ProcessRunStart(uint32_t section_code)
         if (section == section_code) { service_PTR->RunStart(); }
         service_PTR = Services_List.GetServiceNext(class_code);
     }
+
+    for (auto const& service: m_registered_services) {
+        if (auto const service_shared = service.lock(); service_shared && service_shared->RunSection() == section_code) {
+            service_shared->RunStart();
+        }
+    }
 }
 
 void CoreImpl::ProcessRunEnd(uint32_t section_code)
@@ -531,6 +537,12 @@ void CoreImpl::ProcessRunEnd(uint32_t section_code)
         uint32_t const section = service_PTR->RunSection();
         if (section == section_code) { service_PTR->RunEnd(); }
         service_PTR = Services_List.GetServiceNext(class_code);
+    }
+
+    for (auto const& service: m_registered_services) {
+        if (auto const service_shared = service.lock(); service_shared && service_shared->RunSection() == section_code) {
+            service_shared->RunEnd();
+        }
     }
 }
 
@@ -863,6 +875,29 @@ bool CoreImpl::IsLayerFrozen(layer_index_t index) const
 void CoreImpl::ForEachEntity(std::function<void(entptr_t)> const& f)
 {
     entity_manager_->ForEachEntity(f);
+}
+
+void CoreImpl::register_service(std::weak_ptr<SERVICE> const& service)
+{
+    auto const service_shared = service.lock();
+    if (!service_shared) { return; }
+
+    if (std::ranges::any_of(
+            m_registered_services, [service_shared](auto const& entry) { return entry.lock() && entry.lock() == service_shared; })) {
+        return;
+    }
+
+    m_registered_services.push_back(service);
+}
+
+void CoreImpl::unregister_service(std::weak_ptr<SERVICE> const& service)
+{
+    auto const service_shared = service.lock();
+    m_registered_services.erase(
+        std::ranges::remove_if(
+            m_registered_services, [service_shared](auto const& entry) { return !entry.lock() || entry.lock() == service_shared; })
+            .begin(),
+        m_registered_services.end());
 }
 
 void CoreImpl::collectCrashInfo() const

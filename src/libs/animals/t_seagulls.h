@@ -33,7 +33,7 @@ public:
     virtual ~TSeagulls();
 
     uint64_t ProcessMessage(int32_t _code, MESSAGE& message);
-    void     Init();
+    void     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
     void     Add(float _x, float _y, float _z);
     void     Realize(uint32_t dTime);
     void     Execute(uint32_t dTime);
@@ -47,24 +47,25 @@ private:
     void LoadSettings();
     void Frighten();
 
-    entid_t        seagullModel;
-    tSeagull       seagulls[SEAGULL_COUNT];
-    VDX9RENDER*    renderService;
-    VSoundService* soundService;
-    bool           enabled;
-    int32_t        count;
-    float          maxDistance;
-    float          maxRadius;
-    float          maxAngleSpeed;
-    float          maxHeight;
-    int32_t        countAdd;
-    int32_t        maxCircleTime;
-    int32_t        farChoiceChance;
-    int32_t        relaxTime;
-    bool           frightened;
-    int32_t        frightenTime;
-    int32_t        screamTime;
-    char           screamFilename[256];
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+
+    entid_t     seagullModel;
+    tSeagull    seagulls[SEAGULL_COUNT];
+    VDX9RENDER* renderService;
+    bool        enabled;
+    int32_t     count;
+    float       maxDistance;
+    float       maxRadius;
+    float       maxAngleSpeed;
+    float       maxHeight;
+    int32_t     countAdd;
+    int32_t     maxCircleTime;
+    int32_t     farChoiceChance;
+    int32_t     relaxTime;
+    bool        frightened;
+    int32_t     frightenTime;
+    int32_t     screamTime;
+    char        screamFilename[256];
 
     CVECTOR cameraPos, cameraAng;
     float   startY;

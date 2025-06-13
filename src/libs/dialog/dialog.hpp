@@ -211,10 +211,9 @@ private:
     static void GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FRECT& frect);
     static void GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FPOINT& fpoint);
 
-    VSoundService* snd;
-    entid_t        charId, persId;
-    entid_t        charMdl, persMdl;
-    D3DVIEWPORT9   textViewport;
+    entid_t      charId, persId;
+    entid_t      charMdl, persMdl;
+    D3DVIEWPORT9 textViewport;
 
     int32_t curSnd;
     char    soundName[256];

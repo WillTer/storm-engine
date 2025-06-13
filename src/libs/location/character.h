@@ -440,8 +440,6 @@ public:
     static char const* GetValueByPrefix(char const* str, char const* pref);
 
 protected:
-    //
-    VSoundService* soundService;
     // Character sizes
     float radius, radiusNrm, radiusFgt;
     // Current and previous positions

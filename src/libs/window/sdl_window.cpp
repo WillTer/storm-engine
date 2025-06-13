@@ -4,7 +4,10 @@
 
 namespace storm
 {
-SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered) : fullscreen_(fullscreen)
+SDLWindow::SDLWindow(
+    std::shared_ptr<ServiceLocator> const& service_locator, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+    : m_service_locator {service_locator}
+    , fullscreen_ {fullscreen}
 {
     uint32_t flags = (fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_HIDDEN;
 #if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
@@ -146,12 +149,13 @@ void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
     }
 
     for (auto handler: handlers_)
-        handler.second(winEvent);
+        handler.second(*m_service_locator, winEvent);
 }
 
-std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
+std::shared_ptr<OSWindow> OSWindow::Create(
+    std::shared_ptr<ServiceLocator> const& service_locator, int width, int height, int preferred_display, bool fullscreen, bool bordered)
 {
-    return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
+    return std::make_shared<SDLWindow>(service_locator, width, height, preferred_display, fullscreen, bordered);
 }
 
 int SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)

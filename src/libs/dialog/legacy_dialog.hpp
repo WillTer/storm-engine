@@ -67,8 +67,6 @@ private:
 
     ScreenScale screenScale_ {};
 
-    VSoundService* soundService_ = nullptr;
-
     float fontScale_ {};
 
     int32_t lineHeight_ {};

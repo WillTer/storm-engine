@@ -79,5 +79,4 @@ private:
     std::unique_ptr<INIFILE> psIni;
     int32_t                  carcassTexture;
     bool                     isStorm;
-    VSoundService*           soundService;
 };

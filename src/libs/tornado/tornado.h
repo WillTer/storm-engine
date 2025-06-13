@@ -52,8 +52,7 @@ public:
 private:
     VDX9RENDER* rs;
 
-    VSoundService* soundService;
-    int32_t        sID;
+    int32_t sID;
 
     Pillar           pillar;
     TornadoParticles particles;

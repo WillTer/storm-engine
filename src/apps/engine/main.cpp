@@ -9,8 +9,7 @@
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
-#include <libs/filesystem/default_paths.h>
-#include <libs/sound_service/v_sound_service.h>
+#include <libs/sound_service/sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/window/os_window.hpp>
@@ -52,32 +51,36 @@ bool run_frame_with_overflow_check()
     return is_running;
 }
 #else
-#define run_frame_with_overflow_check run_frame
+bool run_frame_with_overflow_check()
+{
+    return run_frame();
+}
 #endif
 
-void handle_window_event(storm::OSWindow::Event const& event)
+void handle_window_event(storm::ServiceLocator const& service_locator, storm::OSWindow::Event const& event)
 {
-    if (event == storm::OSWindow::Closed) {
-        should_close = true;
-        if (core_private->initialized()) { core_private->Event("DestroyWindow"); }
-    } else if (event == storm::OSWindow::FocusGained) {
+    auto const sound_service = service_locator.get<VSoundService>();
+
+    switch (event) {
+    case storm::OSWindow::Unknown: break;
+    case storm::OSWindow::FocusGained:
         is_active = true;
         if (core_private->initialized()) {
             core_private->AppState(is_active);
-            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
-                (sound_service != nullptr) && !is_sound_in_background_enabled) {
-                sound_service->set_active_with_fade(true);
-            }
+            if (sound_service && !is_sound_in_background_enabled) { sound_service->set_active_with_fade(true); }
         }
-    } else if (event == storm::OSWindow::FocusLost) {
+        break;
+    case storm::OSWindow::FocusLost:
         is_active = false;
         if (core_private->initialized()) {
             core_private->AppState(is_active);
-            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
-                (sound_service != nullptr) && !is_sound_in_background_enabled) {
-                sound_service->set_active_with_fade(false);
-            }
+            if (sound_service && !is_sound_in_background_enabled) { sound_service->set_active_with_fade(false); }
         }
+        break;
+    case storm::OSWindow::Closed:
+        should_close = true;
+        if (core_private->initialized()) { core_private->Event("DestroyWindow"); }
+        break;
     }
 }
 
@@ -95,11 +98,11 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
-    auto const service_locator = std::make_shared<storm::ServiceLocator>();
-    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
+    auto const  service_locator = storm::ServiceLocator::create();
+    auto const& config_loader   = service_locator->set<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
+    auto const& sound_service   = service_locator->set<VSoundService>(std::make_shared<SoundService>());
 
     // Load parameters of file service
-    auto const config_loader = service_locator->get<storm::IConfigLoader>();
     fio->init_from_main_config(*config_loader);
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
@@ -147,7 +150,12 @@ int main()
     }
 
     std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
-        window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
+        service_locator,
+        window_info.width,
+        window_info.height,
+        window_info.preferred_display,
+        window_info.full_screen,
+        window_info.show_borders);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
@@ -155,6 +163,8 @@ int main()
 
     // Init core
     core_private->InitBase();
+
+    core_private->register_service(sound_service);
 
     // Message loop
     auto old_time = SDL_GetTicks();

@@ -374,7 +374,6 @@ Character::Character()
     isPlayerEnemy   = false;
     enemyBarsAlpha  = 0.0f;
     isLookFromEyes  = false;
-    soundService    = nullptr;
     currentNode     = -1;
     tuner.character = this;
     loc_id          = {};
@@ -634,8 +633,7 @@ bool Character::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
     // Location Pointer
     auto* const location = GetLocation();
     if (!location) return false;
-    effects      = core.GetEntityId("LocationEffects");
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    effects = core.GetEntityId("LocationEffects");
     // register our appearance in the location
     location->supervisor.AddCharacter(this);
     // The sea
@@ -2383,15 +2381,16 @@ void Character::ActionEvent(Animation* animation, int32_t playerIndex, char cons
 
 int32_t Character::PlaySound(char const* soundName, bool isLoop, bool isCached)
 {
-    if (!soundService) return SOUND_INVALID_ID;
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (!sound_service) return SOUND_INVALID_ID;
+
     CVECTOR       pos = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
-    int32_t const sID = soundService->play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+    int32_t const sID = sound_service->play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
     return sID;
 }
 
 void Character::PlayStep()
 {
-    if (!soundService) return;
     if (isSwim) return;
     auto*       sb       = static_cast<SEA_BASE*>(core.GetEntityPointer(sea));
     auto* const location = GetLocation();
@@ -2475,7 +2474,8 @@ void Character::PlayStep()
 
 void Character::SetSoundPosition(int32_t id)
 {
-    if (!soundService || id == SOUND_INVALID_ID) return;
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (!sound_service || id == SOUND_INVALID_ID) return;
     CVECTOR     pos      = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
     auto* const location = GetLocation();
     if (location->supervisor.player) {
@@ -2488,13 +2488,14 @@ void Character::SetSoundPosition(int32_t id)
             view.MulToInv(CVECTOR(pos), pos);
         }
     }
-    soundService->set_3d_param(id, SoundMessageType::Position, &pos);
+    sound_service->set_3d_param(id, SoundMessageType::Position, &pos);
 }
 
 void Character::ReleaseSound(int32_t id)
 {
-    if (!soundService) return;
-    if (id != SOUND_INVALID_ID) soundService->sound_release(id);
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (!sound_service) return;
+    if (id != SOUND_INVALID_ID) sound_service->sound_release(id);
 }
 
 // ============================================================================================

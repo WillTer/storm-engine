@@ -16,7 +16,7 @@ CREATE_CLASS(SEAFOAM)
 #define START_FADE_SPEED 5.f
 
 //--------------------------------------------------------------------
-SEAFOAM::SEAFOAM() : seaID(0), sea(nullptr), shipsCount(0), carcassTexture(0), isStorm(false), soundService(nullptr)
+SEAFOAM::SEAFOAM() : seaID(0), sea(nullptr), shipsCount(0), carcassTexture(0), isStorm(false)
 {
     psIni    = nullptr;
     renderer = nullptr;
@@ -49,8 +49,7 @@ bool SEAFOAM::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
         sea   = static_cast<SEA_BASE*>(core.GetEntityPointer(seaID));
     }
 
-    renderer     = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     // FIXME: hardcode
     psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
@@ -391,14 +390,15 @@ void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _
         _shipFoamInfo.frontEmitter[2]->Realize(_dTime);
     }
 
-    if (soundService && (_shipFoamInfo.doSplash)) {
+    auto const &sound_service = m_service_locator->get<VSoundService>();
+    if (sound_service && (_shipFoamInfo.doSplash)) {
         auto pos = _shipFoamInfo.shipModel->mtx * CVECTOR(0.f, 0.f, _shipFoamInfo.hullInfo.boxsize.z / 2.f);
         pos.y    = sea->WaveXZ(pos.x, pos.z);
 
-        if (!_shipFoamInfo.sound || !soundService->is_playing(_shipFoamInfo.sound)) {
-            _shipFoamInfo.sound = soundService->play("ship_bow", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+        if (!_shipFoamInfo.sound || !sound_service->is_playing(_shipFoamInfo.sound)) {
+            _shipFoamInfo.sound = sound_service->play("ship_bow", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
         } else if (_shipFoamInfo.sound) {
-            soundService->set_3d_param(_shipFoamInfo.sound, SoundMessageType::Position, &pos);
+            sound_service->set_3d_param(_shipFoamInfo.sound, SoundMessageType::Position, &pos);
         }
     }
 

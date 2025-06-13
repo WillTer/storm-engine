@@ -578,9 +578,6 @@ bool DIALOG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(RenderService);
 
-    snd = static_cast<VSoundService*>(core.GetService("SoundService"));
-    // Assert( snd );
-
     //----------------------------------------------------------
     LoadFromIni();
 
@@ -659,6 +656,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     }
 
     // play speech
+    auto const &snd = m_service_locator->get<VSoundService>();
     if (play == 0 && soundName[0] && snd) {
         curSnd = snd->play(soundName, SoundType::SoundStereo, VolumeType::Speech);
         play   = 1;

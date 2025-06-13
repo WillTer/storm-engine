@@ -51,17 +51,16 @@ void TSeagulls::LoadSettings()
 }
 
 //--------------------------------------------------------------------
-void TSeagulls::Init()
+void TSeagulls::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    m_service_locator = service_locator;
+
     startY = 0.f;
     LoadSettings();
 
     renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    soundService  = static_cast<VSoundService*>(core.GetService("SoundService"));
 
     if (!renderService) throw std::runtime_error("!Seagulls: No service: dx9render");
-    // if(!soundService)
-    //    throw std::runtime_error("!Seagulls: No service: sound");
 
     seagullModel = core.CreateEntity("MODELR");
     core.Send_Message(seagullModel, "ls", MSG_MODEL_LOAD_GEO, ANIMALS_SEAGULL_FILENAME);
@@ -117,8 +116,6 @@ void TSeagulls::Execute(uint32_t _dTime)
                 static_cast<float>(seagulls[i].center.x + sin(seagulls[i].a) * seagulls[i].radius),
                 static_cast<float>(seagulls[i].center.z + cos(seagulls[i].a) * seagulls[i].radius),
                 static_cast<float>(seagulls[i].height));
-
-            // if(soundService) soundService->play(screamFilename, PCM_3D, VOLUME_FX, false, false, 0, &pos);
         }
 
         // <angle_inc>

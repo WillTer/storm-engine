@@ -16,9 +16,7 @@
 
 using namespace storm::audio;
 
-CREATE_SERVICE(SoundService)
-
-#define DISTANCEFACTOR 1.0F
+#define DISTANCE_FACTOR 1.0F
 
 namespace
 {
@@ -85,9 +83,6 @@ bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
 
     SERVICE::Init(service_locator);
 
-    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
-    if (m_renderer == nullptr) { return false; }
-
     m_device =
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
@@ -127,6 +122,8 @@ void SoundService::RunStart()
 
         set_camera_position(pos);
         set_camera_orientation(nose, head);
+    } else {
+        m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     }
 
     update_playing_list();
@@ -481,8 +478,8 @@ SoundID SoundService::prepare_sound(
 
     // Adjust parameters for 3D source
     if (sound_type == SoundType::Sound3D) {
-        source->set_min_distance(std::max(min_distance, 0.0F) * DISTANCEFACTOR);
-        source->set_max_distance(std::max(max_distance, 0.0F) * DISTANCEFACTOR);
+        source->set_min_distance(std::max(min_distance, 0.0F) * DISTANCE_FACTOR);
+        source->set_max_distance(std::max(max_distance, 0.0F) * DISTANCE_FACTOR);
 
         std::array<float, 3> position = {};
         if (start_position != nullptr) {

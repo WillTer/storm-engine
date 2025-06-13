@@ -11,7 +11,13 @@ namespace storm
 class SDLWindow: public OSWindow
 {
 public:
-    SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    SDLWindow(
+        std::shared_ptr<ServiceLocator> const& service_locator,
+        int                                    width,
+        int                                    height,
+        int                                    preferred_display,
+        bool                                   fullscreen,
+        bool                                   bordered);
     ~SDLWindow() override;
 
     void Show() override;
@@ -40,6 +46,8 @@ public:
 
 private:
     static int SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
+
+    std::shared_ptr<ServiceLocator> m_service_locator;
 
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window_ = nullptr;
     uint32_t                                                      sdlID_;

@@ -41,7 +41,7 @@ public:
     Debris(Pillar& _pillar);
     virtual ~Debris();
 
-    void Init();
+    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
 
     void Update(float dltTime);
     void Draw(VDX9RENDER* rs);
@@ -58,12 +58,13 @@ private:
     bool   IsShip();
 
 private:
-    VSoundService* soundService;
-    float          lastPlayTime;
-    Pillar&        pillar;
-    float          galpha;
-    Model          mdl[16];    // Uploaded models
-    int32_t        numModels;  // Number of models
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+
+    float   lastPlayTime;
+    Pillar& pillar;
+    float   galpha;
+    Model   mdl[16];    // Uploaded models
+    int32_t numModels;  // Number of models
 
     ModelInfo fly[64];     // Flying models
     int32_t   flyCounter;  // Number of flying models

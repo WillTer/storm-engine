@@ -77,6 +77,3 @@ enum class SoundMessageType {
         sprintf_s(_tmpString, s, p); \
         throw _tmpString; \
     }
-
-class SoundService;
-extern SoundService* soundService;

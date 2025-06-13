@@ -140,8 +140,6 @@ bool LegacyDialog::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(RenderService != nullptr);
 
-    soundService_ = static_cast<VSoundService*>(core.GetService("SoundService"));
-
     core.SetTimeScale(0.f);
 
     LoadIni();
@@ -179,8 +177,9 @@ void LegacyDialog::Realize(uint32_t deltaTime)
 {
     Unfade();
 
-    if (soundState_ == SOUND_STARTING && !soundName_.empty() && soundService_) {
-        currentSound_ = soundService_->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
+    auto const &sound_service = m_service_locator->get<VSoundService>();
+    if (soundState_ == SOUND_STARTING && !soundName_.empty() && sound_service) {
+        currentSound_ = sound_service->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
         if (currentSound_) {
             SetAction("dialog_all");
             soundState_ = SOUND_PLAYING;
@@ -226,7 +225,7 @@ void LegacyDialog::Realize(uint32_t deltaTime)
     // Head overlay
     DrawBackground(0, 2);
 
-    if (soundState_ == SOUND_PLAYING && soundService_ && !soundService_->is_playing(currentSound_)) {
+    if (soundState_ == SOUND_PLAYING && sound_service && !sound_service->is_playing(currentSound_)) {
         SetAction("dialog_idle");
         soundState_ = SOUND_STOPPED;
     }
@@ -701,7 +700,9 @@ void LegacyDialog::ProcessControls()
 
 void LegacyDialog::PlayTick()
 {
-    if (soundService_) { soundService_->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx); }
+    if (auto const &sound_service = m_service_locator->get<VSoundService>(); sound_service) {
+        sound_service->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+    }
 }
 
 void LegacyDialog::Unfade()

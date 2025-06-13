@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 #include "compiler.h"
 #include "core_private.h"
 #include "entity_manager.h"
@@ -129,6 +131,9 @@ public:
     bool                  IsLayerFrozen(layer_index_t index) const override;
     void                  ForEachEntity(std::function<void(entptr_t)> const& f) override;
 
+    void register_service(std::weak_ptr<SERVICE> const& service) override;
+    void unregister_service(std::weak_ptr<SERVICE> const& service) override;
+
     void collectCrashInfo() const;
 
     [[nodiscard]] bool initialized() const
@@ -161,7 +166,8 @@ private:
     bool                             State_loading;
     bool                             bEnableTimeScale {};
 
-    SERVICES_LIST Services_List;  // list for subsequent calls RunStart/RunEnd service functions
+    SERVICES_LIST                     Services_List;  // list for subsequent calls RunStart/RunEnd service functions
+    std::list<std::weak_ptr<SERVICE>> m_registered_services;
 
 #ifdef _WIN32  // HINSTANCE
     HINSTANCE hInstance {};

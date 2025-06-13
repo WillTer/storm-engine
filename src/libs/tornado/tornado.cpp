@@ -27,7 +27,6 @@ Tornado::Tornado() : particles(pillar), noiseCloud(pillar), debris(pillar)
     eventCounter = 0.0f;
     liveTime     = 60.0f;
     galhpa       = 1.0f;
-    soundService = nullptr;
     sID          = SOUND_INVALID_ID;
 }
 
@@ -40,7 +39,8 @@ Tornado::~Tornado()
         if (particles.txtPillarPrts >= 0) rs->TextureRelease(particles.txtPillarPrts);
         if (particles.txtGroundPrts >= 0) rs->TextureRelease(particles.txtGroundPrts);
     }
-    if (soundService && sID != SOUND_INVALID_ID) soundService->sound_release(sID);
+    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service && sID != SOUND_INVALID_ID)
+        sound_service->sound_release(sID);
 }
 
 //============================================================================================
@@ -75,12 +75,11 @@ bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
     particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
     particles.SetSea();
     particles.Update(0.0f);
-    debris.Init();
+    debris.Init(service_locator);
     // Create sound
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
-    if (soundService) {
+    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        sID            = soundService->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
+        sID            = sound_service->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
     }
     return true;
 }
@@ -105,9 +104,9 @@ void Tornado::Execute(uint32_t delta_time)
         }
     } else
         liveTime -= dltTime;
-    if (soundService && sID != SOUND_INVALID_ID) {
+    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service && sID != SOUND_INVALID_ID) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        soundService->set_3d_param(sID, SoundMessageType::Position, &pos);
+        sound_service->set_3d_param(sID, SoundMessageType::Position, &pos);
     }
 }
 

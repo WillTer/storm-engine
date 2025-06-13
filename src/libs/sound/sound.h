@@ -44,8 +44,4 @@ public:
         default: break;
         }
     }
-
-private:
-    VSoundService* soundService;
-    VDX9RENDER*    renderer;
 };

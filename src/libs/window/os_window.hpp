@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#include <libs/core/service_locator.hpp>
+
 namespace storm
 {
 struct WindowSize {
@@ -27,7 +29,7 @@ public:
         Closed  //!< Window was closed by user
     };
 
-    using EventHandler = std::function<void(Event const&)>;
+    using EventHandler = std::function<void(ServiceLocator const&, Event const&)>;
 
     virtual ~OSWindow() {};
 
@@ -72,6 +74,12 @@ public:
     virtual void* OSHandle() = 0;
 
     //! Create new window
-    static std::shared_ptr<OSWindow> Create(int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    static std::shared_ptr<OSWindow> Create(
+        std::shared_ptr<ServiceLocator> const& service_locator,
+        int                                    width,
+        int                                    height,
+        int                                    preferred_display,
+        bool                                   fullscreen,
+        bool                                   bordered);
 };
 }  // namespace storm
