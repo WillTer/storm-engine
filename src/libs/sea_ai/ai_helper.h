@@ -36,12 +36,11 @@ public:
     static ATTRIBUTES*  pASeaCameras;
     static ISLAND_BASE* pIsland;
     static VDX9RENDER*  pRS;
-    static COLLIDE*     pCollide;
 
     static float fGravity;
 
     bool SetDevice();
-    bool Init() const;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
     bool Uninit();
     void AddCharacter(ATTRIBUTES* pACharacter, ATTRIBUTES* pAMainCharacter);
     void CalculateRelations();
@@ -64,6 +63,8 @@ public:
     void Load(CSaveLoad* pSL);
 
 private:
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+
     uint32_t *               pRelations, dwRelationSize;
     std::vector<ATTRIBUTES*> aCharacters, aMainCharacters;
 

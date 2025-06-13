@@ -60,8 +60,6 @@ void SUNGLOW::SetDevice()
 
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    Assert(pCollide);
 
     if (!(ent = core.GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
     pWeather = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ent));
@@ -143,7 +141,10 @@ float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
     CVECTOR vDst;
     pWeather->GetVector(whv_sun_pos, &vDst);
     vDst = vSrc + (!vDst) * 10000.0f;
-    return pCollide->Trace(its, vSrc, vDst, nullptr, 0);
+
+    auto const& collide = m_service_locator->get<COLLIDE>();
+    assert(collide);
+    return collide->Trace(its, vSrc, vDst, nullptr, 0);
 }
 
 void SUNGLOW::Realize(uint32_t Delta_Time)

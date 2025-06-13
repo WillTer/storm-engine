@@ -42,7 +42,6 @@ class LIGHTNING: public Entity
 
     WEATHER_BASE* pWeather;
     VDX9RENDER*   pRS;
-    COLLIDE*      pCollide;
 
     void Release() const;
     void CalcFlashPower(lightning_t* pL) const;

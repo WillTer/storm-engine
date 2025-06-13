@@ -93,7 +93,6 @@ private:
     sunglow_t     Glow;
     sunflares_t   Flares;
     reflection_t  Reflection;
-    COLLIDE*      pCollide;
     WEATHER_BASE* pWeather;
     SKY*          pSky;
     VDX9RENDER*   pRS;

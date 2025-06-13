@@ -117,7 +117,6 @@ private:
 
 public:
     static VDX9RENDER* pRS;
-    static COLLIDE*    pCollide;
 
     ShipLights();
     ~ShipLights() override;

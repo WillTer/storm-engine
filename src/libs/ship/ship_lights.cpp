@@ -7,8 +7,7 @@
 
 #include "ship.h"
 
-VDX9RENDER* ShipLights::pRS      = nullptr;
-COLLIDE*    ShipLights::pCollide = nullptr;
+VDX9RENDER* ShipLights::pRS = nullptr;
 
 ShipLights::ShipLights() : fSunRoadFlareSize(0), dwCoronaSubTexX(0), dwCoronaSubTexY(0)
 {
@@ -43,8 +42,6 @@ bool ShipLights::Init(std::shared_ptr<storm::ServiceLocator> const& service_loca
     Entity::Init(service_locator);
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("coll"));
-    Assert(pCollide);
     pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
     return true;
 }
@@ -406,6 +403,7 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
     CVECTOR vCamPos, vCamAng;
     pRS->GetCamera(vCamPos, vCamAng, fFov);
 
+    auto const& collide = m_service_locator->get<COLLIDE>();
     for (uint32_t i = 0; i < aLights.size(); i++) {
         ShipLight& L = aLights[i];
 
@@ -436,19 +434,19 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
             fBroken = 1.0f - L.fBrokenTime / L.fTotalBrokenTime;
         }
 
-        if (pCollide) {
+        if (collide) {
             L.bVisible = true;
 
-            float fDistance  = pCollide->Trace(core.GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
+            float fDistance  = collide->Trace(core.GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
             L.fFlareAlphaMax = (fDistance >= 1.0f) ? 1.0f : 0.2f;
 
             auto const its   = core.GetEntityIds(SUN_TRACE);
-            fDistance        = pCollide->Trace(its, L.vCurPos, vCamPos, nullptr, 0);
+            fDistance        = collide->Trace(its, L.vCurPos, vCamPos, nullptr, 0);
             float const fLen = fDistance * sqrtf(~(vCamPos - L.vCurPos));
             L.bVisible       = fDistance >= 1.0f || (fLen < 0.6f);
 
             if (!L.bOff && !L.bLightOff && L.bVisible) {
-                float const fDistance = pCollide->Trace(its, vCamPos, L.vCurPos, nullptr, 0);
+                float const fDistance = collide->Trace(its, vCamPos, L.vCurPos, nullptr, 0);
                 float const fLen      = (1.0f - fDistance) * sqrtf(~(vCamPos - L.vCurPos));
 
                 L.bVisible = fLen < 0.6f;

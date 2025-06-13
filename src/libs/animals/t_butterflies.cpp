@@ -33,15 +33,14 @@ void TButterflies::LoadSettings()
 }
 
 //--------------------------------------------------------------------
-void TButterflies::Init()
+void TButterflies::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    m_service_locator = service_locator;
+
     LoadSettings();
 
     renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!renderService) throw std::runtime_error("!Butterflies: No service 'dx9render'");
-
-    collide = static_cast<COLLIDE*>(core.GetService("coll"));
-    if (!collide) throw std::runtime_error("!Butterflies: No service COLLIDE");
 
     ivManager = new IVBufferManager(renderService, BUTTERFLY_VERTEX_TYPE, sizeof(tButterflyVertex), 3 * 4, 6, butterfliesCount);
 
@@ -86,6 +85,8 @@ void TButterflies::Execute(uint32_t _dTime)
 
     auto const its = core.GetEntityIds(SHADOW);
 
+    auto const& collide = m_service_locator->get<COLLIDE>();
+
     // redefine minY
     yDefineTime += _dTime;
     if (yDefineTime > Y_REDEFINE_TIME) {
@@ -108,7 +109,7 @@ void TButterflies::Execute(uint32_t _dTime)
     ivManager->LockBuffers();
 
     for (i = 0; i < butterfliesCount; i++) {
-        butterflies[i].Calculate(_dTime, collide, its);
+        butterflies[i].Calculate(_dTime, collide.get(), its);
         butterflies[i].Draw(ivManager);
         // butterflies[i].Draw(renderService);
     }

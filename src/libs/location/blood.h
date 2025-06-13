@@ -66,7 +66,6 @@ public:
 
 protected:
     VDX9RENDER* pRS;
-    COLLIDE*    pCol;
     int32_t     texID;
 
     BloodTriangle pvBloodT[MAX_BLOOD_TRIANGLES];

@@ -28,7 +28,7 @@ bool ANIMALS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
 
     seagulls->Init(service_locator);
     fishSchools->Init();
-    butterflies->Init();
+    butterflies->Init(service_locator);
 
     return true;
 }

@@ -2,11 +2,9 @@
 
 #include "vcollide.h"
 
-LCOLL::LCOLL(layer_index_t idx) : boxRadius(0)
+LCOLL::LCOLL(COLLIDE& col, layer_index_t idx) : boxRadius(0), col(col)
 {
     layerIndex_ = idx;
-    col         = static_cast<COLLIDE*>(core.GetService("coll"));
-    if (!col) throw std::runtime_error("No service: collide");
 }
 
 LCOLL::~LCOLL() {}
@@ -84,7 +82,7 @@ int32_t LCOLL::SetBox(const CVECTOR& boxSize, CMatrix const& transform, bool tes
     addVerts = nullptr;
 
     auto const its = core.GetEntityIds(layerIndex_);
-    col->Clip(its, &plane[0], 6, boxCenter, boxRadius, AddPolyColl, nullptr, 0);
+    col.Clip(its, &plane[0], 6, boxCenter, boxRadius, AddPolyColl, nullptr, 0);
     return 0;
 }
 

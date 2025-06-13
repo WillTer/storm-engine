@@ -93,7 +93,6 @@ private:
     int32_t iVBSeaDrops;
 
     VDX9RENDER* rs;
-    COLLIDE*    cs;
 
     void GenerateRandomDrop(CVECTOR* vPos) const;
     void GenerateRain();

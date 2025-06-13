@@ -149,7 +149,6 @@ private:
     constexpr static auto max_d3d_custom_lights = max_d3d_lights - 1;
 
     VDX9RENDER* rs;
-    COLLIDE*    collide;
 
     // Installed light sources
     struct {

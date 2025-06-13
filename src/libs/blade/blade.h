@@ -64,7 +64,6 @@ class BLADE: public Entity
     };
 
     VDX9RENDER*  rs;
-    COLLIDE*     col;
     entid_t      man;
     unsigned int blendValue;
 

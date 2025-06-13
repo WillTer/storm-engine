@@ -22,15 +22,16 @@ public:
     virtual ~TButterflies();
 
     uint64_t ProcessMessage(int32_t _code, MESSAGE& message);
-    void     Init();
+    void     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
     void     Realize(uint32_t dTime);
     void     Execute(uint32_t dTime);
 
 private:
     void LoadSettings();
 
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+
     VDX9RENDER*      renderService;
-    COLLIDE*         collide;
     IVBufferManager* ivManager;
     entid_t          butterflyModel;
     TButterfly       butterflies[BUTTERFLY_COUNT];

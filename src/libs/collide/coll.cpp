@@ -2,8 +2,6 @@
 
 #include "vcollide.h"
 
-CREATE_SERVICE(COLL)
-
 entid_t last_trace_eid;
 
 //----------------------------------------------------------------------------------
@@ -11,7 +9,7 @@ entid_t last_trace_eid;
 //----------------------------------------------------------------------------------
 LOCAL_COLLIDE* COLL::CreateLocalCollide(layer_index_t idx)
 {
-    return new LCOLL(idx);
+    return new LCOLL(*this, idx);
 }
 
 //----------------------------------------------------------------------------------

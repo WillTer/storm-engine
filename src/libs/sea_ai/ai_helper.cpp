@@ -8,7 +8,6 @@ AIHelper Helper;
 
 VDX9RENDER*  AIHelper::pRS          = nullptr;
 ISLAND_BASE* AIHelper::pIsland      = nullptr;
-COLLIDE*     AIHelper::pCollide     = nullptr;
 ATTRIBUTES*  AIHelper::pASeaCameras = nullptr;
 
 float AIHelper::fGravity = 9.81f;
@@ -26,8 +25,7 @@ AIHelper::~AIHelper()
 bool AIHelper::Uninit()
 {
     // pRS = null;
-    pIsland = nullptr;
-    // pCollide = null;
+    pIsland      = nullptr;
     pASeaCameras = nullptr;
     aCharacters.clear();
     aMainCharacters.clear();
@@ -40,14 +38,14 @@ bool AIHelper::SetDevice()
 {
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    Assert(pCollide);
 
     return true;
 }
 
-bool AIHelper::Init() const
+bool AIHelper::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    m_service_locator = service_locator;
+
     pIsland = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
 
     return true;

@@ -2,6 +2,7 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <libs/collide/vcollide.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_private.h>
@@ -99,8 +100,10 @@ int main()
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
     auto const  service_locator = storm::ServiceLocator::create();
-    auto const& config_loader   = service_locator->set<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
-    auto const& sound_service   = service_locator->set<VSoundService>(std::make_shared<SoundService>());
+    auto const& config_loader   = service_locator->set(std::make_shared<storm::ConfigLoader>(*fio));
+    auto const& sound_service   = service_locator->set(std::make_shared<SoundService>());
+
+    service_locator->set(std::make_shared<COLL>());
 
     // Load parameters of file service
     fio->init_from_main_config(*config_loader);
@@ -163,7 +166,6 @@ int main()
 
     // Init core
     core_private->InitBase();
-
     core_private->register_service(sound_service);
 
     // Message loop

@@ -76,7 +76,6 @@ protected:
     static VDX9RENDER*  pRS;
     static SEA_BASE*    pSea;
     static ISLAND_BASE* pIsland;
-    static COLLIDE*     pCollide;
     static VGEOMETRY*   pGS;
 
     CMatrix mRoot;

@@ -75,7 +75,6 @@ private:
 
     VDX9RENDER* pRS;
     VGEOMETRY*  pGS;
-    COLLIDE*    pCollide;
 
     CMatrix mIslandOld, mSeaBedOld;
     float   fImmersionDepth, fImmersionDistance;

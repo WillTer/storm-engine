@@ -21,7 +21,6 @@
 Lights::Lights() : lighter_code(0), lampModels {}, buf {}
 {
     rs        = nullptr;
-    collide   = nullptr;
     numTypes  = 0;
     maxTypes  = 0;
     numLights = 0;
@@ -52,7 +51,6 @@ bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
-    collide = static_cast<COLLIDE*>(core.GetService("COLL"));
     // read the parameters
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
@@ -221,6 +219,7 @@ void Lights::Realize(uint32_t delta_time)
         if (!isVisible) continue;
 
         // Visibility
+        auto const& collide = m_service_locator->get<COLLIDE>();
         if (collide) {
             auto const dist =
                 collide->Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);

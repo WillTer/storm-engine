@@ -353,7 +353,7 @@ void SEA_AI::Load(char const* pStr)
     }
 
     if (AIFort::pAIFort) AIFort::pAIFort->Load(&SL);
-    Helper.Init();
+    Helper.Init(m_service_locator);
 }
 
 uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
@@ -362,7 +362,7 @@ uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
 
     if (*pAttribute == "isDone") {
         // delete all old groups and ships
-        Helper.Init();
+        Helper.Init(m_service_locator);
 
         for (i = 0; i < AIShip::AIShips.size(); i++)
             AIShip::AIShips[i]->CheckStartPosition();

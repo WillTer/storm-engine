@@ -78,9 +78,6 @@ bool ISLAND::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 void ISLAND::SetDevice()
 {
     // core.LayerCreate("island_trace", true, false);
-
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    Assert(pCollide);
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
     pGS = static_cast<VGEOMETRY*>(core.GetService("geometry"));
@@ -361,6 +358,9 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
     int32_t const iNumPetal = 8;
     int32_t       iNumInner = 0;
 
+    auto const& collide = m_service_locator->get<COLLIDE>();
+    if (!collide) { return false; }
+
     for (int32_t i = 0; i < iNumPetal; i++) {
         TRIANGLE trg;
         CVECTOR  vDst, vCross;
@@ -373,7 +373,7 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
         vDst = vSrc + CVECTOR(fCos * fRadius, 0.0f, fSin * fRadius);
         fRes = Trace(vSrc, vDst);
         if (fRes > 1.0f) continue;
-        auto* pEnt = static_cast<MODEL*>(core.GetEntityPointer(pCollide->GetObjectID()));
+        auto* pEnt = static_cast<MODEL*>(core.GetEntityPointer(collide->GetObjectID()));
         Assert(pEnt);
         pEnt->GetCollideTriangle(trg);
         vCross = !((trg.vrt[1] - trg.vrt[0]) ^ (trg.vrt[2] - trg.vrt[0]));
@@ -750,7 +750,8 @@ float ISLAND::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTO
 
 float ISLAND::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
 {
-    return pCollide->Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0);
+    auto const& collide = m_service_locator->get<COLLIDE>();
+    return collide ? collide->Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0) : 0.0F;
 }
 
 // Path section

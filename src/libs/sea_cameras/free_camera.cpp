@@ -6,8 +6,7 @@
 #define SENSITIVITY 0.0015f
 #define FOV 1.285f
 
-entid_t  sphere;
-COLLIDE* pCollide;
+entid_t sphere;
 
 FREE_CAMERA::FREE_CAMERA()
 {
@@ -44,12 +43,6 @@ void FREE_CAMERA::SetDevice()
 {
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    Assert(pCollide);
-
-    /*core.CreateEntity(&sphere,"modelr");
-    core.Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
-    core.AddToLayer(realize,sphere,10000);*/
 }
 
 bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen) const

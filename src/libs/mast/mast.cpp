@@ -74,9 +74,6 @@ void MAST::SetDevice()
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    if (!pCollide) throw std::runtime_error("No service: collide");
-
     LoadIni();
 
     // UNGUARD
@@ -554,13 +551,16 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
 {
     int retVal = 0;
 
+    auto const& collide = m_service_locator->get<COLLIDE>();
+    if (!collide) { return 0; }
+
     // rhea collision
     const CVECTOR vl     = lrey;
     const CVECTOR vr     = rrey;
     const CVECTOR vcentr = (vl + vr) * .5f;
     float         ang    = 0.f;
-    float const   lf     = pCollide->Trace(mod, vl, vcentr);
-    float const   rf     = pCollide->Trace(mod, vr, vcentr);
+    float const   lf     = collide->Trace(mod, vl, vcentr);
+    float const   rf     = collide->Trace(mod, vr, vcentr);
 
     if ((lf <= 1.f && rf > 1.f) || (lf > 1.f && rf <= 1.f)) {
         if (lf > 1.f)
@@ -577,7 +577,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
     CVECTOR vb   = pbeg;
     CVECTOR ve   = pend;
     dp           = CVECTOR(0.f, 0.f, 0.f);
-    if ((tmp = pCollide->Trace(mod, ve, vb)) <= 1.f) {
+    if ((tmp = collide->Trace(mod, ve, vb)) <= 1.f) {
         retVal |= SR_MOVE;
         if (tmp < 0.5f) retVal |= SR_STOPROTATE;
         do {
@@ -612,7 +612,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
                 vb.y += TRACE_ADDING;
                 ve.y += TRACE_ADDING;
             }
-        } while ((tmp = pCollide->Trace(mod, ve, vb)) <= 1.f);
+        } while ((tmp = collide->Trace(mod, ve, vb)) <= 1.f);
     } else
         return retVal;
 
@@ -640,7 +640,7 @@ void MAST::AllRelease()
     m_pMastNode = nullptr;
 }
 
-HULL::HULL() : pCollide(nullptr), bModel(false), model_id(0), oldmodel_id(0), ship_id(0)
+HULL::HULL() : bModel(false), model_id(0), oldmodel_id(0), ship_id(0)
 {
     RenderService = nullptr;
     wMoveCounter  = 0;
@@ -666,9 +666,6 @@ void HULL::SetDevice()
 {
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
-
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
-    if (!pCollide) throw std::runtime_error("No service: collide");
 }
 
 bool HULL::CreateState(ENTITY_STATE_GEN* state_gen)

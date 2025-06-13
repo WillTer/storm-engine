@@ -22,7 +22,6 @@ class MAST: public Entity
     bool                            bFallUnderWater;
     int                             wMoveCounter;
     VDX9RENDER*                     RenderService;
-    COLLIDE*                        pCollide;
     bool                            bModel;
     entid_t                         model_id, oldmodel_id;
     entid_t                         ship_id;
@@ -83,7 +82,6 @@ class HULL: public Entity
     } m_mount_param;
 
     VDX9RENDER* RenderService;
-    COLLIDE*    pCollide;
     NODE*       m_pHullNode;
     bool        bModel;
 

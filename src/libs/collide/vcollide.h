@@ -11,10 +11,10 @@ class LCOLL: public LOCAL_COLLIDE
     PLANE         plane[6];
     CVECTOR       boxCenter;
     float         boxRadius;
-    COLLIDE*      col;
+    COLLIDE&      col;
 
 public:
-    LCOLL(layer_index_t idx);
+    LCOLL(COLLIDE& col, layer_index_t idx);
     ~LCOLL() override;
     int32_t        SetBox(const CVECTOR& boxSize, CMatrix const& transform, bool testOnly = false) override;
     const CVECTOR* GetFace(int32_t& numVertices) override;

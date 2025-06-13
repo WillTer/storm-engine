@@ -14,7 +14,7 @@ Blood::ClipTriangle Blood::clipT[MAX_CLIPPING_TRIANGLES];
 int32_t             Blood::nClipTQ;
 CVECTOR             Blood::normal;
 
-Blood::Blood() : pRS(nullptr), pCol(nullptr), pvBloodT {}
+Blood::Blood() : pRS(nullptr), pvBloodT {}
 {
     texID   = -1;
     nStartT = 0;
@@ -34,9 +34,6 @@ bool Blood::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
-
-    pCol = static_cast<COLLIDE*>(core.GetService("coll"));
-    Assert(pCol);
 
     texID = pRS->TextureCreate("blood.tga");
 
@@ -169,7 +166,9 @@ void Blood::AddBlood(const CVECTOR& pos)
     src.y += 1.f;
     auto dst = pos;
     dst.y -= 10.f;
-    auto fTrace = pCol->Trace(entities, src, dst, nullptr, 0);
+
+    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto        fTrace  = collide->Trace(entities, src, dst, nullptr, 0);
     if (fTrace <= 1.f) cpos.y = src.y + (dst.y - src.y) * fTrace;
 
     auto const nThisBloodQ = CheckBloodQuantityInRadius(cpos, BLOOD_RADIUS, 4);
@@ -186,7 +185,7 @@ void Blood::AddBlood(const CVECTOR& pos)
         src.y += 1.5f;
         dst = cpos;
         dst.y -= 10.f;
-        fTrace = pCol->Trace(entities, src, dst, nullptr, 0);
+        fTrace = collide->Trace(entities, src, dst, nullptr, 0);
         if (fTrace <= 1.f) cpos.y = src.y + (dst.y - src.y) * fTrace;
     }
 

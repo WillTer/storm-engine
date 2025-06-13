@@ -63,6 +63,8 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
     }
     // Assert(fRes<=1.0f);
 
+    auto const& collide = m_service_locator->get<COLLIDE>();
+
     // bDefaultContour = true;
     if (!bDefaultContour) {
         // calculate integer number of steps for z-coord
@@ -80,7 +82,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
             vSrc = CVECTOR(fLeft, fY, fZ);
             vDst = CVECTOR(0.0f, fY, fZ);
             // core.SetEntityScanLayer("balls_trace");
-            fRes = pCollide->Trace(model_id, vSrc, vDst);
+            fRes = collide->Trace(model_id, vSrc, vDst);
             Assert(fRes <= 1.0f);
             vP = vSrc + fRes * (vDst - vSrc);
             if (fRes <= 1.0f) {
@@ -124,7 +126,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
 
             vSrc = CVECTOR(0.0f, -100.0f, fZ);
             vDst = CVECTOR(0.001f, 10.0f, fZ);
-            fRes = pCollide->Trace(model_id, vSrc, vDst);
+            fRes = collide->Trace(model_id, vSrc, vDst);
             Assert(fRes <= 1.0f);
             vKeelContour[i] = vSrc + fRes * (vDst - vSrc);
         }
