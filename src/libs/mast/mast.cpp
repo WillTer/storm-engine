@@ -552,7 +552,6 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
     int retVal = 0;
 
     auto const& collide = m_service_locator->get<COLLIDE>();
-    if (!collide) { return 0; }
 
     // rhea collision
     const CVECTOR vl     = lrey;

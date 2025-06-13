@@ -390,8 +390,8 @@ void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _
         _shipFoamInfo.frontEmitter[2]->Realize(_dTime);
     }
 
-    auto const &sound_service = m_service_locator->get<VSoundService>();
-    if (sound_service && (_shipFoamInfo.doSplash)) {
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (_shipFoamInfo.doSplash) {
         auto pos = _shipFoamInfo.shipModel->mtx * CVECTOR(0.f, 0.f, _shipFoamInfo.hullInfo.boxsize.z / 2.f);
         pos.y    = sea->WaveXZ(pos.x, pos.z);
 

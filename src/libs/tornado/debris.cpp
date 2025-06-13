@@ -72,12 +72,11 @@ void Debris::Update(float dltTime)
                 fly[flyCounter].ang   = 0.0f;
                 fly[flyCounter].scale = 1.0f + (rand() & 3) / 4.0f;
                 flyCounter++;
-                if (auto const &sound_service = m_service_locator->get<VSoundService>(); sound_service) {
-                    if (lastPlayTime <= 0.0f) {
-                        auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-                        sound_service->play("TornadoCrackSound", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
-                        lastPlayTime = 0.2f + rand() * (0.2f / RAND_MAX);
-                    }
+                auto const& sound_service = m_service_locator->get<VSoundService>();
+                if (lastPlayTime <= 0.0f) {
+                    auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
+                    sound_service->play("TornadoCrackSound", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+                    lastPlayTime = 0.2f + rand() * (0.2f / RAND_MAX);
                 }
             }
         }

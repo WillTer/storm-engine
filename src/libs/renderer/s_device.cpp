@@ -435,9 +435,9 @@ bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
 
     create_directories(fs::GetScreenshotsPath());
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const window_info   = storm::main_config::window_info(*config_loader);
-    auto const device_info   = storm::main_config::device_info(*config_loader);
+    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const  window_info   = storm::main_config::window_info(*config_loader);
+    auto const  device_info   = storm::main_config::device_info(*config_loader);
 
     bPostProcessEnabled = device_info.post_process;  // TODO: check it
 

@@ -27,8 +27,7 @@ bool SOUND::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 //--------------------------------------------------------------------
 uint64_t SOUND::ProcessMessage(MESSAGE& message)
 {
-    auto const &sound_service = m_service_locator->get<VSoundService>();
-    if (!sound_service) return 0;
+    auto const& sound_service = m_service_locator->get<VSoundService>();
 
     auto     code = message.Long();
     CVECTOR  vector, vector2;

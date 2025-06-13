@@ -143,7 +143,6 @@ float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
     vDst = vSrc + (!vDst) * 10000.0f;
 
     auto const& collide = m_service_locator->get<COLLIDE>();
-    assert(collide);
     return collide->Trace(its, vSrc, vDst, nullptr, 0);
 }
 

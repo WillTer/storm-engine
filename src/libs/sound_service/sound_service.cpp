@@ -87,9 +87,9 @@ bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const sound_info    = storm::main_config::sound_info(*config_loader);
-    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
+    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const  sound_info    = storm::main_config::sound_info(*config_loader);
+    m_fade_time               = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
@@ -405,7 +405,7 @@ void SoundService::load_alias_file(std::string const& filename)
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
 
     m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
 }

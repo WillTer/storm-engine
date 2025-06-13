@@ -656,8 +656,8 @@ void DIALOG::Realize(uint32_t Delta_Time)
     }
 
     // play speech
-    auto const &snd = m_service_locator->get<VSoundService>();
-    if (play == 0 && soundName[0] && snd) {
+    auto const& snd = m_service_locator->get<VSoundService>();
+    if (play == 0 && soundName[0]) {
         curSnd = snd->play(soundName, SoundType::SoundStereo, VolumeType::Speech);
         play   = 1;
     }

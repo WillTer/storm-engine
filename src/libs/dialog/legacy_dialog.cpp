@@ -177,8 +177,8 @@ void LegacyDialog::Realize(uint32_t deltaTime)
 {
     Unfade();
 
-    auto const &sound_service = m_service_locator->get<VSoundService>();
-    if (soundState_ == SOUND_STARTING && !soundName_.empty() && sound_service) {
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (soundState_ == SOUND_STARTING && !soundName_.empty()) {
         currentSound_ = sound_service->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
         if (currentSound_) {
             SetAction("dialog_all");
@@ -700,9 +700,8 @@ void LegacyDialog::ProcessControls()
 
 void LegacyDialog::PlayTick()
 {
-    if (auto const &sound_service = m_service_locator->get<VSoundService>(); sound_service) {
-        sound_service->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
-    }
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    sound_service->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 }
 
 void LegacyDialog::Unfade()

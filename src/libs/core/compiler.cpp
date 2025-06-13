@@ -407,8 +407,8 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const script_info   = storm::main_config::script_info(*config_loader);
+    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const  script_info   = storm::main_config::script_info(*config_loader);
 
     bDebugInfo         = script_info.compilation_logs;
     bWriteCodeFile     = script_info.create_codefiles;

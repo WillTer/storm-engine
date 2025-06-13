@@ -174,7 +174,6 @@ void Shadow::Realize(uint32_t Delta_Time)
     auto const its = core.GetEntityIds(SHADOW);
 
     auto const& collide = m_service_locator->get<COLLIDE>();
-    assert(collide);
 
     CVECTOR hdest = headPos + !(headPos - light_pos) * 100.0f;
     float   ray   = collide->Trace(its, headPos, hdest, nullptr, 0);

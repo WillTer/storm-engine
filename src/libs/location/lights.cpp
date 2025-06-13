@@ -220,7 +220,7 @@ void Lights::Realize(uint32_t delta_time)
 
         // Visibility
         auto const& collide = m_service_locator->get<COLLIDE>();
-        if (collide) {
+        {
             auto const dist =
                 collide->Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
             isVisible = dist > 1.0f;

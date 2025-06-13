@@ -39,8 +39,8 @@ Tornado::~Tornado()
         if (particles.txtPillarPrts >= 0) rs->TextureRelease(particles.txtPillarPrts);
         if (particles.txtGroundPrts >= 0) rs->TextureRelease(particles.txtGroundPrts);
     }
-    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service && sID != SOUND_INVALID_ID)
-        sound_service->sound_release(sID);
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (sID != SOUND_INVALID_ID) sound_service->sound_release(sID);
 }
 
 //============================================================================================
@@ -77,10 +77,10 @@ bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
     particles.Update(0.0f);
     debris.Init(service_locator);
     // Create sound
-    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service) {
-        auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        sID            = sound_service->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
-    }
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto const  pos           = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
+    sID                       = sound_service->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
+
     return true;
 }
 
@@ -104,7 +104,9 @@ void Tornado::Execute(uint32_t delta_time)
         }
     } else
         liveTime -= dltTime;
-    if (auto const& sound_service = m_service_locator->get<VSoundService>(); sound_service && sID != SOUND_INVALID_ID) {
+
+    auto const& sound_service = m_service_locator->get<VSoundService>();
+    if (sID != SOUND_INVALID_ID) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
         sound_service->set_3d_param(sID, SoundMessageType::Position, &pos);
     }

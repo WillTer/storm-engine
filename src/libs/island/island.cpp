@@ -359,8 +359,6 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
     int32_t       iNumInner = 0;
 
     auto const& collide = m_service_locator->get<COLLIDE>();
-    if (!collide) { return false; }
-
     for (int32_t i = 0; i < iNumPetal; i++) {
         TRIANGLE trg;
         CVECTOR  vDst, vCross;
@@ -751,7 +749,7 @@ float ISLAND::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTO
 float ISLAND::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
 {
     auto const& collide = m_service_locator->get<COLLIDE>();
-    return collide ? collide->Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0) : 0.0F;
+    return collide->Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0);
 }
 
 // Path section

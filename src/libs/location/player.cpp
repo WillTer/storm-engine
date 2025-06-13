@@ -565,7 +565,6 @@ void Player::FireFromShootgun()
     core.Send_Message(effects, "sffffff", "SGFireParticles", src.x, src.y - 0.35f, src.z, mtx.Vz().x, mtx.Vz().y, mtx.Vz().z);
 
     auto const& collide = m_service_locator->get<COLLIDE>();
-    if (!collide) { return; }
     struct ChrsDmg {
         Character* chr;
         float      dmg;

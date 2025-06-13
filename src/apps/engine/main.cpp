@@ -10,6 +10,7 @@
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
+#include <libs/geometry/geometry_r.h>
 #include <libs/sound_service/sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -99,11 +100,12 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
-    auto const  service_locator = storm::ServiceLocator::create();
-    auto const& config_loader   = service_locator->set(std::make_shared<storm::ConfigLoader>(*fio));
-    auto const& sound_service   = service_locator->set(std::make_shared<SoundService>());
+    auto const config_loader = std::make_shared<storm::ConfigLoader>(*fio);
+    auto const sound_service = std::make_shared<SoundService>();
+    auto const collide       = std::make_shared<COLL>();
+    auto const geometry      = std::make_shared<GEOMETRY>();
 
-    service_locator->set(std::make_shared<COLL>());
+    auto const service_locator = std::make_shared<storm::ServiceLocator>(config_loader, sound_service, collide, geometry);
 
     // Load parameters of file service
     fio->init_from_main_config(*config_loader);
