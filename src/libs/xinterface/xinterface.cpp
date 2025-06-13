@@ -160,8 +160,10 @@ XINTERFACE::~XINTERFACE()
     ReleaseSaveFindList();
 }
 
-bool XINTERFACE::Init()
+bool XINTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(XINTERFACE::Init())
     SetDevice();
     // UNGUARD
@@ -2840,8 +2842,9 @@ CONTROLS_CONTAINER::~CONTROLS_CONTAINER()
     }
 }
 
-bool CONTROLS_CONTAINER::Init()
+bool CONTROLS_CONTAINER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     if (AttributesPointer != nullptr) return CreateConteinerList(AttributesPointer);
     return false;
 }

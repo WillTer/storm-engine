@@ -566,8 +566,10 @@ void DIALOG::GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pc
 }
 
 //--------------------------------------------------------------------
-bool DIALOG::Init()
+bool DIALOG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     forceEmergencyClose = false;
     selectedLinkName[0] = 0;
     core.SetTimeScale(0.f);

@@ -14,7 +14,6 @@
 #include <libs/util/string_compare.hpp>
 #include <libs/weather/weather_base.h>
 
-
 #define WIND_SPEED_MAX 12.f
 
 // FIXME: hardcode
@@ -198,8 +197,9 @@ SAIL::~SAIL()
     STORM_DELETE(m_sMastName);
 }
 
-bool SAIL::Init()
+bool SAIL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SAIL::SAIL())
 
     SetDevice();

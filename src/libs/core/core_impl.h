@@ -103,8 +103,6 @@ public:
 
     uint32_t SetScriptFunction(IFUNCINFO* pFuncInfo) override;
 
-    char const* EngineIniFileName() override;
-
     void* GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex = nullptr) override;
 
     [[nodiscard]] storm::ENGINE_VERSION GetTargetEngineVersion() const noexcept override;
@@ -147,7 +145,7 @@ public:
 private:
     std::shared_ptr<storm::ServiceLocator> m_service_locator;
 
-    EntityManager entity_manager_;
+    std::unique_ptr<EntityManager> entity_manager_;
 
     storm::ENGINE_VERSION targetVersion_ = storm::ENGINE_VERSION::LATEST;
 

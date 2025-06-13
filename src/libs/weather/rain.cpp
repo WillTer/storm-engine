@@ -166,8 +166,9 @@ void RAIN::GenerateRain()
     fDropsDeltaTime = 0.0f;
 }
 
-bool RAIN::Init()
+bool RAIN::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     cs = static_cast<COLLIDE*>(core.GetService("coll"));
 

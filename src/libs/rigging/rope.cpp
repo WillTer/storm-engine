@@ -7,7 +7,6 @@
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
 
-
 extern void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 
 ROPE::ROPE()
@@ -61,8 +60,10 @@ ROPE::~ROPE()
     nVert = nIndx = 0;
 }
 
-bool ROPE::Init()
+bool ROPE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(ROPE::ROPE())
     SetDevice();
     // UNGUARD

@@ -70,8 +70,9 @@ void SKY::Release()
     iFogIndexID = -1;
 }
 
-bool SKY::Init()
+bool SKY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     SetDevice();
     return true;
 }

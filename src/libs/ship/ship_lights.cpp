@@ -38,8 +38,9 @@ ShipLights::~ShipLights()
     bLoadLights = false;
 }
 
-bool ShipLights::Init()
+bool ShipLights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core.GetService("coll"));

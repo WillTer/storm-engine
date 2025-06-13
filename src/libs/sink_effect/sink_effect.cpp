@@ -6,7 +6,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
 
-
 CREATE_CLASS(SINKEFFECT)
 
 //--------------------------------------------------------------------
@@ -21,8 +20,10 @@ SINKEFFECT::~SINKEFFECT()
 }
 
 //--------------------------------------------------------------------
-bool SINKEFFECT::Init()
+bool SINKEFFECT::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(SINKEFFECT::Init)
 
     sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));

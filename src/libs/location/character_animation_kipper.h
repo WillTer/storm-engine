@@ -26,7 +26,7 @@ public:
     virtual ~CharacterAnimationKipper();
 
     // Initialization
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void LockTexture(char const* texture);
 
     void ProcessStage(Stage, uint32_t) override {}

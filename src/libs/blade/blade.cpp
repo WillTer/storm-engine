@@ -201,8 +201,9 @@ BLADE::~BLADE()
         items[i].Release();
 }
 
-bool BLADE::Init()
+bool BLADE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(BLADE::BLADE())
 
     col = static_cast<COLLIDE*>(core.GetService("coll"));

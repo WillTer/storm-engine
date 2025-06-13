@@ -10,8 +10,10 @@ InfoHandler::~InfoHandler()
     if (tex) m_rs->Release(tex);
 }
 
-bool InfoHandler::Init()
+bool InfoHandler::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // get render service
     m_rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!m_rs) {

@@ -99,8 +99,9 @@ WorldMap::~WorldMap()
 //============================================================================================
 
 // Initialization
-bool WorldMap::Init()
+bool WorldMap::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(LocationCamera::Init())
     // Layers
     // core.LayerCreate("execute", true, false);

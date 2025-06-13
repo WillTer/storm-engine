@@ -5,7 +5,6 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/messages.h>
 
-
 #define ANGLESPEED_MUL 0.2f
 
 BLAST::BLAST() : sea_eid(0), Splash(0)
@@ -23,8 +22,10 @@ BLAST::~BLAST()
         if (!Item[i].bDouble) delete Item[i].geo;
 }
 
-bool BLAST::Init()
+bool BLAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return false;
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));

@@ -33,7 +33,7 @@ public:
     MAST();
     ~MAST() override;
     void SetDevice();
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void Move();
     void Execute(uint32_t Delta_Time);
     void Realize(uint32_t Delta_Time);
@@ -97,7 +97,7 @@ public:
     HULL();
     ~HULL() override;
     void     SetDevice();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     bool     CreateState(ENTITY_STATE_GEN* state_gen);
     bool     LoadState(ENTITY_STATE* state);
     uint64_t ProcessMessage(MESSAGE& message) override;

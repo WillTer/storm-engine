@@ -16,7 +16,7 @@ class BATTLE_INTERFACE: public Entity
 public:
     BATTLE_INTERFACE();
     ~BATTLE_INTERFACE() override;
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;

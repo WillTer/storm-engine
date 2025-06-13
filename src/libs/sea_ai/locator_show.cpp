@@ -20,11 +20,6 @@ SeaLocatorShow::~SeaLocatorShow()
     STORM_DELETE(sphereVertex);
 }
 
-bool SeaLocatorShow::Init()
-{
-    return true;
-}
-
 void SeaLocatorShow::SetDevice() {}
 
 bool SeaLocatorShow::isLocator(ATTRIBUTES* pA)

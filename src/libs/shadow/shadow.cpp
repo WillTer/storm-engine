@@ -41,8 +41,9 @@ Shadow::~Shadow()
     }
 }
 
-bool Shadow::Init()
+bool Shadow::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(Shadow::SHADOW())
 
     col = static_cast<COLLIDE*>(core.GetService("coll"));

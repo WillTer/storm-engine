@@ -75,8 +75,10 @@ TMPTELEPORT::~TMPTELEPORT()
     ReleaseAll();
 }
 
-bool TMPTELEPORT::Init()
+bool TMPTELEPORT::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
@@ -93,7 +95,7 @@ bool TMPTELEPORT::Init()
 void TMPTELEPORT::Execute(uint32_t Delta_Time)
 {
     CONTROL_STATE cs;
-    if (static_cast<PCS_CONTROLS*>(core.Controls)->m_bIsOffDebugKeys) return;
+    if (!static_cast<PCS_CONTROLS*>(core.Controls)->m_is_debug_keys_enabled) return;
     core.Controls->GetControlState("TeleportActive", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nShowType == 0) {
@@ -239,8 +241,9 @@ void TMPTELEPORT::XChange(TELEPORT_DESCR& d1, TELEPORT_DESCR& d2)
     d2.name        = nm;
 }
 
-bool FINDFILESINTODIRECTORY::Init()
+bool FINDFILESINTODIRECTORY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     if (AttributesPointer) {
         char const* const dirName  = AttributesPointer->GetAttribute("dir");
         char const* const maskName = AttributesPointer->GetAttribute("mask");
@@ -260,8 +263,9 @@ bool FINDFILESINTODIRECTORY::Init()
     return false;
 }
 
-bool FINDDIALOGNODES::Init()
+bool FINDDIALOGNODES::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     if (AttributesPointer) {
         char const* fileName = AttributesPointer->GetAttribute("file");
         auto*       pA       = AttributesPointer->CreateSubAClass(AttributesPointer, "nodelist");

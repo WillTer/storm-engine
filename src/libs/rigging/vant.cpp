@@ -8,7 +8,6 @@
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
 
-
 // FIXME: hardcode
 constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
@@ -49,8 +48,9 @@ VANT_BASE::~VANT_BASE()
     nVert = nIndx = 0;
 }
 
-bool VANT_BASE::Init()
+bool VANT_BASE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(VANT::VANT())
     SetDevice();
     // UNGUARD

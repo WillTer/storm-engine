@@ -54,9 +54,17 @@ SoundInfo const DEFAULT_SOUND_INFO = {
     .fade_time_ms = 500,
 };
 
+SeaInfo const DEFAULT_SEA_INFO = {
+    .enable_foam = true,
+};
+
+ControlsInfo const DEFAULT_CONTROLS_INFO = {
+    .scheme         = "",
+    .use_debug_keys = false,
+};
+
 ScriptInfo const DEFAULT_SCRIPT_INFO = {
     .entry_point      = "",
-    .controls         = "",
     .compilation_logs = false,
     .create_codefiles = false,
     .runtime_logs     = false,
@@ -86,6 +94,7 @@ PathsInfo const DEFAULT_PATHS_INFO = {
 };
 
 ProgressImageInfo const DEFAULT_PROGRESS_IMAGE_INFO = {
+    .frame           = 0,
     .relative_x      = 0.85F,
     .relative_y      = 0.8F,
     .relative_width  = 0.0625F,
@@ -199,6 +208,31 @@ struct from<storm::SoundInfo> {
 };
 
 template <>
+struct from<storm::SeaInfo> {
+    static storm::SeaInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_SEA_INFO; }
+
+        return {
+            .enable_foam = toml::find_or(v, "enable_foam", DEFAULT_SEA_INFO.enable_foam),
+        };
+    }
+};
+
+template <>
+struct from<storm::ControlsInfo> {
+    static storm::ControlsInfo from_toml(toml::value const& v)
+    {
+        if (!v.is_table()) { return DEFAULT_CONTROLS_INFO; }
+
+        return {
+            .scheme         = toml::find_or(v, "scheme", DEFAULT_CONTROLS_INFO.scheme),
+            .use_debug_keys = toml::find_or(v, "use_debug_keys", DEFAULT_CONTROLS_INFO.use_debug_keys),
+        };
+    }
+};
+
+template <>
 struct from<storm::ScriptInfo> {
     static storm::ScriptInfo from_toml(toml::value const& v)
     {
@@ -206,7 +240,6 @@ struct from<storm::ScriptInfo> {
 
         return {
             .entry_point      = toml::find<std::string>(v, "entry_point"),
-            .controls         = toml::find_or(v, "controls", DEFAULT_SCRIPT_INFO.controls),
             .compilation_logs = toml::find_or(v, "compilation_logs", DEFAULT_SCRIPT_INFO.compilation_logs),
             .create_codefiles = toml::find_or(v, "create_codefiles", DEFAULT_SCRIPT_INFO.create_codefiles),
             .runtime_logs     = toml::find_or(v, "runtime_logs", DEFAULT_SCRIPT_INFO.runtime_logs),
@@ -260,6 +293,7 @@ struct from<storm::ProgressImageInfo> {
         if (!v.is_table()) { return DEFAULT_PROGRESS_IMAGE_INFO; }
 
         return {
+            .frame           = toml::find_or(v, "frame", DEFAULT_PROGRESS_IMAGE_INFO.frame),
             .relative_x      = toml::find_or(v, "relative_x", DEFAULT_PROGRESS_IMAGE_INFO.relative_x),
             .relative_y      = toml::find_or(v, "relative_y", DEFAULT_PROGRESS_IMAGE_INFO.relative_y),
             .relative_width  = toml::find_or(v, "relative_width", DEFAULT_PROGRESS_IMAGE_INFO.relative_width),
@@ -294,6 +328,18 @@ SoundInfo main_config::sound_info(IConfigLoader& config_loader)
 {
     auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "sound", DEFAULT_SOUND_INFO);
+}
+
+SeaInfo main_config::sea_info(IConfigLoader& config_loader)
+{
+    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    return toml::find_or(config_file, "sea", DEFAULT_SEA_INFO);
+}
+
+ControlsInfo main_config::controls_info(IConfigLoader& config_loader)
+{
+    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    return toml::find_or(config_file, "controls", DEFAULT_CONTROLS_INFO);
 }
 
 ScriptInfo main_config::script_info(IConfigLoader& config_loader)

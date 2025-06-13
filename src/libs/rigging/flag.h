@@ -63,7 +63,7 @@ public:
     FLAG();
     ~FLAG() override;
     void     SetDevice();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);

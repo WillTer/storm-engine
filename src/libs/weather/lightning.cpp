@@ -19,8 +19,9 @@ void LIGHTNING::Release() const
     pRS->TextureRelease(iFlashTexture);
 }
 
-bool LIGHTNING::Init()
+bool LIGHTNING::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     SetDevice();
 
     return true;

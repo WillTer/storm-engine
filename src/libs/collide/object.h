@@ -10,8 +10,9 @@ using ADD_POLYGON_FUNC = bool (*)(const CVECTOR* v, int32_t nv);
 class COLLISION_OBJECT: public Entity
 {
 public:
-    bool Init() override
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override
     {
+        Entity::Init(service_locator);
         return true;
     }
 

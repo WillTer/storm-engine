@@ -20,8 +20,9 @@ BALLSPLASH::~BALLSPLASH()
 }
 
 //--------------------------------------------------------------------
-bool BALLSPLASH::Init()
+bool BALLSPLASH::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(BALLSPLASH::Init)
 
     sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));

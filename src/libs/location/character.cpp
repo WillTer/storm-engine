@@ -627,8 +627,10 @@ Character::~Character()
 }
 
 // Initialization
-bool Character::Init()
+bool Character::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // Location Pointer
     auto* const location = GetLocation();
     if (!location) return false;

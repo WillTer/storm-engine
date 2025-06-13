@@ -25,8 +25,10 @@ AISeaGoods::~AISeaGoods()
     aGoods.clear();
 }
 
-bool AISeaGoods::Init()
+bool AISeaGoods::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     SetDevice();
     return true;
 }

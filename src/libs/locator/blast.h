@@ -34,7 +34,7 @@ class BLAST: public Entity
 public:
     ~BLAST() override;
     BLAST();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     uint64_t ProcessMessage(MESSAGE& message) override;
     uint32_t AttributeChanged(ATTRIBUTES*) override;
     void     Realize(uint32_t Delta_Time);

@@ -7,7 +7,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
-
 CREATE_CLASS(SEAFOAM)
 
 // entid_t arrowModel;
@@ -34,8 +33,9 @@ SEAFOAM::~SEAFOAM()
 }
 
 //--------------------------------------------------------------------
-bool SEAFOAM::Init()
+bool SEAFOAM::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SEAFOAM::Init)
 
     /*if (core.IsNetActive())

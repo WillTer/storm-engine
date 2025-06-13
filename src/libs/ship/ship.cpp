@@ -106,8 +106,10 @@ SHIP::~SHIP()
 }
 
 // ##################################################################
-bool SHIP::Init()
+bool SHIP::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
     using std::chrono::system_clock;

@@ -43,9 +43,4 @@ public:
         case Stage::restore_render: RestoreRender(); break;
         }
     }
-
-    bool Init() override
-    {
-        return true;
-    }
 };

@@ -188,7 +188,7 @@ public:
     virtual ~Character();
 
     // Initialization
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
     // Changing an attribute

@@ -52,9 +52,17 @@ struct SoundInfo {
     uint64_t fade_time_ms;
 };
 
+struct SeaInfo {
+    bool enable_foam;
+};
+
+struct ControlsInfo {
+    std::string scheme;
+    bool        use_debug_keys;
+};
+
 struct ScriptInfo {
     std::string entry_point;
-    std::string controls;
     bool        compilation_logs;
     bool        create_codefiles;
     bool        runtime_logs;
@@ -84,6 +92,7 @@ struct PathsInfo {
 };
 
 struct ProgressImageInfo {
+    int   frame;
     float relative_x;
     float relative_y;
     float relative_width;
@@ -99,6 +108,8 @@ GeneralInfo       general_info(IConfigLoader& config_loader);
 WindowInfo        window_info(IConfigLoader& config_loader);
 DeviceInfo        device_info(IConfigLoader& config_loader);
 SoundInfo         sound_info(IConfigLoader& config_loader);
+SeaInfo           sea_info(IConfigLoader& config_loader);
+ControlsInfo      controls_info(IConfigLoader& config_loader);
 ScriptInfo        script_info(IConfigLoader& config_loader);
 CompatibilityInfo compatibility_info(IConfigLoader& config_loader);
 PathsInfo         paths_info(IConfigLoader& config_loader);

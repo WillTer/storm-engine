@@ -19,11 +19,6 @@ AIFort::~AIFort()
         STORM_DELETE(aFort);
 }
 
-bool AIFort::Init()
-{
-    return true;
-}
-
 void AIFort::SetDevice() {}
 
 float AIFort::GetSpeedV0(uint32_t dwFortIndex)

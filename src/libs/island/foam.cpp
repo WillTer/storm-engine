@@ -37,8 +37,10 @@ CoastFoam::~CoastFoam()
     iIBuffer = -1;
 }
 
-bool CoastFoam::Init()
+bool CoastFoam::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     iVBuffer = rs->CreateVertexBuffer(

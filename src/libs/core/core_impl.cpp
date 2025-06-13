@@ -65,6 +65,7 @@ void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
     Controls            = nullptr;
     fTimeScale          = 1.0f;
     Compiler            = std::make_unique<COMPILER>(service_locator);
+    entity_manager_     = std::make_unique<EntityManager>(service_locator);
     m_service_locator   = service_locator;
 
     /* TODO: place this outside CoreImpl */
@@ -155,7 +156,7 @@ bool CoreImpl::Run()
 
     if (Controls) ProcessControls();
 
-    entity_manager_.NewLifecycle();
+    entity_manager_->NewLifecycle();
 
     ProcessRunEnd(SECTION_ALL);
 
@@ -199,12 +200,13 @@ void CoreImpl::ProcessEngineIniFile()
 
     auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
     auto const script_info   = storm::main_config::script_info(*config_loader);
+    auto const controls_info = storm::main_config::controls_info(*config_loader);
 
     auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
     Compiler->SetProgramDirectory(program_dir.string().c_str());
 
-    if (!script_info.controls.empty()) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(script_info.controls.c_str()));
+    if (!controls_info.scheme.empty()) {
+        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
         if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
@@ -212,6 +214,8 @@ void CoreImpl::ProcessEngineIniFile()
 
         core_internal.Controls = new CONTROLS;
     }
+
+    core_internal.Controls->Init(m_service_locator);
 
     auto const compat_info = storm::main_config::compatibility_info(*config_loader);
     targetVersion_         = compat_info.target_version;
@@ -629,7 +633,7 @@ ATTRIBUTES* CoreImpl::Entity_GetAttributePointer(entid_t id_PTR)
 
 void CoreImpl::EraseEntities()
 {
-    entity_manager_.EraseAll();
+    entity_manager_->EraseAll();
 }
 
 void CoreImpl::ClearEvents()
@@ -744,11 +748,6 @@ uint32_t CoreImpl::SetScriptFunction(IFUNCINFO* pFuncInfo)
     return Compiler->SetScriptFunction(pFuncInfo);
 }
 
-char const* CoreImpl::EngineIniFileName()
-{
-    return fs::ENGINE_INI_FILE_NAME;
-}
-
 void* CoreImpl::GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex)
 {
     VarInfo const* real_var;
@@ -788,82 +787,82 @@ void CoreImpl::stopFrameProcessing()
 
 void CoreImpl::AddToLayer(layer_index_t index, entid_t id, priority_t priority)
 {
-    entity_manager_.AddToLayer(index, id, priority);
+    entity_manager_->AddToLayer(index, id, priority);
 }
 
 void CoreImpl::EraseEntity(entid_t entity)
 {
-    entity_manager_.EraseEntity(entity);
+    entity_manager_->EraseEntity(entity);
 }
 
 entid_t CoreImpl::CreateEntity(char const* name, ATTRIBUTES* attr)
 {
-    return entity_manager_.CreateEntity(name, attr);
+    return entity_manager_->CreateEntity(name, attr);
 }
 
 entptr_t CoreImpl::GetEntityPointer(entid_t id) const
 {
-    return entity_manager_.GetEntityPointer(id);
+    return entity_manager_->GetEntityPointer(id);
 }
 
 entptr_t CoreImpl::GetEntityPointerSafe(entid_t id) const
 {
-    return entity_manager_.IsEntityValid(id) ? GetEntityPointer(id) : nullptr;
+    return entity_manager_->IsEntityValid(id) ? GetEntityPointer(id) : nullptr;
 }
 
 entid_t CoreImpl::GetEntityId(char const* name) const
 {
-    return entity_manager_.GetEntityId(name);
+    return entity_manager_->GetEntityId(name);
 }
 
 bool CoreImpl::IsEntityValid(entid_t id) const
 {
-    return entity_manager_.IsEntityValid(id);
+    return entity_manager_->IsEntityValid(id);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(layer_type_t type) const
 {
-    return entity_manager_.GetEntityIds(type);
+    return entity_manager_->GetEntityIds(type);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(layer_index_t index) const
 {
-    return entity_manager_.GetEntityIds(index);
+    return entity_manager_->GetEntityIds(index);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(char const* name) const
 {
-    return entity_manager_.GetEntityIds(name);
+    return entity_manager_->GetEntityIds(name);
 }
 
 void CoreImpl::SetLayerType(layer_index_t index, layer_type_t type)
 {
-    entity_manager_.SetLayerType(index, type);
+    entity_manager_->SetLayerType(index, type);
 }
 
 void CoreImpl::SetLayerFrozen(layer_index_t index, bool freeze)
 {
-    entity_manager_.SetLayerFrozen(index, freeze);
+    entity_manager_->SetLayerFrozen(index, freeze);
 }
 
 void CoreImpl::RemoveFromLayer(layer_index_t index, entid_t id)
 {
-    entity_manager_.RemoveFromLayer(index, id);
+    entity_manager_->RemoveFromLayer(index, id);
 }
 
 hash_t CoreImpl::GetClassCode(entid_t id) const
 {
-    return entity_manager_.GetClassCode(id);
+    return entity_manager_->GetClassCode(id);
 }
 
 bool CoreImpl::IsLayerFrozen(layer_index_t index) const
 {
-    return entity_manager_.IsLayerFrozen(index);
+    return entity_manager_->IsLayerFrozen(index);
 }
 
 void CoreImpl::ForEachEntity(std::function<void(entptr_t)> const& f)
 {
-    entity_manager_.ForEachEntity(f);
+    entity_manager_->ForEachEntity(f);
 }
 
 void CoreImpl::collectCrashInfo() const

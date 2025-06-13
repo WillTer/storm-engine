@@ -10,7 +10,6 @@
 #include <libs/util/string_compare.hpp>
 #include <libs/weather/weather_base.h>
 
-
 // FIXME: hardcode
 constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
@@ -44,8 +43,9 @@ FLAG::~FLAG()
     STORM_DELETE(flist);
 }
 
-bool FLAG::Init()
+bool FLAG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(FLAG::FLAG())
     SetDevice();
     // UNGUARD

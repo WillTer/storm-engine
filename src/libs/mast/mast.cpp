@@ -56,8 +56,9 @@ MAST::~MAST()
     AllRelease();
 }
 
-bool MAST::Init()
+bool MAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(MAST::Init())
 
     SetDevice();
@@ -654,8 +655,9 @@ HULL::~HULL()
     AllRelease();
 }
 
-bool HULL::Init()
+bool HULL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     SetDevice();
     return true;
 }

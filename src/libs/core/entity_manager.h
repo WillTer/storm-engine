@@ -12,6 +12,8 @@
 class EntityManager final
 {
 public:
+    EntityManager(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+
     hash_t                GetClassCode(entid_t id) const;
     entptr_t              GetEntityPointer(entid_t id) const;
     entity_container_cref GetEntityIds(layer_type_t type) const;
@@ -34,6 +36,8 @@ public:
     void    ForEachEntity(std::function<void(entptr_t)> const& f);
 
 private:
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+
     constexpr static size_t kMaxLayerNum = sizeof(uint32_t) * 8;
 
     using entid_index_t  = uint32_t;

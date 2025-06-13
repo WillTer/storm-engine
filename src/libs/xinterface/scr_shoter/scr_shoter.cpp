@@ -38,8 +38,9 @@ SCRSHOTER::~SCRSHOTER()
     }
 }
 
-bool SCRSHOTER::Init()
+bool SCRSHOTER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SCRSHOTER::Init())
     SetDevice();
     // UNGUARD

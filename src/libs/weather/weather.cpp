@@ -37,8 +37,10 @@ void WEATHER::SetDevice()
     // LoadWeatherIni();
 }
 
-bool WEATHER::Init()
+bool WEATHER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     SetDevice();
     SetBeginData();
     return true;

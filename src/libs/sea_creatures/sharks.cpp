@@ -463,8 +463,10 @@ Sharks::~Sharks()
 }
 
 // Initialization
-bool Sharks::Init()
+bool Sharks::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     for (int32_t i = 0; i < numShakes; i++)

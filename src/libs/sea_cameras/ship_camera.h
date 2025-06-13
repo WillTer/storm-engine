@@ -41,7 +41,7 @@ private:
 
     void Move(float fDeltaTime);
 
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void SetDevices();
     void Execute(uint32_t dwDeltaTime);
     void Realize(uint32_t dwDeltaTime) const;

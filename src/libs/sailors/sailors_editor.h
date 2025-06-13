@@ -12,7 +12,7 @@ public:
     SailorsEditor();
     ~SailorsEditor() override;
 
-    bool         Init() override;
+    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     virtual void Execute(uint32_t dltTime);
     virtual void Realize(uint32_t dltTime);
 

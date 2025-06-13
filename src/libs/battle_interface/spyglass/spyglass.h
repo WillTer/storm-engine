@@ -91,7 +91,7 @@ class ISPYGLASS: public Entity
 public:
     ISPYGLASS();
     ~ISPYGLASS() override;
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time) const;
     uint64_t ProcessMessage(MESSAGE& message) override;

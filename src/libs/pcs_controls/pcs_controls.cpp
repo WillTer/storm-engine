@@ -1,5 +1,6 @@
 #include "pcs_controls.h"
 
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/input/input.hpp>
@@ -9,10 +10,9 @@ CREATE_SERVICE(PCS_CONTROLS)
 
 using namespace storm;
 
-PCS_CONTROLS::PCS_CONTROLS()
+PCS_CONTROLS::PCS_CONTROLS() : m_is_debug_keys_enabled {false}
 {
-    m_bLockAll        = false;
-    m_bIsOffDebugKeys = false;
+    m_bLockAll = false;
 
     fMouseSensivityX = 1.0f;
     fMouseSensivityY = 1.0f;
@@ -28,9 +28,6 @@ PCS_CONTROLS::PCS_CONTROLS()
     nMouseWheel = 0;
     memset(&ControlsTab[0], 0, sizeof(ControlsTab));
 
-    auto pIni = fio->open_ini_file(core.EngineIniFileName());
-    if (pIni) { m_bIsOffDebugKeys = pIni->GetInt("controls", "ondebugkeys", 0) == 0; }
-
     input_          = Input::Create();
     inputHandlerID_ = input_->Subscribe([this](InputEvent const& evt) { HandleEvent(evt); });
 
@@ -44,6 +41,16 @@ PCS_CONTROLS::~PCS_CONTROLS()
     input_->Unsubscribe(inputHandlerID_);
     Release();
     // ClipCursor(0);
+}
+
+void PCS_CONTROLS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+{
+    CONTROLS::Init(service_locator);
+
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const controls_info = storm::main_config::controls_info(*config_loader);
+
+    m_is_debug_keys_enabled = controls_info.use_debug_keys;
 }
 
 void PCS_CONTROLS::AppState(bool state)
@@ -533,9 +540,7 @@ short PCS_CONTROLS::GetKeyState(int vk)
 short PCS_CONTROLS::GetDebugAsyncKeyState(int vk)
 {
     // -1 because WinAPI sets msb when key pressed, so old code expects negative value
-    if (m_bIsOffDebugKeys) { return 0; }
-
-    return IsKeyPressed(vk) ? -1 : 0;
+    return m_is_debug_keys_enabled && IsKeyPressed(vk) ? -1 : 0;
 }
 
 short PCS_CONTROLS::GetDebugKeyState(int vk)

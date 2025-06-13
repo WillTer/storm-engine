@@ -15,7 +15,6 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
-
 // ============================================================================================
 // Construction, destruction
 // ============================================================================================
@@ -33,8 +32,9 @@ Lighter::Lighter() : autoTrace(false), autoSmooth(false)
 Lighter::~Lighter() {}
 
 // Initialization
-bool Lighter::Init()
+bool Lighter::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // Checking if ini file exists
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "loclighter.ini");

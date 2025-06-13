@@ -11,7 +11,6 @@
 
 #include "p_system.h"
 
-
 PARTICLES::PARTICLES()
 {
     bSystemDelete   = false;
@@ -26,8 +25,10 @@ PARTICLES::~PARTICLES()
     DeleteAll();
 }
 
-bool PARTICLES::Init()
+bool PARTICLES::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     core.AddToLayer(REALIZE, GetId(), 0xfffff);
     core.AddToLayer(EXECUTE, GetId(), 0);
 

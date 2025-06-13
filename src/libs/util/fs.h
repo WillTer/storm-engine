@@ -47,6 +47,4 @@ inline path GetScreenshotsPath()
     return GetStashPath() / "Screenshots";
 }
 
-constexpr char ENGINE_INI_FILE_NAME[]  = "engine.ini";
-constexpr char ENGINE_TOML_FILE_NAME[] = "engine.toml";
 }  // namespace fs

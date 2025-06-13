@@ -7,7 +7,6 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/interface/messages.h>
 
-
 #define IRELEASE(i) \
     { \
         if (i) i->Release(); \
@@ -48,8 +47,10 @@ CAviPlayer::~CAviPlayer()
     ReleaseAll();
 }
 
-bool CAviPlayer::Init()
+bool CAviPlayer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
