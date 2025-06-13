@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
 
@@ -19,8 +20,10 @@ SINKEFFECT::~SINKEFFECT()
 }
 
 //--------------------------------------------------------------------
-bool SINKEFFECT::Init()
+bool SINKEFFECT::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(SINKEFFECT::Init)
 
     sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
@@ -116,7 +119,8 @@ void SINKEFFECT::Execute(uint32_t _dTime)
 //--------------------------------------------------------------------
 void SINKEFFECT::InitializeSinks()
 {
-    auto psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
+    // FIXME: hardcode
+    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i) {
         sinks[i].Release();

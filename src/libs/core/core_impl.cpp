@@ -3,6 +3,8 @@
 #include <fstream>
 
 #include <SDL2/SDL.h>
+#include <libs/config/main_config.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
@@ -16,33 +18,6 @@ uint64_t get_performance_counter()
 {
     return SDL_GetPerformanceCounter();
 }
-
-namespace storm
-{
-namespace
-{
-ENGINE_VERSION getTargetEngineVersion(std::string_view const& version)
-{
-    using namespace std::string_view_literals;
-
-    if (iEquals(version, "sd"sv)) {
-        return ENGINE_VERSION::SEA_DOGS;
-    } else if (iEquals(version, "potc"sv)) {
-        return ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN;
-    } else if (iEquals(version, "ct"sv)) {
-        return ENGINE_VERSION::CARIBBEAN_TALES;
-    } else if (iEquals(version, "coas"sv)) {
-        return ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS;
-    } else if (iEquals(version, "teho"sv)) {
-        return ENGINE_VERSION::TO_EACH_HIS_OWN;
-    } else if (iEquals(version, "latest"sv)) {
-        return ENGINE_VERSION::LATEST;
-    }
-
-    return ENGINE_VERSION::UNKNOWN;
-}
-}  // namespace
-}  // namespace storm
 
 uint32_t dwNumberScriptCommandsExecuted = 0;
 
@@ -79,7 +54,7 @@ void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
     window_ = std::move(window);
 }
 
-void CoreImpl::Init()
+void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
     Initialized         = false;
     bEngineIniProcessed = false;
@@ -89,7 +64,9 @@ void CoreImpl::Init()
     Memory_Leak_flag    = false;
     Controls            = nullptr;
     fTimeScale          = 1.0f;
-    Compiler            = new COMPILER;
+    Compiler            = std::make_unique<COMPILER>(service_locator);
+    entity_manager_     = std::make_unique<EntityManager>(service_locator);
+    m_service_locator   = service_locator;
 
     /* TODO: place this outside CoreImpl */
     SetLayerType(EXECUTE, layer_type_t::execute);
@@ -179,7 +156,7 @@ bool CoreImpl::Run()
 
     if (Controls) ProcessControls();
 
-    entity_manager_.NewLifecycle();
+    entity_manager_->NewLifecycle();
 
     ProcessRunEnd(SECTION_ALL);
 
@@ -219,20 +196,18 @@ bool CoreImpl::Initialize()
 
 void CoreImpl::ProcessEngineIniFile()
 {
-    char String[MAX_PATH];
-
     bEngineIniProcessed = true;
 
-    auto engine_ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
-    if (!engine_ini) throw std::runtime_error("no 'engine.ini' file");
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const script_info   = storm::main_config::script_info(*config_loader);
+    auto const controls_info = storm::main_config::controls_info(*config_loader);
 
-    auto res = engine_ini->ReadString(nullptr, "program_directory", String, sizeof(String), "");
-    if (res) { Compiler->SetProgramDirectory(String); }
+    auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
+    Compiler->SetProgramDirectory(program_dir.string().c_str());
 
-    res = engine_ini->ReadString(nullptr, "controls", String, sizeof(String), "");
-    if (res) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(String));
-        if (core_internal.Controls == nullptr) core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls"));
+    if (!controls_info.scheme.empty()) {
+        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
+        if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
         Controls = nullptr;
@@ -240,26 +215,26 @@ void CoreImpl::ProcessEngineIniFile()
         core_internal.Controls = new CONTROLS;
     }
 
-    loadCompatibilitySettings(*engine_ini);
+    core_internal.Controls->Init(m_service_locator);
 
-    res = engine_ini->ReadString(nullptr, "run", String, sizeof(String), "");
-    if (res) {
-        if (!Compiler->CreateProgram(String)) throw std::runtime_error("fail to create program");
-        if (!Compiler->Run()) throw std::runtime_error("fail to run program");
+    auto const compat_info = storm::main_config::compatibility_info(*config_loader);
+    targetVersion_         = compat_info.target_version;
 
-        // Script version test
-        if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
-            int32_t iScriptVersion  = 0xFFFFFFFF;
-            auto*   pVScriptVersion = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
-            if (pVScriptVersion) pVScriptVersion->Get(iScriptVersion);
+    if (!Compiler->CreateProgram(script_info.entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
+    if (!Compiler->Run()) { throw std::runtime_error("fail to run program"); }
 
-            if (iScriptVersion != ENGINE_SCRIPT_VERSION) {
+    // Script version test
+    if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
+        auto  script_version      = std::numeric_limits<int32_t>::max();
+        auto* script_version_data = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
+        if (script_version_data != nullptr) { script_version_data->Get(script_version); }
+
+        if (script_version != ENGINE_SCRIPT_VERSION) {
 #ifdef _WIN32  // FIX_LINUX Cursor
-                ShowCursor(true);
+            ShowCursor(SDL_TRUE);
 #endif
-                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
-                Compiler->ExitProgram();
-            }
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
+            Compiler->ExitProgram();
         }
     }
 }
@@ -445,7 +420,7 @@ void* CoreImpl::GetService(char const* service_name)
     auto const class_code = MakeHashValue(service_name);
     pClass->SetHash(class_code);
 
-    if (!service_PTR->Init()) {
+    if (!service_PTR->Init(m_service_locator)) {
         CheckAutoExceptions(0);
         return nullptr;
     }
@@ -500,12 +475,11 @@ bool CoreImpl::SaveState(char const* file_name)
 {
     if (!file_name) { throw std::logic_error("Bad file name of save"); }
 
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::out);
+    auto fileS = fio->open_file<std::ofstream>(file_name, std::ios::binary);
 
     if (!fileS.is_open()) { return false; }
 
     Compiler->SaveState(fileS);
-    fio->_CloseFile(fileS);
 
     return true;
 }
@@ -513,9 +487,7 @@ bool CoreImpl::SaveState(char const* file_name)
 // force core to load state file at the start of next game loop, return false if no state file
 bool CoreImpl::InitiateStateLoading(char const* file_name)
 {
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
-    if (!fileS.is_open()) { return false; }
-    fio->_CloseFile(fileS);
+    if (!fio->exists(file_name)) { return false; }
     delete[] State_file_name;
 
     auto const len  = strlen(file_name) + 1;
@@ -531,10 +503,9 @@ void CoreImpl::ProcessStateLoading()
     State_loading = true;
     EraseEntities();
 
-    auto fileS = fio->_CreateFile(State_file_name, std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(State_file_name, std::ios::binary);
     if (!fileS.is_open()) { return; }
     Compiler->LoadState(fileS);
-    fio->_CloseFile(fileS);
 
     delete[] State_file_name;
     State_file_name = nullptr;
@@ -662,7 +633,7 @@ ATTRIBUTES* CoreImpl::Entity_GetAttributePointer(entid_t id_PTR)
 
 void CoreImpl::EraseEntities()
 {
-    entity_manager_.EraseAll();
+    entity_manager_->EraseAll();
 }
 
 void CoreImpl::ClearEvents()
@@ -762,12 +733,12 @@ void CoreImpl::DumpEntitiesInfo()
     std::this_thread::sleep_for(std::chrono::milliseconds(200));*/
 }
 
-void* CoreImpl::GetSaveData(char const* file_name, int32_t& data_size)
+void* CoreImpl::GetSaveData(std::filesystem::path const& file_name, int32_t& data_size)
 {
     return Compiler->GetSaveData(file_name, data_size);
 }
 
-bool CoreImpl::SetSaveData(char const* file_name, void* data_ptr, int32_t data_size)
+bool CoreImpl::SetSaveData(std::filesystem::path const& file_name, void* data_ptr, int32_t data_size)
 {
     return Compiler->SetSaveData(file_name, data_ptr, data_size);
 }
@@ -775,11 +746,6 @@ bool CoreImpl::SetSaveData(char const* file_name, void* data_ptr, int32_t data_s
 uint32_t CoreImpl::SetScriptFunction(IFUNCINFO* pFuncInfo)
 {
     return Compiler->SetScriptFunction(pFuncInfo);
-}
-
-char const* CoreImpl::EngineIniFileName()
-{
-    return fs::ENGINE_INI_FILE_NAME;
 }
 
 void* CoreImpl::GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex)
@@ -821,100 +787,85 @@ void CoreImpl::stopFrameProcessing()
 
 void CoreImpl::AddToLayer(layer_index_t index, entid_t id, priority_t priority)
 {
-    entity_manager_.AddToLayer(index, id, priority);
+    entity_manager_->AddToLayer(index, id, priority);
 }
 
 void CoreImpl::EraseEntity(entid_t entity)
 {
-    entity_manager_.EraseEntity(entity);
+    entity_manager_->EraseEntity(entity);
 }
 
 entid_t CoreImpl::CreateEntity(char const* name, ATTRIBUTES* attr)
 {
-    return entity_manager_.CreateEntity(name, attr);
+    return entity_manager_->CreateEntity(name, attr);
 }
 
 entptr_t CoreImpl::GetEntityPointer(entid_t id) const
 {
-    return entity_manager_.GetEntityPointer(id);
+    return entity_manager_->GetEntityPointer(id);
 }
 
 entptr_t CoreImpl::GetEntityPointerSafe(entid_t id) const
 {
-    return entity_manager_.IsEntityValid(id) ? GetEntityPointer(id) : nullptr;
+    return entity_manager_->IsEntityValid(id) ? GetEntityPointer(id) : nullptr;
 }
 
 entid_t CoreImpl::GetEntityId(char const* name) const
 {
-    return entity_manager_.GetEntityId(name);
+    return entity_manager_->GetEntityId(name);
 }
 
 bool CoreImpl::IsEntityValid(entid_t id) const
 {
-    return entity_manager_.IsEntityValid(id);
+    return entity_manager_->IsEntityValid(id);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(layer_type_t type) const
 {
-    return entity_manager_.GetEntityIds(type);
+    return entity_manager_->GetEntityIds(type);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(layer_index_t index) const
 {
-    return entity_manager_.GetEntityIds(index);
+    return entity_manager_->GetEntityIds(index);
 }
 
 entity_container_cref CoreImpl::GetEntityIds(char const* name) const
 {
-    return entity_manager_.GetEntityIds(name);
+    return entity_manager_->GetEntityIds(name);
 }
 
 void CoreImpl::SetLayerType(layer_index_t index, layer_type_t type)
 {
-    entity_manager_.SetLayerType(index, type);
+    entity_manager_->SetLayerType(index, type);
 }
 
 void CoreImpl::SetLayerFrozen(layer_index_t index, bool freeze)
 {
-    entity_manager_.SetLayerFrozen(index, freeze);
+    entity_manager_->SetLayerFrozen(index, freeze);
 }
 
 void CoreImpl::RemoveFromLayer(layer_index_t index, entid_t id)
 {
-    entity_manager_.RemoveFromLayer(index, id);
+    entity_manager_->RemoveFromLayer(index, id);
 }
 
 hash_t CoreImpl::GetClassCode(entid_t id) const
 {
-    return entity_manager_.GetClassCode(id);
+    return entity_manager_->GetClassCode(id);
 }
 
 bool CoreImpl::IsLayerFrozen(layer_index_t index) const
 {
-    return entity_manager_.IsLayerFrozen(index);
+    return entity_manager_->IsLayerFrozen(index);
 }
 
 void CoreImpl::ForEachEntity(std::function<void(entptr_t)> const& f)
 {
-    entity_manager_.ForEachEntity(f);
+    entity_manager_->ForEachEntity(f);
 }
 
 void CoreImpl::collectCrashInfo() const
 {
     Compiler->CollectCallStack();
-}
-
-void CoreImpl::loadCompatibilitySettings(INIFILE& inifile)
-{
-    using namespace storm;
-
-    std::array<char, 128> strBuffer {};
-    inifile.ReadString("compatibility", "target_version", strBuffer.data(), strBuffer.size(), "latest");
-    std::string_view const target_engine_version = strBuffer.data();
-
-    targetVersion_ = getTargetEngineVersion(target_engine_version);
-    if (targetVersion_ == ENGINE_VERSION::UNKNOWN) {
-        spdlog::warn("Unknown target version '{}' in engine compatibility settings", target_engine_version);
-        targetVersion_ = ENGINE_VERSION::LATEST;
-    }
 }

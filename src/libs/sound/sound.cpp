@@ -15,8 +15,9 @@ SOUND::SOUND() : soundService(nullptr), renderer(nullptr) {}
 SOUND::~SOUND() {}
 
 //--------------------------------------------------------------------
-bool SOUND::Init()
+bool SOUND::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SOUND::Init)
 
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));

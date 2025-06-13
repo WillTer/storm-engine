@@ -1,4 +1,6 @@
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "geometry_r.h"
@@ -53,14 +55,17 @@ void GEOMETRY::SetVBConvertFunc(VERTEX_TRANSFORM _transform_func)
 
 static bool geoLog = false;
 
-bool GEOMETRY::Init()
+bool GEOMETRY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    SERVICE::Init(service_locator);
+
     RenderService = static_cast<VDX9RENDER*>(core.GetService(RenderServiceName));
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
-    auto ini = fio->OpenIniFile(core.EngineIniFileName());
-    if (ini) { geoLog = ini->GetInt(nullptr, "geometry_log", 0) == 1; }
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const device_info   = storm::main_config::device_info(*config_loader);
+    geoLog                   = device_info.geometry_log;
 
     return true;
 }
@@ -80,11 +85,10 @@ int  vrtSize;
 
 GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath)
 {
-    char fnt[256], lfn[256];
     if (light_file_name != nullptr) {
-        sprintf_s(lightPath, "%s\\%s", lmPath, file_name);
+        sprintf_s(lightPath, "%s/%s", lmPath, file_name);
         // strcpy_s(lightPath, light_file_name);
-        auto* const bs = strrchr(lightPath, '\\');
+        auto* const bs = strrchr(lightPath, '/');
         if (bs != nullptr) *bs = 0;
     }
 
@@ -100,22 +104,22 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
 
     GEOS* gp;
     try {
-        sprintf_s(fnt, "resource\\models\\%s.gm", file_name);
+        auto const model_path = fio->base_directory_path(BaseDirectory::Models) / (std::string(file_name) + ".gm");
         if (light_file_name == nullptr || strlen(light_file_name) == 0) {
-            gp = ::CreateGeometry(fnt, nullptr, GSR, flags);
+            gp = ::CreateGeometry(model_path.string().c_str(), nullptr, GSR, flags);
         } else {
-            // sprintf_s(lfn, "resource\\lighting\\%s.col", light_file_name);
             auto const* elf = light_file_name;
-            if (elf[0] == '\\') elf++;
-            if (elf[0] == '\\') elf++;
-            sprintf_s(lfn, "resource\\models\\%s_%s.col", file_name, elf);
-            gp = ::CreateGeometry(fnt, lfn, GSR, flags);
+            if (elf[0] == '/') elf++;
+            if (elf[0] == '/') elf++;
+            auto const light_path = fio->base_directory_path(BaseDirectory::Models) / (std::string(file_name) + "_" + elf + ".col");
+
+            gp = ::CreateGeometry(model_path.string().c_str(), light_path.string().c_str(), GSR, flags);
         }
     } catch (std::exception const& e) {
-        core.Trace("%s: %s", fnt, e.what());
+        core.Trace("%s: %s", file_name, e.what());
         return nullptr;
     } catch (...) {
-        core.Trace("Invalid model: %s", fnt);
+        core.Trace("Invalid model: %s", file_name);
         return nullptr;
     }
 
@@ -172,10 +176,10 @@ void GEOM_SERVICE_R::SetRenderService(VDX9RENDER* render_service)
     if (vertexDecl_ == nullptr) RenderService->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-std::fstream GEOM_SERVICE_R::OpenFile(char const* fname)
+std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 {
     if (RenderService) { RenderService->ProgressView(); }
-    auto fileS = fio->_CreateFile(fname, std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
     if (!fileS.is_open()) {
         if (storm::iEquals(&fname[strlen(fname) - 4], ".col")) {
             //    core.Trace("geometry::can't open file %s", fname);
@@ -189,17 +193,18 @@ std::fstream GEOM_SERVICE_R::OpenFile(char const* fname)
 
 int GEOM_SERVICE_R::FileSize(char const* fname)
 {
-    return fio->_GetFileSize(fname);
+    return fio->file_size(fname);
 }
 
-bool GEOM_SERVICE_R::ReadFile(std::fstream& fileS, void* data, int32_t bytes)
+bool GEOM_SERVICE_R::ReadFile(std::ifstream& fileS, void* data, int32_t bytes)
 {
-    return fio->_ReadFile(fileS, data, bytes);
+    fileS.read(reinterpret_cast<char*>(data), bytes);
+    return true;
 }
 
-void GEOM_SERVICE_R::CloseFile(std::fstream& fileS)
+void GEOM_SERVICE_R::CloseFile(std::ifstream& fileS)
 {
-    fio->_CloseFile(fileS);
+    fileS.close();
 }
 
 void* GEOM_SERVICE_R::malloc(int32_t bytes)
@@ -216,7 +221,7 @@ GEOS::ID GEOM_SERVICE_R::CreateTexture(char const* fname)
 {
     char tex[256];
     if (storm::iEquals(fname, "shadow.tga")) {
-        sprintf_s(tex, "lighting\\%s\\%s", lightPath, fname);
+        sprintf_s(tex, "lighting/%s/%s", lightPath, fname);
     } else {
         strcpy_s(tex, texturePath);
         strcat_s(tex, fname);

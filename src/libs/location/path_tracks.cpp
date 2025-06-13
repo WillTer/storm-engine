@@ -9,10 +9,11 @@
 #include "path_tracks.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/v_file_service.h>
 
 #include "camera_tracks_file.h"
+
 
 //============================================================================================
 
@@ -41,39 +42,41 @@ bool PathTracks::Load(char const* fileName)
     point     = nullptr;
     numPoints = 0;
 
-    char*    data = nullptr;
-    uint32_t size = 0;
-    if (fio->LoadFile(fileName, &data, &size) == FALSE || !data) {
+    std::vector<char> data = {};
+    if (!fio->read_file_to_mem(fileName, data) || data.empty()) {
         core.Trace("Camera tracks file %s not loaded...", fileName);
         return false;
     }
+
     // Checking the title
-    if (((AntFileHeader*)data)->id != ANTFILE_ID) {
+    if (reinterpret_cast<AntFileHeader*>(data.data())->id != ANTFILE_ID) {
         core.Trace("Camera tracks file %s is invalidate...", fileName);
-        delete data;
         return false;
     }
-    if (((AntFileHeader*)data)->ver != ANTFILE_VER) {
+
+    if (reinterpret_cast<AntFileHeader*>(data.data())->ver != ANTFILE_VER) {
         core.Trace("Camera tracks file %s have incorrect version...", fileName);
-        delete data;
         return false;
     }
-    int32_t const nPoints     = ((AntFileHeader*)data)->framesCount;
-    int32_t const nStringSize = ((AntFileHeader*)data)->stringsTableSize;
-    int32_t const nBoneCount  = ((AntFileHeader*)data)->bonesCount;
+
+    int32_t const nPoints     = reinterpret_cast<AntFileHeader*>(data.data())->framesCount;
+    int32_t const nStringSize = reinterpret_cast<AntFileHeader*>(data.data())->stringsTableSize;
+    int32_t const nBoneCount  = reinterpret_cast<AntFileHeader*>(data.data())->bonesCount;
+
     // Checking file sizes
-    if (size
-        < sizeof(AntFileHeader) + sizeof(char) * nStringSize + sizeof(AntFileBone) * nBoneCount + sizeof(AntFileTrackElement) * nPoints) {
+    if (data.size()
+        < (sizeof(AntFileHeader) + (sizeof(char) * nStringSize) + (sizeof(AntFileBone) * nBoneCount)
+           + (sizeof(AntFileTrackElement) * nPoints))) {
         core.Trace("Camera tracks file %s is invalidate...", fileName);
-        delete data;
         return false;
     }
+
     // save the data
     point = new Point[nPoints];
     Assert(point);
     memcpy(
         point,
-        (uint8_t*)data + sizeof(AntFileHeader) + nStringSize + sizeof(AntFileBone) * nBoneCount,
+        data.data() + sizeof(AntFileHeader) + nStringSize + (sizeof(AntFileBone) * nBoneCount),
         sizeof(AntFileTrackElement) * nPoints);
     numPoints = nPoints;
 

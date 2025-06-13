@@ -4,6 +4,7 @@
 #include <thread>
 
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "../data_cache/data_cache.h"
@@ -94,16 +95,12 @@ bool ParticleManager::OpenProject(char const* FileName)
     CloseProject();
     ShortProjectName = FileName;
 
-    // std::string LongFileName = "resource\\particles\\";
-    auto path    = std::filesystem::path() / "resource" / "particles" / FileName;
+    auto path    = fio->base_directory_path(BaseDirectory::Particles) / FileName;
     auto pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".prj")) path += ".prj";
     pathStr = path.string();
-    // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
-    // LongFileName += FileName;
-    // LongFileName.AddExtention(".prj");
 
-    auto IniFile = fio->OpenIniFile(pathStr.c_str());
+    auto IniFile = fio->open_ini_file(pathStr.c_str());
     if (!IniFile) {
         core.Trace("Can't find project '%s'", pathStr.c_str());
         return false;
@@ -472,15 +469,6 @@ void ParticleManager::WriteSystemCache(char const* FileName)
     pMemSave.OpenWrite(1048576);
     pDataSource->Write(&pMemSave);
 
-    // std::string LongFileName = "resource\\particles\\";
-    // LongFileName+=FileName;
-    // LongFileName.AddExtention(".xps");
-    /*
-      IWrite* pFile = pFS->Write(LongFileName.c_str(), iw_create_always, _FL_);
-      pFile->Write(pMemSave.c_str(), pMemSave.GetLength());
-      pFile->Release();
-    */
-
     pMemSave.Close();
     core.Trace("Particle system '%s' saved.", FileName);
 }
@@ -635,7 +623,7 @@ void ParticleManager::OpenDefaultProject()
 
     SetProjectTexture("particles_list.tga");
 
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask("resource\\particles", "*.xps", false);
+    auto const vFilenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Particles), "*.xps", false);
     for (std::string curName: vFilenames) {
         pDataCache->CacheSystem(curName.c_str());
     }

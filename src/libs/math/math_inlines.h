@@ -7,7 +7,10 @@
 
 #include "c_vector.h"
 
+#ifndef SQR
 #define SQR(a) ((a) * (a))
+#endif
+
 #define FRAND(x) ((x) * (float)rand() / (float)RAND_MAX)
 #define SIGN(x) ((x) < 0 ? -1.0f : 1.0f)
 #define SIGNZ(x) ((x) == 0.0f ? 0.0f : ((x) < 0.0f ? -1.0f : 1.0f))

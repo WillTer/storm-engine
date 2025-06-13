@@ -1,13 +1,15 @@
 #include "xservice.h"
 
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 
 #define ERROR_MUL 1.0f
 
-static char const* LISTS_INIFILE = "resource\\ini\\interfaces\\pictures.ini";
+// FIXME: hardcode
+constexpr std::string_view LISTS_INIFILE = "interfaces/pictures.ini";
 
 XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 {
@@ -55,7 +57,7 @@ int32_t XSERVICE::GetTextureID(char const* sImageListName)
             if (storm::iEquals(m_pList[i].sImageListName, sImageListName)) {
                 if (m_pList[i].textureQuantity <= 0) {
                     char sTexName[256];
-                    sprintf_s(sTexName, "INTERFACES\\%s", m_pList[i].sTextureName);
+                    sprintf_s(sTexName, "interfaces/%s", m_pList[i].sTextureName);
                     m_pList[i].textureID       = m_pRS->TextureCreate(sTexName);
                     m_pList[i].textureQuantity = 1;
                 } else
@@ -202,7 +204,7 @@ void XSERVICE::LoadAllPicturesInfo()
     char param[255];
 
     // initialize ini file
-    auto ini = fio->OpenIniFile(LISTS_INIFILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / LISTS_INIFILE);
     if (!ini) { throw std::runtime_error("ini file not found!"); }
 
     m_dwListQuantity  = 0;

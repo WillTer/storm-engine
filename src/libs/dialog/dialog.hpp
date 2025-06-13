@@ -13,7 +13,7 @@ constexpr auto MAX_LINES         = 5;
 constexpr auto SCROLL_LINE_TIME  = 100;
 constexpr auto TILED_LINE_HEIGHT = 26;
 constexpr auto SBL               = 6;
-#define TICK_SOUND "interface\\ok.wav"
+#define TICK_SOUND "interface/ok.wav"
 
 #define XI_TEX_FVF (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 class INIFILE;
@@ -42,7 +42,7 @@ public:
     DIALOG();
     ~DIALOG();
 
-    bool     Init();
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
     void     Realize(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pA);

@@ -285,13 +285,13 @@ void ModelArray::Update(float dltTime)
 void ModelArray::UpdateModelsPath()
 {
     UpdatePath(modelspath);
-    modelspath += "\\";
+    modelspath += "/";
 }
 
 void ModelArray::UpdateTexturesPath()
 {
     UpdatePath(texturespath);
-    texturespath += "\\";
+    texturespath += "/";
 }
 
 void ModelArray::UpdateLightPath()
@@ -362,14 +362,14 @@ void ModelArray::UpdatePath(std::string& path)
 {
     int32_t j = 0;
     for (int32_t i = 0; path[i]; i++) {
-        if (path[i] == '\\') {
+        if (path[i] == '/') {
             if (j > 0) {
-                if (path[j - 1] != '\\') path[i] = path[j++];
+                if (path[j - 1] != '/') path[i] = path[j++];
             }
         } else
             path[i] = path[j++];
     }
-    if (--j >= 0 && path[j] == '\\') path.erase(j);
+    if (--j >= 0 && path[j] == '/') path.erase(j);
 }
 
 // Check the visibility of two points

@@ -32,7 +32,7 @@ WdmStormCloud::WdmStormCloud()
     curLightning      = -1;
     rainTexture       = -1;
     curU = curV = 0.0f;
-    rainTexture = -1;  // wdmObjects->rs->TextureCreate("\\WorldMap\\rain.tga");
+    rainTexture = -1;  // wdmObjects->rs->TextureCreate("worldmap/rain.tga");
 }
 
 WdmStormCloud::~WdmStormCloud()

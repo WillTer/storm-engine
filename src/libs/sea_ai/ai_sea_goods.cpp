@@ -25,8 +25,10 @@ AISeaGoods::~AISeaGoods()
     aGoods.clear();
 }
 
-bool AISeaGoods::Init()
+bool AISeaGoods::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     SetDevice();
     return true;
 }
@@ -128,7 +130,7 @@ uint32_t AISeaGoods::AttributeChanged(ATTRIBUTES* pAttribute)
         aGoods.push_back(pG);
         pG->sModel = sTmpModel;
         pG->aItems.push_back(TmpItem);
-        pG->pGeo = pGeoService->CreateGeometry((sModelPath + "\\" + sTmpModel).c_str(), nullptr, 0);
+        pG->pGeo = pGeoService->CreateGeometry((sModelPath + "/" + sTmpModel).c_str(), nullptr, 0);
         return 0;
     }
 

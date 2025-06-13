@@ -1,11 +1,11 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 
-#include <libs/core/v_file_service.h>
+#include <libs/config/main_config.h>
 
 #include "ifs.h"
+#include "v_file_service.h"
 
 #define _MAX_OPEN_INI_FILES 1024
 
@@ -80,54 +80,61 @@ public:
     bool TestSection(char const* section_name) override;
 };
 
-class FILE_SERVICE: public VFILE_SERVICE
+class FileService: public IFileService
 {
 protected:
-    // INIFILE_R * OpenFiles[_MAX_OPEN_INI_FILES];
-    IFS*     OpenFiles[_MAX_OPEN_INI_FILES];
-    uint32_t Files_Num;
-    uint32_t Max_File_Index;
-    // Resource paths
-    bool ResourcePathsFirstScan = true;  // Since some code may call this statically, we use a flag to know if this is the first time
-    std::unordered_map<std::string, std::string> ResourcePaths;
+    IFS*     m_opened_files[_MAX_OPEN_INI_FILES];
+    uint32_t m_files_count;
+    uint32_t m_max_file_index;
+
+private:
+    storm::PathsInfo m_paths;
+
+    bool m_use_lowercase;
 
 public:
-    FILE_SERVICE();
-    ~FILE_SERVICE();
-    std::fstream             _CreateFile(char const* filename, std::ios::openmode mode) override;
-    void                     _CloseFile(std::fstream& fileS) override;
-    void                     _SetFilePointer(std::fstream& fileS, std::streamoff off, std::ios::seekdir dir) override;
-    bool                     _DeleteFile(char const* filename) override;
-    bool                     _WriteFile(std::fstream& fileS, void const* s, std::streamsize count) override;
-    bool                     _ReadFile(std::fstream& fileS, void* s, std::streamsize count) override;
-    bool                     _FileOrDirectoryExists(char const* p) override;
-    std::vector<std::string> _GetPathsOrFilenamesByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false)
-        override;
-    std::vector<std::filesystem::path> _GetFsPathsByMask(
-        char const* sourcePath, char const* mask, bool getPaths, bool onlyDirs = false, bool onlyFiles = true, bool recursive = false)
-        override;
-    std::time_t                     _ToTimeT(std::filesystem::file_time_type tp) override;
-    std::filesystem::file_time_type _GetLastWriteTime(char const* filename) override;
-    void                            _FlushFileBuffers(std::fstream& fileS) override;
-    std::string                     _GetCurrentDirectory() override;
-    std::string                     _GetExecutableDirectory() override;
-    std::uintmax_t                  _GetFileSize(char const* filename) override;
-    void                            _SetCurrentDirectory(char const* pathName) override;
-    bool                            _CreateDirectory(char const* pathName) override;
-    std::uintmax_t                  _RemoveDirectory(char const* pathName) override;
-    bool                            LoadFile(char const* file_name, char** ppBuffer, uint32_t* dwSize) override;
+    FileService();
+    ~FileService() override;
+
+    std::filesystem::path transform_path(std::filesystem::path const& path) override;
+
+    std::vector<std::string> string_paths_by_mask(
+        std::filesystem::path const& path,
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false) override;
+    std::vector<std::filesystem::path> paths_by_mask(
+        std::filesystem::path const& path,
+        std::string const&           mask,
+        bool                         get_paths,
+        bool                         only_dirs  = false,
+        bool                         only_files = true,
+        bool                         recursive  = false) override;
+    std::time_t to_time_t(std::filesystem::file_time_type tp) override;
+    std::string executable_directory() override;
+
+    std::filesystem::path current_path() override;
+    void                  current_path(std::filesystem::path const& path) override;
+    bool                  create_directories(std::filesystem::path const& path) override;
+    void                  remove(std::filesystem::path const& path) override;
+    std::uintmax_t        remove_all(std::filesystem::path const& path) override;
+    bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
+
+    uintmax_t                       file_size(std::filesystem::path const& file_path) override;
+    bool                            exists(std::filesystem::path const& path) override;
+    std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) override;
+
+    uint64_t              path_fingerprint(std::filesystem::path const& path) override;
+    std::filesystem::path base_directory_path(BaseDirectory dir) override;
+
+    void init_from_main_config(storm::IConfigLoader& config_loader) override;
+
     // ini files section
-    void                     Close();
-    std::unique_ptr<INIFILE> CreateIniFile(char const* file_name, bool fail_if_exist) override;
-    std::unique_ptr<INIFILE> OpenIniFile(char const* file_name) override;
-    void                     RefDec(INIFILE* ini_obj);
-    void                     FlushIniFiles();
-
-    // Resource paths
-    void        AddEntryToResourcePaths(std::filesystem::directory_entry const& entry, std::string& CheckingPath);
-    void        ScanResourcePaths() override;
-    std::string ConvertPathResource(char const* path) override;
-
-    uint64_t GetPathFingerprint(std::filesystem::path const& path) override;
+    void                     close_ini_files();
+    std::unique_ptr<INIFILE> create_ini_file(std::filesystem::path const& file_path, bool fail_if_exist) override;
+    std::unique_ptr<INIFILE> open_ini_file(std::filesystem::path const& file_path) override;
+    void                     ref_decrement(INIFILE* ini_obj);
+    void                     flush_ini_files();
 };

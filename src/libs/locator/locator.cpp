@@ -23,8 +23,10 @@ LOCATOR::~LOCATOR()
     geo = nullptr;
 }
 
-bool LOCATOR::Init()
+bool LOCATOR::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return false;
@@ -91,7 +93,7 @@ void LOCATOR::LocateForI(VDATA* pData)
     auto const* pAFilesPath = pA->FindAClass(pA, "filespath.models");
     sprintf_s(
         sFileLocators,
-        "%s\\%s",
+        "%s/%s",
         (pAFilesPath) ? static_cast<char const*>(pAFilesPath->GetThisAttr()) : "",
         static_cast<char const*>(pA->GetAttribute("locators")));
     rs->SetLoadTextureEnable(false);

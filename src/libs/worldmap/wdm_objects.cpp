@@ -147,9 +147,9 @@ GEOS* WdmObjects::CreateGeometry(char const* path)
         }
     }
     // Loading geometry
-    modelPath = "WorldMap\\";
+    modelPath = "worldmap/";
     modelPath += path;
-    gs->SetTexturePath("WorldMap\\Geometry\\");
+    gs->SetTexturePath("worldmap/geometry/");
     auto* const geo = gs->CreateGeometry(modelPath.c_str(), "", 0);
     gs->SetTexturePath("");
     // Add to the table

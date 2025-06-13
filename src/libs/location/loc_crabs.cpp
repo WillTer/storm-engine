@@ -19,8 +19,10 @@ LocCrabs::~LocCrabs() {}
 //============================================================================================
 
 // Initialization
-bool LocCrabs::Init()
+bool LocCrabs::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // Location Pointer
     auto const loc      = core.GetEntityId("location");
     auto*      location = (Location*)core.GetEntityPointer(loc);

@@ -47,7 +47,7 @@ WdmShip::WdmShip()
     wmtexture = -1;
     wdmObjects->AddShip(this);
     kMaxSpeed        = 1.0f;
-    wmtexture        = wdmObjects->rs->TextureCreate("WorldMap\\watermark.tga");
+    wmtexture        = wdmObjects->rs->TextureCreate("worldmap/watermark.tga");
     isLive           = true;
     isSelect         = false;
     collisionCounter = 0;

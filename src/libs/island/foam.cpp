@@ -1,6 +1,7 @@
 #include "foam.h"
 
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math3d/plane.h>
 #include <libs/math/math_inlines.h>
@@ -36,8 +37,10 @@ CoastFoam::~CoastFoam()
     iIBuffer = -1;
 }
 
-bool CoastFoam::Init()
+bool CoastFoam::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     iVBuffer = rs->CreateVertexBuffer(
@@ -408,7 +411,7 @@ void CoastFoam::InitNewFoam(Foam* pF)
     pF->sTexture   = "foam.tga";
     pF->iNumFoams  = 2;
 
-    pF->iTexture = rs->TextureCreate(("weather\\coastfoam\\" + pF->sTexture).c_str());
+    pF->iTexture = rs->TextureCreate(("weather/coastfoam/" + pF->sTexture).c_str());
 }
 
 void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
@@ -696,11 +699,16 @@ void CoastFoam::Save()
 {
     if (!bCanEdit) return;
 
-    char       cKey[128], cSection[128], cTemp[1024];
-    auto const sID = std::string("resource\\foam\\locations\\") + to_string(AttributesPointer->GetAttribute("id")) + ".ini";
-    fio->_DeleteFile(sID.c_str());
+    char cKey[128];
+    char cSection[128];
+    char cTemp[1024];
 
-    auto pI = fio->CreateIniFile(sID.c_str(), false);
+    // FIXME: hardcode
+    auto const sID =
+        fio->base_directory_path(BaseDirectory::Foam) / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    fio->remove(sID);
+
+    auto pI = fio->create_ini_file(sID, false);
     if (!pI) return;
 
     pI->WriteLong(nullptr, "NumFoams", aFoams.size());
@@ -757,8 +765,9 @@ void CoastFoam::Load()
 {
     char cSection[256], cKey[256], cTemp[1024];
 
-    auto const sID = std::string("resource\\foam\\locations\\") + to_string(AttributesPointer->GetAttribute("id")) + ".ini";
-    auto       pI  = fio->OpenIniFile(sID.c_str());
+    auto const sID =
+        fio->base_directory_path(BaseDirectory::Foam) / "locations" / (to_string(AttributesPointer->GetAttribute("id")) + ".ini");
+    auto pI = fio->open_ini_file(sID);
     if (!pI) return;
 
     clear();
@@ -794,7 +803,7 @@ void CoastFoam::Load()
 
         pI->ReadString(cSection, "Texture", cTemp, sizeof(cTemp), "foam.tga");
         pF->sTexture = cTemp;
-        pF->iTexture = rs->TextureCreate((std::string("weather\\coastfoam\\") + cTemp).c_str());
+        pF->iTexture = rs->TextureCreate((std::string("weather/coastfoam/") + cTemp).c_str());
         pF->Type     = static_cast<FOAMTYPE>(pI->GetInt(cSection, "Type", FOAM_TYPE_2));
 
         for (int32_t j = 0; j < ((iNumParts) ? iNumParts : 100000); j++) {

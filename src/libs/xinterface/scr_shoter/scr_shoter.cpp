@@ -38,8 +38,9 @@ SCRSHOTER::~SCRSHOTER()
     }
 }
 
-bool SCRSHOTER::Init()
+bool SCRSHOTER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SCRSHOTER::Init())
     SetDevice();
     // UNGUARD
@@ -139,7 +140,7 @@ bool SCRSHOTER::MakeScreenShot()
     pRenderTarg->Release();
 
     // Add a texture with a frame to the shot
-    int const nTextureID = rs->TextureCreate("interfaces\\EmptyBorder.tga");
+    int const nTextureID = rs->TextureCreate("interfaces/emptyborder.tga");
     if (nTextureID >= 0) {
         IDirect3DTexture9* pScrShotTex = nullptr;
         if (D3D_OK
@@ -269,7 +270,7 @@ int32_t SCRSHOTER::AddSaveTexture(char const* dirName, char const* fileName)
     if (dirName == nullptr || dirName[0] == 0)
         sprintf_s(param, "%s", fileName);
     else
-        sprintf_s(param, "%s\\%s", dirName, fileName);
+        sprintf_s(param, "%s/%s", dirName, fileName);
     m_list->textureId = GetTexFromSave(param, &ps->dataString);
     return m_list->textureId;
 }

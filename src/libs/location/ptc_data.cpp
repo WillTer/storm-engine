@@ -13,7 +13,7 @@
 #include <chrono>
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/storm_assert.h>
 
@@ -28,7 +28,6 @@ PtcData::PtcData() : isSlide(false), slideDir(), isBearing(false), stepPos {}
     using std::chrono::system_clock;
 
     srand(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    data         = nullptr;
     triangle     = nullptr;
     numTriangles = 0;
     vertex       = nullptr;
@@ -55,7 +54,6 @@ PtcData::PtcData() : isSlide(false), slideDir(), isBearing(false), stepPos {}
 
 PtcData::~PtcData()
 {
-    delete[] data;
     delete ctriangle;
     delete dbgTriangles;
     delete dbgEdges;
@@ -63,49 +61,43 @@ PtcData::~PtcData()
 
 bool PtcData::Load(char const* path)
 {
-    Assert(data == nullptr);
-    char*    buf  = nullptr;
-    uint32_t size = 0;
-    middle        = 0.0f;
+    Assert(data.empty());
+    std::vector<char> buf = {};
+    middle                = 0.0f;
     // Loading data
-    if (!fio->LoadFile(path, &buf, &size)) {
+    if (!fio->read_file_to_mem(path, buf)) {
         core.Trace("Ptc(\"%s\") -> file not found", path);
         return false;
     }
     // Checking the file for correctness
-    if (!buf || size < sizeof(PtcHeader)) {
+    if (buf.size() < sizeof(PtcHeader)) {
         core.Trace("Ptc(\"%s\") -> invalide file size", path);
-        delete buf;
         return false;
     }
-    auto& hdr = *(PtcHeader*)buf;
+    auto& hdr = *reinterpret_cast<PtcHeader*>(buf.data());
     if (hdr.id != PTC_ID) {
         core.Trace("Ptc(\"%s\") -> invalide file ID", path);
-        delete buf;
         return false;
     }
     if (hdr.ver != PTC_VERSION && hdr.ver != PTC_PREVERSION1) {
         core.Trace("Ptc(\"%s\") -> invalide file version", path);
-        delete buf;
         return false;
     }
-    uint32_t tsize = sizeof(PtcHeader);
+    size_t tsize = sizeof(PtcHeader);
     tsize += hdr.numTriangles * sizeof(PtcTriangle);
     tsize += hdr.numVerteces * sizeof(PtcVertex);
     tsize += hdr.numNormals * sizeof(PtcNormal);
     tsize += hdr.mapL * hdr.mapW * sizeof(PtcMap);
     tsize += hdr.numIndeces * sizeof(uint16_t);
     tsize += hdr.lineSize * hdr.numTriangles * sizeof(uint8_t);
-    if (hdr.ver == PTC_VERSION) tsize += sizeof(PtcMaterials);
-    if (tsize != size) {
+    if (hdr.ver == PTC_VERSION) { tsize += sizeof(PtcMaterials); }
+    if (tsize != buf.size()) {
         core.Trace("Ptc(\"%s\") -> invalide file size", path);
-        delete buf;
         return false;
     }
     if (hdr.numTriangles < 1 || hdr.numVerteces < 3 || hdr.numNormals < 1 || hdr.mapL < 1 || hdr.mapW < 1 || hdr.numIndeces < 1
         || hdr.lineSize < 1 || hdr.minX >= hdr.maxX || hdr.minY > hdr.maxY || hdr.minZ >= hdr.maxZ) {
         core.Trace("Ptc(\"%s\") -> invalide file header", path);
-        delete buf;
         return false;
     }
     // form data structures
@@ -118,23 +110,22 @@ bool PtcData::Load(char const* path)
 void PtcData::SFLB_PotectionLoad()
 {
     // Data
-    auto* const buf = static_cast<char*>(data);
-    auto&       hdr = *(PtcHeader*)buf;
+    auto& hdr = *(PtcHeader*)data.data();
     // Triangles
     uint32_t tsize = sizeof(PtcHeader);
-    triangle       = (PtcTriangle*)(buf + tsize);
+    triangle       = (PtcTriangle*)(data.data() + tsize);
     numTriangles   = hdr.numTriangles;
     // Vertices
     tsize += hdr.numTriangles * sizeof(PtcTriangle);
-    vertex      = (PtcVertex*)(buf + tsize);
+    vertex      = (PtcVertex*)(data.data() + tsize);
     numVerteces = hdr.numVerteces;
     // Normals
     tsize += hdr.numVerteces * sizeof(PtcVertex);
-    normal     = (PtcNormal*)(buf + tsize);
+    normal     = (PtcNormal*)(data.data() + tsize);
     numNormals = hdr.numNormals;
     // Collision map
     tsize += hdr.numNormals * sizeof(PtcNormal);
-    map   = (PtcMap*)(buf + tsize);
+    map   = (PtcMap*)(data.data() + tsize);
     l     = hdr.mapL;
     w     = hdr.mapW;
     min.x = hdr.minX;
@@ -146,10 +137,10 @@ void PtcData::SFLB_PotectionLoad()
     ls    = (max.z - min.z) / l;
     ws    = (max.x - min.x) / w;
     tsize += hdr.mapL * hdr.mapW * sizeof(PtcMap);
-    indeces = (uint16_t*)(buf + tsize);
+    indeces = (uint16_t*)(data.data() + tsize);
     // Pathfinding data
     tsize += hdr.numIndeces * sizeof(uint16_t);
-    table    = (uint8_t*)(buf + tsize);
+    table    = (uint8_t*)(data.data() + tsize);
     lineSize = hdr.lineSize;
     // Materials
     if (hdr.ver == PTC_VERSION) materials = (PtcMaterials*)(table + lineSize * numTriangles);

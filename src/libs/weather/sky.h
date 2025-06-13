@@ -11,7 +11,7 @@ public:
     SKY();
     ~SKY() override;
 
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     SetDevice();
     void     Realize(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);

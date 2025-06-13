@@ -409,7 +409,7 @@ SOURCE_VIEW::SOURCE_VIEW(HWND _hMain, HINSTANCE _hInst)
     // OpenSourceFile("program\\ps.c");
     // OpenSourceFile("program\\seadogs.c");
 
-    auto pI = fio->OpenIniFile(PROJECT_NAME);
+    auto pI = fio->open_ini_file(PROJECT_NAME);
     if (pI) {
         char buffer[1024];
         if (pI->ReadString("bookmarks", "BM", buffer, sizeof(buffer), "")) do {
@@ -422,7 +422,7 @@ SOURCE_VIEW::~SOURCE_VIEW()
 {
     delete[] pSourceFile;
 
-    auto pI = fio->OpenIniFile(PROJECT_NAME);
+    auto pI = fio->open_ini_file(PROJECT_NAME);
     if (pI) {
         pI->DeleteSection("bookmarks");
         /*hable<uint32_t>::iterator htIter(htBookmarks);
@@ -468,13 +468,11 @@ bool SOURCE_VIEW::OpenSourceFile(char const* _filename)
 
     if (SourceFileName[0] != 0) { CDebug->SaveRecentFileALine(SourceFileName, nActiveLine); }
 
-    auto DirectoryName = fio->_GetCurrentDirectory();
+    auto DirectoryName = fio->current_path() / ProgramDirectory / _filename;
 
-    DirectoryName = DirectoryName + "\\" + ProgramDirectory + "\\" + _filename;
-
-    auto fileS = fio->_CreateFile(DirectoryName.c_str(), std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(DirectoryName.c_str(), std::ios::binary);
     if (!fileS.is_open()) { return false; }
-    uint32_t const nDataSize = fio->_GetFileSize(DirectoryName.c_str());
+    uint32_t const nDataSize = fio->file_size(DirectoryName.c_str());
 
     nTopLine = 0;
     delete[] pSourceFile;
@@ -482,14 +480,9 @@ bool SOURCE_VIEW::OpenSourceFile(char const* _filename)
     nLinesNum       = 0;
     nActiveLine     = 0xffffffff;
 
-    pSourceFile            = new char[nDataSize + 1];
-    auto const readSuccess = fio->_ReadFile(fileS, pSourceFile, nDataSize);
-    fio->_CloseFile(fileS);
-    if (!readSuccess) {
-        delete[] pSourceFile;
-        pSourceFile = nullptr;
-        return false;
-    }
+    pSourceFile = new char[nDataSize + 1];
+    fileS.read(pSourceFile, nDataSize);
+
     pSourceFile[nDataSize] = 0;
     nSourceFileSize        = nDataSize;
 

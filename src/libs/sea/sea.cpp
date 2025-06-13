@@ -4,8 +4,10 @@
 #include <execution>
 #include <thread>
 
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
 #include <libs/renderer/tga.h>
@@ -181,16 +183,18 @@ void SEA::CreateVertexDeclaration()
     rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-bool SEA::Init()
+bool SEA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     CreateVertexDeclaration();
-    {
-        auto pEngineIni = fio->OpenIniFile(core.EngineIniFileName());
-        bIniFoamEnable  = (pEngineIni) ? pEngineIni->GetInt("Sea", "FoamEnable", 1) != 0 : false;
-    }
 
-    iFoamTexture = rs->TextureCreate("weather\\sea\\pena\\pena.tga");
+    auto const config_loader = service_locator->get<storm::IConfigLoader>();
+    auto const sea_info      = storm::main_config::sea_info(*config_loader);
+    bIniFoamEnable           = sea_info.enable_foam;
+
+    iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 
     rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
 
@@ -219,23 +223,21 @@ bool SEA::Init()
     uint32_t i;
 
     for (i = 0; i < FRAMES; i++) {
-        char     str[256];
-        char*    pFBuffer = nullptr;
-        uint32_t dwSize;
-        sprintf_s(str, "resource\\sea\\sea%.4d.tga", i);
-        // sprintf_s(str, "resource\\sea\\sea0000.tga", i);
-        fio->LoadFile(str, &pFBuffer, &dwSize);
-        if (!pFBuffer) {
+        char              str[256];
+        std::vector<char> pFBuffer = {};
+        sprintf_s(str, "%s/sea%.4d.tga", fio->base_directory_path(BaseDirectory::Sea).string().c_str(), i);
+        fio->read_file_to_mem(str, pFBuffer);
+        if (pFBuffer.empty()) {
             core.Trace("Sea: Can't load %s", str);
             return false;
         }
 
-        auto* pFB = pFBuffer + sizeof(TGA_H);
+        auto* pFB = pFBuffer.data() + sizeof(TGA_H);
 
         auto* pBuffer = new uint8_t[XWIDTH * YWIDTH];
         aTmpBumps.push_back(pBuffer);
 
-        for (uint32_t y = 0; y < YWIDTH; y++)
+        for (uint32_t y = 0; y < YWIDTH; y++) {
             for (uint32_t x = 0; x < XWIDTH; x++) {
                 uint8_t const bB = (*pFB);
                 // bB = byte(float(bB - 79.0f) * 255.0f / (139.0f - 79.0f));
@@ -244,8 +246,7 @@ bool SEA::Init()
                 pBuffer[x + y * XWIDTH] = bB & 0xFF;
                 pFB += sizeof(uint32_t);
             }
-
-        STORM_DELETE(pFBuffer);
+        }
     }
 
     for (i = 0; i < FRAMES; i++) {
@@ -283,7 +284,7 @@ void SEA::BuildVolumeTexture()
     uint32_t              i, j;
 
     for (auto const& normal: aNormals)
-        delete normal;
+        delete[] normal;
     aNormals.clear();
 
     D3DLOCKED_BOX box[4];
@@ -446,7 +447,8 @@ void SEA::BuildVolumeTexture()
                                 ARGB(0x80, blue, green, red);
                     }
         }
-        STORM_DELETE(pVectors);
+        delete[] pVectors;
+        pVectors = nullptr;
     }
 
     if (pVolumeTexture)
@@ -454,10 +456,11 @@ void SEA::BuildVolumeTexture()
             pVolumeTexture->UnlockBox(i);
 
     for (auto const& vector: aVectors)
-        delete vector;
+        delete[] vector;
     aVectors.clear();
     // aVectors.DelAllWithPointers();
-    STORM_DELETE(pDst);
+    delete[] pDst;
+    pDst = nullptr;
 }
 
 bool SEA::EditMode_Update()

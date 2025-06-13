@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/layers.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/window/os_window.hpp>
@@ -95,13 +95,11 @@ public:
     virtual VDATA*   Event(std::string_view const& event_name, MESSAGE& message)                    = 0;
     virtual uint32_t PostEvent(char const* Event_name, uint32_t post_time, char const* Format, ...) = 0;
 
-    virtual void* GetSaveData(char const* file_name, int32_t& data_size) = 0;
+    virtual void* GetSaveData(std::filesystem::path const& file_name, int32_t& data_size) = 0;
 
-    virtual bool SetSaveData(char const* file_name, void* data_ptr, int32_t data_size) = 0;
+    virtual bool SetSaveData(std::filesystem::path const& file_name, void* data_ptr, int32_t data_size) = 0;
 
     virtual uint32_t SetScriptFunction(IFUNCINFO* pFuncInfo) = 0;
-
-    virtual char const* EngineIniFileName() = 0;
 
     virtual void* GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex = nullptr) = 0;
 

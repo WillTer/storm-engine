@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
@@ -32,8 +33,9 @@ SEAFOAM::~SEAFOAM()
 }
 
 //--------------------------------------------------------------------
-bool SEAFOAM::Init()
+bool SEAFOAM::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SEAFOAM::Init)
 
     /*if (core.IsNetActive())
@@ -50,7 +52,8 @@ bool SEAFOAM::Init()
     renderer     = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
 
-    psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
+    // FIXME: hardcode
+    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     InitializeShipFoam();
 

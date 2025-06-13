@@ -13,7 +13,9 @@
 #include <unordered_map>
 
 #include <SDL_timer.h>
+#include <libs/config/main_config.h>
 #include <libs/diagnostics/logging.hpp>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/storm_assert.h>
@@ -56,7 +58,7 @@ constexpr auto kCacheStateFile = "state";
 
 bool ReadCacheFingerprint(uint64_t& fingerprint)
 {
-    std::ifstream cache_state(GetCacheFolder() / kCacheStateFile, std::ifstream::binary);
+    auto cache_state = fio->open_file<std::ifstream>(GetCacheFolder() / kCacheStateFile, std::ifstream::binary);
     if (!cache_state) { return false; }
     cache_state.exceptions(std::ifstream::badbit | std::ifstream::eofbit);
 
@@ -73,9 +75,9 @@ bool ReadCacheFingerprint(uint64_t& fingerprint)
 
 void WipeCache(uint64_t const fingerprint)
 {
-    remove_all(GetCacheFolder());
-    create_directory(GetCacheFolder());
-    std::ofstream cache_state(GetCacheFolder() / kCacheStateFile, std::ofstream::binary);
+    fio->remove_all(GetCacheFolder());
+    fio->create_directories(GetCacheFolder());
+    auto cache_state = fio->open_file<std::ofstream>(GetCacheFolder() / kCacheStateFile, std::ofstream::binary);
     if (cache_state) { cache_state.write(reinterpret_cast<char const*>(&fingerprint), sizeof(fingerprint)); }
 }
 
@@ -92,7 +94,7 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-COMPILER::COMPILER()
+COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     : bBreakOnError(false)
     , pRunCodeBase(nullptr)
     , CompilerStage(CS_SYSTEM)
@@ -122,6 +124,7 @@ COMPILER::COMPILER()
     , pIOBuffer(nullptr)
     , rAP(nullptr)
     , script_cache_mode_(kCacheDisabled)
+    , m_service_locator(service_locator)
 
 {
     LabelTable.SetStringDataSize(sizeof(uint32_t));
@@ -208,10 +211,10 @@ void COMPILER::SetProgramDirectory(char const* dir_name)
     delete[] ProgramDirectory;
     ProgramDirectory = nullptr;
     if (dir_name) {
-        auto const len   = strlen(dir_name) + strlen("\\") + 1;
+        auto const len   = strlen(dir_name) + strlen("/") + 1;
         ProgramDirectory = new char[len];
         strcpy_s(ProgramDirectory, len, dir_name);
-        strcat_s(ProgramDirectory, len, "\\");
+        strcat_s(ProgramDirectory, len, "/");
     }
 #ifdef _WIN32  // S_DEBUG
     CDebug->SetProgramDirectory(dir_name);
@@ -225,12 +228,12 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
     char        buffer[MAX_PATH];
 
     if (!bFullPath) {
-        std::string EngineDir = "storm-engine\\";
+        std::string EngineDir = "storm-engine\\";  // FIXME: remove virtual paths
         if (strncmp(file_name, EngineDir.c_str(), EngineDir.length()) == 0) {
-            std::string ExePath = fio->_GetExecutableDirectory() + "resource\\shared\\";
-            strcpy_s(buffer, ExePath.c_str());
-            strcat_s(buffer, file_name + EngineDir.length());
-        } else if (ProgramDirectory) {
+            auto include_path = fio->executable_directory() / fio->base_directory_path(BaseDirectory::Resource) / "shared"
+                / std::string(file_name).substr(EngineDir.length());
+            strcpy_s(buffer, include_path.string().c_str());
+        } else if (ProgramDirectory != nullptr) {
             strcpy_s(buffer, ProgramDirectory);
             strcat_s(buffer, file_name);
         } else {
@@ -246,10 +249,10 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
         for(n=0;file_name[n];n++)
         {
           buffer[m] = file_name[n];
-          if(buffer[m] == '\\')
+          if(buffer[m] == '/')
           {
             m++;
-            buffer[m] = '\\';
+            buffer[m] = '/';
           }
           m++;
         }
@@ -260,17 +263,12 @@ char* COMPILER::LoadFile(char const* file_name, uint32_t& file_size, bool bFullP
         fName = &buffer[0];
     }
 
-    auto fileS = fio->_CreateFile(fName, std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(fName, std::ios::binary);
     if (!fileS.is_open()) { return nullptr; }
-    auto const fsize = fio->_GetFileSize(fName);
+    auto const fsize = fio->file_size(fName);
 
     auto* const pData = static_cast<char*>(new char[fsize + 1]);
-    if (!fio->_ReadFile(fileS, pData, fsize)) {
-        delete[] pData;
-        fio->_CloseFile(fileS);
-        return nullptr;
-    }
-    fio->_CloseFile(fileS);
+    fileS.read(pData, fsize);
     file_size    = fsize;
     pData[fsize] = 0;
     return pData;
@@ -409,87 +407,24 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto engine_ini = fio->OpenIniFile(core_internal.EngineIniFileName());
-    if (engine_ini) {
-        if (engine_ini->GetInt("script", "debuginfo", 0) == 0) {
-            bDebugInfo = false;
-            // FuncTab.KeepNameMode(false);
-            // VarTab.KeepNameMode(false);
-            // DefTab.KeepNameMode(false);
-            // EventTab.KeepNameMode(false);
-        } else {
-            bDebugInfo = true;
-            // FuncTab.KeepNameMode(true);
-            // VarTab.KeepNameMode(true);
-            // DefTab.KeepNameMode(true);
-            // EventTab.KeepNameMode(true);
-        }
-        if (engine_ini->GetInt("script", "codefiles", 0) == 0)
-            bWriteCodeFile = false;
-        else
-            bWriteCodeFile = true;
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const script_info   = storm::main_config::script_info(*config_loader);
 
-        if (engine_ini->GetInt("script", "runtimelog", 0) == 0)
-            bRuntimeLog = false;
-        else
-            bRuntimeLog = true;
-
-        script_cache_mode_ = engine_ini->GetInt("script", "cache_mode", kCacheDisabled);
-        if (script_cache_mode_ < kCacheDisabled || script_cache_mode_ > kCacheEnabledNoRuntimeCheck) {
-            script_cache_mode_ = kCacheDisabled;
-        }
-
-        // if(engine_ini->GetInt("script","tracefiles",0) == 0) bScriptTrace = false;
-        // else bScriptTrace = true;
-    }
+    bDebugInfo         = script_info.compilation_logs;
+    bWriteCodeFile     = script_info.create_codefiles;
+    bRuntimeLog        = script_info.runtime_logs;
+    script_cache_mode_ = script_info.cache_mode;
 
 #ifdef _WIN32  // S_DEBUG
-    auto ini = fio->OpenIniFile(PROJECT_NAME);
-    if (ini) { bBreakOnError = (ini->GetInt("options", "break_on_error", 0) == 1); }
+    bBreakOnError = script_info.break_on_error;
 #endif
 }
 
 bool COMPILER::CreateProgram(char const* file_name)
 {
-    /*    INIFILE * engine_ini;
-
-    engine_ini = fio->OpenIniFile(core_internal.EngineIniFileName());
-    if(engine_ini != null)
-    {
-      if(engine_ini->GetInt("script","debuginfo",0) == 0)
-      {
-        bDebugInfo = false;
-        FuncTab.KeepNameMode(false);
-        VarTab.KeepNameMode(false);
-        DefTab.KeepNameMode(false);
-        EventTab.KeepNameMode(false);
-      }
-      else
-      {
-        bDebugInfo = true;
-        FuncTab.KeepNameMode(true);
-        VarTab.KeepNameMode(true);
-        DefTab.KeepNameMode(true);
-        EventTab.KeepNameMode(true);
-      }
-      if(engine_ini->GetInt("script","codefiles",0) == 0) bWriteCodeFile = false;
-      else bWriteCodeFile = true;
-
-
-      delete engine_ini;
-    }
-  //*/
     LoadPreprocess();
     bool const bRes = BC_LoadSegment(file_name);
 
-    /*    for(DWORD m=0;m<HASH_TABLE_SIZE;m++)
-      {
-        DTrace("HashIndex[%d]",m);
-        for(DWORD n=0;n<SCodec.HTable[m].nStringsNum;n++)
-        {
-          DTrace(SCodec.HTable[m].ppDat[n]);
-        }
-      }*/
     return bRes;
 }
 
@@ -834,9 +769,9 @@ bool COMPILER::BC_LoadSegment(char const* file_name)
         static uint64_t calculated_fingerprint;
         if (!is_calculated) {
             is_calculated          = true;
-            calculated_fingerprint = fio->GetPathFingerprint(ProgramDirectory);
+            calculated_fingerprint = fio->path_fingerprint(ProgramDirectory);
         } else if (script_cache_mode_ == kCacheEnabled) {
-            calculated_fingerprint = fio->GetPathFingerprint(ProgramDirectory);
+            calculated_fingerprint = fio->path_fingerprint(ProgramDirectory);
         }
 
         if (ReadCacheFingerprint(cache_fingerprint_) && cache_fingerprint_ == calculated_fingerprint) {
@@ -1724,14 +1659,11 @@ bool COMPILER::Compile(SEGMENT_DESC& Segment, char* pInternalCode, uint32_t pInt
     }
 
     if (bWriteCodeFile) {
-        auto fName = std::filesystem::path(Segment.name.c_str()).filename().string();
+        auto fName = fio->transform_path(Segment.name.c_str()).filename().string();
         strcpy_s(file_name, fName.c_str());
         strcat_s(file_name, ".b");
-        auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::out);
-        if (fileS.is_open()) {
-            fio->_WriteFile(fileS, Segment.pCode, Segment.BCode_Program_size);
-            fio->_CloseFile(fileS);
-        }
+        auto fileS = fio->open_file<std::ofstream>(file_name, std::ios::binary);
+        if (fileS.is_open()) { fileS.write(Segment.pCode, Segment.BCode_Program_size); }
     }
     if (script_cache_mode_ != kCacheDisabled) { SaveSegmentToCache(Segment); }
     return true;
@@ -5650,7 +5582,7 @@ bool COMPILER::OnLoad()
     return true;
 }
 
-bool COMPILER::SaveState(std::fstream& fileS)
+bool COMPILER::SaveState(std::ofstream& fileS)
 {
     uint32_t n;
     delete[] pBuffer;
@@ -5672,7 +5604,7 @@ bool COMPILER::SaveState(std::fstream& fileS)
     edh.dwExtDataOffset = 0;
     edh.dwExtDataSize   = 0;
 
-    fio->_WriteFile(fileS, &edh, sizeof(edh));
+    fileS.write(reinterpret_cast<char*>(&edh), sizeof(edh));
 
     // 1. Program Directory
     SaveString(ProgramDirectory);
@@ -5721,9 +5653,9 @@ bool COMPILER::SaveState(std::fstream& fileS)
         RDTSC_E(dw2);
         uint32_t uiPackLen = ulPackLen;
 
-        fio->_WriteFile(fileS, &dwCurPointer, sizeof(dwCurPointer));
-        fio->_WriteFile(fileS, &uiPackLen, sizeof(uiPackLen));
-        fio->_WriteFile(fileS, pDst, uiPackLen);
+        fileS.write(reinterpret_cast<char*>(&dwCurPointer), sizeof(dwCurPointer));
+        fileS.write(reinterpret_cast<char*>(&uiPackLen), sizeof(uiPackLen));
+        fileS.write(pDst, uiPackLen);
 
         delete[] pDst;
     }
@@ -5734,7 +5666,7 @@ bool COMPILER::SaveState(std::fstream& fileS)
     return true;
 }
 
-bool COMPILER::LoadState(std::fstream& fileS)
+bool COMPILER::LoadState(std::ifstream& fileS)
 {
     uint32_t n;
     char*    pString;
@@ -5743,15 +5675,15 @@ bool COMPILER::LoadState(std::fstream& fileS)
     pBuffer = nullptr;
 
     EXTDATA_HEADER exdh;
-    fio->_ReadFile(fileS, &exdh, sizeof(exdh));
+    fileS.read(reinterpret_cast<char*>(&exdh), sizeof(exdh));
 
     uint32_t dwPackLen;
-    fio->_ReadFile(fileS, &dwMaxSize, sizeof(dwMaxSize));
-    fio->_ReadFile(fileS, &dwPackLen, sizeof(dwPackLen));
+    fileS.read(reinterpret_cast<char*>(&dwMaxSize), sizeof(dwMaxSize));
+    fileS.read(reinterpret_cast<char*>(&dwPackLen), sizeof(dwPackLen));
     if (dwPackLen == 0 || dwPackLen > 0x8000000 || dwMaxSize == 0 || dwMaxSize > 0x8000000) { return false; }
     char* pCBuffer = new char[dwPackLen];
     pBuffer        = new char[dwMaxSize];
-    fio->_ReadFile(fileS, pCBuffer, dwPackLen);
+    fileS.read(pCBuffer, dwPackLen);
     uLongf ulMaxSize = dwMaxSize;
     uncompress((Bytef*)pBuffer, &ulMaxSize, (Bytef*)pCBuffer, dwPackLen);
     dwMaxSize = ulMaxSize;
@@ -5883,14 +5815,14 @@ void COMPILER::AddPostEvent(S_EVENTMSG* pEM)
     EventMsg.Add(pEM);
 }
 
-bool COMPILER::SetSaveData(char const* file_name, void* save_data, int32_t data_size)
+bool COMPILER::SetSaveData(std::filesystem::path const& file_name, void* save_data, int32_t data_size)
 {
     EXTDATA_HEADER exdh;
 
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in | std::ios::out);
+    auto fileS = fio->open_file(file_name, std::ios::binary | std::ios::in | std::ios::out);
     if (!fileS.is_open()) { return false; }
 
-    uint32_t const dwFileSize = fio->_GetFileSize(file_name);
+    uint32_t const dwFileSize = fio->file_size(file_name);
     auto*          pVDat      = static_cast<VDATA*>(core_internal.GetScriptVariable("savefile_info"));
     if (pVDat && pVDat->GetString())
         sprintf_s(exdh.sFileInfo, sizeof(exdh.sFileInfo), "%s", pVDat->GetString());
@@ -5899,148 +5831,57 @@ bool COMPILER::SetSaveData(char const* file_name, void* save_data, int32_t data_
     exdh.dwExtDataOffset = dwFileSize;
     exdh.dwExtDataSize   = data_size;
 
-    fio->_WriteFile(fileS, &exdh, sizeof(exdh));
-    fio->_SetFilePointer(fileS, dwFileSize, std::ios::beg);
+    fileS.write(reinterpret_cast<char*>(&exdh), sizeof(exdh));
+    fileS.seekp(dwFileSize, std::ios::beg);
 
     char*  pDst      = new char[data_size * 2];
     uLongf ulPackLen = data_size * 2;
     compress2((Bytef*)pDst, &ulPackLen, static_cast<Bytef*>(save_data), data_size, Z_BEST_COMPRESSION);
     uint32_t uiPackLen = ulPackLen;
 
-    fio->_WriteFile(fileS, &uiPackLen, sizeof(uiPackLen));
-    fio->_WriteFile(fileS, pDst, uiPackLen);
-    fio->_CloseFile(fileS);
+    fileS.write(reinterpret_cast<char*>(&uiPackLen), sizeof(uiPackLen));
+    fileS.write(pDst, uiPackLen);
 
     delete[] pDst;
 
     return true;
 }
 
-/*bool COMPILER::SetSaveData(char * file_name, void * save_data, int32_t data_size)
-                           //const char * file_name, const char * save_data)
+void* COMPILER::GetSaveData(std::filesystem::path const& file_name, int32_t& data_size)
 {
-    EXTDATA_HEADER exdh;
-    DWORD dwFileSize;
-    DWORD dwOrgDataSize;
-    char * pOrgData;
-
-    char sFileName[MAX_PATH];
-
-    if(file_name == 0)
-    {
-        SetError("invalid save file name");
-        return false;
-    }
-
-    strcpy_s(sFileName,file_name);
-
-    // open save file
-    fio->SetDrive(XBOXDRIVE_NONE);
-    HANDLE fh = fio->_CreateFile(sFileName,GENERIC_READ,FILE_SHARE_READ,OPEN_EXISTING);
-    fio->SetDrive();
-    if(fh == INVALID_HANDLE_VALUE) return false;
-
-    // get file size
-    dwFileSize = fio->_GetFileSize(fh,0);
-
-    // set global handle
-//    hSaveFileFileHandle = fh;
-
-    // read save header
-    Read(&exdh,sizeof(exdh));
-
-    // calc org data size
-    if(exdh.dwExtDataSize != 0)
-    {
-        dwOrgDataSize = dwFileSize - sizeof(exdh) - exdh.dwExtDataSize;
-    }
-    else
-    {
-        dwOrgDataSize = dwFileSize - sizeof(exdh);
-    }
-
-    // prepare org data buffer
-    pOrgData = new char[dwOrgDataSize];
-    if(pOrgData == 0)
-    {
-        SetError("no memory");
-        fio->_CloseHandle(fh);
-        return false;
-    }
-
-    // buffering org data
-    Read(pOrgData,dwOrgDataSize);
-
-    fio->_CloseHandle(fh);
-
-    // start flushing data to file
-    fio->SetDrive(XBOXDRIVE_NONE);
-    fh = fio->_CreateFile(sFileName,GENERIC_WRITE,FILE_SHARE_READ,OPEN_EXISTING);
-    fio->SetDrive();
-    if(fh == INVALID_HANDLE_VALUE)
-    {
-        if(pOrgData) delete pOrgData;
-        SetError("cant set save ext data");
-        return false;
-    }
-
-    exdh.dwExtDataOffset = sizeof(exdh) + dwOrgDataSize;
-    exdh.dwExtDataSize = data_size;
-
-    // save header
-    SaveData(&exdh,sizeof(exdh));
-    // save org data
-    SaveData(pOrgData,dwOrgDataSize);
-    // save ext data
-    SaveData(save_data,data_size);
-
-    // cleanup
-    fio->_CloseHandle(fh);
-    if(pOrgData) delete pOrgData;
-    return true;
-
-
-}*/
-
-void* COMPILER::GetSaveData(char const* file_name, int32_t& data_size)
-{
-    auto fileS = fio->_CreateFile(file_name, std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(file_name, std::ios::binary);
     if (!fileS.is_open()) {
-        SetError("cant open save file: %s", file_name);
+        SetError("cant open save file: %s", file_name.string().c_str());
         return nullptr;
     }
 
-    auto const file_size = fio->_GetFileSize(file_name);
+    auto const file_size = fio->file_size(file_name);
     if (file_size < sizeof(EXTDATA_HEADER) + sizeof(uint32_t)) {
         data_size = 0;
-        fio->_CloseFile(fileS);
         return nullptr;
     }
 
     uint64_t dw2;
     RDTSC_B(dw2);
     EXTDATA_HEADER exdh;
-    fio->_ReadFile(fileS, &exdh, sizeof(exdh));
+    fileS.read(reinterpret_cast<char*>(&exdh), sizeof(exdh));
     if (exdh.dwExtDataSize <= 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t)) {
         data_size = 0;
-        fio->_CloseFile(fileS);
         return nullptr;
     }
 
     uint32_t dwPackLen;
-    fio->_SetFilePointer(fileS, exdh.dwExtDataOffset, std::ios::beg);
-    fio->_ReadFile(fileS, &dwPackLen, sizeof(dwPackLen));
+    fileS.seekg(exdh.dwExtDataOffset, std::ios::beg);
+    fileS.read(reinterpret_cast<char*>(&dwPackLen), sizeof(dwPackLen));
     if (dwPackLen == 0 || file_size < exdh.dwExtDataOffset + sizeof(uint32_t) + dwPackLen) {
         data_size = 0;
-        fio->_CloseFile(fileS);
         return nullptr;
     }
     char* pCBuffer = new char[dwPackLen];
-    fio->_ReadFile(fileS, pCBuffer, dwPackLen);
+    fileS.read(pCBuffer, dwPackLen);
     char*  pBuffer   = new char[exdh.dwExtDataSize];
     uLongf ulDestLen = exdh.dwExtDataSize;
     uncompress((Bytef*)pBuffer, &ulDestLen, (Bytef*)pCBuffer, dwPackLen);
-    fio->_CloseFile(fileS);
     delete[] pCBuffer;
     RDTSC_E(dw2);
     // core_internal.Trace("GetSaveData = %d", dw2);
@@ -6048,76 +5889,6 @@ void* COMPILER::GetSaveData(char const* file_name, int32_t& data_size)
     data_size = ulDestLen;
     return pBuffer;
 }
-
-/*void * COMPILER::GetSaveData(char * file_name, int32_t & data_size)
-{
-    DWORD n;
-
-    EXTDATA_HEADER exdh;
-    char * pExtData;
-    if(file_name == 0)
-    {
-        SetError("invalid save file name");
-        return 0;
-    }
-
-    // open save file
-    fio->SetDrive(XBOXDRIVE_NONE);
-    HANDLE fh = fio->_CreateFile(file_name,GENERIC_READ,FILE_SHARE_READ,OPEN_EXISTING);
-    fio->SetDrive();
-    if(fh == INVALID_HANDLE_VALUE)
-    {
-        SetError("cant open save file: %s",file_name);
-        return 0;
-    }
-
-    // set global handle
-//    hSaveFileFileHandle = fh;
-
-    // read save header
-
-    memset(&exdh,0,sizeof(exdh));
-    if(!Read(&exdh,sizeof(exdh)))
-    {
-        fio->_CloseHandle(fh);
-        return 0;
-    }
-
-    int fsize = fio->_GetFileSize(fh,0);
-    if( fsize < exdh.dwExtDataOffset+exdh.dwExtDataSize )
-    { // extern data header is failed
-        fio->_CloseHandle(fh);
-        return 0;
-    }
-
-    // prepare ext data buffer
-    pExtData = new char[exdh.dwExtDataSize];
-    if(pExtData == 0)
-    {
-        SetError("no memory");
-        fio->_CloseHandle(fh);
-        return 0;
-    }
-
-
-    // move to ext data
-    DWORD dwRes = fio->_SetFilePointer(fh,exdh.dwExtDataOffset,0,FILE_BEGIN);
-    if(dwRes == 0xffffffff)
-    {
-        if(pExtData) delete pExtData; pExtData = 0;
-        SetError("invalid seek");
-        return 0;
-    }
-
-    // read ext data
-    Read(pExtData,exdh.dwExtDataSize);
-
-    // cleanup
-    fio->_CloseHandle(fh);
-
-    data_size = exdh.dwExtDataSize;
-    return pExtData;
-}*/
 
 void COMPILER::AddRuntimeEvent()
 {
@@ -6551,7 +6322,7 @@ void COMPILER::SaveSegmentToCache(const SEGMENT_DESC& segment)
 {
     auto const path = GetSegmentCachePath(segment);
     create_directories(path.parent_path());
-    std::ofstream stream(path, std::ios::binary);
+    auto stream = fio->open_file<std::ofstream>(path, std::ios::binary);
     if (!stream) { return; }
 
     storm::script_cache::BufferWriter writer;
@@ -6602,7 +6373,7 @@ bool COMPILER::LoadSegmentFromCache(SEGMENT_DESC& segment)
     auto const cache_size = file_size(path);
     if (cache_size == 0) { return false; }
 
-    std::ifstream stream(path, std::ios::binary);
+    auto stream = fio->open_file<std::ifstream>(path, std::ios::binary);
     if (!stream) { return false; }
 
     std::vector<char> data(cache_size);
@@ -6663,7 +6434,7 @@ void COMPILER::LoadDefinesFromCache(storm::script_cache::BufferReader& reader, S
 
 void COMPILER::FormatAllDialog(char const* directory_name)
 {
-    auto const vPaths = fio->_GetPathsOrFilenamesByMask(directory_name, "*.c", true);
+    auto const vPaths = fio->string_paths_by_mask(directory_name, "*.c", true);
     for (std::string const& curPath: vPaths) {
         FormatDialog(curPath.c_str());
     }
@@ -6683,22 +6454,21 @@ void COMPILER::FormatDialog(char const* file_name)
 
     uint32_t nTxt = 0;
 
-    // sprintf_s(sFileName,"PROGRAM\\%sc",file_name);
+    // sprintf_s(sFileName,"PROGRAM/%sc",file_name);
     strcpy_s(sFileName, file_name);
 
     char* pFileData = LoadFile(file_name, FileSize, true);
     if (pFileData == nullptr) { return; }
 
-    auto fileS = fio->_CreateFile(sFileName, std::ios::binary | std::ios_base::out);
+    auto fileS = fio->open_file<std::ofstream>(sFileName, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
-    // sprintf_s(sFileName,"PROGRAM\\%s",file_name);
+    // sprintf_s(sFileName,"PROGRAM/%s",file_name);
     strcpy_s(sFileName, file_name);
     sFileName[strlen(sFileName) - 1] = 0;
     strcat_s(sFileName, "h");
-    auto fileS2 = fio->_CreateFile(sFileName, std::ios::binary | std::ios_base::out);
+    auto fileS2 = fio->open_file<std::ofstream>(sFileName, std::ios::binary);
     if (!fileS2.is_open()) {
-        fio->_CloseFile(fileS);
         delete[] pFileData;
         return;
     }
@@ -6709,18 +6479,18 @@ void COMPILER::FormatDialog(char const* file_name)
     uint32_t       n;
     uint32_t const nFullNameLen = strlen(file_name);
     for (n = nFullNameLen; n > 0; n--) {
-        if (file_name[n] == '\\') break;
+        if (file_name[n] == '/') break;
     }
-    sprintf_s(sFileName, "DIALOGS%s", file_name + n);
+    sprintf_s(sFileName, "dialogs%s", file_name + n);
     sFileName[strlen(sFileName) - 1] = 0;
     strcat_s(sFileName, "h");
 
-    fio->_WriteFile(fileS, buffer, strlen(buffer));
-    fio->_WriteFile(fileS, sNewLine, strlen(sNewLine));
+    fileS.write(buffer, strlen(buffer));
+    fileS.write(sNewLine, strlen(sNewLine));
 
     sprintf_s(buffer, "string DLG_TEXT[0] = {        ");
-    fio->_WriteFile(fileS2, buffer, strlen(buffer));
-    fio->_WriteFile(fileS2, sNewLine, strlen(sNewLine));
+    fileS2.write(buffer, strlen(buffer));
+    fileS2.write(sNewLine, strlen(sNewLine));
 
     Token.SetProgram(pFileData, pFileData);
 
@@ -6728,13 +6498,13 @@ void COMPILER::FormatDialog(char const* file_name)
         Token_type = Token.FormatGet();
         switch (Token_type) {
         case DOT:
-            fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+            fileS.write(Token.GetData(), strlen(Token.GetData()));
             Token_type = Token.FormatGet();
             if (Token_type != OPEN_BRACKET) {
                 if (Token.GetData()) {
                     // node text --------------------------------------------
                     if (storm::iEquals(Token.GetData(), "text")) {
-                        fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                        fileS.write(Token.GetData(), strlen(Token.GetData()));
 
                         // fio->_WriteFile(fhH,sNewLine,strlen(sNewLine),&dwR);
                         // sprintf_s(sFileName,"// [NODE START] ",nTxt);
@@ -6760,17 +6530,17 @@ void COMPILER::FormatDialog(char const* file_name)
 
                                 // if(strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
                                 if (!bExportString) {
-                                    fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                                    fileS.write(Token.GetData(), strlen(Token.GetData()));
                                 } else {
-                                    fio->_WriteFile(fileS2, Token.GetData(), strlen(Token.GetData()));
-                                    fio->_WriteFile(fileS2, ",", std::size(",") - 1);
-                                    fio->_WriteFile(fileS2, sNewLine, newline_len);
+                                    fileS2.write(Token.GetData(), strlen(Token.GetData()));
+                                    fileS2.write(",", std::size(",") - 1);
+                                    fileS2.write(sNewLine, newline_len);
                                     sprintf_s(sFileName, "DLG_TEXT[%d]", nTxt);
-                                    fio->_WriteFile(fileS, sFileName, strlen(sFileName));
+                                    fileS.write(sFileName, strlen(sFileName));
                                     nTxt++;
                                 }
                             } else {
-                                fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                                fileS.write(Token.GetData(), strlen(Token.GetData()));
                             }
                             if (Token_type == END_OF_PROGRAMM) { break; }
                         } while (Token_type != SEPARATOR);
@@ -6778,20 +6548,20 @@ void COMPILER::FormatDialog(char const* file_name)
                     }
                 }
             }
-            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+            if (Token.GetData()) { fileS.write(Token.GetData(), strlen(Token.GetData())); }
             break;
         case UNKNOWN:
             if (Token.GetData()) {
-                fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                fileS.write(Token.GetData(), strlen(Token.GetData()));
                 if (storm::iEquals(Token.GetData(), "link")) {
                     Token_type = Token.FormatGet();
-                    fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                    fileS.write(Token.GetData(), strlen(Token.GetData()));
                     if (Token_type == DOT) {
                         Token_type = Token.FormatGet();
-                        if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+                        if (Token.GetData()) { fileS.write(Token.GetData(), strlen(Token.GetData())); }
                         if (Token_type == UNKNOWN) {
                             Token_type = Token.FormatGet();
-                            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+                            if (Token.GetData()) { fileS.write(Token.GetData(), strlen(Token.GetData())); }
                             if (Token_type != DOT) {
                                 constexpr size_t newline_len = std::size(sNewLine) - 1;
                                 do {
@@ -6812,17 +6582,17 @@ void COMPILER::FormatDialog(char const* file_name)
 
                                         // if(strlen(Token.GetData()) == 3 && Token.GetData()[1] <= 0x39)
                                         if (!bExportString) {
-                                            fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                                            fileS.write(Token.GetData(), strlen(Token.GetData()));
                                         } else {
-                                            fio->_WriteFile(fileS2, Token.GetData(), strlen(Token.GetData()));
-                                            fio->_WriteFile(fileS2, ",", std::size(",") - 1);
-                                            fio->_WriteFile(fileS2, sNewLine, newline_len);
+                                            fileS2.write(Token.GetData(), strlen(Token.GetData()));
+                                            fileS2.write(",", std::size(",") - 1);
+                                            fileS2.write(sNewLine, newline_len);
                                             sprintf_s(sFileName, "DLG_TEXT[%d]", nTxt);
-                                            fio->_WriteFile(fileS, sFileName, strlen(sFileName));
+                                            fileS.write(sFileName, strlen(sFileName));
                                             nTxt++;
                                         }
                                     } else {
-                                        fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData()));
+                                        fileS.write(Token.GetData(), strlen(Token.GetData()));
                                     }
                                     if (Token_type == END_OF_PROGRAMM) { break; }
                                 } while (Token_type != SEPARATOR);
@@ -6834,7 +6604,7 @@ void COMPILER::FormatDialog(char const* file_name)
             }
             break;
         default:
-            if (Token.GetData()) { fio->_WriteFile(fileS, Token.GetData(), strlen(Token.GetData())); }
+            if (Token.GetData()) { fileS.write(Token.GetData(), strlen(Token.GetData())); }
             break;
         }
     } while (Token_type != END_OF_PROGRAMM);
@@ -6842,14 +6612,11 @@ void COMPILER::FormatDialog(char const* file_name)
     delete[] pFileData;
 
     sprintf_s(buffer, "};");
-    fio->_WriteFile(fileS2, sNewLine, strlen(sNewLine));
-    fio->_WriteFile(fileS2, buffer, strlen(buffer));
-    fio->_SetFilePointer(fileS2, 0, std::ios::beg);
+    fileS2.write(sNewLine, strlen(sNewLine));
+    fileS2.write(buffer, strlen(buffer));
+    fileS.seekp(0, std::ios::beg);
     sprintf_s(buffer, "string DLG_TEXT[%d] = {", nTxt);
-    fio->_WriteFile(fileS2, buffer, strlen(buffer));
-
-    fio->_CloseFile(fileS2);
-    fio->_CloseFile(fileS);
+    fileS2.write(buffer, strlen(buffer));
 }
 
 void STRING_CODEC::VariableChanged()

@@ -165,11 +165,11 @@ bool BLADE::BLADE_INFO::LoadBladeModel(MESSAGE& message)
     if (!mdlName.empty()) {
         // path of the model
         char path[256];
-        strcpy_s(path, "Ammo\\");
+        strcpy_s(path, "ammo/");
         strcat_s(path, mdlName.c_str());
         // path of the textures
         auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-        if (gs) gs->SetTexturePath("Ammo\\");
+        if (gs) gs->SetTexturePath("ammo/");
         // Create a model
         eid = core.CreateEntity("modelr");
         if (!core.Send_Message(eid, "ls", MSG_MODEL_LOAD_GEO, path)) {
@@ -201,8 +201,9 @@ BLADE::~BLADE()
         items[i].Release();
 }
 
-bool BLADE::Init()
+bool BLADE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(BLADE::BLADE())
 
     col = static_cast<COLLIDE*>(core.GetService("coll"));
@@ -325,11 +326,11 @@ bool BLADE::LoadGunModel(MESSAGE& message)
     if (!mdlName.empty()) {
         // path of the model
         char path[256];
-        strcpy_s(path, "Ammo\\");
+        strcpy_s(path, "ammo/");
         strcat_s(path, mdlName.c_str());
         // path of the textures
         auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-        if (gs) gs->SetTexturePath("Ammo\\");
+        if (gs) gs->SetTexturePath("ammo/");
         // Create a model
         gun = core.CreateEntity("modelr");
         if (!core.Send_Message(gun, "ls", MSG_MODEL_LOAD_GEO, path)) {
@@ -604,11 +605,11 @@ bool BLADE::TIEITEM_INFO::LoadItemModel(char const* mdlName, char const* locName
 
     // path of the model
     char path[256];
-    strcpy_s(path, "Ammo\\");
+    strcpy_s(path, "ammo/");
     strcat_s(path, mdlName);
     // path of the textures
     auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-    if (gs) gs->SetTexturePath("Ammo\\");
+    if (gs) gs->SetTexturePath("ammo/");
     // Create a model
     eid = core.CreateEntity("modelr");
     if (!core.Send_Message(eid, "ls", MSG_MODEL_LOAD_GEO, path)) {

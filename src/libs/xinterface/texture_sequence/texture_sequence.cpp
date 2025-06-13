@@ -1,11 +1,14 @@
 #include "texture_sequence.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 
-#define FILE_PATH "TextureSequence\\%s.tga"
-static char const* INI_FILENAME = "resource\\ini\\TextureSequence.ini";
+
+#define FILE_PATH "texturesequence/%s.tga"
+// FIXME: hardcode
+constexpr std::string_view INI_FILENAME = "texturesequence.ini";
 
 #define TS_VERTEX_FRMT (D3DFVF_XYZRHW | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2)
 
@@ -56,9 +59,9 @@ IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSf
     m_pRS = pRS;
 
     // open ini file
-    auto ini = fio->OpenIniFile(INI_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / INI_FILENAME);
     if (!ini) {
-        core.Trace("ini file %s not found!", INI_FILENAME);
+        core.Trace("ini file %s not found!", INI_FILENAME.data());
         return nullptr;
     }
     m_dwDeltaTime = ini->GetInt((char*)cTSfileName, "timeDelay", 128);

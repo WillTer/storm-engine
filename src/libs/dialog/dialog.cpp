@@ -1,7 +1,8 @@
 #include "dialog.hpp"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/util/dialog/dialog_utils.hpp>
 #include <libs/util/string_compare.hpp>
@@ -458,14 +459,15 @@ void DIALOG::DrawButtons()
 
 void DIALOG::LoadFromIni()
 {
-    auto pIni = fio->OpenIniFile("resource\\ini\\dialog.ini");
+    // FIXME: hardcode
+    auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
     if (!pIni) {
-        core.Trace("Warning! DIALOG: Can`t open ini file %s", "resource\\ini\\dialog.ini");
+        core.Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return;
     }
 
     char param[512];
-    pIni->ReadString("BACKPARAM", "texture", param, sizeof(param) - 1, "dialog\\interface.tga");
+    pIni->ReadString("BACKPARAM", "texture", param, sizeof(param) - 1, "dialog/interface.tga");
     m_BackParams.m_idBackTex = RenderService->TextureCreate(param);
 
     FPOINT fpScrSize, fpScrOffset;
@@ -564,8 +566,10 @@ void DIALOG::GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pc
 }
 
 //--------------------------------------------------------------------
-bool DIALOG::Init()
+bool DIALOG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     forceEmergencyClose = false;
     selectedLinkName[0] = 0;
     core.SetTimeScale(0.f);
@@ -591,7 +595,8 @@ bool DIALOG::Init()
     textViewport.MinZ   = 0.0f;
     textViewport.MaxZ   = 1.0f;
 
-    auto ini = fio->OpenIniFile("Resource\\Ini\\dialog.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
     m_DlgText.Init(RenderService, textViewport, ini.get());
     InitLinks(RenderService, textViewport, ini.get());
 

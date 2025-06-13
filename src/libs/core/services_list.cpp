@@ -110,7 +110,7 @@ uint32_t SERVICES_LIST::Release(uint32_t module_code, uint32_t class_code)
                     if (node_L) node_L->linkR = node_R;
                     if (node_R) node_R->linkL = node_L;
                     if (node_PTR == List) List = node_L;
-                    delete node_PTR;
+                    delete[] node_PTR;
                     Objects--;
                     return 0;
                 }
@@ -127,7 +127,7 @@ void SERVICES_LIST::Release()
     SERVICE_NODE* node_PTR = List;
     while (node_PTR) {
         List = static_cast<SERVICE_NODE*>(node_PTR->linkL);
-        delete node_PTR;
+        delete[] node_PTR;
         node_PTR = List;
     }
 

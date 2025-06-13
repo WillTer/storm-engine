@@ -19,8 +19,10 @@ ShipTracks::~ShipTracks()
     // aShips.DelAllWithPointers();
 }
 
-bool ShipTracks::Init()
+bool ShipTracks::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     entid_t sea_id;
 
     ShipTrack::pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));

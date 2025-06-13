@@ -36,7 +36,6 @@ public:
     SeaLocatorShow();
     ~SeaLocatorShow() override;
 
-    bool Init() override;
     void SetDevice();
 
     void Realize(uint32_t Delta_Time);

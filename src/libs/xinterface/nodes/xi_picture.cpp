@@ -1,6 +1,7 @@
 #include "xi_picture.h"
 
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
@@ -143,7 +144,7 @@ void CXI_PICTURE::SaveParametersToIni()
 {
     char pcWriteParam[2048];
 
-    auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
+    auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
@@ -170,13 +171,12 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
 {
-    char param[512];
-    sprintf(param, "resource\\textures\\%s", dirName);
-
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(param, "*.tx", false);
+    auto const path       = fio->base_directory_path(BaseDirectory::Textures) / dirName;
+    auto const vFilenames = fio->string_paths_by_mask(path, "*.tx", false);
     if (!vFilenames.empty()) {
-        int findQ = rand() % vFilenames.size();
-        sprintf(param, "%s\\%s", dirName, vFilenames[findQ].c_str());
+        char param[512];
+        int  findQ = rand() % vFilenames.size();
+        sprintf(param, "%s/%s", dirName, vFilenames[findQ].c_str());
         int const paramlen = strlen(param);
         if (paramlen < sizeof(param) && paramlen >= 3) { param[paramlen - 3] = 0; }
         SetNewPicture(false, param);

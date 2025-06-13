@@ -209,7 +209,7 @@ void CXI_QUESTTITLE::SaveParametersToIni()
 {
     char pcWriteParam[2048];
 
-    auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
+    auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;

@@ -101,8 +101,8 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
     float cx = w - 128.0f * resizeRatio - 16.0f + 64.0f;
     float cy = -40.0f + 128.0f * resizeRatio;
 
-    txPath     = "WorldMap\\Interfaces\\sky.tga";
-    maskTxPath = "WorldMap\\Interfaces\\sky_mask.tga";
+    txPath     = "worldmap/interfaces/sky.tga";
+    maskTxPath = "worldmap/interfaces/sky_mask.tga";
     skyLeftPos = cx - 64.0f * resizeRatio;
     skyTopPos  = cy - 64.0f * resizeRatio;
     skyWidth   = 128.0f * resizeRatio;
@@ -121,7 +121,7 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
     skyTx     = wdmObjects->rs->TextureCreate(txPath);
     skyMaskTx = wdmObjects->rs->TextureCreate(maskTxPath);
 
-    txPath             = "WorldMap\\Interfaces\\wind_pointer.tga";
+    txPath             = "worldmap/interfaces/wind_pointer.tga";
     windPointerLeftPos = cx - 16.0f * resizeRatio;
     windPointerTopPos  = cy - 64.0f * resizeRatio;
     windPointerWidth   = 32.0f * resizeRatio;
@@ -138,8 +138,8 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
     }
     windPointerTx = wdmObjects->rs->TextureCreate(txPath);
 
-    txPath         = "WorldMap\\Interfaces\\bar.tga";
-    maskTxPath     = "WorldMap\\Interfaces\\bar_mask.tga";
+    txPath         = "worldmap/interfaces/bar.tga";
+    maskTxPath     = "worldmap/interfaces/bar_mask.tga";
     windBarLeftPos = cx - 64.0f * resizeRatio;
     windBarTopPos  = cy;
     windBarWidth   = 128.0f * resizeRatio;
@@ -158,7 +158,7 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
     windBarTx     = wdmObjects->rs->TextureCreate(txPath);
     windBarMaskTx = wdmObjects->rs->TextureCreate(maskTxPath);
 
-    txPath       = "WorldMap\\Interfaces\\back.tga";
+    txPath       = "worldmap/interfaces/back.tga";
     frameLeftPos = cx - 64.0f * resizeRatio;
     frameTopPos  = cy - 128.0f * resizeRatio;
     frameWidth   = 128.0f * resizeRatio;
@@ -193,9 +193,9 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
     // Centre
     cy = cy + 128.0f * resizeRatio + 32.0f;
 
-    txPath        = "WorldMap\\Interfaces\\morale.tga";
-    barTxPath     = "WorldMap\\Interfaces\\morale_bar.tga";
-    maskTxPath    = "WorldMap\\Interfaces\\morale_mask.tga";
+    txPath        = "worldmap/interfaces/morale.tga";
+    barTxPath     = "worldmap/interfaces/morale_bar.tga";
+    maskTxPath    = "worldmap/interfaces/morale_mask.tga";
     moraleLeftPos = cx - 64.0f * resizeRatio;
     moraleTopPos  = cy - 32.0f * resizeRatio;
     moraleWidth   = 128.0f * resizeRatio;
@@ -243,7 +243,7 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
         rumText.pos.y     = int32_t(cy + 30.0f * resizeRatio);
     }
 
-    txPath       = "WorldMap\\Interfaces\\coord.tga";
+    txPath       = "worldmap/interfaces/coord.tga";
     coordLeftPos = cx - 64.0f * resizeRatio;
     coordTopPos  = cy + 64.0f * resizeRatio;
     coordWidth   = 128.0f * resizeRatio;
@@ -287,7 +287,7 @@ void WdmWindUI::SetAttributes(ATTRIBUTES* apnt)
         coordText.pos.y     = int32_t(cy + (64.0f + 32.0f) * resizeRatio);
     }
 
-    txPath            = "WorldMap\\Interfaces\\WorldMapEnsigns.tga";
+    txPath            = "worldmap/interfaces/WorldMapEnsigns.tga";
     nationFlagWidth   = 48.0f * resizeRatio;
     nationFlagHeight  = 48.0f * resizeRatio;
     nationFlagLeftPos = cx - nationFlagWidth / 2.0f;

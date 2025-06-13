@@ -24,7 +24,7 @@ struct LocationFindCacheElement {
 
     ~LocationFindCacheElement()
     {
-        delete name;
+        delete[] name;
     };
 
     int32_t Cmp(LocationFindCacheElement const& v) const
@@ -39,7 +39,7 @@ struct LocationFindCacheElement {
         size = strlen(str) + 1;
         if (size > max) {
             max = (size + 15) & ~15;
-            delete name;
+            delete[] name;
             name = new char[max];
         }
         memcpy(name, str, size);

@@ -21,7 +21,7 @@ Lizard::~Lizard() {}
 
 char const* Lizard::GetModelName()
 {
-    return "Animals\\lizard";
+    return "animals/lizard";
 }
 
 char const* Lizard::GetAniName()

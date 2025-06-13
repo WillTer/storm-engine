@@ -69,7 +69,7 @@ BillBoardProcessor::BillBoardProcessor()
 
 BillBoardProcessor::~BillBoardProcessor()
 {
-    delete pMemArray;
+    delete[] pMemArray;
 
     pRS = static_cast<VDX9RENDER*>(core.GetService("DX9Render"));
     if (pRS != nullptr) {

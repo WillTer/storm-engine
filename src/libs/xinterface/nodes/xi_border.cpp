@@ -1,7 +1,7 @@
 #include "xi_border.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/v_file_service.h>
 
 #include "xi_image.h"
 
@@ -88,7 +88,7 @@ void CXI_BORDER::SaveParametersToIni()
 {
     char pcWriteParam[2048];
 
-    auto pIni = fio->OpenIniFile(ptrOwner->m_sDialogFileName.c_str());
+    auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
         core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;

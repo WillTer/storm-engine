@@ -14,8 +14,10 @@ EnemyStatShower::~EnemyStatShower()
     Release();
 }
 
-bool EnemyStatShower::Init()
+bool EnemyStatShower::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     if (!ReadAndCreate()) return false;
     return true;
 }

@@ -1,7 +1,8 @@
 #include "ball_splash.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/messages.h>
 #include <stdio.h>
 
@@ -19,8 +20,9 @@ BALLSPLASH::~BALLSPLASH()
 }
 
 //--------------------------------------------------------------------
-bool BALLSPLASH::Init()
+bool BALLSPLASH::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(BALLSPLASH::Init)
 
     sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
@@ -133,7 +135,8 @@ void BALLSPLASH::Execute(uint32_t dTime)
 //--------------------------------------------------------------------
 void BALLSPLASH::InitializeSplashes()
 {
-    auto psIni = fio->OpenIniFile("resource\\ini\\particles.ini");
+    // FIXME: hardcode
+    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     for (auto i = 0; i < MAX_SPLASHES; ++i) {
         splashes[i].Release();

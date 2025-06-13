@@ -62,7 +62,7 @@ public:
     void SetCharacter(ATTRIBUTES* _pACharacter) override;
 
     void     SetDevice();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Move(uint32_t DeltaTime);
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);

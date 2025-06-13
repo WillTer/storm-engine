@@ -24,8 +24,9 @@ SEA_AI::~SEA_AI()
     Helper.Uninit();
 }
 
-bool SEA_AI::Init()
+bool SEA_AI::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     Helper.SetDevice();
     return true;
 }

@@ -25,8 +25,9 @@ SHIP_CAMERA::SHIP_CAMERA()
     SetActive(false);
 }
 
-bool SHIP_CAMERA::Init()
+bool SHIP_CAMERA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     SetDevices();
 
     return true;

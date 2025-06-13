@@ -54,7 +54,7 @@ public:
     ~WEATHER() override;
 
     void     SetDevice();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Move();
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);

@@ -35,8 +35,9 @@ SEA_OPERATOR::SEA_OPERATOR()
 
 SEA_OPERATOR::~SEA_OPERATOR() {}
 
-bool SEA_OPERATOR::Init()
+bool SEA_OPERATOR::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     core.AddToLayer(REALIZE, GetId(), 1);
     core.AddToLayer(EXECUTE, GetId(), 0);
 

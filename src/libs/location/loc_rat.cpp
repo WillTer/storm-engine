@@ -27,7 +27,7 @@ LocRat::~LocRat() {}
 
 char const* LocRat::GetModelName()
 {
-    return "Animals\\rat";
+    return "animals/rat";
 }
 
 char const* LocRat::GetAniName()

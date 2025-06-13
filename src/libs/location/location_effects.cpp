@@ -60,8 +60,10 @@ LocationEffects::~LocationEffects()
 }
 
 // Initialization
-bool LocationEffects::Init()
+bool LocationEffects::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
@@ -74,8 +76,8 @@ bool LocationEffects::Init()
     core.SetLayerType(REALIZE, layer_type_t::realize);
     core.AddToLayer(REALIZE, GetId(), 1000000);
 
-    splashesTxt = rs->TextureCreate("LocEfx\\chrsplprt.tga");
-    flyTex      = rs->TextureCreate("LocEfx\\firefly.tga");
+    splashesTxt = rs->TextureCreate("locefx/chrsplprt.tga");
+    flyTex      = rs->TextureCreate("locefx/firefly.tga");
 
     return true;
 }
@@ -376,10 +378,10 @@ void LocationEffects::ProcessedFlys(float dltTime)
 void LocationEffects::SGInited()
 {
     if (!isShgInited) {
-        texSmoke    = rs->TextureCreate("LocEfx\\sgsmoke.tga");
-        texFlinders = rs->TextureCreate("LocEfx\\sgflinders.tga");
-        texBlood    = rs->TextureCreate("LocEfx\\sgblood.tga");
-        texHor      = rs->TextureCreate("LocEfx\\sghor.tga");
+        texSmoke    = rs->TextureCreate("locefx/sgsmoke.tga");
+        texFlinders = rs->TextureCreate("locefx/sgflinders.tga");
+        texBlood    = rs->TextureCreate("locefx/sgblood.tga");
+        texHor      = rs->TextureCreate("locefx/sghor.tga");
         isShgInited = true;
     }
 }

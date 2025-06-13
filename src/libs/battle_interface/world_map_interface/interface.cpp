@@ -26,8 +26,10 @@ WM_INTERFACE::~WM_INTERFACE()
     STORM_DELETE(m_pCommandList);
 }
 
-bool WM_INTERFACE::Init()
+bool WM_INTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     Assert(rs);
 

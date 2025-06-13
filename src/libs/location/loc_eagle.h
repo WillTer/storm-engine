@@ -19,7 +19,7 @@ public:
     ~LocEagle() override;
 
     // Initialization
-    bool Init() override;
+    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     // Execution
     void Execute(uint32_t delta_time);
 

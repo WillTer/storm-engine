@@ -1,7 +1,7 @@
 #ifdef _WIN32  // S_DEBUG
 #include "s_dbg_breaktable.h"
 
-#include "file_service.h"
+#include <libs/filesystem/file_service.h>
 
 #define SECTION_NAME "breakpoints"
 
@@ -24,8 +24,8 @@ void BREAKPOINTS_TABLE::Release()
 
     // if(nPoints)
     if (ProjectName[0] != 0) {
-        auto ini = fio->OpenIniFile(ProjectName);
-        if (!ini) ini = fio->CreateIniFile(ProjectName, false);
+        auto ini = fio->open_ini_file(ProjectName);
+        if (!ini) ini = fio->create_ini_file(ProjectName, false);
         if (ini) {
             ini->DeleteSection(SECTION_NAME);
             for (n = 0; n < nPoints; n++) {
@@ -51,8 +51,8 @@ void BREAKPOINTS_TABLE::UpdateProjectFile()
     char buffer[MAX_PATH];
 
     if (ProjectName[0] != 0) {
-        auto ini = fio->OpenIniFile(ProjectName);
-        if (!ini) ini = fio->CreateIniFile(ProjectName, false);
+        auto ini = fio->open_ini_file(ProjectName);
+        if (!ini) ini = fio->create_ini_file(ProjectName, false);
         if (ini) {
             ini->DeleteSection(SECTION_NAME);
             for (uint32_t n = 0; n < nPoints; n++) {
@@ -88,7 +88,7 @@ bool BREAKPOINTS_TABLE::ReadProject(char const* filename)
 
     Release();
 
-    auto ini = fio->OpenIniFile(filename);
+    auto ini = fio->open_ini_file(filename);
     if (ini) {
         strcpy_s(ProjectName, filename);
         if (ini->ReadString(SECTION_NAME, "B", buffer, sizeof(buffer), "")) {

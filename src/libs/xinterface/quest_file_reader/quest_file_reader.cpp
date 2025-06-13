@@ -235,17 +235,16 @@ void QuestFileReader::SetQuestTextFileName(std::string_view const& fileName)
     questFileNames_.push_back(std::string(fileName));
 
     /// Open file
-    auto fileS = fio->_CreateFile(fileName.data(), std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(fileName.data(), std::ios::binary);
     if (!fileS.is_open()) {
         core.Trace("WARNING! Can`t open quest log file %s", std::string(fileName).c_str());
         return;
     }
 
     /// Obtain file size
-    uint32_t const filesize = fio->_GetFileSize(fileName.data());
+    uint32_t const filesize = fio->file_size(fileName.data());
     if (filesize == 0) {
         core.Trace("Empty quest log file %s", std::string(fileName).c_str());
-        fio->_CloseFile(fileS);
         return;
     }
 
@@ -254,10 +253,9 @@ void QuestFileReader::SetQuestTextFileName(std::string_view const& fileName)
     Assert(!buffer.empty());
 
     // Read file content into buffer
-    if (!fio->_ReadFile(fileS, buffer.data(), filesize)) { core.Trace("Can`t read quest log file: %s", std::string(fileName).c_str()); }
-    fio->_CloseFile(fileS);
+    fileS.read(buffer.data(), filesize);
 
-    AddQuestsFromBuffer(std::string_view(buffer.c_str()));
+    AddQuestsFromBuffer(std::string_view(buffer));
 }
 
 void QuestFileReader::AddQuestsFromBuffer(std::string_view const& srcBuffer)

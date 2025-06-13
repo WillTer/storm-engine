@@ -24,7 +24,7 @@ void S_DEFTAB::Release()
     for (n = 0; n < Def_num; n++) {
         delete[] pTable[n].name;
         if (pTable[n].deftype == STRING) {
-            if (pTable[n].data4b != 0) delete ((char*)pTable[n].data4b);
+            if (pTable[n].data4b != 0) delete[] ((char*)pTable[n].data4b);
         }
     }
     pTable.clear();
@@ -124,7 +124,7 @@ void S_DEFTAB::InvalidateBySegmentID(uint32_t segment_id)
         UpdateHashTable(n, pTable[n].hash, false);
         pTable[n].segment_id = INVALID_SEGMENT_ID;
         if (pTable[n].deftype == STRING) {
-            if (pTable[n].data4b) { delete ((char*)pTable[n].data4b); }
+            if (pTable[n].data4b) { delete[] ((char*)pTable[n].data4b); }
             pTable[n].data4b = 0;
         }
     }

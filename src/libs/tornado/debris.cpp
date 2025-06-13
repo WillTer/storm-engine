@@ -38,18 +38,18 @@ Debris::~Debris()
 
 void Debris::Init()
 {
-    AddModel("Tornado\\palka01", 500, 1.5f);
-    AddModel("Tornado\\palka02", 400, 1.7f);
-    AddModel("Tornado\\palka03", 100, 1.0f);
-    AddModel("Tornado\\palka04", 500, 1.1f);
-    AddModel("Tornado\\palka05", 25, 0.9f);
-    AddModel("Tornado\\Flotsam1", 5, 0.6f);
-    AddModel("Tornado\\Flotsam2", 1, 0.4f);
-    AddModel("Tornado\\Flotsam3", 20, 0.8f);
-    AddModel("Tornado\\Flotsam4", 15, 0.5f);
-    AddModel("Tornado\\Flotsam5", 10, 0.85f);
-    AddModel("Tornado\\Flotsam6", 5, 1.1f);
-    AddModel("Tornado\\Flotsam7", 5, 1.2f);
+    AddModel("tornado/palka01", 500, 1.5f);
+    AddModel("tornado/palka02", 400, 1.7f);
+    AddModel("tornado/palka03", 100, 1.0f);
+    AddModel("tornado/palka04", 500, 1.1f);
+    AddModel("tornado/palka05", 25, 0.9f);
+    AddModel("tornado/flotsam1", 5, 0.6f);
+    AddModel("tornado/flotsam2", 1, 0.4f);
+    AddModel("tornado/flotsam3", 20, 0.8f);
+    AddModel("tornado/flotsam4", 15, 0.5f);
+    AddModel("tornado/flotsam5", 10, 0.85f);
+    AddModel("tornado/flotsam6", 5, 1.1f);
+    AddModel("tornado/flotsam7", 5, 1.2f);
     NormalazedModels();
     soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
 }
@@ -146,7 +146,7 @@ void Debris::AddModel(char const* modelName, float prt, float spd)
     // Path to textures
     auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return;
-    gs->SetTexturePath("Tornado\\");
+    gs->SetTexturePath("tornado/");
     // Loading
     try {
         core.Send_Message(id, "ls", MSG_MODEL_LOAD_GEO, modelName);

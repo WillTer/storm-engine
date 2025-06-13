@@ -1,10 +1,15 @@
 #include <thread>
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <libs/config/config_loader.h>
+#include <libs/config/main_config.h>
 #include <libs/core/core_private.h>
+#include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
+#include <libs/filesystem/default_paths.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -16,65 +21,69 @@ namespace
 
 CorePrivate* core_private;
 
-constexpr char defaultLoggerName[] = "system";
-bool           isRunning           = false;
-bool           bActive             = true;
-bool           bSoundInBackground  = false;
+constexpr char DEFAULT_LOGGER_NAME[]          = "system";
+bool           is_sound_in_background_enabled = false;
+bool           is_active                      = false;
+bool           should_close                   = false;
 
-storm::diag::LifecycleDiagnosticsService lifecycleDiagnostics;
+storm::diag::LifecycleDiagnosticsService lifecycle_diagnostics;
 
-void RunFrame()
+bool run_frame()
 {
-    if (!core_private->Run()) { isRunning = false; }
+    bool const is_running = core_private->Run();
+    lifecycle_diagnostics.notifyAfterRun();
 
-    lifecycleDiagnostics.notifyAfterRun();
+    return is_running;
 }
 
 #ifdef _WIN32
-void RunFrameWithOverflowCheck()
+bool run_frame_with_overflow_check()
 {
+    bool is_running = false;
     __try {
-        RunFrame();
+        is_running = run_frame();
     } __except ([](unsigned code, struct _EXCEPTION_POINTERS* ep) {
         return code == EXCEPTION_STACK_OVERFLOW;
     }(GetExceptionCode(), GetExceptionInformation())) {
         _resetstkoflw();
         throw std::runtime_error("Stack overflow");
     }
+
+    return is_running;
 }
 #else
-#define RunFrameWithOverflowCheck RunFrame
+#define run_frame_with_overflow_check run_frame
 #endif
 
-}  // namespace
-
-void HandleWindowEvent(storm::OSWindow::Event const& event)
+void handle_window_event(storm::OSWindow::Event const& event)
 {
     if (event == storm::OSWindow::Closed) {
-        isRunning = false;
+        should_close = true;
         if (core_private->initialized()) { core_private->Event("DestroyWindow"); }
     } else if (event == storm::OSWindow::FocusGained) {
-        bActive = true;
+        is_active = true;
         if (core_private->initialized()) {
-            core_private->AppState(bActive);
-            if (auto const soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
-                soundService && !bSoundInBackground) {
-                soundService->set_active_with_fade(true);
+            core_private->AppState(is_active);
+            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
+                (sound_service != nullptr) && !is_sound_in_background_enabled) {
+                sound_service->set_active_with_fade(true);
             }
         }
     } else if (event == storm::OSWindow::FocusLost) {
-        bActive = false;
+        is_active = false;
         if (core_private->initialized()) {
-            core_private->AppState(bActive);
-            if (auto const soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
-                soundService && !bSoundInBackground) {
-                soundService->set_active_with_fade(false);
+            core_private->AppState(is_active);
+            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
+                (sound_service != nullptr) && !is_sound_in_background_enabled) {
+                sound_service->set_active_with_fade(false);
             }
         }
     }
 }
 
-int main(int argc, char* argv[])
+}  // namespace
+
+int main()
 {
     // Prevent multiple instances
 #ifdef _WIN32  // CreateEventA
@@ -84,74 +93,63 @@ int main(int argc, char* argv[])
     }
 #endif
 
+    setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
+
+    auto const service_locator = std::make_shared<storm::ServiceLocator>();
+    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
+
+    // Load parameters of file service
+    auto const config_loader = service_locator->get<storm::IConfigLoader>();
+    fio->init_from_main_config(*config_loader);
+
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
     // Init diagnostics
-    auto const lifecycleDiagnosticsGuard =
+    auto const lifecycle_diagnostics_guard =
 #ifdef STORM_ENABLE_CRASH_REPORTS
-        lifecycleDiagnostics.initialize(true);
+        lifecycle_diagnostics.initialize(true);
 #else
-        lifecycleDiagnostics.initialize(false);
+        lifecycle_diagnostics.initialize(false);
 #endif
-    if (!lifecycleDiagnosticsGuard) {
+    if (!lifecycle_diagnostics_guard) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", "Unable to initialize lifecycle service!", nullptr);
     } else {
-        lifecycleDiagnostics.setCrashInfoCollector([]() { core_private->collectCrashInfo(); });
+        lifecycle_diagnostics.setCrashInfoCollector([]() { core_private->collectCrashInfo(); });
     }
 
     // Init stash
     create_directories(fs::GetSaveDataPath());
 
     // Init logging
-    spdlog::set_default_logger(storm::logging::getOrCreateLogger(defaultLoggerName));
+    spdlog::set_default_logger(storm::logging::getOrCreateLogger(DEFAULT_LOGGER_NAME));
     spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
 
     // Init core
     core_private = static_cast<CorePrivate*>(&core);
-    core_private->Init();
+    core_private->Init(service_locator);
 
     // Read config
-    auto ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
+    auto const general_info = storm::main_config::general_info(*config_loader);
+    auto const window_info  = storm::main_config::window_info(*config_loader);
 
-    uint32_t dwMaxFPS = 0;
-    bool     bSteam   = false;
-    int      width = 1024, height = 768;
-    int      preferred_display = 0;
-    bool     fullscreen        = false;
-    bool     show_borders      = false;
-    bool     run_in_background = false;
-
-    if (ini) {
-        dwMaxFPS = static_cast<uint32_t>(ini->GetInt(nullptr, "max_fps", 0));
-        if (ini->GetInt(nullptr, "logs", 1) == 0)  // disable logging
-        {
-            spdlog::set_level(spdlog::level::off);
-        }
-        width             = ini->GetInt(nullptr, "screen_x", 1024);
-        height            = ini->GetInt(nullptr, "screen_y", 768);
-        preferred_display = ini->GetInt(nullptr, "display", 0);
-        fullscreen        = ini->GetInt(nullptr, "full_screen", false);
-        show_borders      = ini->GetInt(nullptr, "window_borders", false);
-        run_in_background = ini->GetInt(nullptr, "run_in_background", false);
-        if (run_in_background) {
-            bSoundInBackground = ini->GetInt(nullptr, "sound_in_background", true);
-        } else {
-            bSoundInBackground = false;
-        }
-        bSteam = ini->GetInt(nullptr, "Steam", 1) != 0;
+    if (!general_info.enable_logs)  // disable logging
+    {
+        spdlog::set_level(spdlog::level::off);
     }
 
+    is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
     try {
-        steamapi::SteamApi::getInstance(!bSteam);
+        steamapi::SteamApi::getInstance(!general_info.use_steam);
     } catch (std::exception const& e) {
         spdlog::critical(e.what());
         return EXIT_FAILURE;
     }
 
-    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(width, height, preferred_display, fullscreen, show_borders);
+    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
+        window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
     window->SetTitle("Sea Dogs");
-    window->Subscribe(HandleWindowEvent);
+    window->Subscribe(handle_window_event);
     window->Show();
     core_private->SetWindow(window);
 
@@ -159,22 +157,22 @@ int main(int argc, char* argv[])
     core_private->InitBase();
 
     // Message loop
-    auto dwOldTime = SDL_GetTicks();
+    auto old_time = SDL_GetTicks();
 
-    isRunning = true;
-    while (isRunning) {
+    bool is_running = true;
+    while (is_running && !should_close) {
         SDL_PumpEvents();
         SDL_FlushEvents(0, SDL_LASTEVENT);
 
-        if (bActive || run_in_background) {
-            if (dwMaxFPS) {
-                auto const dwMS      = 1000u / dwMaxFPS;
-                auto const dwNewTime = SDL_GetTicks();
-                if (dwNewTime - dwOldTime < dwMS) continue;
-                dwOldTime = dwNewTime;
+        if (is_active || window_info.run_in_background) {
+            if (window_info.max_fps != 0U) {
+                auto const ms       = 1000U / window_info.max_fps;
+                auto const new_time = SDL_GetTicks();
+                if (new_time - old_time < ms) { continue; }
+                old_time = new_time;
             }
 
-            RunFrameWithOverflowCheck();
+            is_running = run_frame_with_overflow_check();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

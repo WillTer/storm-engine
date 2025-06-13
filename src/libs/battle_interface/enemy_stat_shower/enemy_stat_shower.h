@@ -11,7 +11,7 @@ public:
     EnemyStatShower();
     ~EnemyStatShower() override;
 
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Realize(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

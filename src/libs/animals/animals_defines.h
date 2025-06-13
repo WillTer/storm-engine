@@ -1,6 +1,10 @@
 #pragma once
 
-extern char       ANIMALS_INI_FILENAME[];
+#include <libs/filesystem/default_paths.h>
+
+// FIXME: hardcode
+constexpr std::string_view ANIMALS_INI_FILE = "animals.ini";
+
 extern char const ANIMALS_SEAGULL_FILENAME[];
 extern char       ANIMALS_SEAGULLS_SECTION[];
 extern char       ANIMALS_SEAGULLS_SCREAM_FILENAME[];

@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <libs/core/service_locator.hpp>
 #include <libs/shared_headers/controls.h>
 
 #include "control_tree.h"
@@ -50,6 +51,8 @@ public:
     PCS_CONTROLS();
     ~PCS_CONTROLS() override;
 
+    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+
     void    Update(uint32_t DeltaTime) override;
     int32_t GetSystemControlsNum() override;
     bool    GetSystemControlDesc(int32_t code, SYSTEM_CONTROL_DESC& _control_desc_struct) override;
@@ -84,7 +87,7 @@ public:
     short GetKeyState(int vk) override;
     short GetDebugAsyncKeyState(int vk) override;
     short GetDebugKeyState(int vk) override;
-    bool  m_bIsOffDebugKeys;
+    bool  m_is_debug_keys_enabled;
 
     bool IsKeyPressed(int vk) override;
 

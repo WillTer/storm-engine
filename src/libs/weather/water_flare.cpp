@@ -4,7 +4,7 @@
 #include <libs/math/math_inlines.h>
 #include <stdio.h>
 
-#define WATERFLARE_DIR "WEATHER\\SEA\\FLARE\\"
+#define WATERFLARE_DIR "weather/sea/flare/"
 
 WATERFLARE::WATERFLARE()
 {
@@ -26,8 +26,9 @@ WATERFLARE::~WATERFLARE()
     // UNGUARD
 }
 
-bool WATERFLARE::Init()
+bool WATERFLARE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(bool WATERFLARE::Init())
 
     core.AddToLayer(REALIZE, GetId(), -1);

@@ -37,7 +37,7 @@ else()
     include(ExternalProject)
     ExternalProject_Add(dxvk-native
         GIT_REPOSITORY    https://github.com/Joshua-Ashton/dxvk-native
-        GIT_TAG           a2dc99c407340432d4ba5bfa29efa685c27942ea
+        GIT_TAG           c8dc91fabd00cac11d697ccf07426e798393cd40
         GIT_SHALLOW       ON
         BUILD_ALWAYS      OFF
         CONFIGURE_HANDLED_BY_BUILD ON

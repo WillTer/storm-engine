@@ -117,12 +117,12 @@ public:
 
     std::vector<ShipMan>     shipMan;
     std::vector<std::string> shipManModels_ = {
-        "Lowcharacters\\Lo_Man_1",
-        "Lowcharacters\\Lo_Man_2",
-        "Lowcharacters\\Lo_Man_3",
-        "Lowcharacters\\Lo_Man_Kamzol_1",
-        "Lowcharacters\\Lo_Man_Kamzol_2",
-        "Lowcharacters\\Lo_Man_Kamzol_3"};
+        "lowcharacters/lo_man_1",
+        "lowcharacters/lo_man_2",
+        "lowcharacters/lo_man_3",
+        "lowcharacters/lo_man_kamzol_1",
+        "lowcharacters/lo_man_kamzol_2",
+        "lowcharacters/lo_man_kamzol_3"};
 };
 
 class Sailors: public Entity
@@ -130,7 +130,7 @@ class Sailors: public Entity
 public:
     Sailors();
 
-    bool         Init() override;
+    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     virtual void Realize(uint32_t dltTime);
 
     uint64_t ProcessMessage(MESSAGE& message) override;

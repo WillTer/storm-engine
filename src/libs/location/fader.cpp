@@ -10,6 +10,7 @@
 
 #include "fader.h"
 
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
@@ -47,8 +48,9 @@ Fader::~Fader()
 }
 
 // Initialization
-bool Fader::Init()
+bool Fader::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // check that it's the only one
 
     auto&& entities = core.GetEntityIds("Fader");
@@ -139,13 +141,10 @@ bool Fader::Init()
 
     // read the number of tips, if necessary
     if (!numberOfTips) {
-        auto ini = fio->OpenIniFile(core.EngineIniFileName());
-        if (ini) {
-            numberOfTips = ini->GetInt(nullptr, "ProgressFrame", 1);
-        } else
-            numberOfTips = -1;
-        if (numberOfTips > 1) numberOfTips = 1;
-        if (numberOfTips < 0) numberOfTips = 0;
+        auto const config_loader       = m_service_locator->get<storm::IConfigLoader>();
+        auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
+
+        numberOfTips = std::clamp(progress_image_info.frame, 0, 1);
     }
     return true;
 }
@@ -195,7 +194,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         rs->SetProgressImage(_name.c_str());
         // Hint texture
         if (numberOfTips > 0) {
-            std::string const texturePath = "interfaces\\int_border.tga";
+            std::string const texturePath = "interfaces/int_border.tga";
             if (tipsID >= 0) { rs->TextureRelease(tipsID); }
             tipsID = rs->TextureCreate(texturePath.c_str());
             rs->SetTipsImage(texturePath.c_str());
@@ -209,7 +208,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         rs->SetProgressBackImage(_name.c_str());
         // Hint texture
         if (numberOfTips > 0) {
-            // sprintf_s(_name, "tips\\tips_%.4u.tga", rand() % numberOfTips);
+            // sprintf_s(_name, "tips/tips_%.4u.tga", rand() % numberOfTips);
             auto* const pTipsName = rs->GetTipsImage();
             if (pTipsName) {
                 if (tipsID >= 0) { rs->TextureRelease(tipsID); }

@@ -5,14 +5,17 @@
 #include <libs/core/core.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "../xinterface.h"
 
+
 #define USER_BLOCK_BEGINER '{'
 #define USER_BLOCK_ENDING '}'
 
-static char const* sLanguageFile = "resource\\ini\\TEXTS\\language.ini";
+// FIXME: hardcode
+constexpr std::string_view sLanguageFile = "texts/language.ini";
 
 static VSTRSERVICE* g_StringServicePointer = nullptr;
 static int32_t      g_idGlobLanguageFileID = -1;
@@ -96,44 +99,49 @@ STRSERVICE::~STRSERVICE()
 
     if (m_psStrName != nullptr) {
         for (i = 0; i < m_nStringQuantity; i++)
-            if (m_psStrName[i] != nullptr) delete m_psStrName[i];
-        delete m_psStrName;
+            if (m_psStrName[i] != nullptr) delete[] m_psStrName[i];
+        delete[] m_psStrName;
         m_psStrName = nullptr;
     }
     if (m_psString != nullptr) {
         for (i = 0; i < m_nStringQuantity; i++)
-            if (m_psString[i] != nullptr) delete m_psString[i];
-        delete m_psString;
+            if (m_psString[i] != nullptr) delete[] m_psString[i];
+        delete[] m_psString;
         m_psString = nullptr;
     }
-    STORM_DELETE(m_sIniFileName);
-    STORM_DELETE(m_sLanguage);
-    STORM_DELETE(m_sLanguageDir);
+
+    delete[] m_sIniFileName;
+    delete[] m_sLanguage;
+    delete[] m_sLanguageDir;
+    m_sIniFileName = nullptr;
+    m_sLanguage    = nullptr;
+    m_sLanguageDir = nullptr;
 
     while (m_pUsersBlocks != nullptr) {
         auto* pUSB     = m_pUsersBlocks;
         m_pUsersBlocks = m_pUsersBlocks->next;
         if (pUSB->psStrName != nullptr) {
             for (i = 0; i < pUSB->nStringsQuantity; i++)
-                if (pUSB->psStrName[i] != nullptr) delete pUSB->psStrName[i];
-            delete pUSB->psStrName;
+                if (pUSB->psStrName[i] != nullptr) delete[] pUSB->psStrName[i];
+            delete[] pUSB->psStrName;
             pUSB->psStrName = nullptr;
         }
         if (pUSB->psString != nullptr) {
             for (i = 0; i < pUSB->nStringsQuantity; i++)
-                if (pUSB->psString[i] != nullptr) delete pUSB->psString[i];
-            delete pUSB->psString;
+                if (pUSB->psString[i] != nullptr) delete[] pUSB->psString[i];
+            delete[] pUSB->psString;
             pUSB->psString = nullptr;
         }
-        delete pUSB->fileName;
+        delete[] pUSB->fileName;
         pUSB->nStringsQuantity = 0;
         delete pUSB;
         pUSB = nullptr;
     }
 }
 
-bool STRSERVICE::Init()
+bool STRSERVICE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    SERVICE::Init(service_locator);
     // GUARD(bool STRSERVICE::Init())
     LoadIni();
     // UNGUARD
@@ -170,9 +178,9 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     if (m_sLanguage != nullptr && storm::iEquals(sLanguage, m_sLanguage)) return;
 
     // initialize ini file
-    auto langIni = fio->OpenIniFile(sLanguageFile);
+    auto langIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
     if (!langIni) {
-        core.Trace("ini file %s not found!", sLanguageFile);
+        core.Trace("ini file %s not found!", sLanguageFile.data());
         return;
     }
 
@@ -222,14 +230,14 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     //==========================================================================
     auto* RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (RenderService) {
-        char fullIniPath[512];
+        auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
-            sprintf_s(fullIniPath, "resource\\ini\\%s", param);
+            fullIniPath = fio->base_directory_path(BaseDirectory::Config) / param;
         } else {
             core.Trace("Warning: Not found font record for language %s", m_sLanguage);
-            sprintf_s(fullIniPath, "resource\\ini\\fonts.ini");
+            fullIniPath = fio->base_directory_path(BaseDirectory::Config) / "fonts.ini";
         }
-        RenderService->SetFontIniFileName(fullIniPath);
+        RenderService->SetFontIniFileName(fullIniPath.string().c_str());
     }
     //==========================================================================
 
@@ -252,10 +260,10 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     }
 
     // initialize ini file
-    sprintf_s(param, "resource\\ini\\texts\\%s\\%s", m_sLanguageDir, m_sIniFileName);
-    auto ini = fio->OpenIniFile(param);
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Config) / "texts" / m_sLanguageDir / m_sIniFileName;
+    auto       ini      = fio->open_ini_file(ini_path);
     if (!ini) {
-        core.Trace("WARNING! ini file \"%s\" not found!", param);
+        core.Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
         return;
     }
 
@@ -403,7 +411,7 @@ void STRSERVICE::LoadIni()
     char param[256];
 
     // initialize ini file
-    auto ini = fio->OpenIniFile(sLanguageFile);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
     if (!ini) {
         core.Trace("Error: Language ini file not found!");
         return;
@@ -481,15 +489,14 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     auto pUSB = std::make_unique<UsersStringBlock>();
 
     // strings reading
-    char param[512];
-    sprintf_s(param, "resource\\ini\\TEXTS\\%s\\%s", m_sLanguageDir, fileName);
-    auto fileS = fio->_CreateFile(param, std::ios::binary | std::ios::in);
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Config) / "texts" / m_sLanguageDir / fileName;
+    auto       fileS    = fio->open_file<std::ifstream>(ini_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::warn("WARNING! Strings file \"{}\" does not exist", fileName);
         return -1;
     }
 
-    int32_t const filesize = fio->_GetFileSize(param);
+    int32_t const filesize = fio->file_size(ini_path);
 
     if (filesize <= 0) {
         spdlog::warn("WARNING! Strings file \"{}\" has zero size", fileName);
@@ -499,13 +506,7 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     auto fileBuf = new char[filesize + 1];
     if (fileBuf == nullptr) { throw std::runtime_error("Allocate memory error"); }
 
-    if (!fio->_ReadFile(fileS, fileBuf, filesize)) {
-        core.Trace("Can`t read strings file: %s", fileName);
-        fio->_CloseFile(fileS);
-        delete[] fileBuf;
-        return -1;
-    }
-    fio->_CloseFile(fileS);
+    fileS.read(fileBuf, filesize);
     fileBuf[filesize] = 0;
 
     pUSB->nref     = 1;
@@ -566,19 +567,19 @@ void STRSERVICE::CloseUsersStringFile(int32_t id)
         pPrev->next = pUSB->next;
 
     if (pUSB->fileName != nullptr) {
-        delete pUSB->fileName;
+        delete[] pUSB->fileName;
         pUSB->fileName = nullptr;
     }
     if (pUSB->psStrName != nullptr) {
         for (i = 0; i < pUSB->nStringsQuantity; i++)
-            if (pUSB->psStrName[i] != nullptr) delete pUSB->psStrName[i];
-        delete pUSB->psStrName;
+            if (pUSB->psStrName[i] != nullptr) delete[] pUSB->psStrName[i];
+        delete[] pUSB->psStrName;
         pUSB->psStrName = nullptr;
     }
     if (pUSB->psString != nullptr) {
         for (i = 0; i < pUSB->nStringsQuantity; i++)
-            if (pUSB->psString[i] != nullptr) delete pUSB->psString[i];
-        delete pUSB->psString;
+            if (pUSB->psString[i] != nullptr) delete[] pUSB->psString[i];
+        delete[] pUSB->psString;
         pUSB->psString = nullptr;
     }
     delete pUSB;
@@ -864,13 +865,13 @@ uint32_t _LanguageGetFaderPic(VS_STACK* pS)
         if (g_StringServicePointer->GetLanguage() != nullptr) {
             int nInLen;
             for (nInLen = strlen(strPicName); nInLen > 0; nInLen--)
-                if (strPicName[nInLen - 1] == '\\') break;
+                if (strPicName[nInLen - 1] == '/') break;
             if (nInLen > 0) {
                 strncpy_s(newPicName, strPicName, nInLen);
                 newPicName[nInLen] = 0;
             }
             strcat_s(newPicName, g_StringServicePointer->GetLanguage());
-            strcat_s(newPicName, "\\");
+            strcat_s(newPicName, "/");
             strcat_s(newPicName, &strPicName[nInLen]);
         } else {
             strcpy_s(newPicName, strPicName);
@@ -1060,7 +1061,7 @@ uint32_t _InterfaceCreateFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) return IFUNCRESULT_FAILED;
     char const*   sFolderName = pDat->GetString();
-    int32_t const nSuccess    = fio->_CreateDirectory(sFolderName);
+    int32_t const nSuccess    = fio->create_directories(sFolderName);
 
     pDat = (VDATA*)pS->Push();
     if (!pDat) return IFUNCRESULT_FAILED;
@@ -1074,7 +1075,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
     pDat = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     char const* sFolderName = pDat->GetString();
-    int32_t     nSuccess    = fio->_FileOrDirectoryExists(sFolderName);
+    int32_t     nSuccess    = fio->exists(sFolderName);
     pDat                    = (VDATA*)pS->Push();
     if (!pDat) { return IFUNCRESULT_FAILED; }
     pDat->Set(nSuccess);
@@ -1083,7 +1084,7 @@ uint32_t _InterfaceCheckFolder(VS_STACK* pS)
 
 bool DeleteFolderWithCantainment(char const* sFolderName)
 {
-    return (fio->_RemoveDirectory(sFolderName) > 0);
+    return (fio->remove_all(sFolderName) > 0);
 }
 
 uint32_t _InterfaceDeleteFolder(VS_STACK* pS)
@@ -1108,11 +1109,11 @@ uint32_t _InterfaceFindFolders(VS_STACK* pS)
     ATTRIBUTES* pA = pDat->GetAClass();
     pDat           = (VDATA*)pS->Pop();
     if (!pDat) { return IFUNCRESULT_FAILED; }
-    char const*           sFindTemplate = pDat->GetString();
-    std::filesystem::path p             = std::filesystem::path(fio->ConvertPathResource(sFindTemplate));
-    auto const            mask          = p.filename().string();
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
-    int32_t    n          = 0;
+    char const* sFindTemplate = pDat->GetString();
+    auto        p             = fio->transform_path(sFindTemplate);
+    auto const  mask          = p.filename().string();
+    auto const  vFilenames    = fio->string_paths_by_mask(p.remove_filename(), mask, false, true, false);
+    int32_t     n             = 0;
     for (std::string curName: vFilenames) {
         char pctmp[64];
         sprintf_s(pctmp, "f%d", n++);

@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
@@ -24,8 +25,10 @@ PARTICLES::~PARTICLES()
     DeleteAll();
 }
 
-bool PARTICLES::Init()
+bool PARTICLES::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     core.AddToLayer(REALIZE, GetId(), 0xfffff);
     core.AddToLayer(EXECUTE, GetId(), 0);
 
@@ -179,12 +182,7 @@ uint64_t PARTICLES::ProcessMessage(MESSAGE& message)
 
 PARTICLE_SYSTEM* PARTICLES::CreateSystem(char const* pFileName, uint32_t LifeTime)
 {
-    // std::string pFullFileName;
-    // pFullFileName = "resource\\particles\\";
-    // pFullFileName += pFileName;
-    // pFullFileName.AddExtention(".xps");
-    // psnip_trap(); //~!~
-    auto        path    = std::filesystem::path() / "resource" / "particles" / pFileName;
+    auto        path    = fio->base_directory_path(BaseDirectory::Particles) / pFileName;
     std::string pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();

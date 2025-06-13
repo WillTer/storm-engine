@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include <libs/core/script_libriary.h>
+#include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/ringbuffer_stack.hpp>
@@ -86,7 +87,7 @@ class COMPILER: public VIRTUAL_COMPILER
 public:
     bool bBreakOnError;
 
-    COMPILER();
+    COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator);
     ~COMPILER();
 
     VSTRING_CODEC* GetVSC()
@@ -203,8 +204,8 @@ public:
     bool     CreateMessage(MESSAGE* pMs, uint32_t stack_offset, uint32_t vindex, bool s2s = false);
     void     ProcessEvent(char const* event_name, MESSAGE* pMs);
 
-    bool  SaveState(std::fstream& fileS);
-    bool  LoadState(std::fstream& fileS);
+    bool  SaveState(std::ofstream& fileS);
+    bool  LoadState(std::ifstream& fileS);
     bool  OnLoad();
     void  SaveDataDebug(char* data_PTR, ...);
     void  SaveData(void const* data_PTR, uint32_t data_size);
@@ -234,8 +235,8 @@ public:
     // bool SetSaveData(const char * file_name, const char * save_data);
     // bool GetSaveData(const char * file_name, DATA * pV);
 
-    bool  SetSaveData(char const* file_name, void* save_data, int32_t data_size);
-    void* GetSaveData(char const* file_name, int32_t& data_size);
+    bool  SetSaveData(std::filesystem::path const& file_name, void* save_data, int32_t data_size);
+    void* GetSaveData(std::filesystem::path const& file_name, int32_t& data_size);
 
     void AddRuntimeEvent();
 
@@ -362,4 +363,6 @@ private:
     // attempt to read/write script cache?
     int                script_cache_mode_;
     storm::ScriptCache script_cache_;
+
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 };

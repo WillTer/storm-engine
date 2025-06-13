@@ -15,14 +15,14 @@
 //============================================================================================
 
 char const* WdmCounter::skytex[WMD_NUM_SKYS] = {
-    "WorldMap\\Sky\\d1.tga",
-    "WorldMap\\Sky\\n1.tga",
-    "WorldMap\\Sky\\d2.tga",
-    "WorldMap\\Sky\\n2.tga",
-    "WorldMap\\Sky\\d3.tga",
-    "WorldMap\\Sky\\n3.tga",
-    "WorldMap\\Sky\\d4.tga",
-    "WorldMap\\Sky\\n4.tga",
+    "worldmap/sky/d1.tga",
+    "worldmap/sky/n1.tga",
+    "worldmap/sky/d2.tga",
+    "worldmap/sky/n2.tga",
+    "worldmap/sky/d3.tga",
+    "worldmap/sky/n3.tga",
+    "worldmap/sky/d4.tga",
+    "worldmap/sky/n4.tga",
 };
 
 // ============================================================================================
@@ -77,16 +77,16 @@ WdmCounter::~WdmCounter()
 bool WdmCounter::Init()
 {
     if (!wdmObjects->rs) return false;
-    if (!Load("counter\\counter")) return false;
-    if (!LoadModel(sky, "counter\\sky", "WdmCounterDrawSky")) return false;
-    if (!LoadModel(d[0], "counter\\d1", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(d[1], "counter\\d2", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(m[0], "counter\\m1", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(m[1], "counter\\m2", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(y[0], "counter\\y1", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(y[1], "counter\\y2", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(y[2], "counter\\y3", "WdmCounterDrawNumber")) return false;
-    if (!LoadModel(y[3], "counter\\y4", "WdmCounterDrawNumber")) return false;
+    if (!Load("counter/counter")) return false;
+    if (!LoadModel(sky, "counter/sky", "WdmCounterDrawSky")) return false;
+    if (!LoadModel(d[0], "counter/d1", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(d[1], "counter/d2", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(m[0], "counter/m1", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(m[1], "counter/m2", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(y[0], "counter/y1", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(y[1], "counter/y2", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(y[2], "counter/y3", "WdmCounterDrawNumber")) return false;
+    if (!LoadModel(y[3], "counter/y4", "WdmCounterDrawNumber")) return false;
     for (int32_t i = 0; i < WMD_NUM_SKYS; i++)
         skytx[i] = wdmObjects->rs->TextureCreate(skytex[i]);
     lastSkys[0] = sky->GetTexture(0);

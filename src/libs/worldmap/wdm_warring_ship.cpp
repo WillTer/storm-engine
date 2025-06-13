@@ -22,7 +22,7 @@ WdmWarringShip::WdmWarringShip()
     numRects = 0;
     brnTime  = 5.0f;
     texture  = -1;
-    texture  = wdmObjects->rs->TextureCreate("\\WorldMap\\csmoke.tga");
+    texture  = wdmObjects->rs->TextureCreate("worldmap/csmoke.tga");
 }
 
 WdmWarringShip::~WdmWarringShip()

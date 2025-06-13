@@ -552,7 +552,7 @@ void Player::FireFromShootgun()
 {
     kSMReload = 0.0f;
     if (auto const peid = core.GetEntityId("sound")) {
-        core.Send_Message(peid, "lsllll", MSG_SOUND_PLAY, "OBJECTS\\sgboom.wav", 4, false, false, false);
+        core.Send_Message(peid, "lsllll", MSG_SOUND_PLAY, "objects/sgboom.wav", 4, false, false, false);
     }
     // Get the position from where to shoot
     auto        dx = sinf(ay);

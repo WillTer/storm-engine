@@ -28,8 +28,10 @@ Blood::~Blood()
 }
 
 // Initialization
-bool Blood::Init()
+bool Blood::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
 

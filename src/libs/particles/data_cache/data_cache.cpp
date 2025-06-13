@@ -1,8 +1,9 @@
 #include "data_cache.h"
 
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/util/string_compare.hpp>
 
 bool ReadingAlreadyComplete;
@@ -21,37 +22,29 @@ DataCache::~DataCache()
 // Put data for the system in the cache
 void DataCache::CacheSystem(char const* FileName)
 {
-    // NameWithExt.AddExtention(".xps");
-    // NameWithExt.Lower();
-
-    // std::string LongFileName = "resource\\particles\\";
-    // LongFileName+=FileName;
-    // LongFileName.AddExtention(".xps");
-    auto path    = std::filesystem::path() / "resource" / "particles" / FileName;
+    auto path    = fio->base_directory_path(BaseDirectory::Particles) / FileName;
     auto pathStr = path.extension().string();
     if (!storm::iEquals(pathStr, ".xps")) path += ".xps";
     pathStr = path.string();
     std::transform(pathStr.begin(), pathStr.end(), pathStr.begin(), tolower);
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
 
-    auto sysFile = fio->_CreateFile(pathStr.c_str(), std::ios::binary | std::ios::in);
+    auto sysFile = fio->open_file<std::ifstream>(pathStr, std::ios::binary);
 
     if (!sysFile.is_open()) {
         core.Trace("Particles: '%s' File not found !!!", pathStr.c_str());
         return;
     }
 
-    auto const FileSize = fio->_GetFileSize(pathStr.c_str());
+    auto const FileSize = fio->file_size(pathStr.c_str());
 
     auto* pMemBuffer = new uint8_t[FileSize];
-    fio->_ReadFile(sysFile, pMemBuffer, FileSize);
+    sysFile.read(reinterpret_cast<char*>(pMemBuffer), FileSize);
 
     // Create data from file ...
     CreateDataSource(pMemBuffer, FileSize, pathStr.c_str());
 
     delete[] pMemBuffer;
-
-    fio->_CloseFile(sysFile);
 }
 
 // Reset cache

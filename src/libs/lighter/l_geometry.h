@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include <libs/model/model.h>
 
 #include "l_types.h"
@@ -19,16 +21,14 @@ class LGeometry
     struct Object {
         Object() : model(0)
         {
-            name     = nullptr;
-            nameReal = nullptr;
             m        = nullptr;
             lBufSize = 0;
         };
-        char*   name;      // The path of the .col file
-        char*   nameReal;  // Model name
-        MODEL*  m;         // Pointer to the model
-        entid_t model;     // Model
-        int32_t lBufSize;  // Color buffer size for this model
+        std::filesystem::path path;      // The path of the .col file
+        std::string           nameReal;  // Model name
+        MODEL*                m;         // Pointer to the model
+        entid_t               model;     // Model
+        int32_t               lBufSize;  // Color buffer size for this model
     };
 
     // --------------------------------------------------------------------------------------------

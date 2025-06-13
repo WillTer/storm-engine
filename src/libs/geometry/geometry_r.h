@@ -14,19 +14,19 @@ class GEOMETRY final: public VGEOMETRY
 
 public:
     GEOMETRY();
-    bool         Init();
-    bool         LoadState(ENTITY_STATE* state);
-    GEOS*        CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath);
-    void         DeleteGeometry(GEOS*);
-    ANIMATION*   LoadAnimation(char const* anim);
-    void         SetTechnique(char const* name);
-    void         SetVBConvertFunc(VERTEX_TRANSFORM _transform_func);
-    ANIMATION_VB GetAnimationVBDesc(int32_t avb);
+    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         LoadState(ENTITY_STATE* state) override;
+    GEOS*        CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath) override;
+    void         DeleteGeometry(GEOS*) override;
+    ANIMATION*   LoadAnimation(char const* anim) override;
+    void         SetTechnique(char const* name) override;
+    void         SetVBConvertFunc(VERTEX_TRANSFORM _transform_func) override;
+    ANIMATION_VB GetAnimationVBDesc(int32_t avb) override;
 
-    char const* GetTexturePath();
-    void        SetTexturePath(char const*);
+    char const* GetTexturePath() override;
+    void        SetTexturePath(char const*) override;
 
-    void SetCausticMode(bool bSet = false);
+    void SetCausticMode(bool bSet = false) override;
 };
 
 class GEOM_SERVICE_R final: public GEOM_SERVICE
@@ -42,35 +42,35 @@ class GEOM_SERVICE_R final: public GEOM_SERVICE
 public:
     void SetRenderService(VDX9RENDER* render_service);
 
-    std::fstream OpenFile(char const* fname);
-    int          FileSize(char const* fname);
-    bool         ReadFile(std::fstream& fileS, void* data, int32_t bytes);
-    void         CloseFile(std::fstream& fileS);
-    void*        malloc(int32_t bytes);
-    void         free(void* ptr);
+    std::ifstream OpenFile(char const* fname) override;
+    int           FileSize(char const* fname) override;
+    bool          ReadFile(std::ifstream& fileS, void* data, int32_t bytes) override;
+    void          CloseFile(std::ifstream& fileS) override;
+    void*         malloc(int32_t bytes) override;
+    void          free(void* ptr) override;
 
-    GEOS::ID CreateTexture(char const* fname);
-    void     SetMaterial(const GEOS::MATERIAL& mt);
-    void     ReleaseTexture(GEOS::ID tex);
+    GEOS::ID CreateTexture(char const* fname) override;
+    void     SetMaterial(const GEOS::MATERIAL& mt) override;
+    void     ReleaseTexture(GEOS::ID tex) override;
 
-    GEOS::ID CreateVertexBuffer(int32_t type, int32_t size);
-    void*    LockVertexBuffer(GEOS::ID vb);
-    void     UnlockVertexBuffer(GEOS::ID vb);
-    void     ReleaseVertexBuffer(GEOS::ID vb);
+    GEOS::ID CreateVertexBuffer(int32_t type, int32_t size) override;
+    void*    LockVertexBuffer(GEOS::ID vb) override;
+    void     UnlockVertexBuffer(GEOS::ID vb) override;
+    void     ReleaseVertexBuffer(GEOS::ID vb) override;
 
-    GEOS::ID CreateIndexBuffer(int32_t size);
-    void*    LockIndexBuffer(GEOS::ID ib);
-    void     UnlockIndexBuffer(GEOS::ID ib);
-    void     ReleaseIndexBuffer(GEOS::ID ib);
+    GEOS::ID CreateIndexBuffer(int32_t size) override;
+    void*    LockIndexBuffer(GEOS::ID ib) override;
+    void     UnlockIndexBuffer(GEOS::ID ib) override;
+    void     ReleaseIndexBuffer(GEOS::ID ib) override;
 
-    void SetIndexBuffer(GEOS::ID ibuff);
-    void SetVertexBuffer(int32_t vsize, GEOS::ID vbuff);
-    void DrawIndexedPrimitive(int32_t minv, int32_t numv, int32_t vrtsize, int32_t startidx, int32_t numtrg);
+    void SetIndexBuffer(GEOS::ID ibuff) override;
+    void SetVertexBuffer(int32_t vsize, GEOS::ID vbuff) override;
+    void DrawIndexedPrimitive(int32_t minv, int32_t numv, int32_t vrtsize, int32_t startidx, int32_t numtrg) override;
 
-    GEOS::ID CreateLight(const GEOS::LIGHT);
-    void     ActivateLight(GEOS::ID n);
+    GEOS::ID CreateLight(const GEOS::LIGHT) override;
+    void     ActivateLight(GEOS::ID n) override;
 
-    void SetCausticMode(bool bSet = false);
+    void SetCausticMode(bool bSet = false) override;
 };
 
 // API_SERVICE_START("geometry service")

@@ -46,8 +46,10 @@ Tornado::~Tornado()
 //============================================================================================
 
 // Initialization
-bool Tornado::Init()
+bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // core.LayerCreate("execute", true, false);
     core.SetLayerType(EXECUTE, layer_type_t::execute);
     // core.LayerCreate("realize", true, false);
@@ -68,9 +70,9 @@ bool Tornado::Init()
     if (!ibpnt) return false;
     pillar.FillIndexBuffer(ibpnt);
     rs->UnLockIndexBuffer(ib);
-    noiseCloud.texture      = rs->TextureCreate("Tornado\\trncloud.tga");
-    particles.txtPillarPrts = rs->TextureCreate("Tornado\\pillarprts.tga");
-    particles.txtGroundPrts = rs->TextureCreate("Tornado\\groundprts.tga");
+    noiseCloud.texture      = rs->TextureCreate("tornado/trncloud.tga");
+    particles.txtPillarPrts = rs->TextureCreate("tornado/pillarprts.tga");
+    particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
     particles.SetSea();
     particles.Update(0.0f);
     debris.Init();

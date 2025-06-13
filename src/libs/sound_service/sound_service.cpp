@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <random>
 
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
-#include <libs/core/v_file_service.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d/color.h>
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
@@ -28,29 +30,6 @@ constexpr float FADE_DEFAULT   = 0.5F;
 constexpr size_t STREAM_BUFFER_COUNT = 2;
 constexpr size_t BUFFER_SAMPLE_COUNT = 16384;
 
-void analyse_name_string_and_add_to_alias(SoundService::Alias& alias, std::string const& name)
-{
-    std::string file_name   = name;
-    float       probability = DEFAULT_PROBABILITY;
-
-    if (auto pos = name.find_first_of(','); pos != std::string::npos) {
-        sscanf(name.substr(pos + 1).c_str(), "%f", &probability);
-
-        // Remove probability from file name
-        file_name = name.substr(0, pos);
-    }
-
-    alias.sound_files.emplace(probability, file_name);
-
-    if constexpr (TRACE_INFORMATION) { core.Trace("  -> sound %s, %f", file_name.c_str(), probability); }
-}
-
-void free_sound(SoundService::PlayingSound& sound)
-{
-    sound.is_free = true;
-    sound.source.reset();
-}
-
 class Tracer: public DebugTracer
 {
     void trace_message(
@@ -63,6 +42,12 @@ class Tracer: public DebugTracer
         core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
     }
 };
+
+void free_sound(SoundService::PlayingSound& sound)
+{
+    sound.is_free = true;
+    sound.source.reset();
+}
 
 }  // namespace
 
@@ -89,22 +74,27 @@ SoundService::~SoundService()
     }
 }
 
-bool SoundService::Init()
+bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
     m_is_initialized = false;
 
-    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    if (!service_locator) {
+        core.Trace("%s: service locator is null", __func__);
+        return false;
+    }
 
+    SERVICE::Init(service_locator);
+
+    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     if (m_renderer == nullptr) { return false; }
 
     m_device =
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    constexpr float sec_to_ms_mult = 1000.0F;
-    if (auto const ini = fio->OpenIniFile(core.EngineIniFileName())) {
-        m_fade_time = std::chrono::milliseconds(static_cast<uint64_t>(ini->GetFloat("sound", "fade_time", FADE_DEFAULT) * sec_to_ms_mult));
-    }
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+    auto const sound_info    = storm::main_config::sound_info(*config_loader);
+    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
@@ -174,7 +164,7 @@ SoundID SoundService::play(
     float const          max_distance /* = -1.0f*/,
     float const          volume /* = 1.0f*/)
 {
-    std::string sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + name;
+    std::filesystem::path sound_path = fio->base_directory_path(BaseDirectory::Sounds) / name;
 
     float alias_min_distance = min_distance;
     float alias_max_distance = max_distance;
@@ -184,7 +174,7 @@ SoundID SoundService::play(
         auto& alias = m_aliases[name];
 
         // play sound from the alias ...
-        sound_path = std::string(DEFAULT_SOUND_DIRECTORY) + alias.sound_files.pickRandom();
+        sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.files.pickRandom();
         if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
@@ -193,11 +183,12 @@ SoundID SoundService::play(
         if (alias.volume > std::numeric_limits<float>::epsilon()) { alias_volume = alias.volume; }
     }
 
-    sound_path = fio->ConvertPathResource(sound_path.c_str());
+    // Normalize and set to lowercase
+    sound_path = fio->transform_path(sound_path);
 
     SoundID const id = sound_type == SoundType::MusicStereo
-        ? prepare_music(sound_path, fade_time)
-        : prepare_sound(sound_path, sound_type, start_position, alias_min_distance, alias_max_distance);
+        ? prepare_music(sound_path.string(), fade_time)
+        : prepare_sound(sound_path.string(), sound_type, start_position, alias_min_distance, alias_max_distance);
 
     if (id == 0) { return 0; }
 
@@ -207,7 +198,7 @@ SoundID SoundService::play(
     if constexpr (TRACE_INFORMATION) {
         core.Trace(
             "Sound attached, name %s, idx = %d, channel = %p, state = %d",
-            sound_path.c_str(),
+            sound_path.string().c_str(),
             sound_idx,
             sound.source.get(),
             sound.source->get_state());
@@ -217,7 +208,7 @@ SoundID SoundService::play(
     sound.sound_type  = sound_type;
     sound.volume_type = volume_type;
     sound.volume      = alias_volume;
-    sound.name        = std::move(sound_path);
+    sound.name        = sound_path.string();
 
     if (is_paused) {
         sound.source->set_volume(get_volume_by_type(sound));
@@ -406,55 +397,25 @@ void SoundService::stop(SoundID id, int32_t time)
     stop_sound(m_playing_sounds[id.index()], time);
 }
 
-void SoundService::add_alias(INIFILE& ini_file, std::string_view const& section_name)
-{
-    if (section_name.empty()) { return; }
-
-    static char temp_string[COMMON_STRING_LENGTH];
-
-    if constexpr (TRACE_INFORMATION) { core.Trace("Add sound alias %s", section_name.data()); }
-
-    m_aliases.emplace(
-        section_name,
-        Alias {
-            .min_distance = ini_file.GetFloat(section_name.data(), "minDistance", -1.0F),
-            .max_distance = ini_file.GetFloat(section_name.data(), "maxDistance", -1.0F),
-            .volume       = ini_file.GetFloat(section_name.data(), "volume", -1.0F),
-        });
-
-    Alias& alias = m_aliases[std::string(section_name)];
-    if (ini_file.ReadString(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH, "")) {
-        analyse_name_string_and_add_to_alias(alias, temp_string);
-        while (ini_file.ReadStringNext(section_name.data(), "name", temp_string, COMMON_STRING_LENGTH)) {
-            analyse_name_string_and_add_to_alias(alias, temp_string);
-        }
-    }
-}
-
 void SoundService::load_alias_file(std::string const& filename)
 {
-    constexpr int const section_name_length = 128;
-    static char         section_name[section_name_length];
-
-    std::string ini_name = ALIAS_DIRECTORY;
-    ini_name += filename;
-
-    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", ini_name.c_str()); }
-
-    auto alias_ini = fio->OpenIniFile(ini_name.c_str());
-    if (!alias_ini) { return; }
-
-    if (alias_ini->GetSectionName(section_name, section_name_length)) {
-        add_alias(*alias_ini, section_name);
-        while (alias_ini->GetSectionNameNext(section_name, section_name_length)) {
-            add_alias(*alias_ini, section_name);
-        }
+    if (!m_service_locator) {
+        core.Trace("%s: m_service_locator is null", __func__);
+        return;
     }
+
+    auto config_file = fio->base_directory_path(BaseDirectory::Aliases) / filename;
+
+    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
+
+    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
+
+    m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
 }
 
 void SoundService::init_aliases()
 {
-    auto const filenames = fio->_GetPathsOrFilenamesByMask(ALIAS_DIRECTORY, "*.ini", false);
+    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.toml", false);
     for (auto const& cur_name: filenames) {
         load_alias_file(cur_name);
     }
@@ -667,7 +628,7 @@ void SoundService::reset_scheme()
 bool SoundService::add_scheme(std::string_view const& scheme_name)
 {
     static char temp_string[COMMON_STRING_LENGTH];
-    auto        ini = fio->OpenIniFile(SCHEME_INI_NAME);
+    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / SCHEME_INI_NAME);
 
     if (!ini) { return false; }
 

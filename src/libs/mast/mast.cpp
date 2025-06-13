@@ -1,6 +1,7 @@
 #include "mast.h"
 
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/island/island_base.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/mast_msg.h>
@@ -14,7 +15,8 @@ CREATE_CLASS(HULL)
 #define DELTA_TIME(x) ((x) * 0.001f)
 #define DELTA_TIME_ROTATE(x) ((x) * 0.01f)
 
-static const char* MAST_INI_FILE = "resource\\ini\\mast.ini";
+// FIXME: hardcode
+constexpr std::string_view MAST_INI_FILE = "mast.ini";
 
 float MAST_MOVE_STEP      = 0.2f;
 float MAST_FALL_STEP      = .05f;
@@ -54,8 +56,9 @@ MAST::~MAST()
     AllRelease();
 }
 
-bool MAST::Init()
+bool MAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(MAST::Init())
 
     SetDevice();
@@ -104,8 +107,8 @@ void MAST::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(MAST_INI_FILE)) {
-            auto ft_new = fio->_GetLastWriteTime(MAST_INI_FILE);
+        if (fio->exists(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE)) {
+            auto ft_new = fio->last_write_time(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
             if (ft_old != ft_new) { LoadIni(); }
         }
         doMove(Delta_Time);
@@ -367,8 +370,10 @@ void MAST::LoadIni()
     // GUARD(MAST::LoadIni());
     char section[256];
 
-    if (fio->_FileOrDirectoryExists(MAST_INI_FILE)) { ft_old = fio->_GetLastWriteTime(MAST_INI_FILE); }
-    auto ini = fio->OpenIniFile(MAST_INI_FILE);
+    if (fio->exists(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE)) {
+        ft_old = fio->last_write_time(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
+    }
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / MAST_INI_FILE);
     if (!ini) { throw std::runtime_error("mast.ini file not found!"); }
 
     sprintf_s(section, "MAST");
@@ -650,8 +655,9 @@ HULL::~HULL()
     AllRelease();
 }
 
-bool HULL::Init()
+bool HULL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     SetDevice();
     return true;
 }

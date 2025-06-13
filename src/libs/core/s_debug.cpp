@@ -102,7 +102,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             break;
         case ID_VIEW_ATTRIBUTEVIEWER: CDebug->SetDbgDisplayMode(MODE_ATTRIBUTES_VIEW); break;
         case ID_OPTIONS_BREAKONERROR: {
-            auto ini = fio->OpenIniFile(PROJECT_NAME);
+            auto ini = fio->open_ini_file(PROJECT_NAME);
             if (!ini) break;
             if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), LOWORD(wParam), MF_UNCHECKED);
@@ -181,7 +181,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             CDebug->SourceView->SetPosition(CDebug->SourceViewRect);
         }
 
-        auto ini = fio->OpenIniFile(PROJECT_NAME);
+        auto ini = fio->open_ini_file(PROJECT_NAME);
         if (ini) {
             if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), ID_OPTIONS_BREAKONERROR, MF_CHECKED);
@@ -475,7 +475,7 @@ bool S_DEBUG::SetOnDebugExpression(char const* pLValue, char const* pRValue)
 {
     DATA Result;
     //    char * pC;
-    Result.SetVCompiler(core_internal.Compiler);
+    Result.SetVCompiler(core_internal.Compiler.get());
     if (core_internal.Compiler->SetOnDebugExpression(pLValue, pRValue, Result)) return true;
     return false;
 }
@@ -485,7 +485,7 @@ char const* S_DEBUG::ProcessExpression(char const* pExpression)
     if (!pExpression || !strlen(pExpression)) return "";
     DATA        Result;
     char const* pC;
-    Result.SetVCompiler(core_internal.Compiler);
+    Result.SetVCompiler(core_internal.Compiler.get());
     if (core_internal.Compiler->ProcessDebugExpression(pExpression, Result)) {
         Result.Convert(VAR_STRING);
         if (Result.Get(pC)) {
@@ -514,7 +514,7 @@ uint32_t S_DEBUG::GetLineStatus(char const* _pFileName, uint32_t _linecode)
 
 bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
 {
-    auto         DirectoryName = fio->_GetCurrentDirectory();
+    auto         DirectoryName = fio->current_path();
     wchar_t      FilenameW[MAX_PATH];
     OPENFILENAME ofn {};
     FilenameW[0]         = 0;
@@ -530,11 +530,11 @@ bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
     ofn.lpstrDefExt      = FilterW.c_str();
     ofn.lpstrTitle       = TEXT("Open script source file");
     auto const bRes      = GetOpenFileName(&ofn);
-    fio->_SetCurrentDirectory(DirectoryName.c_str());
+    fio->current_path(DirectoryName);
     if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
-        DirectoryName        = DirectoryName + "\\" + ProgramDirectory + "\\";
-        strcpy_s(buffer, MAX_PATH, Filename.c_str() + strlen(DirectoryName.c_str()));
+        DirectoryName        = DirectoryName / ProgramDirectory;
+        strcpy_s(buffer, MAX_PATH, Filename.c_str() + strlen(DirectoryName.string().c_str()));
         //    strcpy_s(buffer,MAX_PATH, file_name + strlen(DirectoryName));
         // strcpy_s(buffer,file_name);
         return true;
@@ -544,7 +544,7 @@ bool S_DEBUG::BrowseFile(char* buffer, char const* filter)
 
 bool S_DEBUG::BrowseFileWP(char* buffer, char const* filter)
 {
-    auto         DirectoryName = fio->_GetCurrentDirectory();
+    auto         DirectoryName = fio->current_path();
     wchar_t      FilenameW[MAX_PATH];
     OPENFILENAME ofn {};
     FilenameW[0]         = 0;
@@ -560,7 +560,7 @@ bool S_DEBUG::BrowseFileWP(char* buffer, char const* filter)
     ofn.lpstrDefExt      = FilterW.c_str();
     ofn.lpstrTitle       = TEXT("Open script source file");
     auto const bRes      = GetOpenFileName(&ofn);
-    fio->_SetCurrentDirectory(DirectoryName.c_str());
+    fio->current_path(DirectoryName);
     if (bRes) {
         std::string Filename = utf8::ConvertWideToUtf8(FilenameW);
         strcpy_s(buffer, MAX_PATH, Filename.c_str());

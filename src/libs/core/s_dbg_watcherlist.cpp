@@ -24,7 +24,7 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
 
     char buffer[256];
 
-    ini = fio->OpenIniFile("project.df");
+    ini = fio->open_ini_file("project.df");
     if (ini) {
         int32_t n = 0;
         sprintf_s(buffer, "E%d", n);
@@ -53,7 +53,7 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
             }
         }
     } else {
-        ini = fio->CreateIniFile("project.df", false);
+        ini = fio->create_ini_file("project.df", false);
     }
 
     ListView_SetItemState(GetWindowHandle(), 0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);

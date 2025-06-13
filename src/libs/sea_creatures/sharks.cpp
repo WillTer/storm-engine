@@ -90,8 +90,8 @@ bool Sharks::Shark::Init(float vp_x, float vp_z, bool isLoadModel)
         core.Trace("Can't create geometry service!");
         return false;
     }
-    gs->SetTexturePath("Animals\\");
-    if (!core.Send_Message(model, "ls", MSG_MODEL_LOAD_GEO, "Animals\\shark")) {
+    gs->SetTexturePath("animals/");
+    if (!core.Send_Message(model, "ls", MSG_MODEL_LOAD_GEO, "animals/shark")) {
         gs->SetTexturePath("");
         core.Trace("Shark model 'shark' not loaded");
         core.EraseEntity(model);
@@ -463,8 +463,10 @@ Sharks::~Sharks()
 }
 
 // Initialization
-bool Sharks::Init()
+bool Sharks::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     for (int32_t i = 0; i < numShakes; i++)
@@ -482,7 +484,7 @@ bool Sharks::Init()
         core.AddToLayer(SEA_REALIZE, shark[i].model, rmdl);
     }
     // Load the texture
-    trackTx = rs->TextureCreate("Animals\\SharkTrack.tga");
+    trackTx = rs->TextureCreate("animals/SharkTrack.tga");
     // Analyzing the possibility of creating a periscope
     auto* v = static_cast<VDATA*>(core.GetScriptVariable("Environment"));
     if (v) {
@@ -600,8 +602,8 @@ bool Sharks::LoadPeriscopeModel()
     if (!(periscope.model = core.CreateEntity("modelr"))) return false;
     auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return false;
-    gs->SetTexturePath("Animals\\");
-    if (!core.Send_Message(periscope.model, "ls", MSG_MODEL_LOAD_GEO, "Animals\\periscope")) {
+    gs->SetTexturePath("animals/");
+    if (!core.Send_Message(periscope.model, "ls", MSG_MODEL_LOAD_GEO, "animals/periscope")) {
         gs->SetTexturePath("");
         core.EraseEntity(periscope.model);
         return false;

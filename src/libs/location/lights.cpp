@@ -11,6 +11,7 @@
 #include "lights.h"
 
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 // ============================================================================================
@@ -44,16 +45,20 @@ Lights::~Lights()
 }
 
 // Initialization
-bool Lights::Init()
+bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     collide = static_cast<COLLIDE*>(core.GetService("COLL"));
     // read the parameters
-    auto ini = fio->OpenIniFile("RESOURCE\\Ini\\lights.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
     if (!ini) {
-        core.Trace("Location lights not inited -> RESOURCES\\Ini\\lights.ini not found");
+        core.Trace(
+            "Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
     char lName[256];
@@ -462,7 +467,8 @@ void Lights::UnsetLights()
 // Update source types
 void Lights::UpdateLightTypes(int32_t i)
 {
-    auto ini = fio->OpenIniFile("RESOURCE\\Ini\\lights.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
     if (!ini) return;
     // Source name
     char* lName = types[i].name;

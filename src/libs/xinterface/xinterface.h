@@ -79,7 +79,7 @@ public:
     ~XINTERFACE() override;
 
     void     SetDevice();
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);
@@ -273,11 +273,11 @@ protected:
     void ReleaseOld();
     void ReleaseDinamicPic(char const* sPicName);
     // save load functions
-    bool  SFLB_DoSaveFileData(char const* saveName, char const* saveData) const;
-    bool  SFLB_GetSaveFileData(char const* saveName, int32_t bufSize, char* buf);
+    bool  SFLB_DoSaveFileData(std::filesystem::path const& saveName, char const* saveData) const;
+    bool  SFLB_GetSaveFileData(std::filesystem::path const& saveName, int32_t bufSize, char* buf);
     char* SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, int32_t& fileSize);
-    bool  NewSaveFileName(char const* fileName) const;
-    void  DeleteSaveFile(char const* fileName);
+    bool  NewSaveFileName(std::filesystem::path const& fileName) const;
+    void  DeleteSaveFile(std::filesystem::path const& fileName);
     // node control
     void AddNodeToList(CINODE* nod, int32_t priority = 80);
     // locked function
@@ -428,7 +428,7 @@ class CONTROLS_CONTAINER: public Entity
 public:
     CONTROLS_CONTAINER();
     ~CONTROLS_CONTAINER() override;
-    bool     Init() override;
+    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
     void     Execute(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

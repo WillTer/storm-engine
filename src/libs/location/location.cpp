@@ -13,6 +13,7 @@
 #include <chrono>
 
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/c_vector4.h>
 #include <libs/shared_headers/messages.h>
 
@@ -80,8 +81,10 @@ Location::~Location()
 }
 
 // Initialization
-bool Location::Init()
+bool Location::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
@@ -98,7 +101,7 @@ bool Location::Init()
     lightsid     = core.CreateEntity("Lights");
     loceffectsid = core.CreateEntity("LocationEffects");
 
-    enemyBarsTexture = rs->TextureCreate("LocEfx\\state_bars.tga");
+    enemyBarsTexture = rs->TextureCreate("locefx/state_bars.tga");
 
     lighter = core.CreateEntity("Lighter");
     // cubeShotMaker = core.CreateEntity("CubeShotMakerCam");
@@ -473,14 +476,9 @@ int32_t Location::LoadStaticModel(char const* modelName, char const* tech, int32
 
 bool Location::LoadCharacterPatch(char const* ptcName)
 {
-    // Form the path to the file
-    char path[512];
-    strcpy_s(path, "resource\\models\\");
-    strcat_s(path, model.modelspath.c_str());
-    strcat_s(path, ptcName);
-    strcat_s(path, ".ptc");
+    auto const path = fio->base_directory_path(BaseDirectory::Models) / (model.modelspath + ptcName + ".ptc");
     // load the patch
-    auto const result = ptc.Load(path);
+    auto const result = ptc.Load(path.string().c_str());
     if (!result) core.Trace("Can't loaded patch data file %s.ptc for npc.", ptcName);
     return result;
 }
@@ -502,13 +500,10 @@ bool Location::LoadGrass(char const* modelName, char const* texture)
     auto* grs = static_cast<Grass*>(core.GetEntityPointer(grass));
     if (!grs) return false;
     if (texture && texture[0]) grs->SetTexture(texture);
-    char nm[512];
-    strcpy_s(nm, "resource\\models\\");
-    strcat_s(nm, model.modelspath.c_str());
-    strcat_s(nm, modelName);
-    strcat_s(nm, ".grs");
-    if (grs->LoadData(nm)) return true;
-    core.Trace("Can't load grass data file: %s", nm);
+
+    auto const nm = fio->base_directory_path(BaseDirectory::Models) / (model.modelspath + modelName + ".grs");
+    if (grs->LoadData(nm.string().c_str())) return true;
+    core.Trace("Can't load grass data file: %s", nm.string().c_str());
     core.EraseEntity(grass);
     return false;
 }
@@ -1163,7 +1158,7 @@ void Location::LoadCaustic() const
 
     char tex[256];
     for (int32_t i = 0; i < 32; i++) {
-        sprintf_s(tex, "weather\\caustic\\caustic%.2d.tga", i);
+        sprintf_s(tex, "weather/caustic/caustic%.2d.tga", i);
         iCausticTex[i] = rs->TextureCreate(tex);
     }
 }

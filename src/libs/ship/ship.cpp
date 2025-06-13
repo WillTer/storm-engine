@@ -106,8 +106,10 @@ SHIP::~SHIP()
 }
 
 // ##################################################################
-bool SHIP::Init()
+bool SHIP::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
     using std::chrono::system_clock;
@@ -1355,7 +1357,7 @@ bool SHIP::Mount(ATTRIBUTES* _pAShip)
     bUse = uniIDX == 0;
 
     char temp_str[1024];
-    sprintf_s(temp_str, "ships\\%s\\%s", cShipIniName, cShipIniName);
+    sprintf_s(temp_str, "ships/%s/%s", cShipIniName, cShipIniName);
 
     model_id = core.CreateEntity("MODELR");
     core.Send_Message(GetModelEID(), "ls", MSG_MODEL_LOAD_GEO, temp_str);

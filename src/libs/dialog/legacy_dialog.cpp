@@ -5,6 +5,7 @@
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
 #include <libs/core/vma.hpp>
+#include <libs/filesystem/default_paths.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
@@ -19,8 +20,9 @@ CREATE_CLASS(LegacyDialog)
 namespace
 {
 
-constexpr std::string_view DIALOG_INI_FILE_PATH      = "Resource/Ini/dialog.ini";
-char const*                DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
+// FIXME: hardcode
+constexpr std::string_view DIALOG_INI_FILE_PATH      = "dialog.ini";
+constexpr std::string_view DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
 
 constexpr uint32_t const COLOR_NORMAL          = 0xFFFFFFFF;
 constexpr uint32_t const COLOR_LINK_UNSELECTED = ARGB(255, 127, 127, 127);
@@ -131,8 +133,10 @@ LegacyDialog::~LegacyDialog() noexcept
     if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
 }
 
-bool LegacyDialog::Init()
+bool LegacyDialog::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(RenderService != nullptr);
 
@@ -144,9 +148,11 @@ bool LegacyDialog::Init()
 
     UpdateScreenSize();
 
-    char const* texture = AttributesPointer->GetAttribute("texture");
-    if (texture == nullptr) { texture = DEFAULT_INTERFACE_TEXTURE; }
-    interfaceTexture_ = RenderService->TextureCreate(texture);
+    if (char const* texture = AttributesPointer->GetAttribute("texture"); texture != nullptr) {
+        interfaceTexture_ = RenderService->TextureCreate(texture);
+    } else {
+        interfaceTexture_ = RenderService->TextureCreate(DEFAULT_INTERFACE_TEXTURE.data());
+    }
 
     CreateBackBuffers();
 
@@ -276,7 +282,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
 
 void LegacyDialog::LoadIni()
 {
-    auto ini = fio->OpenIniFile(DIALOG_INI_FILE_PATH.data());
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / DIALOG_INI_FILE_PATH);
 
     mainFont_ = LoadFont("mainfont", *ini, *RenderService);
     nameFont_ = LoadFont("namefont", *ini, *RenderService);
@@ -462,7 +468,7 @@ void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
 
         headModel_ = core.CreateEntity("MODELR");
         auto gs    = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-        gs->SetTexturePath("characters\\");
+        gs->SetTexturePath("characters/");
 
         core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_GEO, headModelPath_.c_str());
         core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_ANI, headModelPath_.c_str());

@@ -12,7 +12,7 @@
 class CoreImpl final: public CorePrivate
 {
 public:
-    void Init();
+    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
 
     void InitBase();
     void ReleaseBase();
@@ -97,13 +97,11 @@ public:
     VDATA*   Event(std::string_view const& event_name, MESSAGE& message) override;
     uint32_t PostEvent(char const* Event_name, uint32_t post_time, char const* Format, ...) override;
 
-    void* GetSaveData(char const* file_name, int32_t& data_size) override;
+    void* GetSaveData(std::filesystem::path const& file_name, int32_t& data_size) override;
 
-    bool SetSaveData(char const* file_name, void* data_ptr, int32_t data_size) override;
+    bool SetSaveData(std::filesystem::path const& file_name, void* data_ptr, int32_t data_size) override;
 
     uint32_t SetScriptFunction(IFUNCINFO* pFuncInfo) override;
-
-    char const* EngineIniFileName() override;
 
     void* GetScriptVariable(char const* pVariableName, uint32_t* pdwVarIndex = nullptr) override;
 
@@ -140,14 +138,14 @@ public:
 
     TIMER Timer;
 
-    COMPILER* Compiler;
+    std::unique_ptr<COMPILER> Compiler;
 
     bool Exit_flag;  // true if the program closing
 
 private:
-    void loadCompatibilitySettings(INIFILE& inifile);
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 
-    EntityManager entity_manager_;
+    std::unique_ptr<EntityManager> entity_manager_;
 
     storm::ENGINE_VERSION targetVersion_ = storm::ENGINE_VERSION::LATEST;
 

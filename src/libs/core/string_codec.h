@@ -42,8 +42,9 @@ public:
     {
         for (uint32_t m = 0; m < HASH_TABLE_SIZE; m++) {
             if (HTable[m].pElements) {
-                for (uint32_t n = 0; n < HTable[m].nStringsNum; n++)
-                    delete HTable[m].pElements[n].pStr;
+                for (uint32_t n = 0; n < HTable[m].nStringsNum; n++) {
+                    delete[] HTable[m].pElements[n].pStr;
+                }
                 free(HTable[m].pElements);
             }
             HTable[m].pElements   = nullptr;

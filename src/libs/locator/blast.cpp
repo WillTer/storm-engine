@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/messages.h>
 
 #define ANGLESPEED_MUL 0.2f
@@ -21,17 +22,20 @@ BLAST::~BLAST()
         if (!Item[i].bDouble) delete Item[i].geo;
 }
 
-bool BLAST::Init()
+bool BLAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return false;
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!rs) return false;
 
     //    int32_t n;
-    auto ini = fio->OpenIniFile("resource\\ini\\particles\\particles.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: resource\\ini\\particles\\particles.ini");
+        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
+#include <libs/core/service_locator.hpp>
 #include <libs/shared_headers/controls.h>
 #include <libs/util/utf8.h>
 
@@ -57,6 +59,11 @@ public:
     CONTROLS() {};
 
     virtual ~CONTROLS() {};
+
+    virtual void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+    {
+        m_service_locator = service_locator;
+    }
 
     virtual void Update(uint32_t DeltaTime) {};
 
@@ -202,4 +209,7 @@ public:
     }
 
     virtual void ClearKeyBuffer() {}
+
+protected:
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 };

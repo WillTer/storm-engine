@@ -21,12 +21,12 @@ LocCrab::~LocCrab() {}
 
 char const* LocCrab::GetModelName()
 {
-    return "Animals\\crabSmall";
+    return "animals/crabsmall";
 }
 
 char const* LocCrab::GetAniName()
 {
-    return "crabSmall";
+    return "crabsmall";
 }
 
 bool LocCrab::PostInit(Animation* ani)

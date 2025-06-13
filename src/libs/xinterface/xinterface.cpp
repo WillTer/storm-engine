@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <SDL2/SDL.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "back_scene/back_scene.h"
@@ -159,8 +160,10 @@ XINTERFACE::~XINTERFACE()
     ReleaseSaveFindList();
 }
 
-bool XINTERFACE::Init()
+bool XINTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(XINTERFACE::Init())
     SetDevice();
     // UNGUARD
@@ -697,9 +700,9 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
     } break;
 
     case MSG_INTERFACE_DO_SAVE_DATA: {
-        std::string const& param1 = message.String();
-        std::string const& param2 = message.String();
-        SFLB_DoSaveFileData(param1.c_str(), param2.c_str());
+        auto const& param1 = message.String();
+        auto const& param2 = message.String();
+        SFLB_DoSaveFileData(param1, param2.c_str());
     } break;
     case MSG_INTERFACE_GET_SAVE_DATA: {
         std::string const& param1 = message.String();
@@ -823,10 +826,10 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
         if (param[0] == 0) {
             systTime = std::time(nullptr);
         } else {
-            if (!fio->_FileOrDirectoryExists(param.c_str())) {
+            if (!fio->exists(param.c_str())) {
                 systTime = std::time(nullptr);
             } else {
-                systTime = fio->_ToTimeT(fio->_GetLastWriteTime(param.c_str()));
+                systTime = fio->to_time_t(fio->last_write_time(param.c_str()));
             }
         }
         auto const locTime = std::localtime(&systTime);
@@ -882,14 +885,15 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-static char const* RESOURCE_FILENAME = "resource\\ini\\interfaces\\interfaces.ini";
+// FIXME: hardcode
+constexpr std::string_view RESOURCE_FILENAME = "interfaces/interfaces.ini";
 
 void XINTERFACE::LoadIni()
 {
     // GUARD(XINTERFACE::LoadIni());
     char section[256];
 
-    auto ini = fio->OpenIniFile(RESOURCE_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
     auto windowSize = core.GetWindow()->GetWindowSize();
@@ -911,7 +915,7 @@ void XINTERFACE::LoadIni()
         float iniRatio;
         char  splitPlatform[23], *platformW, *platformH;
         do {
-            if (starts_with(platform, "PC_SCREEN_")) {
+            if (std::string(platform).starts_with("PC_SCREEN_")) {
                 strcpy_s(splitPlatform, platform);
                 platformW = std::strtok(splitPlatform, "_:");  // PC
                 platformW = std::strtok(nullptr, "_:");        // SCREEN
@@ -1013,13 +1017,14 @@ void XINTERFACE::LoadDialog(char const* sFileName)
 
     // initialize ini file
     m_sDialogFileName = sFileName;
-    auto ini          = fio->OpenIniFile(sFileName);
+    auto ini          = fio->open_ini_file(sFileName);
     if (!ini) {
         core.Trace("ini file %s not found!", sFileName);
         core.PostEvent("exitCancel", 1, nullptr);
         return;
     }
-    auto ownerIni = fio->OpenIniFile("RESOURCE\\INI\\INTERFACES\\defaultnode.ini");
+    // FIXME: hardcode
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
 
     sprintf_s(section, "MAIN");
 
@@ -1130,13 +1135,14 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
 
     std::unique_ptr<INIFILE> ini;
     if (sFileName && sFileName[0]) {
-        ini = fio->OpenIniFile(sFileName);
+        ini = fio->open_ini_file(sFileName);
         if (!ini) {
             core.Trace("ini file %s not found!", sFileName);
             return;
         }
     }
-    auto ownerIni = fio->OpenIniFile("RESOURCE\\INI\\INTERFACES\\defaultnode.ini");
+    // FIXME: hardcode
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
 
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }
@@ -2229,9 +2235,9 @@ uint32_t XINTERFACE::AttributeChanged(ATTRIBUTES* patr)
     return 0;
 }
 
-bool XINTERFACE::SFLB_DoSaveFileData(char const* saveName, char const* saveData) const
+bool XINTERFACE::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char const* saveData) const
 {
-    if (saveName == nullptr || saveData == nullptr) return false;
+    if (saveData == nullptr) return false;
     int32_t const slen = strlen(saveData) + 1;
     if (slen <= 1) return false;
 
@@ -2270,7 +2276,7 @@ bool XINTERFACE::SFLB_DoSaveFileData(char const* saveName, char const* saveData)
     return true;
 }
 
-bool XINTERFACE::SFLB_GetSaveFileData(char const* saveName, int32_t bufSize, char* buf)
+bool XINTERFACE::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int32_t bufSize, char* buf)
 {
     if (buf == nullptr || bufSize <= 0) return false;
     int32_t allDatSize = 0;
@@ -2306,7 +2312,7 @@ void XINTERFACE::AddFindData(std::filesystem::path filePath)
     auto* p = new SAVE_FIND_DATA;
     if (p) {
         auto const sSaveFileName = filePath.filename().u8string();
-        p->time                  = std::filesystem::last_write_time(filePath);
+        p->time                  = fio->last_write_time(filePath);
         p->file_size             = 0;  // original code always passed 0 to file_size
         p->next                  = m_pSaveFindRoot;
         m_pSaveFindRoot          = p;
@@ -2357,10 +2363,10 @@ char* XINTERFACE::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, in
     {
         // get file name for searching (whith full path)
         char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-        if (sSavePath != nullptr) { fio->_CreateDirectory(sSavePath); }
+        if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
 
         // start save file finding
-        auto const vFilePaths = fio->_GetFsPathsByMask(sSavePath, nullptr, true);
+        auto const vFilePaths = fio->paths_by_mask(sSavePath, "", true);
         for (std::filesystem::path filePath: vFilePaths) {
             AddFindData(filePath);
         }
@@ -2387,33 +2393,21 @@ char* XINTERFACE::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, in
     return buffer;
 }
 
-bool XINTERFACE::NewSaveFileName(char const* fileName) const
+bool XINTERFACE::NewSaveFileName(std::filesystem::path const& fileName) const
 {
-    if (fileName == nullptr) { return false; }
-
-    char        param[256];
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
 
-    if (sSavePath == nullptr) {
-        sprintf(param, "%s", fileName);
-    } else {
-        sprintf(param, "%s\\%s", sSavePath, fileName);
-    }
-
-    return !(fio->_FileOrDirectoryExists(param));
+    return sSavePath == nullptr ? !fio->exists(fileName) : !fio->exists(std::filesystem::path(sSavePath) / fileName);
 }
 
-void XINTERFACE::DeleteSaveFile(char const* fileName)
+void XINTERFACE::DeleteSaveFile(std::filesystem::path const& fileName)
 {
-    if (fileName == nullptr) { return; }
-    char        param[256];
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
     if (sSavePath == nullptr) {
-        sprintf(param, "%s", fileName);
+        fio->remove(fileName);
     } else {
-        sprintf(param, "%s\\%s", sSavePath, fileName);
+        fio->remove(std::filesystem::path(sSavePath) / fileName);
     }
-    fio->_DeleteFile(param);
 }
 
 uint32_t XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float fBlendFactor)
@@ -2678,7 +2672,7 @@ void XINTERFACE::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
     strcpy_s(FullPath, fileName);
 
     PrecreateDirForFile(FullPath);
-    auto fileS = fio->_CreateFile(FullPath, std::ios::binary | std::ios::out);
+    auto fileS = fio->open_file<std::ofstream>(FullPath, std::ios::binary);
     if (!fileS.is_open()) { return; }
 
     char* pOutBuffer = nullptr;
@@ -2686,10 +2680,9 @@ void XINTERFACE::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
     if (pAttr) { pOutBuffer = AddAttributesStringsToBuffer(nullptr, nullptr, pAttr); }
 
     if (pOutBuffer) {
-        fio->_WriteFile(fileS, pOutBuffer, strlen(pOutBuffer));
+        fileS.write(pOutBuffer, strlen(pOutBuffer));
         delete pOutBuffer;
     }
-    fio->_CloseFile(fileS);
 }
 
 void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
@@ -2699,25 +2692,22 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
 
     if (fileName.empty() || pAttr == nullptr) { return; }
 
-    auto fileS = fio->_CreateFile(fileName.data(), std::ios::binary | std::ios::in);
+    auto fileS = fio->open_file<std::ifstream>(fileName.data(), std::ios::binary);
     if (!fileS.is_open()) { return; }
 
-    uint32_t const fileSize = fio->_GetFileSize(fileName.data());
+    uint32_t const fileSize = fio->file_size(fileName.data());
     if (fileSize == 0) {
         core.Event("evntOptionsBreak");
-        fio->_CloseFile(fileS);
         return;
     }
 
     std::string buffer(fileSize + 1, '\0');  // + 1 for '\0'
-    fio->_ReadFile(fileS, buffer.data(), fileSize);
+    fileS.read(buffer.data(), fileSize);
     if (pAttr)  //~!~
     {
         storm::removeCarriageReturn(buffer);
         storm::parseOptions(buffer, *pAttr);
     }
-
-    fio->_CloseFile(fileS);
 }
 
 void XINTERFACE::GetContextHelpData()
@@ -2789,13 +2779,13 @@ int XINTERFACE::LoadIsExist()
 
     char        param[1024];
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-    if (sSavePath != nullptr) { fio->_CreateDirectory(sSavePath); }
+    if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
 
     bool       bFindFile  = false;
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(sSavePath, "*", true);
-    for (std::string path: vFilenames) {
+    auto const vFilenames = fio->string_paths_by_mask(sSavePath, "*", true);
+    for (auto const& path: vFilenames) {
         char datBuf[512];
-        sprintf(param, path.c_str());
+        sprintf(param, "%s", path.c_str());
         if (SFLB_GetSaveFileData(param, sizeof(datBuf), datBuf)) {
             int nLen = strlen(datBuf);
             int i;
@@ -2819,11 +2809,11 @@ void XINTERFACE::PrecreateDirForFile(char const* pcFullFileName)
     sprintf_s(path, sizeof(path), "%s", pcFullFileName);
     int32_t n;
     for (n = strlen(pcFullFileName) - 1; n > 0; n--)
-        if (path[n] == '\\') {
+        if (path[n] == '\\' || path[n] == '/') {
             path[n] = 0;
             break;
         }
-    if (n > 0) fio->_CreateDirectory(path);
+    if (n > 0) fio->create_directories(path);
 }
 
 // controls Container
@@ -2852,8 +2842,9 @@ CONTROLS_CONTAINER::~CONTROLS_CONTAINER()
     }
 }
 
-bool CONTROLS_CONTAINER::Init()
+bool CONTROLS_CONTAINER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     if (AttributesPointer != nullptr) return CreateConteinerList(AttributesPointer);
     return false;
 }

@@ -9,7 +9,10 @@
 // before core start transfer program control to objects Realize() functions and call Run_End()
 // after program control leave objects Realize sections
 
+#include <memory>
+
 #include "entity_state.h"
+#include "service_locator.hpp"
 
 #define SECTION_ALL 0x0
 #define SECTION_EXECUTE 0x1
@@ -34,8 +37,9 @@ public:
         return SECTION_ALL;
     }
 
-    virtual bool Init()
+    virtual bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     {
+        m_service_locator = service_locator;
         return true;
     }
 
@@ -48,4 +52,7 @@ public:
     {
         return true;
     }
+
+protected:
+    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 };

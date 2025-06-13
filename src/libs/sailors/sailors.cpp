@@ -661,7 +661,7 @@ bool ShipWalk::Init(entid_t _shipID, int editorMode, char const* shipType, std::
         shipModel = ship->GetModel();
 
         // Load points
-        std::string fileName = "RESOURCE\\MODELS\\Ships\\SAILORSPOINTS\\";
+        std::string fileName = "resource/models/ships/sailorspoints/";
         fileName += shipType;
         fileName += ".ini";
 
@@ -801,8 +801,10 @@ Sailors::Sailors() : rs(nullptr)
     disabled   = false;
 }
 
-bool Sailors::Init()
+bool Sailors::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     core.SetLayerType(SEA_REALIZE, layer_type_t::realize);

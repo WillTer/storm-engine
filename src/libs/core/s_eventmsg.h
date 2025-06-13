@@ -42,7 +42,7 @@ public:
     ~S_EVENTMSG()
     {
         if (pMessageClass) delete pMessageClass;
-        if (pEventName) delete pEventName;
+        if (pEventName) delete[] pEventName;
     };
 
     bool ProcessTime(uint32_t _DeltaTime)

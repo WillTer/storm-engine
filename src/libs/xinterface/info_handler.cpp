@@ -10,8 +10,10 @@ InfoHandler::~InfoHandler()
     if (tex) m_rs->Release(tex);
 }
 
-bool InfoHandler::Init()
+bool InfoHandler::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // get render service
     m_rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     if (!m_rs) {
@@ -232,7 +234,7 @@ bool InfoHandler::DoPreOut()
                 pV[3].tv                                      = 1.f;
 
                 char _name[MAX_PATH];
-                sprintf(_name, "interfaces\\int_border.tga");
+                sprintf(_name, "interfaces/int_border.tga");
                 int tipsID = m_rs->TextureCreate(_name);
                 if (tipsID) {
                     m_rs->SetTipsImage(_name);

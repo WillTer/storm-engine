@@ -4,6 +4,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/interface/messages.h>
 
 #define IRELEASE(i) \
@@ -11,8 +12,6 @@
         if (i) i->Release(); \
         i = NULL; \
     }
-
-#define VIDEO_DIRECTORY "resource\\videos"
 
 int32_t AVI_GetTextureSize(int32_t width)
 {
@@ -48,8 +47,10 @@ CAviPlayer::~CAviPlayer()
     ReleaseAll();
 }
 
-bool CAviPlayer::Init()
+bool CAviPlayer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
@@ -141,10 +142,9 @@ uint64_t CAviPlayer::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SET_VIDEO_PLAY: {
-        std::string const& param   = message.String();
-        std::string const  vidName = fmt::format("{}\\{}", VIDEO_DIRECTORY, param);
-        filename                   = vidName;
-        if (!PlayMedia(vidName.c_str())) {
+        std::string const& param = message.String();
+        filename                 = (fio->base_directory_path(BaseDirectory::Videos) / param).string();
+        if (!PlayMedia(filename.c_str())) {
             CleanupInterfaces();
             core.PostEvent("ievntEndVideo", 1, nullptr);
         }

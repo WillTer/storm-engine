@@ -2,6 +2,7 @@
 
 #include <libs/core/controls.h>
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 
 #include "../xdefines.h"
 
@@ -39,8 +40,9 @@ void HELPCHOOSER::SetDevice()
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
-bool HELPCHOOSER::Init()
+bool HELPCHOOSER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(HELPCHOOSER::Init())
     SetDevice();
     // UNGUARD
@@ -190,9 +192,10 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     AllRelease();
 
     if (ChooserGroup == nullptr) return false;
-    auto ini = fio->OpenIniFile("resource\\ini\\helpchooser.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "helpchooser.ini");
     if (!ini) {
-        core.Trace("Can`t open INI file \"resource\\ini\\helpchooser.ini\"");
+        core.Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 

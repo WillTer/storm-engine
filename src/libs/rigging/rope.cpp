@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
@@ -59,8 +60,10 @@ ROPE::~ROPE()
     nVert = nIndx = 0;
 }
 
-bool ROPE::Init()
+bool ROPE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // GUARD(ROPE::ROPE())
     SetDevice();
     // UNGUARD
@@ -507,7 +510,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
             ROPEDATA** oldrlist = rlist;
             rlist               = new ROPEDATA*[ropeQuantity + 1];
             memcpy(rlist, oldrlist, sizeof(ROPEDATA*) * ropeQuantity);
-            delete oldrlist;
+            delete[] oldrlist;
             ropeQuantity++;
         }
         rd = rlist[ropeQuantity - 1] = new ROPEDATA {};
@@ -681,7 +684,8 @@ void ROPE::LoadIni()
     char section[256];
     char param[256];
 
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    // FIXME: hardcode
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "rigging.ini");
     if (!ini) throw std::runtime_error("rigging.ini file not found!");
 
     sprintf_s(section, "ROPES");

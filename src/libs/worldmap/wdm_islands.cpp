@@ -39,7 +39,7 @@ WdmIslands::WdmIslands()
     LabelsRelease();
     wdmObjects->islands = this;
     // Loading the base model
-    baseModel = static_cast<WdmRenderModel*>(wdmObjects->wm->CreateModel(new WdmRenderModel(), "islands\\islands", false, false, false, 1));
+    baseModel = static_cast<WdmRenderModel*>(wdmObjects->wm->CreateModel(new WdmRenderModel(), "islands/islands", false, false, false, 1));
     if (!baseModel || !baseModel->geo) return;
     // Geometry information
     GEOS::INFO  ginfo;
@@ -95,7 +95,7 @@ WdmIslands::WdmIslands()
             if (islands[j].modelName == label.name) break;
         }
         if (j < islands.size()) continue;
-        name = "islands\\";
+        name = "islands/";
         name += label.name;
         // Loading
         auto* model = static_cast<WdmRenderModel*>(wdmObjects->wm->CreateModel(new WdmRenderModel(), name.c_str(), false, false, true, 2));
@@ -117,7 +117,7 @@ WdmIslands::WdmIslands()
                 static_cast<WdmRenderModel*>(wdmObjects->wm->CreateModel(new WdmRenderModel(), name.c_str(), false, false, false, 3));
             if (!isl.area) { core.Trace("World map: can't load model of island's area: %s", name.c_str()); }
             // Palm trees
-            name = "islands\\";
+            name = "islands/";
             name += label.name;
             name += "_palms";
             isl.palms =
@@ -127,7 +127,7 @@ WdmIslands::WdmIslands()
                 isl.palms->SetTech(techName, techName);
             }
             // Foam
-            name = "islands\\";
+            name = "islands/";
             name += label.name;
             name += "_waves";
             isl.waves =
@@ -138,7 +138,7 @@ WdmIslands::WdmIslands()
     }
     // Loading the patch
     patch = new PtcData();
-    if (!patch->Load("RESOURCE\\MODELS\\WorldMap\\islands\\islands_patch.ptc")) {
+    if (!patch->Load("resource/models/worldmap/islands/islands_patch.ptc")) {
         delete patch;
         patch = nullptr;
     }
@@ -420,7 +420,7 @@ void WdmIslands::LabelsReadIconParams(ATTRIBUTES* apnt)
     icons.blend         = 0;
     char const* texName = apnt->GetAttribute("texture");
     if (!texName) texName = "";
-    std::string name = "WorldMap\\Interfaces\\";
+    std::string name = "worldmap/interfaces/";
     name += texName;
     icons.texture = wdmObjects->rs->TextureCreate(name.c_str());
     // Dimensions uv

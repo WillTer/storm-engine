@@ -37,8 +37,10 @@ LocEagle::~LocEagle()
 }
 
 // Initialization
-bool LocEagle::Init()
+bool LocEagle::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
+
     // The point we fly around
     auto const loc      = core.GetEntityId("location");
     auto*      location = static_cast<Location*>(core.GetEntityPointer(loc));
@@ -53,8 +55,8 @@ bool LocEagle::Init()
     // Model
     if (!(mdl = core.CreateEntity("modelr"))) return false;
     core.AddToLayer(REALIZE, mdl, 20);
-    gs->SetTexturePath("Animals\\");
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "Animals\\eagle")) {
+    gs->SetTexturePath("animals/");
+    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "animals/eagle")) {
         gs->SetTexturePath("");
         return false;
     }

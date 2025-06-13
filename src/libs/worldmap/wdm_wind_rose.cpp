@@ -22,7 +22,7 @@ WdmWindRose::WdmWindRose()
     mscale.m[1][1] = 0.028f;
     mscale.m[2][2] = 0.028f;
     mtx.EqMultiply(mrot, mscale);
-    shadowTexture = wdmObjects->rs->TextureCreate("WorldMap\\Geometry\\compass_shadow.tga");
+    shadowTexture = wdmObjects->rs->TextureCreate("worldmap/geometry/compass_shadow.tga");
 }
 
 WdmWindRose::~WdmWindRose()

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <libs/core/v_data.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/storm_assert.h>
 
-#define INI_FILE_NAME "resource\\ini\\interfaces\\battle_interface.ini"
 
 #define FULLRECT(r) \
     { \

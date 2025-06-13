@@ -22,8 +22,9 @@ DECK_CAMERA::DECK_CAMERA()
 
 DECK_CAMERA::~DECK_CAMERA() {}
 
-bool DECK_CAMERA::Init()
+bool DECK_CAMERA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(DECK_CAMERA::Init())
     // core.SystemMessages(GetId(),true);
     SetDevice();

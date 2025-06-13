@@ -13,10 +13,10 @@
 #define USE_FX  // Will load techniques from fx files
 
 #ifdef USE_FX
-#define SHA_DIR "resource\\techniques"
+#define SHA_DIR "resource/techniques"
 #define SHA_EXT "*.fx"
 #else
-#define SHA_DIR "resource\\techniques-sha"
+#define SHA_DIR "resource/techniques-sha"
 #define SHA_EXT "*.sha"
 #endif
 
@@ -662,8 +662,10 @@ CTechnique::~CTechnique()
         block_t* pB = &pBlocks[i];
         for (j = 0; j < pB->dwNumTechniques; j++) {
             technique_t* pTech = &pB->pTechniques[j];
-            for (k = 0; k < pTech->dwNumPasses; k++)
-                STORM_DELETE(pTech->pPasses[k].pPass);
+            for (k = 0; k < pTech->dwNumPasses; k++) {
+                delete[] pTech->pPasses[k].pPass;
+                pTech->pPasses[k].pPass = nullptr;
+            }
             free(pTech->pPasses);
         }
         STORM_DELETE(pB->pParams);
@@ -671,7 +673,9 @@ CTechnique::~CTechnique()
         free(pB->pTechniques);
     }
     for (i = 0; i < dwNumShaders; i++) {
-        STORM_DELETE(pShaders[i].pName);
+        delete[] pShaders[i].pName;
+        pShaders[i].pName = nullptr;
+
         STORM_DELETE(pShaders[i].pDecl);
         if (pShaders[i].pPixelShader != nullptr) {
             pShaders[i].pPixelShader->Release();
@@ -964,7 +968,7 @@ uint32_t CTechnique::ProcessPass(char* pFile, uint32_t dwSize, char** pStr)
         }
 
         // check for '[' if exist mean what STSS used
-        if (pTemp = SkipToken(*pStr, STSS_CHECK))  // STSS or SetTexture
+        if ((pTemp = SkipToken(*pStr, STSS_CHECK)) != nullptr)  // STSS or SetTexture
         {
             // get index = [index]
             GetTokenWhile(pTemp, &temp[0], "]");
@@ -1370,7 +1374,6 @@ char* CTechnique::Preprocessor(char* pBuffer, uint32_t& dwSize)
 
 uint32_t CTechnique::ProcessShaderAsm(shader_t* pS, char* pFile, uint32_t dwSize, char** pStr, uint32_t dwShaderType, bool HLSL)
 {
-    uint32_t dwFileSize;
     uint32_t dwTotalLen = 0;
     char*    pBuffer    = nullptr;
     while (nullptr != (*pStr = GetString(pFile, dwSize, *pStr))) {
@@ -1379,27 +1382,23 @@ uint32_t CTechnique::ProcessShaderAsm(shader_t* pS, char* pFile, uint32_t dwSize
         if (isBeginBracket(*pStr)) TOTAL_SKIP;
         if (isEndBracket(*pStr)) break;  // end of declaration
 
-        char* pTemp       = *pStr;
-        char* pTempBuffer = nullptr;
+        std::vector<char> buffer = {};
 
         if (isInclude(*pStr)) {
             char sIncFileName[256], sName[256];
             GetTokenWhile(SkipToken(*pStr, "\""), &sName[0], "\"");
-            sprintf_s(sIncFileName, "%s\\%s", sCurrentDir, sName);
-            if (!fio->LoadFile(sIncFileName, &pTempBuffer, &dwFileSize)) {
+            sprintf_s(sIncFileName, "%s/%s", sCurrentDir, sName);
+            if (!fio->read_file_to_mem(sIncFileName, buffer)) {
                 core.Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, sIncFileName);
                 TOTAL_SKIP;
             }
-            pTempBuffer[dwFileSize - 1] = 0x0;
-            pTemp                       = pTempBuffer;
         }
 
-        int32_t iLen = strlen(pTemp) - 1;
+        int32_t iLen = strlen(buffer.data()) - 1;
         pBuffer      = (char*)realloc(pBuffer, dwTotalLen + iLen + 4);
-        strcpy_s(&pBuffer[dwTotalLen], iLen + 4, pTemp);
+        strcpy_s(&pBuffer[dwTotalLen], iLen + 4, buffer.data());
         strcpy_s(&pBuffer[dwTotalLen + iLen + 1], 3, "\r\n");
         dwTotalLen += iLen + 2;
-        STORM_DELETE(pTempBuffer);
         TOTAL_SKIP;
     }
 #ifdef _WIN32  // replace D3DXAssembleShader with D3DCompile or similar
@@ -1493,21 +1492,21 @@ void CTechnique::GetShaderBinPath(char* pShaderStr, uint32_t dwShaderType, char*
 
 uint32_t CTechnique::ProcessShaderBin(shader_t* pS, char* pFile, uint32_t dwShaderType)
 {
-    char* pBuffer = nullptr;
-    if (!fio->LoadFile(pFile, &pBuffer, nullptr)) {
+    std::vector<char> pBuffer = {};
+    if (!fio->read_file_to_mem(pFile, pBuffer)) {
         core.Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, pFile);
         return 0;
     }
 
     HRESULT hr;
-    if (dwShaderType == CODE_SVS)
-        hr = pRS->CreateVertexShader((uint32_t*)pBuffer, &pS->pVertexShader);
-    else
-        hr = pRS->CreatePixelShader((uint32_t*)pBuffer, &pS->pPixelShader);
+    if (dwShaderType == CODE_SVS) {
+        hr = pRS->CreateVertexShader((uint32_t*)pBuffer.data(), &pS->pVertexShader);
+    } else {
+        hr = pRS->CreatePixelShader((uint32_t*)pBuffer.data(), &pS->pPixelShader);
+    }
 
-    if (hr != D3D_OK) core.Trace("ERROR: can't create shader from %s\nfrom file: %s", pS->pName, pFile);
+    if (hr != D3D_OK) { core.Trace("ERROR: can't create shader from %s\nfrom file: %s", pS->pName, pFile); }
 
-    STORM_DELETE(pBuffer);
     return 0;
 }
 
@@ -1702,7 +1701,7 @@ void CTechnique::InnerDecodeFiles(char* sub_dir)
 {
     sprintf(sCurrentDir, "%s%s", SHA_DIR, (sub_dir) ? sub_dir : "");
 
-    auto const vFilenames = fio->_GetPathsOrFilenamesByMask(sCurrentDir, SHA_EXT, true, false, true, true);
+    auto const vFilenames = fio->paths_by_mask(sCurrentDir, SHA_EXT, true, false, true, true);
     for (std::string path: vFilenames) {
         DecodeFile(path);
     }
@@ -1714,12 +1713,11 @@ bool CTechnique::DecodeFile(std::string sname)
 
     sprintf(fname, "%s", sname.c_str());
     strcpy(sCurrentFileName, fname);
-    auto fileS  = fio->_CreateFile(fname, std::ios::binary | std::ios::in);
-    auto dwSize = fio->_GetFileSize(fname);
+    auto fileS  = fio->open_file<std::ifstream>(fname, std::ios::binary);
+    auto dwSize = fio->file_size(fname);
     Assert(dwSize != 0);
     char* pFile = new char[dwSize];
-    fio->_ReadFile(fileS, pFile, dwSize);
-    fio->_CloseFile(fileS);
+    fileS.read(pFile, dwSize);
 
     // change 0xd and 0xa to 0x0
     for (uint32_t i = 0; i < dwSize; i++) {

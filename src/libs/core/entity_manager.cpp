@@ -19,6 +19,8 @@ using invalid_entity_idx_t = std::integral_constant<size_t, std::numeric_limits<
 
 }
 
+EntityManager::EntityManager(std::shared_ptr<storm::ServiceLocator> const& service_locator) : m_service_locator {service_locator} {}
+
 void EntityManager::EraseAndFree(EntityInternalData& data)
 {
     for (layer_index_t i = 0; i < kMaxLayerNum; ++i) {
@@ -122,7 +124,7 @@ entid_t EntityManager::CreateEntity(char const* name, ATTRIBUTES* attr)
     cache_.UpdateAdd(hash, id);
 
     // then init
-    if (!ptr->Init()) {
+    if (!ptr->Init(m_service_locator)) {
         // remove from cache
         cache_.UpdateErase(hash, id);
 

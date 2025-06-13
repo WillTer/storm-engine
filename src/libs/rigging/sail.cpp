@@ -2,7 +2,8 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>
@@ -15,7 +16,8 @@
 
 #define WIND_SPEED_MAX 12.f
 
-static char const* RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+// FIXME: hardcode
+constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
 void    sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 int     traceSail       = -1;
@@ -195,8 +197,9 @@ SAIL::~SAIL()
     STORM_DELETE(m_sMastName);
 }
 
-bool SAIL::Init()
+bool SAIL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(SAIL::SAIL())
 
     SetDevice();
@@ -296,8 +299,9 @@ void SAIL::Execute(uint32_t Delta_Time)
         int i;
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) {
-            auto ft_new = fio->_GetLastWriteTime(RIGGING_INI_FILE);
+        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        if (fio->exists(file_path)) {
+            auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) {
                 int oldWindQnt = WINDVECTOR_QUANTITY;
                 LoadSailIni();
@@ -900,7 +904,7 @@ void SAIL::AddSailLabel(GEOS::LABEL& lbl, NODE* nod, bool bSailUp)
             SAILONE** oldslist = slist;
             slist              = new SAILONE*[sailQuantity + 1];
             memcpy(slist, oldslist, sizeof(SAILONE*) * sailQuantity);
-            delete oldslist;
+            delete[] oldslist;
         } else
             slist = new SAILONE*[1];
         cs = slist[sailQuantity] = new SAILONE;
@@ -1098,8 +1102,8 @@ void SAIL::SetAllSails()
     if (sg.nVert == 0) return;
     sg.nIndx += 1152;
 
-    if (texl == -1) texl = RenderService->TextureCreate("ships\\parus_hole.tga");
-    if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships\\emptygerald.tga");
+    if (texl == -1) texl = RenderService->TextureCreate("ships/parus_hole.tga");
+    if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships/emptygerald.tga");
 
     sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
     sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
@@ -1147,8 +1151,9 @@ void SAIL::LoadSailIni()
     // GUARD(SAIL::LoadSailIni());
     char section[256], param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
+    auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "SAILS");

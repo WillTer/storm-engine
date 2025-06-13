@@ -2,12 +2,14 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/core/v_file_service.h>
+#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
 
-static char const* RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+// FIXME: hardcode
+constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
 VANT_BASE::VANT_BASE()
 {
@@ -46,8 +48,9 @@ VANT_BASE::~VANT_BASE()
     nVert = nIndx = 0;
 }
 
-bool VANT_BASE::Init()
+bool VANT_BASE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 {
+    Entity::Init(service_locator);
     // GUARD(VANT::VANT())
     SetDevice();
     // UNGUARD
@@ -83,8 +86,9 @@ void VANT_BASE::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) {
-            auto ft_new = fio->_GetLastWriteTime(RIGGING_INI_FILE);
+        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        if (fio->exists(file_path)) {
+            auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) { LoadIni(); }
         }
 
@@ -462,7 +466,7 @@ void VANT_BASE::AddLabel(GEOS::LABEL& lbl, NODE* nod)
             vlist               = new VANTDATA*[vantQuantity + 1];
             if (vlist == nullptr) throw std::runtime_error("Not memory allocate");
             memcpy(vlist, oldvlist, sizeof(VANTDATA*) * vantQuantity);
-            delete oldvlist;
+            delete[] oldvlist;
             vantQuantity++;
         }
 
@@ -543,8 +547,9 @@ void VANT::LoadIni()
     char section[256];
     char param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
+    auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf_s(section, "VANTS");
@@ -613,8 +618,9 @@ void VANTL::LoadIni()
     char section[256];
     char param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
+    auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "VANTS_L");
@@ -683,8 +689,9 @@ void VANTZ::LoadIni()
     char section[256];
     char param[256];
 
-    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE)) { ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE); }
-    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
+    auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
 
     sprintf(section, "VANTS_Z");
