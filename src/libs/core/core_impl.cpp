@@ -1,5 +1,6 @@
 #include "core_impl.h"
 
+#include <algorithm>
 #include <fstream>
 
 #include <SDL2/SDL.h>
@@ -882,8 +883,9 @@ void CoreImpl::register_service(std::weak_ptr<SERVICE> const& service)
     auto const service_shared = service.lock();
     if (!service_shared) { return; }
 
-    if (std::ranges::any_of(
-            m_registered_services, [service_shared](auto const& entry) { return entry.lock() && entry.lock() == service_shared; })) {
+    if (std::any_of(m_registered_services.begin(), m_registered_services.end(), [service_shared](auto const& entry) {
+            return entry.lock() && entry.lock() == service_shared;
+        })) {
         return;
     }
 
@@ -894,9 +896,10 @@ void CoreImpl::unregister_service(std::weak_ptr<SERVICE> const& service)
 {
     auto const service_shared = service.lock();
     m_registered_services.erase(
-        std::ranges::remove_if(
-            m_registered_services, [service_shared](auto const& entry) { return !entry.lock() || entry.lock() == service_shared; })
-            .begin(),
+        std::remove_if(
+            m_registered_services.begin(),
+            m_registered_services.end(),
+            [service_shared](auto const& entry) { return !entry.lock() || entry.lock() == service_shared; }),
         m_registered_services.end());
 }
 
