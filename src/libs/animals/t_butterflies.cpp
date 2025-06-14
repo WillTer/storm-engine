@@ -4,7 +4,9 @@
 #include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/messages.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4244)
+#endif
 
 //--------------------------------------------------------------------
 TButterflies::TButterflies() : enabled(false), yDefineTime(0) {}
