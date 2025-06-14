@@ -199,9 +199,11 @@ void CoreImpl::ProcessEngineIniFile()
 {
     bEngineIniProcessed = true;
 
-    auto&      config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
-    auto const script_info   = storm::main_config::script_info(config_loader);
-    auto const controls_info = storm::main_config::controls_info(config_loader);
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
+
+    auto const script_info   = storm::main_config::script_info(*config_loader);
+    auto const controls_info = storm::main_config::controls_info(*config_loader);
 
     auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
     Compiler->SetProgramDirectory(program_dir.string().c_str());
@@ -218,7 +220,7 @@ void CoreImpl::ProcessEngineIniFile()
 
     core_internal.Controls->Init(m_registry);
 
-    auto const compat_info = storm::main_config::compatibility_info(config_loader);
+    auto const compat_info = storm::main_config::compatibility_info(*config_loader);
     targetVersion_         = compat_info.target_version;
 
     if (!Compiler->CreateProgram(script_info.entry_point.c_str())) { throw std::runtime_error("fail to create program"); }

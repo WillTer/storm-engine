@@ -149,9 +149,10 @@ void LIGHTNING::CalcFlashPower(lightning_t* pL) const
 
     auto fPower = 1.0f;
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
     for (uint32_t i = 0; i < 3; i++) {
-        auto const fRes = collide.Trace(core.GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
+        auto const fRes = collide->Trace(core.GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
         if (fRes <= 1.0f) fPower -= 0.31f;
     }
     pL->fPower = fPower;

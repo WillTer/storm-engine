@@ -174,10 +174,11 @@ void Shadow::Realize(uint32_t Delta_Time)
 
     auto const its = core.GetEntityIds(SHADOW);
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
 
     CVECTOR hdest = headPos + !(headPos - light_pos) * 100.0f;
-    float   ray   = collide.Trace(its, headPos, hdest, nullptr, 0);
+    float   ray   = collide->Trace(its, headPos, hdest, nullptr, 0);
     CVECTOR cen;
     float   radius;
     if (ray <= 1.0f) {
@@ -201,7 +202,7 @@ void Shadow::Realize(uint32_t Delta_Time)
     for (int32_t it = 0; it < 10; it++) {
         CVECTOR ps = ObjPos;
         ps.y += gi.radius * 0.111f * static_cast<float>(it);
-        if (collide.Trace(its, ps, lightPos, nullptr, 0) > 1.0f) minVal += 0.1f;
+        if (collide->Trace(its, ps, lightPos, nullptr, 0) > 1.0f) minVal += 0.1f;
     }
 
     float dtime = Delta_Time * 0.001f;
@@ -321,7 +322,7 @@ void Shadow::Realize(uint32_t Delta_Time)
 
     tot_verts = 0;
     rs->VBLock(vbuff, 0, 0, (uint8_t**)&shadvert, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
-    collide.Clip(its, &planes[0], 5, cen, radius, AddPoly, &entity, 1);
+    collide->Clip(its, &planes[0], 5, cen, radius, AddPoly, &entity, 1);
 
     rs->VBUnlock(vbuff);
 

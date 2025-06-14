@@ -16,9 +16,10 @@ AISeaGoods::AISeaGoods() : TmpItem(), fDistanceMultiply(0)
 
 AISeaGoods::~AISeaGoods()
 {
-    auto& geo = m_registry->ctx().get<VGEOMETRY&>();
+    auto const& geo = m_registry->ctx().get<GeometryPtr>();
+    assert(geo);
     for (auto& aGood: aGoods) {
-        if (aGood->pGeo) geo.DeleteGeometry(aGood->pGeo);
+        if (aGood->pGeo) geo->DeleteGeometry(aGood->pGeo);
         aGood->sModel.clear();
         aGood->aItems.clear();
         STORM_DELETE(aGood);
@@ -127,7 +128,7 @@ uint32_t AISeaGoods::AttributeChanged(ATTRIBUTES* pAttribute)
         aGoods.push_back(pG);
         pG->sModel = sTmpModel;
         pG->aItems.push_back(TmpItem);
-        auto& geo = m_registry->ctx().get<VGEOMETRY&>();
+        auto& geo = *m_registry->ctx().get<GeometryPtr>();
         pG->pGeo  = geo.CreateGeometry((sModelPath + "/" + sTmpModel).c_str(), nullptr, 0);
         return 0;
     }

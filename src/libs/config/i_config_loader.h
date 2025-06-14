@@ -17,3 +17,5 @@ public:
 };
 
 }  // namespace storm
+
+using ConfigLoaderPtr = std::shared_ptr<storm::IConfigLoader>;

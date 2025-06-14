@@ -142,9 +142,10 @@ bool Fader::Init(std::shared_ptr<entt::registry> const& registry)
 
     // read the number of tips, if necessary
     if (!numberOfTips) {
-        auto&      config_loader       = m_registry->ctx().get<storm::IConfigLoader&>();
-        auto const progress_image_info = storm::main_config::progress_image_info(config_loader);
+        auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+        assert(config_loader);
 
+        auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
         numberOfTips = std::clamp(progress_image_info.frame, 0, 1);
     }
     return true;

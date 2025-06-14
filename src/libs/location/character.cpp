@@ -2384,10 +2384,11 @@ void Character::ActionEvent(Animation* animation, int32_t playerIndex, char cons
 
 int32_t Character::PlaySound(char const* soundName, bool isLoop, bool isCached)
 {
-    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    auto const& sound_service = m_registry->ctx().get<SoundServicePtr>();
+    assert(sound_service);
 
     CVECTOR       pos = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
-    int32_t const sID = sound_service.play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+    int32_t const sID = sound_service->play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
     return sID;
 }
 
@@ -2478,7 +2479,7 @@ void Character::SetSoundPosition(int32_t id)
 {
     if (id == SOUND_INVALID_ID) return;
 
-    auto&       sound_service = m_registry->ctx().get<VSoundService&>();
+    auto&       sound_service = *m_registry->ctx().get<SoundServicePtr>();
     CVECTOR     pos           = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
     auto* const location      = GetLocation();
     if (location->supervisor.player) {
@@ -2496,7 +2497,7 @@ void Character::SetSoundPosition(int32_t id)
 
 void Character::ReleaseSound(int32_t id)
 {
-    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    auto& sound_service = *m_registry->ctx().get<SoundServicePtr>();
     if (id != SOUND_INVALID_ID) sound_service.sound_release(id);
 }
 

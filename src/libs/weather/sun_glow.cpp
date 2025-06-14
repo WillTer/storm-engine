@@ -143,8 +143,9 @@ float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
     pWeather->GetVector(whv_sun_pos, &vDst);
     vDst = vSrc + (!vDst) * 10000.0f;
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
-    return collide.Trace(its, vSrc, vDst, nullptr, 0);
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
+    return collide->Trace(its, vSrc, vDst, nullptr, 0);
 }
 
 void SUNGLOW::Realize(uint32_t Delta_Time)

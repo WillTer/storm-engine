@@ -553,15 +553,16 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
 {
     int retVal = 0;
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
 
     // rhea collision
     const CVECTOR vl     = lrey;
     const CVECTOR vr     = rrey;
     const CVECTOR vcentr = (vl + vr) * .5f;
     float         ang    = 0.f;
-    float const   lf     = collide.Trace(mod, vl, vcentr);
-    float const   rf     = collide.Trace(mod, vr, vcentr);
+    float const   lf     = collide->Trace(mod, vl, vcentr);
+    float const   rf     = collide->Trace(mod, vr, vcentr);
 
     if ((lf <= 1.f && rf > 1.f) || (lf > 1.f && rf <= 1.f)) {
         if (lf > 1.f)
@@ -578,7 +579,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
     CVECTOR vb   = pbeg;
     CVECTOR ve   = pend;
     dp           = CVECTOR(0.f, 0.f, 0.f);
-    if ((tmp = collide.Trace(mod, ve, vb)) <= 1.f) {
+    if ((tmp = collide->Trace(mod, ve, vb)) <= 1.f) {
         retVal |= SR_MOVE;
         if (tmp < 0.5f) retVal |= SR_STOPROTATE;
         do {
@@ -613,7 +614,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
                 vb.y += TRACE_ADDING;
                 ve.y += TRACE_ADDING;
             }
-        } while ((tmp = collide.Trace(mod, ve, vb)) <= 1.f);
+        } while ((tmp = collide->Trace(mod, ve, vb)) <= 1.f);
     } else
         return retVal;
 

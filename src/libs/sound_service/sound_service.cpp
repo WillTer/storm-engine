@@ -82,9 +82,11 @@ bool SoundService::Init(std::shared_ptr<entt::registry> const& registry)
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    auto&      config_loader = registry->ctx().get<storm::IConfigLoader&>();
-    auto const sound_info    = storm::main_config::sound_info(config_loader);
-    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
+
+    auto const sound_info = storm::main_config::sound_info(*config_loader);
+    m_fade_time           = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
@@ -395,9 +397,10 @@ void SoundService::load_alias_file(std::string const& filename)
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto& config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
 
-    m_aliases.merge(storm::sound_alias::aliases(config_loader, config_file));
+    m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
 }
 
 void SoundService::init_aliases()
@@ -719,12 +722,14 @@ void SoundService::process_sound_schemes()
 
 void sound_service::run_start(entt::registry& registry)
 {
-    auto& sound_service = registry.ctx().get<VSoundService&>();
-    sound_service.RunStart();
+    auto const& sound_service = registry.ctx().get<SoundServicePtr>();
+    assert(sound_service);
+    sound_service->RunStart();
 }
 
 void sound_service::run_end(entt::registry& registry)
 {
-    auto& sound_service = registry.ctx().get<VSoundService&>();
-    sound_service.RunEnd();
+    auto const& sound_service = registry.ctx().get<SoundServicePtr>();
+    assert(sound_service);
+    sound_service->RunEnd();
 }

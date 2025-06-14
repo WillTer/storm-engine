@@ -192,9 +192,11 @@ bool SEA::Init(std::shared_ptr<entt::registry> const& registry)
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     CreateVertexDeclaration();
 
-    auto&      config_loader = registry->ctx().get<storm::IConfigLoader&>();
-    auto const sea_info      = storm::main_config::sea_info(config_loader);
-    bIniFoamEnable           = sea_info.enable_foam;
+    auto const& config_loader = registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
+
+    auto const sea_info = storm::main_config::sea_info(*config_loader);
+    bIniFoamEnable      = sea_info.enable_foam;
 
     iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 

@@ -48,10 +48,11 @@ void PCS_CONTROLS::Init(std::shared_ptr<entt::registry> const& registry)
 {
     CONTROLS::Init(registry);
 
-    auto&      config_loader = m_registry->ctx().get<IConfigLoader&>();
-    auto const controls_info = main_config::controls_info(config_loader);
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
 
-    m_is_debug_keys_enabled = controls_info.use_debug_keys;
+    auto const controls_info = main_config::controls_info(*config_loader);
+    m_is_debug_keys_enabled  = controls_info.use_debug_keys;
 }
 
 void PCS_CONTROLS::AppState(bool state)

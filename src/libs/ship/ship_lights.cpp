@@ -405,7 +405,9 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
     CVECTOR vCamPos, vCamAng;
     pRS->GetCamera(vCamPos, vCamAng, fFov);
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
+
     for (uint32_t i = 0; i < aLights.size(); i++) {
         ShipLight& L = aLights[i];
 
@@ -438,16 +440,16 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
 
         L.bVisible = true;
 
-        float fDistance  = collide.Trace(core.GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
+        float fDistance  = collide->Trace(core.GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
         L.fFlareAlphaMax = (fDistance >= 1.0f) ? 1.0f : 0.2f;
 
         auto const its   = core.GetEntityIds(SUN_TRACE);
-        fDistance        = collide.Trace(its, L.vCurPos, vCamPos, nullptr, 0);
+        fDistance        = collide->Trace(its, L.vCurPos, vCamPos, nullptr, 0);
         float const fLen = fDistance * sqrtf(~(vCamPos - L.vCurPos));
         L.bVisible       = fDistance >= 1.0f || (fLen < 0.6f);
 
         if (!L.bOff && !L.bLightOff && L.bVisible) {
-            float const fDistance = collide.Trace(its, vCamPos, L.vCurPos, nullptr, 0);
+            float const fDistance = collide->Trace(its, vCamPos, L.vCurPos, nullptr, 0);
             float const fLen      = (1.0f - fDistance) * sqrtf(~(vCamPos - L.vCurPos));
 
             L.bVisible = fLen < 0.6f;

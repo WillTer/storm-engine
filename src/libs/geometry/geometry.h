@@ -36,3 +36,5 @@ public:
 
     virtual void SetCausticMode(bool bSet = false) = 0;
 };
+
+using GeometryPtr = std::shared_ptr<VGEOMETRY>;

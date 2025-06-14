@@ -436,9 +436,11 @@ bool DX9RENDER::Init(std::shared_ptr<entt::registry> const& registry)
 
     create_directories(fs::GetScreenshotsPath());
 
-    auto&      config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
-    auto const window_info   = storm::main_config::window_info(config_loader);
-    auto const device_info   = storm::main_config::device_info(config_loader);
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
+
+    auto const window_info = storm::main_config::window_info(*config_loader);
+    auto const device_info = storm::main_config::device_info(*config_loader);
 
     bPostProcessEnabled = device_info.post_process;  // TODO: check it
 
@@ -527,7 +529,7 @@ bool DX9RENDER::Init(std::shared_ptr<entt::registry> const& registry)
     idFontCurrent = 0L;
 
     // Progress image parameters
-    auto const progress_image_info = storm::main_config::progress_image_info(config_loader);
+    auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
     progressFramesPosX             = progress_image_info.relative_x;
     progressFramesPosY             = progress_image_info.relative_y;
     progressFramesWidth            = std::clamp(progress_image_info.relative_width, 0.0F, 10.0F);

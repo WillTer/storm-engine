@@ -359,7 +359,8 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
     int32_t const iNumPetal = 8;
     int32_t       iNumInner = 0;
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
     for (int32_t i = 0; i < iNumPetal; i++) {
         TRIANGLE trg;
         CVECTOR  vDst, vCross;
@@ -372,7 +373,7 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
         vDst = vSrc + CVECTOR(fCos * fRadius, 0.0f, fSin * fRadius);
         fRes = Trace(vSrc, vDst);
         if (fRes > 1.0f) continue;
-        auto* pEnt = static_cast<MODEL*>(core.GetEntityPointer(collide.GetObjectID()));
+        auto* pEnt = static_cast<MODEL*>(core.GetEntityPointer(collide->GetObjectID()));
         Assert(pEnt);
         pEnt->GetCollideTriangle(trg);
         vCross = !((trg.vrt[1] - trg.vrt[0]) ^ (trg.vrt[2] - trg.vrt[0]));
@@ -749,8 +750,9 @@ float ISLAND::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTO
 
 float ISLAND::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
 {
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
-    return collide.Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0);
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
+    return collide->Trace(core.GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0);
 }
 
 // Path section

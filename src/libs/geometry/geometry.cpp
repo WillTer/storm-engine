@@ -64,9 +64,11 @@ bool GEOMETRY::Init(std::shared_ptr<entt::registry> const& registry)
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
-    auto&      config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
-    auto const device_info   = storm::main_config::device_info(config_loader);
-    geoLog                   = device_info.geometry_log;
+    auto const& config_loader = m_registry->ctx().get<ConfigLoaderPtr>();
+    assert(config_loader);
+
+    auto const device_info = storm::main_config::device_info(*config_loader);
+    geoLog                 = device_info.geometry_log;
 
     return true;
 }

@@ -565,7 +565,9 @@ void Player::FireFromShootgun()
     auto const src = mtx.Pos() + mtx.Vz() * 0.7f;
     core.Send_Message(effects, "sffffff", "SGFireParticles", src.x, src.y - 0.35f, src.z, mtx.Vz().x, mtx.Vz().y, mtx.Vz().z);
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
+
     struct ChrsDmg {
         Character* chr;
         float      dmg;
@@ -581,12 +583,12 @@ void Player::FireFromShootgun()
         auto       dst = mtx * CVECTOR(r * sinf(a), r * cosf(a), 25.0f);
 
         auto       id   = GetId();
-        auto const dist = collide.Trace(ids, src, dst, &id, 0);
+        auto const dist = collide->Trace(ids, src, dst, &id, 0);
         if (dist <= 1.0f && dist > (0.2f / 25.0f)) {
             auto dir = !(src - dst);
             dst      = src + (dst - src) * dist;
             // Got somewhere
-            auto* const e = core.GetEntityPointer(collide.GetObjectID());
+            auto* const e = core.GetEntityPointer(collide->GetObjectID());
             if (e && e != this) {
                 int32_t nm;
                 size_t  n;

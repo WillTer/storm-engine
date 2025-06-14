@@ -118,3 +118,5 @@ namespace sound_service
 void run_start(entt::registry& registry);
 void run_end(entt::registry& registry);
 }  // namespace sound_service
+
+using SoundServicePtr = std::shared_ptr<VSoundService>;

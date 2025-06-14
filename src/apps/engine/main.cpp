@@ -71,15 +71,15 @@ int main()
 
     auto const registry = std::make_shared<entt::registry>();
 
-    auto const config_loader = std::make_unique<storm::ConfigLoader>(*fio);
-    auto const sound_service = std::make_unique<SoundService>();
-    auto const collide       = std::make_unique<COLL>();
-    // auto const geometry      = std::make_unique<GEOMETRY>();
+    auto const config_loader = std::make_shared<storm::ConfigLoader>(*fio);
+    auto const sound_service = std::make_shared<SoundService>();
+    auto const collide       = std::make_shared<COLL>();
+    // auto const geometry      = std::make_shared<GEOMETRY>();
 
-    registry->ctx().emplace<storm::IConfigLoader&>(*config_loader);
-    registry->ctx().emplace<VSoundService&>(*sound_service).Init(registry);
-    registry->ctx().emplace<COLLIDE&>(*collide).Init(registry);
-    // registry->ctx().emplace<VGEOMETRY&>(*geometry).Init(registry);
+    registry->ctx().insert_or_assign<ConfigLoaderPtr>(config_loader);
+    registry->ctx().insert_or_assign<SoundServicePtr>(sound_service)->Init(registry);
+    registry->ctx().insert_or_assign<CollidePtr>(collide)->Init(registry);
+    // registry->ctx().insert_or_assign<GeometryPtr>(geometry)->Init(registry);
 
     entt::organizer execute_start;
     execute_start.emplace<&sound_service::run_start>("VSoundService::RunStart");

@@ -657,9 +657,10 @@ void DIALOG::Realize(uint32_t Delta_Time)
     }
 
     // play speech
-    auto& snd = m_registry->ctx().get<VSoundService&>();
+    auto const& snd = m_registry->ctx().get<SoundServicePtr>();
+    assert(snd);
     if (play == 0 && soundName[0]) {
-        curSnd = snd.play(soundName, SoundType::SoundStereo, VolumeType::Speech);
+        curSnd = snd->play(soundName, SoundType::SoundStereo, VolumeType::Speech);
         play   = 1;
     }
 
@@ -705,7 +706,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     // go up (to the previous line)
     if (bDoUp) {
         // play click of the pressed key
-        snd.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+        snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 
         if (m_DlgText.IsLastPage()) {
             if (linkDescribe_.CanMoveUp()) {
@@ -717,7 +718,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     // go down - to the next line
     if (bDoDown) {
         // play click of the pressed key
-        snd.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+        snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 
         if (m_DlgText.IsLastPage()) {
             if (linkDescribe_.CanMoveDown()) {
@@ -729,7 +730,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     // page up
     core.Controls->GetControlState("DlgScrollUp", cs);
     if (cs.state == CST_ACTIVATED) {
-        snd.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+        snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
         if (m_DlgText.currentLine_ > 0) {
             m_DlgText.PrevPage();
             UpdateDlgViewport();
@@ -740,7 +741,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     // page down
     core.Controls->GetControlState("DlgScrollDown", cs);
     if (cs.state == CST_ACTIVATED) {
-        snd.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+        snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
         if (!m_DlgText.IsLastPage()) {
             m_DlgText.NextPage();
             UpdateDlgViewport();
@@ -756,7 +757,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     if (cs.state == CST_ACTIVATED || cs2.state == CST_ACTIVATED || cs1.state == CST_ACTIVATED)  // boal
     {
         // play click of the pressed key
-        snd.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+        snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 
         if (m_DlgText.IsLastPage()) {
             // showing answer options
@@ -805,7 +806,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
     if (m_DlgText.IsLastPage())
         linkDescribe_.Show(static_cast<int32_t>(textViewport.Y + m_BackParams.nDividerOffsetY + m_BackParams.nDividerHeight));
 
-    if (!snd.is_playing(curSnd)) {
+    if (!snd->is_playing(curSnd)) {
         // stop animation
         if (play == 1)  // if person speech
             play = -1;

@@ -87,7 +87,8 @@ void TButterflies::Execute(uint32_t _dTime)
 
     auto const its = core.GetEntityIds(SHADOW);
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
 
     // redefine minY
     yDefineTime += _dTime;
@@ -99,7 +100,7 @@ void TButterflies::Execute(uint32_t _dTime)
             topVector.y                    = ALL_Y;
             bottomVector.y                 = -ALL_Y;
 
-            if (auto const ray = collide.Trace(its, topVector, bottomVector, nullptr, 0); ray <= 1.0f) {
+            if (auto const ray = collide->Trace(its, topVector, bottomVector, nullptr, 0); ray <= 1.0f) {
                 butterflies[i].SetMinY(-ALL_Y + (1.f - ray) * 2.f * ALL_Y);
             } else {
                 butterflies[i].SetMinY(-ALL_Y);
@@ -111,7 +112,7 @@ void TButterflies::Execute(uint32_t _dTime)
     ivManager->LockBuffers();
 
     for (i = 0; i < butterfliesCount; i++) {
-        butterflies[i].Calculate(_dTime, collide, its);
+        butterflies[i].Calculate(_dTime, *collide, its);
         butterflies[i].Draw(ivManager);
         // butterflies[i].Draw(renderService);
     }

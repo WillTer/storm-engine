@@ -220,10 +220,11 @@ void Lights::Realize(uint32_t delta_time)
         if (!isVisible) continue;
 
         // Visibility
-        auto& collide = m_registry->ctx().get<COLLIDE&>();
+        auto const& collide = m_registry->ctx().get<CollidePtr>();
+        assert(collide);
         {
             auto const dist =
-                collide.Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
+                collide->Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
             isVisible = dist > 1.0f;
         }
         ls.corona += isVisible ? 0.008f * delta_time : -0.008f * delta_time;

@@ -719,7 +719,8 @@ void SHIP::Execute(uint32_t DeltaTime)
 
     auto matrix = UpdateModelMatrix();
 
-    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto const& collide = m_registry->ctx().get<CollidePtr>();
+    assert(collide);
 
     // activate mast tracer
     if (dtMastTrace.Update(fDeltaTime)) {
@@ -734,10 +735,10 @@ void SHIP::Execute(uint32_t DeltaTime)
                 v2       = matrix * pM->vDst;
 
                 auto id  = GetId();
-                fShipRes = collide.Trace(core.GetEntityIds(MAST_SHIP_TRACE), v1, v2, &id, 1);
+                fShipRes = collide->Trace(core.GetEntityIds(MAST_SHIP_TRACE), v1, v2, &id, 1);
                 if (fShipRes <= 1.0f) {
                     auto* pACollideCharacter = GetACharacter();
-                    auto* pShip              = static_cast<SHIP*>(core.GetEntityPointer(collide.GetObjectID()));
+                    auto* pShip              = static_cast<SHIP*>(core.GetEntityPointer(collide->GetObjectID()));
                     if (pShip) pACollideCharacter = pShip->GetACharacter();
                     pV = core.Event(
                         SHIP_MAST_DAMAGE,
@@ -754,7 +755,7 @@ void SHIP::Execute(uint32_t DeltaTime)
                 }
 
                 id      = GetModelEID();
-                fIslRes = collide.Trace(core.GetEntityIds(MAST_ISLAND_TRACE), v1, v2, &id, 1);
+                fIslRes = collide->Trace(core.GetEntityIds(MAST_ISLAND_TRACE), v1, v2, &id, 1);
                 if (fIslRes <= 1.0f) {
                     pV = core.Event(
                         SHIP_MAST_DAMAGE, "llffffa", SHIP_MAST_TOUCH_ISLAND, pM->iMastNum, v1.x, v1.y, v1.z, pM->fDamage, GetACharacter());

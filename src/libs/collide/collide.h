@@ -48,3 +48,5 @@ public:
 
     virtual entid_t GetObjectID() = 0;
 };
+
+using CollidePtr = std::shared_ptr<COLLIDE>;

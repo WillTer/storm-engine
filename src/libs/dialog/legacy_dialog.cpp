@@ -177,9 +177,10 @@ void LegacyDialog::Realize(uint32_t deltaTime)
 {
     Unfade();
 
-    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    auto const& sound_service = m_registry->ctx().get<SoundServicePtr>();
+    assert(sound_service);
     if (soundState_ == SOUND_STARTING && !soundName_.empty()) {
-        currentSound_ = sound_service.play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
+        currentSound_ = sound_service->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
         if (currentSound_) {
             SetAction("dialog_all");
             soundState_ = SOUND_PLAYING;
@@ -225,7 +226,7 @@ void LegacyDialog::Realize(uint32_t deltaTime)
     // Head overlay
     DrawBackground(0, 2);
 
-    if (soundState_ == SOUND_PLAYING && !sound_service.is_playing(currentSound_)) {
+    if (soundState_ == SOUND_PLAYING && !sound_service->is_playing(currentSound_)) {
         SetAction("dialog_idle");
         soundState_ = SOUND_STOPPED;
     }
@@ -700,8 +701,9 @@ void LegacyDialog::ProcessControls()
 
 void LegacyDialog::PlayTick()
 {
-    auto& sound_service = m_registry->ctx().get<VSoundService&>();
-    sound_service.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+    auto const& sound_service = m_registry->ctx().get<SoundServicePtr>();
+    assert(sound_service);
+    sound_service->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 }
 
 void LegacyDialog::Unfade()
