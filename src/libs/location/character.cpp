@@ -19,6 +19,9 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/util/string_compare.hpp>
+#ifdef _DEBUG
+#include <libs/util/debug-trap.h>
+#endif
 
 #include "characters_groups.h"
 #include "lights.h"
