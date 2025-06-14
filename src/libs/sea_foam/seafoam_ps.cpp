@@ -63,7 +63,7 @@ SEAFOAM_PS::~SEAFOAM_PS()
     if (RenderService) {
         for (n = 0; n < TexturesNum; n++)
             RenderService->TextureRelease(TextureID[n]);
-        // core.FreeService("dx9render");
+        // core->FreeService("dx9render");
     }
     delete Particle;
     Particle = nullptr;
@@ -148,10 +148,10 @@ bool SEAFOAM_PS::Init(INIFILE* ini, char const* psname)
     bool    bRes;
 
     // load render service -----------------------------------------------------
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     // if(!gs) return false;
 
     // read textures ------------------------------------------------------------
@@ -172,7 +172,7 @@ bool SEAFOAM_PS::Init(INIFILE* ini, char const* psname)
     }
 
     if (!ini->ReadString(psname, PSKEY_TECHNIQUE, string, sizeof(string), "")) {
-        core.Trace("Particle system: %s", psname);
+        core->Trace("Particle system: %s", psname);
         throw std::runtime_error("no technique for particle system");
     }
     auto const len = strlen(string) + 1;
@@ -415,7 +415,7 @@ void SEAFOAM_PS::Execute(uint32_t DeltaTime)
     if(bLinkEmitter)
     {
       COLLISION_OBJECT * pLink;
-      pLink = (COLLISION_OBJECT *)core.GetEntityPointer(LinkObject);
+      pLink = (COLLISION_OBJECT *)core->GetEntityPointer(LinkObject);
       if(pLink)
       {
         Emitter = pLink->mtx * LinkPos;
@@ -434,7 +434,7 @@ void SEAFOAM_PS::LayOnSurface(uint32_t index)
     COLLISION_OBJECT* pLink;
     CVECTOR           from, to;
     float             dist;
-    pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(SurfaceID));
+    pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(SurfaceID));
     if (pLink == nullptr) return;
     from                  = Particle[index].pos;
     to                    = from;
@@ -453,7 +453,7 @@ void SEAFOAM_PS::Realize(uint32_t DeltaTime)
 
     if (bLinkEmitter) {
         COLLISION_OBJECT* pLink;
-        pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(LinkObject));
+        pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(LinkObject));
         if (pLink) {
             Emitter          = pLink->mtx * LinkPos;
             EmitterDirection = pLink->mtx * LinkDirPos;
@@ -592,7 +592,7 @@ void SEAFOAM_PS::ProcessParticles(uint32_t DeltaTime)
         // bComplete = false;    // still have particles to run
     }
 
-    // core.Trace("Delta: %d",DeltaTime);
+    // core->Trace("Delta: %d",DeltaTime);
 
     DeltaTimeSLE += DeltaTime;
     if (DeltaTimeSLE >= (EmissionTime + CurrentEmissionTimeRand)) {
@@ -767,7 +767,7 @@ void SEAFOAM_PS::LinkToObject(entid_t id, CVECTOR _LinkPos)
     LinkDirPos   = LinkPos + LinkDir;
 
     COLLISION_OBJECT* pLink;
-    pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(LinkObject));
+    pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(LinkObject));
     if (pLink) Emitter = pLink->mtx * LinkPos;
 
     for (n = 0; n < ParticlesNum; n++) {
@@ -801,7 +801,7 @@ void SEAFOAM_PS::SetFlowTrack(uint32_t index)
     Particle[index].ang = !dest;
     auto const dist     = ~dest;
     if (dist < fTrackPointRadius) { Particle[index].flow_track_index++; }
-    // if(index==0)core.Trace("track: %d",Particle[index].flow_track_index);
+    // if(index==0)core->Trace("track: %d",Particle[index].flow_track_index);
 }
 
 void SEAFOAM_PS::UseSurface(entid_t surface_id)

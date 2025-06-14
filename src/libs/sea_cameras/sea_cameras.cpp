@@ -39,7 +39,7 @@ uint64_t SEA_CAMERAS::ProcessMessage(MESSAGE& message)
     switch (message.Long()) {
     case AI_CAMERAS_ADD_CAMERA: {
         auto const eidCamera = message.EntityID();
-        auto*      pCamera   = static_cast<COMMON_CAMERA*>(core.GetEntityPointer(eidCamera));
+        auto*      pCamera   = static_cast<COMMON_CAMERA*>(core->GetEntityPointer(eidCamera));
         // if (CamerasArray.Find(pCamera) == INVALID_ARRAY_INDEX) CamerasArray.Add(pCamera);
         auto const it = std::find(CamerasArray.begin(), CamerasArray.end(), pCamera);
         if (it == CamerasArray.end()) CamerasArray.push_back(pCamera);
@@ -49,7 +49,7 @@ uint64_t SEA_CAMERAS::ProcessMessage(MESSAGE& message)
     case AI_CAMERAS_SET_CAMERA: {
         auto const  eidCamera   = message.EntityID();
         auto* const pACharacter = message.AttributePointer();
-        auto*       pCamera     = static_cast<COMMON_CAMERA*>(core.GetEntityPointer(eidCamera));
+        auto*       pCamera     = static_cast<COMMON_CAMERA*>(core->GetEntityPointer(eidCamera));
         // if (CamerasArray.Find(pCamera) == INVALID_ARRAY_INDEX) CamerasArray.Add(pCamera);
         auto const it = std::find(CamerasArray.begin(), CamerasArray.end(), pCamera);
         if (it == CamerasArray.end()) CamerasArray.push_back(pCamera);

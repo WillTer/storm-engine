@@ -130,4 +130,4 @@ public:
     CONTROLS* Controls {};
 };
 
-extern Core& core;
+extern std::shared_ptr<Core> core;

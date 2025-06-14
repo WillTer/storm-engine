@@ -177,26 +177,26 @@ void GIEditorList::DoKeyChecking()
 {
     CONTROL_STATE cs;
 
-    core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
     if (cs.state == CST_ACTIVATED) {
         IncrementSelectedLine(true);
         m_fDownPressTime = 0.f;
     } else if (cs.state == CST_ACTIVE) {
         if (m_fDownPressTime < m_fKeyRepeatDelay) {
-            m_fDownPressTime += core.GetDeltaTime() * .001f;
+            m_fDownPressTime += core->GetDeltaTime() * .001f;
         } else {
             IncrementSelectedLine(true);
             m_fDownPressTime = m_fKeyRepeatDelay - m_fKeyRepeatInterval;
         }
     }
 
-    core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
     if (cs.state == CST_ACTIVATED) {
         IncrementSelectedLine(false);
         m_fUpPressTime = 0.f;
     } else if (cs.state == CST_ACTIVE) {
         if (m_fUpPressTime < m_fKeyRepeatDelay) {
-            m_fUpPressTime += core.GetDeltaTime() * .001f;
+            m_fUpPressTime += core->GetDeltaTime() * .001f;
         } else {
             IncrementSelectedLine(false);
             m_fUpPressTime = m_fKeyRepeatDelay - m_fKeyRepeatInterval;

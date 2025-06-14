@@ -38,9 +38,9 @@ bool AIHelper::Uninit()
 
 bool AIHelper::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     Assert(pCollide);
 
     return true;
@@ -48,7 +48,7 @@ bool AIHelper::SetDevice()
 
 bool AIHelper::Init() const
 {
-    pIsland = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
+    pIsland = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("island")));
 
     return true;
 }
@@ -90,7 +90,7 @@ void AIHelper::CalculateRelations()
     for (y = 0; y < dwRelationSize; y++)
         for (x = 0; x < dwRelationSize; x++)
             if (x != y) {
-                auto* pData = core.Event(GET_RELATION_EVENT, "ll", GetIndex(aMainCharacters[y]), GetIndex(aMainCharacters[x]));
+                auto* pData = core->Event(GET_RELATION_EVENT, "ll", GetIndex(aMainCharacters[y]), GetIndex(aMainCharacters[x]));
                 Assert(pData);
                 *GetRelation(y, x) = static_cast<uint32_t>(pData->GetInt());
             } else {

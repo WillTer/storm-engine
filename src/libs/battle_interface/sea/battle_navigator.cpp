@@ -467,13 +467,13 @@ void BATTLE_NAVIGATOR::Init(VDX9RENDER* RenderService, Entity* pOwnerEI)
     m_dwDamagedCannon = ARGB(255, 64, 64, 64);
 
     // maximum wind speed
-    m_fWindMaxStrength = core.Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "MaxWind", 30.f);
+    m_fWindMaxStrength = core->Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "MaxWind", 30.f);
     // maximum ship speed
-    m_fMaxShipSpeed = core.Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "MaxShipSpeed", 20.f);
+    m_fMaxShipSpeed = core->Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "MaxShipSpeed", 20.f);
     //
-    m_fShipSpeedScale = core.Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "ShipSpeedScaler", 1.f);
+    m_fShipSpeedScale = core->Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "ShipSpeedScaler", 1.f);
 
-    auto* const pARoot = core.Entity_GetAttributeClass(BIUtils::idBattleInterface, "navigation");
+    auto* const pARoot = core->Entity_GetAttributeClass(BIUtils::idBattleInterface, "navigation");
 
     m_fAspectRatio = BIUtils::GetFloatFromAttr(pARoot, "aspectRatio", 1.f);
 
@@ -1271,8 +1271,8 @@ void BATTLE_NAVIGATOR::SetIsland()
     float   islSize = 0;
 
     MODEL* pM   = nullptr;
-    auto*  pIsl = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("ISLAND")));
-    if (pIsl != nullptr) { pM = static_cast<MODEL*>(core.GetEntityPointer(pIsl->GetModelEID())); }
+    auto*  pIsl = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("ISLAND")));
+    if (pIsl != nullptr) { pM = static_cast<MODEL*>(core->GetEntityPointer(pIsl->GetModelEID())); }
     if (pM != nullptr) {
         pM->Update();
         // Get island size
@@ -1369,7 +1369,7 @@ void BATTLE_NAVIGATOR::UpdateMiniMap()
 
 void BATTLE_NAVIGATOR::UpdateCurrentCharge()
 {
-    VDATA* pVD = core.Event("GetCurrentCharge");
+    VDATA* pVD = core->Event("GetCurrentCharge");
     if (pVD == nullptr) return;
     int32_t curCharge      = m_curCharge;
     int32_t curSailState   = m_curSailState;
@@ -1442,9 +1442,9 @@ void BATTLE_NAVIGATOR::UpdateCurrentCharge()
 void BATTLE_NAVIGATOR::UpdateWindParam()
 {
     if (!m_wb && !m_pAWeather) {
-        m_wb = static_cast<WEATHER_BASE*>(core.GetEntityPointer(core.GetEntityId("weather")));
-        /*if( core.IsNetActive() && !m_wb && m_pOwnerEI ) {
-          VDATA * pSVWeather = (VDATA*)core.GetScriptVariable((m_pOwnerEI->IsServer()) ? "NSWeather" : "NCWeather");
+        m_wb = static_cast<WEATHER_BASE*>(core->GetEntityPointer(core->GetEntityId("weather")));
+        /*if( core->IsNetActive() && !m_wb && m_pOwnerEI ) {
+          VDATA * pSVWeather = (VDATA*)core->GetScriptVariable((m_pOwnerEI->IsServer()) ? "NSWeather" : "NCWeather");
         Assert(pSVWeather); m_pAWeather = pSVWeather->GetAClass(); Assert(m_pAWeather);
         }*/
     }

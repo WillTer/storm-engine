@@ -85,12 +85,12 @@ ShipMan::ShipMan()
 
 ShipMan::~ShipMan()
 {
-    core.EraseEntity(this->modelID);
+    core->EraseEntity(this->modelID);
 }
 
 void ShipMan::SetPos(MODEL* ship, SHIP_BASE* ship_base, uint32_t& dltTime, ShipState& shipState)
 {
-    if (auto model = static_cast<MODEL*>(core.GetEntityPointer(modelID))) {
+    if (auto model = static_cast<MODEL*>(core->GetEntityPointer(modelID))) {
         if (ship_base && (shipState.dead || jumpSpeedY)) {
             // If got in the water - detach from the ship and swim
             if (!inWater && model->mtx.Pos().y < shipState.sea->WaveXZ(model->mtx.Pos().x, model->mtx.Pos().z) - 1.4f) {
@@ -315,7 +315,7 @@ void ShipMan::ApplyTargetPoint(CVECTOR pt, bool randomWalk)
 
 bool ShipMan::MoveToPosition(uint32_t& dltTime, SailorsPoints& sailorsPoints, ShipState& shipState)
 {
-    if (auto const model = static_cast<MODEL*>(core.GetEntityPointer(modelID))) {
+    if (auto const model = static_cast<MODEL*>(core->GetEntityPointer(modelID))) {
         auto const dNow = SQR(pos.x - ptTo.x) + SQR(pos.y - ptTo.y) + SQR(pos.z - ptTo.z);
 
         auto const dFuture =
@@ -386,7 +386,7 @@ bool ShipMan::Swim(uint32_t& dltTime, SailorsPoints& sailorsPoints, ShipState& s
 
 bool ShipMan::Stay(uint32_t& dltTime, SailorsPoints& sailorsPoints) const
 {
-    if (auto const model = static_cast<MODEL*>(core.GetEntityPointer(modelID))) { return (!model->GetAnimation()->Player(0).IsPlaying()); }
+    if (auto const model = static_cast<MODEL*>(core->GetEntityPointer(modelID))) { return (!model->GetAnimation()->Player(0).IsPlaying()); }
 
     return false;
 }
@@ -414,7 +414,7 @@ bool ShipMan::Jump(uint32_t& dltTime, SailorsPoints& sailorsPoints, ShipState& s
 
 void ShipMan::SetAnimation(uint32_t dltTime, ShipState& shipState)
 {
-    if (auto const model = static_cast<MODEL*>(core.GetEntityPointer(modelID))) {
+    if (auto const model = static_cast<MODEL*>(core->GetEntityPointer(modelID))) {
         if (auto const ani = model->GetAnimation(); mode == lastMode && ani && ani->Player(0).IsPlaying()) return;
 
         switch (mode) {
@@ -624,11 +624,11 @@ void ShipWalk::CreateNewMan(SailorsPoints& sailorsPoints)
     if (std::size(shipMan) >= 50 || !sailorsPoints.points.count) { return; }
 
     auto& man    = shipMan.emplace_back();
-    man.modelID  = core.CreateEntity("MODELR");
+    man.modelID  = core->CreateEntity("MODELR");
     int modelIdx = rand() % std::size(shipManModels_);
-    core.Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_GEO, shipManModels_[modelIdx].c_str());
+    core->Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_GEO, shipManModels_[modelIdx].c_str());
 
-    if (!core.Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_ANI, "Lo_Man")) { throw std::runtime_error("cannot load animation 'Lo_Man'"); }
+    if (!core->Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_ANI, "Lo_Man")) { throw std::runtime_error("cannot load animation 'Lo_Man'"); }
 
     man.SetAnimation(0, shipState);
 
@@ -649,13 +649,13 @@ bool ShipWalk::Init(entid_t _shipID, int editorMode, char const* shipType, std::
     bHide  = false;
     shipID = _shipID;
 
-    auto const seaID = core.GetEntityId("sea");
-    shipState.sea    = static_cast<SEA_BASE*>(core.GetEntityPointer(seaID));
+    auto const seaID = core->GetEntityId("sea");
+    shipState.sea    = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
     if (!editorMode) {
         // Game mode - ship created
 
-        ship      = static_cast<SHIP_BASE*>(core.GetEntityPointer(_shipID));
+        ship      = static_cast<SHIP_BASE*>(core->GetEntityPointer(_shipID));
         shipModel = ship->GetModel();
 
         // Load points
@@ -801,10 +801,10 @@ Sailors::Sailors() : rs(nullptr)
 
 bool Sailors::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
 
-    core.SetLayerType(SEA_REALIZE, layer_type_t::realize);
-    core.AddToLayer(SEA_REALIZE, GetId(), 65530);
+    core->SetLayerType(SEA_REALIZE, layer_type_t::realize);
+    core->AddToLayer(SEA_REALIZE, GetId(), 65530);
 
     return true;
 }
@@ -818,7 +818,7 @@ void Sailors::Realize(uint32_t dltTime)
     rs->SetRenderState(D3DRS_LIGHTING, true);
 
 #ifdef SAILORS_DEBUG
-    if (core.Controls->GetDebugAsyncKeyState(VK_F7) < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_F7) < 0) {
         for (int i = 0; i < shipsCount; i++) {
             shipWalk[i].SetMastBroken(3);
             shipWalk[i].SetMastBroken(2);
@@ -841,7 +841,7 @@ void Sailors::Realize(uint32_t dltTime)
             man.SetPos(walk->shipModel, walk->ship, dltTime, walk->shipState);
 
             if (!walk->bHide) {
-                if (auto const model = static_cast<MODEL*>(core.GetEntityPointer(man.modelID))) {
+                if (auto const model = static_cast<MODEL*>(core->GetEntityPointer(man.modelID))) {
                     model->ProcessStage(Entity::Stage::realize, dltTime);
                 }
             }
@@ -900,7 +900,7 @@ uint64_t Sailors::ProcessMessage(MESSAGE& message)
         auto& walk = shipWalk.emplace_back();
         if (!walk.Init(shipID, editorMode, c.c_str(), std::move(shipManModels))) {
             shipWalk.pop_back();
-            core.Trace("Sailors: cannot init %s", c.c_str());
+            core->Trace("Sailors: cannot init %s", c.c_str());
             return 0;
         }
         break;

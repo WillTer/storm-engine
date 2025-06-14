@@ -24,16 +24,16 @@ BLAST::~BLAST()
 
 bool BLAST::Init()
 {
-    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     if (!gs) return false;
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) return false;
 
     //    int32_t n;
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 
@@ -45,7 +45,7 @@ bool BLAST::Init()
         AddGeometry(name, RandomNum * rand() / RAND_MAX + 1);
     }
 
-    Splash = core.GetEntityId("BallSplash");
+    Splash = core->GetEntityId("BallSplash");
 
     return true;
 }
@@ -102,9 +102,9 @@ void BLAST::ProcessTime(uint32_t DT)
     uint32_t n;
     float    res;
 
-    if (!core.GetEntityPointer(sea_eid)) {
-        sea_eid = core.GetEntityId("sea");
-        pSea    = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(sea_eid));
+    if (!core->GetEntityPointer(sea_eid)) {
+        sea_eid = core->GetEntityId("sea");
+        pSea    = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(sea_eid));
     }
 
     auto const Delta_Time = static_cast<float>(DT);  //*0.1;
@@ -136,7 +136,7 @@ void BLAST::ProcessTime(uint32_t DT)
             } else {
                 if (Item[n].pos.y < 0) {
                     Item[n].bEffect = true;
-                    // core.Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
+                    // core->Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
                 }
             }
         }
@@ -145,12 +145,12 @@ void BLAST::ProcessTime(uint32_t DT)
         if(Item[n].pos.y < 0 && !Item[n].bEffect)
         {
           Item[n].bEffect = true;
-          //core.Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
+          //core->Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
 
         }*/
     }
 
-    if (bStop) core.EraseEntity(GetId());
+    if (bStop) core->EraseEntity(GetId());
 }
 
 uint64_t BLAST::ProcessMessage(MESSAGE& message)

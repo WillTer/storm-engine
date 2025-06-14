@@ -17,7 +17,7 @@ WEATHER::~WEATHER()
 
 void WEATHER::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
 
     // LoadWeatherIni();
@@ -74,14 +74,14 @@ void WEATHER::Execute(uint32_t Delta_Time)
     */
     if (fFloats[whf_time_speed] != 0.f) {
         auto const fOldTimer = fFloats[whf_time_counter];
-        fFloats[whf_time_counter] += core.GetDeltaTime() * fFloats[whf_time_speed];
+        fFloats[whf_time_counter] += core->GetDeltaTime() * fFloats[whf_time_speed];
         // change of day
         if (fFloats[whf_time_counter] > 24.f) fFloats[whf_time_counter] -= 24.f;
 
         UpdateSunMoonPos();
 
         if (static_cast<int32_t>(fFloats[whf_time_counter] * fUpdateFrequence) != static_cast<int32_t>(fOldTimer * fUpdateFrequence)) {
-            core.Event("WeatherTimeUpdate", "f", fFloats[whf_time_counter]);
+            core->Event("WeatherTimeUpdate", "f", fFloats[whf_time_counter]);
         }
         // updating date in scripts
         // if( fFloats[whf_time_counter] fOldTimer
@@ -236,7 +236,7 @@ void WEATHER::CleanUP()
 
     SetCommonStates();
 
-    core.Trace("Weather: Load ini complete");
+    core->Trace("Weather: Load ini complete");
 }*/
 
 void WEATHER::SetCommonStates()

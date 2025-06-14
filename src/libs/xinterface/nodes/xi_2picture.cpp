@@ -160,7 +160,7 @@ bool CXI_TWOPICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 
 void CXI_TWOPICTURE::UpdateRectangles()
 {
-    auto* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    auto* pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (m_bLeftSelect) {
         SetRectanglePos(m_vOne, m_leftPicCenter + m_PressOffset, m_picSize);
         SetRectanglePos(m_vSOne, m_leftPicCenter + m_PressOffset + m_PressShadowOffset, m_picSize);
@@ -234,7 +234,7 @@ void CXI_TWOPICTURE::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 

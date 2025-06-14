@@ -71,7 +71,7 @@ TMPTELEPORT::~TMPTELEPORT()
 
 bool TMPTELEPORT::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     m_leftPos         = 20;
@@ -87,11 +87,11 @@ bool TMPTELEPORT::Init()
 void TMPTELEPORT::Execute(uint32_t Delta_Time)
 {
     CONTROL_STATE cs;
-    if (!static_cast<PCS_CONTROLS*>(core.Controls)->m_is_debug_keys_enabled) return;
-    core.Controls->GetControlState("TeleportActive", cs);
+    if (!static_cast<PCS_CONTROLS*>(core->Controls)->m_is_debug_keys_enabled) return;
+    core->Controls->GetControlState("TeleportActive", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nShowType == 0) {
-            core.Event("TeleportStart", "");
+            core->Event("TeleportStart", "");
             m_nShowType = 1;
         } else {
             ReleaseAll();
@@ -99,11 +99,11 @@ void TMPTELEPORT::Execute(uint32_t Delta_Time)
         }
     }
     int32_t csVal;
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)
         csVal = CST_ACTIVE;
     else
         csVal = CST_ACTIVATED;
-    core.Controls->GetControlState("TeleportUp", cs);
+    core->Controls->GetControlState("TeleportUp", cs);
     if (cs.state == csVal) {
         if (m_nStrQuantity > 0) {
             if (m_nCurShowPos > 0)
@@ -112,7 +112,7 @@ void TMPTELEPORT::Execute(uint32_t Delta_Time)
                 m_nCurStr--;
         }
     }
-    core.Controls->GetControlState("TeleportDown", cs);
+    core->Controls->GetControlState("TeleportDown", cs);
     if (cs.state == csVal) {
         if (m_nStrQuantity > 0) {
             if (m_nCurStr + m_nCurShowPos < m_nStrQuantity - 1) {
@@ -124,12 +124,12 @@ void TMPTELEPORT::Execute(uint32_t Delta_Time)
             }
         }
     }
-    core.Controls->GetControlState("TeleportSelect", cs);
+    core->Controls->GetControlState("TeleportSelect", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nStrQuantity > 0) {
             int32_t const n = m_descrArray[m_nCurStr + m_nCurShowPos].num;
             ReleaseAll();
-            core.Event("TeleportChoose", "l", n);
+            core->Event("TeleportChoose", "l", n);
         }
     }
 }
@@ -250,7 +250,7 @@ bool FINDFILESINTODIRECTORY::Init()
         }
         return true;
     }
-    core.Trace("Attributes Pointer into class FINDFILESINTODIRECTORY = NULL");
+    core->Trace("Attributes Pointer into class FINDFILESINTODIRECTORY = NULL");
     return false;
 }
 
@@ -262,19 +262,19 @@ bool FINDDIALOGNODES::Init()
         if (fileName && pA) {
             auto fileS = fio->open_file<std::ifstream>(fileName, std::ios::binary);
             if (!fileS.is_open()) {
-                core.Trace("WARNING! Can`t dialog file %s", fileName);
+                core->Trace("WARNING! Can`t dialog file %s", fileName);
                 return false;
             }
 
             int32_t const filesize = fio->file_size(fileName);
             if (filesize == 0) {
-                core.Trace("Empty dialog file %s", fileName);
+                core->Trace("Empty dialog file %s", fileName);
                 return false;
             }
 
             auto* const fileBuf = new char[filesize + 1];
             if (fileBuf == nullptr) {
-                core.Trace("Can`t create buffer for read dialog file %s", fileName);
+                core->Trace("Can`t create buffer for read dialog file %s", fileName);
                 return false;
             }
 
@@ -301,6 +301,6 @@ bool FINDDIALOGNODES::Init()
             return true;
         }
     }
-    core.Trace("Attributes Pointer into class FINDDIALOGNODES = NULL");
+    core->Trace("Attributes Pointer into class FINDDIALOGNODES = NULL");
     return false;
 }

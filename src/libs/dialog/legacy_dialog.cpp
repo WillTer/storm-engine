@@ -126,19 +126,19 @@ VDX9RENDER* LegacyDialog::RenderService = nullptr;
 
 LegacyDialog::~LegacyDialog() noexcept
 {
-    core.SetTimeScale(1.f);
+    core->SetTimeScale(1.f);
 
     if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
 }
 
 bool LegacyDialog::Init()
 {
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(RenderService != nullptr);
 
-    soundService_ = static_cast<VSoundService*>(core.GetService("SoundService"));
+    soundService_ = static_cast<VSoundService*>(core->GetService("SoundService"));
 
-    core.SetTimeScale(0.f);
+    core->SetTimeScale(0.f);
 
     LoadIni();
 
@@ -264,8 +264,8 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
         // Get person ID
         entid_t const          charId         = msg.EntityID();
         entid_t const          charModel      = msg.EntityID();
-        auto const             name_attr      = core.Entity_GetAttribute(charId, "name");
-        auto const             last_name_attr = core.Entity_GetAttribute(charId, "lastname");
+        auto const             name_attr      = core->Entity_GetAttribute(charId, "name");
+        auto const             last_name_attr = core->Entity_GetAttribute(charId, "lastname");
         std::string_view const name           = name_attr ? name_attr : "";
         std::string_view const last_name      = last_name_attr ? last_name_attr : "";
         characterName_                        = fmt::format("{} {}", name, last_name);
@@ -291,7 +291,7 @@ void LegacyDialog::UpdateScreenSize()
 {
     D3DVIEWPORT9 viewport;
     RenderService->GetViewport(&viewport);
-    auto const screenSize = core.GetScreenSize();
+    auto const screenSize = core->GetScreenSize();
 
     auto const hScale = static_cast<float>(viewport.Width) / static_cast<float>(screenSize.width);
     auto const vScale = static_cast<float>(viewport.Height) / static_cast<float>(screenSize.height);
@@ -433,7 +433,7 @@ void LegacyDialog::SetAction(std::string action)
 
     std::string preparedAction = action;
 
-    auto const model = dynamic_cast<MODEL*>(core.GetEntityPointer(headModel_));
+    auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
 
     if (mood_ != "normal") { preparedAction += "_" + mood_; };
 
@@ -458,18 +458,18 @@ void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
         headModelPath_ = newHeadModelPath;
 
         if (headModel_ != invalid_entity) {
-            core.EraseEntity(headModel_);
+            core->EraseEntity(headModel_);
             headModel_ = invalid_entity;
         }
 
-        headModel_ = core.CreateEntity("MODELR");
-        auto gs    = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+        headModel_ = core->CreateEntity("MODELR");
+        auto gs    = static_cast<VGEOMETRY*>(core->GetService("geometry"));
         gs->SetTexturePath("characters/");
 
-        core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_GEO, headModelPath_.c_str());
-        core.Send_Message(headModel_, "ls", MSG_MODEL_LOAD_ANI, headModelPath_.c_str());
+        core->Send_Message(headModel_, "ls", MSG_MODEL_LOAD_GEO, headModelPath_.c_str());
+        core->Send_Message(headModel_, "ls", MSG_MODEL_LOAD_ANI, headModelPath_.c_str());
 
-        auto const model = dynamic_cast<MODEL*>(core.GetEntityPointer(headModel_));
+        auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
 
         static CMatrix mtx;
         mtx.BuildPosition(0.f, 0.025f, 0.f);
@@ -545,7 +545,7 @@ void LegacyDialog::DrawHeadModel(uint32_t deltaTime)
 
         RenderService->SetLight(0, &headLight);
         RenderService->LightEnable(0, TRUE);
-        auto const model = dynamic_cast<MODEL*>(core.GetEntityPointer(headModel_));
+        auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
         model->ProcessStage(Entity::Stage::realize, deltaTime);
 
         RenderService->SetLight(0, &oldLight);
@@ -638,14 +638,14 @@ void LegacyDialog::ProcessControls()
     bool          bDoDown   = false;
     bool          bDoAction = false;
 
-    core.Controls->GetControlState("DlgUp", cs);
+    core->Controls->GetControlState("DlgUp", cs);
     if (cs.state == CST_ACTIVATED) { bDoUp = true; }
 
     if (!linkDescribe_.IsInEditMode()) {
-        core.Controls->GetControlState("DlgUp2", cs);
+        core->Controls->GetControlState("DlgUp2", cs);
         if (cs.state == CST_ACTIVATED) { bDoUp = true; }
 
-        core.Controls->GetControlState("DlgUp3", cs);
+        core->Controls->GetControlState("DlgUp3", cs);
         if (cs.state == CST_ACTIVATED) { bDoUp = true; }
     }
 
@@ -654,14 +654,14 @@ void LegacyDialog::ProcessControls()
         linkDescribe_.MoveUp();
     }
 
-    core.Controls->GetControlState("DlgDown", cs);
+    core->Controls->GetControlState("DlgDown", cs);
     if (cs.state == CST_ACTIVATED) { bDoDown = true; }
 
     if (!linkDescribe_.IsInEditMode()) {
-        core.Controls->GetControlState("DlgDown2", cs);
+        core->Controls->GetControlState("DlgDown2", cs);
         if (cs.state == CST_ACTIVATED) { bDoDown = true; }
 
-        core.Controls->GetControlState("DlgDown3", cs);
+        core->Controls->GetControlState("DlgDown3", cs);
         if (cs.state == CST_ACTIVATED) { bDoDown = true; }
     }
 
@@ -671,14 +671,14 @@ void LegacyDialog::ProcessControls()
     }
 
     if (!linkDescribe_.IsInEditMode()) {
-        core.Controls->GetControlState("DlgAction", cs);
+        core->Controls->GetControlState("DlgAction", cs);
         if (cs.state == CST_ACTIVATED) { bDoAction = true; }
     }
 
-    core.Controls->GetControlState("DlgAction1", cs);
+    core->Controls->GetControlState("DlgAction1", cs);
     if (cs.state == CST_ACTIVATED) { bDoAction = true; }
 
-    core.Controls->GetControlState("DlgAction2", cs);
+    core->Controls->GetControlState("DlgAction2", cs);
     if (cs.state == CST_ACTIVATED) { bDoAction = true; }
 
     if (bDoAction) {
@@ -689,7 +689,7 @@ void LegacyDialog::ProcessControls()
             if (selected_attr) {
                 char const* go = selected_attr->GetAttribute("go");
                 AttributesPointer->SetAttribute("CurrentNode", go);
-                core.Event("DialogEvent");
+                core->Event("DialogEvent");
             }
         }
     }
@@ -704,9 +704,9 @@ void LegacyDialog::Unfade()
 {
     // delayed exit from pause
     if (fadeTime_ <= UNFADE_TIME) {
-        fadeTime_ += static_cast<int>(core.GetRDeltaTime());
+        fadeTime_ += static_cast<int>(core->GetRDeltaTime());
         float timeK = static_cast<float>(fadeTime_) / UNFADE_TIME;
         if (timeK > 1.f) timeK = 1.f;
-        core.SetTimeScale(timeK);
+        core->SetTimeScale(timeK);
     }
 }

@@ -54,7 +54,7 @@ void TMP_LONG_STACK::Push(int32_t data)
 {
     if (curidx >= datsize) {
         if (sizeIncr <= 0) {
-            core.Trace("WARNING! push for TMP_LONG_STACK impossible - array grid <= 0");
+            core->Trace("WARNING! push for TMP_LONG_STACK impossible - array grid <= 0");
             return;
         }
         auto* const pold = ldat;
@@ -72,7 +72,7 @@ void TMP_LONG_STACK::Push(int32_t data)
 int32_t TMP_LONG_STACK::GetFore()
 {
     if (ldat == nullptr || curidx <= 0) {
-        core.Trace("WARNING! GetFore from TMP_LONG_STACK is empty");
+        core->Trace("WARNING! GetFore from TMP_LONG_STACK is empty");
         return defReturn;
     }
     auto const retVal = ldat[0];
@@ -90,7 +90,7 @@ int32_t TMP_LONG_STACK::GetFore()
 int32_t TMP_LONG_STACK::Pop()
 {
     if (ldat == nullptr || curidx <= 0) {
-        core.Trace("WARNING! pop from TMP_LONG_STACK is empty");
+        core->Trace("WARNING! pop from TMP_LONG_STACK is empty");
         return defReturn;
     }
     auto const retVal = ldat[--curidx];
@@ -196,7 +196,7 @@ void SHIP_DESCRIBE_LIST::Add(
     pr->pAttr = pAttr;
     int32_t lTmp;
     SetNLongData(
-        core.Event(BI_EVENT_GET_DATA, "ll", BIDT_SHIPPICTURE, chIdx),
+        core->Event(BI_EVENT_GET_DATA, "ll", BIDT_SHIPPICTURE, chIdx),
         4,
         &pr->pictureNum,
         0,
@@ -211,9 +211,9 @@ void SHIP_DESCRIBE_LIST::Add(
     pr->next = nullptr;
 
     // find this ship
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("ship");
     for (auto ship: entities) {
-        auto* vob = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+        auto* vob = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (vob == nullptr) continue;
         auto* pA = vob->GetACharacter();
         if (static_cast<int32_t>(pA->GetAttributeAsDword("index")) == chIdx) {
@@ -223,7 +223,7 @@ void SHIP_DESCRIBE_LIST::Add(
     }
     /*if( NetFindClass(false,&ei,"netship") ) do
     {
-      VAI_OBJBASE * vob = (VAI_OBJBASE*)core.GetEntityPointer(ei);
+      VAI_OBJBASE * vob = (VAI_OBJBASE*)core->GetEntityPointer(ei);
       if(vob== nullptr) continue;
       ATTRIBUTES *pA = vob->GetACharacter();
       if((int32_t)pA->GetAttributeAsDword("id")==chIdx)
@@ -274,9 +274,9 @@ void SHIP_DESCRIBE_LIST::Refresh()
 
     TMP_LONG_STACK tls;
 
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("ship");
     for (auto ship: entities) {
-        auto* vob = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+        auto* vob = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (vob == nullptr) continue;
         auto* pA = vob->GetACharacter();
         if (pA == nullptr) continue;
@@ -285,7 +285,7 @@ void SHIP_DESCRIBE_LIST::Refresh()
 
     /*if( NetFindClass(false,&ei,"NetShip") ) do
     {
-      VAI_OBJBASE * vob = (VAI_OBJBASE*)core.GetEntityPointer(ei);
+      VAI_OBJBASE * vob = (VAI_OBJBASE*)core->GetEntityPointer(ei);
       if(vob== nullptr) continue;
       ATTRIBUTES * pA= vob->GetACharacter();
       if(pA== nullptr) continue;
@@ -294,7 +294,7 @@ void SHIP_DESCRIBE_LIST::Refresh()
     tls.Push(-1);
 
     for (auto chrIdx = tls.GetFore(); chrIdx >= 0; chrIdx = tls.GetFore()) {
-        core.Event("BI_CallUpdateShip", "l", chrIdx);
+        core->Event("BI_CallUpdateShip", "l", chrIdx);
     }
 
     // BATTLE_COMMAND::m_bMakeModeUpdate = true;

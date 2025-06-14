@@ -115,13 +115,13 @@ int32_t CharactersGroups::String::GetLen(char const* str)
 bool CharactersGroups::Init()
 {
     // Location Pointer
-    auto const loc = core.GetEntityId("location");
-    location       = static_cast<Location*>(core.GetEntityPointer(loc));
+    auto const loc = core->GetEntityId("location");
+    location       = static_cast<Location*>(core->GetEntityPointer(loc));
     if (!location) return false;
     RegistryGroup("");
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    core.AddToLayer(EXECUTE, GetId(), 10);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    core->AddToLayer(EXECUTE, GetId(), 10);
     return true;
 }
 
@@ -158,7 +158,7 @@ void CharactersGroups::Execute(uint32_t delta_time)
             if (playerAlarm < rl.alarm) playerAlarm = rl.alarm;
             size_t n;
             for (n = 0; n < groups[i]->c.size(); n++) {
-                auto* cg = static_cast<Character*>(core.GetEntityPointer(groups[i]->c[n]));
+                auto* cg = static_cast<Character*>(core->GetEntityPointer(groups[i]->c[n]));
                 if (cg && cg->IsSetBlade()) break;
             }
             if (n >= groups[i]->c.size()) continue;
@@ -168,7 +168,7 @@ void CharactersGroups::Execute(uint32_t delta_time)
     // Remove all wrong targets
     if (isDeactivate) RemoveAllInvalidTargets();
     // inform about the player's current state of affairs
-    core.Event("CharacterGroup_UpdateAlarm", "fl", playerAlarm, playerActive);
+    core->Event("CharacterGroup_UpdateAlarm", "fl", playerAlarm, playerActive);
     // Executing the characters
     waveTime += dltTime;
     if (curExecuteChr >= 0) {
@@ -263,7 +263,7 @@ bool CharactersGroups::AddEnemyTarget(Character* chr, Character* enemy, float ma
     if (r.actState != rs_enemy) return false;
     // Looking among added
     for (int32_t i = 0; i < chr->numTargets; i++) {
-        if (enemy == core.GetEntityPointer(chr->grpTargets[i].chr)) {
+        if (enemy == core->GetEntityPointer(chr->grpTargets[i].chr)) {
             chr->grpTargets[i].time = 0.0f;
             return true;
         }
@@ -303,7 +303,7 @@ bool CharactersGroups::RemoveInvalidTargets(Character* chr, Character* check)
     for (int32_t i = 0; i < chr->numTargets;) {
         auto  isDelete = true;
         auto& trg      = chr->grpTargets[i];
-        auto* c        = static_cast<Character*>(core.GetEntityPointer(trg.chr));
+        auto* c        = static_cast<Character*>(core->GetEntityPointer(trg.chr));
         if (c && (trg.time < trg.timemax || trg.timemax < 0.0f)) {
             if (!c->IsDead()) {
                 // The character exists and is remembered
@@ -412,9 +412,9 @@ bool CharactersGroups::MsgIsValidateTarget(MESSAGE& message)
 {
     auto const chr = message.EntityID();
     auto const trg = message.EntityID();
-    auto*      c   = static_cast<Character*>(core.GetEntityPointer(chr));
+    auto*      c   = static_cast<Character*>(core->GetEntityPointer(chr));
     if (!c) return false;
-    auto* en = static_cast<Character*>(core.GetEntityPointer(trg));
+    auto* en = static_cast<Character*>(core->GetEntityPointer(trg));
     if (!en) return false;
     CVECTOR vP1, vP2;
     c->GetPosition(vP1);
@@ -428,7 +428,7 @@ bool CharactersGroups::MsgIsValidateTarget(MESSAGE& message)
 bool CharactersGroups::MsgGetOptimalTarget(MESSAGE& message) const
 {
     auto const chr = message.EntityID();
-    auto*      c   = static_cast<Character*>(core.GetEntityPointer(chr));
+    auto*      c   = static_cast<Character*>(core->GetEntityPointer(chr));
     if (!c) return false;
     auto* vd = message.ScriptVariablePointer();
     if (!vd) return false;
@@ -444,7 +444,7 @@ bool CharactersGroups::MsgGetOptimalTarget(MESSAGE& message) const
         s = -1;
         for (int32_t i = 0; i < c->numTargets; i++) {
             // Character pointer
-            auto* nc = static_cast<NPCharacter*>(core.GetEntityPointer(c->grpTargets[i].chr));
+            auto* nc = static_cast<NPCharacter*>(core->GetEntityPointer(c->grpTargets[i].chr));
             if (!nc) continue;
             if (!nc->IsSetBlade()) continue;
             // collect the number of characters fighting with this guy
@@ -473,7 +473,7 @@ bool CharactersGroups::MsgGetOptimalTarget(MESSAGE& message) const
         }
         if (s < 0) s = 0;
     }
-    c = static_cast<Character*>(core.GetEntityPointer(c->grpTargets[s].chr));
+    c = static_cast<Character*>(core->GetEntityPointer(c->grpTargets[s].chr));
     // if(!c->IsSetBlade()) return false;
     if (c->AttributesPointer) {
         vd->Set(static_cast<int32_t>(c->AttributesPointer->GetAttributeAsDword("index", -1)));
@@ -486,8 +486,8 @@ bool CharactersGroups::MsgGetOptimalTarget(MESSAGE& message) const
 // Is this character an enemy
 bool CharactersGroups::MsgIsEnemy(MESSAGE& message)
 {
-    auto const g1 = GetCharacterGroup(static_cast<Character*>(core.GetEntityPointer(message.EntityID())));
-    auto const g2 = GetCharacterGroup(static_cast<Character*>(core.GetEntityPointer(message.EntityID())));
+    auto const g1 = GetCharacterGroup(static_cast<Character*>(core->GetEntityPointer(message.EntityID())));
+    auto const g2 = GetCharacterGroup(static_cast<Character*>(core->GetEntityPointer(message.EntityID())));
     if (g1 < 0 || g2 < 0) return false;
     auto  isSelf = false;
     auto& r      = FindRelation(g1, g2, &isSelf);
@@ -525,9 +525,9 @@ void CharactersGroups::MsgAddTarget(MESSAGE& message)
 {
     // get characters
     auto  eid   = message.EntityID();
-    auto* chr   = static_cast<Character*>(core.GetEntityPointer(eid));
+    auto* chr   = static_cast<Character*>(core->GetEntityPointer(eid));
     eid         = message.EntityID();
-    auto* enemy = static_cast<Character*>(core.GetEntityPointer(eid));
+    auto* enemy = static_cast<Character*>(core->GetEntityPointer(eid));
     if (!chr || !enemy) return;
     // Checking for hostility
     auto const g1 = GetCharacterGroup(chr);
@@ -558,7 +558,7 @@ void CharactersGroups::MsgAddTarget(MESSAGE& message)
 void CharactersGroups::MsgUpdChrTrg(MESSAGE& message)
 {
     auto const eid = message.EntityID();
-    auto*      chr = static_cast<Character*>(core.GetEntityPointer(eid));
+    auto*      chr = static_cast<Character*>(core->GetEntityPointer(eid));
     if (chr) CharacterVisibleCheck(chr);
 }
 
@@ -739,7 +739,7 @@ bool CharactersGroups::MsgSetAlarmDown(MESSAGE& message)
 bool CharactersGroups::MoveCharacterToGroup(MESSAGE& message)
 {
     auto const eid = message.EntityID();
-    auto*      chr = static_cast<Character*>(core.GetEntityPointer(eid));
+    auto*      chr = static_cast<Character*>(core->GetEntityPointer(eid));
     if (!chr) return false;
     // create a group
     std::string const& grpName = message.String();
@@ -825,13 +825,13 @@ void CharactersGroups::MsgSetAlarmReaction(MESSAGE& message)
 // Remove character from all groups
 void CharactersGroups::RemoveCharacterFromAllGroups(entid_t chr)
 {
-    auto* const ch = chr ? static_cast<Character*>(core.GetEntityPointer(chr)) : nullptr;
+    auto* const ch = chr ? static_cast<Character*>(core->GetEntityPointer(chr)) : nullptr;
     // Remove the character from the previous group
     for (int32_t i = 0; i < numGroups; i++) {
         auto* g   = groups[i];
         auto& cid = g->c;
         for (size_t j = 0; j < g->c.size();) {
-            auto* c = static_cast<Character*>(core.GetEntityPointer(cid[j]));
+            auto* c = static_cast<Character*>(core->GetEntityPointer(cid[j]));
             if (c == nullptr || c == ch) {
                 cid[j] = cid.back();
                 cid.pop_back();
@@ -957,7 +957,7 @@ void CharactersGroups::SaveData()
 {
     // Root attribute for saving data
     if (!AttributesPointer) {
-        core.Trace("CharactersGroups::SaveData -> no attributes");
+        core->Trace("CharactersGroups::SaveData -> no attributes");
         return;
     }
     auto* saveData = AttributesPointer->FindAClass(AttributesPointer, "savedata");
@@ -1006,7 +1006,7 @@ void CharactersGroups::LoadDataRelations()
 {
     // Root attribute for saving data
     if (!AttributesPointer) {
-        core.Trace("CharactersGroups::LoadDataRelations -> no attributes");
+        core->Trace("CharactersGroups::LoadDataRelations -> no attributes");
         return;
     }
     auto* saveData = AttributesPointer->FindAClass(AttributesPointer, "savedata");
@@ -1043,17 +1043,17 @@ void CharactersGroups::LoadDataRelations()
         int32_t actState = grp->GetAttributeAsDword("actState", r.actState);
         int32_t relState = grp->GetAttributeAsDword("relState", r.relState);
         if (curState <= rs_beginvalue || curState >= rs_endvalue) {
-            core.Trace("CharactersGroups::LoadDataRelations -> invalide curState value, set this neitral");
+            core->Trace("CharactersGroups::LoadDataRelations -> invalide curState value, set this neitral");
             curState = rs_neitral;
         }
         r.curState = static_cast<RelState>(curState);
         if (actState <= rs_beginvalue || actState >= rs_endvalue) {
-            core.Trace("CharactersGroups::LoadDataRelations -> invalide actState value, set this enemy");
+            core->Trace("CharactersGroups::LoadDataRelations -> invalide actState value, set this enemy");
             actState = rs_enemy;
         }
         r.actState = static_cast<RelState>(actState);
         if (relState <= rs_beginvalue || relState >= rs_endvalue) {
-            core.Trace("CharactersGroups::LoadDataRelations -> invalide relState value, set this neitral");
+            core->Trace("CharactersGroups::LoadDataRelations -> invalide relState value, set this neitral");
             relState = rs_neitral;
         }
         r.relState = static_cast<RelState>(relState);
@@ -1087,28 +1087,28 @@ void CharactersGroups::DumpRelations()
     // Maintaining group relationships
     for (int32_t i = 0; i < numGroups; i++) {
         for (int32_t j = 0; j < i; j++) {
-            core.Trace("\"%s\" <-> \"%s\"", groups[i]->name.name, groups[j]->name.name);
+            core->Trace("\"%s\" <-> \"%s\"", groups[i]->name.name, groups[j]->name.name);
             // keep the relationship
             auto& r = FindRelation(i, j);
-            core.Trace("alarm: %f", r.alarm);
-            core.Trace("alarmdown: %f", r.alarmdown);
-            core.Trace("alarmmin: %f", r.alarmmin);
-            core.Trace("alarmmax: %f", r.alarmmax);
-            core.Trace("isActive: %s", r.isActive ? "true" : "false");
-            core.Trace("curState: \"%s\"", GetTextState(r.curState));
-            core.Trace("actState: \"%s\"", GetTextState(r.actState));
-            core.Trace("relState: \"%s\"", GetTextState(r.relState));
-            core.Trace("");
+            core->Trace("alarm: %f", r.alarm);
+            core->Trace("alarmdown: %f", r.alarmdown);
+            core->Trace("alarmmin: %f", r.alarmmin);
+            core->Trace("alarmmax: %f", r.alarmmax);
+            core->Trace("isActive: %s", r.isActive ? "true" : "false");
+            core->Trace("curState: \"%s\"", GetTextState(r.curState));
+            core->Trace("actState: \"%s\"", GetTextState(r.actState));
+            core->Trace("relState: \"%s\"", GetTextState(r.relState));
+            core->Trace("");
         }
     }
-    core.Trace("Groups info:");
-    core.Trace("");
+    core->Trace("Groups info:");
+    core->Trace("");
     for (int32_t i = 0; i < numGroups; i++) {
-        core.Trace("name: \"%s\"", groups[i]->name.name);
-        core.Trace("    look: %f", groups[i]->look);
-        core.Trace("    hear: %f", groups[i]->hear);
-        core.Trace("    say: %f", groups[i]->say);
-        core.Trace("");
+        core->Trace("name: \"%s\"", groups[i]->name.name);
+        core->Trace("    look: %f", groups[i]->look);
+        core->Trace("    hear: %f", groups[i]->hear);
+        core->Trace("    say: %f", groups[i]->say);
+        core->Trace("");
     }
 }
 

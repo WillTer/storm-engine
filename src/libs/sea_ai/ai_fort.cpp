@@ -66,7 +66,7 @@ void AIFort::Execute(uint32_t Delta_Time)
                 if (!pACannons) pACannons = pF->GetACharacter()->CreateSubAClass(pF->GetACharacter(), "Ship.Cannons");
                 Assert(pACannons);
                 pACannons->SetAttributeUseDword("type", dwCurrentCannonType);
-                core.Event(CANNON_RECALCULATE_PARAMETERS, "l", GetIndex(pF->GetACharacter()));
+                core->Event(CANNON_RECALCULATE_PARAMETERS, "l", GetIndex(pF->GetACharacter()));
 
                 fSpeedV0 = GetSpeedV0(k);
             }
@@ -96,9 +96,9 @@ void AIFort::Realize(uint32_t Delta_Time)
 {
     /*entid_t eidIsland;
     float fCurrentImmersion = 0.0f;
-    if (core.FindClass(&eidIsland, "Island", 0))
+    if (core->FindClass(&eidIsland, "Island", 0))
     {
-      ISLAND_BASE * pIsland = (ISLAND_BASE *)core.GetEntityPointer(eidIsland);
+      ISLAND_BASE * pIsland = (ISLAND_BASE *)core->GetEntityPointer(eidIsland);
       fCurrentImmersion = pIsland->GetCurrentImmersion();
     }*/
 
@@ -117,7 +117,7 @@ void AIFort::Realize(uint32_t Delta_Time)
 
     /*   // boal del_cheat
   #ifndef XBOX
-    if (core.Controls->GetDebugAsyncKeyState('X') < 0)
+    if (core->Controls->GetDebugAsyncKeyState('X') < 0)
     {
       CMatrix mI; mI.SetIdentity();
       AIHelper::pRS->SetTransform(D3DTS_WORLD, mI);
@@ -198,14 +198,14 @@ bool AIFort::AddFort(ATTRIBUTES* pIslandAP, ATTRIBUTES* pFortLabelAP, ATTRIBUTES
     auto const bLights = (pALights) ? pALights->GetAttributeAsDword() != 0 : false;
     auto const bFlares = (pAFlares) ? pAFlares->GetAttributeAsDword() != 0 : false;
 
-    auto const eidTmp = core.GetEntityId("shiplights");
-    pShipsLights      = static_cast<IShipLights*>(core.GetEntityPointer(eidTmp));
+    auto const eidTmp = core->GetEntityId("shiplights");
+    pShipsLights      = static_cast<IShipLights*>(core->GetEntityPointer(eidTmp));
     Assert(pShipsLights);
 
     pShipsLights->AddLights(&pFort->tmpObject, pFort->GetModel(), bLights, bFlares);
     pShipsLights->ProcessStage(Stage::execute, 0);
 
-    core.Event(FORT_CREATE, "al", pFortCharacter, pFort->GetAllCannonsNum());
+    core->Event(FORT_CREATE, "al", pFortCharacter, pFort->GetAllCannonsNum());
 
     return true;
 }
@@ -226,10 +226,10 @@ void AIFort::AddFortHit(int32_t iCharacterIndex, CVECTOR& vHitPos)
             auto const fDistance = sqrtf(~(vPos - vHitPos));
             if (fDistance > fMinCannonDamageDistance) continue;
 
-            // VDATA * pVData = core.Event(FORT_CANNON_DAMAGE, "llallfffff", iCharacterIndex,
+            // VDATA * pVData = core->Event(FORT_CANNON_DAMAGE, "llallfffff", iCharacterIndex,
             // GetIndex(pF->GetACharacter()), pF->pFortLabelAP, pF->GetAllCannonsNum(), pF->GetDamagedCannonsNum(),
             // vPos.x, vPos.y, vPos.z, fDistance, pC->GetDamage()); Assert(pVData);
-            auto* pVData = core.Event(
+            auto* pVData = core->Event(
                 FORT_CANNON_DAMAGE,
                 "llallfffff",
                 iCharacterIndex,
@@ -252,7 +252,7 @@ void AIFort::AddFortHit(int32_t iCharacterIndex, CVECTOR& vHitPos)
 AIFort::AI_FORT* AIFort::FindFort(entid_t eidModel)
 {
     for (auto& aFort: aForts) {
-        if (core.GetEntityPointer(aFort->GetModelEID()) == core.GetEntityPointer(eidModel)) return aFort;
+        if (core->GetEntityPointer(aFort->GetModelEID()) == core->GetEntityPointer(eidModel)) return aFort;
     }
     return nullptr;
 }
@@ -316,10 +316,10 @@ bool AIFort::ScanFortForCannons(AI_FORT* pFort, char const* pModelsDir, char con
     auto const pathStr = path.string();
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
     // sLocatorsName.Format("%s/%s", pModelsDir, pLocatorsName);
-    model_id = core.CreateEntity("MODELR");
-    core.Send_Message(model_id, "ls", MSG_MODEL_LOAD_GEO, (char*)pathStr.c_str());
+    model_id = core->CreateEntity("MODELR");
+    core->Send_Message(model_id, "ls", MSG_MODEL_LOAD_GEO, (char*)pathStr.c_str());
 
-    auto* pModel = static_cast<MODEL*>(core.GetEntityPointer(model_id));
+    auto* pModel = static_cast<MODEL*>(core->GetEntityPointer(model_id));
     Assert(pModel);
 
     // search and add cannons & culverins
@@ -355,7 +355,7 @@ bool AIFort::ScanFortForCannons(AI_FORT* pFort, char const* pModelsDir, char con
         dwIdx++;
     }
 
-    core.EraseEntity(model_id);
+    core->EraseEntity(model_id);
     return true;
 }
 
@@ -387,7 +387,7 @@ float AIFort::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
     auto fBestRes      = 2.0f;
     auto fBestDistance = 1e10f;
     for (uint32_t i = 0; i < GetNumForts(); i++) {
-        auto* pModel = static_cast<MODEL*>(core.GetEntityPointer(GetFort(i)->GetModelEID()));
+        auto* pModel = static_cast<MODEL*>(core->GetEntityPointer(GetFort(i)->GetModelEID()));
         Assert(pModel);
         auto const fRes = pModel->Trace(vSrc, vDst);
         if (fRes > 1.0f) continue;
@@ -406,16 +406,16 @@ float AIFort::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTO
 {
     float fBestRes = 2.0;
     for (uint32_t i = 0; i < GetNumForts(); i++) {
-        auto* pModel = static_cast<MODEL*>(core.GetEntityPointer(GetFort(i)->GetModelEID()));
+        auto* pModel = static_cast<MODEL*>(core->GetEntityPointer(GetFort(i)->GetModelEID()));
 
         float const fRes = pModel->Trace(vSrc, vDst);
         if (fRes < fBestRes) fBestRes = fRes;
         if (fRes <= 1.0f) {
             const CVECTOR vTemp = vSrc + (vDst - vSrc) * fRes;
-            core.Event(BALL_FORT_HIT, "lfff", iBallOwner, vTemp.x, vTemp.y, vTemp.z);
+            core->Event(BALL_FORT_HIT, "lfff", iBallOwner, vTemp.x, vTemp.y, vTemp.z);
 
             const CVECTOR vDir = !(vDst - vSrc);
-            core.Send_Message(GetFort(i)->GetBlotEID(), "lffffff", MSG_BLOTS_HIT, vTemp.x, vTemp.y, vTemp.z, vDir.x, vDir.y, vDir.z);
+            core->Send_Message(GetFort(i)->GetBlotEID(), "lffffff", MSG_BLOTS_HIT, vTemp.x, vTemp.y, vTemp.z, vDir.x, vDir.y, vDir.z);
         }
     }
     return fBestRes;
@@ -487,7 +487,7 @@ void AIFort::AI_FORT::Load(CSaveLoad* pSL, entid_t eid)
         aCannons[i].Load(pSL, this, eid);
         if (aCannons[i].isDamaged()) {
             const CVECTOR vPos = aCannons[i].GetPos();
-            core.Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
+            core->Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
         }
     }
 
@@ -495,7 +495,7 @@ void AIFort::AI_FORT::Load(CSaveLoad* pSL, entid_t eid)
         aCulverins[i].Load(pSL, this, eid);
         if (aCulverins[i].isDamaged()) {
             const CVECTOR vPos = aCulverins[i].GetPos();
-            core.Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
+            core->Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
         }
     }
 
@@ -503,7 +503,7 @@ void AIFort::AI_FORT::Load(CSaveLoad* pSL, entid_t eid)
         aMortars[i].Load(pSL, this, eid);
         if (aMortars[i].isDamaged()) {
             const CVECTOR vPos = aMortars[i].GetPos();
-            core.Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
+            core->Event(FORT_LOADDMGCANNON, "fff", vPos.x, vPos.y, vPos.z);
         }
     }
 }

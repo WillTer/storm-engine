@@ -31,14 +31,14 @@ BI_InterfaceManager::~BI_InterfaceManager()
 
 bool BI_InterfaceManager::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    m_pRS = static_cast<VDX9RENDER*>(core->GetService("DX9RENDER"));
     Assert(m_pRS);
     m_pImgRender = new BIImageRender(m_pRS);
     Assert(m_pImgRender);
     m_pMouse = new MousePointer(this, AttributesPointer);
     Assert(m_pMouse);
 
-    auto [nBaseWidth, nBaseHeight] = core.GetScreenSize();
+    auto [nBaseWidth, nBaseHeight] = core->GetScreenSize();
 
     int32_t nBaseXOffset = 0;
     int32_t nBaseYOffset = 0;

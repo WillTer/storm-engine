@@ -44,9 +44,9 @@ int32_t ModelArray::CreateModel(char const* modelName, char const* technique, in
     // Path to the model
     resPath = modelspath + modelName;
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     if (!gs) {
-        core.Trace("Can't create geometry service!");
+        core->Trace("Can't create geometry service!");
         return -1;
     }
     gs->SetTexturePath(texturespath.c_str());
@@ -57,29 +57,29 @@ int32_t ModelArray::CreateModel(char const* modelName, char const* technique, in
     }
     // Create a model
     entid_t id, idModelRealizer;
-    if (!(id = core.CreateEntity("modelr"))) return -1;
-    if (!(idModelRealizer = core.CreateEntity("LocModelRealizer"))) {
-        core.EraseEntity(id);
+    if (!(id = core->CreateEntity("modelr"))) return -1;
+    if (!(idModelRealizer = core->CreateEntity("LocModelRealizer"))) {
+        core->EraseEntity(id);
         return -1;
     }
-    core.Send_Message(idModelRealizer, "lip", 1, id, pLights);
-    // if(isVisible) core.AddToLayer(realize, idModelRealizer, level);
-    core.AddToLayer(REALIZE, idModelRealizer, level);
-    core.Send_Message(idModelRealizer, "ll", 2, isVisible);
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(id));
+    core->Send_Message(idModelRealizer, "lip", 1, id, pLights);
+    // if(isVisible) core->AddToLayer(realize, idModelRealizer, level);
+    core->AddToLayer(REALIZE, idModelRealizer, level);
+    core->Send_Message(idModelRealizer, "ll", 2, isVisible);
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(id));
     if (!m) {
         gs->SetTexturePath("");
-        core.EraseEntity(id);
-        core.EraseEntity(idModelRealizer);
+        core->EraseEntity(id);
+        core->EraseEntity(idModelRealizer);
         return -1;
     }
     // Loading
-    core.Send_Message(id, "ls", MSG_MODEL_SET_LIGHT_PATH, lightpath.c_str());
-    core.Send_Message(id, "ls", MSG_MODEL_SET_LIGHT_LMPATH, shadowpath.c_str());
-    if (!core.Send_Message(id, "ls", MSG_MODEL_LOAD_GEO, resPath.c_str())) {
+    core->Send_Message(id, "ls", MSG_MODEL_SET_LIGHT_PATH, lightpath.c_str());
+    core->Send_Message(id, "ls", MSG_MODEL_SET_LIGHT_LMPATH, shadowpath.c_str());
+    if (!core->Send_Message(id, "ls", MSG_MODEL_LOAD_GEO, resPath.c_str())) {
         gs->SetTexturePath("");
-        core.EraseEntity(id);
-        core.EraseEntity(idModelRealizer);
+        core->EraseEntity(id);
+        core->EraseEntity(idModelRealizer);
         return -1;
     }
     gs->SetTexturePath("");
@@ -91,7 +91,7 @@ int32_t ModelArray::CreateModel(char const* modelName, char const* technique, in
     if (strlen(modelName) < MA_MAX_NAME_LENGTH) {
         strcpy_s(model[numModels].name, modelName);
     } else {
-        core.Trace("Model name %s is very int32_t", maxModels);
+        core->Trace("Model name %s is very int32_t", maxModels);
         memcpy(model[numModels].name, modelName, MA_MAX_NAME_LENGTH);
         model[numModels].name[MA_MAX_NAME_LENGTH - 1] = 0;
     }
@@ -129,8 +129,8 @@ void ModelArray::DeleteModel(int32_t modelIndex)
     delete model[modelIndex].reflection;
     model[modelIndex].reflection = nullptr;
     // Delete the model
-    core.EraseEntity(model[modelIndex].modelrealizer);
-    core.EraseEntity(model[modelIndex].id);
+    core->EraseEntity(model[modelIndex].modelrealizer);
+    core->EraseEntity(model[modelIndex].id);
     numModels--;
     if (modelIndex != numModels) model[modelIndex] = model[numModels];
 }
@@ -139,7 +139,7 @@ void ModelArray::DeleteModel(int32_t modelIndex)
 bool ModelArray::SetAnimation(int32_t modelIndex, char const* modelAni)
 {
     Assert(modelIndex >= 0 && modelIndex < numModels);
-    return core.Send_Message(model[modelIndex].id, "ls", MSG_MODEL_LOAD_ANI, modelAni) != 0;
+    return core->Send_Message(model[modelIndex].id, "ls", MSG_MODEL_LOAD_ANI, modelAni) != 0;
 }
 
 // Find model index by name
@@ -188,14 +188,14 @@ entid_t ModelArray::RealizerID(int32_t modelIndex)
 MODEL* ModelArray::operator[](int32_t modelIndex)
 {
     Assert(modelIndex >= 0 && modelIndex < numModels);
-    return static_cast<MODEL*>(core.GetEntityPointer(model[modelIndex].id));
+    return static_cast<MODEL*>(core->GetEntityPointer(model[modelIndex].id));
 }
 
 // Getting animation by index
 Animation* ModelArray::GetAnimation(int32_t modelIndex)
 {
     Assert(modelIndex >= 0 && modelIndex < numModels);
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model[modelIndex].id));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model[modelIndex].id));
     if (!m) return nullptr;
     return m->GetAnimation();
 }
@@ -216,7 +216,7 @@ void ModelArray::SetUVSlide(int32_t modelIndex, float u0, float v0, float u1, fl
     if (mdl)
         mdl->SetRenderTuner(sl);
     else
-        core.Trace("Location: Can't get model pointer for set RenderTuner");
+        core->Trace("Location: Can't get model pointer for set RenderTuner");
 }
 
 // Set a rotation animation to the model
@@ -233,7 +233,7 @@ void ModelArray::SetRotation(int32_t modelIndex, float rx, float ry, float rz)
 void ModelArray::SetRotationAngle(int32_t modelIndex, float ax, float ay, float az)
 {
     Assert(modelIndex >= 0 && modelIndex < numModels);
-    auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(model[modelIndex].id));
+    auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(model[modelIndex].id));
     if (mdl) {
         CMatrix mtr(ax, ay, az);
         mdl->mtx = CMatrix(mtr, mdl->mtx);
@@ -252,7 +252,7 @@ void ModelArray::SetReflection(int32_t modelIndex, float scale)
     if (mdl)
         mdl->SetRenderTuner(model[modelIndex].reflection);
     else
-        core.Trace("Location: Can't get model pointer for set RenderTuner");
+        core->Trace("Location: Can't get model pointer for set RenderTuner");
 }
 
 // Animate texture coordinates
@@ -276,7 +276,7 @@ void ModelArray::Update(float dltTime)
         }
         if (model[i].rotator) {
             CMatrix mtr(model[i].rotator->rx * dltTime, model[i].rotator->ry * dltTime, model[i].rotator->rz * dltTime);
-            auto*   mdl = static_cast<MODEL*>(core.GetEntityPointer(model[i].id));
+            auto*   mdl = static_cast<MODEL*>(core->GetEntityPointer(model[i].id));
             if (mdl) mdl->mtx = CMatrix(mtr, mdl->mtx);
         }
     }
@@ -377,7 +377,7 @@ bool ModelArray::VisibleTest(const CVECTOR& p1, const CVECTOR& p2)
 {
     for (int32_t i = 0; i < numModels; i++) {
         if (model[i].isVisible) {
-            auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(model[i].id));
+            auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(model[i].id));
             if (mdl->Trace(p1, p2) < 1.0f) return false;
         }
     }
@@ -391,7 +391,7 @@ float ModelArray::Trace(const CVECTOR& src, const CVECTOR& dst)
     auto k     = 2.0f;
     for (int32_t i = 0; i < numModels; i++) {
         if (model[i].isVisible) {
-            auto*      mdl = static_cast<MODEL*>(core.GetEntityPointer(model[i].id));
+            auto*      mdl = static_cast<MODEL*>(core->GetEntityPointer(model[i].id));
             auto const km  = mdl->Trace(src, dst);
             if (k > km) {
                 k          = km;
@@ -412,7 +412,7 @@ void ModelArray::Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool
 {
     for (int32_t i = 0; i < numModels; i++) {
         if (model[i].isVisible) {
-            auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(model[i].id));
+            auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(model[i].id));
             mdl->Clip(p, numPlanes, cnt, rad, fnc);
         }
     }

@@ -55,11 +55,11 @@ D3DXIMAGE_FILEFORMAT GetScreenshotFormat(const std::string& fmt)
 
 void InvokeEntitiesLostRender()
 {
-    core.ForEachEntity([](entptr_t entity_ptr) { entity_ptr->ProcessStage(Entity::Stage::lost_render); });
+    core->ForEachEntity([](entptr_t entity_ptr) { entity_ptr->ProcessStage(Entity::Stage::lost_render); });
 }
 void InvokeEntitiesRestoreRender()
 {
-    core.ForEachEntity([](entptr_t entity_ptr) { entity_ptr->ProcessStage(Entity::Stage::restore_render); });
+    core->ForEachEntity([](entptr_t entity_ptr) { entity_ptr->ProcessStage(Entity::Stage::restore_render); });
 }
 
 }  // namespace
@@ -71,10 +71,10 @@ void LostDeviceSentinel::RunStart()
     if (auto d3d9 = static_cast<IDirect3DDevice9*>(DX9RENDER::pRS->GetD3DDevice())) {
         switch (d3d9->TestCooperativeLevel()) {
         case D3DERR_DEVICENOTRESET:
-            if (!DX9RENDER::pRS->ResetDevice()) { core.stopFrameProcessing(); }
+            if (!DX9RENDER::pRS->ResetDevice()) { core->stopFrameProcessing(); }
             break;
 
-        case D3DERR_DEVICELOST: core.stopFrameProcessing(); break;
+        case D3DERR_DEVICELOST: core->stopFrameProcessing(); break;
         }
     }
 }
@@ -88,7 +88,7 @@ uint32_t DX9SetTexturePath(VS_STACK* pS)
     auto* const     pStr    = pString->GetString();
 
     if (!DX9RENDER::pRS) {
-        core.GetService("dx9render");
+        core->GetService("dx9render");
         Assert(DX9RENDER::pRS);
     }
 
@@ -158,31 +158,31 @@ bool DX9RENDER_SCRIPT_LIBRIARY::Init()
     sIFuncInfo.pFuncName        = "SetTexturePath";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = DX9SetTexturePath;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 3;
     sIFuncInfo.pFuncName        = "RPrint";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = RPrint;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 3;
     sIFuncInfo.pFuncName        = "SetGlowParams";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = SetGlowParams;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "GetTexture";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slGetTexture;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "ReleaseTexture";
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncAddress     = slReleaseTexture;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     return true;
 }
@@ -315,9 +315,9 @@ inline bool ErrorHandler(HRESULT hr, const char* file, unsigned line, const char
 {
     if (hr != D3D_OK) {
 #ifdef _WIN32
-        core.Trace("[%s:%s:%d] %s: %s (%s)", file, func, line, DXGetErrorStringA(hr), DXGetErrorDescriptionA(hr), expr);
+        core->Trace("[%s:%s:%d] %s: %s (%s)", file, func, line, DXGetErrorStringA(hr), DXGetErrorDescriptionA(hr), expr);
 #else
-        core.Trace("[%s:%s:%d] (%s)", file, func, line, expr);
+        core->Trace("[%s:%s:%d] (%s)", file, func, line, expr);
 #endif
         return true;
     }
@@ -412,7 +412,7 @@ static float fSin   = 0.0f;
 
 bool DX9RENDER::Init()
 {
-    if (auto* sentinelService = core.GetService("LostDeviceSentinel"); !sentinelService) {
+    if (auto* sentinelService = core->GetService("LostDeviceSentinel"); !sentinelService) {
         throw std::runtime_error("Cannot create LostDeviceSentinel! Abort");
     }
 
@@ -484,7 +484,7 @@ bool DX9RENDER::Init()
     videoAdapterIndex = device_info.adapter;
 
     // stencil_format = D3DFMT_D24S8;
-    if (!InitDevice(bWindow, static_cast<HWND>(core.GetWindow()->OSHandle()), screen_size.x, screen_size.y)) { return false; }
+    if (!InitDevice(bWindow, static_cast<HWND>(core->GetWindow()->OSHandle()), screen_size.x, screen_size.y)) { return false; }
 
 #ifdef _WIN32  // Effects
     RecompileEffects();
@@ -496,7 +496,7 @@ bool DX9RENDER::Init()
     auto font_config = window_info.font_config;
     // get start ini file for fonts
     if (font_config.empty()) {
-        core.Trace("Not found 'font_config' parameter in engine.toml file (must be in 'window' section)");
+        core->Trace("Not found 'font_config' parameter in engine.toml file (must be in 'window' section)");
         font_config = (fio->base_directory_path(BaseDirectory::Config) / "fonts.ini").string();
     }
 
@@ -507,11 +507,11 @@ bool DX9RENDER::Init()
     auto font_type = window_info.font_type;
     // get start font quantity
     if (font_type.empty()) {
-        core.Trace("Start font not defined (parameter 'font_type' in 'window' section), using 'normal'");
+        core->Trace("Start font not defined (parameter 'font_type' in 'window' section), using 'normal'");
         font_type = "normal";
     }
 
-    if (LoadFont(font_type.c_str()) == -1L) core.Trace("can not init start font: %s", font_type.c_str());
+    if (LoadFont(font_type.c_str()) == -1L) core->Trace("can not init start font: %s", font_type.c_str());
     idFontCurrent = 0L;
 
     // Progress image parameters
@@ -524,7 +524,7 @@ bool DX9RENDER::Init()
     progressFramesCountY           = std::clamp(progress_image_info.v_frames_count, 1, 64);
 
     CreateSphere();
-    auto*       pScriptRender = static_cast<VDATA*>(core.GetScriptVariable("Render"));
+    auto*       pScriptRender = static_cast<VDATA*>(core->GetScriptVariable("Render"));
     ATTRIBUTES* pARender      = pScriptRender->GetAClass();
 
     pARender->SetAttributeUseDword("full_screen", !bWindow);
@@ -557,8 +557,8 @@ bool DX9RENDER::Init()
         }
     }
 
-    auto const ctrl = core.Controls->CreateControl(kKeyTakeScreenshot);
-    core.Controls->MapControl(ctrl, VK_F8);
+    auto const ctrl = core->Controls->CreateControl(kKeyTakeScreenshot);
+    core->Controls->MapControl(ctrl, VK_F8);
 
     // UNGUARD
     return true;
@@ -614,11 +614,11 @@ bool DX9RENDER::InitDevice(bool windowed, HWND _hwnd, int32_t width, int32_t hei
     bWindow       = windowed;
 
     hwnd = _hwnd;
-    core.Trace("Initializing DirectX 9");
+    core->Trace("Initializing DirectX 9");
     d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (d3d == nullptr) {
         // MessageBox(hwnd, "Direct3DCreate9 error", "InitDevice::Direct3DCreate9", MB_OK);
-        core.Trace("Direct3DCreate9 error : InitDevice::Direct3DCreate9");
+        core->Trace("Direct3DCreate9 error : InitDevice::Direct3DCreate9");
         return false;
     }
 
@@ -1079,7 +1079,7 @@ void DX9RENDER::MakePostProcess()
 // ################################################################################
 bool DX9RENDER::DX9EndScene()
 {
-    if (bShowFps) { Print(screen_size.x - 100, screen_size.y - 50, "FPS %d", core.EngineFps()); }
+    if (bShowFps) { Print(screen_size.x - 100, screen_size.y - 50, "FPS %d", core->EngineFps()); }
 
     if (bShowExInfo) {
         uint32_t dwTotalTexSize = 0;
@@ -1171,7 +1171,7 @@ int32_t DX9RENDER::TextureCreate(char const* fname)
     }
 
     if (fname == nullptr) {
-        core.Trace("Can't create texture with null name");
+        core->Trace("Can't create texture with null name");
         return -1L;
     }
 
@@ -1286,7 +1286,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         std::filesystem::path path_to_tex {file_path};
         path_to_tex.replace_extension();
         if (exists(path_to_tex)) { return TextureLoadUsingD3DX(path_to_tex.string().c_str(), t); }
-        if (bTrace) { core.Trace("Can't load texture %s", file_path.string().c_str()); }
+        if (bTrace) { core->Trace("Can't load texture %s", file_path.string().c_str()); }
         delete[] Textures[t].name;
         Textures[t].name = nullptr;
         return false;
@@ -1302,7 +1302,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         if (textureFormats[textureFI].txFormat == head.format) { break; }
     }
     if (textureFI == sizeof(textureFormats) / sizeof(SD_TEXTURE_FORMAT) || head.flags & TX_FLAGS_PALLETTE) {
-        if (bTrace) { core.Trace("Invalidate texture format %s, not loading it.", file_path.string().c_str()); }
+        if (bTrace) { core->Trace("Invalidate texture format %s, not loading it.", file_path.string().c_str()); }
         delete Textures[t].name;
         Textures[t].name = nullptr;
         return false;
@@ -1332,7 +1332,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         if (CHECKD3DERR(d3d9->CreateTexture(head.width, head.height, head.nmips, 0, d3dFormat, D3DPOOL_MANAGED, &tex, NULL)) == true
             || !tex) {
             if (bTrace) {
-                core.Trace(
+                core->Trace(
                     "Texture %s is not created (width: %i, height: %i, num mips: %i, format: %s), not loading it.",
                     file_path.string().c_str(),
                     head.width,
@@ -1362,7 +1362,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
             // If there was an error, then interrupt the download
             if (isError) {
                 if (bTrace) {
-                    core.Trace(
+                    core->Trace(
                         "Can't loading mip %i, texture %s is not created (width: %i, height: %i, num mips: %i, "
                         "format: %s), not loading it.",
                         m,
@@ -1387,7 +1387,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
     } else {
         // Download cubemap
         if (head.width != head.height) {
-            if (bTrace) { core.Trace("Cube map texture can't has not squared sides %s, not loading it.", file_path.string().c_str()); }
+            if (bTrace) { core->Trace("Cube map texture can't has not squared sides %s, not loading it.", file_path.string().c_str()); }
             delete Textures[t].name;
             Textures[t].name = nullptr;
             return false;
@@ -1396,7 +1396,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         D3DCAPS9 devcaps;
         if (CHECKD3DERR(d3d9->GetDeviceCaps(&devcaps))) {
             if (bTrace) {
-                core.Trace(
+                core->Trace(
                     "Cube map texture %s is not created (size: %i, num mips: %i, format: %s), not loading it.",
                     file_path.string().c_str(),
                     head.width,
@@ -1412,7 +1412,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
         IDirect3DCubeTexture9* tex = nullptr;
         if (CHECKD3DERR(d3d9->CreateCubeTexture(head.width, head.nmips, 0, d3dFormat, D3DPOOL_MANAGED, &tex, NULL)) == true || !tex) {
             if (bTrace) {
-                core.Trace(
+                core->Trace(
                     "Cube map texture %s is not created (size: %i, num mips: %i, format: %s), not loading it.",
                     file_path.string().c_str(),
                     head.width,
@@ -1467,7 +1467,7 @@ bool DX9RENDER::TextureLoad(int32_t t)
 
         if (isError) {
             if (bTrace) {
-                core.Trace(
+                core->Trace(
                     "Cube map texture %s can't loading (size: %i, num mips: %i, format: %s), not loading it.",
                     file_path.string().c_str(),
                     head.width,
@@ -1560,7 +1560,7 @@ uint32_t DX9RENDER::LoadCubmapSide(
         if (surface) { surface->Release(); }
         // If there was an error, then interrupt the download
         if (isError) {
-            if (bTrace) { core.Trace("Can't loading cubemap mip %i (side: %i), not loading it.", m, face); }
+            if (bTrace) { core->Trace("Can't loading cubemap mip %i (side: %i), not loading it.", m, face); }
             return 0;
         }
         // recalculate the dimensions for the next mip
@@ -1742,7 +1742,7 @@ bool DX9RENDER::SetCamera(CVECTOR lookFrom, CVECTOR lookTo, CVECTOR up)
 
 void DX9RENDER::ProcessScriptPosAng(const CVECTOR& vPos, const CVECTOR& vAng)
 {
-    core.Event("CameraPosAng", "ffffff", vPos.x, vPos.y, vPos.z, vAng.x, vAng.y, vAng.z);
+    core->Event("CameraPosAng", "ffffff", vPos.x, vPos.y, vPos.z, vAng.x, vAng.y, vAng.z);
 }
 
 void DX9RENDER::GetNearFarPlane(float& fNear, float& fFar)
@@ -2138,7 +2138,7 @@ bool DX9RENDER::LoadState(ENTITY_STATE* state)
     // d3d9 = NULL;
     // state->Struct(sizeof(screen_size),(char *)&screen_size);
     // state->MemoryBlock(sizeof(bool),(char *)&window);
-    // InitDevice(window,core.GetAppHWND(),screen_size.x,screen_size.y);
+    // InitDevice(window,core->GetAppHWND(),screen_size.x,screen_size.y);
     // UNGUARD
     return true;
 }
@@ -2306,7 +2306,7 @@ void DX9RENDER::SetGLOWParams(float _fBlurBrushSize, int32_t _GlowIntensity, int
 
 void DX9RENDER::RunStart()
 {
-    auto*       pScriptRender = static_cast<VDATA*>(core.GetScriptVariable("Render"));
+    auto*       pScriptRender = static_cast<VDATA*>(core->GetScriptVariable("Render"));
     ATTRIBUTES* pARender      = pScriptRender->GetAClass();
 
     bSeaEffect      = pARender->GetAttributeAsDword("SeaEffect", 0) != 0;
@@ -2315,7 +2315,7 @@ void DX9RENDER::RunStart()
     dwBackColor     = pARender->GetAttributeAsDword("BackColor", 0);
 
     if (bSeaEffect) {
-        fSin += static_cast<float>(core.GetRDeltaTime()) * 0.001f * fSeaEffectSpeed;
+        fSin += static_cast<float>(core->GetRDeltaTime()) * 0.001f * fSeaEffectSpeed;
 
         auto const sx = static_cast<float>(screen_size.x);
         auto const sy = static_cast<float>(screen_size.y);
@@ -2360,7 +2360,7 @@ void DX9RENDER::RunStart()
     // if (TechniqueExecuteStart("default")) do{} while (TechniqueExecuteNext());
 
     // boal del_cheat
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState(VK_F11) < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core->Controls->GetDebugAsyncKeyState(VK_F11) < 0) {
         InvokeEntitiesLostRender();
 #ifdef _WIN32  // Effects
         RecompileEffects();
@@ -2371,13 +2371,13 @@ void DX9RENDER::RunStart()
         InvokeEntitiesRestoreRender();
     }
 
-    SetRenderState(D3DRS_FILLMODE, (core.Controls->GetDebugAsyncKeyState('F') < 0) ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
+    SetRenderState(D3DRS_FILLMODE, (core->Controls->GetDebugAsyncKeyState('F') < 0) ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
     // SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID); eddy
 
     PlayToTexture();
 
     // make screenshot
-    if (CONTROL_STATE cs; core.Controls->GetControlState(kKeyTakeScreenshot, cs) && cs.state == CST_ACTIVATED) { SaveShoot(); }
+    if (CONTROL_STATE cs; core->Controls->GetControlState(kKeyTakeScreenshot, cs) && cs.state == CST_ACTIVATED) { SaveShoot(); }
 }
 
 void DX9RENDER::RunEnd()
@@ -2547,7 +2547,7 @@ int32_t DX9RENDER::LoadFont(char const* fontName)
         if ((FontList[i].font = std::make_unique<FONT>(*this, *d3d9)) == nullptr) throw std::runtime_error("allocate memory error");
         if (!FontList[i].font->Init(fontName, fontIniFileName)) {
             FontList[i].font.reset();
-            core.Trace("Can't init font %s", fontName);
+            core->Trace("Can't init font %s", fontName);
             return -1L;
         }
         FontList[i].hash = hashVal;
@@ -2577,7 +2577,7 @@ bool DX9RENDER::UnloadFont(char const* fontName)
 
     for (int i = 0; i < nFontQuantity; i++)
         if (FontList[i].hash == hashVal && storm::iEquals(FontList[i].name, fontName)) return UnloadFont(i);
-    core.Trace("Font name \"%s\" is not containing", fontName);
+    core->Trace("Font name \"%s\" is not containing", fontName);
     return false;
 }
 
@@ -2626,7 +2626,7 @@ bool DX9RENDER::SetCurFont(char const* fontName)
             idFontCurrent = i;
             return true;
         }
-    core.Trace("Font name \"%s\" is not containing", fontName);
+    core->Trace("Font name \"%s\" is not containing", fontName);
     return false;
 }
 
@@ -2815,21 +2815,21 @@ void DX9RENDER::MakeScreenShot()
 
     IDirect3DSurface9* renderTarget;
     if (FAILED(GetRenderTarget(&renderTarget))) {
-        core.Trace("Failed to make screenshot");
+        core->Trace("Failed to make screenshot");
         return;
     }
 
     IDirect3DSurface9* surface;
     if (FAILED(CreateOffscreenPlainSurface(screen_size.x, screen_size.y, D3DFMT_X8R8G8B8, &surface))) {
         renderTarget->Release();
-        core.Trace("Failed to make screenshot");
+        core->Trace("Failed to make screenshot");
         return;
     }
 
     if (CHECKD3DERR(D3DXLoadSurfaceFromSurface(surface, NULL, NULL, renderTarget, NULL, NULL, D3DX_DEFAULT, 0))) {
         surface->Release();
         renderTarget->Release();
-        core.Trace("Failed to make screenshot");
+        core->Trace("Failed to make screenshot");
         return;
     }
 
@@ -3412,7 +3412,7 @@ CVideoTexture* DX9RENDER::GetVideoTexture(char const* sVideoName)
     uint32_t const newHash = MakeHashValue(sVideoName);
     while (pVTLcur != nullptr) {
         if (pVTLcur->hash == newHash && storm::iEquals(pVTLcur->name, sVideoName)) {
-            if (core.GetEntityPointer(pVTLcur->videoTexture_id)) {
+            if (core->GetEntityPointer(pVTLcur->videoTexture_id)) {
                 pVTLcur->ref++;
                 return pVTLcur->VideoTexture;
             }
@@ -3435,20 +3435,20 @@ CVideoTexture* DX9RENDER::GetVideoTexture(char const* sVideoName)
     auto const len        = strlen(sVideoName) + 1;
     if ((pVTLcur->name = new char[len]) == nullptr) throw std::runtime_error("memory allocate error");
     strcpy_s(pVTLcur->name, len, sVideoName);
-    entid_t const ei      = core.CreateEntity("TextureSequence");
-    pVTLcur->VideoTexture = static_cast<CVideoTexture*>(core.GetEntityPointer(ei));
+    entid_t const ei      = core->CreateEntity("TextureSequence");
+    pVTLcur->VideoTexture = static_cast<CVideoTexture*>(core->GetEntityPointer(ei));
     if (pVTLcur->VideoTexture != nullptr) {
         pVTLcur->videoTexture_id = ei;
         if (pVTLcur->VideoTexture->Initialize(this, sVideoName, true) == nullptr) {
             delete pVTLcur;
-            core.EraseEntity(ei);
+            core->EraseEntity(ei);
         } else {
             pVTL   = pVTLcur;
             retVal = pVTLcur->VideoTexture;
         }
     } else {
         delete pVTLcur;
-        core.EraseEntity(ei);
+        core->EraseEntity(ei);
     }
 
     return retVal;
@@ -3467,7 +3467,7 @@ void DX9RENDER::ReleaseVideoTexture(CVideoTexture* pVTexture)
                     pVTL = cur->next;
                 else
                     prev->next = cur->next;
-                core.EraseEntity(cur->videoTexture_id);
+                core->EraseEntity(cur->videoTexture_id);
                 delete cur->name;
                 delete cur;
                 break;
@@ -3480,11 +3480,11 @@ void DX9RENDER::PlayToTexture()
 {
     VideoTextureEntity* cur = pVTL;
     while (cur != nullptr) {
-        if (core.GetEntityPointer(pVTL->videoTexture_id)) {
+        if (core->GetEntityPointer(pVTL->videoTexture_id)) {
             cur->VideoTexture->FrameUpdate();
             cur = cur->next;
         } else {
-            core.Trace("ERROR: void DX9RENDER::PlayToTexture()");
+            core->Trace("ERROR: void DX9RENDER::PlayToTexture()");
             delete cur->name;
             VideoTextureEntity* pcur = cur;
             cur                      = cur->next;
@@ -3630,7 +3630,7 @@ void DX9RENDER::StartProgressView()
         int32_t const t  = TextureCreate("loading/progress.tga");
         isInPViewProcess = false;
         if (t < 0) {
-            core.Trace("Progress error!");
+            core->Trace("Progress error!");
             return;
         }
         progressTexture = t;
@@ -3764,7 +3764,7 @@ void DX9RENDER::ProgressView()
             v[i].color = 0xffffffff;
     // Animated object
     m_fHeightDeformator = ((float)vp.Height * 4.0f) / ((float)vp.Width * 3.0f);
-    // core.Trace(" size_x %f", (vp.Width - dx * 2.0f)*progressFramesWidth);
+    // core->Trace(" size_x %f", (vp.Width - dx * 2.0f)*progressFramesWidth);
     CVECTOR pos((vp.Width - dx * 2.0f) * progressFramesPosX + dx, (vp.Height - dy * 2.0f) * progressFramesPosY + dy, 0.0f);
     CVECTOR size((vp.Width - dx * 2.0f) * progressFramesWidth, (vp.Height - dy * 2.0f) * progressFramesHeight * 4.0f / 3.0f, 0.0f);
     v[0].x = pos.x;
@@ -3826,7 +3826,7 @@ void DX9RENDER::SetColorParameters(float fGamma, float fBrightness, float fContr
             fContrast * 255.0f * 256.0f * powf(static_cast<float>(i / 255.0f), 1.0f / fGamma) + fBrightness * 256.0f, 0.0f, 65535.0f);
         rgb[i] = static_cast<uint16_t>(fRamp);
     }
-    core.GetWindow()->SetGamma(rgb, rgb, rgb);
+    core->GetWindow()->SetGamma(rgb, rgb, rgb);
 }
 
 void DX9RENDER::MakeDrawVector(
@@ -3936,7 +3936,7 @@ bool DX9RENDER::PushRenderTarget()
 bool DX9RENDER::PopRenderTarget()
 {
     if (stRenderTarget.empty()) {
-        core.Trace("DX9Error: Try to pop RenderTarget, but RenderTarget stack is empty");
+        core->Trace("DX9Error: Try to pop RenderTarget, but RenderTarget stack is empty");
         return false;
     }
 

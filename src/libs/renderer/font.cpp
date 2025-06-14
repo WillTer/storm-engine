@@ -53,7 +53,7 @@ FONT::~FONT()
 {
     if (vertexBuffer_) vertexBuffer_->Release();
     if (textureHandle_ >= 0) renderService_.TextureRelease(textureHandle_);
-    // core.FreeService("dx9render");
+    // core->FreeService("dx9render");
 }
 
 bool FONT::Init(char const* font_name, char const* iniName)
@@ -145,7 +145,7 @@ bool FONT::Init(char const* font_name, char const* iniName)
 
     textureHandle_ = renderService_.TextureCreate(textureName_.c_str());
     if (textureHandle_ < 0) {
-        core.Trace("Not Found Texture: %s", textureName_.c_str());
+        core->Trace("Not Found Texture: %s", textureName_.c_str());
         return false;
     }
 
@@ -172,7 +172,7 @@ int32_t FONT::GetStringWidth(std::string_view const& text, std::optional<float> 
         uint32_t Codepoint = utf8::Utf8ToCodepoint(text.data() + i);
 
         if (Codepoint > USED_CODES) {
-            core.Trace("Invalid codepoint: %d", Codepoint);
+            core->Trace("Invalid codepoint: %d", Codepoint);
             if constexpr (storm::kIsDebug) { throw std::runtime_error(fmt::format("Invalid codepoint: {}", Codepoint)); }
             continue;
         }
@@ -209,7 +209,7 @@ int32_t FONT::UpdateVertexBuffer(int32_t x, int32_t y, char* data_PTR, int utf8l
         int Codepoint = utf8::Utf8ToCodepoint(data_PTR + i);
 
         if (Codepoint > USED_CODES) {
-            core.Trace("Invalid codepoint: %d", Codepoint);
+            core->Trace("Invalid codepoint: %d", Codepoint);
             if constexpr (storm::kIsDebug) { throw std::runtime_error(fmt::format("Invalid codepoint: {}", Codepoint)); }
             continue;
         }

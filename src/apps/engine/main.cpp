@@ -15,13 +15,15 @@
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
 
+#include "libs/core/core_impl.h"
+
 std::unique_ptr<IFileService>         fio           = nullptr;
+std::shared_ptr<CoreImpl>             core_internal = nullptr;
+std::shared_ptr<Core>                 core          = nullptr;
 std::unique_ptr<storm::IConfigLoader> config_loader = nullptr;
 
 namespace
 {
-
-CorePrivate* core_private;
 
 constexpr char DEFAULT_LOGGER_NAME[]          = "system";
 bool           is_sound_in_background_enabled = false;
@@ -32,7 +34,7 @@ storm::diag::LifecycleDiagnosticsService lifecycle_diagnostics;
 
 bool run_frame()
 {
-    bool const is_running = core_private->Run();
+    bool const is_running = core_internal->Run();
     lifecycle_diagnostics.notifyAfterRun();
 
     return is_running;
@@ -64,21 +66,21 @@ void handle_window_event(storm::OSWindow::Event const& event)
 {
     if (event == storm::OSWindow::Closed) {
         should_close = true;
-        if (core_private->initialized()) { core_private->Event("DestroyWindow"); }
+        if (core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
     } else if (event == storm::OSWindow::FocusGained) {
         is_active = true;
-        if (core_private->initialized()) {
-            core_private->AppState(is_active);
-            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
+        if (core_internal->initialized()) {
+            core_internal->AppState(is_active);
+            if (auto* const sound_service = static_cast<VSoundService*>(core->GetService("SoundService"));
                 (sound_service != nullptr) && !is_sound_in_background_enabled) {
                 sound_service->set_active_with_fade(true);
             }
         }
     } else if (event == storm::OSWindow::FocusLost) {
         is_active = false;
-        if (core_private->initialized()) {
-            core_private->AppState(is_active);
-            if (auto* const sound_service = static_cast<VSoundService*>(core.GetService("SoundService"));
+        if (core_internal->initialized()) {
+            core_internal->AppState(is_active);
+            if (auto* const sound_service = static_cast<VSoundService*>(core->GetService("SoundService"));
                 (sound_service != nullptr) && !is_sound_in_background_enabled) {
                 sound_service->set_active_with_fade(false);
             }
@@ -101,6 +103,8 @@ int main()
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
     fio           = std::make_unique<FileService>();
+    core_internal = std::make_shared<CoreImpl>();
+    core          = core_internal;
     config_loader = std::make_unique<storm::ConfigLoader>();
 
     // Load parameters of file service
@@ -118,7 +122,7 @@ int main()
     if (!lifecycle_diagnostics_guard) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", "Unable to initialize lifecycle service!", nullptr);
     } else {
-        lifecycle_diagnostics.setCrashInfoCollector([]() { core_private->collectCrashInfo(); });
+        lifecycle_diagnostics.setCrashInfoCollector([]() { core_internal->collectCrashInfo(); });
     }
 
     // Init stash
@@ -129,8 +133,7 @@ int main()
     spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
 
     // Init core
-    core_private = static_cast<CorePrivate*>(&core);
-    core_private->Init();
+    core_internal->Init();
 
     // Read config
     auto const general_info = storm::main_config::general_info();
@@ -155,10 +158,10 @@ int main()
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
-    core_private->SetWindow(window);
+    core_internal->SetWindow(window);
 
     // Init core
-    core_private->InitBase();
+    core_internal->InitBase();
 
     // Message loop
     auto old_time = SDL_GetTicks();
@@ -183,9 +186,9 @@ int main()
     }
 
     // Release
-    core_private->Event("ExitApplication");
-    core_private->CleanUp();
-    core_private->ReleaseBase();
+    core_internal->Event("ExitApplication");
+    core_internal->CleanUp();
+    core_internal->ReleaseBase();
 #ifdef _WIN32  // FIX_LINUX Cursor
     ClipCursor(nullptr);
 #endif

@@ -34,7 +34,7 @@ SHIPPOINTER::~SHIPPOINTER()
 
 bool SHIPPOINTER::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -54,9 +54,9 @@ bool SHIPPOINTER::Init()
         rs->UnLockVertexBuffer(m_idVBuf);
     }
 
-    auto* pA = core.Entity_GetAttributeClass(GetId(), "textures");
+    auto* pA = core->Entity_GetAttributeClass(GetId(), "textures");
     if (pA == nullptr) {
-        core.Trace("WARNING! object SHIPPOINTER hav`t attribute TEXTURES");
+        core->Trace("WARNING! object SHIPPOINTER hav`t attribute TEXTURES");
         return false;
     }
 
@@ -152,9 +152,9 @@ VAI_OBJBASE* SHIPPOINTER::FindShipByChrIndex(int32_t chrIdx) const
 {
     if (chrIdx == -1) return nullptr;
 
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("ship");
     for (auto ship: entities) {
-        auto ps = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+        auto ps = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (ps != nullptr && ps->GetACharacter() != nullptr) {
             if (static_cast<int32_t>(ps->GetACharacter()->GetAttributeAsDword("index", -2)) == chrIdx) return ps;
         }
@@ -162,7 +162,7 @@ VAI_OBJBASE* SHIPPOINTER::FindShipByChrIndex(int32_t chrIdx) const
 
     /*if( NetFindClass(false,&ei,"netship") ) do
     {
-      VAI_OBJBASE * ps = (VAI_OBJBASE*)core.GetEntityPointer(ei);
+      VAI_OBJBASE * ps = (VAI_OBJBASE*)core->GetEntityPointer(ei);
       if(ps!= nullptr && ps->GetACharacter()!= nullptr)
       {
         if( (int32_t)ps->GetACharacter()->GetAttributeAsDword("id",-2) == chrIdx )

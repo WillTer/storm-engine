@@ -40,12 +40,12 @@ BICommandList::~BICommandList()
 void BICommandList::Draw()
 {
     if (m_aCooldownUpdate.size() > 0) {
-        auto const fDT = core.GetDeltaTime() * .001f;
+        auto const fDT = core->GetDeltaTime() * .001f;
         for (int32_t n = 0; n < m_aCooldownUpdate.size(); n++) {
             m_aCooldownUpdate[n].fTime -= fDT;
             if (m_aCooldownUpdate[n].fTime < 0) {
                 m_aCooldownUpdate[n].fTime = m_aCooldownUpdate[n].fUpdateTime;
-                auto* pDat = core.Event("neGetCooldownFactor", "s", m_aUsedCommand[m_aCooldownUpdate[n].nIconNum].sCommandName.c_str());
+                auto* pDat = core->Event("neGetCooldownFactor", "s", m_aUsedCommand[m_aCooldownUpdate[n].nIconNum].sCommandName.c_str());
                 if (pDat) m_aUsedCommand[m_aCooldownUpdate[n].nIconNum].fCooldownFactor = pDat->GetFloat();
                 UpdateShowIcon();
             }
@@ -116,7 +116,7 @@ int32_t BICommandList::ExecuteConfirm()
 
     if (!m_aUsedCommand[m_nSelectedCommandIndex].sCommandName.empty()) {
         m_sCurrentCommandName = m_aUsedCommand[m_nSelectedCommandIndex].sCommandName;
-        auto* pVD             = core.Event("BI_CommandEndChecking", "s", m_sCurrentCommandName.c_str());
+        auto* pVD             = core->Event("BI_CommandEndChecking", "s", m_sCurrentCommandName.c_str());
         if (pVD != nullptr) pVD->Get(endCode);
     } else {
         sLocName   = m_aUsedCommand[m_nSelectedCommandIndex].sLocName;
@@ -124,11 +124,11 @@ int32_t BICommandList::ExecuteConfirm()
         if (sLocName.empty() && m_aUsedCommand[m_nSelectedCommandIndex].nCharIndex >= 0)
             nTargIndex = m_aUsedCommand[m_nSelectedCommandIndex].nCharIndex;
     }
-    core.Event("evntBattleCommandSound", "s", "activate");  // boal 22.08.06
+    core->Event("evntBattleCommandSound", "s", "activate");  // boal 22.08.06
     switch (endCode) {
     case -1:
     case 0:
-        core.Event(
+        core->Event(
             "BI_LaunchCommand", "lsls", m_nCurrentCommandCharacterIndex, m_sCurrentCommandName.c_str(), nTargIndex, sLocName.c_str());
         m_sCurrentCommandName = "";
         break;
@@ -142,7 +142,7 @@ int32_t BICommandList::ExecuteLeft()
     if (m_nSelectedCommandIndex > 0) {
         m_nSelectedCommandIndex--;
         if (m_nSelectedCommandIndex < m_nStartUsedCommandIndex) { m_nStartUsedCommandIndex = m_nSelectedCommandIndex; }
-        core.Event("evntBattleCommandSound", "s", "left");  // boal 22.08.06
+        core->Event("evntBattleCommandSound", "s", "left");  // boal 22.08.06
         UpdateShowIcon();
     }
     return 0;
@@ -155,7 +155,7 @@ int32_t BICommandList::ExecuteRight()
         if (m_nSelectedCommandIndex >= m_nStartUsedCommandIndex + m_nIconShowMaxQuantity) {
             m_nStartUsedCommandIndex = m_nSelectedCommandIndex - m_nIconShowMaxQuantity + 1;
         }
-        core.Event("evntBattleCommandSound", "s", "right");  // boal 22.08.06
+        core->Event("evntBattleCommandSound", "s", "right");  // boal 22.08.06
         UpdateShowIcon();
     }
     return 0;
@@ -358,7 +358,7 @@ int32_t BICommandList::AddToIconList(
     m_aUsedCommand.push_back(uc);
 
     if (nCooldownPictureNum >= 0) {
-        auto* pDat = core.Event("neGetCooldownFactor", "s", pcCommandName);
+        auto* pDat = core->Event("neGetCooldownFactor", "s", pcCommandName);
         if (pDat) m_aUsedCommand[n].fCooldownFactor = pDat->GetFloat();
         CoolDownUpdateData data;
         data.fUpdateTime = data.fTime = 1.f;
@@ -497,9 +497,9 @@ void BICommandList::UpdateShowIcon()
             SetNote(m_aUsedCommand[n].sNote.c_str(), (rPos.left + rPos.right) / 2, (rPos.top + rPos.bottom) / 2);
             auto* const pSD = g_ShipList.FindShip(m_aUsedCommand[n].nCharIndex);
             if (pSD) {
-                core.Event("evntBISelectShip", "ll", pSD->characterIndex, pSD->relation != BI_RELATION_ENEMY);
+                core->Event("evntBISelectShip", "ll", pSD->characterIndex, pSD->relation != BI_RELATION_ENEMY);
             } else
-                core.Event("evntBISelectShip", "ll", -1, true);
+                core->Event("evntBISelectShip", "ll", -1, true);
         } else {
             if (m_aUsedCommand[n].nCooldownPictureIndex < 0)
                 i += IconAdd(m_aUsedCommand[n].nNormPictureIndex, m_aUsedCommand[n].nTextureIndex, rPos);

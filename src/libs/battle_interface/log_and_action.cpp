@@ -42,12 +42,12 @@ ILogAndActions::~ILogAndActions()
 
 bool ILogAndActions::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
     D3DVIEWPORT9 vp;
     rs->GetViewport(&vp);
-    core.Event("SetWindowSize", "lll", static_cast<int32_t>(vp.Width), static_cast<int32_t>(vp.Height), false);
+    core->Event("SetWindowSize", "lll", static_cast<int32_t>(vp.Width), static_cast<int32_t>(vp.Height), false);
     return true;
 }
 
@@ -56,8 +56,8 @@ void ILogAndActions::Execute(uint32_t delta_time)
     if (m_bDontShowAll) return;
 
     CONTROL_STATE cs;
-    core.Controls->GetControlState(BI_FAST_COMMANDS, cs);
-    if (cs.state == CST_ACTIVATED) core.Event("BI_FastCommand", "s", m_sActionName);
+    core->Controls->GetControlState(BI_FAST_COMMANDS, cs);
+    if (cs.state == CST_ACTIVATED) core->Event("BI_FastCommand", "s", m_sActionName);
 
     // fade out lines
     auto const    colDelta = delta_time * m_fBlendSpeed;
@@ -154,7 +154,7 @@ uint64_t ILogAndActions::ProcessMessage(MESSAGE& message)
         break;
     case LI_OTHER_MSG: {
         std::string const& param = message.String();
-        if (storm::iEquals(param, "SetTimeScale")) { core.SetTimeScale(message.Float()); }
+        if (storm::iEquals(param, "SetTimeScale")) { core->SetTimeScale(message.Float()); }
     } break;
     }
     return 0;
@@ -163,8 +163,8 @@ uint64_t ILogAndActions::ProcessMessage(MESSAGE& message)
 void ILogAndActions::Realize(uint32_t delta_time)
 {
 #ifdef SPECIAL_VERSION
-    if (core.Controls->GetDebugAsyncKeyState(VK_F8) >= 0) {
-        m_nTimeCounter += core.GetDeltaTime();
+    if (core->Controls->GetDebugAsyncKeyState(VK_F8) >= 0) {
+        m_nTimeCounter += core->GetDeltaTime();
         if (m_nTimeCounter > 10000) { m_nTimeCounter = 0; }
         int32_t nA = 0;
         if (m_nTimeCounter < 500) {
@@ -177,7 +177,7 @@ void ILogAndActions::Realize(uint32_t delta_time)
         rs->ExtPrint(m_fontID, ARGB(nA, 255, 255, 255), 0, PR_ALIGN_CENTER, false, 3.9f, 800, 600, 400, 300, "¬≈–—»я ƒЋя ѕ–≈——џ");
     }
 #endif
-    if (core.Controls->GetDebugAsyncKeyState('K') < 0) return;
+    if (core->Controls->GetDebugAsyncKeyState('K') < 0) return;
     if (rs == nullptr) return;
     if (m_bDontShowAll) return;
 
@@ -436,7 +436,7 @@ void ILogAndActions::SetAction(char const* actionName)
 
     if (actionName == nullptr) return;
     if ((strlen(actionName) + 1) > sizeof(m_sActionName)) {
-        core.Trace("Action name: %s  - overup size of name");
+        core->Trace("Action name: %s  - overup size of name");
         return;
     }
     pA = AttributesPointer->GetAttributeClass("ActiveActions");

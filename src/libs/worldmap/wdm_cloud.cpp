@@ -61,7 +61,7 @@ void WdmCloud::Update(float dltTime)
     auto const pi2 = 2.0f * 3.14159265358979323846f;
     if (dltTime > 1.0f) dltTime = 1.0f;
 
-    if (core.Controls->GetKeyState(VK_NUMLOCK) < 0) { dltTime = 0.0f; }
+    if (core->Controls->GetKeyState(VK_NUMLOCK) < 0) { dltTime = 0.0f; }
 
     // Moving the cloud
     Move(dltTime);

@@ -15,7 +15,7 @@ void TOUCH::SetDevices()
 {
     entid_t ent;
 
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
 }
 
 bool TOUCH::Init()
@@ -77,7 +77,7 @@ void TOUCH::Execute(uint32_t dwCoreDeltaTime)
     // GUARD(void TOUCH::Execute(uint32_t dwCoreDeltaTime))
     int32_t i;
     entid_t ent;
-    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("island")));
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
@@ -85,7 +85,7 @@ void TOUCH::Execute(uint32_t dwCoreDeltaTime)
 
     if (dwCoreDeltaTime == 0) return;
     for (i = 0; i < iNumShips; i++) {
-        pShips[i]->pShip = static_cast<SHIP_BASE*>(core.GetEntityPointer(pShips[i]->eID));
+        pShips[i]->pShip = static_cast<SHIP_BASE*>(core->GetEntityPointer(pShips[i]->eID));
         if (pShips[i]->pShip && !pShips[i]->iNumVContour) {
             pShips[i]->pShip->BuildContour(&pShips[i]->vContour[0], pShips[i]->iNumVContour);
         }
@@ -105,8 +105,8 @@ void TOUCH::Execute(uint32_t dwCoreDeltaTime)
 
     FakeTouch();  // just push out the ships that are still in each other
 
-    // if (core.Controls->GetAsyncKeyState('5')) fScale -= 0.1f;
-    // if (core.Controls->GetAsyncKeyState('6')) fScale += 0.1f;
+    // if (core->Controls->GetAsyncKeyState('5')) fScale -= 0.1f;
+    // if (core->Controls->GetAsyncKeyState('6')) fScale += 0.1f;
 
     RDTSC_E(dwRdtsc);
 }
@@ -471,7 +471,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
 
         // script event initiate
 
-        core.Event(
+        core->Event(
             SHIP_SHIP2SHIP_COLLISION,
             "llfflfff",
             GetIndex(pOur->GetACharacter()),
@@ -503,7 +503,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
 
                 // script event initiate
                 auto const iEnemyCharacterIndex = (i == ISLAND_CODE) ? -1 : GetIndex(pShips[i]->pShip->GetACharacter());
-                core.Event(
+                core->Event(
                     (i != ISLAND_CODE) ? SHIP_SHIP2SHIP_COLLISION : SHIP_SHIP2ISLAND_COLLISION,
                     "llfflfff",
                     GetIndex(pOur->GetACharacter()),

@@ -43,7 +43,7 @@ void CXI_EDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (!bSelected && m_bOldSelected) {
         m_bUse = false;
-        core.Event("editbox_exit");
+        core->Event("editbox_exit");
     }
     m_bOldSelected = bSelected;
     if (!m_bUse || !bSelected) return;
@@ -147,7 +147,7 @@ void CXI_EDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
     }
 
     // show out string
-    auto*       pA     = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    auto*       pA     = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     char const* tmpstr = nullptr;
     if (pA) tmpstr = pA->GetAttribute("strdata");
     if (tmpstr)
@@ -200,7 +200,7 @@ int CXI_EDITBOX::CommandExecute(int wActCode)
         case ACTION_ACTIVATE:
         case ACTION_MOUSECLICK: {
             if (m_nCurAlphaNum < 0 || m_nCurAlphaNum >= m_nAlphaQuantity) break;
-            auto* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+            auto* pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
             if (pA == nullptr) break;
             char param[256];
             param[0]           = 0;
@@ -219,11 +219,11 @@ int CXI_EDITBOX::CommandExecute(int wActCode)
                     sprintf_s(param, " ");
                 break;
             case '~':
-                core.Event("NodeOk", "s", m_nodeName);
+                core->Event("NodeOk", "s", m_nodeName);
                 return -1;
                 break;
             case '`':
-                core.Event("NodeCancel", "s", m_nodeName);
+                core->Event("NodeCancel", "s", m_nodeName);
                 return -1;
                 break;
             case '|':
@@ -363,7 +363,7 @@ void CXI_EDITBOX::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -382,9 +382,9 @@ void CXI_EDITBOX::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
 
     // get font number
     if (ReadIniString(ini1, name1, ini2, name2, "chrFont", param, sizeof(param), ""))
-        if ((m_nChrFontNum = m_rs->LoadFont(param)) == -1) core.Trace("can`t load font:'%s'", param);
+        if ((m_nChrFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can`t load font:'%s'", param);
     if (ReadIniString(ini1, name1, ini2, name2, "strFont", param, sizeof(param), ""))
-        if ((m_nStrFontNum = m_rs->LoadFont(param)) == -1) core.Trace("can`t load font:'%s'", param);
+        if ((m_nStrFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can`t load font:'%s'", param);
 
     // Get font scale
     m_fChrScale = GetIniFloat(ini1, name1, ini2, name2, "chrScale", 1.f);
@@ -395,7 +395,7 @@ void CXI_EDITBOX::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
 
     // get texture
     if (ReadIniString(ini1, name1, ini2, name2, "chrTexture", param, sizeof(param), ""))
-        if ((m_idBtnTex = m_rs->TextureCreate(param)) == -1) core.Trace("can`t load texture:'%s'", param);
+        if ((m_idBtnTex = m_rs->TextureCreate(param)) == -1) core->Trace("can`t load texture:'%s'", param);
 
     // Get rectangle color
     m_dwEditBoxColor = GetIniARGB(ini1, name1, ini2, name2, "argbBoxColor", 0);
@@ -427,7 +427,7 @@ void CXI_EDITBOX::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         // m_alpha[len+sizeof(m_alpha)/2] = 0;
 
         if (static_cast<size_t>(m_nAlphaQuantity) != strlen(&m_alpha[sizeof(m_alpha) / 2])) {
-            core.Trace("WARNING!!! parameters alphabet & alphabetUP is different");
+            core->Trace("WARNING!!! parameters alphabet & alphabetUP is different");
         }
     }
 

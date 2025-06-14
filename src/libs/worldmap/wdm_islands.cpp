@@ -115,7 +115,7 @@ WdmIslands::WdmIslands()
             name += "_area";
             isl.area =
                 static_cast<WdmRenderModel*>(wdmObjects->wm->CreateModel(new WdmRenderModel(), name.c_str(), false, false, false, 3));
-            if (!isl.area) { core.Trace("World map: can't load model of island's area: %s", name.c_str()); }
+            if (!isl.area) { core->Trace("World map: can't load model of island's area: %s", name.c_str()); }
             // Palm trees
             name = "islands/";
             name += label.name;
@@ -133,7 +133,7 @@ WdmIslands::WdmIslands()
             isl.waves =
                 static_cast<WdmIslandWaves*>(wdmObjects->wm->CreateModel(new WdmIslandWaves(), name.c_str(), false, false, true, 4));
         } else {
-            core.Trace("World map: can't load model of island: %s", name.c_str());
+            core->Trace("World map: can't load model of island: %s", name.c_str());
         }
     }
     // Loading the patch
@@ -328,7 +328,7 @@ void WdmIslands::SetIslandsData(ATTRIBUTES* apnt, bool isChange)
         uint32_t const weight     = a->GetAttributeAsDword("weight", 0);
         // Check for sufficiency
         if (!id || !text || !locator || !locator[0]) {
-            core.Trace("World map: label \"%s\" will be skipping...", apnt->GetAttributeName(i));
+            core->Trace("World map: label \"%s\" will be skipping...", apnt->GetAttributeName(i));
             continue;
         }
         // looking for a label among existing
@@ -336,7 +336,7 @@ void WdmIslands::SetIslandsData(ATTRIBUTES* apnt, bool isChange)
         int32_t        index = LabelsFind(id, hash);
         if (index < 0) {
             if (!LabelsFindLocator(locator, pos)) {
-                core.Trace("World map: locator \"%s\" in label \"%s\" not found...", locator, apnt->GetAttributeName(i));
+                core->Trace("World map: locator \"%s\" in label \"%s\" not found...", locator, apnt->GetAttributeName(i));
                 continue;
             }
             // Adding a new label
@@ -536,10 +536,10 @@ void WdmIslands::LRender(VDX9RENDER* rs)
 {
     // Draw a patch if needed
     if (wdmObjects->isDebug) {
-        if (patch && core.Controls->GetDebugAsyncKeyState('1') < 0) { patch->DebugDraw(rs, core.GetDeltaTime() * 0.001f); }
+        if (patch && core->Controls->GetDebugAsyncKeyState('1') < 0) { patch->DebugDraw(rs, core->GetDeltaTime() * 0.001f); }
     }
     // Update the state of the pictures
-    icons.frame += core.GetDeltaTime() * 0.001f * icons.fps;
+    icons.frame += core->GetDeltaTime() * 0.001f * icons.fps;
     icons.frame = (icons.frame / icons.frames - static_cast<int32_t>(icons.frame / icons.frames)) * icons.frames;
     if (icons.frame < 0.0f) { icons.frame += icons.frames; }
     icons.f[0]  = static_cast<float>(static_cast<int32_t>(icons.frame));
@@ -566,7 +566,7 @@ void WdmIslands::LRender(VDX9RENDER* rs)
     auto const h = static_cast<float>(vp.Height);
     // Get the height of the camera
     float const cameraHeight = wdmObjects->camera->realHeight;
-    float const dAlpha       = core.GetDeltaTime() * (0.001f * 1.5f * 255.0f);
+    float const dAlpha       = core->GetDeltaTime() * (0.001f * 1.5f * 255.0f);
     // Projecting to the screen
     labelSort.clear();
     MTX_PRJ_VECTOR prjVertex;

@@ -117,7 +117,7 @@ public:
 
         MODEL* GetModel() const
         {
-            return static_cast<MODEL*>(core.GetEntityPointer(GetModelEID()));
+            return static_cast<MODEL*>(core->GetEntityPointer(GetModelEID()));
         }
 
         void SetModelEID(entid_t _eidModel)

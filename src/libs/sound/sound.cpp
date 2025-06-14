@@ -15,11 +15,11 @@ SOUND::~SOUND() {}
 //--------------------------------------------------------------------
 bool SOUND::Init()
 {
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
-    if (!soundService) core.Trace("!SOUND: Can`t create sound service");
+    soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
+    if (!soundService) core->Trace("!SOUND: Can`t create sound service");
 
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    core.AddToLayer(REALIZE, GetId(), -1);
+    renderer = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    core->AddToLayer(REALIZE, GetId(), -1);
 
     return true;
     // UNGUARD

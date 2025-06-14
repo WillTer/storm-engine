@@ -27,9 +27,9 @@ bool LIGHTNING::Init()
 
 void LIGHTNING::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     Assert(pCollide);
 }
 
@@ -149,7 +149,7 @@ void LIGHTNING::CalcFlashPower(lightning_t* pL) const
     auto fPower = 1.0f;
 
     for (uint32_t i = 0; i < 3; i++) {
-        auto const fRes = pCollide->Trace(core.GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
+        auto const fRes = pCollide->Trace(core->GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
         if (fRes <= 1.0f) fPower -= 0.31f;
     }
     pL->fPower = fPower;

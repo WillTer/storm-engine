@@ -37,10 +37,10 @@ void TButterflies::Init()
 {
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!renderService) throw std::runtime_error("!Butterflies: No service 'dx9render'");
 
-    collide = static_cast<COLLIDE*>(core.GetService("coll"));
+    collide = static_cast<COLLIDE*>(core->GetService("coll"));
     if (!collide) throw std::runtime_error("!Butterflies: No service COLLIDE");
 
     ivManager = new IVBufferManager(renderService, BUTTERFLY_VERTEX_TYPE, sizeof(tButterflyVertex), 3 * 4, 6, butterfliesCount);
@@ -84,7 +84,7 @@ void TButterflies::Execute(uint32_t _dTime)
     butterflies[0].SetCenter(pos);
     int i;
 
-    auto const its = core.GetEntityIds(SHADOW);
+    auto const its = core->GetEntityIds(SHADOW);
 
     // redefine minY
     yDefineTime += _dTime;

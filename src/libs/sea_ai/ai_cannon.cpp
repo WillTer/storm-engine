@@ -76,7 +76,7 @@ float AICannon::CalcHeightFireAngle(float _fSpeedV0, const CVECTOR& vOur, const 
 
 VAI_OBJBASE* AICannon::GetAIObjPointer() const
 {
-    return static_cast<VAI_OBJBASE*>(core.GetEntityPointer(GetParentEID()));
+    return static_cast<VAI_OBJBASE*>(core->GetEntityPointer(GetParentEID()));
 }
 
 float AICannon::GetDirY() const
@@ -132,7 +132,7 @@ void AICannon::RealFire()
     }
     if (vEnemyPos.y < vPosTemp.y) { fAngle = -fAngle; }
 
-    core.Event(
+    core->Event(
         CANNON_FIRE,
         "afffffffff",
         pAHolder->GetACharacter(),
@@ -174,7 +174,7 @@ bool AICannon::Fire(float _fSpeedV0, const CVECTOR& _vFirePos)
     fSpeedV0  = _fSpeedV0;
 
     // calculate in script timeout before real fire
-    auto* pVData = core.Event(CANNON_GET_FIRE_TIME, "a", pAHolder->GetACharacter());
+    auto* pVData = core->Event(CANNON_GET_FIRE_TIME, "a", pAHolder->GetACharacter());
     Assert(pVData);
     fTotalTime2Action = fTime2Action = pVData->GetFloat();
     return true;
@@ -183,7 +183,7 @@ bool AICannon::Fire(float _fSpeedV0, const CVECTOR& _vFirePos)
 void AICannon::Unload()
 {
     // call script
-    if (!isDamaged() && !isEmpty()) { core.Event(CANNON_UNLOAD, "a", pAHolder->GetACharacter()); }
+    if (!isDamaged() && !isEmpty()) { core->Event(CANNON_UNLOAD, "a", pAHolder->GetACharacter()); }
     bReady2Fire = false;
     bRecharged  = false;
     bEmpty      = true;
@@ -192,7 +192,7 @@ void AICannon::Unload()
 
 void AICannon::Load()
 {
-    auto* pVData = core.Event(CANNON_LOAD, "a", pAHolder->GetACharacter());
+    auto* pVData = core->Event(CANNON_LOAD, "a", pAHolder->GetACharacter());
     Assert(pVData);
     bEmpty = pVData->GetInt() == 0;
 }
@@ -206,7 +206,7 @@ void AICannon::Recharge()
     bRecharged  = true;
 
     // calculate in script recharge time, and possibility of recharge
-    auto* pVData = core.Event(CANNON_GET_RECHARGE_TIME, "a", pAHolder->GetACharacter());
+    auto* pVData = core->Event(CANNON_GET_RECHARGE_TIME, "a", pAHolder->GetACharacter());
     Assert(pVData);
     fTotalTime2Action = fTime2Action = pVData->GetFloat();
 }

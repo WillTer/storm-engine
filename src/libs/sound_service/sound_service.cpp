@@ -37,7 +37,7 @@ class Tracer: public DebugTracer
         size_t                       line,
         std::string const&           function_name) override
     {
-        core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
+        core->Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
     }
 };
 
@@ -76,7 +76,7 @@ bool SoundService::Init()
 {
     m_is_initialized = false;
 
-    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    m_renderer = static_cast<VDX9RENDER*>(core->GetService("DX9RENDER"));
     if (m_renderer == nullptr) { return false; }
 
     m_device =
@@ -98,7 +98,7 @@ bool SoundService::Init()
 
 void SoundService::RunEnd()
 {
-    m_device->update(std::chrono::milliseconds(core.GetDeltaTime()));
+    m_device->update(std::chrono::milliseconds(core->GetDeltaTime()));
 }
 
 void SoundService::RunStart()
@@ -134,7 +134,7 @@ bool SoundService::allocate_sound(SoundID& id)
     }
 
     if (m_playing_sounds.size() >= std::numeric_limits<uint16_t>::max()) {
-        core.Trace("SoundService::allocate_sound(): no empty slots!");
+        core->Trace("SoundService::allocate_sound(): no empty slots!");
         return false;
     }
 
@@ -165,7 +165,7 @@ SoundID SoundService::play(
 
         // play sound from the alias ...
         sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.files.pickRandom();
-        if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
+        if constexpr (TRACE_INFORMATION) { core->Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
         alias_max_distance = alias.max_distance;
@@ -186,7 +186,7 @@ SoundID SoundService::play(
     auto&          sound     = m_playing_sounds[sound_idx];
 
     if constexpr (TRACE_INFORMATION) {
-        core.Trace(
+        core->Trace(
             "Sound attached, name %s, idx = %d, channel = %p, state = %d",
             sound_path.string().c_str(),
             sound_idx,
@@ -242,17 +242,17 @@ void SoundService::set_3d_param(SoundID id, SoundMessageType msg, void const* da
 
 void SoundService::sound_restart(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound restart !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound restart !"); }
 }
 
 void SoundService::sound_release(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound release !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound release !"); }
 }
 
 void SoundService::set_volume(SoundID id, float const volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound set volume !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound set volume !"); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -272,7 +272,7 @@ bool SoundService::is_playing(SoundID id)
 
 void SoundService::resume(SoundID id, int32_t time /* = 0*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Resume sound %d", id.index()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Resume sound %d", id.index()); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -308,7 +308,7 @@ void SoundService::set_camera_orientation(const CVECTOR& nose, const CVECTOR& he
 
 void SoundService::set_master_volume(float fx_volume, float music_volume, float speech_volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Set master volume"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Set master volume"); }
 
     m_fx_volume     = std::clamp(fx_volume, 0.0F, 1.0F);
     m_music_volume  = std::clamp(music_volume, 0.0F, 1.0F);
@@ -323,7 +323,7 @@ void SoundService::set_master_volume(float fx_volume, float music_volume, float 
 
 void SoundService::get_master_volume(float& fx_volume, float& music_volume, float& speech_volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Get master volume"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Get master volume"); }
 
     fx_volume     = m_fx_volume;
     music_volume  = m_music_volume;
@@ -332,7 +332,7 @@ void SoundService::get_master_volume(float& fx_volume, float& music_volume, floa
 
 void SoundService::set_pitch(float pitch)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Set pitch"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Set pitch"); }
 
     m_pitch = pitch > std::numeric_limits<float>::epsilon() ? pitch : 0.0F;
 
@@ -345,14 +345,14 @@ void SoundService::set_pitch(float pitch)
 
 float SoundService::get_pitch()
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Get pitch"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Get pitch"); }
 
     return m_pitch;
 }
 
 SoundID SoundService::duplicate(SoundID /*source_id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound duplicate"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound duplicate"); }
 
     return 0;
 }
@@ -376,7 +376,7 @@ void SoundService::set_active_with_fade(bool const is_active)
 
 void SoundService::stop(SoundID id, int32_t time)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Stop sound %d", id.index()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Stop sound %d", id.index()); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -391,7 +391,7 @@ void SoundService::load_alias_file(std::string const& filename)
 {
     auto config_file = fio->base_directory_path(BaseDirectory::Aliases) / filename;
 
-    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Find sound alias file %s", config_file.string().c_str()); }
 
     m_aliases.merge(storm::sound_alias::aliases(config_file));
 }
@@ -408,7 +408,7 @@ SoundID SoundService::prepare_music(std::string const& name, int32_t fade_time /
 {
     auto const sound = m_device->create_sound_stream(name, Sound::Flags::Stereo2D);
     if (!sound) {
-        core.Trace("Error creating sound stream for file %s", name.c_str());
+        core->Trace("Error creating sound stream for file %s", name.c_str());
         return 0;
     }
 
@@ -442,7 +442,7 @@ SoundID SoundService::prepare_sound(
 {
     auto const sound = get_from_cache(name, sound_type);
     if (sound == nullptr) {
-        core.Trace("Problem with sound loading !!! '%s'", name.c_str());
+        core->Trace("Problem with sound loading !!! '%s'", name.c_str());
         return 0;
     }
 
@@ -682,7 +682,7 @@ bool SoundService::add_sound_scheme_channel(std::string const& in_string, bool i
 void SoundService::process_sound_schemes()
 {
     // handle schemes
-    uint32_t const delta_time = core.GetDeltaTime();
+    uint32_t const delta_time = core->GetDeltaTime();
 
     auto const play_from_channel = [this](auto const& channel, bool const is_looped) {
         play(channel.name, SoundType::SoundStereo, VolumeType::Fx, false, is_looped, 0, nullptr, -1.F, -1.F, channel.volume);

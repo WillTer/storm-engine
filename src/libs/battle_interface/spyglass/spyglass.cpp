@@ -92,7 +92,7 @@ ISPYGLASS::~ISPYGLASS()
 
 bool ISPYGLASS::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -150,10 +150,10 @@ bool ISPYGLASS::Init()
 void ISPYGLASS::Execute(uint32_t delta_time)
 {
     CONTROL_STATE cs;
-    core.Controls->GetControlState("TelescopeIn", cs);
-    if (cs.state == CST_ACTIVATED) core.Event("MSG_TELESCOPE_REQUEST", "l", 1);
-    core.Controls->GetControlState("TelescopeOut", cs);
-    if (cs.state == CST_ACTIVATED) core.Event("MSG_TELESCOPE_REQUEST", "l", 0);
+    core->Controls->GetControlState("TelescopeIn", cs);
+    if (cs.state == CST_ACTIVATED) core->Event("MSG_TELESCOPE_REQUEST", "l", 1);
+    core->Controls->GetControlState("TelescopeOut", cs);
+    if (cs.state == CST_ACTIVATED) core->Event("MSG_TELESCOPE_REQUEST", "l", 0);
 
     if (m_bIsOn) {
         UpdateCamera();
@@ -342,8 +342,8 @@ void ISPYGLASS::TurnOnTelescope(bool bTurnOn)
 
         m_pFortObj = nullptr;
 
-        core.Event(TELESCOPE_ACTIVE, "l", 1);
-        core.Event("BI_VISIBLE", "l", 0);
+        core->Event(TELESCOPE_ACTIVE, "l", 1);
+        core->Event("BI_VISIBLE", "l", 0);
     } else {
         m_bIsPresentShipInfo      = false;
         m_nInfoCharacterIndex     = -1;
@@ -351,8 +351,8 @@ void ISPYGLASS::TurnOnTelescope(bool bTurnOn)
         m_Camera.bIsGrow          = true;
         m_Camera.fCurUpdatingTime = 0.f;
 
-        core.Event(TELESCOPE_ACTIVE, "l", 0);
-        core.Event("BI_VISIBLE", "l", 1);
+        core->Event(TELESCOPE_ACTIVE, "l", 0);
+        core->Event("BI_VISIBLE", "l", 1);
     }
 }
 
@@ -365,7 +365,7 @@ void ISPYGLASS::SetShipInfo(int32_t nCharIndex)
     else
         m_bIsPresentShipInfo = true;
 
-    core.Event("SetTelescopeInfo", "l", m_nInfoCharacterIndex);
+    core->Event("SetTelescopeInfo", "l", m_nInfoCharacterIndex);
 
     if (m_bIsPresentShipInfo) {
         m_ShipImage.pImage->SetColor(m_ShipImage.dwColor);
@@ -491,7 +491,7 @@ void ISPYGLASS::ChangeTelescopeType(char const* pcTextureName, float fZoomScale,
 void ISPYGLASS::UpdateCamera()
 {
     if (!m_bIsOn) return;
-    float const fTime = core.GetDeltaTime() * .001f;
+    float const fTime = core->GetDeltaTime() * .001f;
     m_Camera.fCurUpdatingTime += fTime;
 
     if (!m_Camera.bIsActive) {
@@ -697,6 +697,6 @@ void ISPYGLASS::FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES*
 
 VAI_OBJBASE* ISPYGLASS::GetFort()
 {
-    if (!m_pFortObj) { m_pFortObj = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(core.GetEntityId("AIFORT"))); }
+    if (!m_pFortObj) { m_pFortObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(core->GetEntityId("AIFORT"))); }
     return m_pFortObj;
 }

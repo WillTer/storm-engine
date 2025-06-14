@@ -17,7 +17,7 @@ LOCAL_COLLIDE* COLL::CreateLocalCollide(layer_index_t idx)
 //----------------------------------------------------------------------------------
 float COLL::Trace(entid_t entity, const CVECTOR& src, const CVECTOR& dst)
 {
-    auto* cob = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(entity));
+    auto* cob = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(entity));
     if (static_cast<Entity*>(cob) == nullptr) return 2.0f;
 
     last_trace_eid = entity;
@@ -36,7 +36,7 @@ float COLL::Trace(entity_container_cref entities, const CVECTOR& src, const CVEC
             if (eid == exclude_list[e]) break;
 
         if (e == exclude_num) {
-            auto* cob = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(eid));
+            auto* cob = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(eid));
             if (cob != nullptr) {
                 auto const res = cob->Trace(src, dst);
                 if (res < best_res) {
@@ -71,7 +71,7 @@ bool COLL::Clip(
             if (eid == exclude_list[e]) break;
 
         if (e == exclude_num) {
-            auto* cob = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(eid));
+            auto* cob = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(eid));
             if (cob != nullptr) {
                 last_trace_eid = eid;
                 if (cob->Clip(planes, nplanes, center, radius, addpoly) == true) retval = true;

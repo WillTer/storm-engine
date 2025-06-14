@@ -108,9 +108,9 @@ void DlgLinkDescribe::Show(int32_t nY)
 
 void DlgLinkDescribe::UpdateEditMode(int32_t nTextIdx)
 {
-    auto const nKeyQ = core.Controls->GetKeyBufferLength();
+    auto const nKeyQ = core->Controls->GetKeyBufferLength();
     if (nKeyQ > 0) {
-        auto const* const pKeys = core.Controls->GetKeyBuffer();
+        auto const* const pKeys = core->Controls->GetKeyBuffer();
         if (pKeys) {
             for (int32_t n = 0; n < nKeyQ; n++) {
                 if (pKeys[n].bSystem) {
@@ -159,7 +159,7 @@ void DlgLinkDescribe::UpdateEditMode(int32_t nTextIdx)
 void DlgLinkDescribe::ShowEditMode(int32_t nX, int32_t nY, int32_t nTextIdx)
 {
     // show cursor
-    currentCursorTime_ += core.GetRDeltaTime() * 0.001f;
+    currentCursorTime_ += core->GetRDeltaTime() * 0.001f;
     if (currentCursorTime_ > kEditCursorVisibleTime + kEditCursorInvisibleTime)
         currentCursorTime_ -= kEditCursorVisibleTime + kEditCursorInvisibleTime;
     if (currentCursorTime_ <= kEditCursorVisibleTime) {
@@ -178,7 +178,7 @@ void DlgLinkDescribe::ShowEditMode(int32_t nX, int32_t nY, int32_t nTextIdx)
     if (attributes_) { attributes_->SetAttribute("value", textLines_[nTextIdx]); }
 
     if (edit_->varIndex >= 0 && edit_->varIndex < 10) {
-        auto* pDat = static_cast<VDATA*>(core.GetScriptVariable("dialogEditStrings"));
+        auto* pDat = static_cast<VDATA*>(core->GetScriptVariable("dialogEditStrings"));
         if (pDat) pDat->Set((char*)textLines_[nTextIdx].c_str(), edit_->varIndex);
     }
 }

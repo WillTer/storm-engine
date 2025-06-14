@@ -20,7 +20,7 @@ BATTLE_LAND_INTERFACE::~BATTLE_LAND_INTERFACE()
 
 bool BATTLE_LAND_INTERFACE::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    m_pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!m_pRS) { throw std::runtime_error("Can`t create render service"); }
 
     SetShowParameters();
@@ -33,7 +33,7 @@ void BATTLE_LAND_INTERFACE::Execute(uint32_t delta_time) const
 
     if (m_bShowCommandos && m_pManSign) {
         if (!m_pManSign->IsActive()) {
-            core.Controls->GetControlState(BI_COMMANDS_ACTIVATE_LAND, cs);
+            core->Controls->GetControlState(BI_COMMANDS_ACTIVATE_LAND, cs);
             if (cs.state == CST_ACTIVATED) { m_pManSign->SetActive(true); }
         } else {
             m_pManSign->MakeControl();

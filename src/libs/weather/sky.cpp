@@ -23,7 +23,7 @@ struct FOGVERTEX {
 
 FOGVERTEX CreateFogVertex(const CVECTOR& vPos)
 {
-    auto* pvData = core.Event(WEATHER_CALC_FOG_COLOR, "fff", vPos.x, vPos.y, vPos.z);
+    auto* pvData = core->Event(WEATHER_CALC_FOG_COLOR, "fff", vPos.x, vPos.y, vPos.z);
     Assert(pvData);
 
     return {vPos, static_cast<uint32_t>(pvData->GetInt())};
@@ -78,7 +78,7 @@ bool SKY::Init()
 
 void SKY::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
 }
 
@@ -331,10 +331,10 @@ void SKY::Realize(uint32_t Delta_Time)
             entid_t eid;
 
             if (!pAstronomy)
-                if (eid = core.GetEntityId("Astronomy")) pAstronomy = static_cast<Entity*>(core.GetEntityPointer(eid));
+                if (eid = core->GetEntityId("Astronomy")) pAstronomy = static_cast<Entity*>(core->GetEntityPointer(eid));
 
             if (!pSunGlow)
-                if (eid = core.GetEntityId("SUNGLOW")) pSunGlow = static_cast<Entity*>(core.GetEntityPointer(eid));
+                if (eid = core->GetEntityId("SUNGLOW")) pSunGlow = static_cast<Entity*>(core->GetEntityPointer(eid));
 
             if (pAstronomy || pSunGlow) {
                 if (pAstronomy) pAstronomy->ProcessStage(Stage::realize, Delta_Time);
@@ -487,10 +487,10 @@ void SKY::UpdateTimeFactor()
 {
     auto const nPrev = static_cast<int32_t>(fTimeFactor);
 
-    // fTimeFactor += core.GetDeltaTime() * 0.00005f;
+    // fTimeFactor += core->GetDeltaTime() * 0.00005f;
     entid_t eid;
-    if (!(eid = core.GetEntityId("weather"))) return;
-    fTimeFactor = static_cast<WEATHER_BASE*>(core.GetEntityPointer(eid))->GetFloat(whf_time_counter);
+    if (!(eid = core->GetEntityId("weather"))) return;
+    fTimeFactor = static_cast<WEATHER_BASE*>(core->GetEntityPointer(eid))->GetFloat(whf_time_counter);
     fTimeFactor *= (1.f / 24.f) * aSkyDirArray.size();
 
     if (static_cast<int32_t>(fTimeFactor) >= static_cast<int32_t>(aSkyDirArray.size())) fTimeFactor -= aSkyDirArray.size();

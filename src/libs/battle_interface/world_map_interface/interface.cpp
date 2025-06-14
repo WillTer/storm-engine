@@ -28,7 +28,7 @@ WM_INTERFACE::~WM_INTERFACE()
 
 bool WM_INTERFACE::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("DX9RENDER"));
     Assert(rs);
 
     LoadIniFile();
@@ -44,7 +44,7 @@ void WM_INTERFACE::Realize(uint32_t delta_time)
         if (m_pCommandList) {
             if (!m_pCommandList->GetActive()) {
                 CONTROL_STATE cs;
-                core.Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
+                core->Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
                 if (cs.state == CST_ACTIVATED) {
                     m_pCommandList->SetActive(true);
                     m_nCommandMode = BI_COMMODE_COMMAND_SELECT;
@@ -98,22 +98,22 @@ void WM_INTERFACE::MakeControl()
 {
     CONTROL_STATE cs;
 
-    core.Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_ACTIVATE);
 
-    core.Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_LEFT);
 
-    core.Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_RIGHT);
 
-    core.Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_UP);
 
-    core.Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DOWN);
 
-    core.Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE);
 }
 
@@ -154,7 +154,7 @@ void WM_INTERFACE::ExecuteCommand(int32_t command)
         }
         break;
 
-    default: core.Trace("Warning! Unknown executing command: %d", command);
+    default: core->Trace("Warning! Unknown executing command: %d", command);
     }
 }
 

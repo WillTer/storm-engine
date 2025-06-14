@@ -320,7 +320,7 @@ void NODER::Draw()
 
 #ifdef SHOW_SPHERES
     if (sphere == 0) { sphere = gs->CreateGeometry("sphere", 0, 0); }
-    if (core.Controls->GetDebugAsyncKeyState(SHOW_SPHERES) < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(SHOW_SPHERES) < 0) {
         CMatrix sm(0.0f, 0.0f, 0.0f, cnt.x, cnt.y, cnt.z);
         CMatrix sc;
         sc.m[0][0] = sc.m[1][1] = sc.m[2][2] = radius;
@@ -442,8 +442,8 @@ void NODER::Link(NODE* node) {}
 //-------------------------------------------------------------------
 entid_t NODER::Unlink2Model()
 {
-    entid_t const id  = core.CreateEntity("modelr");
-    auto*         mdl = static_cast<MODELR*>(core.GetEntityPointer(id));
+    entid_t const id  = core->CreateEntity("modelr");
+    auto*         mdl = static_cast<MODELR*>(core->GetEntityPointer(id));
 
     // link node to as root
     mdl->root = this;
@@ -469,7 +469,7 @@ entid_t NODER::Unlink2Model()
 //-------------------------------------------------------------------
 void NODER::Link(entid_t id, bool transform)
 {
-    auto* mdl = static_cast<MODELR*>(core.GetEntityPointer(id));
+    auto* mdl = static_cast<MODELR*>(core->GetEntityPointer(id));
     if (mdl == nullptr) return;
 
     // increment number of children
@@ -485,7 +485,7 @@ void NODER::Link(entid_t id, bool transform)
     // prevent self-deleting
     mdl->root = nullptr;
     // delete model
-    core.EraseEntity(id);
+    core->EraseEntity(id);
 }
 
 //-------------------------------------------------------------------

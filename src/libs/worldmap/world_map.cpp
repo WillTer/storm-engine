@@ -101,20 +101,20 @@ bool WorldMap::Init()
 {
     // GUARD(LocationCamera::Init())
     // Layers
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(EXECUTE, GetId(), 10000);
-    core.AddToLayer(REALIZE, GetId(), 10000);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(EXECUTE, GetId(), 10000);
+    core->AddToLayer(REALIZE, GetId(), 10000);
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     rs->SetPerspective((1.57f + 1.0f) / 2);
     wdmObjects->rs = rs;
     // GS
-    wdmObjects->gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    wdmObjects->gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     // Create map objects
     WdmRenderObject* ro;
     // Create islands
@@ -241,7 +241,7 @@ bool WorldMap::Init()
     // AddLObject(ro, 10099);
     // The calendar
     // WdmCounter * cnt = new WdmCounter();
-    // if(!cnt->Init()) core.Trace("Counter not created");
+    // if(!cnt->Init()) core->Trace("Counter not created");
 
     // AddLObject(cnt, 10099);
     // Icon
@@ -261,12 +261,12 @@ bool WorldMap::Init()
             }
             if (storm::iEquals(type, "Merchant") && modelName && modelName[0]) {
                 if (!CreateMerchantShip(modelName, nullptr, nullptr, 1.0f, -1.0f, a)) {
-                    core.Trace("WoldMap: not loaded merchant encounter.");
+                    core->Trace("WoldMap: not loaded merchant encounter.");
                 }
                 continue;
             }
             if (storm::iEquals(type, "Follow") && modelName && modelName[0]) {
-                if (!CreateFollowShip(modelName, 1.0f, -1.0f, a)) { core.Trace("WoldMap: not loaded follow encounter."); }
+                if (!CreateFollowShip(modelName, 1.0f, -1.0f, a)) { core->Trace("WoldMap: not loaded follow encounter."); }
                 continue;
             }
             if (storm::iEquals(type, "Warring") && modelName && modelName[0]) {
@@ -277,10 +277,10 @@ bool WorldMap::Init()
                         char const* modelName1 = a1->GetAttribute("modelName");
                         if (modelName1 && modelName1[0]) {
                             if (!CreateWarringShips(modelName, modelName1, -1.0f, a, a1)) {
-                                core.Trace("WoldMap: not loaded warring encounter.");
+                                core->Trace("WoldMap: not loaded warring encounter.");
                             }
                         } else {
-                            core.Trace("WoldMap: not loaded warring encounter.");
+                            core->Trace("WoldMap: not loaded warring encounter.");
                             saveData->DeleteAttributeClassX(a);
                             saveData->DeleteAttributeClassX(a1);
                         }
@@ -291,7 +291,7 @@ bool WorldMap::Init()
             if (storm::iEquals(type, "Attacked")) { continue; }
             if (storm::iEquals(type, "Storm")) {
                 auto const isTornado = (a->GetAttributeAsDword("isTornado", 0) != 0);
-                if (!CreateStorm(isTornado, -1.0f, a)) { core.Trace("WoldMap: not loaded storm encounter."); }
+                if (!CreateStorm(isTornado, -1.0f, a)) { core->Trace("WoldMap: not loaded storm encounter."); }
                 continue;
             }
             saveData->DeleteAttributeClassX(a);
@@ -332,12 +332,12 @@ void WorldMap::Realize(uint32_t delta_time)
     }
     if (!wdmObjects->isPause) {
         CONTROL_STATE cs;
-        core.Controls->GetControlState("WMapCancel", cs);
+        core->Controls->GetControlState("WMapCancel", cs);
         if (cs.state == CST_ACTIVATED) {
             if (wdmObjects->playerShip) {
-                if (!static_cast<WdmPlayerShip*>(wdmObjects->playerShip)->ExitFromMap()) core.Event("ExitFromWorldMap");
+                if (!static_cast<WdmPlayerShip*>(wdmObjects->playerShip)->ExitFromMap()) core->Event("ExitFromWorldMap");
             } else
-                core.Event("ExitFromWorldMap");
+                core->Event("ExitFromWorldMap");
         }
     }
     //---------------------------------------------------------
@@ -368,14 +368,14 @@ void WorldMap::Realize(uint32_t delta_time)
             aDate->SetAttributeUseDword("day", day);
 
 #ifndef EVENTS_OFF
-            core.Event("WorldMap_UpdateDate", "f", hour);
+            core->Event("WorldMap_UpdateDate", "f", hour);
             wdmObjects->isNextDayUpdate = true;
-            core.Event("NextDay");
+            core->Event("NextDay");
 #endif
         }
     } else {
 #ifndef EVENTS_OFF
-        core.Event("WorldMap_UpdateDate", "f", hour);
+        core->Event("WorldMap_UpdateDate", "f", hour);
 #endif
     }
     //
@@ -421,7 +421,7 @@ void WorldMap::Realize(uint32_t delta_time)
         auto psx = 0.0f, psz = 0.0f, psay = 0.0f;
         wdmObjects->playerShip->GetPosition(psx, psz, psay);
 #ifndef ENCS_OFF
-        core.Event("WorldMap_EncounterCreate", "ffff", encTime, psx, psz, psay);
+        core->Event("WorldMap_EncounterCreate", "ffff", encTime, psx, psz, psay);
 #endif
         encTime = 0.0f;
     }
@@ -448,11 +448,11 @@ void WorldMap::Realize(uint32_t delta_time)
     wdmObjects->playerShip->GetPosition(x, z, ay);
     auto const wind_force = wdmObjects->GetWind(x, z, wind_dir);
     auto const ang        = atan2(wind_dir.x, wind_dir.z);
-    core.Event("WorldMap_GetWindParameters", "ff", wind_force, ang);
+    core->Event("WorldMap_GetWindParameters", "ff", wind_force, ang);
     // Checking the update attribute of the encounter
     if (AttributesPointer) {
         char const* upd = AttributesPointer->GetAttribute("addQuestEncounters");
-        if (upd && upd[0] != 0) { core.Event("WorldMap_AddQuestEncounters"); }
+        if (upd && upd[0] != 0) { core->Event("WorldMap_AddQuestEncounters"); }
     }
 }
 
@@ -499,9 +499,9 @@ uint64_t WorldMap::ProcessMessage(MESSAGE& message)
     case MSG_WORLDMAP_CREATEENC_RELEASE: ReleaseEncounters(); break;
     case MSG_WORLDMAP_LAUNCH_EXIT_TO_SEA:
         if (wdmObjects->playerShip) {
-            if (!static_cast<WdmPlayerShip*>(wdmObjects->playerShip)->ExitFromMap()) core.Event("ExitFromWorldMap");
+            if (!static_cast<WdmPlayerShip*>(wdmObjects->playerShip)->ExitFromMap()) core->Event("ExitFromWorldMap");
         } else
-            core.Event("ExitFromWorldMap");
+            core->Event("ExitFromWorldMap");
         break;
     case MSG_WORLDMAP_SET_NATION_FLAG: wdmObjects->nationFlagIndex = message.Long(); break;
     case MSG_WORLDMAP_SET_COORDINATES: wdmObjects->coordinate = message.String(); break;
@@ -766,16 +766,16 @@ bool WorldMap::CreateMerchantShip(
     if (!CreateModel(ship, modelName)) return false;
     AddLObject(ship, 100);
     // Looking for a place to sail
-    if (!wdmObjects->islands) { core.Trace("World map: Islands not found"); }
+    if (!wdmObjects->islands) { core->Trace("World map: Islands not found"); }
     CVECTOR gpos;
     if (!locNameEnd || !locNameEnd[0]) {
         if (wdmObjects->islands) {
-            if (!wdmObjects->islands->GetRandomMerchantPoint(gpos)) { core.Trace("World map: Locators <Merchants:...> not found"); }
+            if (!wdmObjects->islands->GetRandomMerchantPoint(gpos)) { core->Trace("World map: Locators <Merchants:...> not found"); }
         }
     } else {
         if (wdmObjects->islands) {
             if (!wdmObjects->islands->GetQuestLocator(locNameEnd, gpos)) {
-                core.Trace("World map: Quest locator <Quests:%s> for merchant not found", locNameEnd);
+                core->Trace("World map: Quest locator <Quests:%s> for merchant not found", locNameEnd);
             }
         }
     }
@@ -786,7 +786,7 @@ bool WorldMap::CreateMerchantShip(
             if (wdmObjects->islands->GetQuestLocator(locNameStart, gpos)) {
                 ship->Teleport(gpos.x, gpos.z, rand() * (PI * 2.0f / RAND_MAX));
             } else {
-                core.Trace("World map: Quest locator <Quests:%s> for merchant not found", locNameStart);  // boal fix
+                core->Trace("World map: Quest locator <Quests:%s> for merchant not found", locNameStart);  // boal fix
             }
         }
     }
@@ -816,7 +816,7 @@ bool WorldMap::CreateMerchantShipXZ(
     if (!CreateModel(ship, modelName)) return false;
     AddLObject(ship, 100);
     // Looking for a place to sail
-    if (!wdmObjects->islands) { core.Trace("World map: Islands not found"); }
+    if (!wdmObjects->islands) { core->Trace("World map: Islands not found"); }
 
     static_cast<WdmMerchantShip*>(ship)->Goto(x2, z2, 2.0f);  // where
     // If necessary, change the current position
@@ -852,7 +852,7 @@ bool WorldMap::CreateFollowShip(char const* modelName, float kSpeed, float time,
         if (time < 1.0f) time = 1.0f;
         static_cast<WdmEnemyShip*>(ship)->SetLiveTime(time);
     }
-    VDATA* isSkipEnable = core.Event("WorldMap_IsSkipEnable");
+    VDATA* isSkipEnable = core->Event("WorldMap_IsSkipEnable");
     if (isSkipEnable) {
         int32_t skipEnable = 0;
         if (isSkipEnable->Get(skipEnable)) { static_cast<WdmEnemyShip*>(ship)->canSkip = skipEnable != 0; }

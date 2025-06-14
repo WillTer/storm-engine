@@ -24,7 +24,7 @@ bool GetStringDescribe(char* inStr, char* strName, char* outStr)
     if (strName != nullptr) strName[0] = 0;
     if (outStr != nullptr) outStr[0] = 0;
     if (strName == nullptr || outStr == nullptr || inStr == nullptr) {
-        core.Trace("Waring: Invalid parameters %s for ini string parser", inStr);
+        core->Trace("Waring: Invalid parameters %s for ini string parser", inStr);
         return false;
     }
 
@@ -48,7 +48,7 @@ bool GetStringDescribe(char* inStr, char* strName, char* outStr)
         strLenght--;
 
     if (strLenght <= 0) {
-        core.Trace("Waring: Invalid name parameter for string: %s", inStr);
+        core->Trace("Waring: Invalid name parameter for string: %s", inStr);
         return false;
     }
     strName[strLenght] = 0;
@@ -166,7 +166,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     char param[2048];
 
     if (sLanguage == nullptr) {
-        core.Trace("WARNING! Attempt set empty language");
+        core->Trace("WARNING! Attempt set empty language");
         return;
     }
 
@@ -176,7 +176,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     // initialize ini file
     auto langIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
     if (!langIni) {
-        core.Trace("ini file %s not found!", sLanguageFile.data());
+        core->Trace("ini file %s not found!", sLanguageFile.data());
         return;
     }
 
@@ -197,7 +197,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
             if ((m_sLanguageDir = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
             memcpy(m_sLanguageDir, param, len);
         } else
-            core.Trace("WARNING! Not found directory record for language %s", sLanguage);
+            core->Trace("WARNING! Not found directory record for language %s", sLanguage);
 
         // get the name of the ini file with common strings for this language
         if (langIni->ReadString("COMMON", "strings", param, sizeof(param) - 1, "")) {
@@ -205,14 +205,14 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
             if ((m_sIniFileName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
             memcpy(m_sIniFileName, param, len);
         } else
-            core.Trace("WARNING! Not found common strings file record");
+            core->Trace("WARNING! Not found common strings file record");
 
         if (m_sLanguageDir != nullptr && m_sIniFileName != nullptr) break;
 
         // compare the current language with the default
         if (langIni->ReadString("COMMON", "defaultLanguage", param, sizeof(param) - 1, "")) {
             if (storm::iEquals(m_sLanguage, param)) break;
-            core.Trace("WARNING! Language %s not exist some ini parameters. Language set to default %s", m_sLanguage, param);
+            core->Trace("WARNING! Language %s not exist some ini parameters. Language set to default %s", m_sLanguage, param);
             STORM_DELETE(m_sLanguage);
             auto const len = strlen(param) + 1;
             m_sLanguage    = new char[len];
@@ -224,13 +224,13 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     //==========================================================================
     // reread fonts
     //==========================================================================
-    auto* RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    auto* RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (RenderService) {
         auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
             fullIniPath = fio->base_directory_path(BaseDirectory::Config) / param;
         } else {
-            core.Trace("Warning: Not found font record for language %s", m_sLanguage);
+            core->Trace("Warning: Not found font record for language %s", m_sLanguage);
             fullIniPath = fio->base_directory_path(BaseDirectory::Config) / "fonts.ini";
         }
         RenderService->SetFontIniFileName(fullIniPath.string().c_str());
@@ -259,7 +259,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     auto const ini_path = fio->base_directory_path(BaseDirectory::Config) / "texts" / m_sLanguageDir / m_sIniFileName;
     auto       ini      = fio->open_ini_file(ini_path);
     if (!ini) {
-        core.Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
+        core->Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
         return;
     }
 
@@ -270,7 +270,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
         } while (ini->ReadStringNext(nullptr, "string", param, sizeof(param) - 1));
 
     // check to right of ini files
-    if (newSize != m_nStringQuantity && m_nStringQuantity != 0) core.Trace("WARNING: language %s ini file has different size", sLanguage);
+    if (newSize != m_nStringQuantity && m_nStringQuantity != 0) core->Trace("WARNING: language %s ini file has different size", sLanguage);
     m_nStringQuantity = newSize;
 
     // create strings & string names arreys
@@ -327,14 +327,14 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
         for (pUTmp = m_pUsersBlocks; pUTmp != nullptr; pUTmp = pUTmp->next)
             if (pUTmp->blockID == newID) break;
         if (pUTmp == nullptr) {
-            core.Trace("Error: Can`t reinit user language file %s", pUSB->fileName);
+            core->Trace("Error: Can`t reinit user language file %s", pUSB->fileName);
             continue;
         }
 
         pUTmp->blockID = pUSB->blockID;
         pUTmp->nref    = pUSB->nref;
         if (pUTmp->nStringsQuantity != pUSB->nStringsQuantity) {
-            core.Trace("Warning: user strings file %s have different size for new language %s", pUTmp->fileName, m_sLanguage);
+            core->Trace("Warning: user strings file %s have different size for new language %s", pUTmp->fileName, m_sLanguage);
             int itmp1, itmp2;
             for (itmp1 = 0; itmp1 < pUTmp->nStringsQuantity; itmp1++) {
                 if (pUTmp->psStrName[itmp1] == nullptr) continue;
@@ -342,7 +342,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
                     if (pUSB->psStrName[itmp2] == nullptr) continue;
                     if (storm::iEquals(pUSB->psStrName[itmp2], pUTmp->psStrName[itmp1])) break;
                 }
-                if (itmp2 >= pUSB->nStringsQuantity) core.Trace(">>> string <%s> not found into strings file", pUTmp->psStrName[itmp1]);
+                if (itmp2 >= pUSB->nStringsQuantity) core->Trace(">>> string <%s> not found into strings file", pUTmp->psStrName[itmp1]);
             }
 
             for (itmp1 = 0; itmp1 < pUSB->nStringsQuantity; itmp1++) {
@@ -351,7 +351,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
                     if (pUTmp->psStrName[itmp2] == nullptr) continue;
                     if (storm::iEquals(pUTmp->psStrName[itmp2], pUSB->psStrName[itmp1])) break;
                 }
-                if (itmp2 >= pUTmp->nStringsQuantity) core.Trace(">>> string <%s> is new into strings file", pUSB->psStrName[itmp1]);
+                if (itmp2 >= pUTmp->nStringsQuantity) core->Trace(">>> string <%s> is new into strings file", pUSB->psStrName[itmp1]);
             }
         }
     }
@@ -409,19 +409,19 @@ void STRSERVICE::LoadIni()
     // initialize ini file
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
     if (!ini) {
-        core.Trace("Error: Language ini file not found!");
+        core->Trace("Error: Language ini file not found!");
         return;
     }
 
     char sGlobalUserFileName[256];
     if (!ini->ReadString("COMMON", "GlobalFile", sGlobalUserFileName, sizeof(sGlobalUserFileName) - 1, "")) {
         sGlobalUserFileName[0] = 0;
-        core.Trace("WARNING! Language ini file have not global file name");
+        core->Trace("WARNING! Language ini file have not global file name");
     }
 
     // Get default language name
     if (!ini->ReadString("COMMON", "defaultLanguage", param, sizeof(param) - 1, "")) {
-        core.Trace("WARNING! Language ini file have not default language.");
+        core->Trace("WARNING! Language ini file have not default language.");
         strcpy_s(param, "English");
     }
 
@@ -519,7 +519,7 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
         if (!GetNextUsersString(fileBuf, stridx, nullptr, nullptr)) { break; }
     }
     if (pUSB->nStringsQuantity == 0) {
-        core.Trace("WARNING! Strings file \"%s\" not contain strings", fileName);
+        core->Trace("WARNING! Strings file \"%s\" not contain strings", fileName);
     } else {
         pUSB->psStrName = new char*[pUSB->nStringsQuantity];
         pUSB->psString  = new char*[pUSB->nStringsQuantity];
@@ -902,7 +902,7 @@ uint32_t _SetColorCorrection(VS_STACK* pS)
     float fContrast = 1.f;
     pContrast->Get(fContrast);
 
-    auto pVR = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    auto pVR = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!pVR) return IFUNCRESULT_FAILED;
 
     pVR->SetColorParameters(fGamma, fBright, fContrast);
@@ -922,7 +922,7 @@ uint32_t _SetMouseSensitivity(VS_STACK* pS)
     float fXSens = 1.f;
     pXSens->Get(fXSens);
 
-    auto pCntrl = static_cast<CONTROLS*>(core.GetService("PCS_CONTROLS"));
+    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PCS_CONTROLS"));
     if (!pCntrl) return IFUNCRESULT_FAILED;
 
     pCntrl->SetMouseSensivityX(fXSens);
@@ -945,7 +945,7 @@ uint32_t _ControlMakeInvert(VS_STACK* pS)
     pControlName->Get(sCntrlName);
     if (!sCntrlName) return IFUNCRESULT_FAILED;
 
-    auto pCntrl = static_cast<CONTROLS*>(core.GetService("PCS_CONTROLS"));
+    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PCS_CONTROLS"));
     if (!pCntrl) return IFUNCRESULT_FAILED;
 
     int const n = pCntrl->CreateControl(sCntrlName);
@@ -1206,11 +1206,11 @@ uint32_t _IsKeyPressed(VS_STACK* pS)
     bool bIsPressed = false;
     if (strKeyName) {
         if (storm::iEquals(strKeyName, "shift")) {
-            bIsPressed = (core.Controls->GetAsyncKeyState(VK_SHIFT) < 0);
+            bIsPressed = (core->Controls->GetAsyncKeyState(VK_SHIFT) < 0);
         } else if (storm::iEquals(strKeyName, "control")) {
-            bIsPressed = (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0);
+            bIsPressed = (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0);
         } else if (storm::iEquals(strKeyName, "alt")) {
-            bIsPressed = (core.Controls->GetAsyncKeyState(VK_MENU) < 0);
+            bIsPressed = (core->Controls->GetAsyncKeyState(VK_MENU) < 0);
         }
     }
     // set return data
@@ -1230,7 +1230,7 @@ uint32_t IsVirtualKeyPressed(VS_STACK* stack)
     data = stack->Push();
     if (!data) { return IFUNCRESULT_FAILED; }
 
-    data->Set(static_cast<int32_t>(core.Controls->IsKeyPressed(key_code)));
+    data->Set(static_cast<int32_t>(core->Controls->IsKeyPressed(key_code)));
     return IFUNCRESULT_OK;
 }
 
@@ -1265,7 +1265,7 @@ uint32_t _AddControlTreeNode(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     int32_t const nParent = pDat->GetInt();
 
-    int32_t const nNodIdx = core.Controls->AddControlTreeNode(nParent, pcBaseControl, pcOutControl, fTimeOut);
+    int32_t const nNodIdx = core->Controls->AddControlTreeNode(nParent, pcBaseControl, pcOutControl, fTimeOut);
 
     // set return data
     pDat = (VDATA*)pS->Push();
@@ -1284,175 +1284,175 @@ bool SCRIPT_INTERFACE_FUNCTIONS::Init()
     sIFuncInfo.pFuncName        = "LanguageGetLanguage";
     sIFuncInfo.nArguments       = 0;
     sIFuncInfo.pFuncAddress     = _Language_GetLanguage;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncName        = "LanguageOpenFile";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _Language_OpenFile;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "LanguageCloseFile";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _Language_CloseFile;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "string";
     sIFuncInfo.pFuncName        = "LanguageConvertString";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _Language_ConvertString;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "LanguageSetLanguage";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _Language_SetLanguage;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "string";
     sIFuncInfo.pFuncName        = "XI_ConvertString";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _XI_ConvertString;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncName        = "GlobalLngFileID";
     sIFuncInfo.nArguments       = 0;
     sIFuncInfo.pFuncAddress     = _GlobalLngFileID;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "string";
     sIFuncInfo.pFuncName        = "LanguageGetFaderPic";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _LanguageGetFaderPic;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_SetColorCorrection";
     sIFuncInfo.nArguments       = 3;
     sIFuncInfo.pFuncAddress     = _SetColorCorrection;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_SetMouseSensitivity";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _SetMouseSensitivity;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_ControlMakeInvert";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _ControlMakeInvert;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_MakeNode";
     sIFuncInfo.nArguments       = 4;
     sIFuncInfo.pFuncAddress     = _InterfaceMakeNode;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_DeleteNode";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _InterfaceDeleteNode;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_WindowShow";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _InterfaceWindowShow;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_WindowDisable";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _InterfaceWindowDisable;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_IsWindowEnable";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _InterfaceIsWindowEnable;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_WindowAddNode";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _InterfaceWindowAddNode;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_CreateFolder";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _InterfaceCreateFolder;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_CheckFolder";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _InterfaceCheckFolder;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_DeleteFolder";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _InterfaceDeleteFolder;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_FindFolders";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _InterfaceFindFolders;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "string";
     sIFuncInfo.pFuncName        = "DialogAssembleStr";
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncAddress     = _DialogAssembleStr;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "string";
     sIFuncInfo.pFuncName        = "DialogAddParamToStr";
     sIFuncInfo.nArguments       = 3;
     sIFuncInfo.pFuncAddress     = _DialogAddParamToStr;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncName        = "XI_StoreNodeLocksWithOff";
     sIFuncInfo.nArguments       = 0;
     sIFuncInfo.pFuncAddress     = _StoreNodeLocksWithOff;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_RestoreNodeLocks";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _RestoreNodeLocks;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_IsKeyPressed";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _IsKeyPressed;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "bool";
     sIFuncInfo.pFuncName        = "XI_IsVirtualKeyPressed";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = IsVirtualKeyPressed;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "void";
     sIFuncInfo.pFuncName        = "XI_RegistryExitKey";
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncAddress     = _RegistryExitKey;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncName        = "AddControlTreeNode";
     sIFuncInfo.nArguments       = 4;
     sIFuncInfo.pFuncAddress     = _AddControlTreeNode;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     return true;
 }

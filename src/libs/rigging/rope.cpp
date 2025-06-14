@@ -69,7 +69,7 @@ bool ROPE::Init()
 void ROPE::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
 
     LoadIni();
@@ -141,13 +141,13 @@ void ROPE::Realize(uint32_t Delta_Time)
                         if ((~(gdata[i].pMatWorld->Pos() - cp)) * pr < fMaxRopeDist)
                         // if the distance to the ship is not more than the maximum
                         {
-                            static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[i].shipEI))->SetLightAndFog(true);
+                            static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->SetLightAndFog(true);
                             RenderService->SetTransform(D3DTS_WORLD, *gdata[i].pMatWorld);
 
                             RenderService->TextureSet(0, texl);
                             RenderService->SetMaterial(mat);
                             RenderService->DrawBuffer(vBuf, sizeof(ROPEVERTEX), iBuf, 0, nVert, gdata[i].st, gdata[i].nt);
-                            static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[i].shipEI))->RestoreLightAndFog();
+                            static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->RestoreLightAndFog();
                         }
                 while (RenderService->TechniqueExecuteNext()) {}
             }
@@ -155,7 +155,7 @@ void ROPE::Realize(uint32_t Delta_Time)
             RDTSC_E(rtm);
             realize_tm = rtm;
             // RenderService->Print(0,10,"exec=%d, real=%d",execute_tm,realize_tm);
-            /*if(core.Controls->GetDebugAsyncKeyState('M')<0)
+            /*if(core->Controls->GetDebugAsyncKeyState('M')<0)
               for(int i=0; i<ropeQuantity; i++)
               {
                 sailPrint(RenderService,*(rlist[i]->bMatWorld) *
@@ -176,9 +176,9 @@ uint64_t ROPE::ProcessMessage(MESSAGE& message)
     case MSG_ROPE_INIT: {
         auto const tmp_shipEI  = message.EntityID();
         auto const tmp_modelEI = message.EntityID();
-        auto*      mdl         = static_cast<MODEL*>(core.GetEntityPointer(tmp_modelEI));
+        auto*      mdl         = static_cast<MODEL*>(core->GetEntityPointer(tmp_modelEI));
         if (mdl == nullptr) {
-            core.Trace("WARNING!!! Missing INIT message to ROPE - bad ship model");
+            core->Trace("WARNING!!! Missing INIT message to ROPE - bad ship model");
             return 0;
         }
 
@@ -266,9 +266,9 @@ uint64_t ROPE::ProcessMessage(MESSAGE& message)
                 bYesDeleted        = true;
                 // rlist[i]->bUse=false;
                 /*entid_t sailEI;
-                if(core.FindClass(&sailEI,"sail",0))
+                if(core->FindClass(&sailEI,"sail",0))
                     if(rlist[i]->btie || rlist[i]->etie) // untie the sail from the rope
-                        core.Send_Message(sailEI,"ll",MSG_SAIL_ROPE_UNTIE,rope_number);*/
+                        core->Send_Message(sailEI,"ll",MSG_SAIL_ROPE_UNTIE,rope_number);*/
                 break;
             }
         }
@@ -490,7 +490,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
         NODE* pTmpRootNod = nod;
         while (pTmpRootNod->parent)
             pTmpRootNod = pTmpRootNod->parent;
-        core.Trace("Warning! Found rope with number 0: (model = %s) (label = %s)", pTmpRootNod->GetName(), lbl.name);
+        core->Trace("Warning! Found rope with number 0: (model = %s) (label = %s)", pTmpRootNod->GetName(), lbl.name);
     }
     if (bDontSage) ropeNum += 1000;
 
@@ -563,7 +563,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
         rd->len = sqrtf(~(ce - cb));
 
         if (rd->len < .1f || rd->len > 200.f) {
-            core.Trace("Bad rope length = %f for rope num %d", rd->len, rd->ropeNum);
+            core->Trace("Bad rope length = %f for rope num %d", rd->len, rd->ropeNum);
             delete rd;
             if (ropeQuantity == 1) {
                 delete[] rlist;
@@ -625,8 +625,8 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
             rd->angRot  = 0.f;
             rd->vDeep   = 0.f;
 
-            if (auto const sailEI = core.GetEntityId("sail")) {
-                auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(gdata[rd->HostGroup].modelEI));
+            if (auto const sailEI = core->GetEntityId("sail")) {
+                auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(gdata[rd->HostGroup].modelEI));
                 if (mdl == nullptr)
                     rd->btie = rd->etie = false;
                 else
@@ -635,9 +635,9 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
                         if (nd == nullptr) break;
 
                         if (rd->btie && rd->bMatWorld == &nd->glob_mtx)
-                            core.Send_Message(sailEI, "lplpl", MSG_SAIL_ROPE_TIE, nd, rd->bgnum, &rd->pBeg, rd->ropeNum);
+                            core->Send_Message(sailEI, "lplpl", MSG_SAIL_ROPE_TIE, nd, rd->bgnum, &rd->pBeg, rd->ropeNum);
                         if (rd->etie && rd->eMatWorld == &nd->glob_mtx)
-                            core.Send_Message(sailEI, "lplpl", MSG_SAIL_ROPE_TIE, nd, rd->egnum, &rd->pEnd, -rd->ropeNum);
+                            core->Send_Message(sailEI, "lplpl", MSG_SAIL_ROPE_TIE, nd, rd->egnum, &rd->pEnd, -rd->ropeNum);
                     }
             } else {
                 rd->btie = rd->etie = false;
@@ -789,7 +789,7 @@ void ROPE::FirstRun()
                 SetVertexes();
                 SetIndex();
             } else
-                core.Trace("Can`t create index or vertex buffer (index = %d, vertex = %d)", nIndx, nVert);
+                core->Trace("Can`t create index or vertex buffer (index = %d, vertex = %d)", nIndx, nVert);
         }
         nIndx /= 3;  // translate index quantity to triangle quantity
         bUse = true;
@@ -836,16 +836,16 @@ void ROPE::SetAdd(int firstNum)
         while (rlist[rn]->bMatWorld == nullptr || rlist[rn]->eMatWorld == nullptr) {
             int32_t const gn         = rlist[rn]->HostGroup;
             char const*   pcModlName = nullptr;
-            auto*         pMdl       = static_cast<MODEL*>(core.GetEntityPointer(gdata[gn].modelEI));
+            auto*         pMdl       = static_cast<MODEL*>(core->GetEntityPointer(gdata[gn].modelEI));
             if (pMdl && pMdl->GetNode(0)) pcModlName = pMdl->GetNode(0)->GetName();
 
-            core.Trace(
+            core->Trace(
                 "Bad rope data for rope: (model=%s) (rope num = %d) (begin group=%d, end group=%d)",
                 pcModlName,
                 rlist[rn]->ropeNum,
                 rlist[rn]->bgnum,
                 rlist[rn]->egnum);
-            core.Trace("Begin pointer = %d? end pointer = %d", rlist[rn]->bMatWorld, rlist[rn]->eMatWorld);
+            core->Trace("Begin pointer = %d? end pointer = %d", rlist[rn]->bMatWorld, rlist[rn]->eMatWorld);
             // throw std::runtime_error("Rope error: Not label");
             delete rlist[rn];
             ropeQuantity--;

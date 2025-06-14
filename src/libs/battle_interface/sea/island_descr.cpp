@@ -51,7 +51,7 @@ void ISLAND_DESCRIBER::SetIsland(ATTRIBUTES* pAIsland)
         m_pLocators[i].texIdx         = -1;
         m_pLocators[i].characterIndex = -1;
         m_pLocators[i].bDiseased      = false;
-        auto* pvdat                   = core.Event("evntGetLandData", "a", pATmp);
+        auto* pvdat                   = core->Event("evntGetLandData", "a", pATmp);
         if (pvdat) {
             int32_t lTmp;
             if (pvdat->Get(lTmp, 0))
@@ -196,7 +196,7 @@ void ISLAND_DESCRIBER::Refresh() const
     if (m_pLocators == nullptr) return;
     for (auto i = 0; i < m_nLocators; i++) {
         if (m_pLocators[i].locatorType == ISLAND_LOCATOR_FORT) {
-            m_pLocators[i].relation = GetVDATALong(core.Event(BI_EVENT_GET_FORT_RELATION, "a", m_pLocators[i].pA), BI_RELATION_NEUTRAL);
+            m_pLocators[i].relation = GetVDATALong(core->Event(BI_EVENT_GET_FORT_RELATION, "a", m_pLocators[i].pA), BI_RELATION_NEUTRAL);
         }
     }
 }

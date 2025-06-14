@@ -195,31 +195,31 @@ bool SteamApiScriptLib::Init()
     sIFuncInfo.pFuncName        = "GetSteamEnabled";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = getSteamEnabled;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "GetDLCenabled";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = getDlcEnabled;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 0;
     sIFuncInfo.pFuncName        = "GetDLCCount";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = getDlcCount;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "GetDLCData";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = getDlcData;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "DLCStartOverlay";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = activateGameOverlayDlc;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     ///////
 
@@ -227,43 +227,43 @@ bool SteamApiScriptLib::Init()
     sIFuncInfo.pFuncName        = "SetAchievement";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slSetAchievement;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "GetAchievement";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slGetAchievement;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 2;
     sIFuncInfo.pFuncName        = "SetStat";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slSetStat;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "GetStat";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slGetStat;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 0;
     sIFuncInfo.pFuncName        = "StoreStats";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slStoreStats;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "ClearAchievement";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slClearAchievement;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     sIFuncInfo.nArguments       = 1;
     sIFuncInfo.pFuncName        = "ResetStats";
     sIFuncInfo.pReturnValueName = "int";
     sIFuncInfo.pFuncAddress     = slResetStats;
-    core.SetScriptFunction(&sIFuncInfo);
+    core->SetScriptFunction(&sIFuncInfo);
 
     return true;
 }

@@ -315,7 +315,7 @@ public:
 
     Entity* GetShipPointer() const
     {
-        return core.GetEntityPointer(GetShipEID());
+        return core->GetEntityPointer(GetShipEID());
     };
 
     SHIP_BASE* GetShipBasePointer() const

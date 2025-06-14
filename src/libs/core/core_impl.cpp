@@ -12,8 +12,6 @@
 #include "compiler.h"
 #include "controls.h"
 
-Core& core = core_internal;
-
 uint64_t get_performance_counter()
 {
     return SDL_GetPerformanceCounter();
@@ -100,22 +98,22 @@ bool CoreImpl::Run()
     stopFrameProcessing_ = false;
 
     auto const bDebugWindow = true;
-    if (bDebugWindow && core_internal.Controls && core_internal.Controls->GetDebugAsyncKeyState(VK_F7) < 0) DumpEntitiesInfo();
+    if (bDebugWindow && core_internal->Controls && core_internal->Controls->GetDebugAsyncKeyState(VK_F7) < 0) DumpEntitiesInfo();
     dwNumberScriptCommandsExecuted = 0;
 
     if (Exit_flag) return false;  // exit
 
     Timer.Run();  // calc delta time
 
-    auto* pVCTime = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDeltaTime"));
+    auto* pVCTime = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealDeltaTime"));
     if (pVCTime) pVCTime->Set(static_cast<int32_t>(GetRDeltaTime()));
 
     auto tt       = std::time(nullptr);
     auto local_tm = *std::localtime(&tt);
 
-    auto* pVYear  = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealYear"));
-    auto* pVMonth = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealMonth"));
-    auto* pVDay   = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDay"));
+    auto* pVYear  = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealYear"));
+    auto* pVMonth = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealMonth"));
+    auto* pVDay   = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealDay"));
 
     if (pVYear) pVYear->Set(local_tm.tm_year + 1900);
     if (pVMonth) pVMonth->Set(local_tm.tm_mon + 1);  // tm_mon belongs [0, 11]
@@ -204,16 +202,16 @@ void CoreImpl::ProcessEngineIniFile()
     Compiler->SetProgramDirectory(program_dir.string().c_str());
 
     if (!controls_info.scheme.empty()) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
-        if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
+        core_internal->Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
+        if (core_internal->Controls == nullptr) { core_internal->Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
         Controls = nullptr;
 
-        core_internal.Controls = new CONTROLS;
+        core_internal->Controls = new CONTROLS;
     }
 
-    core_internal.Controls->Init();
+    core_internal->Controls->Init();
 
     auto const compat_info = storm::main_config::compatibility_info();
     targetVersion_         = compat_info.target_version;
@@ -224,7 +222,7 @@ void CoreImpl::ProcessEngineIniFile()
     // Script version test
     if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
         auto  script_version      = std::numeric_limits<int32_t>::max();
-        auto* script_version_data = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
+        auto* script_version_data = static_cast<VDATA*>(core_internal->GetScriptVariable("iScriptVersion"));
         if (script_version_data != nullptr) { script_version_data->Get(script_version); }
 
         if (script_version != ENGINE_SCRIPT_VERSION) {
@@ -447,9 +445,9 @@ void CoreImpl::ProcessExecute()
     ProcessRunStart(SECTION_EXECUTE);
 
     auto const  deltatime = Timer.GetDeltaTime();
-    auto const& entIds    = core.GetEntityIds(layer_type_t::execute);
+    auto const& entIds    = core->GetEntityIds(layer_type_t::execute);
     for (auto id: entIds) {
-        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
     }
 
     ProcessRunEnd(SECTION_EXECUTE);
@@ -460,9 +458,9 @@ void CoreImpl::ProcessRealize()
     ProcessRunStart(SECTION_REALIZE);
 
     auto const  deltatime = Timer.GetDeltaTime();
-    auto const& entIds    = core.GetEntityIds(layer_type_t::realize);
+    auto const& entIds    = core->GetEntityIds(layer_type_t::realize);
     for (auto id: entIds) {
-        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
     }
 
     ProcessRunEnd(SECTION_REALIZE);

@@ -41,10 +41,10 @@ MODELR::~MODELR()
 
 bool MODELR::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
-    GeometyService = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    GeometyService = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     if (!GeometyService) throw std::runtime_error("No service: geometry");
 
     return true;
@@ -274,7 +274,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
     case MSG_SEA_REFLECTION_DRAW: Realize(0); break;
     case MSG_MODEL_SET_PARENT: {
         /*entid_t ParentID = message.EntityID();
-        if (core.ValidateEntity(&ParentID))
+        if (core->ValidateEntity(&ParentID))
         {
           parent = (MODEL*)ParentID.pointer;
         }*/
@@ -320,7 +320,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
         if (!root->Init(LightPath.c_str(), str.c_str(), "", CMatrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), mtx, nullptr, lmPath.c_str())) {
             delete root;
             root = nullptr;
-            core.EraseEntity(GetId());
+            core->EraseEntity(GetId());
             return 0;
         }
         // CVECTOR tmp;
@@ -331,7 +331,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
     case MSG_MODEL_LOAD_ANI:  // set animation
     {
         str      = message.String();
-        auto asr = static_cast<AnimationService*>(core.GetService("AnimationServiceImp"));
+        auto asr = static_cast<AnimationService*>(core->GetService("AnimationServiceImp"));
         ani      = asr->CreateAnimation(str.c_str());
         if (ani) return 1;
         return 0;
@@ -475,8 +475,8 @@ float MODELR::Trace(const CVECTOR& src, const CVECTOR& dst)
         float   dlmn      = ~(lmn);
         // hierarchy test
         if (dist2ray2 > dlmn * root->radius * root->radius) return 2.0f;
-        // if(core.Controls->GetAsyncKeyState(0xC0)>=0)    return 2.0f;
-        // if(core.Controls->GetAsyncKeyState(VK_SHIFT)<0 && dist2ray2 > dlmn*root->radius*root->radius)    return 2.0f;
+        // if(core->Controls->GetAsyncKeyState(0xC0)>=0)    return 2.0f;
+        // if(core->Controls->GetAsyncKeyState(VK_SHIFT)<0 && dist2ray2 > dlmn*root->radius*root->radius)    return 2.0f;
 
         // get bones
         bones = &ani->GetAnimationMatrix(0);

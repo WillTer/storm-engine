@@ -31,7 +31,7 @@ bool AISeaGoods::Init()
 
 void AISeaGoods::SetDevice()
 {
-    pGeoService = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    pGeoService = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     Assert(pGeoService);
 }
 
@@ -39,7 +39,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
 {
     auto const fDeltaTime = static_cast<float>(dwDeltaTime) * 0.001f;
 
-    if (!pSea) pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    if (!pSea) pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
 
     if (!pSea) return;
 
@@ -64,9 +64,9 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
                 aShips.clear();
 
                 // enumerate ships
-                auto&& entities = core.GetEntityIds("ship");
+                auto&& entities = core->GetEntityIds("ship");
                 for (auto ent: entities) {
-                    aShips.push_back(static_cast<SHIP_BASE*>(core.GetEntityPointer(ent)));
+                    aShips.push_back(static_cast<SHIP_BASE*>(core->GetEntityPointer(ent)));
                 }
 
                 // check ships
@@ -76,7 +76,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
                     auto const fDistance       = sqrtf(~(pS->State.vPos - pI->vPos));
                     if (fDistance <= pS->State.vBoxSize.z * fDistanceMultiply) {
                         auto* pVData =
-                            core.Event(SHIP_EAT_SWIM_GOOD, "llsl", iCharacterIndex, pI->iCharIndex, pI->sGoodName, pI->iQuantity);
+                            core->Event(SHIP_EAT_SWIM_GOOD, "llsl", iCharacterIndex, pI->iCharIndex, pI->sGoodName, pI->iQuantity);
                         if (pVData->GetInt() || bDeleteGoodAnyway) {
                             aGoods[i]->aItems[j] = aGoods[i]->aItems.back();
                             aGoods[i]->aItems.pop_back();

@@ -28,7 +28,7 @@ AIShip::AIShip(AI_OBJTYPE shiptype)
 
 AIShip::~AIShip()
 {
-    core.EraseEntity(eidShip);
+    core->EraseEntity(eidShip);
 
     STORM_DELETE(pMoveController);
     STORM_DELETE(pTaskController);
@@ -153,7 +153,7 @@ void AIShip::Execute(float fDeltaTime)
         //
         CheckSituation();
         RDTSC_E(dw7);
-        // core.Trace("dw7 = %d", dw7);
+        // core->Trace("dw7 = %d", dw7);
     } else {
         if (dtCheckSituation.Update(fDeltaTime)) CheckSituation();
     }
@@ -180,7 +180,7 @@ void AIShip::CheckSituation()
     pACSituation->SetAttributeUseFloat("MinEnemyDistance", fMinEnemyDist);
     auto fPower = GetPower();
 
-    core.Event(SHIP_CHECK_SITUATION, "ai", GetACharacter(), GetShipEID());
+    core->Event(SHIP_CHECK_SITUATION, "ai", GetACharacter(), GetShipEID());
 }
 
 void AIShip::Realize(float fDeltaTime)
@@ -205,7 +205,7 @@ void AIShip::CreateShip(entid_t _eidShip, ATTRIBUTES* _pACharacter, ATTRIBUTES* 
     pAShipBase = _pAShipBase;
 
     eidShip = _eidShip;
-    Assert(core.GetEntityPointer(eidShip));
+    Assert(core->GetEntityPointer(eidShip));
     auto* pObj = GetAIObjShipPointer();
     Assert(pObj);
     SetACharacter(_pACharacter);
@@ -618,7 +618,7 @@ void AIShip::Save(CSaveLoad* pSL) const
 void AIShip::Load(CSaveLoad* pSL)
 {
     // create ship
-    eidShip = core.CreateEntity("Ship");
+    eidShip = core->CreateEntity("Ship");
     GetShipBasePointer()->Load(pSL);
 
     SetACharacter(pSL->LoadAPointer("character"));
@@ -626,7 +626,7 @@ void AIShip::Load(CSaveLoad* pSL)
     bDead   = pSL->LoadDword() != 0;
 
     // set entid_t to character
-    auto* pVCharacter = static_cast<VDATA*>(core.GetScriptVariable("Characters"));
+    auto* pVCharacter = static_cast<VDATA*>(core->GetScriptVariable("Characters"));
     pVCharacter->Set(eidShip, GetIndex(GetACharacter()));
 
     // create controllers
@@ -637,7 +637,7 @@ void AIShip::Load(CSaveLoad* pSL)
     pRotateController = new AIShipRotateController(this);
     pSpeedController  = new AIShipSpeedController(this);
 
-    core.Event(SHIP_CREATELOADSHIP, "l", GetIndex(GetACharacter()));
+    core->Event(SHIP_CREATELOADSHIP, "l", GetIndex(GetACharacter()));
 
     // Load controllers
     pCannonController->Load(pSL);

@@ -60,8 +60,8 @@ SAILONE::SAILONE() : rollType(0), m_vMastTrace {}, m_fMaxAngle(0), m_fMinAngle(0
 SAILONE::~SAILONE()
 {
     ROPE_BASE* prb = nullptr;
-    auto const eid = core.GetEntityId("rope");
-    if (eid) prb = static_cast<ROPE_BASE*>(core.GetEntityPointer(eid));
+    auto const eid = core->GetEntityId("rope");
+    if (eid) prb = static_cast<ROPE_BASE*>(core->GetEntityPointer(eid));
     if (prb != nullptr && (sailtrope.pnttie[0] || sailtrope.pnttie[1] || sailtrope.pnttie[2] || sailtrope.pnttie[3]))
         prb->DoDeleteUntie(pp->gdata[HostNum].modelEI, hostNode, groupNum);
 
@@ -1060,13 +1060,13 @@ void SAILONE::TurnSail(float fTurnStep)
         if (bRolling) {
             if (sailtrope.pnttie[2]) *sailtrope.pPos[2] = ss.hardPoints[0];
             if (sailtrope.pnttie[3]) *sailtrope.pPos[3] = ss.hardPoints[1];
-        } else if (ropeEI = core.GetEntityId("rope")) {
+        } else if (ropeEI = core->GetEntityId("rope")) {
             auto bChange = false;
             for (auto i = 0; i < 2; i++)
                 if (sailtrope.rrs[i]) {
                     auto    tieNum = sailtrope.rrs[i]->tiePoint;
                     CVECTOR endVect;
-                    static_cast<ROPE_BASE*>(core.GetEntityPointer(ropeEI))
+                    static_cast<ROPE_BASE*>(core->GetEntityPointer(ropeEI))
                         ->GetEndPoint(&endVect, sailtrope.rrs[i]->ropenum, pp->gdata[HostNum].modelEI);
                     CVECTOR medVect;
                     medVect = ss.hardPoints[tieNum];
@@ -1425,11 +1425,11 @@ float SAILONE::SSailTrace(CVECTOR& src, CVECTOR& dst, bool bCannonTrace)
         CalculateMirrorSailIndex();  // new triangulation for sail reflection
         SetGeometry();
         if (pp->gdata[HostNum].bDeleted != true && pp->gdata[HostNum].bYesShip) {
-            auto* pVai    = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(pp->gdata[HostNum].shipEI));
+            auto* pVai    = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(pp->gdata[HostNum].shipEI));
             auto  charIdx = -1;
             if (pVai != nullptr && pVai->GetACharacter() != nullptr) charIdx = pVai->GetACharacter()->GetAttributeAsDword("index");
             if (charIdx != -1)
-                core.Event(
+                core->Event(
                     "DoSailHole",
                     "llssllllf",
                     g_iBallOwnerIdx,
@@ -1481,11 +1481,11 @@ float SAILONE::TSailTrace(CVECTOR& src, CVECTOR& dst, bool bCannonTrace)
     if (DoHole) {
         CalculateMirrorSailIndex();  // new triangulation for sail reflection
         if (pp->gdata[HostNum].bDeleted != true && pp->gdata[HostNum].bYesShip) {
-            auto* pVai    = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(pp->gdata[HostNum].shipEI));
+            auto* pVai    = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(pp->gdata[HostNum].shipEI));
             auto  charIdx = -1;
             if (pVai != nullptr && pVai->GetACharacter() != nullptr) charIdx = pVai->GetACharacter()->GetAttributeAsDword("index");
             if (charIdx != -1)
-                core.Event(
+                core->Event(
                     "DoSailHole",
                     "llssllllf",
                     g_iBallOwnerIdx,
@@ -1722,9 +1722,9 @@ void SAILONE::SetTurnLimits()
     if (ss.eSailType != SAIL_TREANGLE) return;
     if (!ss.turningSail) return;
     if (sailtrope.rrs[0] == nullptr) return;
-    auto const ropeEI = core.GetEntityId("rope");
+    auto const ropeEI = core->GetEntityId("rope");
     if (!ropeEI) return;
-    auto* prbase = static_cast<ROPE_BASE*>(core.GetEntityPointer(ropeEI));
+    auto* prbase = static_cast<ROPE_BASE*>(core->GetEntityPointer(ropeEI));
     if (prbase == nullptr) return;
 
     CVECTOR cv1, cv0;

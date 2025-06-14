@@ -18,12 +18,12 @@ WaterRings::~WaterRings()
 //------------------------------------------------------------------------------------
 bool WaterRings::Init()
 {
-    core.AddToLayer(REALIZE, GetId(), 65551);
+    core->AddToLayer(REALIZE, GetId(), 65551);
 
-    auto const seaID = core.GetEntityId("sea");
-    sea              = static_cast<SEA_BASE*>(core.GetEntityPointer(seaID));
+    auto const seaID = core->GetEntityId("sea");
+    sea              = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
-    renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!renderService) throw std::runtime_error("No service: dx9render");
 
     ivManager = new IVBufferManager(

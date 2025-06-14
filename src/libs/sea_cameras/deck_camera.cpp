@@ -30,7 +30,7 @@ bool DECK_CAMERA::Init()
 
 void DECK_CAMERA::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(RenderService);
 }
 
@@ -69,16 +69,16 @@ void DECK_CAMERA::Move(uint32_t DeltaTime)
 
     pModel->Update();
     CONTROL_STATE cs;
-    core.Controls->GetControlState("DeckCamera_Turn_H", cs);
+    core->Controls->GetControlState("DeckCamera_Turn_H", cs);
     camera_ang.y += fSensivityAzimuthAngle * 3.0f * static_cast<float>(cs.fValue);
 
-    core.Controls->GetControlState("DeckCamera_Left", cs);
+    core->Controls->GetControlState("DeckCamera_Left", cs);
     if (cs.state == CST_ACTIVE) camera_ang.y -= fSensivityAzimuthAngle * 15.f * static_cast<float>(cs.fValue);
 
-    core.Controls->GetControlState("DeckCamera_Right", cs);
+    core->Controls->GetControlState("DeckCamera_Right", cs);
     if (cs.state == CST_ACTIVE) camera_ang.y += fSensivityAzimuthAngle * 15.f * static_cast<float>(cs.fValue);
 
-    core.Controls->GetControlState("DeckCamera_Turn_V", cs);
+    core->Controls->GetControlState("DeckCamera_Turn_V", cs);
     camera_ang.x -= fSensivityHeightAngle * 3.0f * static_cast<float>(cs.fValue);
 
     if (camera_ang.x > CAMERA_MAX_X)
@@ -124,24 +124,24 @@ void DECK_CAMERA::Move(uint32_t DeltaTime)
     vShift.z = cx * cy;
 
     /*CVECTOR strafeV = CVECTOR(0.f,0.f,0.f);
-    core.Controls->GetControlState("DeckCamera_Left",cs);
+    core->Controls->GetControlState("DeckCamera_Left",cs);
     if(cs.state == CST_ACTIVE)
     {
       strafeV = !(CVECTOR(0.f, -1.f, 0.f)^vShift);
       speed=speed0;
     }
 
-    core.Controls->GetControlState("DeckCamera_Right",cs);
+    core->Controls->GetControlState("DeckCamera_Right",cs);
     if(cs.state == CST_ACTIVE)
     {
       strafeV = !(CVECTOR(0.f, 1.f, 0.f)^vShift);
       speed=speed0;
     }*/
 
-    core.Controls->GetControlState("DeckCamera_Forward", cs);
+    core->Controls->GetControlState("DeckCamera_Forward", cs);
     if (cs.state == CST_ACTIVE) speed = speed0;
 
-    core.Controls->GetControlState("DeckCamera_Backward", cs);
+    core->Controls->GetControlState("DeckCamera_Backward", cs);
     if (cs.state == CST_ACTIVE) {
         speed = speed0;
         vShift.x *= -1.f;
@@ -351,7 +351,7 @@ void DECK_CAMERA::SetStartPos()
             else if (h_eye < HEIGHT_MIN)
                 h_eye = HEIGHT_MIN;
         } else {
-            core.Trace("WARNING! Bad camera locator on ship %s", pModel->GetNode(0)->GetName());
+            core->Trace("WARNING! Bad camera locator on ship %s", pModel->GetNode(0)->GetName());
         }
 
         // SetCursorPos(lock_x,lock_y);

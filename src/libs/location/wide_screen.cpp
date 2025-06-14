@@ -29,10 +29,10 @@ WideScreen::~WideScreen() {}
 bool WideScreen::Init()
 {
     // Layers
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(REALIZE, GetId(), -257);
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(REALIZE, GetId(), -257);
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     D3DVIEWPORT9 vp;
     rs->GetViewport(&vp);
@@ -55,7 +55,7 @@ void WideScreen::Realize(uint32_t delta_time)
     // Current state
     state += dlt * delta_time * 0.001f;
     if (state < 0.0f) {
-        core.EraseEntity(GetId());
+        core->EraseEntity(GetId());
         return;
     }
     if (state > 1.0f) {

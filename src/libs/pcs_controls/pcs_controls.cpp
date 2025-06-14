@@ -30,7 +30,7 @@ PCS_CONTROLS::PCS_CONTROLS() : m_is_debug_keys_enabled {false}
     inputHandlerID_ = input_->Subscribe([this](InputEvent const& evt) { HandleEvent(evt); });
 
     // RECT r;
-    // GetWindowRect(core.GetAppHWND(),&r);
+    // GetWindowRect(core->GetAppHWND(),&r);
     // ClipCursor(&r);
 }
 
@@ -53,7 +53,7 @@ void PCS_CONTROLS::AppState(bool state)
     updateCursor_ = state;
     if (state) {
         // RECT r;
-        // GetWindowRect(core.GetAppHWND(),&r);
+        // GetWindowRect(core->GetAppHWND(),&r);
         // ClipCursor(&r);
     } else {
         // ClipCursor(0);
@@ -379,7 +379,7 @@ void PCS_CONTROLS::Update(uint32_t DeltaTime)
         nMouseDy = point.y - nMouseYPrev;
 
         RECT r;
-        GetWindowRect(static_cast<HWND>(core.GetWindow()->OSHandle()), &r);
+        GetWindowRect(static_cast<HWND>(core->GetWindow()->OSHandle()), &r);
         nMouseXPrev = r.left + (r.right - r.left) / 2;
         nMouseYPrev = r.top + (r.bottom - r.top) / 2;
         SetCursorPos(nMouseXPrev, nMouseYPrev);
@@ -598,6 +598,6 @@ void PCS_CONTROLS::HandleEvent(InputEvent const& evt)
     } else if (evt.type == InputEvent::MouseWheel) {
         auto const& dxdy = std::get<MousePos>(evt.data);
         nMouseWheel += dxdy.y * input_->GetWheelFactor();
-        core.Event("evMouseWeel", "l", static_cast<short>(dxdy.y));
+        core->Event("evMouseWeel", "l", static_cast<short>(dxdy.y));
     }
 }

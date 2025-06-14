@@ -78,8 +78,8 @@ void RAIN::GenerateRain()
     uint32_t i;
 
     entid_t ent;
-    if (!(ent = core.GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
-    pWeather = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ent));
+    if (!(ent = core->GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
+    pWeather = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ent));
     Assert(pWeather);
 
     Release();
@@ -168,8 +168,8 @@ void RAIN::GenerateRain()
 
 bool RAIN::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    cs = static_cast<COLLIDE*>(core.GetService("coll"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    cs = static_cast<COLLIDE*>(core->GetService("coll"));
 
     SetDevice();
 
@@ -213,7 +213,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
 
     entid_t   sea_id;
     SEA_BASE* pSea = nullptr;
-    if (sea_id = core.GetEntityId("sea")) pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(sea_id));
+    if (sea_id = core->GetEntityId("sea")) pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(sea_id));
 
     fDropsDeltaTime += fDeltaTime;
 
@@ -223,7 +223,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
         static_cast<float>(static_cast<double>(iNumNewDrops1 + iNumNewDrops2) / static_cast<double>(dwDropsNearNum + dwDropsFarNum));
     if (fDropsDeltaTime < 0.0f) fDropsDeltaTime = 0.0f;
 
-    if (auto&& entities = core.GetEntityIds(RAIN_DROPS); !entities.empty()) {
+    if (auto&& entities = core->GetEntityIds(RAIN_DROPS); !entities.empty()) {
         for (int32_t i = 0; i < iNumNewDrops1 + iNumNewDrops2; i++) {
             SHIP_BASE* pShip = nullptr;
             float      fA, fS, fR;
@@ -255,7 +255,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
 
                 // check - if it's a ship
                 entid_t eid = cs->GetObjectID();
-                if (core.GetClassCode(eid) == dwShipName) { pShip = static_cast<SHIP_BASE*>(core.GetEntityPointer(eid)); }
+                if (core->GetClassCode(eid) == dwShipName) { pShip = static_cast<SHIP_BASE*>(core->GetEntityPointer(eid)); }
             } else if (fTest2 <= 1.0f) {
                 // seadrop_t & sea_drop = aSeaDrops[aSeaDrops.Add()];
                 // sea_drop.vPos = vSrc + fTest * (vDst - vSrc);
@@ -294,7 +294,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
     aRects.clear();
 
     for (int32_t i = 0; i < aShips.size(); i++) {
-        if (!core.GetEntityPointer(aShips[i].eid)) { aShips[i].pShip = nullptr; }
+        if (!core->GetEntityPointer(aShips[i].eid)) { aShips[i].pShip = nullptr; }
     }
 
     for (int32_t i = 0; i < aDrops.size(); i++) {

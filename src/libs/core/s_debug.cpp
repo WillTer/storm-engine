@@ -92,7 +92,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         case MENU_OPENFILE: CDebug->OpenNewFile(); break;
         case MENU_EXITDEBUG: PostMessage(hwnd, WM_CLOSE, 0, 0); return 0;
         case ID_FILE_CLOSEPROGRAM:
-            core_internal.Exit();
+            core_internal->Exit();
             PostMessage(hwnd, WM_CLOSE, 0, 0);
             break;
         case ID_OPTIONS_BREAKONVARIABLECHANGE: CDebug->SourceView->VarChangeModal(); break;
@@ -107,17 +107,17 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), LOWORD(wParam), MF_UNCHECKED);
                 ini->WriteLong("options", "break_on_error", 0);
-                core_internal.Compiler->bBreakOnError = false;
+                core_internal->Compiler->bBreakOnError = false;
             } else {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), LOWORD(wParam), MF_CHECKED);
                 ini->WriteLong("options", "break_on_error", 1);
-                core_internal.Compiler->bBreakOnError = true;
+                core_internal->Compiler->bBreakOnError = true;
             }
             break;
         }
         case ID_FORMAT_DIALOG: {
             char Buffer[MAX_PATH];
-            if (CDebug->BrowseFileWP(Buffer, filefilter)) { core_internal.Compiler->FormatDialog(Buffer); }
+            if (CDebug->BrowseFileWP(Buffer, filefilter)) { core_internal->Compiler->FormatDialog(Buffer); }
         } break;
         case ID_FORMAT_ALLDIALOGS:
             bi                = {};
@@ -130,7 +130,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
             bi.iImage         = 0;
             if (SHGetPathFromIDList(SHBrowseForFolder(&bi), BufferW)) {
                 std::string Buffer = utf8::ConvertWideToUtf8(BufferW);
-                core_internal.Compiler->FormatAllDialog(Buffer.c_str());
+                core_internal->Compiler->FormatAllDialog(Buffer.c_str());
             }
             break;
         }
@@ -185,10 +185,10 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         if (ini) {
             if (ini->GetInt("options", "break_on_error", 0) == 1) {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), ID_OPTIONS_BREAKONERROR, MF_CHECKED);
-                core_internal.Compiler->bBreakOnError = true;
+                core_internal->Compiler->bBreakOnError = true;
             } else {
                 CheckMenuItem(static_cast<HMENU>(GetMenu(hwnd)), ID_OPTIONS_BREAKONERROR, MF_UNCHECKED);
-                core_internal.Compiler->bBreakOnError = false;
+                core_internal->Compiler->bBreakOnError = false;
             }
         }
 
@@ -205,7 +205,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         case WM_ACTIVATE:
           wActive = LOWORD(wParam);
           bActive = (wActive == WA_CLICKACTIVE || wActive == WA_ACTIVE);
-          core_internal.AppState(bActive);
+          core_internal->AppState(bActive);
         break;
 
         case WM_KEYDOWN:
@@ -223,7 +223,7 @@ LRESULT CALLBACK DebugWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam
         case WM_CHAR:
         case WM_MOUSEMOVE:
         case 0x20A:
-          if(bActive)    core_internal.ProcessSystemMessage(iMsg,wParam,lParam);
+          if(bActive)    core_internal->ProcessSystemMessage(iMsg,wParam,lParam);
         break;
         /*case WM_CLOSE:
           DestroyWindow(hwnd);
@@ -475,8 +475,8 @@ bool S_DEBUG::SetOnDebugExpression(char const* pLValue, char const* pRValue)
 {
     DATA Result;
     //    char * pC;
-    Result.SetVCompiler(core_internal.Compiler.get());
-    if (core_internal.Compiler->SetOnDebugExpression(pLValue, pRValue, Result)) return true;
+    Result.SetVCompiler(core_internal->Compiler.get());
+    if (core_internal->Compiler->SetOnDebugExpression(pLValue, pRValue, Result)) return true;
     return false;
 }
 
@@ -485,8 +485,8 @@ char const* S_DEBUG::ProcessExpression(char const* pExpression)
     if (!pExpression || !strlen(pExpression)) return "";
     DATA        Result;
     char const* pC;
-    Result.SetVCompiler(core_internal.Compiler.get());
-    if (core_internal.Compiler->ProcessDebugExpression(pExpression, Result)) {
+    Result.SetVCompiler(core_internal->Compiler.get());
+    if (core_internal->Compiler->ProcessDebugExpression(pExpression, Result)) {
         Result.Convert(VAR_STRING);
         if (Result.Get(pC)) {
             auto const len = strlen(pC) + 1;
@@ -502,9 +502,9 @@ char const* S_DEBUG::ProcessExpression(char const* pExpression)
 uint32_t S_DEBUG::GetLineStatus(char const* _pFileName, uint32_t _linecode)
 {
     // nDebugTraceLineCode
-    if (core_internal.Compiler->pRun_fi && !core_internal.Compiler->pRun_fi->decl_file_name.empty())
-        if (storm::iEquals(core_internal.Compiler->pRun_fi->decl_file_name, _pFileName)) {
-            if (_linecode == core_internal.Compiler->nDebugTraceLineCode) return LST_CONTROL;
+    if (core_internal->Compiler->pRun_fi && !core_internal->Compiler->pRun_fi->decl_file_name.empty())
+        if (storm::iEquals(core_internal->Compiler->pRun_fi->decl_file_name, _pFileName)) {
+            if (_linecode == core_internal->Compiler->nDebugTraceLineCode) return LST_CONTROL;
         }
     if (Breaks.Find(_pFileName, _linecode)) return LST_BREAKPOINT;
     return LST_NORMAL;

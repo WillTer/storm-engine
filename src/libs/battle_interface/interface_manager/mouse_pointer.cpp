@@ -21,7 +21,7 @@ MousePointer::MousePointer(BI_ManagerBase* pManager, ATTRIBUTES* pARoot)
     m_mousesensivity.x = 1.f;
     m_mousesensivity.y = 1.f;
 
-    auto const screenSize = core.GetScreenSize();
+    auto const screenSize = core->GetScreenSize();
     m_cursorzone.left     = 0;
     m_cursorzone.top      = 0;
     m_cursorzone.right    = screenSize.width;
@@ -83,12 +83,12 @@ void MousePointer::InitMouseCursors()
 void MousePointer::MoveCursor()
 {
     CONTROL_STATE cs;
-    auto const    fDeltaTime = core.GetDeltaTime() * 0.001f;
+    auto const    fDeltaTime = core->GetDeltaTime() * 0.001f;
 
-    core.Controls->GetControlState("ITurnH", cs);
+    core->Controls->GetControlState("ITurnH", cs);
     m_mousepos.x += m_mousesensivity.x * fDeltaTime * cs.fValue;
 
-    core.Controls->GetControlState("ITurnV", cs);
+    core->Controls->GetControlState("ITurnV", cs);
     m_mousepos.y -= m_mousesensivity.y * fDeltaTime * cs.fValue;
 
     if (m_mousepos.x < static_cast<float>(m_cursorzone.left)) m_mousepos.x = static_cast<float>(m_cursorzone.left);

@@ -25,7 +25,7 @@ ParticleManager::ParticleManager(ParticleService* service) : IParticleManager(se
     BB_Processor           = new BillBoardProcessor;
     GlobalDelete           = false;
     TimeFromLastStatUpdate = 100.0f;
-    pRS                    = static_cast<VDX9RENDER*>(core.GetService("DX9Render"));
+    pRS                    = static_cast<VDX9RENDER*>(core->GetService("DX9Render"));
     Assert(pRS != NULL);
 
     pDataCache = new DataCache(this);
@@ -38,7 +38,7 @@ ParticleManager::ParticleManager(ParticleService* service) : IParticleManager(se
 ParticleManager::~ParticleManager()
 {
     DeleteAllSystems();
-    pRS = static_cast<VDX9RENDER*>(core.GetService("DX9Render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("DX9Render"));
     if (pProjectTexture >= 0 && pRS != nullptr) { pRS->TextureRelease(pProjectTexture); }
     pProjectTexture = -1;
 
@@ -102,7 +102,7 @@ bool ParticleManager::OpenProject(char const* FileName)
 
     auto IniFile = fio->open_ini_file(pathStr.c_str());
     if (!IniFile) {
-        core.Trace("Can't find project '%s'", pathStr.c_str());
+        core->Trace("Can't find project '%s'", pathStr.c_str());
         return false;
     }
 
@@ -110,7 +110,7 @@ bool ParticleManager::OpenProject(char const* FileName)
 
     // Setting the texture of the project
     IniFile->ReadString("Textures", "MainTexture", IniStringBuffer, 8192, "none");
-    // core.Trace("Manager use texture: %s", IniStringBuffer);
+    // core->Trace("Manager use texture: %s", IniStringBuffer);
     SetProjectTexture(IniStringBuffer);
 
     /*
@@ -122,7 +122,7 @@ bool ParticleManager::OpenProject(char const* FileName)
         bool ReadSuccess = IniFile->ReadString("ModelsCache", (char*)Section.c_str(), IniStringBuffer, 8192, "none");
         if (!ReadSuccess) break;
 
-        //core.Trace("Cache geom: %s", IniStringBuffer);
+        //core->Trace("Cache geom: %s", IniStringBuffer);
         pGeomCache->CacheModel(IniStringBuffer);
 
       }
@@ -259,7 +259,7 @@ void ParticleManager::Execute(float DeltaTime)
         }
     }
 
-    if (core.Controls->GetDebugAsyncKeyState(VK_F3) < 0 && core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_F3) < 0 && core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) {
         ShowStat = !ShowStat;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -289,11 +289,11 @@ IParticleSystem* ParticleManager::CreateParticleSystemEx(char const* FileName, c
 {
     DataSource* pDataSource = pDataCache->GetParticleSystemDataSource(FileName);
     if (!pDataSource) {
-        core.Trace("Particle system '%s' can't loading. Reason: Not found in cache", FileName);
+        core->Trace("Particle system '%s' can't loading. Reason: Not found in cache", FileName);
         return nullptr;
     }
 
-    //    core.Trace("Create system '%s'", FileName);
+    //    core->Trace("Create system '%s'", FileName);
     ParticleSystem* pSys = CreateParticleSystemFromDataSource(pDataSource);
     pSys->SetName(FileName);
     return pSys;
@@ -450,7 +450,7 @@ void ParticleManager::CreateGeomCache()
         GeomName                = GetFirstGeomName(pSystemName);
 
         while (GeomName) {
-            // core.Trace("Cache geom %s", GeomName);
+            // core->Trace("Cache geom %s", GeomName);
             pGeomCache->CacheModel(GeomName);
             GeomName = GetNextGeomName();
         }
@@ -461,7 +461,7 @@ void ParticleManager::WriteSystemCache(char const* FileName)
 {
     DataSource* pDataSource = pDataCache->GetParticleSystemDataSource(FileName);
     if (!pDataSource) {
-        core.Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
+        core->Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
         return;
     }
 
@@ -470,14 +470,14 @@ void ParticleManager::WriteSystemCache(char const* FileName)
     pDataSource->Write(&pMemSave);
 
     pMemSave.Close();
-    core.Trace("Particle system '%s' saved.", FileName);
+    core->Trace("Particle system '%s' saved.", FileName);
 }
 
 void ParticleManager::WriteSystemCacheAs(char const* FileName, char const* NewName)
 {
     DataSource* pDataSource = pDataCache->GetParticleSystemDataSource(FileName);
     if (!pDataSource) {
-        core.Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
+        core->Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
         return;
     }
 
@@ -491,14 +491,14 @@ void ParticleManager::WriteSystemCacheAs(char const* FileName, char const* NewNa
     */
 
     pMemSave.Close();
-    core.Trace("Particle system '%s' saved.", NewName);
+    core->Trace("Particle system '%s' saved.", NewName);
 }
 
 void ParticleManager::WriteSystemCache(char const* FileName, MemFile* pMemFile)
 {
     DataSource* pDataSource = pDataCache->GetParticleSystemDataSource(FileName);
     if (!pDataSource) {
-        core.Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
+        core->Trace("Particle system '%s' can't save. Reason: Not found in cache", FileName);
         return;
     }
 
@@ -509,7 +509,7 @@ void ParticleManager::LoadSystemCache(char const* FileName, MemFile* pMemFile)
 {
     DataSource* pDataSource = pDataCache->GetParticleSystemDataSource(FileName);
     if (!pDataSource) {
-        core.Trace("Particle system '%s' can't load. Reason: Not found in cache", FileName);
+        core->Trace("Particle system '%s' can't load. Reason: Not found in cache", FileName);
         return;
     }
 

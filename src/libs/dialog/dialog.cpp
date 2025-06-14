@@ -196,7 +196,7 @@ DIALOG::DIALOG()
 //--------------------------------------------------------------------
 DIALOG::~DIALOG()
 {
-    core.SetTimeScale(1.f);
+    core->SetTimeScale(1.f);
 
     if (m_idVBufBack != -1) RenderService->ReleaseVertexBuffer(m_idVBufBack);
     m_idVBufBack = -1;
@@ -460,7 +460,7 @@ void DIALOG::LoadFromIni()
     // FIXME: hardcode
     auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
     if (!pIni) {
-        core.Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return;
     }
 
@@ -471,7 +471,7 @@ void DIALOG::LoadFromIni()
     FPOINT fpScrSize, fpScrOffset;
     GetPointFromIni(pIni.get(), "BACKPARAM", "baseScreenSize", fpScrSize);
     GetPointFromIni(pIni.get(), "BACKPARAM", "baseScreenOffset", fpScrOffset);
-    auto const& screenSize = core.GetScreenSize();
+    auto const& screenSize = core->GetScreenSize();
     if (fpScrSize.x <= 0) fpScrSize.x = static_cast<float>(screenSize.width);
     if (fpScrSize.y <= 0) fpScrSize.y = static_cast<float>(screenSize.height);
     m_nScrBaseWidth  = static_cast<int32_t>(fpScrSize.x);
@@ -568,13 +568,13 @@ bool DIALOG::Init()
 {
     forceEmergencyClose = false;
     selectedLinkName[0] = 0;
-    core.SetTimeScale(0.f);
+    core->SetTimeScale(0.f);
     unfadeTime = 0;
 
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(RenderService);
 
-    snd = static_cast<VSoundService*>(core.GetService("SoundService"));
+    snd = static_cast<VSoundService*>(core->GetService("SoundService"));
     // Assert( snd );
 
     //----------------------------------------------------------
@@ -648,10 +648,10 @@ void DIALOG::Realize(uint32_t Delta_Time)
     RenderService->MakePostProcess();
     // delayed exit from pause
     if (unfadeTime <= UNFADE_TIME) {
-        unfadeTime += static_cast<int>(core.GetRDeltaTime());
+        unfadeTime += static_cast<int>(core->GetRDeltaTime());
         float timeK = static_cast<float>(unfadeTime) / UNFADE_TIME;
         if (timeK > 1.f) timeK = 1.f;
-        core.SetTimeScale(timeK);
+        core->SetTimeScale(timeK);
     }
 
     // play speech
@@ -675,27 +675,27 @@ void DIALOG::Realize(uint32_t Delta_Time)
     CONTROL_STATE cs2;
 
     // interruption of dialogue
-    core.Controls->GetControlState("DlgCancel", cs);
-    if (cs.state == CST_ACTIVATED) core.Event("DialogCancel");
+    core->Controls->GetControlState("DlgCancel", cs);
+    if (cs.state == CST_ACTIVATED) core->Event("DialogCancel");
 
     bool bDoUp   = false;
     bool bDoDown = false;
     //
-    core.Controls->GetControlState("DlgUp", cs);
+    core->Controls->GetControlState("DlgUp", cs);
     if (cs.state == CST_ACTIVATED) bDoUp = true;
     if (!linkDescribe_.IsInEditMode()) {
-        core.Controls->GetControlState("DlgUp2", cs);
+        core->Controls->GetControlState("DlgUp2", cs);
         if (cs.state == CST_ACTIVATED) bDoUp = true;
-        core.Controls->GetControlState("DlgUp3", cs);
+        core->Controls->GetControlState("DlgUp3", cs);
         if (cs.state == CST_ACTIVATED) bDoUp = true;
     }
     //
-    core.Controls->GetControlState("DlgDown", cs);
+    core->Controls->GetControlState("DlgDown", cs);
     if (cs.state == CST_ACTIVATED) bDoDown = true;
     if (!linkDescribe_.IsInEditMode()) {
-        core.Controls->GetControlState("DlgDown2", cs);
+        core->Controls->GetControlState("DlgDown2", cs);
         if (cs.state == CST_ACTIVATED) bDoDown = true;
-        core.Controls->GetControlState("DlgDown3", cs);
+        core->Controls->GetControlState("DlgDown3", cs);
         if (cs.state == CST_ACTIVATED) bDoDown = true;
     }
 
@@ -724,7 +724,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
         }
     }
     // page up
-    core.Controls->GetControlState("DlgScrollUp", cs);
+    core->Controls->GetControlState("DlgScrollUp", cs);
     if (cs.state == CST_ACTIVATED) {
         if (snd) snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
         if (m_DlgText.currentLine_ > 0) {
@@ -735,7 +735,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
         }
     }
     // page down
-    core.Controls->GetControlState("DlgScrollDown", cs);
+    core->Controls->GetControlState("DlgScrollDown", cs);
     if (cs.state == CST_ACTIVATED) {
         if (snd) snd->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
         if (!m_DlgText.IsLastPage()) {
@@ -746,9 +746,9 @@ void DIALOG::Realize(uint32_t Delta_Time)
         }
     }
     // action
-    core.Controls->GetControlState("DlgAction", cs);
-    core.Controls->GetControlState("DlgAction2", cs2);
-    core.Controls->GetControlState("DlgAction1", cs1);  // boal
+    core->Controls->GetControlState("DlgAction", cs);
+    core->Controls->GetControlState("DlgAction2", cs2);
+    core->Controls->GetControlState("DlgAction1", cs1);  // boal
     if (linkDescribe_.IsInEditMode()) { cs.state = CST_INACTIVE; }
     if (cs.state == CST_ACTIVATED || cs2.state == CST_ACTIVATED || cs1.state == CST_ACTIVATED)  // boal
     {
@@ -769,7 +769,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
 
                     // set default
                     strcpy_s(soundName, charDefSnd);
-                    core.Event("DialogEvent");
+                    core->Event("DialogEvent");
                 }
             }
         } else {
@@ -847,8 +847,8 @@ uint64_t DIALOG::ProcessMessage(MESSAGE& message)
         charId           = message.EntityID();
         charMdl          = message.EntityID();
         char const* attr = nullptr;
-        if (attr = core.Entity_GetAttribute(charId, "name"); attr != nullptr) { m_sTalkPersName = attr; }
-        if (attr = core.Entity_GetAttribute(charId, "lastname"); attr != nullptr) {
+        if (attr = core->Entity_GetAttribute(charId, "name"); attr != nullptr) { m_sTalkPersName = attr; }
+        if (attr = core->Entity_GetAttribute(charId, "lastname"); attr != nullptr) {
             if (m_sTalkPersName.size() > 0 && *attr != '\0') { m_sTalkPersName += " "; }
             m_sTalkPersName += attr;
         }
@@ -864,8 +864,8 @@ void DIALOG::EmergencyExit()
 {
     if (forceEmergencyClose) return;
     forceEmergencyClose = true;
-    core.Trace("DIALOG: Invalid links, emergency exit! (last link = %s)", selectedLinkName);
-    core.Event("EmergencyDialogExit");
+    core->Trace("DIALOG: Invalid links, emergency exit! (last link = %s)", selectedLinkName);
+    core->Event("EmergencyDialogExit");
 }
 
 void DIALOG::UpdateDlgTexts()

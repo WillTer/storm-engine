@@ -29,37 +29,37 @@ void FieldList::Load(MemFile* File)
 
         switch (fldType) {
         case FIELD_BOOL: {
-            // core.Trace ("Particles info: BOOL field");
+            // core->Trace ("Particles info: BOOL field");
             CreateBoolField(File);
             break;
         }
         case FIELD_FLOAT: {
-            // core.Trace ("Particles info: FLOAT field");
+            // core->Trace ("Particles info: FLOAT field");
             CreateFloatField(File);
             break;
         }
         case FIELD_GRAPH: {
-            // core.Trace ("Particles info: GRAPH field");
+            // core->Trace ("Particles info: GRAPH field");
             CreateGraphField(File);
             break;
         }
         case FIELD_POSITION: {
-            // core.Trace ("Particles info: POSITION field");
+            // core->Trace ("Particles info: POSITION field");
             CreatePositionField(File);
             break;
         }
         case FIELD_STRING: {
-            // core.Trace ("Particles info: STRING field");
+            // core->Trace ("Particles info: STRING field");
             CreateStringField(File);
             break;
         }
         case FIELD_UV: {
-            // core.Trace ("Particles info: UV field");
+            // core->Trace ("Particles info: UV field");
             CreateUVField(File);
             break;
         }
         case FIELD_COLOR: {
-            // core.Trace ("Particles info: COLOR field");
+            // core->Trace ("Particles info: COLOR field");
             CreateColorField(File);
             break;
         }

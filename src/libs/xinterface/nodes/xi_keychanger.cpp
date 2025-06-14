@@ -28,12 +28,12 @@ void CXI_KEYCHANGER::Draw(bool bSelected, uint32_t Delta_Time)
         CONTROL_STATE cs;
 
         for (i = 0; i < m_keysQuantity; i++) {
-            core.Controls->GetControlState(m_pControlsID[i], cs);
+            core->Controls->GetControlState(m_pControlsID[i], cs);
             if (m_bKeyCheck) {
                 if ((m_pbControlsStick[i] && cs.state == CST_INACTIVATED)
                     || (!m_pbControlsStick[i] && (cs.fValue > 1.f || cs.fValue < -1.f))) {
                     auto  bAllowChange = false;
-                    auto* pdat         = core.Event("evntKeyChoose", "ll", i, cs.fValue > 0);
+                    auto* pdat         = core->Event("evntKeyChoose", "ll", i, cs.fValue > 0);
                     if (pdat != nullptr) bAllowChange = pdat->GetInt() != 0;
                     if (bAllowChange) {
                         m_bUse      = false;
@@ -65,7 +65,7 @@ void CXI_KEYCHANGER::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -103,9 +103,9 @@ void CXI_KEYCHANGER::SetChoosingControls(ATTRIBUTES* pA)
     for (auto i = 0; i < m_keysQuantity; i++) {
         sprintf_s(contrlName, "cntrl_%d", i);
         m_pbControlsStick[i] = false;
-        m_pControlsID[i]     = core.Controls->CreateControl(contrlName);
+        m_pControlsID[i]     = core->Controls->CreateControl(contrlName);
         char const* keyCode  = pA->GetAttribute(i);
-        if (keyCode != nullptr) { core.Controls->MapControl(m_pControlsID[i], atoi(keyCode)); }
+        if (keyCode != nullptr) { core->Controls->MapControl(m_pControlsID[i], atoi(keyCode)); }
         auto* pAttr = pA->GetAttributeClass(i);
         if (pAttr != nullptr)
             if (pAttr->GetAttributeAsDword("stick", 0) != 1) m_pbControlsStick[i] = true;

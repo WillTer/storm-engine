@@ -37,14 +37,14 @@ bool FREE_CAMERA::Init()
 
 void FREE_CAMERA::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     Assert(pCollide);
 
-    /*core.CreateEntity(&sphere,"modelr");
-    core.Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
-    core.AddToLayer(realize,sphere,10000);*/
+    /*core->CreateEntity(&sphere,"modelr");
+    core->Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
+    core->AddToLayer(realize,sphere,10000);*/
 }
 
 bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen) const
@@ -70,9 +70,9 @@ void FREE_CAMERA::Execute(uint32_t Delta_Time)
     float persp;
     pRS->GetCamera(vPos, vAng, persp);
 
-    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("island")));
 
-    Move(core.GetDeltaTime());
+    Move(core->GetDeltaTime());
 }
 
 void FREE_CAMERA::Move(uint32_t DeltaTime)
@@ -85,9 +85,9 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     CONTROL_STATE cs;
 
     {
-        core.Controls->GetControlState("FreeCamera_Turn_H", cs);
+        core->Controls->GetControlState("FreeCamera_Turn_H", cs);
         vAng.y += SENSITIVITY * static_cast<float>(cs.fValue);
-        core.Controls->GetControlState("FreeCamera_Turn_V", cs);
+        core->Controls->GetControlState("FreeCamera_Turn_V", cs);
         vAng.x += SENSITIVITY * static_cast<float>(cs.fValue);
         // SetCursorPos(iLockX,iLockY);
     }
@@ -103,18 +103,18 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     float      s2    = sinf(vAng.z);
     float      speed = 5.0f * 0.001f * static_cast<float>(DeltaTime);
 
-    if (core.Controls->GetAsyncKeyState(VK_SHIFT)) speed *= 4.0f;
-    if (core.Controls->GetAsyncKeyState(VK_CONTROL)) speed *= 8.0f;
+    if (core->Controls->GetAsyncKeyState(VK_SHIFT)) speed *= 4.0f;
+    if (core->Controls->GetAsyncKeyState(VK_CONTROL)) speed *= 8.0f;
 
-    core.Controls->GetControlState("FreeCamera_Forward", cs);
+    core->Controls->GetControlState("FreeCamera_Forward", cs);
     if (cs.state == CST_ACTIVE) vPos += speed * CVECTOR(s0 * c1, -s1, c0 * c1);
-    core.Controls->GetControlState("FreeCamera_Backward", cs);
+    core->Controls->GetControlState("FreeCamera_Backward", cs);
     if (cs.state == CST_ACTIVE) vPos -= speed * CVECTOR(s0 * c1, -s1, c0 * c1);
 
-    /*if (core.Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if (core.Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if(core.Controls->GetAsyncKeyState('I'))    vPos += speed*CVECTOR(0.0f, 0.1f , 0.0f);
-    if(core.Controls->GetAsyncKeyState('K'))    vPos += speed*CVECTOR(0.0f, -0.1f, 0.0f);*/
+    /*if (core->Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
+    if (core->Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
+    if(core->Controls->GetAsyncKeyState('I'))    vPos += speed*CVECTOR(0.0f, 0.1f , 0.0f);
+    if(core->Controls->GetAsyncKeyState('K'))    vPos += speed*CVECTOR(0.0f, -0.1f, 0.0f);*/
 
     // vPos = CVECTOR(0.0f, 20.0f, 0.0f);
 
@@ -123,18 +123,18 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     /*CVECTOR vRes;
     CVECTOR vDst = vPos + 2000.0f*CVECTOR(s0*c1, -s1, c0*c1);
 
-    walker_tpVW = core.LayerGetWalker("sun_trace");
+    walker_tpVW = core->LayerGetWalker("sun_trace");
     float fRes = pCollide->Trace(*pVW,vPos,vDst,nullptr,0);
     if (fRes > 1.0f) vRes = vDst;
     else
     {
       vRes = vPos + fRes * (vDst - vPos);
       entid_t ent = pCollide->GetObjectID();
-      MODELR *pEntity = (MODELR*)core.GetEntityPointer(ent);
+      MODELR *pEntity = (MODELR*)core->GetEntityPointer(ent);
     }
 
 
-    MODEL* pModel = (MODEL*)core.GetEntityPointer(sphere);
+    MODEL* pModel = (MODEL*)core->GetEntityPointer(sphere);
     pModel->mtx.BuildPosition(vRes.x,vRes.y,vRes.z);
     delete pVW;*/
 }

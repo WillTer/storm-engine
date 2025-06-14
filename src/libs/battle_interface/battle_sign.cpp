@@ -285,22 +285,22 @@ void BISignIcon::MakeControl()
 {
     CONTROL_STATE cs;
 
-    core.Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_confirm);
 
-    core.Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_left);
 
-    core.Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_right);
 
-    core.Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_up);
 
-    core.Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_down);
 
-    core.Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_cancel);
 }
 

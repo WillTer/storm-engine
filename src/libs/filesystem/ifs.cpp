@@ -668,7 +668,7 @@ bool IFS::ReadString(
         sd->Key     = nullptr;
         sd->Section = nullptr;
         if (def_string == nullptr) {
-            core_internal.Trace("Warning! IniFile Read String: section=%s, key=%s", section_name, key_name);
+            core_internal->Trace("Warning! IniFile Read String: section=%s, key=%s", section_name, key_name);
             if (buffer) buffer[0] = 0;
             // throw std::runtime_error(string not found);
         } else if (buffer)

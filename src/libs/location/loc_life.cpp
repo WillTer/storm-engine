@@ -31,7 +31,7 @@ LocLife::LocLife() : model(0), ay(0), pos(), npos()
 
 LocLife::~LocLife()
 {
-    core.EraseEntity(model);
+    core->EraseEntity(model);
 }
 
 //============================================================================================
@@ -39,22 +39,22 @@ LocLife::~LocLife()
 bool LocLife::Init(Location* loc)
 {
     Assert(loc);
-    if (!(model = core.CreateEntity("modelr"))) return false;
-    core.AddToLayer(REALIZE, model, 20);
+    if (!(model = core->CreateEntity("modelr"))) return false;
+    core->AddToLayer(REALIZE, model, 20);
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     if (!gs) {
-        core.Trace("Can't create geometry service!");
+        core->Trace("Can't create geometry service!");
         return false;
     }
     gs->SetTexturePath("animals/");
-    if (!core.Send_Message(model, "ls", MSG_MODEL_LOAD_GEO, GetModelName())) {
+    if (!core->Send_Message(model, "ls", MSG_MODEL_LOAD_GEO, GetModelName())) {
         gs->SetTexturePath("");
         return false;
     }
     gs->SetTexturePath("");
     // Animation
-    if (!core.Send_Message(model, "ls", MSG_MODEL_LOAD_ANI, GetAniName())) return false;
+    if (!core->Send_Message(model, "ls", MSG_MODEL_LOAD_ANI, GetAniName())) return false;
     // determine the position
     location = loc;
     if (FindRandomPos(pos) < 0) {
@@ -64,7 +64,7 @@ bool LocLife::Init(Location* loc)
     FindPos();
     ay = rand() * (6.28f / RAND_MAX);
     // Animation
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) {
         location = nullptr;
         return false;
@@ -91,7 +91,7 @@ void LocLife::Update(float dltTime)
         location->DrawLine(pos, 0xff00ff00, pos + CVECTOR(sinf(ay), 0.0f, cosf(ay)) * 0.5f, 0xff00ff00);
     }
     // Model and location information
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     auto* const ani = m->GetAnimation();
     if (!ani) return;
@@ -139,7 +139,7 @@ void LocLife::Update(float dltTime)
 
 int32_t LocLife::FindPos()
 {
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return -1;
     auto& ptc = location->GetPtcData();
     // Direction
@@ -173,7 +173,7 @@ int32_t LocLife::FindPos()
 void LocLife::StartMove()
 {
     // Model
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     // Start playing the animation
     auto* const ani = m->GetAnimation();
@@ -185,7 +185,7 @@ void LocLife::StartMove()
 void LocLife::StopMove()
 {
     node    = -1;
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     // Start playing the animation
     auto* const ani = m->GetAnimation();

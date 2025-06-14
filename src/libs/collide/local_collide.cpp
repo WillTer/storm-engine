@@ -5,7 +5,7 @@
 LCOLL::LCOLL(layer_index_t idx) : boxRadius(0)
 {
     layerIndex_ = idx;
-    col         = static_cast<COLLIDE*>(core.GetService("coll"));
+    col         = static_cast<COLLIDE*>(core->GetService("coll"));
     if (!col) throw std::runtime_error("No service: collide");
 }
 
@@ -83,7 +83,7 @@ int32_t LCOLL::SetBox(const CVECTOR& boxSize, CMatrix const& transform, bool tes
     // F0(v0,v1,v2), F1(v0,v1,v2,v3)...
     addVerts = nullptr;
 
-    auto const its = core.GetEntityIds(layerIndex_);
+    auto const its = core->GetEntityIds(layerIndex_);
     col->Clip(its, &plane[0], 6, boxCenter, boxRadius, AddPolyColl, nullptr, 0);
     return 0;
 }

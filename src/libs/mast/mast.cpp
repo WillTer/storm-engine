@@ -62,10 +62,10 @@ void MAST::SetDevice()
 {
     // GUARD(MAST::SetDevice())
 
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 
     LoadIni();
@@ -103,10 +103,10 @@ void MAST::Execute(uint32_t Delta_Time)
             if (ft_old != ft_new) { LoadIni(); }
         }
         doMove(Delta_Time);
-        auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id));
+        auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id));
         if (mdl) mdl->Update();
     } else {
-        core.EraseEntity(GetId());
+        core->EraseEntity(GetId());
     }
     // UNGUARD
 }
@@ -123,7 +123,7 @@ void MAST::Realize(uint32_t Delta_Time)
     }
 
     MODEL* mdl;
-    if ((mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id))) != nullptr) {
+    if ((mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id))) != nullptr) {
         RenderService->SetRenderState(D3DRS_LIGHTING, true);
         mdl->ProcessStage(Stage::realize, Delta_Time);
         RenderService->SetRenderState(D3DRS_LIGHTING, false);
@@ -177,21 +177,21 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
 {
     m_pMastNode = mastNodePointer;
     if (mastNodePointer == nullptr) return;
-    auto* oldmdl = static_cast<MODEL*>(core.GetEntityPointer(modelEI));
+    auto* oldmdl = static_cast<MODEL*>(core->GetEntityPointer(modelEI));
     if (oldmdl == nullptr) return;  // do not bring down anything if there is no old model
     oldmodel_id = modelEI;
     ship_id     = shipEI;
 
-    auto const ropeEI  = core.GetEntityId("rope");
-    auto const sailEI  = core.GetEntityId("sail");
-    auto const flagEI  = core.GetEntityId("flag");
-    auto const vantEI  = core.GetEntityId("vant");
-    auto const vantlEI = core.GetEntityId("vantl");
-    auto const vantzEI = core.GetEntityId("vantz");
+    auto const ropeEI  = core->GetEntityId("rope");
+    auto const sailEI  = core->GetEntityId("sail");
+    auto const flagEI  = core->GetEntityId("flag");
+    auto const vantEI  = core->GetEntityId("vant");
+    auto const vantlEI = core->GetEntityId("vantl");
+    auto const vantzEI = core->GetEntityId("vantz");
 
     // find the attributes
     VAI_OBJBASE* pVAI = nullptr;
-    pVAI              = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(shipEI));
+    pVAI              = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(shipEI));
     ATTRIBUTES* pA    = nullptr;
     if (pVAI != nullptr) pA = pVAI->GetACharacter();
 
@@ -201,9 +201,9 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
     if (pAMasts != nullptr) fMastDamage = pAMasts->GetAttributeAsFloat((char*)mastNodePointer->GetName(), 0.f);
     int32_t chrIdx = -1;
     if (pA != nullptr) chrIdx = pA->GetAttributeAsDword("index", -1);
-    core.Event("EventMastFall", "lsl", chrIdx, mastNodePointer->GetName(), fMastDamage < 1.f);
+    core->Event("EventMastFall", "lsl", chrIdx, mastNodePointer->GetName(), fMastDamage < 1.f);
     if (fMastDamage < 1.f) {
-        if (sailEI) core.Send_Message(sailEI, "lls", MSG_SAIL_MAST_PROCESSING, chrIdx, mastNodePointer->GetName());
+        if (sailEI) core->Send_Message(sailEI, "lls", MSG_SAIL_MAST_PROCESSING, chrIdx, mastNodePointer->GetName());
     }
 
     if (mastNodePointer != nullptr)  //~!~
@@ -215,10 +215,10 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
         model_id = mastNodePointer->Unlink2Model();
 
         // go through all the ropes of this mast and turn them off
-        if (vantEI) core.Send_Message(vantEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
-        if (vantlEI) core.Send_Message(vantlEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
-        if (vantzEI) core.Send_Message(vantzEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
-        auto mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id));
+        if (vantEI) core->Send_Message(vantEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
+        if (vantlEI) core->Send_Message(vantlEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
+        if (vantzEI) core->Send_Message(vantzEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
+        auto mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id));
         if (mdl != nullptr)
             for (i = 0; i < 10000; i++) {
                 NODE* nod = mdl->GetNode(i);
@@ -229,31 +229,31 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
                     GEOS::LABEL gl;
                     nod->geo->GetLabel(j, gl);
                     if (!strncmp(gl.name, "rope", 4)) {
-                        if (ropeEI) core.Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[5]));
+                        if (ropeEI) core->Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[5]));
                     }
                     if (!strncmp(gl.name, "fal", 3)) {
-                        if (ropeEI) core.Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[4]) + 1000);
+                        if (ropeEI) core->Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[4]) + 1000);
                     } else if (!strncmp(gl.name, "sail", 4)) {
                         if (sailEI)
-                            core.Send_Message(
+                            core->Send_Message(
                                 sailEI, "liplii", MSG_SAIL_TO_NEWHOST, modelEI, nod, atoi(&gl.group_name[5]), GetId(), model_id);
                     } else if (!strncmp(gl.group_name, "flag", 4)) {
-                        if (flagEI) core.Send_Message(flagEI, "lili", MSG_FLAG_TO_NEWHOST, modelEI, atoi(&gl.group_name[4]), model_id);
+                        if (flagEI) core->Send_Message(flagEI, "lili", MSG_FLAG_TO_NEWHOST, modelEI, atoi(&gl.group_name[4]), model_id);
                     } else if (!strncmp(gl.group_name, "sflag", 5)) {
-                        if (flagEI) core.Send_Message(flagEI, "lili", MSG_FLAG_TO_NEWHOST, modelEI, atoi(&gl.group_name[5]), model_id);
+                        if (flagEI) core->Send_Message(flagEI, "lili", MSG_FLAG_TO_NEWHOST, modelEI, atoi(&gl.group_name[5]), model_id);
                     }
                 }
                 // also bring down the sails associated with this mast
                 if (sailEI) {
-                    core.Send_Message(sailEI, "liii", MSG_SAIL_CHECK, shipEI, GetId(), model_id);
-                    core.Send_Message(sailEI, "li", MSG_SAIL_FREE_GROUP, GetId());
+                    core->Send_Message(sailEI, "liii", MSG_SAIL_CHECK, shipEI, GetId(), model_id);
+                    core->Send_Message(sailEI, "li", MSG_SAIL_FREE_GROUP, GetId());
                 }
             }
-        if (sailEI) core.Send_Message(sailEI, "ll", MSG_SAIL_MAST_PROCESSING, -1);
+        if (sailEI) core->Send_Message(sailEI, "ll", MSG_SAIL_MAST_PROCESSING, -1);
 
         // set the initial parameters of the mast movement
         SHIP_BASE* sb;
-        sb = static_cast<SHIP_BASE*>(core.GetEntityPointer(shipEI));
+        sb = static_cast<SHIP_BASE*>(core->GetEntityPointer(shipEI));
         if (sb) {
             mm.ang = sb->State.vAng;
 
@@ -279,11 +279,11 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
         float      minDist = 10000.f;
         SHIP_BASE* minDstShip;
 
-        auto const& ships = core.GetEntityIds("ship");
+        auto const& ships = core->GetEntityIds("ship");
         for (auto ship: ships) {
             if (ship == ship_id) continue;
 
-            auto*       sb      = static_cast<SHIP_BASE*>(core.GetEntityPointer(ship));
+            auto*       sb      = static_cast<SHIP_BASE*>(core->GetEntityPointer(ship));
             float const tmpDist = ~(sb->State.vPos - mm.mov);
             if (tmpDist < minDist) {
                 minDist    = tmpDist;
@@ -425,7 +425,7 @@ void MAST::doMove(uint32_t DeltaTime)
     float dtime = DELTA_TIME(static_cast<float>(DeltaTime));
     float rtime = DELTA_TIME_ROTATE(static_cast<float>(DeltaTime));
 
-    auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id));  // geometry model of the mast
+    auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id));  // geometry model of the mast
     if (mdl != nullptr) {
         if (bFallUnderWater)  // if the mast is already sinking
         {
@@ -471,9 +471,9 @@ void MAST::doMove(uint32_t DeltaTime)
             while (bNextClass) {
                 bNextClass = false;
                 // collision with the island
-                entid_t findEI = core.GetEntityId("ISLAND");
-                if (findEI && core.GetEntityPointer(findEI) != nullptr) {
-                    auto modEI = static_cast<ISLAND_BASE*>(core.GetEntityPointer(findEI))->GetModelEID();
+                entid_t findEI = core->GetEntityId("ISLAND");
+                if (findEI && core->GetEntityPointer(findEI) != nullptr) {
+                    auto modEI = static_cast<ISLAND_BASE*>(core->GetEntityPointer(findEI))->GetModelEID();
 
                     CVECTOR dp;
                     int     tmp;
@@ -495,10 +495,10 @@ void MAST::doMove(uint32_t DeltaTime)
                     }
                 }
                 // collision with the ship
-                auto const& ships = core.GetEntityIds("ship");
+                auto const& ships = core->GetEntityIds("ship");
                 for (auto ship: ships) {
-                    if (core.GetEntityPointer(ship) == nullptr) continue;
-                    auto    modEI = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship))->GetModelEID();
+                    if (core->GetEntityPointer(ship) == nullptr) continue;
+                    auto    modEI = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship))->GetModelEID();
                     CVECTOR dp;
                     int     tmp;
                     float   yAng;
@@ -578,7 +578,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
                 vb.y -= hVal;
                 ve.y -= hVal;
                 hVal       = 0;
-                auto* pmdl = static_cast<MODEL*>(core.GetEntityPointer(mod));
+                auto* pmdl = static_cast<MODEL*>(core->GetEntityPointer(mod));
                 if (pmdl) {
                     NODE* pnod = pmdl->GetCollideNode();
                     if (pnod) {
@@ -618,16 +618,16 @@ void MAST::AllRelease()
     }
 
     // delete sail group
-    core.Send_Message(core.GetEntityId("sail"), "li", MSG_SAIL_DEL_GROUP, GetId());
+    core->Send_Message(core->GetEntityId("sail"), "li", MSG_SAIL_DEL_GROUP, GetId());
 
     // remove flag group
-    core.Send_Message(core.GetEntityId("flag"), "li", MSG_FLAG_DEL_GROUP, model_id);
+    core->Send_Message(core->GetEntityId("flag"), "li", MSG_FLAG_DEL_GROUP, model_id);
 
     // announce deleting
-    core.Send_Message(ship_id, "lp", MSG_MAST_DELGEOMETRY, m_pMastNode);
+    core->Send_Message(ship_id, "lp", MSG_MAST_DELGEOMETRY, m_pMastNode);
 
     // delete model
-    core.EraseEntity(model_id);
+    core->EraseEntity(model_id);
     m_pMastNode = nullptr;
 }
 
@@ -654,10 +654,10 @@ bool HULL::Init()
 
 void HULL::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 }
 
@@ -677,7 +677,7 @@ void HULL::Execute(uint32_t Delta_Time)
     if (bUse) {
         // an ini file has to be read here, but there is none
     } else {
-        core.EraseEntity(GetId());
+        core->EraseEntity(GetId());
     }
 }
 
@@ -689,7 +689,7 @@ void HULL::Realize(uint32_t Delta_Time)
     }
 
     MODEL* mdl;
-    if ((mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id))) != nullptr) {
+    if ((mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id))) != nullptr) {
         RenderService->SetRenderState(D3DRS_LIGHTING, true);
         mdl->ProcessStage(Stage::realize, Delta_Time);
         RenderService->SetRenderState(D3DRS_LIGHTING, false);
@@ -715,16 +715,16 @@ void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
     m_pHullNode = hullNodePointer;
     if (hullNodePointer == nullptr) return;
 
-    auto* oldmdl = static_cast<MODEL*>(core.GetEntityPointer(modelEI));
+    auto* oldmdl = static_cast<MODEL*>(core->GetEntityPointer(modelEI));
     if (oldmdl == nullptr) return;  // do not bring down anything if there is no old model
     oldmodel_id = modelEI;
     ship_id     = shipEI;
 
-    auto const ropeEI = core.GetEntityId("rope");
+    auto const ropeEI = core->GetEntityId("rope");
 
     // find attributes
     VAI_OBJBASE* pVAI = nullptr;
-    pVAI              = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(shipEI));
+    pVAI              = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(shipEI));
     ATTRIBUTES* pA    = nullptr;
     if (pVAI != nullptr) pA = pVAI->GetACharacter();
 
@@ -739,7 +739,7 @@ void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
         // create new model
         bModel   = true;
         model_id = hullNodePointer->Unlink2Model();
-        auto mdl = static_cast<MODEL*>(core.GetEntityPointer(model_id));
+        auto mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id));
 
         if (mdl != nullptr)
             for (i = 0; i < 10000; i++) {
@@ -751,10 +751,10 @@ void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
                     GEOS::LABEL gl;
                     nod->geo->GetLabel(j, gl);
                     if (!strncmp(gl.name, "rope", 4)) {
-                        if (ropeEI) core.Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[5]));
+                        if (ropeEI) core->Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[5]));
                     }
                     if (!strncmp(gl.name, "fal", 3)) {
-                        if (ropeEI) core.Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[4]) + 1000);
+                        if (ropeEI) core->Send_Message(ropeEI, "lil", MSG_ROPE_DELETE, modelEI, atoi(&gl.name[4]) + 1000);
                     }
                 }
             }
@@ -770,6 +770,6 @@ void HULL::AllRelease()
     }
 
     // delete model
-    core.EraseEntity(model_id);
+    core->EraseEntity(model_id);
     m_pHullNode = nullptr;
 }

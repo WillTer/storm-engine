@@ -170,4 +170,4 @@ private:
     float fTimeScale;
 };
 
-inline CoreImpl core_internal;
+extern std::shared_ptr<CoreImpl> core_internal;

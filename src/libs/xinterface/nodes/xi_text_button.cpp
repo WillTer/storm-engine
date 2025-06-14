@@ -299,7 +299,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     // get string parameters
     if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
-        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core.Trace("can not load font:'%s'", param);
+        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
     m_idString = -1;
@@ -575,7 +575,7 @@ void CXI_TEXTBUTTON::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -598,7 +598,7 @@ uint32_t CXI_TEXTBUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
                 if ((m_sString = new char[len]) == nullptr) { throw std::runtime_error("allocate memory error"); }
                 memcpy(m_sString, param.c_str() + 1, len);
             }
-        } else if (core.GetTargetEngineVersion() <= storm::ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN) {
+        } else if (core->GetTargetEngineVersion() <= storm::ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN) {
             auto const len = param.size();
             if ((m_sString = new char[len + 1]) == nullptr) { throw std::runtime_error("allocate memory error"); }
             memcpy(m_sString, param.c_str(), len + 1);

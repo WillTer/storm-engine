@@ -291,7 +291,7 @@ void Window::Draw(float dltTime)
         isSuccessful -= dltTime;
         if (cursx >= x - 200.0f && cursx <= x + 200.0f) {
             if (cursy >= y - 50.0f && cursy <= y + 50.0f) {
-                if (core.Controls->GetAsyncKeyState(VK_LBUTTON) < 0) isSuccessful = 0.0f;
+                if (core->Controls->GetAsyncKeyState(VK_LBUTTON) < 0) isSuccessful = 0.0f;
             }
         }
     }
@@ -303,41 +303,41 @@ void Window::Draw(float dltTime)
         isFailed -= dltTime;
         if (cursx >= x - 200.0f && cursx <= x + 200.0f) {
             if (cursy >= y - 50.0f && cursy <= y + 50.0f) {
-                if (core.Controls->GetAsyncKeyState(VK_LBUTTON) < 0) isFailed = 0.0f;
+                if (core->Controls->GetAsyncKeyState(VK_LBUTTON) < 0) isFailed = 0.0f;
             }
         }
     }
     // Drawing the interface
     if (!isVisible) return;
-    if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) {
-        if (core.Controls->GetAsyncKeyState(VK_SUBTRACT) < 0) {
+    if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) {
+        if (core->Controls->GetAsyncKeyState(VK_SUBTRACT) < 0) {
             x = sw * 0.5f;
             y = sh * 0.5f;
             DrawLRect(x - 230.0f, y - 50.0f, x + 230.0f, y + 50.0f, bkgColor, frmColor);
             Print(textColor, x - 200.0f, x + 200.0f, y - fontHeight * 0.5f, 1.0f, true, ver);
-        } else if (core.Controls->GetAsyncKeyState(VK_ADD) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_ADD) < 0) {
             selected = 0;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD1) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD1) < 0) {
             selected = 1;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD2) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD2) < 0) {
             selected = 2;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD3) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD3) < 0) {
             selected = 3;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD4) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD4) < 0) {
             selected = 4;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD5) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD5) < 0) {
             selected = 5;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD6) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD6) < 0) {
             selected = 6;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD7) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD7) < 0) {
             selected = 7;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD8) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD8) < 0) {
             selected = 8;
-        } else if (core.Controls->GetAsyncKeyState(VK_NUMPAD9) < 0) {
+        } else if (core->Controls->GetAsyncKeyState(VK_NUMPAD9) < 0) {
             selected = 9;
         }
     }
-    isMouseDown = !isLockCtrl && isSuccessful <= 0.0f && isFailed <= 0.0f && (core.Controls->GetAsyncKeyState(VK_LBUTTON) < 0);
+    isMouseDown = !isLockCtrl && isSuccessful <= 0.0f && isFailed <= 0.0f && (core->Controls->GetAsyncKeyState(VK_LBUTTON) < 0);
     if (!isMouseDown) slidID = -1;
     if (!isActiveMouseState) {
         if (!isOldMouseState) {
@@ -349,11 +349,11 @@ void Window::Draw(float dltTime)
         isActiveMouseState = false;
     // Update cursor position
     CONTROL_STATE cs;
-    core.Controls->GetControlState("Turn H", cs);
+    core->Controls->GetControlState("Turn H", cs);
     cursx += cs.lValue * 3.0f;
     if (cursx < 0.0f) cursx = 0.0f;
     if (cursx > sw - 5.0f) cursx = sw - 5.0f;
-    core.Controls->GetControlState("Turn V", cs);
+    core->Controls->GetControlState("Turn V", cs);
     cursy += cs.lValue * 3.0f;
     if (cursy < 0.0f) cursy = 0.0f;
     if (cursy > sh - 5.0f) cursy = sh - 5.0f;
@@ -530,7 +530,7 @@ void Window::Draw(float dltTime)
             c |= 0xff000000;
             cl = 0xff000000;
             if (isMouseDown) {
-                if (core.Controls->GetAsyncKeyState(VK_SHIFT) < 0)
+                if (core->Controls->GetAsyncKeyState(VK_SHIFT) < 0)
                     listPos -= 3.0f;
                 else
                     listPos -= 1.0f;
@@ -546,7 +546,7 @@ void Window::Draw(float dltTime)
             c |= 0xff000000;
             cl = 0xff000000;
             if (isMouseDown) {
-                if (core.Controls->GetAsyncKeyState(VK_SHIFT) < 0)
+                if (core->Controls->GetAsyncKeyState(VK_SHIFT) < 0)
                     listPos += 3.0f;
                 else
                     listPos += 1.0f;
@@ -592,7 +592,7 @@ void Window::Reset(bool isActive)
 {
     isList    = false;
     isVisible = isActive;
-    core.Send_Message(core.GetEntityId("location"), "ll", MSG_LOCATION_PAUSE, static_cast<int32_t>(isActive));
+    core->Send_Message(core->GetEntityId("location"), "ll", MSG_LOCATION_PAUSE, static_cast<int32_t>(isActive));
     slidID             = -1;
     isPikerActive      = false;
     isActiveMouseState = false;

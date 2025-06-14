@@ -51,24 +51,24 @@ Fader::~Fader()
 bool Fader::Init()
 {
     // check that it's the only one
-    auto&& entities = core.GetEntityIds("Fader");
+    auto&& entities = core->GetEntityIds("Fader");
     for (auto eid: entities) {
         if (eid == GetId()) continue;
 
-        if (fadeIn == static_cast<Fader*>(core.GetEntityPointer(eid))->fadeIn) {
-            core.Trace("Fader::Init() -> Fader already created, %s", fadeIn ? "fade in phase" : "fade out phase");
+        if (fadeIn == static_cast<Fader*>(core->GetEntityPointer(eid))->fadeIn) {
+            core->Trace("Fader::Init() -> Fader already created, %s", fadeIn ? "fade in phase" : "fade out phase");
         }
         //!!!
         // return false;
     }
     // Layers
-    core.SetLayerType(FADER_REALIZE, layer_type_t::realize);
-    core.AddToLayer(FADER_REALIZE, GetId(), -256);
-    core.SetLayerType(FADER_EXECUTE, layer_type_t::execute);
-    core.AddToLayer(FADER_EXECUTE, GetId(), -256);
+    core->SetLayerType(FADER_REALIZE, layer_type_t::realize);
+    core->AddToLayer(FADER_REALIZE, GetId(), -256);
+    core->SetLayerType(FADER_EXECUTE, layer_type_t::execute);
+    core->AddToLayer(FADER_EXECUTE, GetId(), -256);
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     D3DVIEWPORT9 vp;
     rs->GetViewport(&vp);
@@ -222,30 +222,30 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
 // Work
 void Fader::Execute(uint32_t delta_time)
 {
-    // core.Trace("fader frame");
+    // core->Trace("fader frame");
     if (deleteMe) {
         deleteMe++;
-        if (deleteMe >= 3) core.EraseEntity(GetId());
+        if (deleteMe >= 3) core->EraseEntity(GetId());
     }
     if (eventStart) {
         eventStart = false;
         if (!fadeIn) {
-            core.PostEvent("FaderEvent_StartFade", 0, "li", fadeIn, GetId());
-            // core.Trace("FaderEvent_StartFade");
+            core->PostEvent("FaderEvent_StartFade", 0, "li", fadeIn, GetId());
+            // core->Trace("FaderEvent_StartFade");
         } else {
-            core.PostEvent("FaderEvent_StartFadeIn", 0, "li", fadeIn, GetId());
-            //    core.Trace("FaderEvent_StartFadeIn");
+            core->PostEvent("FaderEvent_StartFadeIn", 0, "li", fadeIn, GetId());
+            //    core->Trace("FaderEvent_StartFadeIn");
         }
     }
     if (eventEnd) {
         eventEnd = false;
         deleteMe = isAutodelete;
         if (!fadeIn) {
-            core.PostEvent("FaderEvent_EndFade", 0, "li", fadeIn, GetId());
-            // core.Trace("FaderEvent_EndFade");
+            core->PostEvent("FaderEvent_EndFade", 0, "li", fadeIn, GetId());
+            // core->Trace("FaderEvent_EndFade");
         } else {
-            core.PostEvent("FaderEvent_EndFadeIn", 0, "li", fadeIn, GetId());
-            //    core.Trace("FaderEvent_EndFadeIn");
+            core->PostEvent("FaderEvent_EndFadeIn", 0, "li", fadeIn, GetId());
+            //    core->Trace("FaderEvent_EndFadeIn");
         }
     }
 }
@@ -259,7 +259,7 @@ void Fader::Realize(uint32_t delta_time)
     if (!endFade) {
         if (haveFrame) {
             if (isStart) {
-                if (!rs->GetRenderTargetAsTexture(&tex)) { core.Trace("Fader: GetRenderTargetAsTexture failed"); }
+                if (!rs->GetRenderTargetAsTexture(&tex)) { core->Trace("Fader: GetRenderTargetAsTexture failed"); }
             } else {
                 rs->SetTexture(0, tex);
                 rs->DrawPrimitiveUP(

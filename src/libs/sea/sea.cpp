@@ -183,7 +183,7 @@ void SEA::CreateVertexDeclaration()
 
 bool SEA::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     CreateVertexDeclaration();
 
     auto const sea_info = storm::main_config::sea_info();
@@ -223,7 +223,7 @@ bool SEA::Init()
         sprintf_s(str, "%s/sea%.4d.tga", fio->base_directory_path(BaseDirectory::Sea).string().c_str(), i);
         fio->read_file_to_mem(str, pFBuffer);
         if (pFBuffer.empty()) {
-            core.Trace("Sea: Can't load %s", str);
+            core->Trace("Sea: Can't load %s", str);
             return false;
         }
 
@@ -906,7 +906,7 @@ void SEA::PrepareIndicesForBlock(uint32_t dwBlockIndex)
         bool const bTestedUp   = pB->iY1 == pB2->iY2;
         bool const bTestedDown = pB->iY2 == pB2->iY1;
 
-        // if (!(core.Controls->GetAsyncKeyState('5')<0))
+        // if (!(core->Controls->GetAsyncKeyState('5')<0))
         if (bTestedUp || bTestedDown) {
             int32_t const iAddSrc = pB2->iIStart + ((bTestedUp) ? (pB2->iSize0 + 1) * pB2->iSize0 : 0);
             int32_t const iAddDst = pB->iIStart + ((bTestedUp) ? 0 : (pB->iSize0 + 1) * pB->iSize0);
@@ -935,7 +935,7 @@ void SEA::PrepareIndicesForBlock(uint32_t dwBlockIndex)
         // Test Left & Right
         bool const bTestedLeft  = pB->iX1 == pB2->iX2;
         bool const bTestedRight = pB->iX2 == pB2->iX1;
-        // if ((core.Controls->GetAsyncKeyState('6')<0))
+        // if ((core->Controls->GetAsyncKeyState('6')<0))
         if (bTestedLeft || bTestedRight) {
             int32_t const iAddSrc = pB2->iIStart + ((bTestedLeft) ? (pB2->iSize0) : 0);
             int32_t const iAddDst = pB->iIStart + ((bTestedLeft) ? 0 : (pB->iSize0));
@@ -1149,7 +1149,7 @@ void SEA::Realize(uint32_t dwDeltaTime)
 {
     static float fTmp = 0.0f;
 
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState('S') < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core->Controls->GetDebugAsyncKeyState('S') < 0) {
         if (bTempFullMode) {
             bTempFullMode = false;
             fGridStep     = fTempGridStep;
@@ -1278,7 +1278,7 @@ void SEA::Realize(uint32_t dwDeltaTime)
     CalculateHeightMap(fFrame2, 1.0f / 255.0f, pSeaFrame2, aBumps);
     CalculateNormalMap(fFrame2, 1.0f / 255.0f, pSeaNormalsFrame2, aNormals);
     RDTSC_E(dwX);
-    // core.Trace("dwX = %d", dwX);
+    // core->Trace("dwX = %d", dwX);
 
     aBlocks.clear();
     BuildTree(0, 0, 0);
@@ -1611,7 +1611,7 @@ float SEA::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& 
     if (fRes <= 1.0f) {
         const CVECTOR vTemp = vSrc + fRes * (vDst - vSrc);
         float const   fTmpY = WaveXZ(vTemp.x, vTemp.z, nullptr);
-        core.Event(BALL_WATER_HIT, "lfff", iBallOwner, vTemp.x, fTmpY, vTemp.z);
+        core->Event(BALL_WATER_HIT, "lfff", iBallOwner, vTemp.x, fTmpY, vTemp.z);
     }
 
     return fRes;

@@ -24,9 +24,9 @@ public:
     {
         Assert(pACharacter);
         // get entity id from loaded ships
-        auto&& entities = core.GetEntityIds("ship");
+        auto&& entities = core->GetEntityIds("ship");
         for (auto ship: entities) {
-            auto* pObj = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+            auto* pObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
             if (pObj->GetACharacter() == pACharacter) {
                 SetEID(pObj->GetModelEID());
                 SetAIObj(pObj);
@@ -38,7 +38,7 @@ public:
 
     MODEL* GetModelPointer() const
     {
-        return static_cast<MODEL*>(core.GetEntityPointer(eidObject));
+        return static_cast<MODEL*>(core->GetEntityPointer(eidObject));
     }
 
     void SetAIObj(VAI_OBJBASE* _pAIObj)

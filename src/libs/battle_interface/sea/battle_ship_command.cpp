@@ -56,7 +56,7 @@ void BIShipCommandList::FillIcons()
     };
 
     int32_t i = 0;
-    if (auto* data = core.Event(BI_EVENT_GET_CMD_LIST_ORDER_PRIORITY, "l", i)) {
+    if (auto* data = core->Event(BI_EVENT_GET_CMD_LIST_ORDER_PRIORITY, "l", i)) {
         // dynamic event-based filling
         int32_t    cmd {};
         auto const check = [&cmd](int32_t const current_cmd) { return cmd == current_cmd; };
@@ -66,7 +66,7 @@ void BIShipCommandList::FillIcons()
 
             if (m_nCurrentCommandMode & cmd) { fill(check); }
 
-            data = core.Event(BI_EVENT_GET_CMD_LIST_ORDER_PRIORITY, "l", ++i);
+            data = core->Event(BI_EVENT_GET_CMD_LIST_ORDER_PRIORITY, "l", ++i);
         }
     } else {
         // no-event fallback
@@ -155,7 +155,7 @@ int32_t BIShipCommandList::ShipAdding(bool allLabel, bool bMyShip, bool bEnemy, 
                 }
                 // check for validity of the ship from the script
                 if (!m_sCurrentCommandName.empty()) {
-                    auto* pvdat = core.Event("evntCheckEnableShip", "sl", m_sCurrentCommandName.c_str(), sd->characterIndex);
+                    auto* pvdat = core->Event("evntCheckEnableShip", "sl", m_sCurrentCommandName.c_str(), sd->characterIndex);
                     if (pvdat != nullptr && pvdat->GetInt() == 0) continue;
                 }
                 n = AddToIconList(
@@ -209,7 +209,7 @@ int32_t BIShipCommandList::FortAdding(bool allLabel, bool bFriend, bool bNeutral
             || bEnemy && pL->relation == BI_RELATION_ENEMY) {
             if (!allLabel)
                 if (SQR(pL->x - selX) + SQR(pL->z - selZ) > sqrRadius) continue;
-            auto* pvdat = core.Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
+            auto* pvdat = core->Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
             if (pvdat != nullptr && pvdat->GetInt() == 0) continue;
             char const* pLocName = nullptr;
             if (pL->pA != nullptr) pLocName = pL->pA->GetAttribute("name");
@@ -251,7 +251,7 @@ int32_t BIShipCommandList::LandAdding(bool allLabel)
     do {
         if (!allLabel)
             if (SQR(pL->x - selX) + SQR(pL->z - selZ) > sqrRadius) continue;
-        auto* pvdat = core.Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
+        auto* pvdat = core->Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
         if (pvdat != nullptr && pvdat->GetInt() == 0) continue;
         char const* pLocName = nullptr;
         if (pL->pA != nullptr) pLocName = pL->pA->GetAttribute("name");
@@ -262,7 +262,7 @@ int32_t BIShipCommandList::LandAdding(bool allLabel)
 
 int32_t BIShipCommandList::CommandAdding()
 {
-    core.Event("BI_SetPossibleCommands", "l", m_nCurrentCommandCharacterIndex);
+    core->Event("BI_SetPossibleCommands", "l", m_nCurrentCommandCharacterIndex);
     int32_t retVal = 0;
     auto*   pAttr  = m_pARoot->GetAttributeClass("Commands");
     if (!pAttr) return 0;
@@ -287,7 +287,7 @@ int32_t BIShipCommandList::CommandAdding()
 int32_t BIShipCommandList::ChargeAdding()
 {
     // Determine the amount of each charge on board
-    auto* tmpDat = core.Event("BI_GetChargeQuantity", "l", m_nCurrentCommandCharacterIndex);
+    auto* tmpDat = core->Event("BI_GetChargeQuantity", "l", m_nCurrentCommandCharacterIndex);
     if (tmpDat == nullptr) return 0;
     int32_t lIdx = 0;  // number of charge types
     tmpDat->Get(lIdx, 0);
@@ -333,7 +333,7 @@ int32_t BIShipCommandList::UserIconsAdding()
 
 int32_t BIShipCommandList::AbilityAdding()
 {
-    core.Event("evntSetUsingAbility", "l", m_nCurrentCommandCharacterIndex);
+    core->Event("evntSetUsingAbility", "l", m_nCurrentCommandCharacterIndex);
     int32_t retVal = 0;
     auto*   pAttr  = m_pARoot->GetAttributeClass("AbilityIcons");
     if (!pAttr) return 0;
@@ -404,7 +404,7 @@ int32_t BIShipCommandList::TownAdding(bool allLabel, bool bDiseased, bool bNotDi
         if (!pL->bDiseased && !bNotDiseased) continue;
         if (!allLabel)
             if (SQR(pL->x - selX) + SQR(pL->z - selZ) > sqrRadius) continue;
-        auto* pvdat = core.Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
+        auto* pvdat = core->Event("evntCheckEnableLocator", "sa", m_sCurrentCommandName.c_str(), pL->pA);
         if (pvdat != nullptr && pvdat->GetInt() == 0) continue;
         char const* pLocName = nullptr;
         if (pL->pA != nullptr) pLocName = pL->pA->GetAttribute("name");
@@ -415,7 +415,7 @@ int32_t BIShipCommandList::TownAdding(bool allLabel, bool bDiseased, bool bNotDi
 
 void BIShipCommandList::AddFlagPictureToIcon(int32_t nCharIdx)
 {
-    auto* pvdat = core.Event("evntGetSmallFlagData", "l", nCharIdx);
+    auto* pvdat = core->Event("evntGetSmallFlagData", "l", nCharIdx);
     if (!pvdat) return;
     int32_t nTex, nPic, nBackPic;
     pvdat->Get(nTex, 0);

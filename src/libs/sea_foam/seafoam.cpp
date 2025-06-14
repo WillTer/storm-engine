@@ -33,27 +33,27 @@ SEAFOAM::~SEAFOAM()
 //--------------------------------------------------------------------
 bool SEAFOAM::Init()
 {
-    /*if (core.IsNetActive())
+    /*if (core->IsNetActive())
     {
       NetFindClass(false, &seaID, "NetSea");
-      sea = (SEA_BASE*) core.GetEntityPointer(seaID);
+      sea = (SEA_BASE*) core->GetEntityPointer(seaID);
     }
     else*/
     {
-        seaID = core.GetEntityId("sea");
-        sea   = static_cast<SEA_BASE*>(core.GetEntityPointer(seaID));
+        seaID = core->GetEntityId("sea");
+        sea   = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
     }
 
-    renderer     = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    renderer     = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
 
     // FIXME: hardcode
     psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
 
     InitializeShipFoam();
 
-    // core.CreateEntity(&arrowModel,"MODELR");
-    // core.Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
+    // core->CreateEntity(&arrowModel,"MODELR");
+    // core->Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
 
     carcassTexture = renderer->TextureCreate("seafoam_2.tga");
     return true;
@@ -63,7 +63,7 @@ bool SEAFOAM::Init()
 //--------------------------------------------------------------------
 void SEAFOAM::InitializeShipFoam()
 {
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("ship");
     for (auto ent: entities) {
         AddShip(ent);
     }
@@ -73,7 +73,7 @@ void SEAFOAM::AddShip(entid_t pShipEID)
 {
     auto* foamInfo = &shipFoamInfo[shipsCount++];
 
-    foamInfo->ship      = static_cast<SHIP_BASE*>(core.GetEntityPointer(pShipEID));
+    foamInfo->ship      = static_cast<SHIP_BASE*>(core->GetEntityPointer(pShipEID));
     foamInfo->shipModel = foamInfo->ship->GetModel();
     foamInfo->shipModel->GetNode(0)->geo->GetInfo(foamInfo->hullInfo);
     foamInfo->enabled         = true;
@@ -325,7 +325,7 @@ void SEAFOAM::InterpolateRightParticle(tShipFoamInfo& _shipFoamInfo, int z, uint
 //--------------------------------------------------------------------
 void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _dTime)
 {
-    // MODEL *arrow = (MODEL*)core.GetEntityPointer(arrowModel);
+    // MODEL *arrow = (MODEL*)core->GetEntityPointer(arrowModel);
 
     for (auto z = 0; z < TRACE_STEPS_Z; ++z) {
         /*
@@ -398,7 +398,7 @@ void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _
     }
 
     RDTSC_E(ticks)
-    // core.Trace("Seafoam realize(carcass->Execute) = %d", ticks);
+    // core->Trace("Seafoam realize(carcass->Execute) = %d", ticks);
 }
 
 void SEAFOAM::RealizeShipFoam_Mesh(tShipFoamInfo& _shipFoamInfo, uint32_t _dTime)
@@ -474,7 +474,7 @@ void SEAFOAM::Realize(uint32_t _dTime)
             ;
 
     RDTSC_E(ticks)
-    // core.Trace("Seafoam realize = %d", ticks);
+    // core->Trace("Seafoam realize = %d", ticks);
     // UNGUARD
 }
 
@@ -519,11 +519,11 @@ uint32_t SEAFOAM::AttributeChanged(ATTRIBUTES* pA)
     {
       entid_t shipID;
       uint32_t dwShipNetID = pA->GetAttributeAsDword();
-      if (core.IsNetActive())
+      if (core->IsNetActive())
       {
         if (NetFindClass(false, &shipID, "NetShip")) do
         {
-          Entity * pE = core.GetEntityPointer(shipID);
+          Entity * pE = core->GetEntityPointer(shipID);
           if (pE->GetNetID() == dwShipNetID)
           {
             AddShip(&shipID);

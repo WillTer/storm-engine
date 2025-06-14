@@ -146,7 +146,7 @@ void CXI_PICTURE::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -271,7 +271,7 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
         int32_t pTex = -1;
         if (message.GetCurrentFormatType() == 'p') {
             // DEPRECATED
-            core.Trace("Warning! Setting an interface picture by pointer is deprecated. Please use integers instead.");
+            core->Trace("Warning! Setting an interface picture by pointer is deprecated. Please use integers instead.");
             pTex = message.Pointer();
         } else {
             pTex = message.Long();
@@ -284,7 +284,7 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
         std::string const& srcNodeName = message.String();
         auto*              pNod        = static_cast<CINODE*>(ptrOwner->FindNode(srcNodeName.c_str(), nullptr));
         if (pNod->m_nNodeType != NODETYPE_PICTURE) {
-            core.Trace("Warning! XINTERFACE:: node with name %s have not picture type.", srcNodeName.c_str());
+            core->Trace("Warning! XINTERFACE:: node with name %s have not picture type.", srcNodeName.c_str());
         } else {
             ReleasePicture();
             auto* pOtherPic = static_cast<CXI_PICTURE*>(pNod);

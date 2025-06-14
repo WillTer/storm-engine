@@ -52,7 +52,7 @@ bool FLAG::Init()
 void FLAG::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
     globalWind.ang.x = 0.f;
     globalWind.ang.y = 0.f;
@@ -91,8 +91,8 @@ void FLAG::Execute(uint32_t Delta_Time)
         }
 
         // get the wind value
-        if (auto const ei = core.GetEntityId("weather")) {
-            auto* wb         = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ei));
+        if (auto const ei = core->GetEntityId("weather")) {
+            auto* wb         = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ei));
             globalWind.ang.x = wb->GetFloat(whf_wind_angle);
             globalWind.ang.z = cosf(globalWind.ang.x);
             globalWind.ang.x = sinf(globalWind.ang.x);
@@ -141,9 +141,9 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
         auto const eidModel = message.EntityID();
         auto const nNation  = message.Long();
 
-        MODEL* host_mdl = static_cast<MODEL*>(core.GetEntityPointer(eidModel));
+        MODEL* host_mdl = static_cast<MODEL*>(core->GetEntityPointer(eidModel));
         if (host_mdl == nullptr) {
-            core.Trace("Missing INIT message to FLAG: bad MODEL");
+            core->Trace("Missing INIT message to FLAG: bad MODEL");
             return 0;
         }
 
@@ -166,7 +166,7 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
             entid_t eidShip                  = message.EntityID();
             gdata[groupQuantity - 1].ship_id = eidShip;
             gdata[groupQuantity - 1].char_attributes =
-                ((VAI_OBJBASE*)core.GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
+                ((VAI_OBJBASE*)core->GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
         }
 
         NODE*       nod;
@@ -202,8 +202,8 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
         int32_t nNation  = message.Long();
 
         MODEL* host_mdl;
-        host_mdl = (MODEL*)core.GetEntityPointer(eidModel);
-        if (host_mdl == nullptr) { core.Trace("Missing INIT message to FLAG: bad MODEL"); }
+        host_mdl = (MODEL*)core->GetEntityPointer(eidModel);
+        if (host_mdl == nullptr) { core->Trace("Missing INIT message to FLAG: bad MODEL"); }
 
         if (groupQuantity == 0) {
             gdata = new GROUPDATA[1];
@@ -511,7 +511,7 @@ void FLAG::LoadIni()
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "flagall.tga");
     UpdateTexture(param);
 
-    if (core.GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS) {
+    if (core->GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS) {
         FlagTextureQuantity    = static_cast<int>(ini->GetInt(section, "TextureCount", 10));
         FlagTextureQuantityRow = 1;
     } else {
@@ -737,7 +737,7 @@ void FLAG::SetAdd(int flagNum)
             // set texture number
             if (flist[fn]->isShip)  // ship
             {
-                pvdat = core.Event(
+                pvdat = core->Event(
                     "GetRiggingData",
                     "sllla",
                     "GetShipFlagTexNum",
@@ -746,7 +746,7 @@ void FLAG::SetAdd(int flagNum)
                     flist[fn]->isSpecialFlag,
                     gdata[flist[fn]->HostGroup].char_attributes);
             } else {
-                pvdat = core.Event(
+                pvdat = core->Event(
                     "GetRiggingData",
                     "slll",
                     "GetTownFlagTexNum",

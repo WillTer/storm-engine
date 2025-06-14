@@ -52,7 +52,7 @@ void BIShipIcon::Draw()
 
         UpdateCommandList();
         if (m_pCommandList) m_pCommandList->SetUpDown(m_nCurrentShipIndex > 0, m_nCurrentShipIndex < m_nShipQuantity - 1);
-        if (!IsActive()) core.Event("evntBISelectShip", "ll", -1, true);
+        if (!IsActive()) core->Event("evntBISelectShip", "ll", -1, true);
     }
 
     FillVertexBuffer();
@@ -333,22 +333,22 @@ void BIShipIcon::MakeControl()
 {
     CONTROL_STATE cs;
 
-    core.Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_confirm);
 
-    core.Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_left);
 
-    core.Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_right);
 
-    core.Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_up);
 
-    core.Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_down);
 
-    core.Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(Command_cancel);
 }
 
@@ -397,7 +397,7 @@ void BIShipIcon::ExecuteCommand(CommandType command)
             UpdateCommandList();
         break;
 
-    default: core.Trace("Warning! Unknown executing command: %d", command);
+    default: core->Trace("Warning! Unknown executing command: %d", command);
     }
 }
 
@@ -687,7 +687,7 @@ void BIShipIcon::UpdateCommandList()
     if (m_pCommandList)
         m_pCommandList->Update(GetCurrentCommandTopLine(), GetCurrentCommandCharacterIndex(), GetCurrentCommandMode());
     else
-        core.Event("evntBISelectShip", "ll", -1, true);
+        core->Event("evntBISelectShip", "ll", -1, true);
 }
 
 int32_t BIShipIcon::GetCurrentCommandTopLine()
@@ -747,7 +747,7 @@ float BIShipIcon::GetProgressShipClass(int32_t nShipNum)
 void BIShipIcon::GetShipUVFromPictureIndex(int32_t nPicIndex, FRECT& rUV)
 {
     // TODO: Make picture count configurable
-    float const pictureCount  = core.GetTargetEngineVersion() >= storm::ENGINE_VERSION::TO_EACH_HIS_OWN ? 16.f : 8.f;
+    float const pictureCount  = core->GetTargetEngineVersion() >= storm::ENGINE_VERSION::TO_EACH_HIS_OWN ? 16.f : 8.f;
     float const pictureWidth  = m_dwShipNCols ? 1.0f / m_dwShipNCols : 1.0f / pictureCount;
     float const pictureHeight = m_dwShipNRows ? 1.0f / m_dwShipNRows : 1.0f / pictureCount;
 
@@ -762,7 +762,7 @@ void BIShipIcon::GetShipUVFromPictureIndex(int32_t nPicIndex, FRECT& rUV)
 
 int32_t BIShipIcon::GetShipClass(int32_t nCharIdx)
 {
-    VDATA* pVDat = core.Event("evntGetCharacterShipClass", "l", nCharIdx);
+    VDATA* pVDat = core->Event("evntGetCharacterShipClass", "l", nCharIdx);
     if (!pVDat) return 1;
     return pVDat->GetInt();
 }

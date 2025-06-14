@@ -20,9 +20,9 @@ SINKEFFECT::~SINKEFFECT()
 //--------------------------------------------------------------------
 bool SINKEFFECT::Init()
 {
-    sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
 
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
 
     InitializeSinks();
 
@@ -42,17 +42,17 @@ uint64_t SINKEFFECT::ProcessMessage(MESSAGE& message)
     case MSG_SHIP_DELETE: {
         auto* const attrs = message.AttributePointer();
         if (attrs) {
-            auto&& entities = core.GetEntityIds("ship");
+            auto&& entities = core->GetEntityIds("ship");
             for (auto ent: entities) {
                 /*
-                shipBase = (SHIP_BASE *) core.GetEntityPointer(shipID);
+                shipBase = (SHIP_BASE *) core->GetEntityPointer(shipID);
                 if (shipBase->GetACharacter() == attrs)
                 {
                   TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
                   return outValue;
                 }*/
 
-                auto* shipBase = static_cast<SHIP_BASE*>(core.GetEntityPointer(ent));
+                auto* shipBase = static_cast<SHIP_BASE*>(core->GetEntityPointer(ent));
                 if (shipBase->GetACharacter() == attrs) {
                     TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
                     return outValue;
@@ -83,7 +83,7 @@ void SINKEFFECT::Execute(uint32_t _dTime)
 {
     // GUARD(SINKEFFECT::Execute)
     /*
-      if (core.Controls->GetAsyncKeyState('X'))
+      if (core->Controls->GetAsyncKeyState('X'))
       {
         if (renderer && sea)
         {

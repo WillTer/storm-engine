@@ -9,12 +9,12 @@ using namespace storm;
 toml::value ConfigLoader::open_config(std::filesystem::path const& path)
 {
     if (!fio->exists(path)) {
-        core.Trace("Config file \"%s\" not found", path.string().c_str());
+        core->Trace("Config file \"%s\" not found", path.string().c_str());
         return {};
     }
 
     if (path.extension().string() != ".toml") {
-        core.Trace("Config file \"%s\" was not loaded - extension is not supported", path.string().c_str());
+        core->Trace("Config file \"%s\" was not loaded - extension is not supported", path.string().c_str());
         return {};
     }
 

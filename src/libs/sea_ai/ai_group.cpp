@@ -42,7 +42,7 @@ void AIGroup::AddShip(entid_t eidShip, ATTRIBUTES* pACharacter, ATTRIBUTES* pASh
     CVECTOR vShipPos {};
 
     if (char const* event = GetCommanderACharacter()->GetAttribute("GroupShipPos_event")) {
-        auto const result = core.Event(
+        auto const result = core->Event(
             event, "lfffa", static_cast<uint32_t>(aGroupShips.size()), vInitGroupPos.x, vInitGroupPos.y, vInitGroupPos.z, pACharacter);
         result->Get(vShipPos.x, 0);
         result->Get(vShipPos.y, 1);
@@ -123,7 +123,7 @@ void AIGroup::Execute(float fDeltaTime)
       sCommand = "";
     }*/
 
-    if (!isDead() && dtCheckTask.Update(fDeltaTime)) core.Event(GROUP_CHECKTASKEVENT, "s", (char*)GetName().c_str());
+    if (!isDead() && dtCheckTask.Update(fDeltaTime)) core->Event(GROUP_CHECKTASKEVENT, "s", (char*)GetName().c_str());
 
     if (!isMainGroup()) {
         auto fMinimalSpeed = 1e+10f;
@@ -204,7 +204,7 @@ void AIGroup::SailMainGroup(CVECTOR vPos, float fAngle, ATTRIBUTES* pACharacter)
     Assert(pMG);
     AIGroup* pG1 = FindGroup(pACharacter);
 
-    auto const eidSea = core.GetEntityId("sea");
+    auto const eidSea = core->GetEntityId("sea");
 
     for (auto pAIShip: pMG->aGroupShips) {
         if (pAIShip->isDead()) continue;
@@ -223,7 +223,7 @@ void AIGroup::SailMainGroup(CVECTOR vPos, float fAngle, ATTRIBUTES* pACharacter)
 
         // clear foam
         // TODO: fix this. i and c are not correct
-        core.Send_Message(eidSea, "lic", MSG_SHIP_CREATE, pAIShip->GetShipEID(), pAIShip->GetShipBasePointer()->State.vPos);
+        core->Send_Message(eidSea, "lic", MSG_SHIP_CREATE, pAIShip->GetShipEID(), pAIShip->GetShipBasePointer()->State.vPos);
     }
 }
 
@@ -323,7 +323,7 @@ void AIGroup::ShipChangeGroup(ATTRIBUTES* pACharacter, char const* pGroupName)
 {
     AIGroup* pGOld = FindGroup(pACharacter);
     if (!pGOld) {
-        core.Trace(
+        core->Trace(
             "AIGroup::ShipChangeGroup: Can't find group with character id = %s", static_cast<char const*>(pACharacter->GetAttribute("id")));
         return;
     }

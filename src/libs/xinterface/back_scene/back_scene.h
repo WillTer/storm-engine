@@ -158,7 +158,7 @@ protected:
 
         ~AniModelDescr()
         {
-            core.EraseEntity(ei);
+            core->EraseEntity(ei);
             pModel = nullptr;
         }
     };

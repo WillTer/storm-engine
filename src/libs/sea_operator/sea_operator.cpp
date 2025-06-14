@@ -35,10 +35,10 @@ SEA_OPERATOR::~SEA_OPERATOR() {}
 
 bool SEA_OPERATOR::Init()
 {
-    core.AddToLayer(REALIZE, GetId(), 1);
-    core.AddToLayer(EXECUTE, GetId(), 0);
+    core->AddToLayer(REALIZE, GetId(), 1);
+    core->AddToLayer(EXECUTE, GetId(), 0);
 
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
 
     return true;
 }
@@ -62,7 +62,7 @@ uint64_t SEA_OPERATOR::ProcessMessage(MESSAGE& message)
         if (!IsTimeToActivate(false)) break;
 
         auto const firedShip = message.EntityID();
-        if (myShip != static_cast<SHIP_BASE*>(core.GetEntityPointer(firedShip))) break;
+        if (myShip != static_cast<SHIP_BASE*>(core->GetEntityPointer(firedShip))) break;
 
         std::string const& bortName = message.String();
         CVECTOR            direction, destination;
@@ -145,9 +145,9 @@ void SEA_OPERATOR::Execute(uint32_t _dTime)
 
 void SEA_OPERATOR::FirstInit()
 {
-    sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
 
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("ship");
     for (auto ent: entities) {
         SetIfMyShip(ent);
     }
@@ -179,7 +179,7 @@ void SEA_OPERATOR::StartNewAction()
     auto* currentAction = &actionBuffer.front();
     if (active && !currentAction) {
         active = false;
-        core.SetTimeScale(1.0f);
+        core->SetTimeScale(1.0f);
         sinceLastActionTime = 0;
         return;
     }
@@ -192,7 +192,7 @@ void SEA_OPERATOR::StartNewAction()
     currentAction = &actionBuffer.front();
     if (!currentAction) {
         if (active) {
-            core.SetTimeScale(1.0f);
+            core->SetTimeScale(1.0f);
             sinceLastActionTime = 0;
         }
         active = false;
@@ -201,12 +201,12 @@ void SEA_OPERATOR::StartNewAction()
 
     active                    = true;
     currentAction->timePassed = 0;
-    core.SetTimeScale(currentAction->timeK);
+    core->SetTimeScale(currentAction->timeK);
 }
 
 void SEA_OPERATOR::SetIfMyShip(entid_t _shipID)
 {
-    auto* ship = static_cast<SHIP_BASE*>(core.GetEntityPointer(_shipID));
+    auto* ship = static_cast<SHIP_BASE*>(core->GetEntityPointer(_shipID));
     if (!ship) return;
     auto* attr = ship->GetACharacter();
     if (attr->GetAttribute("MainCharacter")) myShip = ship;
@@ -247,7 +247,7 @@ void SEA_OPERATOR::HandleShipFire(entid_t _shipID, char const* _bortName, const 
     using std::chrono::system_clock;
 
     auto  bort = BORT_FRONT;
-    auto* ship = static_cast<SHIP_BASE*>(core.GetEntityPointer(_shipID));
+    auto* ship = static_cast<SHIP_BASE*>(core->GetEntityPointer(_shipID));
 
     if (!strcmp(_bortName, "cannonf"))
         bort = BORT_FRONT;
@@ -322,7 +322,7 @@ void SEA_OPERATOR::ShowFromBall(tAction* _action)
     cameraTargetPos.y += 0.1f * sinf(timeDistance * 1.3f);
     cameraTargetPos.z += 0.1f * sinf(timeDistance * 1.9f);
     lastCP = cameraPos;
-    core.SetTimeScale(0.3f);
+    core->SetTimeScale(0.3f);
 }
 
 void SEA_OPERATOR::ShowAroundPoint(tAction* _action)
@@ -337,7 +337,7 @@ void SEA_OPERATOR::ShowAroundPoint(tAction* _action)
     if (~(cameraPos - cameraTargetPos) < 40.0f)
         cameraPos = lastCP + (20.0f + static_cast<float>(_action->timePassed) / 1000.0f) * !(lastCP - finalBallPosition);
 
-    core.SetTimeScale(timeScale);
+    core->SetTimeScale(timeScale);
 }
 
 void SEA_OPERATOR::ShowBallAtMyShip(tAction* _action)
@@ -349,7 +349,7 @@ void SEA_OPERATOR::ShowBallAtMyShip(tAction* _action)
     auto const timeScale = MIN_TIME_DELTA + (1.0f - MIN_TIME_DELTA) * powf(timeK, 0.37f);
     if (cameraPos.y < minY) cameraPos.y = minY;
 
-    core.SetTimeScale(timeScale);
+    core->SetTimeScale(timeScale);
 }
 
 void SEA_OPERATOR::ShowMyShipFromPoint(tAction* _action)
@@ -365,7 +365,7 @@ bool SEA_OPERATOR::IsTimeToActivate(bool _testControls)
     if (active) return false;
 
     if (_testControls) {
-        uint32_t const lastControlTime = core.Controls->LastControlTime();
+        uint32_t const lastControlTime = core->Controls->LastControlTime();
         if (lastControlTime < idleTime) return false;
     }
 

@@ -48,12 +48,12 @@ bool Blots::Init()
 {
     // GUARD(Blots::Init())
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     // Layers
-    ////core.LayerCreate("realize", true, false);
-    // core.SetLayerType(realize, layer_type_t::realize);
-    // core.AddToLayer(realize, GetId(), 1000);
+    ////core->LayerCreate("realize", true, false);
+    // core->SetLayerType(realize, layer_type_t::realize);
+    // core->AddToLayer(realize, GetId(), 1000);
     textureID = rs->TextureCreate("blot.tga");
     return true;
     // UNGUARD
@@ -82,7 +82,7 @@ uint64_t Blots::ProcessMessage(MESSAGE& message)
 void Blots::Hit(MESSAGE& message)
 {
     // Model of a ship
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     // Position
     CVECTOR pos;
@@ -115,7 +115,7 @@ void Blots::Hit(MESSAGE& message)
 void Blots::AddBlot(int32_t i, int32_t rnd, const CVECTOR& lpos, const CVECTOR& dir, float time)
 {
     // Model of a ship
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     blot[i].isUsed = false;
     auto pos       = m->mtx * CVECTOR(lpos);
@@ -298,7 +298,7 @@ void Blots::Realize(uint32_t delta_time)
     if (updateBlot >= BLOTS_MAX) updateBlot = 0;
     SaveBlot(updateBlot);
     // Model of a ship
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(model));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     // Distance from camera
     CVECTOR pos, ang;

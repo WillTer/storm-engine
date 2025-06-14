@@ -17,7 +17,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
     float   fY, fRight, fLeft, fUp, fDown, fRes, fZMax, fZMin, fZStep, fZMinStep;
 
     auto bDefaultContour = false;
-    bool bRes            = core.GetEntityPointer(model_id);
+    bool bRes            = core->GetEntityPointer(model_id);
     Assert(bRes);
 
     CMatrix mTemp;
@@ -40,7 +40,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
         vP1.y       = 0.0f;
         vContour[0] = vP1;
     } else {
-        core.Trace("SHIP: Up trace error, ship %s", static_cast<char const*>(GetAShip()->GetAttribute("Name")));
+        core->Trace("SHIP: Up trace error, ship %s", static_cast<char const*>(GetAShip()->GetAttribute("Name")));
         bDefaultContour = true;
 #ifdef _WIN32  // Beep
         Beep(1000, 200);
@@ -55,7 +55,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
     if (fRes <= 1.0f)
         vP2 = vSrc + fRes * (vDst - vSrc);
     else {
-        core.Trace("SHIP: Down trace error, ship %s", static_cast<char const*>(GetAShip()->GetAttribute("Name")));
+        core->Trace("SHIP: Down trace error, ship %s", static_cast<char const*>(GetAShip()->GetAttribute("Name")));
         bDefaultContour = true;
 #ifdef _WIN32  // Beep
         Beep(1000, 200);
@@ -79,7 +79,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
 
             vSrc = CVECTOR(fLeft, fY, fZ);
             vDst = CVECTOR(0.0f, fY, fZ);
-            // core.SetEntityScanLayer("balls_trace");
+            // core->SetEntityScanLayer("balls_trace");
             fRes = pCollide->Trace(model_id, vSrc, vDst);
             Assert(fRes <= 1.0f);
             vP = vSrc + fRes * (vDst - vSrc);
@@ -198,9 +198,9 @@ bool SHIP::BuildMasts()
                 pM->fDamage = 1.0f;
                 pM->bBroken = true;
                 entid_t ent;
-                ent = core.CreateEntity("mast");
-                core.Send_Message(ent, "lpii", MSG_MAST_SETGEOMETRY, pNode, GetId(), GetModelEID());
-                core.EraseEntity(ent);
+                ent = core->CreateEntity("mast");
+                core->Send_Message(ent, "lpii", MSG_MAST_SETGEOMETRY, pNode, GetId(), GetModelEID());
+                core->EraseEntity(ent);
                 // iIdx--;
             } else
                 pAMasts->SetAttributeUseFloat(str, 0.0f);
@@ -260,9 +260,9 @@ bool SHIP::BuildHulls()
                 pM->fDamage = 1.0f;
                 pM->bBroken = true;
                 entid_t ent;
-                ent = core.CreateEntity("hull");
-                core.Send_Message(ent, "lpii", MSG_HULL_SETGEOMETRY, pNode, GetId(), GetModelEID());
-                core.EraseEntity(ent);
+                ent = core->CreateEntity("hull");
+                core->Send_Message(ent, "lpii", MSG_HULL_SETGEOMETRY, pNode, GetId(), GetModelEID());
+                core->EraseEntity(ent);
                 // iIdx--;
             } else
                 pAHulls->SetAttributeUseFloat(str, 0.0f);

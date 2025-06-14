@@ -174,10 +174,10 @@ void XINTERFACE::SetDevice()
     m_UtilContainer.Init();
 
     // get render service
-    pRenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!pRenderService) { throw std::runtime_error("No service: dx9render"); }
 
-    pStringService = static_cast<VSTRSERVICE*>(core.GetService("STRSERVICE"));
+    pStringService = static_cast<VSTRSERVICE*>(core->GetService("STRSERVICE"));
     if (!pStringService) { throw std::runtime_error("No service: strservice"); }
 
     // Load common parameters
@@ -190,7 +190,7 @@ void XINTERFACE::SetDevice()
 
     pQuestService = new storm::QuestFileReader;
     if (pQuestService == nullptr) { throw std::runtime_error("Not memory allocate"); }
-    auto* pvd = core.Event("GetQuestTextFileName", "");
+    auto* pvd = core->Event("GetQuestTextFileName", "");
     if (pvd != nullptr) {
         int const   nq = pvd->GetElementsNum();
         char const* pstr;
@@ -200,9 +200,9 @@ void XINTERFACE::SetDevice()
         }
     }
 
-    core.SetLayerType(INTERFACE_EXECUTE, layer_type_t::execute);
-    core.SetLayerType(INTERFACE_REALIZE, layer_type_t::realize);
-    // core.SystemMessages(GetId(),true);
+    core->SetLayerType(INTERFACE_EXECUTE, layer_type_t::execute);
+    core->SetLayerType(INTERFACE_REALIZE, layer_type_t::realize);
+    // core->SystemMessages(GetId(),true);
 
     if (AttributesPointer) {
         auto* pA = AttributesPointer->GetAttributeClass("GameTime");
@@ -213,7 +213,7 @@ void XINTERFACE::SetDevice()
         }
     }
 
-    m_pMouseWeel = core.Event("evGetMouseWeel");
+    m_pMouseWeel = core->Event("evGetMouseWeel");
 
     m_pEditor = new GIEditor(this);
 
@@ -234,7 +234,7 @@ void XINTERFACE::Execute(uint32_t)
 {
     m_UtilContainer.FrameUpdate();
 
-    auto Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core->GetRDeltaTime();
     if (!bActive) return;
     IncrementGameTime(Delta_Time);
     if (!m_bUse) return;
@@ -254,7 +254,7 @@ void XINTERFACE::Execute(uint32_t)
     }
 
     while (m_pEvents != nullptr) {
-        core.Event(m_pEvents->sEventName, "ls", m_pEvents->nCommandIndex, m_pEvents->sNodeName);
+        core->Event(m_pEvents->sEventName, "ls", m_pEvents->nCommandIndex, m_pEvents->sNodeName);
         if (m_pEvents != nullptr) {
             auto* const pE = m_pEvents;
             m_pEvents      = m_pEvents->next;
@@ -290,7 +290,7 @@ void XINTERFACE::Realize(uint32_t)
 
     pRenderService->MakePostProcess();
 
-    auto Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core->GetRDeltaTime();
 
     CMatrix moldv, moldp, moldw;
 
@@ -314,7 +314,7 @@ void XINTERFACE::Realize(uint32_t)
     auto* pOldNode = m_pCurNode;
     MouseMove();
     if (pOldNode != m_pCurNode) {
-        core.Event(ISOUND_EVENT, "l", 2);  // choosing a new node
+        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
     }
 
     // show dinamic pictures
@@ -358,7 +358,7 @@ void XINTERFACE::Realize(uint32_t)
 
     // Show dinamic stringes
     if (m_nStringQuantity > 0) {
-        auto* tmpAttr = core.Entity_GetAttributeClass(g_idInterface, "strings");
+        auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, "strings");
 
         if (tmpAttr != nullptr)
             for (auto i = 0; i < m_nStringQuantity; i++)
@@ -892,10 +892,10 @@ void XINTERFACE::LoadIni()
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
-    auto windowSize = core.GetWindow()->GetWindowSize();
+    auto windowSize = core->GetWindow()->GetWindowSize();
 
     fScale                = 1.0f;
-    auto const screenSize = core.GetScreenSize();
+    auto const screenSize = core->GetScreenSize();
     dwScreenHeight        = screenSize.height;
     dwScreenWidth         = windowSize.width * dwScreenHeight / windowSize.height;
     if (dwScreenWidth < screenSize.width) dwScreenWidth = screenSize.width;
@@ -924,12 +924,12 @@ void XINTERFACE::LoadIni()
         } while (!sectionFound && ini->GetSectionNameNext(platform, sizeof(platform) - 1));
     }
     if (!sectionFound) strcpy_s(platform, "PC_SCREEN");
-    core.Trace("Using %s parameters", platform);
+    core->Trace("Using %s parameters", platform);
     sprintf_s(section, "COMMON");
 
     // set screen parameters
     if (ini->GetInt(platform, "bDynamicScaling", 0) == 0) {
-        auto const& canvas_size = core.GetScreenSize();
+        auto const& canvas_size = core->GetScreenSize();
         fScale                  = ini->GetFloat(platform, "fScale", 1.f);
         if (fScale < MIN_SCALE || fScale > MAX_SCALE) fScale = 1.f;
         dwScreenWidth           = ini->GetInt(platform, "wScreenWidth", canvas_size.width);
@@ -971,7 +971,7 @@ void XINTERFACE::LoadIni()
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
     m_idTex = pRenderService->TextureCreate(param2);
-    core.GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
+    core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
     fYMousePos = static_cast<float>(dwScreenHeight / 2);
     for (int i = 0; i < 4; i++)
@@ -1015,8 +1015,8 @@ void XINTERFACE::LoadDialog(char const* sFileName)
     m_sDialogFileName = sFileName;
     auto ini          = fio->open_ini_file(sFileName);
     if (!ini) {
-        core.Trace("ini file %s not found!", sFileName);
-        core.PostEvent("exitCancel", 1, nullptr);
+        core->Trace("ini file %s not found!", sFileName);
+        core->PostEvent("exitCancel", 1, nullptr);
         return;
     }
     // FIXME: hardcode
@@ -1133,7 +1133,7 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
     if (sFileName && sFileName[0]) {
         ini = fio->open_ini_file(sFileName);
         if (!ini) {
-            core.Trace("ini file %s not found!", sFileName);
+            core->Trace("ini file %s not found!", sFileName);
             return;
         }
     }
@@ -1146,13 +1146,13 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
 void XINTERFACE::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char const* sNodeType, char const* sNodeName, int32_t priority)
 {
     if (!sNodeType || !sNodeType[0]) {
-        core.Trace("Warning! Interface: Can`t create node with null type.");
+        core->Trace("Warning! Interface: Can`t create node with null type.");
         return;
     }
     /*if( !pOwnerIni->TestSection( sNodeType ) &&
       !pUserIni->TestSection( sNodeType ) )
     {
-      core.Trace("Warning! Interface: Node type %s not present into describe.",sNodeType);
+      core->Trace("Warning! Interface: Node type %s not present into describe.",sNodeType);
       return;
     }*/
 
@@ -1325,7 +1325,7 @@ CINODE* XINTERFACE::NewNode(char const* pcNodType)
     else if (storm::iEquals(pcNodType, "GLOWCURSOR"))
         m_pGlowCursorNode = pNewNod = new CXI_GLOWCURSOR;
     else
-        core.Trace("Not supported node type:\"%s\"", pcNodType);
+        core->Trace("Not supported node type:\"%s\"", pcNodType);
     return pNewNod;
 }
 
@@ -1401,7 +1401,7 @@ void XINTERFACE::SetTooltip(
         pTmpNod ? pTmpNod->m_nNodeType == NODETYPE_FORMATEDTEXTS ? static_cast<CXI_FORMATEDTEXT*>(pTmpNod) : nullptr : nullptr;
     if (!pNodFrame || !pNodTitleRect || !pNodPic || !pNodTextFrame2 || !pNodTextFrame4 || !pNodTitle || !pNodText1 || !pNodText2
         || !pNodText3 || !pNodText4) {
-        core.Trace("Warning! Interface::SetTooltip - no precreated node");
+        core->Trace("Warning! Interface::SetTooltip - no precreated node");
         return;
     }
     // set
@@ -1559,13 +1559,13 @@ void XINTERFACE::DisableWindow(char const* pcWindowName, bool bDisable)
 void XINTERFACE::AddNodeToWindow(char const* pcNodeName, char const* pcWindowName)
 {
     if (!m_pNodes) {
-        core.Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Empty node list", pcNodeName, pcWindowName);
+        core->Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Empty node list", pcNodeName, pcWindowName);
         return;
     }
 
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
     if (!pNod || pNod->m_nNodeType != NODETYPE_WINDOW) {
-        core.Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Window not found", pcNodeName, pcWindowName);
+        core->Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Window not found", pcNodeName, pcWindowName);
         return;
     }
 
@@ -1652,7 +1652,7 @@ void XINTERFACE::DoControl()
     CONTROL_STATE cs;
     if (!m_bUse) return;
 
-    core.Controls->GetControlState("IContextHelp", cs);
+    core->Controls->GetControlState("IContextHelp", cs);
 
     if (m_nInterfaceMode == CONTEXTHELP_IMODE) {
         if (cs.state == CST_ACTIVATED || cs.state == CST_INACTIVATED) ReleaseContextHelpData();
@@ -1667,41 +1667,41 @@ void XINTERFACE::DoControl()
     if (m_pEditor && m_pEditor->ProcessControl()) return;
 
     if (bDisableControl) {
-        core.Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IStartButton", cs);
+        core->Controls->GetControlState("IStartButton", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IUp2", cs);
+        core->Controls->GetControlState("IUp2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IDown2", cs);
+        core->Controls->GetControlState("IDown2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IRight2", cs);
+        core->Controls->GetControlState("IRight2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("ILeft2", cs);
+        core->Controls->GetControlState("ILeft2", cs);
         if (cs.state != CST_INACTIVE) return;
 
         for (nExitKey = 0; nExitKey < m_asExitKey.size(); nExitKey++) {
-            core.Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
+            core->Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
             if (cs.state != CST_INACTIVE) return;
         }
     }
@@ -1709,9 +1709,9 @@ void XINTERFACE::DoControl()
     bDisableControl = false;
 
     for (nExitKey = 0; nExitKey < m_asExitKey.size(); nExitKey++) {
-        core.Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
+        core->Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
         if (cs.state == CST_ACTIVATED) {
-            core.Event("exitCancel");
+            core->Event("exitCancel");
             break;
         }
     }
@@ -1725,7 +1725,7 @@ void XINTERFACE::DoControl()
     bool bWasFirst   = false;
     m_bMouseClick    = false;
     m_bDblMouseClick = false;
-    core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
     if (cs.state == CST_ACTIVATED) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_LBUTTON;
@@ -1741,14 +1741,14 @@ void XINTERFACE::DoControl()
         m_idButton    = MOUSE_LBUTTON;
     }
 
-    core.Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
     if (!m_bMouseClick && cs.state == CST_ACTIVATED) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_RBUTTON;
         bWasFirst     = true;
-        core.Event("MouseRClickDown");
+        core->Event("MouseRClickDown");
     }
-    if (cs.state == CST_INACTIVATED) { core.Event("MouseRClickUP"); }
+    if (cs.state == CST_INACTIVATED) { core->Event("MouseRClickUP"); }
     if (!m_bMouseClick && cs.state == CST_ACTIVE) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_RBUTTON;
@@ -1761,54 +1761,54 @@ void XINTERFACE::DoControl()
         // Get action code CST_ACTIVATED, CST_ACTIVE
 
         // right press
-        core.Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.rightButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IRight2", cs);
+        core->Controls->GetControlState("IRight2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.rightButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // left press
-        core.Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.leftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("ILeft2", cs);
+        core->Controls->GetControlState("ILeft2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.leftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // up press
-        core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.upButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IUp2", cs);
+        core->Controls->GetControlState("IUp2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.upButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // down press
-        core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.downButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IDown2", cs);
+        core->Controls->GetControlState("IDown2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.downButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // left shift press
-        core.Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.shiftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // right shift press
-        core.Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.shiftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // enter button press
-        core.Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
         if (cs.state == CST_ACTIVATED)  //~!~
             curKS.enterButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IStartButton", cs);
+        core->Controls->GetControlState("IStartButton", cs);
         if (cs.state == CST_ACTIVATED) curKS.enterButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // back button press
-        core.Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
         if (cs.state == CST_ACTIVATED) curKS.backButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
         if (cs.state == CST_ACTIVATED) curKS.backButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
 
@@ -1858,7 +1858,7 @@ void XINTERFACE::DoControl()
             if (curKS.backButton) wActCode = ACTION_DEACTIVATE;
 
             if (m_pCurNode == nullptr) {
-                if (wActCode == ACTION_DEACTIVATE) core.Event("exitCancel");
+                if (wActCode == ACTION_DEACTIVATE) core->Event("exitCancel");
                 return;
             }
 
@@ -1909,8 +1909,8 @@ void XINTERFACE::MouseMove()
 {
     if (m_nInterfaceMode == CONTEXTHELP_IMODE) return;
     CONTROL_STATE csv, csh;
-    core.Controls->GetControlState(INTERFACE_MOUSE_VERT, csv);
-    core.Controls->GetControlState(INTERFACE_MOUSE_HORZ, csh);
+    core->Controls->GetControlState(INTERFACE_MOUSE_VERT, csv);
+    core->Controls->GetControlState(INTERFACE_MOUSE_HORZ, csh);
 
     float fOutX = 0.f;
     float fOutY = 0.f;
@@ -2238,8 +2238,8 @@ bool XINTERFACE::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
     if (slen <= 1) return false;
 
     entid_t ei;
-    if (!(ei = core.GetEntityId("SCRSHOTER"))) return false;
-    int32_t textureId = core.Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
+    if (!(ei = core->GetEntityId("SCRSHOTER"))) return false;
+    int32_t textureId = core->Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
     if (textureId == -1) return false;
 
     auto* pTex = static_cast<IDirect3DTexture9*>(pRenderService->GetTextureFromID(textureId));
@@ -2264,10 +2264,10 @@ bool XINTERFACE::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
             memcpy(&pdat[sizeof(SAVE_DATA_HANDLE) + slen], lockRect.pBits, ssize);
             pTex->UnlockRect(0);
         } else
-            core.Trace("Can`t lock screenshot texture");
+            core->Trace("Can`t lock screenshot texture");
     }
 
-    core.SetSaveData(saveName, pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize);
+    core->SetSaveData(saveName, pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize);
     free(pdat);
     return true;
 }
@@ -2276,7 +2276,7 @@ bool XINTERFACE::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int
 {
     if (buf == nullptr || bufSize <= 0) return false;
     int32_t allDatSize = 0;
-    auto    pdat       = static_cast<char*>(core.GetSaveData(saveName, allDatSize));
+    auto    pdat       = static_cast<char*>(core->GetSaveData(saveName, allDatSize));
     if (pdat == nullptr) return false;
 
     char* stringData = &pdat[sizeof(SAVE_DATA_HANDLE)];
@@ -2606,7 +2606,7 @@ void XINTERFACE::IncrementGameTime(uint32_t dwDeltaTime)
         m_dwGameTimeMin -= 60;
     }
 
-    if (bYesChange && m_bUse) core.Event("ievent_SetGameTime", "lll", m_dwGameTimeHour, m_dwGameTimeMin, m_dwGameTimeSec);
+    if (bYesChange && m_bUse) core->Event("ievent_SetGameTime", "lll", m_dwGameTimeHour, m_dwGameTimeMin, m_dwGameTimeSec);
 }
 
 char* AddAttributesStringsToBuffer(char* inBuffer, char* prevStr, ATTRIBUTES* pAttr)
@@ -2693,7 +2693,7 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
 
     uint32_t const fileSize = fio->file_size(fileName.data());
     if (fileSize == 0) {
-        core.Event("evntOptionsBreak");
+        core->Event("evntOptionsBreak");
         return;
     }
 
@@ -2716,7 +2716,7 @@ void XINTERFACE::GetContextHelpData()
         texName              = m_pCurNode->m_strHelpTextureFile;
         m_frectHelpTextureUV = m_pCurNode->m_frectHelpTextureUV;
         if (texName == nullptr) {
-            VDATA* pvdat = core.Event("ievntGetHelpTexture", "s", m_pCurNode->m_nodeName);
+            VDATA* pvdat = core->Event("ievntGetHelpTexture", "s", m_pCurNode->m_nodeName);
             if (pvdat != nullptr) pvdat->Get(texName);
             if (texName != nullptr && strlen(texName) < 1) texName = nullptr;
         }
@@ -2854,11 +2854,11 @@ void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
         cs.state  = CST_INACTIVE;
         cs.fValue = 0.f;
         cs.lValue = 0;
-        core.Controls->GetControlState(pCont->resultName, csPrev);
+        core->Controls->GetControlState(pCont->resultName, csPrev);
         while (pDescr) {
             if (pDescr->controlName) {
                 CONTROL_STATE insideCS;
-                core.Controls->GetControlState(pDescr->controlName, insideCS);
+                core->Controls->GetControlState(pDescr->controlName, insideCS);
 
                 switch (insideCS.state)  //~!~
                 {
@@ -2895,8 +2895,8 @@ void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
             if (cs.state != CST_INACTIVE)
                 cs.state = cs.state;
         */
-        core.Controls->SetControlState(pCont->resultName, cs);
-        core.Controls->GetControlState(pCont->resultName, csPrev);
+        core->Controls->SetControlState(pCont->resultName, cs);
+        core->Controls->GetControlState(pCont->resultName, csPrev);
         pCont = pCont->next;
     }
 }

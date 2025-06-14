@@ -493,13 +493,13 @@ void BIBorderInfo::Draw()
     if (!pV) return;
 
     if (bUp) {
-        fCur += fSpeed * core.GetDeltaTime();
+        fCur += fSpeed * core->GetDeltaTime();
         if (fCur > 1.f) {
             fCur = 1.f;
             bUp  = false;
         }
     } else {
-        fCur -= fSpeed * core.GetDeltaTime();
+        fCur -= fSpeed * core->GetDeltaTime();
         if (fCur < 0.f) {
             fCur = 0.f;
             bUp  = true;

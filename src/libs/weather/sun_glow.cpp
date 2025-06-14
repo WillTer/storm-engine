@@ -56,17 +56,17 @@ void SUNGLOW::SetDevice()
 {
     entid_t ent;
 
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
     Assert(pCollide);
 
-    if (!(ent = core.GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
-    pWeather = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ent));
+    if (!(ent = core->GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
+    pWeather = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ent));
     Assert(pWeather);
 
-    if (ent = core.GetEntityId("sky"))
-        pSky = static_cast<SKY*>(core.GetEntityPointer(ent));
+    if (ent = core->GetEntityId("sky"))
+        pSky = static_cast<SKY*>(core->GetEntityPointer(ent));
     else
         pSky = nullptr;
 
@@ -175,8 +175,8 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
     bVisible       = true;
     fMinAlphaValue = 0.0f;
 
-    auto fSunTrace  = LayerTrace(vCamPos, core.GetEntityIds(SUN_TRACE));
-    auto fSailTrace = LayerTrace(vCamPos, core.GetEntityIds(SAILS_TRACE));
+    auto fSunTrace  = LayerTrace(vCamPos, core->GetEntityIds(SUN_TRACE));
+    auto fSailTrace = LayerTrace(vCamPos, core->GetEntityIds(SAILS_TRACE));
 
     if (fSunTrace <= 1.0f || fSailTrace <= 1.0f) bVisible = false;
     if (fSailTrace <= 1.0f && fSunTrace > 1.0f) {
@@ -184,7 +184,7 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
         fMinAlphaValue = 0.2f;
     }
 
-    /*walker_t pVW = core.LayerGetWalker("sun_trace");
+    /*walker_t pVW = core->LayerGetWalker("sun_trace");
     if (pVW)
     {
       vSrc = vCamPos;
@@ -646,6 +646,6 @@ void SUNGLOW::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float 
 float SUNGLOW::GetSunFadeoutFactor(const CVECTOR& vSunPos, float fSunSize)
 {
     // get a pointer to the sky
-    if (!pSky) { pSky = static_cast<SKY*>(core.GetEntityPointer(core.GetEntityId("sky"))); }
+    if (!pSky) { pSky = static_cast<SKY*>(core->GetEntityPointer(core->GetEntityId("sky"))); }
     return pSky ? pSky->CalculateAlphaForSun(vSunPos, fSunSize) : 1.0f;
 }

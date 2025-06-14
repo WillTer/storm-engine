@@ -33,7 +33,7 @@ Debris::Debris(Pillar& _pillar) : pillar(_pillar)
 Debris::~Debris()
 {
     for (int32_t i = 0; i < numModels; i++)
-        core.EraseEntity(mdl[i].mdl->GetId());
+        core->EraseEntity(mdl[i].mdl->GetId());
 }
 
 void Debris::Init()
@@ -51,7 +51,7 @@ void Debris::Init()
     AddModel("tornado/flotsam6", 5, 1.1f);
     AddModel("tornado/flotsam7", 5, 1.2f);
     NormalazedModels();
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
 }
 
 void Debris::Update(float dltTime)
@@ -140,19 +140,19 @@ void Debris::AddModel(char const* modelName, float prt, float spd)
     if (numModels > std::size(mdl)) return;
     // Create a model
     entid_t id;
-    if (!(id = core.CreateEntity("modelr"))) return;
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(id));
+    if (!(id = core->CreateEntity("modelr"))) return;
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(id));
     if (!m) return;
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
     if (!gs) return;
     gs->SetTexturePath("tornado/");
     // Loading
     try {
-        core.Send_Message(id, "ls", MSG_MODEL_LOAD_GEO, modelName);
+        core->Send_Message(id, "ls", MSG_MODEL_LOAD_GEO, modelName);
     } catch (...) {
         gs->SetTexturePath("");
-        core.EraseEntity(id);
+        core->EraseEntity(id);
         return;
     }
     gs->SetTexturePath("");
@@ -194,10 +194,10 @@ bool Debris::IsShip()
 {
     const CVECTOR p(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
     CVECTOR       pos;
-    auto&&        entities = core.GetEntityIds("ship");
+    auto&&        entities = core->GetEntityIds("ship");
     for (auto id: entities) {
         // Object pointer
-        auto* ship = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(id));
+        auto* ship = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(id));
         if (!ship) break;
         // Tornado position in the ship system
         Assert(ship->GetMatrix());

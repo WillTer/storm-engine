@@ -44,18 +44,18 @@ bool PathTracks::Load(char const* fileName)
 
     std::vector<char> data = {};
     if (!fio->read_file_to_mem(fileName, data) || data.empty()) {
-        core.Trace("Camera tracks file %s not loaded...", fileName);
+        core->Trace("Camera tracks file %s not loaded...", fileName);
         return false;
     }
 
     // Checking the title
     if (reinterpret_cast<AntFileHeader*>(data.data())->id != ANTFILE_ID) {
-        core.Trace("Camera tracks file %s is invalidate...", fileName);
+        core->Trace("Camera tracks file %s is invalidate...", fileName);
         return false;
     }
 
     if (reinterpret_cast<AntFileHeader*>(data.data())->ver != ANTFILE_VER) {
-        core.Trace("Camera tracks file %s have incorrect version...", fileName);
+        core->Trace("Camera tracks file %s have incorrect version...", fileName);
         return false;
     }
 
@@ -67,7 +67,7 @@ bool PathTracks::Load(char const* fileName)
     if (data.size()
         < (sizeof(AntFileHeader) + (sizeof(char) * nStringSize) + (sizeof(AntFileBone) * nBoneCount)
            + (sizeof(AntFileTrackElement) * nPoints))) {
-        core.Trace("Camera tracks file %s is invalidate...", fileName);
+        core->Trace("Camera tracks file %s is invalidate...", fileName);
         return false;
     }
 

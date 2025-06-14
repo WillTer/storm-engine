@@ -47,7 +47,7 @@ bool SCRSHOTER::Init()
 void SCRSHOTER::SetDevice()
 {
     // get render service
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
@@ -57,10 +57,10 @@ void SCRSHOTER::Realize(uint32_t Delta_Time)
 {
     if (texture_ == nullptr)
         if (!MakeScreenShot()) {
-            core.Trace("ERROR!!! screen shot create error");
-            core.Event("makescrshot");
+            core->Trace("ERROR!!! screen shot create error");
+            core->Event("makescrshot");
         } else
-            core.Event("makescrshot");
+            core->Event("makescrshot");
 }
 
 bool SCRSHOTER::MakeScreenShot()
@@ -73,12 +73,12 @@ bool SCRSHOTER::MakeScreenShot()
     // make the video card draw all unfinished tasks
     hr = rs->EndScene();
     if (hr != D3D_OK) {
-        core.Trace("ERROR!!! Can`t EndScene");
+        core->Trace("ERROR!!! Can`t EndScene");
         return false;
     }
     hr = rs->BeginScene();
     if (hr != D3D_OK) {
-        core.Trace("ERROR!!! Can`t BeginScene");
+        core->Trace("ERROR!!! Can`t BeginScene");
         return false;
     }
 
@@ -303,7 +303,7 @@ int32_t SCRSHOTER::GetTexFromSave(char* fileName, char** pDatStr) const
 
     int32_t datSize  = 0;
     char*   pdat     = nullptr;
-    pdat             = static_cast<char*>(core.GetSaveData(fileName, datSize));
+    pdat             = static_cast<char*>(core->GetSaveData(fileName, datSize));
     int32_t startIdx = 0;
     int32_t texSize  = 0;
     if (pdat != nullptr && datSize > sizeof(SAVE_DATA_HANDLE)) {

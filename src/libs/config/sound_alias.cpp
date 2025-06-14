@@ -51,7 +51,7 @@ std::unordered_map<std::string, SoundAlias> sound_alias::aliases(std::filesystem
 {
     auto const config_file = config_loader->open_config_cached(file);
     if (!config_file.is_table()) {
-        core.Trace("There are no aliases in file \"%s\"", file.string().c_str());
+        core->Trace("There are no aliases in file \"%s\"", file.string().c_str());
         return {};
     }
 

@@ -41,7 +41,7 @@ AIBalls::~AIBalls()
 
 bool AIBalls::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     SetDevice();
     return true;
 }
@@ -50,11 +50,11 @@ void AIBalls::SetDevice() {}
 
 void AIBalls::FireBallFromCamera()
 {
-    auto* pMainCharIndex = static_cast<VDATA*>(core.GetScriptVariable("nMainCharacterIndex"));
+    auto* pMainCharIndex = static_cast<VDATA*>(core->GetScriptVariable("nMainCharacterIndex"));
     if (!pMainCharIndex) return;
     auto iMainCharIndex = pMainCharIndex->GetInt();
     if (iMainCharIndex < 0) return;
-    auto* pMainCharacter = static_cast<VDATA*>(core.GetScriptVariable("Characters"));
+    auto* pMainCharacter = static_cast<VDATA*>(core->GetScriptVariable("Characters"));
     if (!pMainCharacter) return;
     auto* pAMainCharacter = pMainCharacter->GetAClass(iMainCharIndex);
     if (!pAMainCharacter) return;
@@ -139,8 +139,8 @@ void AIBalls::AddBall(ATTRIBUTES* pABall)
 
     if (aBallTypes[i].sParticleName.size()) {
         entid_t eidParticle;
-        if (eidParticle = core.GetEntityId("particles"); eidParticle != 0) {
-            pBall->pParticle = (VPARTICLE_SYSTEM*)core.Send_Message(
+        if (eidParticle = core->GetEntityId("particles"); eidParticle != 0) {
+            pBall->pParticle = (VPARTICLE_SYSTEM*)core->Send_Message(
                 eidParticle,
                 "lsffffffl",
                 PS_CREATE_RIC,
@@ -162,13 +162,13 @@ void AIBalls::Execute(uint32_t Delta_Time)
     CVECTOR  vSrc, vDst;
     entid_t  EID;
 
-    if (!pIsland && (EID = core.GetEntityId("island"))) pIsland = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(EID));
-    if (!pSail && (EID = core.GetEntityId("sail"))) pSail = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(EID));
-    if (!pSea && (EID = core.GetEntityId("sea"))) pSea = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(EID));
+    if (!pIsland && (EID = core->GetEntityId("island"))) pIsland = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
+    if (!pSail && (EID = core->GetEntityId("sail"))) pSail = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
+    if (!pSea && (EID = core->GetEntityId("sea"))) pSea = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
 
     aBallRects.clear();
 
-    // if (!pVWForts) pVWForts = (VIDWALKER*)core.LayerGetWalker("fort_cannon_trace");
+    // if (!pVWForts) pVWForts = (VIDWALKER*)core->LayerGetWalker("fort_cannon_trace");
 
     auto mView = rs->GetView();
 
@@ -211,7 +211,7 @@ void AIBalls::Execute(uint32_t Delta_Time)
             vDst = pBall->vPos;
 
             if (!pBall->sBallEvent.empty())
-                core.Event(
+                core->Event(
                     pBall->sBallEvent.c_str(),
                     "lllffffffs",
                     pBall->iBallOwner,
@@ -243,16 +243,16 @@ void AIBalls::Execute(uint32_t Delta_Time)
                     CVECTOR vRes, v = fBallFlySoundStereoMultiplier * CVECTOR(x, y, 0.0f);
                     mView.MulToInv(v, vRes);
 
-                    core.Event(BALL_FLY_NEAR_CAMERA, "fff", vRes.x, vRes.y, vRes.z);
+                    core->Event(BALL_FLY_NEAR_CAMERA, "fff", vRes.x, vRes.y, vRes.z);
                 }
             }
 
             // sail trace
             if (pSail) pSail->Cannon_Trace(pBall->iBallOwner, vSrc, vDst);
 
-            auto&& entities = core.GetEntityIds(SHIP_CANNON_TRACE);
+            auto&& entities = core->GetEntityIds(SHIP_CANNON_TRACE);
             for (auto ent_id: entities) {
-                if (auto* pShip = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(ent_id))) {
+                if (auto* pShip = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(ent_id))) {
                     fRes = pShip->Cannon_Trace(pBall->iBallOwner, vSrc, vDst);
                     if (fRes <= 1.0f) break;
                 }
@@ -270,7 +270,7 @@ void AIBalls::Execute(uint32_t Delta_Time)
             // delete ball
             if (fRes <= 1.0f) {
                 if (!pBall->sBallEvent.empty()) {
-                    core.Event(
+                    core->Event(
                         pBall->sBallEvent.c_str(),
                         "lllffffff",
                         pBall->iBallOwner,
@@ -322,7 +322,7 @@ void AIBalls::Realize(uint32_t Delta_Time)
     dwFireBallFromCameraTime += Delta_Time;
     /*
   #ifndef _XBOX
-    if (core.Controls->GetDebugAsyncKeyState('C') < 0 && dwFireBallFromCameraTime > 30 &&
+    if (core->Controls->GetDebugAsyncKeyState('C') < 0 && dwFireBallFromCameraTime > 30 &&
   AttributesPointer->GetAttributeAsDword("FireBallFromCamera", 0) != 0)
     {
       dwFireBallFromCameraTime = 0;
@@ -482,8 +482,8 @@ void AIBalls::Load(CSaveLoad* pSL)
             pB.Load(pSL);
             if (pB.pParticle) {
                 pB.pParticle = nullptr;
-                if (auto eidParticle = core.GetEntityId("particles")) {
-                    pB.pParticle = (VPARTICLE_SYSTEM*)core.Send_Message(
+                if (auto eidParticle = core->GetEntityId("particles")) {
+                    pB.pParticle = (VPARTICLE_SYSTEM*)core->Send_Message(
                         eidParticle,
                         "lsffffffl",
                         PS_CREATE_RIC,

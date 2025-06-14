@@ -138,7 +138,7 @@ void TSplash::Start(const CVECTOR& _pos, const CVECTOR& _dir)
     time   = 0;
     center = _pos;
     dir    = _dir;
-    //_VSYSTEM_core.Trace("start dir.x=%f, dir.z=%f", this->dir.x, this->dir.z);
+    //_VSYSTEM_core->Trace("start dir.x=%f, dir.z=%f", this->dir.x, this->dir.z);
     enabled = true;
     growK   = randUpper(2.0f);
 

@@ -55,8 +55,8 @@ static bool geoLog = false;
 
 bool GEOMETRY::Init()
 {
-    RenderService = static_cast<VDX9RENDER*>(core.GetService(RenderServiceName));
-    if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
+    RenderService = static_cast<VDX9RENDER*>(core->GetService(RenderServiceName));
+    if (!RenderService) { core->Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
     auto const device_info = storm::main_config::device_info();
@@ -111,10 +111,10 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
             gp = ::CreateGeometry(model_path.string().c_str(), light_path.string().c_str(), GSR, flags);
         }
     } catch (std::exception const& e) {
-        core.Trace("%s: %s", file_name, e.what());
+        core->Trace("%s: %s", file_name, e.what());
         return nullptr;
     } catch (...) {
-        core.Trace("Invalid model: %s", file_name);
+        core->Trace("Invalid model: %s", file_name);
         return nullptr;
     }
 
@@ -177,7 +177,7 @@ std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
     auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
     if (!fileS.is_open()) {
         if (storm::iEquals(&fname[strlen(fname) - 4], ".col")) {
-            //    core.Trace("geometry::can't open file %s", fname);
+            //    core->Trace("geometry::can't open file %s", fname);
         } else {
             throw std::runtime_error("can't open geometry file");
         }

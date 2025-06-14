@@ -39,7 +39,7 @@ void DataFloat::Load(MemFile* File)
 
 void DataFloat::SetName(char const* szName)
 {
-    // core.Trace("DataFloat::SetName - '%s'", szName);
+    // core->Trace("DataFloat::SetName - '%s'", szName);
     Name = szName;
 }
 

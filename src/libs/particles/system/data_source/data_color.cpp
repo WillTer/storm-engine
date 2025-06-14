@@ -128,7 +128,7 @@ void DataColor::Load(MemFile* File)
 
 void DataColor::SetName(char const* szName)
 {
-    // core.Trace("DataColor::SetName - '%s'", szName);
+    // core->Trace("DataColor::SetName - '%s'", szName);
     Name = szName;
 }
 

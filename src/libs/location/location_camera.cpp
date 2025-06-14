@@ -84,22 +84,22 @@ LocationCamera::~LocationCamera()
 bool LocationCamera::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    core.AddToLayer(EXECUTE, GetId(), 0);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    core->AddToLayer(EXECUTE, GetId(), 0);
 
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(REALIZE, GetId(), 100000);
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(REALIZE, GetId(), 100000);
 
     // The sea
-    sea = core.GetEntityId("sea");
+    sea = core->GetEntityId("sea");
 
     // try to get the location
-    loc = core.GetEntityId("location");
+    loc = core->GetEntityId("location");
 
     rs->SetPerspective(cameraPerspective);
     // rs->SetPerspective(1.0f);
@@ -123,7 +123,7 @@ void LocationCamera::Realize(uint32_t delta_time)
 
     // Camera mode
     CONTROL_STATE cs;
-    core.Controls->GetControlState("ChrCamSpecMode", cs);
+    core->Controls->GetControlState("ChrCamSpecMode", cs);
     isSpecialMode = cs.state == CST_ACTIVE;
     // Time period
     auto const dltTime = delta_time * 0.001f;
@@ -131,7 +131,7 @@ void LocationCamera::Realize(uint32_t delta_time)
     if (!Set()) return;
     // Controls
     auto const oldAx = ax;
-    core.Controls->GetControlState("ChrCamTurnV", cs);
+    core->Controls->GetControlState("ChrCamTurnV", cs);
     dAx = -cs.lValue * 0.05f;  //*0.005f;
     if (character->IsDead()) dAx = 0.0f;
     auto kvax = 8.0f * dltTime;
@@ -152,7 +152,7 @@ void LocationCamera::Realize(uint32_t delta_time)
     if (ax < axmin) ax = axmin;
     if (ax > axmax) ax = axmax;
     character->LockRotate(false);
-    core.Controls->GetControlState("ChrTurnH", cs);
+    core->Controls->GetControlState("ChrTurnH", cs);
     dAy = cs.lValue * 0.005f;
     if (dAy > 1.0f) dAy = 1.0f;
     if (dAy < -1.0f) dAy = -1.0f;
@@ -173,7 +173,7 @@ void LocationCamera::Realize(uint32_t delta_time)
 
             //*
             if (!character->IsFight() && !character->IsDialog() && !character->IsDead()) {
-                core.Controls->GetControlState("ChrCamCameraSwitch", cs);
+                core->Controls->GetControlState("ChrCamCameraSwitch", cs);
                 if (cs.state == CST_ACTIVATED) isLookMode = !isLookMode;
                 isELook = isLookMode;
             }  // else isLookMode = false;
@@ -189,7 +189,7 @@ void LocationCamera::Realize(uint32_t delta_time)
                 isELook = isLookMode = false;
                 ax                   = lAx;
             } else {
-                if (core.Controls->GetControlState("ChrCamNormalize", cs)) {
+                if (core->Controls->GetControlState("ChrCamNormalize", cs)) {
                     if (cs.state == CST_ACTIVATED) {
                         if (!isELook)
                             ax = 0.2f;
@@ -213,7 +213,7 @@ void LocationCamera::Realize(uint32_t delta_time)
             } else {
                 if (isSpecialMode) {
                     // recalculate the angle change for the special mode
-                    core.Controls->GetControlState("ChrCamTurnH", cs);
+                    core->Controls->GetControlState("ChrCamTurnH", cs);
                     dAy = cs.lValue * 0.05f;
                     if (dAy > 1.0f) dAy = 1.0f;
                     if (dAy < -1.0f) dAy = -1.0f;
@@ -273,14 +273,14 @@ void LocationCamera::Realize(uint32_t delta_time)
         isTeleport = false;
     }
     auto  realPos = camPos;
-    auto* sb      = static_cast<SEA_BASE*>(core.GetEntityPointer(sea));
+    auto* sb      = static_cast<SEA_BASE*>(core->GetEntityPointer(sea));
     if (sb && wmode != cwm_free && location->IsSwimming()) {
         auto const seaY = sb->WaveXZ(camPos.x, camPos.z) + 1.0f;
         if (realPos.y < seaY) realPos.y = seaY;
     }
 
     auto vUp = CVECTOR(0.0f, 1.0f, 0.0f);
-    if (dynamic_fog.isOn) ProcessDynamicFov(core.GetDeltaTime() * .001f, realPos, lookTo, vUp);
+    if (dynamic_fog.isOn) ProcessDynamicFov(core->GetDeltaTime() * .001f, realPos, lookTo, vUp);
 
     rs->SetCamera(realPos, lookTo, vUp);
 
@@ -312,8 +312,8 @@ uint64_t LocationCamera::ProcessMessage(MESSAGE& message)
     switch (message.Long()) {
     case MSG_CAMERA_SETTARGET:
         chr = message.EntityID();
-        if (core.GetEntityPointer(chr) == nullptr) {
-            core.Trace("LocationCamera -> MSG_CAMERA_SETTARGET -> invalidate character id");
+        if (core->GetEntityPointer(chr) == nullptr) {
+            core->Trace("LocationCamera -> MSG_CAMERA_SETTARGET -> invalidate character id");
             return 0;
         }
         return 1;
@@ -416,7 +416,7 @@ uint32_t LocationCamera::AttributeChanged(ATTRIBUTES* apnt)
 bool LocationCamera::Set()
 {
     // Character pointer
-    auto* c = static_cast<Character*>(core.GetEntityPointer(chr));
+    auto* c = static_cast<Character*>(core->GetEntityPointer(chr));
     if (!c) return false;
     // Character characteristics
     if (!forcedPos) { c->GetPosition(pos); }
@@ -425,7 +425,7 @@ bool LocationCamera::Set()
     lheight   = height * lookHeight;
     chradius  = c->GetRadius();
     character = c;
-    location  = static_cast<Location*>(core.GetEntityPointer(loc));
+    location  = static_cast<Location*>(core->GetEntityPointer(loc));
     return location != nullptr;
 }
 
@@ -491,7 +491,7 @@ void LocationCamera::ExecuteTopos(float dltTime)
 // Free flying camera execution
 void LocationCamera::ExecuteFree(float dltTime)
 {
-    if (core.Controls->GetKeyState(VK_NUMLOCK) < 0) return;
+    if (core->Controls->GetKeyState(VK_NUMLOCK) < 0) return;
 
     auto const pi = 3.14159265359f;
     freeAx -= dAx * 0.1f;
@@ -503,10 +503,10 @@ void LocationCamera::ExecuteFree(float dltTime)
     lookTo.x = cosf(freeAx) * sinf(freeAy);
     lookTo.y = sinf(freeAx);
     lookTo.z = cosf(freeAx) * cosf(freeAy);
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) dltTime *= 10.0f;
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0) dltTime *= 4.0f;
-    if (core.Controls->GetDebugAsyncKeyState(VK_LBUTTON) < 0) camPos += 5.0f * lookTo * dltTime;
-    if (core.Controls->GetDebugAsyncKeyState(VK_RBUTTON) < 0) camPos -= 5.0f * lookTo * dltTime;
+    if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) dltTime *= 10.0f;
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0) dltTime *= 4.0f;
+    if (core->Controls->GetDebugAsyncKeyState(VK_LBUTTON) < 0) camPos += 5.0f * lookTo * dltTime;
+    if (core->Controls->GetDebugAsyncKeyState(VK_RBUTTON) < 0) camPos -= 5.0f * lookTo * dltTime;
     lookTo += camPos;
 }
 
@@ -682,7 +682,7 @@ void LocationCamera::TurnOffTrackCamera()
         oldPos = *(CVECTOR*)&pos;
         (*(CMatrix*)&view).MulToInvNorm(CVECTOR(0.f, 0.f, 1.f), oldLookTo);
     }
-    core.Event("TrackCameraOff", "s", m_sCurTrackName.c_str());
+    core->Event("TrackCameraOff", "s", m_sCurTrackName.c_str());
 }
 
 void LocationCamera::ProcessTrackCamera()
@@ -710,7 +710,7 @@ void LocationCamera::ProcessTrackCamera()
 float LocationCamera::TrackPauseProcess()
 {
     auto fOldTime = m_fTrackCurTime;
-    m_fTrackCurTime += core.GetDeltaTime() * 0.001f;
+    m_fTrackCurTime += core->GetDeltaTime() * 0.001f;
 
     //    for( int32_t nPause=m_nCurPauseIndex+1; nPause<m_aTrackPauses; nPause++ )
     //        if( m_aTrackPauses[nPause].trackTime <= m_fTrackCurTime ) {
@@ -723,7 +723,7 @@ float LocationCamera::TrackPauseProcess()
 
     return m_fTrackCurTime;
 
-    /*    float fCurTime = m_fTrackCurTime + core.GetDeltaTime() * 0.001f;
+    /*    float fCurTime = m_fTrackCurTime + core->GetDeltaTime() * 0.001f;
 
       if( m_nCurPauseIndex < 0 ) {
         m_nCurPauseIndex = FindPauseIndex(m_fTrackCurTime,fCurTime);

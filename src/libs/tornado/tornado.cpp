@@ -46,15 +46,15 @@ Tornado::~Tornado()
 // Initialization
 bool Tornado::Init()
 {
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(EXECUTE, GetId(), 70000);
-    core.AddToLayer(REALIZE, GetId(), 70000);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(EXECUTE, GetId(), 70000);
+    core->AddToLayer(REALIZE, GetId(), 70000);
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     // Create buffers for the pillar
@@ -73,7 +73,7 @@ bool Tornado::Init()
     particles.Update(0.0f);
     debris.Init();
     // Create sound
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
+    soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
     if (soundService) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
         sID            = soundService->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
@@ -90,14 +90,14 @@ void Tornado::Execute(uint32_t delta_time)
     noiseCloud.Update(dltTime);
     debris.Update(dltTime);
     eventCounter += dltTime;
-    if (eventCounter > 1.0f) core.Event("TornadoDamage", "fff", eventCounter, pillar.GetX(0.0f), pillar.GetZ(0.0f));
+    if (eventCounter > 1.0f) core->Event("TornadoDamage", "fff", eventCounter, pillar.GetX(0.0f), pillar.GetZ(0.0f));
     if (liveTime < 0.0f) {
         SetAlpha(galhpa);
         galhpa -= dltTime * 0.2f;
         if (galhpa < 0.0f) {
             galhpa = 0.0f;
-            core.Event("TornadoDelete");
-            core.EraseEntity(GetId());
+            core->Event("TornadoDelete");
+            core->EraseEntity(GetId());
         }
     } else
         liveTime -= dltTime;

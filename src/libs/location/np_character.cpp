@@ -88,50 +88,50 @@ NPCharacter::~NPCharacter() {}
 
 bool NPCharacter::PostInit()
 {
-    charactersGroups = core.GetEntityId("CharactersGroups");
+    charactersGroups = core->GetEntityId("CharactersGroups");
     float   tmp;
     int32_t tmpBool;
     VDATA*  vd;
     // Attack parameters
-    vd  = core.Event("NPC_Event_GetAttackActive", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackActive", "i", GetId());
     tmp = attackCur;
     if (vd && vd->Get(tmp)) attackCur = tmp;
-    vd  = core.Event("NPC_Event_GetAttackWeightFast", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackWeightFast", "i", GetId());
     tmp = attackPrbFast;
     if (vd && vd->Get(tmp)) attackPrbFast = tmp;
-    vd  = core.Event("NPC_Event_GetAttackWeightForce", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackWeightForce", "i", GetId());
     tmp = attackPrbForce;
     if (vd && vd->Get(tmp)) attackPrbForce = tmp;
-    vd  = core.Event("NPC_Event_GetAttackWeightRound", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackWeightRound", "i", GetId());
     tmp = attackPrbRound;
     if (vd && vd->Get(tmp)) attackPrbRound = tmp;
-    vd  = core.Event("NPC_Event_GetAttackWeightBreak", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackWeightBreak", "i", GetId());
     tmp = attackPrbBreak;
     if (vd && vd->Get(tmp)) attackPrbBreak = tmp;
-    vd  = core.Event("NPC_Event_GetAttackWeightFeint", "i", GetId());
+    vd  = core->Event("NPC_Event_GetAttackWeightFeint", "i", GetId());
     tmp = attackPrbFeint;
     if (vd && vd->Get(tmp)) attackPrbFeint = tmp;
     // Defence parameters
-    vd  = core.Event("NPC_Event_GetDefenceActive", "i", GetId());
+    vd  = core->Event("NPC_Event_GetDefenceActive", "i", GetId());
     tmp = defenceCur;
     if (vd && vd->Get(tmp)) defenceCur = tmp;
-    vd  = core.Event("NPC_Event_GetDefenceWeightBlock", "i", GetId());
+    vd  = core->Event("NPC_Event_GetDefenceWeightBlock", "i", GetId());
     tmp = defencePrbBlock;
     if (vd && vd->Get(tmp)) defencePrbBlock = tmp;
-    vd  = core.Event("NPC_Event_GetDefenceWeightParry", "i", GetId());
+    vd  = core->Event("NPC_Event_GetDefenceWeightParry", "i", GetId());
     tmp = defencePrbParry;
     if (vd && vd->Get(tmp)) defencePrbParry = tmp;
-    vd      = core.Event("NPC_Event_EnableRecoil", "i", GetId());
+    vd      = core->Event("NPC_Event_EnableRecoil", "i", GetId());
     tmpBool = isRecoilEnable;
     if (vd && vd->Get(tmpBool)) isRecoilEnable = tmpBool != 0;
     // Shooting parameters
-    vd  = core.Event("NPC_Event_GetFireActive", "i", GetId());
+    vd  = core->Event("NPC_Event_GetFireActive", "i", GetId());
     tmp = fireCur;
     if (vd && vd->Get(tmp)) fireCur = tmp;
-    vd      = core.Event("NPC_Event_EnableFire", "i", GetId());
+    vd      = core->Event("NPC_Event_EnableFire", "i", GetId());
     tmpBool = isFireEnable;
     if (vd && vd->Get(tmpBool)) isFireEnable = tmpBool != 0;
-    vd = core.Event("NPC_Event_StunChance", "i", GetId());
+    vd = core->Event("NPC_Event_StunChance", "i", GetId());
     int32_t tmpInt;
     if (vd && vd->Get(tmpInt)) stunChance = tmpInt;
 
@@ -232,7 +232,7 @@ void NPCharacter::Update(float dltTime)
         if (AttributesPointer) id = AttributesPointer->GetAttribute("id");
         if (!id) id = "<none>";
         char const* fid = nullptr;
-        auto*       chr = static_cast<Character*>(core.GetEntityPointer(task.target));
+        auto*       chr = static_cast<Character*>(core->GetEntityPointer(task.target));
         if (chr) {
             if (chr->AttributesPointer) fid = chr->AttributesPointer->GetAttribute("id");
         }
@@ -414,7 +414,7 @@ bool NPCharacter::SetNewTask(NPCTask tsk, MESSAGE& message)
         SetFightMode(false);
         SetRunMode(true);
         task.target = message.EntityID();
-        return (core.GetEntityPointer(task.target) != nullptr);
+        return (core->GetEntityPointer(task.target) != nullptr);
     case npct_dead:
         CmdStay();
         Dead();
@@ -426,7 +426,7 @@ bool NPCharacter::SetNewTask(NPCTask tsk, MESSAGE& message)
 bool NPCharacter::InitFollowChartacter(entid_t eid)
 {
     task.target = eid;
-    auto c      = static_cast<Character*>(core.GetEntityPointer(eid));
+    auto c      = static_cast<Character*>(core->GetEntityPointer(eid));
     if (c) { char const* id = c->AttributesPointer->GetAttribute("id"); }
     task.isFollowInit = 0;
     return true;
@@ -449,7 +449,7 @@ bool NPCharacter::InitFightChartacter(entid_t eid)
 void NPCharacter::UpdateFollowCharacter(float dltTime)
 {
     // goal
-    auto* c = static_cast<NPCharacter*>(core.GetEntityPointer(task.target));
+    auto* c = static_cast<NPCharacter*>(core->GetEntityPointer(task.target));
     if (!c || c->deadName != nullptr || c->liveValue < 0) {
         NPCTask const tsk = task.task;
         task.task         = npct_none;
@@ -467,7 +467,7 @@ void NPCharacter::UpdateFollowCharacter(float dltTime)
         SetRunMode(false);
         if (dst > NPC_START_DIST_NPC * NPC_START_DIST_NPC) {
             CmdGotoPoint(c->curPos.x, c->curPos.y, c->curPos.z, NPC_STOP_DIST_NPC, c->currentNode, false);
-            core.Event("Location_CharacterFollowGo", "si", GetTaskName(npct_followcharacter), GetId());
+            core->Event("Location_CharacterFollowGo", "si", GetTaskName(npct_followcharacter), GetId());
         }
     } else {
         if (dst > NPC_RUN_DIST_NPC * NPC_RUN_DIST_NPC) SetRunMode(true);
@@ -481,7 +481,7 @@ void NPCharacter::UpdateFollowCharacter(float dltTime)
 void NPCharacter::UpdateEscapeCharacter(float dltTime)
 {
     // The character we are running from
-    auto* c = static_cast<NPCharacter*>(core.GetEntityPointer(task.target));
+    auto* c = static_cast<NPCharacter*>(core->GetEntityPointer(task.target));
     if (!c || c->deadName != nullptr || c->liveValue < 0) {
         NPCTask const tsk = task.task;
         task.task         = npct_none;
@@ -497,7 +497,7 @@ void NPCharacter::UpdateEscapeCharacter(float dltTime)
         task.task   = npct_none;
         CmdStay();
         SetRunMode(false);
-        core.Event("Location_CharacterEscapeSlide", "si", GetTaskName(npct_escape), GetId());
+        core->Event("Location_CharacterEscapeSlide", "si", GetTaskName(npct_escape), GetId());
     }
 }
 
@@ -508,7 +508,7 @@ void NPCharacter::UpdateFightCharacter(float dltTime)
 
     SetFightMode(true);
     // goal
-    auto* c = static_cast<NPCharacter*>(core.GetEntityPointer(task.target));
+    auto* c = static_cast<NPCharacter*>(core->GetEntityPointer(task.target));
     if (!c || c->deadName != nullptr || c->liveValue < 0 || c == this) {
         NPCTask const tsk = task.task;
         task.task         = npct_none;
@@ -610,7 +610,7 @@ void NPCharacter::UpdateFightCharacter(float dltTime)
             if (dst > fDist * fDist) {
                 // must come closer
                 CmdGotoPoint(c->curPos.x, c->curPos.y, c->curPos.z, fDistTo, c->currentNode, false);
-                core.Event("Location_CharacterFightGo", "si", GetTaskName(npct_followcharacter), GetId());
+                core->Event("Location_CharacterFightGo", "si", GetTaskName(npct_followcharacter), GetId());
             }  // else{
             // at war
             // }
@@ -738,10 +738,10 @@ void NPCharacter::DoFightActionAnalysisNone(float dltTime, NPCharacter* enemy)
     if (!(wishAttact | wishDefence)) return;
     // get the target selection mode for the attack
     int32_t isAdaptive = true;
-    VDATA*  vd         = core.Event("NPC_Event_AdaptiveTargetSelect", "i", GetId());
+    VDATA*  vd         = core->Event("NPC_Event_AdaptiveTargetSelect", "i", GetId());
     if (vd) vd->Get(isAdaptive);
     // Correcting taking into account the presence of groups
-    auto chrGroup = static_cast<CharactersGroups*>(core.GetEntityPointer(charactersGroups));
+    auto chrGroup = static_cast<CharactersGroups*>(core->GetEntityPointer(charactersGroups));
     if (!chrGroup) isAdaptive = false;
     // If we want to hit and the mode is not adaptive, then just hit
     if (wishAttact && !isAdaptive) {
@@ -752,7 +752,7 @@ void NPCharacter::DoFightActionAnalysisNone(float dltTime, NPCharacter* enemy)
     auto* const   location       = GetLocation();
     int32_t const grpIndex       = chrGroup->FindGroupIndex(group);
     int32_t       isDodgeEnabled = 0;
-    vd                           = core.Event("NPC_IsDodgeEnabled");
+    vd                           = core->Event("NPC_IsDodgeEnabled");
     if (vd) { vd->Get(isDodgeEnabled); }
     if (isDodgeEnabled) {
         bool isEnemyFire = false;
@@ -779,7 +779,7 @@ void NPCharacter::DoFightActionAnalysisNone(float dltTime, NPCharacter* enemy)
         }
         if (isEnemyFire) {
             int32_t isDodge = 0;
-            vd              = core.Event("NPC_IsDodge", "i", GetId());
+            vd              = core->Event("NPC_IsDodge", "i", GetId());
             if (vd) vd->Get(isDodge);
             if (isDodge) {
                 switch (rand() % 3) {
@@ -832,12 +832,12 @@ void NPCharacter::DoFightActionAnalysisNone(float dltTime, NPCharacter* enemy)
         // If necessary, analyze the goal
         if (wishAttact) {
             float hp = 1.0f;
-            vd       = core.Event("NpcEvtHP", "i", chr->GetId());
+            vd       = core->Event("NpcEvtHP", "i", chr->GetId());
             if (vd) vd->Get(hp);
             if (hp < 0.0f) hp = 0.0f;
             if (hp > 1.0f) hp = 1.0f;
             float energy = 1.0f;
-            vd           = core.Event("NpcEvtEgy", "i", chr->GetId());
+            vd           = core->Event("NpcEvtEgy", "i", chr->GetId());
             if (vd) vd->Get(energy);
             if (energy < 0.0f) energy = 0.0f;
             if (energy > 1.0f) energy = 1.0f;
@@ -1015,7 +1015,7 @@ void NPCharacter::DoFightBlock(bool needParry)
 float NPCharacter::GetEnergy() const
 {
     float  energy = 1.0f;
-    VDATA* vd     = core.Event("NpcEvtEgy", "i", GetId());
+    VDATA* vd     = core->Event("NpcEvtEgy", "i", GetId());
     if (vd) vd->Get(energy);
     if (energy < 0.0f) energy = 0.0f;
     if (energy > 1.0f) energy = 1.0f;
@@ -1025,7 +1025,7 @@ float NPCharacter::GetEnergy() const
 // Get energy for action
 float NPCharacter::GetActEnergy(char const* act) const
 {
-    VDATA* vd = core.Event("NPC_Event_GetActionEnergy", "is", GetId(), act);
+    VDATA* vd = core->Event("NPC_Event_GetActionEnergy", "is", GetId(), act);
     float  energy;
     if (vd && vd->Get(energy)) return energy;
     return 0.1f;
@@ -1052,19 +1052,19 @@ void NPCharacter::EndGotoCommand()
         task.task = npct_none;
         CmdStay();
         SetRunMode(false);
-        core.Event("Location_CharacterEndTask", "si", GetTaskName(npct_gotopoint), GetId());
+        core->Event("Location_CharacterEndTask", "si", GetTaskName(npct_gotopoint), GetId());
         return;
     case npct_runtopoint:
         task.task = npct_none;
         CmdStay();
         SetRunMode(false);
-        core.Event("Location_CharacterEndTask", "si", GetTaskName(npct_runtopoint), GetId());
+        core->Event("Location_CharacterEndTask", "si", GetTaskName(npct_runtopoint), GetId());
         return;
     case npct_followcharacter:
         CmdStay();
-        core.Event("Location_CharacterFollowStay", "si", GetTaskName(npct_followcharacter), GetId());
+        core->Event("Location_CharacterFollowStay", "si", GetTaskName(npct_followcharacter), GetId());
         return;
-    case npct_fight: CmdStay(); core.Event("Location_CharacterFightStay", "si", GetTaskName(npct_followcharacter), GetId());
+    case npct_fight: CmdStay(); core->Event("Location_CharacterFightStay", "si", GetTaskName(npct_followcharacter), GetId());
     }
 }
 
@@ -1074,13 +1074,13 @@ void NPCharacter::EndEscapeCommand()
     task.task = npct_stay;
     SetRunMode(false);
     CmdStay();
-    core.Event("Location_CharacterEndTask", "si", GetTaskName(npct_escape), GetId());
+    core->Event("Location_CharacterEndTask", "si", GetTaskName(npct_escape), GetId());
 }
 
 // colliding with a character too often
 void NPCharacter::CollisionThreshold()
 {
-    core.Event("Location_CharacterColThreshold", "si", GetTaskName(task.task), GetId());
+    core->Event("Location_CharacterColThreshold", "si", GetTaskName(task.task), GetId());
 }
 
 // Save task on stack
@@ -1123,7 +1123,7 @@ bool NPCharacter::PopTask()
 // Cannot further execute the command
 void NPCharacter::FailureCommand(NPCTask task) const
 {
-    core.Event("Location_CharacterTaskFailure", "si", GetTaskName(task), GetId());
+    core->Event("Location_CharacterTaskFailure", "si", GetTaskName(task), GetId());
 }
 
 // Get task type by name

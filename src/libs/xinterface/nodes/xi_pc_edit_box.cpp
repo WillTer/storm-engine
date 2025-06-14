@@ -85,8 +85,8 @@ void CXI_PCEDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
     if (IsEditMode()) ShowCursorPosition(sString);
 
     CONTROL_STATE cs;
-    core.Controls->GetControlState("IStartButton", cs);
-    if (cs.state == CST_INACTIVATED) core.Event("editexit", "s", m_nodeName);
+    core->Controls->GetControlState("IStartButton", cs);
+    if (cs.state == CST_INACTIVATED) core->Event("editexit", "s", m_nodeName);
 }
 
 bool CXI_PCEDITBOX::Init(
@@ -150,7 +150,7 @@ void CXI_PCEDITBOX::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -165,7 +165,7 @@ void CXI_PCEDITBOX::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 
     // get font number
     if (ReadIniString(ini1, name1, ini2, name2, "strFont", param, sizeof(param), ""))
-        if ((m_nFontID = m_rs->LoadFont(param)) == -1) core.Trace("can`t load font:'%s'", param);
+        if ((m_nFontID = m_rs->LoadFont(param)) == -1) core->Trace("can`t load font:'%s'", param);
 
     // Get font scale
     m_fFontScale = GetIniFloat(ini1, name1, ini2, name2, "fontScale", 1.f);
@@ -251,10 +251,10 @@ void CXI_PCEDITBOX::UpdateString(std::string& str)
     str                        = "";
     m_nFirstShowCharacterIndex = 0;
 
-    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (!pA) {
-        core.Entity_SetAttribute(g_idInterface, m_nodeName, "");
-        pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+        core->Entity_SetAttribute(g_idInterface, m_nodeName, "");
+        pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     }
     if (!pA) return;
     str           = to_string(pA->GetAttribute("str"));
@@ -262,11 +262,11 @@ void CXI_PCEDITBOX::UpdateString(std::string& str)
     if (m_nEditPos < 0) m_nEditPos = strLength;
 
     if (IsEditMode()) {
-        if (m_bWaitKeyRelease && core.Controls->GetKeyBufferLength() == 0) m_bWaitKeyRelease = false;
+        if (m_bWaitKeyRelease && core->Controls->GetKeyBufferLength() == 0) m_bWaitKeyRelease = false;
 
         if (!m_bWaitKeyRelease) {
-            KeyDescr const* pKeys = core.Controls->GetKeyBuffer();
-            for (int32_t n = 0; n < core.Controls->GetKeyBufferLength(); n++) {
+            KeyDescr const* pKeys = core->Controls->GetKeyBuffer();
+            for (int32_t n = 0; n < core->Controls->GetKeyBufferLength(); n++) {
                 if (pKeys[n].bSystem) {
                     switch (pKeys[n].ucVKey.c) {
                         // control symbols
