@@ -43,9 +43,9 @@ FLAG::~FLAG()
     STORM_DELETE(flist);
 }
 
-bool FLAG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool FLAG::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(FLAG::FLAG())
     SetDevice();
     // UNGUARD

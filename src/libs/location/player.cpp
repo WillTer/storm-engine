@@ -10,6 +10,7 @@
 
 #include "player.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/collide/collide.h>
 #include <libs/shared_headers/messages.h>
 
@@ -564,7 +565,7 @@ void Player::FireFromShootgun()
     auto const src = mtx.Pos() + mtx.Vz() * 0.7f;
     core.Send_Message(effects, "sffffff", "SGFireParticles", src.x, src.y - 0.35f, src.z, mtx.Vz().x, mtx.Vz().y, mtx.Vz().z);
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
     struct ChrsDmg {
         Character* chr;
         float      dmg;
@@ -578,41 +579,40 @@ void Player::FireFromShootgun()
         auto const r   = rand() * 3.0f / RAND_MAX;
         auto const a   = rand() * 6.283185307f / (RAND_MAX + 1);
         auto       dst = mtx * CVECTOR(r * sinf(a), r * cosf(a), 25.0f);
-        if (collide) {
-            auto       id   = GetId();
-            auto const dist = collide->Trace(ids, src, dst, &id, 0);
-            if (dist <= 1.0f && dist > (0.2f / 25.0f)) {
-                auto dir = !(src - dst);
-                dst      = src + (dst - src) * dist;
-                // Got somewhere
-                auto* const e = core.GetEntityPointer(collide->GetObjectID());
-                if (e && e != this) {
-                    int32_t nm;
-                    size_t  n;
-                    for (n = 0, nm = location->supervisor.character.size(); n < nm; n++) {
-                        auto* c = static_cast<Player*>(location->supervisor.character[n].c);
-                        if (c->Model() == e) {
-                            core.Send_Message(effects, "sffffff", "SGBloodParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
-                            c->impulse -= dir * (1.5f + rand() * (1.0f / RAND_MAX));
-                            c->impulse.y += 1.5f + rand() * (1.0f / RAND_MAX);
-                            int32_t j;
-                            for (j = 0; j < numChrs; j++) {
-                                if (chrs[j].chr == c) {
-                                    chrs[j].dmg *= 2.0f;
-                                    break;
-                                }
+
+        auto       id   = GetId();
+        auto const dist = collide.Trace(ids, src, dst, &id, 0);
+        if (dist <= 1.0f && dist > (0.2f / 25.0f)) {
+            auto dir = !(src - dst);
+            dst      = src + (dst - src) * dist;
+            // Got somewhere
+            auto* const e = core.GetEntityPointer(collide.GetObjectID());
+            if (e && e != this) {
+                int32_t nm;
+                size_t  n;
+                for (n = 0, nm = location->supervisor.character.size(); n < nm; n++) {
+                    auto* c = static_cast<Player*>(location->supervisor.character[n].c);
+                    if (c->Model() == e) {
+                        core.Send_Message(effects, "sffffff", "SGBloodParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
+                        c->impulse -= dir * (1.5f + rand() * (1.0f / RAND_MAX));
+                        c->impulse.y += 1.5f + rand() * (1.0f / RAND_MAX);
+                        int32_t j;
+                        for (j = 0; j < numChrs; j++) {
+                            if (chrs[j].chr == c) {
+                                chrs[j].dmg *= 2.0f;
+                                break;
                             }
-                            if (j >= numChrs && numChrs < 16) {
-                                chrs[numChrs].chr   = c;
-                                chrs[numChrs++].dmg = 1.0f;
-                            }
-                            break;
                         }
+                        if (j >= numChrs && numChrs < 16) {
+                            chrs[numChrs].chr   = c;
+                            chrs[numChrs++].dmg = 1.0f;
+                        }
+                        break;
                     }
-                    if (n >= nm) core.Send_Message(effects, "sffffff", "SGEnvParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
-                } else
-                    core.Send_Message(effects, "sffffff", "SGEnvParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
-            }
+                }
+                if (n >= nm) core.Send_Message(effects, "sffffff", "SGEnvParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
+            } else
+                core.Send_Message(effects, "sffffff", "SGEnvParticles", dst.x, dst.y, dst.z, dir.x, dir.y, dir.z);
         }
     }
     for (int32_t i = 0; i < numChrs; i++) {

@@ -1,8 +1,8 @@
 #include "seafoam.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
@@ -33,9 +33,9 @@ SEAFOAM::~SEAFOAM()
 }
 
 //--------------------------------------------------------------------
-bool SEAFOAM::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SEAFOAM::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(SEAFOAM::Init)
 
     /*if (core.IsNetActive())
@@ -390,15 +390,15 @@ void SEAFOAM::RealizeShipFoam_Particles(tShipFoamInfo& _shipFoamInfo, uint32_t _
         _shipFoamInfo.frontEmitter[2]->Realize(_dTime);
     }
 
-    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
     if (_shipFoamInfo.doSplash) {
         auto pos = _shipFoamInfo.shipModel->mtx * CVECTOR(0.f, 0.f, _shipFoamInfo.hullInfo.boxsize.z / 2.f);
         pos.y    = sea->WaveXZ(pos.x, pos.z);
 
-        if (!_shipFoamInfo.sound || !sound_service->is_playing(_shipFoamInfo.sound)) {
-            _shipFoamInfo.sound = sound_service->play("ship_bow", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+        if (!_shipFoamInfo.sound || !sound_service.is_playing(_shipFoamInfo.sound)) {
+            _shipFoamInfo.sound = sound_service.play("ship_bow", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
         } else if (_shipFoamInfo.sound) {
-            sound_service->set_3d_param(_shipFoamInfo.sound, SoundMessageType::Position, &pos);
+            sound_service.set_3d_param(_shipFoamInfo.sound, SoundMessageType::Position, &pos);
         }
     }
 

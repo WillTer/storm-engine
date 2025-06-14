@@ -2,10 +2,10 @@
 
 #include <array>
 
+#include <entt/entity/registry.hpp>
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
 #include <libs/core/vma.hpp>
-#include <libs/filesystem/default_paths.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
@@ -133,9 +133,9 @@ LegacyDialog::~LegacyDialog() noexcept
     if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
 }
 
-bool LegacyDialog::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LegacyDialog::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(RenderService != nullptr);
@@ -177,9 +177,9 @@ void LegacyDialog::Realize(uint32_t deltaTime)
 {
     Unfade();
 
-    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
     if (soundState_ == SOUND_STARTING && !soundName_.empty()) {
-        currentSound_ = sound_service->play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
+        currentSound_ = sound_service.play(soundName_, SoundType::SoundStereo, VolumeType::Speech);
         if (currentSound_) {
             SetAction("dialog_all");
             soundState_ = SOUND_PLAYING;
@@ -225,7 +225,7 @@ void LegacyDialog::Realize(uint32_t deltaTime)
     // Head overlay
     DrawBackground(0, 2);
 
-    if (soundState_ == SOUND_PLAYING && sound_service && !sound_service->is_playing(currentSound_)) {
+    if (soundState_ == SOUND_PLAYING && !sound_service.is_playing(currentSound_)) {
         SetAction("dialog_idle");
         soundState_ = SOUND_STOPPED;
     }
@@ -700,8 +700,8 @@ void LegacyDialog::ProcessControls()
 
 void LegacyDialog::PlayTick()
 {
-    auto const& sound_service = m_service_locator->get<VSoundService>();
-    sound_service->play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    sound_service.play(TICK_SOUND, SoundType::SoundStereo, VolumeType::Fx);
 }
 
 void LegacyDialog::Unfade()

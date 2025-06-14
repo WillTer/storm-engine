@@ -9,7 +9,7 @@ class SHIPPOINTER: public Entity
 public:
     SHIPPOINTER();
     ~SHIPPOINTER() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init(std::shared_ptr<entt::registry> const& registry) override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time) const;
     uint64_t ProcessMessage(MESSAGE& message) override;

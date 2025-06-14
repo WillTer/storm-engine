@@ -2,8 +2,9 @@
 
 #include <cstdint>
 
+#include <entt/fwd.hpp>
+
 #include "attributes.h"  // TODO: REMOVE
-#include "service_locator.hpp"
 
 /* typedefs */
 class Entity;
@@ -44,9 +45,9 @@ public:
     Entity& operator=(Entity const&) = delete;
     virtual ~Entity()                = default;
 
-    virtual bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+    virtual bool Init(std::shared_ptr<entt::registry> const& registry)
     {
-        m_service_locator = service_locator;
+        m_registry = registry;
         return true;
     }
 
@@ -63,7 +64,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
 private:
     EntitySelfData data_ {};

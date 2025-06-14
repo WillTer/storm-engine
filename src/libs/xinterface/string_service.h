@@ -6,7 +6,7 @@
 class VSTRSERVICE: public SERVICE
 {
 public:
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override = 0;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override = 0;
     bool LoadState(ENTITY_STATE* state) override                                      = 0;
     bool CreateState(ENTITY_STATE_GEN* state_gen) override                            = 0;
     void RunStart() override                                                          = 0;

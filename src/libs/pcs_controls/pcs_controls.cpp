@@ -1,5 +1,6 @@
 #include "pcs_controls.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
@@ -43,12 +44,12 @@ PCS_CONTROLS::~PCS_CONTROLS()
     // ClipCursor(0);
 }
 
-void PCS_CONTROLS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void PCS_CONTROLS::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    CONTROLS::Init(service_locator);
+    CONTROLS::Init(registry);
 
-    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const  controls_info = storm::main_config::controls_info(*config_loader);
+    auto&      config_loader = m_registry->ctx().get<IConfigLoader&>();
+    auto const controls_info = main_config::controls_info(config_loader);
 
     m_is_debug_keys_enabled = controls_info.use_debug_keys;
 }

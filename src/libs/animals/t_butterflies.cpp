@@ -1,5 +1,7 @@
 #include "t_butterflies.h"
 
+#include <entt/entity/registry.hpp>
+#include <libs/collide/vcollide.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/messages.h>
@@ -33,9 +35,9 @@ void TButterflies::LoadSettings()
 }
 
 //--------------------------------------------------------------------
-void TButterflies::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void TButterflies::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    m_service_locator = service_locator;
+    m_registry = registry;
 
     LoadSettings();
 
@@ -85,7 +87,7 @@ void TButterflies::Execute(uint32_t _dTime)
 
     auto const its = core.GetEntityIds(SHADOW);
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
 
     // redefine minY
     yDefineTime += _dTime;
@@ -97,11 +99,11 @@ void TButterflies::Execute(uint32_t _dTime)
             topVector.y                    = ALL_Y;
             bottomVector.y                 = -ALL_Y;
 
-            auto const ray = collide->Trace(its, topVector, bottomVector, nullptr, 0);
-            if (ray <= 1.0f)
+            if (auto const ray = collide.Trace(its, topVector, bottomVector, nullptr, 0); ray <= 1.0f) {
                 butterflies[i].SetMinY(-ALL_Y + (1.f - ray) * 2.f * ALL_Y);
-            else
+            } else {
                 butterflies[i].SetMinY(-ALL_Y);
+            }
         }
     }
 
@@ -109,7 +111,7 @@ void TButterflies::Execute(uint32_t _dTime)
     ivManager->LockBuffers();
 
     for (i = 0; i < butterfliesCount; i++) {
-        butterflies[i].Calculate(_dTime, collide.get(), its);
+        butterflies[i].Calculate(_dTime, collide, its);
         butterflies[i].Draw(ivManager);
         // butterflies[i].Draw(renderService);
     }

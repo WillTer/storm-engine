@@ -6,6 +6,8 @@
 class VIRTUAL_COMPILER
 {
 public:
+    virtual ~VIRTUAL_COMPILER() = default;
+
     virtual void SetError(char const* data_PTR, ...) {};
 
     virtual void SetWarning(char const* data_PTR, ...) {};

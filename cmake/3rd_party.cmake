@@ -57,12 +57,19 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+    entt
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG        v3.15.0
+    GIT_SHALLOW    ON
+)
+
+FetchContent_Declare(
     storm-audio
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
     GIT_TAG         1f7544fad34178d65d9a42d688d17282bbe9502e
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt toml11 storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog fmt toml11 entt storm-audio)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL2 zlib)

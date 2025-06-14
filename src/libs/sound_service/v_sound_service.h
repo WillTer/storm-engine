@@ -63,9 +63,9 @@ private:
 class VSoundService: public SERVICE
 {
 public:
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override = 0;
-    uint32_t RunSection() override                                                        = 0;
-    void     RunStart() override                                                          = 0;
+    bool     Init(std::shared_ptr<entt::registry> const& registry) override = 0;
+    uint32_t RunSection() override                                          = 0;
+    void     RunStart() override                                            = 0;
 
     // Sound entries functions
     //
@@ -113,8 +113,8 @@ public:
     virtual void set_active_with_fade(bool active) = 0;
 };
 
-/*
-API_SERVICE_START("sound service")
-    DECLARE_MAIN_SERVICE(SoundService)
-API_SERVICE_END(SoundService)
-*/
+namespace sound_service
+{
+void run_start(entt::registry& registry);
+void run_end(entt::registry& registry);
+}  // namespace sound_service

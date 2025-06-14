@@ -51,9 +51,9 @@ void TSeagulls::LoadSettings()
 }
 
 //--------------------------------------------------------------------
-void TSeagulls::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void TSeagulls::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    m_service_locator = service_locator;
+    m_registry = registry;
 
     startY = 0.f;
     LoadSettings();

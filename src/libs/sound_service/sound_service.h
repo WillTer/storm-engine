@@ -47,7 +47,7 @@ public:
 
     SoundService();
     ~SoundService() override;
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
 
     uint32_t RunSection() override
     {
@@ -95,6 +95,8 @@ public:
 
     void set_active_with_fade(bool is_active) override;
 
+    void load_alias_file(std::string const& filename) override;
+
 private:
     SoundID prepare_music(std::string const& name, int32_t fade_time = 0);
 
@@ -125,7 +127,6 @@ private:
 
     // Aliases ------------------------------------------------------------
 
-    void load_alias_file(std::string const& filename) override;
     void init_aliases();
 
     // Sound Schemes------------------------------------------------------------

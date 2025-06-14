@@ -40,9 +40,9 @@ CharacterAnimationKipper::~CharacterAnimationKipper()
 }
 
 // Initialization
-bool CharacterAnimationKipper::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool CharacterAnimationKipper::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // check that the it's the only one
     auto&& entities = core.GetEntityIds("CharacterAnimationKipper");

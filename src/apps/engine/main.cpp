@@ -2,11 +2,12 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <entt/entity/organizer.hpp>
+#include <entt/entity/registry.hpp>
 #include <libs/collide/vcollide.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_private.h>
-#include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
@@ -20,29 +21,24 @@
 namespace
 {
 
-CorePrivate* core_private;
-
-constexpr char DEFAULT_LOGGER_NAME[]          = "system";
-bool           is_sound_in_background_enabled = false;
-bool           is_active                      = false;
-bool           should_close                   = false;
+constexpr char DEFAULT_LOGGER_NAME[] = "system";
 
 storm::diag::LifecycleDiagnosticsService lifecycle_diagnostics;
 
-bool run_frame()
+bool run_frame(CorePrivate& core)
 {
-    bool const is_running = core_private->Run();
+    bool const is_running = core.Run();
     lifecycle_diagnostics.notifyAfterRun();
 
     return is_running;
 }
 
 #ifdef _WIN32
-bool run_frame_with_overflow_check()
+bool run_frame_with_overflow_check(CorePrivate& core)
 {
     bool is_running = false;
     __try {
-        is_running = run_frame();
+        is_running = run_frame(core);
     } __except ([](unsigned code, struct _EXCEPTION_POINTERS* ep) {
         return code == EXCEPTION_STACK_OVERFLOW;
     }(GetExceptionCode(), GetExceptionInformation())) {
@@ -53,38 +49,11 @@ bool run_frame_with_overflow_check()
     return is_running;
 }
 #else
-bool run_frame_with_overflow_check()
+bool run_frame_with_overflow_check(CorePrivate& core)
 {
-    return run_frame();
+    return run_frame(core);
 }
 #endif
-
-void handle_window_event(storm::ServiceLocator const& service_locator, storm::OSWindow::Event const& event)
-{
-    auto const sound_service = service_locator.get<VSoundService>();
-
-    switch (event) {
-    case storm::OSWindow::Unknown: break;
-    case storm::OSWindow::FocusGained:
-        is_active = true;
-        if (core_private->initialized()) {
-            core_private->AppState(is_active);
-            if (sound_service && !is_sound_in_background_enabled) { sound_service->set_active_with_fade(true); }
-        }
-        break;
-    case storm::OSWindow::FocusLost:
-        is_active = false;
-        if (core_private->initialized()) {
-            core_private->AppState(is_active);
-            if (sound_service && !is_sound_in_background_enabled) { sound_service->set_active_with_fade(false); }
-        }
-        break;
-    case storm::OSWindow::Closed:
-        should_close = true;
-        if (core_private->initialized()) { core_private->Event("DestroyWindow"); }
-        break;
-    }
-}
 
 }  // namespace
 
@@ -100,12 +69,25 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
-    auto const config_loader = std::make_shared<storm::ConfigLoader>(*fio);
-    auto const sound_service = std::make_shared<SoundService>();
-    auto const collide       = std::make_shared<COLL>();
-    auto const geometry      = std::make_shared<GEOMETRY>();
+    auto const registry = std::make_shared<entt::registry>();
 
-    auto const service_locator = std::make_shared<storm::ServiceLocator>(config_loader, sound_service, collide, geometry);
+    auto const config_loader = std::make_unique<storm::ConfigLoader>(*fio);
+    auto const sound_service = std::make_unique<SoundService>();
+    auto const collide       = std::make_unique<COLL>();
+    // auto const geometry      = std::make_unique<GEOMETRY>();
+
+    registry->ctx().emplace<storm::IConfigLoader&>(*config_loader);
+    registry->ctx().emplace<VSoundService&>(*sound_service).Init(registry);
+    registry->ctx().emplace<COLLIDE&>(*collide).Init(registry);
+    // registry->ctx().emplace<VGEOMETRY&>(*geometry).Init(registry);
+
+    entt::organizer execute_start;
+    execute_start.emplace<&sound_service::run_start>("VSoundService::RunStart");
+
+    entt::organizer execute_end;
+    execute_end.emplace<&sound_service::run_end>("VSoundService::RunEnd");
+
+    auto& core_private = static_cast<CorePrivate&>(core);
 
     // Load parameters of file service
     fio->init_from_main_config(*config_loader);
@@ -122,7 +104,7 @@ int main()
     if (!lifecycle_diagnostics_guard) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", "Unable to initialize lifecycle service!", nullptr);
     } else {
-        lifecycle_diagnostics.setCrashInfoCollector([]() { core_private->collectCrashInfo(); });
+        lifecycle_diagnostics.setCrashInfoCollector([&core_private]() { core_private.collectCrashInfo(); });
     }
 
     // Init stash
@@ -133,8 +115,7 @@ int main()
     spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
 
     // Init core
-    core_private = static_cast<CorePrivate*>(&core);
-    core_private->Init(service_locator);
+    core_private.Init(registry);
 
     // Read config
     auto const general_info = storm::main_config::general_info(*config_loader);
@@ -145,7 +126,7 @@ int main()
         spdlog::set_level(spdlog::level::off);
     }
 
-    is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
+    bool const is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
     try {
         steamapi::SteamApi::getInstance(!general_info.use_steam);
@@ -154,29 +135,46 @@ int main()
         return EXIT_FAILURE;
     }
 
-    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
-        service_locator,
-        window_info.width,
-        window_info.height,
-        window_info.preferred_display,
-        window_info.full_screen,
-        window_info.show_borders);
+    auto const window = storm::OSWindow::Create(
+        window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
     window->SetTitle("Sea Dogs");
-    window->Subscribe(handle_window_event);
     window->Show();
-    core_private->SetWindow(window);
+    core_private.SetWindow(window);
 
     // Init core
-    core_private->InitBase();
-    core_private->register_service(sound_service);
+    core_private.InitBase();
+
+    core_private.set_organizer_for_section_start(SECTION_EXECUTE, execute_start);
+    core_private.set_organizer_for_section_end(SECTION_EXECUTE, execute_end);
 
     // Message loop
     auto old_time = SDL_GetTicks();
 
-    bool is_running = true;
-    while (is_running && !should_close) {
-        SDL_PumpEvents();
-        SDL_FlushEvents(0, SDL_LASTEVENT);
+    bool should_close = false;
+    bool is_active    = true;
+    while (!should_close) {
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev) > 0) {
+            switch (ev.type) {
+                // Window Events
+            case SDL_QUIT: should_close = true; break;
+            case SDL_WINDOWEVENT:
+                switch (ev.window.event) {
+                case SDL_WINDOWEVENT_CLOSE: should_close = true; break;
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                    is_active = true;
+                    core_private.AppState(is_active);
+                    if (!is_sound_in_background_enabled) { sound_service->set_active_with_fade(true); }
+                    break;
+                case SDL_WINDOWEVENT_FOCUS_LOST:
+                    is_active = false;
+                    core_private.AppState(is_active);
+                    if (!is_sound_in_background_enabled) { sound_service->set_active_with_fade(false); }
+                    break;
+                }
+                break;
+            }
+        }
 
         if (is_active || window_info.run_in_background) {
             if (window_info.max_fps != 0U) {
@@ -186,16 +184,17 @@ int main()
                 old_time = new_time;
             }
 
-            is_running = run_frame_with_overflow_check();
+            should_close = !run_frame_with_overflow_check(core_private);
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 
     // Release
-    core_private->Event("ExitApplication");
-    core_private->CleanUp();
-    core_private->ReleaseBase();
+    core_private.Event("DestroyWindow");
+    core_private.Event("ExitApplication");
+    core_private.CleanUp();
+    core_private.ReleaseBase();
 #ifdef _WIN32  // FIX_LINUX Cursor
     ClipCursor(nullptr);
 #endif

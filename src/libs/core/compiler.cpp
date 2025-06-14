@@ -13,6 +13,8 @@
 #include <unordered_map>
 
 #include <SDL_timer.h>
+#include <entt/entity/registry.hpp>
+#include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/filesystem/default_paths.h>
@@ -94,9 +96,10 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+COMPILER::COMPILER(std::shared_ptr<entt::registry> const& registry)
     : bBreakOnError(false)
     , pRunCodeBase(nullptr)
+    , m_registry(registry)
     , CompilerStage(CS_SYSTEM)
     , pEventMessage(nullptr)
     , SegmentsNum(0)
@@ -124,7 +127,6 @@ COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator
     , pIOBuffer(nullptr)
     , rAP(nullptr)
     , script_cache_mode_(kCacheDisabled)
-    , m_service_locator(service_locator)
 
 {
     LabelTable.SetStringDataSize(sizeof(uint32_t));
@@ -407,8 +409,8 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const  script_info   = storm::main_config::script_info(*config_loader);
+    auto&      config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
+    auto const script_info   = storm::main_config::script_info(config_loader);
 
     bDebugInfo         = script_info.compilation_logs;
     bWriteCodeFile     = script_info.create_codefiles;
@@ -436,19 +438,6 @@ bool COMPILER::Run()
     bFirstRun = false;
     BC_Execute(function_code, pResult);
     pRun_fi = nullptr;
-
-    // DATA Result;
-    // Result.SetVCompiler(this);
-    // ProcessDebugExpression("Characters[45].id",Result);
-
-    /*for(DWORD m=0;m<HASH_TABLE_SIZE;m++)
-    {
-      DTrace("HashIndex[%d]",m);
-      for(DWORD n=0;n<SCodec.HTable[m].nStringsNum;n++)
-      {
-        DTrace(SCodec.HTable[m].ppDat[n]);
-      }
-    }*/
 
     return true;
 }

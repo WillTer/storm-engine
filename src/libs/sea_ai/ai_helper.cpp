@@ -42,9 +42,9 @@ bool AIHelper::SetDevice()
     return true;
 }
 
-bool AIHelper::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool AIHelper::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    m_service_locator = service_locator;
+    m_registry = registry;
 
     pIsland = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
 

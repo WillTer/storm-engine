@@ -4,29 +4,22 @@
 
 namespace storm
 {
-SDLWindow::SDLWindow(
-    std::shared_ptr<ServiceLocator> const& service_locator, int width, int height, int preferred_display, bool fullscreen, bool bordered)
-    : m_service_locator {service_locator}
-    , fullscreen_ {fullscreen}
+SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered) : fullscreen_ {fullscreen}
 {
     uint32_t flags = (fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_HIDDEN;
 #if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
     flags |= SDL_WINDOW_VULKAN;
 #endif
-    window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
+    window_ = std::shared_ptr<SDL_Window>(
         SDL_CreateWindow(
             "", SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), width, height, flags),
-        [](SDL_Window* w) { SDL_DestroyWindow(w); });
+        &SDL_DestroyWindow);
 
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered ? SDL_TRUE : SDL_FALSE);
-    SDL_AddEventWatch(&SDLEventHandler, this);
 }
 
-SDLWindow::~SDLWindow()
-{
-    SDL_DelEventWatch(&SDLEventHandler, this);
-}
+SDLWindow::~SDLWindow() = default;
 
 void SDLWindow::Show()
 {
@@ -100,20 +93,6 @@ void SDLWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256
     SDL_SetWindowGammaRamp(window_.get(), red, green, blue);
 }
 
-int SDLWindow::Subscribe(EventHandler const& handler)
-{
-    int id = 1;
-    if (!handlers_.empty()) id = (--handlers_.end())->first + 1;
-    handlers_[id] = handler;
-    return id;
-}
-
-void SDLWindow::Unsubscribe(int id)
-{
-    auto it = handlers_.find(id);
-    if (it != handlers_.end()) handlers_.erase(it);
-}
-
 // TODO: X/Wayland/MacOS
 void* SDLWindow::OSHandle()
 {
@@ -135,37 +114,9 @@ SDL_Window* SDLWindow::SDLHandle() const
     return window_.get();
 }
 
-void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
+std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
 {
-    Event winEvent;
-    switch (evt.event) {
-    case SDL_WINDOWEVENT_FOCUS_GAINED: winEvent = FocusGained; break;
-
-    case SDL_WINDOWEVENT_FOCUS_LOST: winEvent = FocusLost; break;
-
-    case SDL_WINDOWEVENT_CLOSE: winEvent = Closed; break;
-
-    default: return;
-    }
-
-    for (auto handler: handlers_)
-        handler.second(*m_service_locator, winEvent);
+    return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
 }
 
-std::shared_ptr<OSWindow> OSWindow::Create(
-    std::shared_ptr<ServiceLocator> const& service_locator, int width, int height, int preferred_display, bool fullscreen, bool bordered)
-{
-    return std::make_shared<SDLWindow>(service_locator, width, height, preferred_display, fullscreen, bordered);
-}
-
-int SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
-{
-    auto w = static_cast<SDLWindow*>(userdata);
-
-    if ((evt->type != SDL_WINDOWEVENT) || (evt->window.windowID != w->sdlID_)) return 0;
-
-    w->ProcessEvent(evt->window);
-
-    return 0;
-}
 }  // namespace storm

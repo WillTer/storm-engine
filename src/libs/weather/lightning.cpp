@@ -1,5 +1,6 @@
 #include "lightning.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 
 LIGHTNING::LIGHTNING()
@@ -19,9 +20,9 @@ void LIGHTNING::Release() const
     pRS->TextureRelease(iFlashTexture);
 }
 
-bool LIGHTNING::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LIGHTNING::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     SetDevice();
 
     return true;
@@ -148,9 +149,9 @@ void LIGHTNING::CalcFlashPower(lightning_t* pL) const
 
     auto fPower = 1.0f;
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
     for (uint32_t i = 0; i < 3; i++) {
-        auto const fRes = collide->Trace(core.GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
+        auto const fRes = collide.Trace(core.GetEntityIds(SUN_TRACE), vCamPos, vTrace[i], nullptr, 0);
         if (fRes <= 1.0f) fPower -= 0.31f;
     }
     pL->fPower = fPower;

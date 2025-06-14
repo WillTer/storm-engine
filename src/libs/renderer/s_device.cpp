@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <SDL_timer.h>
+#include <entt/entity/registry.hpp>
 #include <fmt/chrono.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
@@ -418,9 +419,9 @@ DX9RENDER::DX9RENDER()
 static bool  texLog = false;
 static float fSin   = 0.0f;
 
-bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool DX9RENDER::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    SERVICE::Init(service_locator);
+    SERVICE::Init(registry);
 
     if (auto* sentinelService = core.GetService("LostDeviceSentinel"); !sentinelService) {
         throw std::runtime_error("Cannot create LostDeviceSentinel! Abort");
@@ -435,9 +436,9 @@ bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
 
     create_directories(fs::GetScreenshotsPath());
 
-    auto const& config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const  window_info   = storm::main_config::window_info(*config_loader);
-    auto const  device_info   = storm::main_config::device_info(*config_loader);
+    auto&      config_loader = m_registry->ctx().get<storm::IConfigLoader&>();
+    auto const window_info   = storm::main_config::window_info(config_loader);
+    auto const device_info   = storm::main_config::device_info(config_loader);
 
     bPostProcessEnabled = device_info.post_process;  // TODO: check it
 
@@ -526,7 +527,7 @@ bool DX9RENDER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locat
     idFontCurrent = 0L;
 
     // Progress image parameters
-    auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
+    auto const progress_image_info = storm::main_config::progress_image_info(config_loader);
     progressFramesPosX             = progress_image_info.relative_x;
     progressFramesPosY             = progress_image_info.relative_y;
     progressFramesWidth            = std::clamp(progress_image_info.relative_width, 0.0F, 10.0F);

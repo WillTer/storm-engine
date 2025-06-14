@@ -28,7 +28,6 @@ private:
     std::vector<goods_t*>   aGoods;
     std::vector<SHIP_BASE*> aShips;
 
-    VGEOMETRY*  pGeoService;
     SEA_BASE*   pSea;
     item_t      TmpItem;
     std::string sModelPath, sTmpModel;
@@ -40,7 +39,7 @@ public:
     AISeaGoods();
     ~AISeaGoods() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
     void SetDevice();
 
     void Realize(uint32_t Delta_Time);

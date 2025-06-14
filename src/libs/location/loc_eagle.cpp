@@ -37,9 +37,9 @@ LocEagle::~LocEagle()
 }
 
 // Initialization
-bool LocEagle::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocEagle::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // The point we fly around
     auto const loc      = core.GetEntityId("location");

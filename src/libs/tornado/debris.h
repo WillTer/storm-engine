@@ -41,7 +41,7 @@ public:
     Debris(Pillar& _pillar);
     virtual ~Debris();
 
-    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void Init(std::shared_ptr<entt::registry> const& registry);
 
     void Update(float dltTime);
     void Draw(VDX9RENDER* rs);
@@ -58,7 +58,7 @@ private:
     bool   IsShip();
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
     float   lastPlayTime;
     Pillar& pillar;

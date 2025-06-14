@@ -19,9 +19,9 @@ ShipTracks::~ShipTracks()
     // aShips.DelAllWithPointers();
 }
 
-bool ShipTracks::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ShipTracks::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     entid_t sea_id;
 

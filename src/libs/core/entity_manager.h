@@ -12,7 +12,7 @@
 class EntityManager final
 {
 public:
-    EntityManager(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    EntityManager(std::shared_ptr<entt::registry> const& registry);
 
     hash_t                GetClassCode(entid_t id) const;
     entptr_t              GetEntityPointer(entid_t id) const;
@@ -36,8 +36,6 @@ public:
     void    ForEachEntity(std::function<void(entptr_t)> const& f);
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
-
     constexpr static size_t kMaxLayerNum = sizeof(uint32_t) * 8;
 
     using entid_index_t  = uint32_t;
@@ -77,6 +75,8 @@ private:
     void    EraseAndFree(EntityInternalData& data);
     void    MarkDeleted(EntityInternalData& data);
     entid_t InsertEntity(entptr_t ptr, hash_t hash);
+
+    std::shared_ptr<entt::registry> m_registry;
 
     mutable EntityContainerCache cache_;
 

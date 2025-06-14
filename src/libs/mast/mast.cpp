@@ -1,5 +1,7 @@
 #include "mast.h"
 
+#include <entt/entity/registry.hpp>
+#include <libs/collide/vcollide.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/island/island_base.h>
@@ -56,9 +58,9 @@ MAST::~MAST()
     AllRelease();
 }
 
-bool MAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool MAST::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(MAST::Init())
 
     SetDevice();
@@ -551,15 +553,15 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
 {
     int retVal = 0;
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
 
     // rhea collision
     const CVECTOR vl     = lrey;
     const CVECTOR vr     = rrey;
     const CVECTOR vcentr = (vl + vr) * .5f;
     float         ang    = 0.f;
-    float const   lf     = collide->Trace(mod, vl, vcentr);
-    float const   rf     = collide->Trace(mod, vr, vcentr);
+    float const   lf     = collide.Trace(mod, vl, vcentr);
+    float const   rf     = collide.Trace(mod, vr, vcentr);
 
     if ((lf <= 1.f && rf > 1.f) || (lf > 1.f && rf <= 1.f)) {
         if (lf > 1.f)
@@ -576,7 +578,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
     CVECTOR vb   = pbeg;
     CVECTOR ve   = pend;
     dp           = CVECTOR(0.f, 0.f, 0.f);
-    if ((tmp = collide->Trace(mod, ve, vb)) <= 1.f) {
+    if ((tmp = collide.Trace(mod, ve, vb)) <= 1.f) {
         retVal |= SR_MOVE;
         if (tmp < 0.5f) retVal |= SR_STOPROTATE;
         do {
@@ -611,7 +613,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
                 vb.y += TRACE_ADDING;
                 ve.y += TRACE_ADDING;
             }
-        } while ((tmp = collide->Trace(mod, ve, vb)) <= 1.f);
+        } while ((tmp = collide.Trace(mod, ve, vb)) <= 1.f);
     } else
         return retVal;
 
@@ -654,9 +656,9 @@ HULL::~HULL()
     AllRelease();
 }
 
-bool HULL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool HULL::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     SetDevice();
     return true;
 }

@@ -40,9 +40,9 @@ void HELPCHOOSER::SetDevice()
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
-bool HELPCHOOSER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool HELPCHOOSER::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(HELPCHOOSER::Init())
     SetDevice();
     // UNGUARD

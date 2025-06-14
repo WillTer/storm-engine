@@ -1,5 +1,6 @@
 #include "rain.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 
@@ -166,9 +167,9 @@ void RAIN::GenerateRain()
     fDropsDeltaTime = 0.0f;
 }
 
-bool RAIN::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool RAIN::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     SetDevice();
@@ -223,7 +224,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
         static_cast<float>(static_cast<double>(iNumNewDrops1 + iNumNewDrops2) / static_cast<double>(dwDropsNearNum + dwDropsFarNum));
     if (fDropsDeltaTime < 0.0f) fDropsDeltaTime = 0.0f;
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
     if (auto&& entities = core.GetEntityIds(RAIN_DROPS); !entities.empty()) {
         for (int32_t i = 0; i < iNumNewDrops1 + iNumNewDrops2; i++) {
             SHIP_BASE* pShip = nullptr;
@@ -243,7 +244,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
             vSrc = CVECTOR(vCamPos.x + fR * sinf(fA), vCamPos.y + 75.0f, vCamPos.z + fR * cosf(fA));
             vDst = CVECTOR(vSrc.x, vCamPos.y - 75.0f, vSrc.z);
 
-            auto fTest1 = collide->Trace(entities, vSrc, vDst, nullptr, 0);
+            auto fTest1 = collide.Trace(entities, vSrc, vDst, nullptr, 0);
             auto fTest2 = 2.0f;
 
             if (pSea) {
@@ -255,7 +256,7 @@ void RAIN::RealizeDrops(uint32_t Delta_Time)
                 fTest = fTest1;
 
                 // check - if it's a ship
-                entid_t eid = collide->GetObjectID();
+                entid_t eid = collide.GetObjectID();
                 if (core.GetClassCode(eid) == dwShipName) { pShip = static_cast<SHIP_BASE*>(core.GetEntityPointer(eid)); }
             } else if (fTest2 <= 1.0f) {
                 // seadrop_t & sea_drop = aSeaDrops[aSeaDrops.Add()];

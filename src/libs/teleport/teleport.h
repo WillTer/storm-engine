@@ -15,7 +15,7 @@ class TMPTELEPORT: public Entity
 public:
     TMPTELEPORT();
     ~TMPTELEPORT() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init(std::shared_ptr<entt::registry> const& registry) override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;
@@ -60,7 +60,7 @@ public:
 
     ~FINDFILESINTODIRECTORY() override {}
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
 
     void ProcessStage(Stage, uint32_t) override {}
 };
@@ -72,7 +72,7 @@ public:
 
     ~FINDDIALOGNODES() override {}
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
 
     void ProcessStage(Stage, uint32_t) override {}
 };

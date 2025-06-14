@@ -112,9 +112,9 @@ int32_t CharactersGroups::String::GetLen(char const* str)
 }
 
 // Initialization
-bool CharactersGroups::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool CharactersGroups::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // Location Pointer
     auto const loc = core.GetEntityId("location");

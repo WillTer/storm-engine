@@ -48,9 +48,9 @@ VANT_BASE::~VANT_BASE()
     nVert = nIndx = 0;
 }
 
-bool VANT_BASE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool VANT_BASE::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(VANT::VANT())
     SetDevice();
     // UNGUARD

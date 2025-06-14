@@ -24,9 +24,9 @@ LocModelRealizer::LocModelRealizer()
 LocModelRealizer::~LocModelRealizer() {}
 
 // Initialization
-bool LocModelRealizer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocModelRealizer::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));

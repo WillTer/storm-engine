@@ -26,9 +26,9 @@ WATERFLARE::~WATERFLARE()
     // UNGUARD
 }
 
-bool WATERFLARE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WATERFLARE::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // GUARD(bool WATERFLARE::Init())
 
     core.AddToLayer(REALIZE, GetId(), -1);

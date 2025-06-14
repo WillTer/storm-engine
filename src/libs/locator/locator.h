@@ -25,7 +25,7 @@ class LOCATOR: public Entity
 public:
     ~LOCATOR() override;
     LOCATOR();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init(std::shared_ptr<entt::registry> const& registry) override;
     uint64_t ProcessMessage(MESSAGE& message) override;
     uint32_t AttributeChanged(ATTRIBUTES*) override;
 

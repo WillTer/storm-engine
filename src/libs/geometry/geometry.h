@@ -17,16 +17,13 @@ using VERTEX_TRANSFORM = void* (*)(void* vb, int32_t startVrt, int32_t nVerts, i
 class VGEOMETRY: public SERVICE
 {
 public:
-    class ANIMATION_VB
-    {
-    public:
+    struct ANIMATION_VB {
         int32_t nvertices;
         int32_t fvf;
         int32_t stride;
         void*   buff;
     };
 
-    ~VGEOMETRY() override {};
     virtual GEOS*      CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath = nullptr) = 0;
     virtual void       DeleteGeometry(GEOS*)                                                                                           = 0;
     virtual ANIMATION* LoadAnimation(char const* anim)                                                                                 = 0;

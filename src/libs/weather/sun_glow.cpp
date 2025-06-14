@@ -1,5 +1,6 @@
 #include "sun_glow.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 
@@ -43,9 +44,9 @@ SUNGLOW::~SUNGLOW()
     }
 }
 
-bool SUNGLOW::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SUNGLOW::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     pRS = nullptr;
 
@@ -142,8 +143,8 @@ float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
     pWeather->GetVector(whv_sun_pos, &vDst);
     vDst = vSrc + (!vDst) * 10000.0f;
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
-    return collide->Trace(its, vSrc, vDst, nullptr, 0);
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    return collide.Trace(its, vSrc, vDst, nullptr, 0);
 }
 
 void SUNGLOW::Realize(uint32_t Delta_Time)

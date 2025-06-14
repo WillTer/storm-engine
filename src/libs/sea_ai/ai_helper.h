@@ -40,7 +40,7 @@ public:
     static float fGravity;
 
     bool SetDevice();
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    bool Init(std::shared_ptr<entt::registry> const& registry);
     bool Uninit();
     void AddCharacter(ATTRIBUTES* pACharacter, ATTRIBUTES* pAMainCharacter);
     void CalculateRelations();
@@ -63,7 +63,7 @@ public:
     void Load(CSaveLoad* pSL);
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
     uint32_t *               pRelations, dwRelationSize;
     std::vector<ATTRIBUTES*> aCharacters, aMainCharacters;

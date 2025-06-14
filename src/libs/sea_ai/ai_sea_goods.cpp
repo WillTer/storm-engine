@@ -1,13 +1,13 @@
 #include "ai_sea_goods.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/shared_headers/sea_ai/script_defines.h>
 
 CREATE_CLASS(AISeaGoods)
 
 AISeaGoods::AISeaGoods() : TmpItem(), fDistanceMultiply(0)
 {
-    pSea        = nullptr;
-    pGeoService = nullptr;
+    pSea = nullptr;
 
     bDeleteGoodAnyway = false;
 
@@ -16,8 +16,9 @@ AISeaGoods::AISeaGoods() : TmpItem(), fDistanceMultiply(0)
 
 AISeaGoods::~AISeaGoods()
 {
+    auto& geo = m_registry->ctx().get<VGEOMETRY&>();
     for (auto& aGood: aGoods) {
-        if (aGood->pGeo) pGeoService->DeleteGeometry(aGood->pGeo);
+        if (aGood->pGeo) geo.DeleteGeometry(aGood->pGeo);
         aGood->sModel.clear();
         aGood->aItems.clear();
         STORM_DELETE(aGood);
@@ -25,19 +26,15 @@ AISeaGoods::~AISeaGoods()
     aGoods.clear();
 }
 
-bool AISeaGoods::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool AISeaGoods::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     SetDevice();
     return true;
 }
 
-void AISeaGoods::SetDevice()
-{
-    pGeoService = static_cast<VGEOMETRY*>(core.GetService("geometry"));
-    Assert(pGeoService);
-}
+void AISeaGoods::SetDevice() {}
 
 void AISeaGoods::Execute(uint32_t dwDeltaTime)
 {
@@ -130,7 +127,8 @@ uint32_t AISeaGoods::AttributeChanged(ATTRIBUTES* pAttribute)
         aGoods.push_back(pG);
         pG->sModel = sTmpModel;
         pG->aItems.push_back(TmpItem);
-        pG->pGeo = pGeoService->CreateGeometry((sModelPath + "/" + sTmpModel).c_str(), nullptr, 0);
+        auto& geo = m_registry->ctx().get<VGEOMETRY&>();
+        pG->pGeo  = geo.CreateGeometry((sModelPath + "/" + sTmpModel).c_str(), nullptr, 0);
         return 0;
     }
 

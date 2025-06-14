@@ -10,6 +10,7 @@
 
 #include "debris.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>
@@ -35,7 +36,7 @@ Debris::~Debris()
         core.EraseEntity(mdl[i].mdl->GetId());
 }
 
-void Debris::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void Debris::Init(std::shared_ptr<entt::registry> const& registry)
 {
     AddModel("tornado/palka01", 500, 1.5f);
     AddModel("tornado/palka02", 400, 1.7f);
@@ -50,7 +51,7 @@ void Debris::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
     AddModel("tornado/flotsam6", 5, 1.1f);
     AddModel("tornado/flotsam7", 5, 1.2f);
     NormalazedModels();
-    m_service_locator = service_locator;
+    m_registry = registry;
 }
 
 void Debris::Update(float dltTime)
@@ -72,10 +73,10 @@ void Debris::Update(float dltTime)
                 fly[flyCounter].ang   = 0.0f;
                 fly[flyCounter].scale = 1.0f + (rand() & 3) / 4.0f;
                 flyCounter++;
-                auto const& sound_service = m_service_locator->get<VSoundService>();
+                auto& sound_service = m_registry->ctx().get<VSoundService&>();
                 if (lastPlayTime <= 0.0f) {
                     auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-                    sound_service->play("TornadoCrackSound", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+                    sound_service.play("TornadoCrackSound", SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
                     lastPlayTime = 0.2f + rand() * (0.2f / RAND_MAX);
                 }
             }

@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include <entt/entity/registry.hpp>
+#include <libs/collide/vcollide.h>
 #include <libs/location/character_helpers.h>
 #include <libs/math/math_inlines.h>
 #include <libs/sea_ai/ai_flow_graph.h>
@@ -105,9 +107,9 @@ SHIP::~SHIP()
 }
 
 // ##################################################################
-bool SHIP::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SHIP::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
@@ -717,7 +719,7 @@ void SHIP::Execute(uint32_t DeltaTime)
 
     auto matrix = UpdateModelMatrix();
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
 
     // activate mast tracer
     if (dtMastTrace.Update(fDeltaTime)) {
@@ -732,10 +734,10 @@ void SHIP::Execute(uint32_t DeltaTime)
                 v2       = matrix * pM->vDst;
 
                 auto id  = GetId();
-                fShipRes = collide->Trace(core.GetEntityIds(MAST_SHIP_TRACE), v1, v2, &id, 1);
+                fShipRes = collide.Trace(core.GetEntityIds(MAST_SHIP_TRACE), v1, v2, &id, 1);
                 if (fShipRes <= 1.0f) {
                     auto* pACollideCharacter = GetACharacter();
-                    auto* pShip              = static_cast<SHIP*>(core.GetEntityPointer(collide->GetObjectID()));
+                    auto* pShip              = static_cast<SHIP*>(core.GetEntityPointer(collide.GetObjectID()));
                     if (pShip) pACollideCharacter = pShip->GetACharacter();
                     pV = core.Event(
                         SHIP_MAST_DAMAGE,
@@ -752,7 +754,7 @@ void SHIP::Execute(uint32_t DeltaTime)
                 }
 
                 id      = GetModelEID();
-                fIslRes = collide->Trace(core.GetEntityIds(MAST_ISLAND_TRACE), v1, v2, &id, 1);
+                fIslRes = collide.Trace(core.GetEntityIds(MAST_ISLAND_TRACE), v1, v2, &id, 1);
                 if (fIslRes <= 1.0f) {
                     pV = core.Event(
                         SHIP_MAST_DAMAGE, "llffffa", SHIP_MAST_TOUCH_ISLAND, pM->iMastNum, v1.x, v1.y, v1.z, pM->fDamage, GetACharacter());

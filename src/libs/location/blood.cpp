@@ -1,5 +1,6 @@
 #include "blood.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 
@@ -28,9 +29,9 @@ Blood::~Blood()
 }
 
 // Initialization
-bool Blood::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Blood::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(pRS);
@@ -167,8 +168,8 @@ void Blood::AddBlood(const CVECTOR& pos)
     auto dst = pos;
     dst.y -= 10.f;
 
-    auto const& collide = m_service_locator->get<COLLIDE>();
-    auto        fTrace  = collide->Trace(entities, src, dst, nullptr, 0);
+    auto& collide = m_registry->ctx().get<COLLIDE&>();
+    auto  fTrace  = collide.Trace(entities, src, dst, nullptr, 0);
     if (fTrace <= 1.f) cpos.y = src.y + (dst.y - src.y) * fTrace;
 
     auto const nThisBloodQ = CheckBloodQuantityInRadius(cpos, BLOOD_RADIUS, 4);
@@ -185,7 +186,7 @@ void Blood::AddBlood(const CVECTOR& pos)
         src.y += 1.5f;
         dst = cpos;
         dst.y -= 10.f;
-        fTrace = collide->Trace(entities, src, dst, nullptr, 0);
+        fTrace = collide.Trace(entities, src, dst, nullptr, 0);
         if (fTrace <= 1.f) cpos.y = src.y + (dst.y - src.y) * fTrace;
     }
 

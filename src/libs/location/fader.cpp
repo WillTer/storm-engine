@@ -10,6 +10,7 @@
 
 #include "fader.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
@@ -48,9 +49,9 @@ Fader::~Fader()
 }
 
 // Initialization
-bool Fader::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Fader::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     // check that it's the only one
 
     auto&& entities = core.GetEntityIds("Fader");
@@ -141,8 +142,8 @@ bool Fader::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 
     // read the number of tips, if necessary
     if (!numberOfTips) {
-        auto const& config_loader       = m_service_locator->get<storm::IConfigLoader>();
-        auto const  progress_image_info = storm::main_config::progress_image_info(*config_loader);
+        auto&      config_loader       = m_registry->ctx().get<storm::IConfigLoader&>();
+        auto const progress_image_info = storm::main_config::progress_image_info(config_loader);
 
         numberOfTips = std::clamp(progress_image_info.frame, 0, 1);
     }

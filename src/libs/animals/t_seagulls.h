@@ -33,7 +33,7 @@ public:
     virtual ~TSeagulls();
 
     uint64_t ProcessMessage(int32_t _code, MESSAGE& message);
-    void     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void     Init(std::shared_ptr<entt::registry> const& registry);
     void     Add(float _x, float _y, float _z);
     void     Realize(uint32_t dTime);
     void     Execute(uint32_t dTime);
@@ -47,7 +47,7 @@ private:
     void LoadSettings();
     void Frighten();
 
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
     entid_t     seagullModel;
     tSeagull    seagulls[SEAGULL_COUNT];

@@ -32,7 +32,7 @@ public:
     ParticleService();
     ~ParticleService() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
 
     // Create a particle manager
     IParticleManager* CreateManagerEx(char const* ProjectName, char const* File, int Line) override;

@@ -23,7 +23,7 @@ public:
     ~Fader() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
 

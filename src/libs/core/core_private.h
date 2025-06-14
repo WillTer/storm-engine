@@ -1,14 +1,15 @@
 #pragma once
 
 // common includes
+#include <entt/fwd.hpp>
+
 #include "core.h"
 #include "service.h"
-#include "service_locator.hpp"
 
 class CorePrivate: public Core
 {
 public:
-    virtual void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) = 0;
+    virtual void Init(std::shared_ptr<entt::registry> const& registry) = 0;
 
     virtual void InitBase()    = 0;
     virtual void ReleaseBase() = 0;
@@ -24,6 +25,6 @@ public:
 
     virtual void SetWindow(std::shared_ptr<storm::OSWindow> window) = 0;
 
-    virtual void register_service(std::weak_ptr<SERVICE> const& service)   = 0;
-    virtual void unregister_service(std::weak_ptr<SERVICE> const& service) = 0;
+    virtual void set_organizer_for_section_start(uint32_t section, entt::organizer& organizer) = 0;
+    virtual void set_organizer_for_section_end(uint32_t section, entt::organizer& organizer)   = 0;
 };

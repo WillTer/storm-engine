@@ -43,7 +43,7 @@ void TButterfly::Initialize(const CVECTOR& _center, float _radius, int32_t _buff
 }
 
 //--------------------------------------------------------------------
-void TButterfly::Calculate(int32_t _dTime, COLLIDE* _collide, entity_container_cref its)
+void TButterfly::Calculate(int32_t _dTime, COLLIDE& _collide, entity_container_cref its)
 {
     if (!active) {
         waitTime -= _dTime;
@@ -94,7 +94,7 @@ void TButterfly::Calculate(int32_t _dTime, COLLIDE* _collide, entity_container_c
 
     // trace and change velocity if needed
     if ((activeTime < fullActiveTime) || (fabsf(centerPosition.y - minY) > (yDeltaAbs + MIN_Y_DELTA))) {
-        auto const ray = _collide->Trace(
+        auto const ray = _collide.Trace(
             its,
             centerPosition,
             centerPosition + CVECTOR(velocityDelta * centerVelocity.x, 0.f, velocityDelta * centerVelocity.z),

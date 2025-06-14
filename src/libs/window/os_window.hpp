@@ -1,10 +1,7 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <string>
-
-#include <libs/core/service_locator.hpp>
 
 namespace storm
 {
@@ -17,21 +14,7 @@ struct WindowSize {
 class OSWindow
 {
 public:
-    // TODO: More events?
-    enum Event {
-        Unknown,
-        //!< Invalid event
-
-        FocusGained,
-        //!< Window gained focus
-        FocusLost,
-        //!< Window lost focus
-        Closed  //!< Window was closed by user
-    };
-
-    using EventHandler = std::function<void(ServiceLocator const&, Event const&)>;
-
-    virtual ~OSWindow() {};
+    virtual ~OSWindow() = default;
 
     //! Show window
     virtual void Show() = 0;
@@ -62,24 +45,10 @@ public:
     //! Set window gamma
     virtual void SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256]) = 0;
 
-    //! Subscribe for events
-    //! \param handler event callback
-    //! \return subscription id, which should be passed to unsubscribe()
-    virtual int Subscribe(EventHandler const& handler) = 0;
-    //! Unsubscribe from events
-    //! \param id handler returned by subscribe()
-    virtual void Unsubscribe(int id) = 0;
-
     //! Os-depended window handler (i.e. HWND on Windows)
     virtual void* OSHandle() = 0;
 
     //! Create new window
-    static std::shared_ptr<OSWindow> Create(
-        std::shared_ptr<ServiceLocator> const& service_locator,
-        int                                    width,
-        int                                    height,
-        int                                    preferred_display,
-        bool                                   fullscreen,
-        bool                                   bordered);
+    static std::shared_ptr<OSWindow> Create(int width, int height, int preferred_display, bool fullscreen, bool bordered);
 };
 }  // namespace storm

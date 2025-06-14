@@ -16,9 +16,9 @@ BITimer::~BITimer()
     Release();
 }
 
-bool BITimer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BITimer::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     if (!ReadAndCreate()) return false;
     return true;

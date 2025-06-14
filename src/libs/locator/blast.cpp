@@ -22,9 +22,9 @@ BLAST::~BLAST()
         if (!Item[i].bDouble) delete Item[i].geo;
 }
 
-bool BLAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BLAST::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
     if (!gs) return false;

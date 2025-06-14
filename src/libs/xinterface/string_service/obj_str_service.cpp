@@ -13,9 +13,9 @@ OBJ_STRSERVICE::~OBJ_STRSERVICE()
     m_pStrService = nullptr;
 }
 
-bool OBJ_STRSERVICE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool OBJ_STRSERVICE::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     m_pStrService = static_cast<VSTRSERVICE*>(core.GetService("STRSERVICE"));
     if (!m_pStrService) throw std::runtime_error("No service: strservice");
 

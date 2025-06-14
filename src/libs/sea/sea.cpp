@@ -4,6 +4,8 @@
 #include <execution>
 #include <thread>
 
+#include <entt/entity/registry.hpp>
+#include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
@@ -183,16 +185,16 @@ void SEA::CreateVertexDeclaration()
     rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-bool SEA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SEA::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     CreateVertexDeclaration();
 
-    auto const& config_loader = service_locator->get<storm::IConfigLoader>();
-    auto const  sea_info      = storm::main_config::sea_info(*config_loader);
-    bIniFoamEnable            = sea_info.enable_foam;
+    auto&      config_loader = registry->ctx().get<storm::IConfigLoader&>();
+    auto const sea_info      = storm::main_config::sea_info(config_loader);
+    bIniFoamEnable           = sea_info.enable_foam;
 
     iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 

@@ -10,6 +10,7 @@
 
 #include "character.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/core/v_data.h>
 #include <libs/geometry/geometry.h>
@@ -17,7 +18,6 @@
 #include <libs/sea/sea_base.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/sound_service/v_sound_service.h>
-#include <libs/util/debug-trap.h>
 #include <libs/util/string_compare.hpp>
 
 #include "characters_groups.h"
@@ -626,9 +626,9 @@ Character::~Character()
 }
 
 // Initialization
-bool Character::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Character::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // Location Pointer
     auto* const location = GetLocation();
@@ -2381,10 +2381,10 @@ void Character::ActionEvent(Animation* animation, int32_t playerIndex, char cons
 
 int32_t Character::PlaySound(char const* soundName, bool isLoop, bool isCached)
 {
-    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
 
     CVECTOR       pos = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
-    int32_t const sID = sound_service->play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
+    int32_t const sID = sound_service.play(soundName, SoundType::Sound3D, VolumeType::Fx, false, false, 0, &pos);
     return sID;
 }
 
@@ -2475,7 +2475,7 @@ void Character::SetSoundPosition(int32_t id)
 {
     if (id == SOUND_INVALID_ID) return;
 
-    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto&       sound_service = m_registry->ctx().get<VSoundService&>();
     CVECTOR     pos           = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
     auto* const location      = GetLocation();
     if (location->supervisor.player) {
@@ -2488,13 +2488,13 @@ void Character::SetSoundPosition(int32_t id)
             view.MulToInv(CVECTOR(pos), pos);
         }
     }
-    sound_service->set_3d_param(id, SoundMessageType::Position, &pos);
+    sound_service.set_3d_param(id, SoundMessageType::Position, &pos);
 }
 
 void Character::ReleaseSound(int32_t id)
 {
-    auto const& sound_service = m_service_locator->get<VSoundService>();
-    if (id != SOUND_INVALID_ID) sound_service->sound_release(id);
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    if (id != SOUND_INVALID_ID) sound_service.sound_release(id);
 }
 
 // ============================================================================================

@@ -18,7 +18,7 @@ public:
     ~WATERFLARE() override;
 
     void SetDevice();
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
     void Realize(uint32_t Delta_Time) const;
     void Execute(uint32_t Delta_Time);
     bool CreateState(ENTITY_STATE_GEN* state_gen);

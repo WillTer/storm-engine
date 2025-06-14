@@ -21,7 +21,7 @@ public:
     CoastFoam();
     ~CoastFoam();
 
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init(std::shared_ptr<entt::registry> const& registry) override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pA);

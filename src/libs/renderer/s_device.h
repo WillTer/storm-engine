@@ -383,14 +383,15 @@ public:
         bool                   isSwizzled);
 
     // core interface
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
     void RunStart() override;
     void RunEnd() override;
 
     uint32_t RunSection() override
     {
         return SECTION_REALIZE;
-    };
+    }
+
     bool LoadState(ENTITY_STATE* state) override;
     bool CreateState(ENTITY_STATE_GEN* state_gen) override;
 

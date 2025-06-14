@@ -10,7 +10,6 @@
 
 #include "../xinterface.h"
 
-
 #define USER_BLOCK_BEGINER '{'
 #define USER_BLOCK_ENDING '}'
 
@@ -139,9 +138,9 @@ STRSERVICE::~STRSERVICE()
     }
 }
 
-bool STRSERVICE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool STRSERVICE::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    SERVICE::Init(service_locator);
+    SERVICE::Init(registry);
     // GUARD(bool STRSERVICE::Init())
     LoadIni();
     // UNGUARD

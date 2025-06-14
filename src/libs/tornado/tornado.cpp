@@ -10,6 +10,7 @@
 
 #include "tornado.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 
@@ -39,16 +40,16 @@ Tornado::~Tornado()
         if (particles.txtPillarPrts >= 0) rs->TextureRelease(particles.txtPillarPrts);
         if (particles.txtGroundPrts >= 0) rs->TextureRelease(particles.txtGroundPrts);
     }
-    auto const& sound_service = m_service_locator->get<VSoundService>();
-    if (sID != SOUND_INVALID_ID) sound_service->sound_release(sID);
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
+    if (sID != SOUND_INVALID_ID) sound_service.sound_release(sID);
 }
 
 //============================================================================================
 
 // Initialization
-bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Tornado::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // core.LayerCreate("execute", true, false);
     core.SetLayerType(EXECUTE, layer_type_t::execute);
@@ -75,11 +76,11 @@ bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
     particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
     particles.SetSea();
     particles.Update(0.0f);
-    debris.Init(service_locator);
+    debris.Init(registry);
     // Create sound
-    auto const& sound_service = m_service_locator->get<VSoundService>();
-    auto const  pos           = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-    sID                       = sound_service->play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
+    auto&      sound_service = m_registry->ctx().get<VSoundService&>();
+    auto const pos           = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
+    sID                      = sound_service.play("tornado", SoundType::Sound3D, VolumeType::Fx, false, true, 0, &pos);
 
     return true;
 }
@@ -105,10 +106,10 @@ void Tornado::Execute(uint32_t delta_time)
     } else
         liveTime -= dltTime;
 
-    auto const& sound_service = m_service_locator->get<VSoundService>();
+    auto& sound_service = m_registry->ctx().get<VSoundService&>();
     if (sID != SOUND_INVALID_ID) {
         auto const pos = CVECTOR(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
-        sound_service->set_3d_param(sID, SoundMessageType::Position, &pos);
+        sound_service.set_3d_param(sID, SoundMessageType::Position, &pos);
     }
 }
 

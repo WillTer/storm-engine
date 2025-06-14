@@ -1,5 +1,6 @@
 #pragma once
 
+#include <entt/fwd.hpp>
 #include <libs/animation/animation.h>
 #include <libs/collide/collide.h>
 #include <libs/geometry/geometry.h>
@@ -22,14 +23,14 @@ public:
     virtual ~TButterflies();
 
     uint64_t ProcessMessage(int32_t _code, MESSAGE& message);
-    void     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void     Init(std::shared_ptr<entt::registry> const& registry);
     void     Realize(uint32_t dTime);
     void     Execute(uint32_t dTime);
 
 private:
     void LoadSettings();
 
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
     VDX9RENDER*      renderService;
     IVBufferManager* ivManager;

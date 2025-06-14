@@ -24,9 +24,9 @@ SEA_AI::~SEA_AI()
     Helper.Uninit();
 }
 
-bool SEA_AI::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SEA_AI::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
     Helper.SetDevice();
     return true;
 }
@@ -353,7 +353,7 @@ void SEA_AI::Load(char const* pStr)
     }
 
     if (AIFort::pAIFort) AIFort::pAIFort->Load(&SL);
-    Helper.Init(m_service_locator);
+    Helper.Init(m_registry);
 }
 
 uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
@@ -362,7 +362,7 @@ uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
 
     if (*pAttribute == "isDone") {
         // delete all old groups and ships
-        Helper.Init(m_service_locator);
+        Helper.Init(m_registry);
 
         for (i = 0; i < AIShip::AIShips.size(); i++)
             AIShip::AIShips[i]->CheckStartPosition();

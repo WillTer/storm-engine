@@ -1,8 +1,6 @@
 #pragma once
 
 #include <libs/core/entity.h>
-#include <libs/renderer/dx9render.h>
-#include <libs/sound_service/v_sound_service.h>
 
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
@@ -27,7 +25,7 @@ public:
     SOUND();
     ~SOUND() override;
 
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         Init(std::shared_ptr<entt::registry> const& registry) override;
     uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);
 

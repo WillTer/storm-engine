@@ -25,9 +25,9 @@ LocRats::~LocRats() {}
 //============================================================================================
 
 // Initialization
-bool LocRats::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocRats::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // Location Pointer
     auto const loc      = core.GetEntityId("location");

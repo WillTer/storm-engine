@@ -4,7 +4,6 @@
 #include <tuple>
 
 #include <libs/core/script_libriary.h>
-#include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/ringbuffer_stack.hpp>
@@ -87,7 +86,7 @@ class COMPILER: public VIRTUAL_COMPILER
 public:
     bool bBreakOnError;
 
-    COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    COMPILER(std::shared_ptr<entt::registry> const& registry);
     ~COMPILER();
 
     VSTRING_CODEC* GetVSC()
@@ -283,6 +282,8 @@ private:
     void SaveEventHandlersToCache(storm::script_cache::BufferWriter& writer);
     void SaveByteCodeToCache(storm::script_cache::BufferWriter& writer, const SEGMENT_DESC& segment);
 
+    std::shared_ptr<entt::registry> m_registry;
+
     COMPILER_STAGE CompilerStage;
     STRINGS_LIST   LabelTable;
     // STRINGS_LIST EventTable;
@@ -363,6 +364,4 @@ private:
     // attempt to read/write script cache?
     int                script_cache_mode_;
     storm::ScriptCache script_cache_;
-
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 };

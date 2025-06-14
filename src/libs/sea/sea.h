@@ -3,6 +3,7 @@
 // ************************************************************************
 #pragma once
 
+#include <entt/fwd.hpp>
 #include <libs/core/vma.hpp>
 #include <libs/math/c_vector4.h>
 #include <libs/renderer/dx9render.h>
@@ -177,7 +178,7 @@ public:
     SEA();
     ~SEA() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init(std::shared_ptr<entt::registry> const& registry) override;
     void BuildVolumeTexture();
     void Realize(uint32_t dwDeltaTime);
 

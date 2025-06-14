@@ -10,6 +10,7 @@
 
 #include "lights.h"
 
+#include <entt/entity/registry.hpp>
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
@@ -44,9 +45,9 @@ Lights::~Lights()
 }
 
 // Initialization
-bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Lights::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
@@ -219,10 +220,10 @@ void Lights::Realize(uint32_t delta_time)
         if (!isVisible) continue;
 
         // Visibility
-        auto const& collide = m_service_locator->get<COLLIDE>();
+        auto& collide = m_registry->ctx().get<COLLIDE&>();
         {
             auto const dist =
-                collide->Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
+                collide.Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
             isVisible = dist > 1.0f;
         }
         ls.corona += isVisible ? 0.008f * delta_time : -0.008f * delta_time;

@@ -17,7 +17,7 @@ public:
     ANIMALS();
     ~ANIMALS() override;
 
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         Init(std::shared_ptr<entt::registry> const& registry) override;
     uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);
     virtual void Execute(uint32_t dTime);

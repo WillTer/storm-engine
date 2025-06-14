@@ -2,6 +2,9 @@
 
 #include <list>
 
+#include <entt/entity/organizer.hpp>
+#include <entt/entity/registry.hpp>
+
 #include "compiler.h"
 #include "core_private.h"
 #include "entity_manager.h"
@@ -14,7 +17,7 @@
 class CoreImpl final: public CorePrivate
 {
 public:
-    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void Init(std::shared_ptr<entt::registry> const& registry) override;
 
     void InitBase();
     void ReleaseBase();
@@ -24,7 +27,7 @@ public:
     void SetWindow(std::shared_ptr<storm::OSWindow> window) override;
     bool Initialize();
     void ResetCore();
-    bool Run();
+    bool Run() override;
     bool LoadClassesTable();
 
     void ProcessExecute();
@@ -131,8 +134,8 @@ public:
     bool                  IsLayerFrozen(layer_index_t index) const override;
     void                  ForEachEntity(std::function<void(entptr_t)> const& f) override;
 
-    void register_service(std::weak_ptr<SERVICE> const& service) override;
-    void unregister_service(std::weak_ptr<SERVICE> const& service) override;
+    void set_organizer_for_section_start(uint32_t section, entt::organizer& organizer) override;
+    void set_organizer_for_section_end(uint32_t section, entt::organizer& organizer) override;
 
     void collectCrashInfo() const;
 
@@ -148,7 +151,7 @@ public:
     bool Exit_flag;  // true if the program closing
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
+    std::shared_ptr<entt::registry> m_registry;
 
     std::unique_ptr<EntityManager> entity_manager_;
 
@@ -166,8 +169,10 @@ private:
     bool                             State_loading;
     bool                             bEnableTimeScale {};
 
-    SERVICES_LIST                     Services_List;  // list for subsequent calls RunStart/RunEnd service functions
-    std::list<std::weak_ptr<SERVICE>> m_registered_services;
+    SERVICES_LIST Services_List;  // list for subsequent calls RunStart/RunEnd service functions
+
+    std::array<entt::organizer, 3> m_organizers_start;
+    std::array<entt::organizer, 3> m_organizers_end;
 
 #ifdef _WIN32  // HINSTANCE
     HINSTANCE hInstance {};

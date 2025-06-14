@@ -32,9 +32,9 @@ SHIPPOINTER::~SHIPPOINTER()
     VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
 }
 
-bool SHIPPOINTER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SHIPPOINTER::Init(std::shared_ptr<entt::registry> const& registry)
 {
-    Entity::Init(service_locator);
+    Entity::Init(registry);
 
     if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
