@@ -94,7 +94,7 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
 
-COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+COMPILER::COMPILER()
     : bBreakOnError(false)
     , pRunCodeBase(nullptr)
     , CompilerStage(CS_SYSTEM)
@@ -124,8 +124,6 @@ COMPILER::COMPILER(std::shared_ptr<storm::ServiceLocator> const& service_locator
     , pIOBuffer(nullptr)
     , rAP(nullptr)
     , script_cache_mode_(kCacheDisabled)
-    , m_service_locator(service_locator)
-
 {
     LabelTable.SetStringDataSize(sizeof(uint32_t));
     LabelUpdateTable.SetStringDataSize(sizeof(DOUBLE_DWORD));
@@ -407,8 +405,7 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const script_info   = storm::main_config::script_info(*config_loader);
+    auto const script_info = storm::main_config::script_info();
 
     bDebugInfo         = script_info.compilation_logs;
     bWriteCodeFile     = script_info.create_codefiles;

@@ -6,6 +6,8 @@
 #include <libs/filesystem/default_paths.h>
 #include <toml.hpp>
 
+#include "i_config_loader.h"
+
 using namespace storm;
 
 namespace
@@ -306,62 +308,62 @@ struct from<storm::ProgressImageInfo> {
 
 }  // namespace toml
 
-GeneralInfo main_config::general_info(IConfigLoader& config_loader)
+GeneralInfo main_config::general_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::get<GeneralInfo>(config_file);
 }
 
-WindowInfo main_config::window_info(IConfigLoader& config_loader)
+WindowInfo main_config::window_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "window", DEFAULT_WINDOW_INFO);
 }
 
-DeviceInfo main_config::device_info(IConfigLoader& config_loader)
+DeviceInfo main_config::device_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "device", DEFAULT_DEVICE_INFO);
 }
 
-SoundInfo main_config::sound_info(IConfigLoader& config_loader)
+SoundInfo main_config::sound_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "sound", DEFAULT_SOUND_INFO);
 }
 
-SeaInfo main_config::sea_info(IConfigLoader& config_loader)
+SeaInfo main_config::sea_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "sea", DEFAULT_SEA_INFO);
 }
 
-ControlsInfo main_config::controls_info(IConfigLoader& config_loader)
+ControlsInfo main_config::controls_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "controls", DEFAULT_CONTROLS_INFO);
 }
 
-ScriptInfo main_config::script_info(IConfigLoader& config_loader)
+ScriptInfo main_config::script_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "script", DEFAULT_SCRIPT_INFO);
 }
 
-CompatibilityInfo main_config::compatibility_info(IConfigLoader& config_loader)
+CompatibilityInfo main_config::compatibility_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "compatibility", DEFAULT_COMPATIBILITY_INFO);
 }
 
-PathsInfo main_config::paths_info(IConfigLoader& config_loader)
+PathsInfo main_config::paths_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "paths", DEFAULT_PATHS_INFO);
 }
 
-ProgressImageInfo main_config::progress_image_info(IConfigLoader& config_loader)
+ProgressImageInfo main_config::progress_image_info()
 {
-    auto const config_file = config_loader.open_config_cached(storm::fs::MAIN_CONFIG_PATH);
+    auto const config_file = config_loader->open_config_cached(storm::fs::MAIN_CONFIG_PATH);
     return toml::find_or(config_file, "progress_image_info", DEFAULT_PROGRESS_IMAGE_INFO);
 }

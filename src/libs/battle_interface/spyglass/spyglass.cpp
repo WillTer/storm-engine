@@ -90,10 +90,8 @@ ISPYGLASS::~ISPYGLASS()
     Release();
 }
 
-bool ISPYGLASS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ISPYGLASS::Init()
 {
-    Entity::Init(service_locator);
-
     if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }

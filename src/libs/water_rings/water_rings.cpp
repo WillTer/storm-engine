@@ -16,11 +16,8 @@ WaterRings::~WaterRings()
 }
 
 //------------------------------------------------------------------------------------
-bool WaterRings::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WaterRings::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(WaterRings::Init())
-
     core.AddToLayer(REALIZE, GetId(), 65551);
 
     auto const seaID = core.GetEntityId("sea");

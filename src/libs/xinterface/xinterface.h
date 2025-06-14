@@ -79,7 +79,7 @@ public:
     ~XINTERFACE() override;
 
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);
@@ -428,7 +428,7 @@ class CONTROLS_CONTAINER: public Entity
 public:
     CONTROLS_CONTAINER();
     ~CONTROLS_CONTAINER() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Execute(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

@@ -25,10 +25,8 @@ PARTICLES::~PARTICLES()
     DeleteAll();
 }
 
-bool PARTICLES::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool PARTICLES::Init()
 {
-    Entity::Init(service_locator);
-
     core.AddToLayer(REALIZE, GetId(), 0xfffff);
     core.AddToLayer(EXECUTE, GetId(), 0);
 

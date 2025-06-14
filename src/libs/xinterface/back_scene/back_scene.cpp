@@ -166,10 +166,8 @@ InterfaceBackScene::~InterfaceBackScene()
     flyTex = -1;
 }
 
-bool InterfaceBackScene::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool InterfaceBackScene::Init()
 {
-    Entity::Init(service_locator);
-
     m_pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(m_pRS);
     flyTex          = m_pRS->TextureCreate("locefx/firefly.tga");

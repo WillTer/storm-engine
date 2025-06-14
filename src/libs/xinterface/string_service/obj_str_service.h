@@ -11,7 +11,7 @@ class OBJ_STRSERVICE: public Entity
 public:
     OBJ_STRSERVICE();
     ~OBJ_STRSERVICE() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage, uint32_t) override {}

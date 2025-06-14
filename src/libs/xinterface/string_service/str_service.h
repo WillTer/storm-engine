@@ -23,7 +23,7 @@ public:
     STRSERVICE();
     ~STRSERVICE() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     bool LoadState(ENTITY_STATE* state) override;
     bool CreateState(ENTITY_STATE_GEN* state_gen) override;
     void RunStart() override;

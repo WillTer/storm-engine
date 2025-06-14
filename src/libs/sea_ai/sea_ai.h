@@ -16,7 +16,7 @@ public:
     SEA_AI();
     ~SEA_AI() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void SetDevice();
     void Save(char const* pName);
     void Load(char const* pName);

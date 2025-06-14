@@ -87,10 +87,8 @@ Grass::~Grass()
 }
 
 // Initialization
-bool Grass::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Grass::Init()
 {
-    Entity::Init(service_locator);
-
     // Layers
     // core.LayerCreate("execute", true, false);
     core.SetLayerType(EXECUTE, layer_type_t::execute);

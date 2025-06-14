@@ -70,7 +70,7 @@ private:
     void AddBall(ATTRIBUTES* pABall);
 
     // inherited functions from Entity
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void SetDevice();
 
     void Realize(uint32_t Delta_Time);

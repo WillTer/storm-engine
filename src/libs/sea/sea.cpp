@@ -181,16 +181,13 @@ void SEA::CreateVertexDeclaration()
     rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-bool SEA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SEA::Init()
 {
-    Entity::Init(service_locator);
-
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     CreateVertexDeclaration();
 
-    auto const config_loader = service_locator->get<storm::IConfigLoader>();
-    auto const sea_info      = storm::main_config::sea_info(*config_loader);
-    bIniFoamEnable           = sea_info.enable_foam;
+    auto const sea_info = storm::main_config::sea_info();
+    bIniFoamEnable      = sea_info.enable_foam;
 
     iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 

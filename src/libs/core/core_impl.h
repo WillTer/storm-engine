@@ -12,7 +12,7 @@
 class CoreImpl final: public CorePrivate
 {
 public:
-    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void Init();
 
     void InitBase();
     void ReleaseBase();
@@ -143,8 +143,6 @@ public:
     bool Exit_flag;  // true if the program closing
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
-
     std::unique_ptr<EntityManager> entity_manager_;
 
     storm::ENGINE_VERSION targetVersion_ = storm::ENGINE_VERSION::LATEST;

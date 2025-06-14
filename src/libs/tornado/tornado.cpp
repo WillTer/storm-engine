@@ -44,10 +44,8 @@ Tornado::~Tornado()
 //============================================================================================
 
 // Initialization
-bool Tornado::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Tornado::Init()
 {
-    Entity::Init(service_locator);
-
     // core.LayerCreate("execute", true, false);
     core.SetLayerType(EXECUTE, layer_type_t::execute);
     // core.LayerCreate("realize", true, false);

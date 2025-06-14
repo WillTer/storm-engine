@@ -54,7 +54,7 @@ void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
     window_ = std::move(window);
 }
 
-void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void CoreImpl::Init()
 {
     Initialized         = false;
     bEngineIniProcessed = false;
@@ -64,9 +64,8 @@ void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
     Memory_Leak_flag    = false;
     Controls            = nullptr;
     fTimeScale          = 1.0f;
-    Compiler            = std::make_unique<COMPILER>(service_locator);
-    entity_manager_     = std::make_unique<EntityManager>(service_locator);
-    m_service_locator   = service_locator;
+    Compiler            = std::make_unique<COMPILER>();
+    entity_manager_     = std::make_unique<EntityManager>();
 
     /* TODO: place this outside CoreImpl */
     SetLayerType(EXECUTE, layer_type_t::execute);
@@ -198,9 +197,8 @@ void CoreImpl::ProcessEngineIniFile()
 {
     bEngineIniProcessed = true;
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const script_info   = storm::main_config::script_info(*config_loader);
-    auto const controls_info = storm::main_config::controls_info(*config_loader);
+    auto const script_info   = storm::main_config::script_info();
+    auto const controls_info = storm::main_config::controls_info();
 
     auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
     Compiler->SetProgramDirectory(program_dir.string().c_str());
@@ -215,9 +213,9 @@ void CoreImpl::ProcessEngineIniFile()
         core_internal.Controls = new CONTROLS;
     }
 
-    core_internal.Controls->Init(m_service_locator);
+    core_internal.Controls->Init();
 
-    auto const compat_info = storm::main_config::compatibility_info(*config_loader);
+    auto const compat_info = storm::main_config::compatibility_info();
     targetVersion_         = compat_info.target_version;
 
     if (!Compiler->CreateProgram(script_info.entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
@@ -420,7 +418,7 @@ void* CoreImpl::GetService(char const* service_name)
     auto const class_code = MakeHashValue(service_name);
     pClass->SetHash(class_code);
 
-    if (!service_PTR->Init(m_service_locator)) {
+    if (!service_PTR->Init()) {
         CheckAutoExceptions(0);
         return nullptr;
     }

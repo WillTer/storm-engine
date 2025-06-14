@@ -39,11 +39,8 @@ Shadow::~Shadow()
     }
 }
 
-bool Shadow::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Shadow::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(Shadow::SHADOW())
-
     col = static_cast<COLLIDE*>(core.GetService("coll"));
     if (col == nullptr) throw std::runtime_error("No service: COLLIDE");
 

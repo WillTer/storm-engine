@@ -61,10 +61,8 @@ IParticleManager* ParticleService::GetManagerByIndex(uint32_t Index)
     return CreatedManagers[Index].pManager;
 }
 
-bool ParticleService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ParticleService::Init()
 {
-    SERVICE::Init(service_locator);
-
     pDefaultManager = CreateManagerEx(nullptr, __FILE__, __LINE__);
     Assert(pDefaultManager);
     pDefaultManager->OpenDefaultProject();

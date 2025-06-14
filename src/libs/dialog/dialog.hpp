@@ -42,7 +42,7 @@ public:
     DIALOG();
     ~DIALOG();
 
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
     void     Realize(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pA);

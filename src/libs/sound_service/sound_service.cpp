@@ -72,16 +72,9 @@ SoundService::~SoundService()
     }
 }
 
-bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SoundService::Init()
 {
     m_is_initialized = false;
-
-    if (!service_locator) {
-        core.Trace("%s: service locator is null", __func__);
-        return false;
-    }
-
-    SERVICE::Init(service_locator);
 
     m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     if (m_renderer == nullptr) { return false; }
@@ -90,9 +83,8 @@ bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const sound_info    = storm::main_config::sound_info(*config_loader);
-    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
+    auto const sound_info = storm::main_config::sound_info();
+    m_fade_time           = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
@@ -397,18 +389,11 @@ void SoundService::stop(SoundID id, int32_t time)
 
 void SoundService::load_alias_file(std::string const& filename)
 {
-    if (!m_service_locator) {
-        core.Trace("%s: m_service_locator is null", __func__);
-        return;
-    }
-
     auto config_file = fio->base_directory_path(BaseDirectory::Aliases) / filename;
 
     if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-
-    m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
+    m_aliases.merge(storm::sound_alias::aliases(config_file));
 }
 
 void SoundService::init_aliases()

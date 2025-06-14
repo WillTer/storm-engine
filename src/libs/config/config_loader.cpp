@@ -6,11 +6,9 @@
 
 using namespace storm;
 
-ConfigLoader::ConfigLoader(IFileService& file_service) : m_fs {file_service} {}
-
 toml::value ConfigLoader::open_config(std::filesystem::path const& path)
 {
-    if (!m_fs.exists(path)) {
+    if (!fio->exists(path)) {
         core.Trace("Config file \"%s\" not found", path.string().c_str());
         return {};
     }
@@ -20,7 +18,7 @@ toml::value ConfigLoader::open_config(std::filesystem::path const& path)
         return {};
     }
 
-    auto file_stream = m_fs.open_file<std::ifstream>(path, std::ios::binary);
+    auto file_stream = fio->open_file<std::ifstream>(path, std::ios::binary);
     return toml::parse(file_stream);
 }
 

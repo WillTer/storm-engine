@@ -60,13 +60,9 @@ ROPE::~ROPE()
     nVert = nIndx = 0;
 }
 
-bool ROPE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ROPE::Init()
 {
-    Entity::Init(service_locator);
-
-    // GUARD(ROPE::ROPE())
     SetDevice();
-    // UNGUARD
     return true;
 }
 

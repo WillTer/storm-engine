@@ -29,10 +29,8 @@ BI_InterfaceManager::~BI_InterfaceManager()
     STORM_DELETE(m_pImgRender);
 }
 
-bool BI_InterfaceManager::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BI_InterfaceManager::Init()
 {
-    Entity::Init(service_locator);
-
     m_pRS = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
     Assert(m_pRS);
     m_pImgRender = new BIImageRender(m_pRS);

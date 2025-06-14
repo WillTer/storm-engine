@@ -18,12 +18,8 @@ SINKEFFECT::~SINKEFFECT()
 }
 
 //--------------------------------------------------------------------
-bool SINKEFFECT::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SINKEFFECT::Init()
 {
-    Entity::Init(service_locator);
-
-    // GUARD(SINKEFFECT::Init)
-
     sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
 
     renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));

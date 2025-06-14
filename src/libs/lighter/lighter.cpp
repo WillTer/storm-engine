@@ -30,9 +30,8 @@ Lighter::Lighter() : autoTrace(false), autoSmooth(false)
 Lighter::~Lighter() {}
 
 // Initialization
-bool Lighter::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Lighter::Init()
 {
-    Entity::Init(service_locator);
     // Checking if ini file exists
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "loclighter.ini");

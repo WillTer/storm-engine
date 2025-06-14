@@ -68,7 +68,7 @@ public:
     virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) = 0;
 
     // Update IFileService internal variables according to configuration
-    virtual void init_from_main_config(storm::IConfigLoader& config_loader) = 0;
+    virtual void init_from_main_config() = 0;
 
     // ini files section
     [[deprecated("Ini config files are deprecated, rewrite configs for TOML parser in libs/config")]] virtual std::unique_ptr<INIFILE>
@@ -162,4 +162,4 @@ public:
 };
 
 //
-extern IFileService* fio;
+extern std::unique_ptr<IFileService> fio;

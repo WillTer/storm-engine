@@ -53,17 +53,14 @@ void GEOMETRY::SetVBConvertFunc(VERTEX_TRANSFORM _transform_func)
 
 static bool geoLog = false;
 
-bool GEOMETRY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool GEOMETRY::Init()
 {
-    SERVICE::Init(service_locator);
-
     RenderService = static_cast<VDX9RENDER*>(core.GetService(RenderServiceName));
     if (!RenderService) { core.Trace("No service: %s", RenderServiceName); }
     GSR.SetRenderService(RenderService);
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const device_info   = storm::main_config::device_info(*config_loader);
-    geoLog                   = device_info.geometry_log;
+    auto const device_info = storm::main_config::device_info();
+    geoLog                 = device_info.geometry_log;
 
     return true;
 }

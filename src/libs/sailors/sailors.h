@@ -130,7 +130,7 @@ class Sailors: public Entity
 public:
     Sailors();
 
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         Init() override;
     virtual void Realize(uint32_t dltTime);
 
     uint64_t ProcessMessage(MESSAGE& message) override;

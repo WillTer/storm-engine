@@ -87,7 +87,7 @@ class BLADE: public Entity
 public:
     BLADE();
     ~BLADE() override;
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     void ProcessStage(Stage stage, uint32_t delta) override
     {

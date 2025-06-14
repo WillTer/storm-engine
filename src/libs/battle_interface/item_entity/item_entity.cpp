@@ -17,10 +17,8 @@ ItemEntity::~ItemEntity()
     Release();
 }
 
-bool ItemEntity::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ItemEntity::Init()
 {
-    Entity::Init(service_locator);
-
     if (!ReadAndCreate()) return false;
     return true;
 }

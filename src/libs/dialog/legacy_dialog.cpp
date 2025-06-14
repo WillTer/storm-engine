@@ -131,10 +131,8 @@ LegacyDialog::~LegacyDialog() noexcept
     if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
 }
 
-bool LegacyDialog::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LegacyDialog::Init()
 {
-    Entity::Init(service_locator);
-
     RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
     Assert(RenderService != nullptr);
 

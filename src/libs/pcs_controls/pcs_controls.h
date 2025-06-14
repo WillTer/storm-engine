@@ -2,9 +2,6 @@
 
 #include <memory>
 
-#include <libs/core/service_locator.hpp>
-#include <libs/shared_headers/controls.h>
-
 #include "control_tree.h"
 #include "key_buffer.h"
 
@@ -51,7 +48,7 @@ public:
     PCS_CONTROLS();
     ~PCS_CONTROLS() override;
 
-    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    void Init() override;
 
     void    Update(uint32_t DeltaTime) override;
     int32_t GetSystemControlsNum() override;

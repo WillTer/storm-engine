@@ -197,14 +197,9 @@ SAIL::~SAIL()
     STORM_DELETE(m_sMastName);
 }
 
-bool SAIL::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SAIL::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(SAIL::SAIL())
-
     SetDevice();
-
-    // UNGUARD
     return true;
 }
 

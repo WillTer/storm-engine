@@ -17,3 +17,5 @@ public:
 };
 
 }  // namespace storm
+
+extern std::unique_ptr<storm::IConfigLoader> config_loader;

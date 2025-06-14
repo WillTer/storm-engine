@@ -55,10 +55,8 @@ void ISLAND::Uninit()
     }
 }
 
-bool ISLAND::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ISLAND::Init()
 {
-    Entity::Init(service_locator);
-
     // core.AddToLayer("system_messages", GetId(), 1);
     SetDevice();
 

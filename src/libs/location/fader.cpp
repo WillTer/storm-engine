@@ -48,11 +48,9 @@ Fader::~Fader()
 }
 
 // Initialization
-bool Fader::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Fader::Init()
 {
-    Entity::Init(service_locator);
     // check that it's the only one
-
     auto&& entities = core.GetEntityIds("Fader");
     for (auto eid: entities) {
         if (eid == GetId()) continue;
@@ -141,8 +139,7 @@ bool Fader::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
 
     // read the number of tips, if necessary
     if (!numberOfTips) {
-        auto const config_loader       = m_service_locator->get<storm::IConfigLoader>();
-        auto const progress_image_info = storm::main_config::progress_image_info(*config_loader);
+        auto const progress_image_info = storm::main_config::progress_image_info();
 
         numberOfTips = std::clamp(progress_image_info.frame, 0, 1);
     }

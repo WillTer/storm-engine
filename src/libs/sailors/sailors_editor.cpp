@@ -21,10 +21,8 @@ SailorsEditor::~SailorsEditor()
     core.EraseEntity(shipID);
 };
 
-bool SailorsEditor::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SailorsEditor::Init()
 {
-    Entity::Init(service_locator);
-
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
 
     sailors = core.CreateEntity("Sailors");

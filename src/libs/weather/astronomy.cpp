@@ -13,12 +13,9 @@ Astronomy::Astronomy()
 
 Astronomy::~Astronomy() {}
 
-bool Astronomy::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Astronomy::Init()
 {
-    Entity::Init(service_locator);
-
     SetDevice();
-
     return true;
 }
 

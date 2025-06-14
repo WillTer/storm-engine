@@ -41,12 +41,9 @@ PCS_CONTROLS::~PCS_CONTROLS()
     // ClipCursor(0);
 }
 
-void PCS_CONTROLS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void PCS_CONTROLS::Init()
 {
-    CONTROLS::Init(service_locator);
-
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const controls_info = storm::main_config::controls_info(*config_loader);
+    auto const controls_info = storm::main_config::controls_info();
 
     m_is_debug_keys_enabled = controls_info.use_debug_keys;
 }

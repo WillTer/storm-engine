@@ -26,10 +26,8 @@ WideScreen::WideScreen()
 WideScreen::~WideScreen() {}
 
 // Initialization
-bool WideScreen::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WideScreen::Init()
 {
-    Entity::Init(service_locator);
-
     // Layers
     // core.LayerCreate("realize", true, false);
     core.SetLayerType(REALIZE, layer_type_t::realize);

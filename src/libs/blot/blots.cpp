@@ -44,10 +44,8 @@ Blots::~Blots()
 }
 
 // Initialization
-bool Blots::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Blots::Init()
 {
-    Entity::Init(service_locator);
-
     // GUARD(Blots::Init())
     // DX9 render
     rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));

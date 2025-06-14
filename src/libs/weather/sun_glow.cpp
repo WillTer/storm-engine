@@ -43,10 +43,8 @@ SUNGLOW::~SUNGLOW()
     }
 }
 
-bool SUNGLOW::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SUNGLOW::Init()
 {
-    Entity::Init(service_locator);
-
     pRS = nullptr;
 
     SetDevice();

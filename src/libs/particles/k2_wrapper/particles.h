@@ -51,7 +51,7 @@ public:
     PARTICLES();
     ~PARTICLES() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     uint64_t ProcessMessage(MESSAGE& message) override;
 

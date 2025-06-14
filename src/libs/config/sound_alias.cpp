@@ -3,6 +3,8 @@
 #include <libs/core/core.h>
 #include <toml.hpp>
 
+#include "i_config_loader.h"
+
 using namespace storm;
 
 namespace
@@ -45,9 +47,9 @@ struct from<storm::SoundAlias> {
 
 }  // namespace toml
 
-std::unordered_map<std::string, SoundAlias> sound_alias::aliases(IConfigLoader& config_loader, std::filesystem::path const& file)
+std::unordered_map<std::string, SoundAlias> sound_alias::aliases(std::filesystem::path const& file)
 {
-    auto const config_file = config_loader.open_config_cached(file);
+    auto const config_file = config_loader->open_config_cached(file);
     if (!config_file.is_table()) {
         core.Trace("There are no aliases in file \"%s\"", file.string().c_str());
         return {};

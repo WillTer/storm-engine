@@ -5,16 +5,18 @@
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_private.h>
-#include <libs/core/service_locator.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
-#include <libs/filesystem/default_paths.h>
+#include <libs/filesystem/file_service.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
+
+std::unique_ptr<IFileService>         fio           = nullptr;
+std::unique_ptr<storm::IConfigLoader> config_loader = nullptr;
 
 namespace
 {
@@ -52,7 +54,10 @@ bool run_frame_with_overflow_check()
     return is_running;
 }
 #else
-#define run_frame_with_overflow_check run_frame
+bool run_frame_with_overflow_check()
+{
+    return run_frame();
+}
 #endif
 
 void handle_window_event(storm::OSWindow::Event const& event)
@@ -95,12 +100,11 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
-    auto const service_locator = std::make_shared<storm::ServiceLocator>();
-    service_locator->add<storm::IConfigLoader>(std::make_shared<storm::ConfigLoader>(*fio));
+    fio           = std::make_unique<FileService>();
+    config_loader = std::make_unique<storm::ConfigLoader>();
 
     // Load parameters of file service
-    auto const config_loader = service_locator->get<storm::IConfigLoader>();
-    fio->init_from_main_config(*config_loader);
+    fio->init_from_main_config();
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
 
@@ -126,11 +130,11 @@ int main()
 
     // Init core
     core_private = static_cast<CorePrivate*>(&core);
-    core_private->Init(service_locator);
+    core_private->Init();
 
     // Read config
-    auto const general_info = storm::main_config::general_info(*config_loader);
-    auto const window_info  = storm::main_config::window_info(*config_loader);
+    auto const general_info = storm::main_config::general_info();
+    auto const window_info  = storm::main_config::window_info();
 
     if (!general_info.enable_logs)  // disable logging
     {

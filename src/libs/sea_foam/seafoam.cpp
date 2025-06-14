@@ -31,11 +31,8 @@ SEAFOAM::~SEAFOAM()
 }
 
 //--------------------------------------------------------------------
-bool SEAFOAM::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SEAFOAM::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(SEAFOAM::Init)
-
     /*if (core.IsNetActive())
     {
       NetFindClass(false, &seaID, "NetSea");

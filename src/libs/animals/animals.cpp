@@ -17,10 +17,8 @@ ANIMALS::~ANIMALS()
     delete butterflies;
 }
 
-bool ANIMALS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ANIMALS::Init()
 {
-    Entity::Init(service_locator);
-
     core.AddToLayer(REALIZE, GetId(), 77);
     core.AddToLayer(EXECUTE, GetId(), 77);
 
