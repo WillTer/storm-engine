@@ -24,10 +24,6 @@
 #include <unistd.h>
 #endif
 
-CREATE_SERVICE(DX9RENDER)
-
-CREATE_SCRIPTLIBRIARY(DX9RENDER_SCRIPT_LIBRIARY)
-
 #define POST_PROCESS_FVF (D3DFVF_XYZRHW | D3DFVF_TEX4)
 
 #define S_RELEASE(a, b) \
@@ -70,22 +66,18 @@ void InvokeEntitiesRestoreRender()
 
 DX9RENDER* DX9RENDER::pRS = nullptr;
 
-class LostDeviceSentinel: public SERVICE
+void LostDeviceSentinel::RunStart()
 {
-    void RunStart() override
-    {
-        if (auto d3d9 = static_cast<IDirect3DDevice9*>(DX9RENDER::pRS->GetD3DDevice())) {
-            switch (d3d9->TestCooperativeLevel()) {
-            case D3DERR_DEVICENOTRESET:
-                if (!DX9RENDER::pRS->ResetDevice()) { core.stopFrameProcessing(); }
-                break;
+    if (auto d3d9 = static_cast<IDirect3DDevice9*>(DX9RENDER::pRS->GetD3DDevice())) {
+        switch (d3d9->TestCooperativeLevel()) {
+        case D3DERR_DEVICENOTRESET:
+            if (!DX9RENDER::pRS->ResetDevice()) { core.stopFrameProcessing(); }
+            break;
 
-            case D3DERR_DEVICELOST: core.stopFrameProcessing(); break;
-            }
+        case D3DERR_DEVICELOST: core.stopFrameProcessing(); break;
         }
     }
-};
-CREATE_SERVICE(LostDeviceSentinel)
+}
 
 uint32_t DX9SetTexturePath(VS_STACK* pS)
 {

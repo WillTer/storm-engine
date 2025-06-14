@@ -2,8 +2,6 @@
 
 #include <libs/shared_headers/sea_ai/script_defines.h>
 
-CREATE_CLASS(AISeaGoods)
-
 AISeaGoods::AISeaGoods() : TmpItem(), fDistanceMultiply(0)
 {
     pSea        = nullptr;

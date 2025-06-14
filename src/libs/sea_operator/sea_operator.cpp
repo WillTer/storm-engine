@@ -8,8 +8,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/rands.h>
 
-CREATE_CLASS(SEA_OPERATOR)
-
 char               dbgs[1024];
 static float const MIN_TIME_DELTA = 0.05f;
 CVECTOR            lastCP;

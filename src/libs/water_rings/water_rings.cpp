@@ -5,8 +5,6 @@
 #include <libs/renderer/iv_buffer_manager.h>
 #include <libs/util/rands.h>
 
-CREATE_CLASS(WaterRings)
-
 //------------------------------------------------------------------------------------
 WaterRings::WaterRings() : ivManager(nullptr) {}
 

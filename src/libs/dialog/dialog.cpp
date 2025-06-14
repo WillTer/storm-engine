@@ -7,8 +7,6 @@
 #include <libs/util/dialog/dialog_utils.hpp>
 #include <libs/util/string_compare.hpp>
 
-CREATE_CLASS(DIALOG)
-
 #define CNORMAL 0xFFFFFFFF
 #define UNFADE_TIME 1000
 

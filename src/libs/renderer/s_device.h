@@ -654,3 +654,9 @@ private:
     bool TextureLoad(int32_t texid);
     bool TextureLoadUsingD3DX(char const* path, int32_t texid);
 };
+
+class LostDeviceSentinel: public SERVICE
+{
+public:
+    void RunStart() override;
+};

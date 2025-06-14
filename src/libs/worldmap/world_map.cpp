@@ -34,8 +34,6 @@
 #undef GetObject
 #endif
 
-CREATE_CLASS(WorldMap)
-
 //============================================================================================
 
 // #define EVENTS_OFF

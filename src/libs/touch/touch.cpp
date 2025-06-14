@@ -11,8 +11,6 @@
 #define INVALID_SHIP_IDX 0xACACAC
 #define DELTA_TIME 80
 
-CREATE_CLASS(TOUCH)
-
 void TOUCH::SetDevices()
 {
     entid_t ent;

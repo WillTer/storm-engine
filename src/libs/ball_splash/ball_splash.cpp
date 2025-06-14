@@ -6,8 +6,6 @@
 #include <libs/shared_headers/messages.h>
 #include <stdio.h>
 
-CREATE_CLASS(BALLSPLASH)
-
 //--------------------------------------------------------------------
 BALLSPLASH::BALLSPLASH() : renderer(nullptr), sea(nullptr) {}
 

@@ -5,12 +5,6 @@
 #include <libs/pcs_controls/pcs_controls.h>
 #include <libs/util/string_compare.hpp>
 
-CREATE_CLASS(TMPTELEPORT)
-
-CREATE_CLASS(FINDFILESINTODIRECTORY)
-
-CREATE_CLASS(FINDDIALOGNODES)
-
 #define DELETE_PTR(x) \
     if (x) delete x; \
     x = 0;

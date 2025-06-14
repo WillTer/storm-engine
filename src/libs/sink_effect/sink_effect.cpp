@@ -6,8 +6,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
 
-CREATE_CLASS(SINKEFFECT)
-
 //--------------------------------------------------------------------
 SINKEFFECT::SINKEFFECT() : renderer(nullptr), sea(nullptr) {}
 

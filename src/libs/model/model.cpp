@@ -8,8 +8,6 @@
 #include <DirectXMath.h>
 #endif
 
-CREATE_CLASS(MODELR)
-
 IDirect3DVertexBuffer9* dest_vb;
 
 MODELR::MODELR()

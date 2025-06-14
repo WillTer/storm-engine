@@ -3,8 +3,6 @@
 #include <libs/core/core.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(ANIMALS)
-
 ANIMALS::ANIMALS() : seagulls(nullptr), fishSchools(nullptr), butterflies(nullptr)
 {
     seagulls    = new TSeagulls();

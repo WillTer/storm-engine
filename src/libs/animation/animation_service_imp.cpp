@@ -18,8 +18,6 @@
 #include "an_file.h"
 #include "animation_imp.h"
 
-CREATE_SERVICE(AnimationServiceImp)
-
 //============================================================================================
 
 // Unused animation unload time

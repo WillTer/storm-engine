@@ -14,8 +14,6 @@
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(Blots)
-
 #define BLOTS_RADIUS 0.6f
 
 //============================================================================================

@@ -12,10 +12,6 @@
 
 #include "foam.h"
 
-CREATE_CLASS(ISLAND)
-
-CREATE_CLASS(CoastFoam)
-
 #define TGA_DATA_CHUNK 0xC001F00D
 
 #define HMAP_EMPTY 0

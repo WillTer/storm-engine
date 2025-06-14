@@ -19,8 +19,6 @@
 // Construction, destruction
 // ============================================================================================
 
-CREATE_CLASS(Lighter)
-
 Lighter::Lighter() : autoTrace(false), autoSmooth(false)
 {
     rs          = nullptr;

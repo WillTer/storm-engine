@@ -6,8 +6,6 @@
 #include <libs/input/input.hpp>
 #include <libs/util/string_compare.hpp>
 
-CREATE_SERVICE(PCS_CONTROLS)
-
 using namespace storm;
 
 PCS_CONTROLS::PCS_CONTROLS() : m_is_debug_keys_enabled {false}

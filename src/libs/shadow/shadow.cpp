@@ -12,8 +12,6 @@ dynamic shadow cpp file
 #include <libs/core/core.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(Shadow)
-
 static uint32_t    HEAD_DENSITY = 0xFF606060;
 static uint32_t    DENSITY      = 0xFF606040;
 static float const nearBlend    = 8.0f;

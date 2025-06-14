@@ -5,10 +5,6 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
-CREATE_CLASS(LOCATOR)
-
-CREATE_CLASS(BLAST)
-
 LOCATOR::LOCATOR() : rs(nullptr), ParticlesID(0)
 {
     gs          = nullptr;

@@ -13,8 +13,6 @@ model binded to an animated locator
 #include <libs/geometry/geometry.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(BLADE)
-
 static char const* handName   = "Saber_hand";
 static char const* beltName   = "Saber_belt";
 static char const* bloodName  = "Saber_blood";

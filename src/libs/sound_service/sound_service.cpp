@@ -16,8 +16,6 @@
 
 using namespace storm::audio;
 
-CREATE_SERVICE(SoundService)
-
 #define DISTANCEFACTOR 1.0F
 
 namespace

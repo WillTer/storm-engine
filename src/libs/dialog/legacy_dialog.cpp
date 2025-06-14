@@ -15,8 +15,6 @@
 
 #include "dialog.hpp"
 
-CREATE_CLASS(LegacyDialog)
-
 namespace
 {
 

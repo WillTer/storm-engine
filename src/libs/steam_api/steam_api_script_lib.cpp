@@ -9,7 +9,6 @@
 
 namespace steamapi
 {
-CREATE_SCRIPTLIBRIARY(SteamApiScriptLib)
 
 namespace
 {
