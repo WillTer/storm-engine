@@ -1201,7 +1201,7 @@ int32_t RendererService::TextureCreate(char const* fname)
 
         std::ranges::for_each(_fname, [](char& c) { c = std::tolower(c); });
 
-        uint32_t const hf = MakeHashValue(_fname);
+        uint32_t const hf = case_insensitive_hash(_fname);
 
         int32_t t;
         for (t = 0; t < MAX_STEXTURES; t++)
@@ -2530,7 +2530,7 @@ int32_t RendererService::LoadFont(char const* fontName)
     std::ranges::for_each(sDup, [](char& c) { c = std::toupper(c); });
     fontName = sDup;
 
-    uint32_t const hashVal = MakeHashValue(fontName);
+    uint32_t const hashVal = case_insensitive_hash(fontName);
 
     int32_t i;
     for (i = 0; i < nFontQuantity; i++)
@@ -2573,7 +2573,7 @@ bool RendererService::UnloadFont(char const* fontName)
     }
     std::ranges::for_each(sDup, [](char& c) { c = std::toupper(c); });
     fontName               = sDup;
-    uint32_t const hashVal = MakeHashValue(fontName);
+    uint32_t const hashVal = case_insensitive_hash(fontName);
 
     for (int i = 0; i < nFontQuantity; i++)
         if (FontList[i].hash == hashVal && storm::iEquals(FontList[i].name, fontName)) return UnloadFont(i);
@@ -2619,7 +2619,7 @@ bool RendererService::SetCurFont(char const* fontName)
     }
     std::ranges::for_each(sDup, [](char& c) { c = std::toupper(c); });
     fontName               = sDup;
-    uint32_t const hashVal = MakeHashValue(fontName);
+    uint32_t const hashVal = case_insensitive_hash(fontName);
 
     for (int i = 0; i < nFontQuantity; i++)
         if (FontList[i].hash == hashVal) {
@@ -3409,7 +3409,7 @@ CVideoTexture* RendererService::GetVideoTexture(char const* sVideoName)
     VideoTextureEntity* pVTLcur = pVTL;
 
     // check already loaded
-    uint32_t const newHash = MakeHashValue(sVideoName);
+    uint32_t const newHash = case_insensitive_hash(sVideoName);
     while (pVTLcur != nullptr) {
         if (pVTLcur->hash == newHash && storm::iEquals(pVTLcur->name, sVideoName)) {
             if (core->GetEntityPointer(pVTLcur->videoTexture_id)) {

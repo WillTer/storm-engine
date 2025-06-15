@@ -1,28 +1,21 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include <entt/core/hashed_string.hpp>
 
 /* TODO: REMOVE THIS.... */
-constexpr uint32_t MakeHashValue(char const* string)
+constexpr uint32_t case_insensitive_hash(std::string_view const& str)
 {
-    uint32_t hval = 0;
-
-    while (*string != 0) {
-        auto v = *string++;
-        if ('A' <= v && v <= 'Z') v += 'a' - 'A';
-
-        hval             = (hval << 4) + static_cast<uint32_t>(v);
-        uint32_t const g = hval & (static_cast<uint32_t>(0xf) << (32 - 4));
-        if (g != 0) {
-            hval ^= g >> (32 - 8);
-            hval ^= g;
-        }
-    }
-    return hval;
+    std::string str_lower = {};
+    std::transform(str.begin(), str.end(), std::back_inserter(str_lower), [](unsigned char const c) { return std::tolower(c); });
+    return entt::hashed_string::value(str_lower.c_str(), str_lower.size());
 }
 
 class VMA;

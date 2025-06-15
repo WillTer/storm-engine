@@ -18,7 +18,7 @@ class NODER: public NODE
     bool        isReleased;
 
     static int32_t depth, node;
-    uintptr_t      idGeoGroup;  // id of "GeometryService" string
+    uintptr_t      idGeoGroup;  // id of "geometry" string
     char           technique[256], name[256];
 
     // local radius and center of geometry

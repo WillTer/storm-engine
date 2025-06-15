@@ -332,7 +332,7 @@ void WdmIslands::SetIslandsData(ATTRIBUTES* apnt, bool isChange)
             continue;
         }
         // looking for a label among existing
-        uint32_t const hash  = MakeHashValue(id);
+        uint32_t const hash  = case_insensitive_hash(id);
         int32_t        index = LabelsFind(id, hash);
         if (index < 0) {
             if (!LabelsFindLocator(locator, pos)) {
