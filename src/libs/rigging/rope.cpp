@@ -681,7 +681,7 @@ void Rope::LoadIni()
     char param[256];
 
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "rigging.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "rigging.ini");
     if (!ini) throw std::runtime_error("rigging.ini file not found!");
 
     sprintf_s(section, "ROPES");

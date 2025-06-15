@@ -24,7 +24,7 @@ TSeagulls::~TSeagulls()
 //--------------------------------------------------------------------
 void TSeagulls::LoadSettings()
 {
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / ANIMALS_INI_FILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / ANIMALS_INI_FILE);
     if (!ini) {
         countAdd        = SEAGULL_ADD_COUNT;
         maxRadius       = SEAGULL_MAX_RADIUS;

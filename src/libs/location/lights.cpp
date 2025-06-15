@@ -55,10 +55,10 @@ bool Lights::Init()
     collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     // read the parameters
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "lights.ini");
     if (!ini) {
         core->Trace(
-            "Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+            "Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
     char lName[256];
@@ -468,7 +468,7 @@ void Lights::UnsetLights()
 void Lights::UpdateLightTypes(int32_t i)
 {
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "lights.ini");
     if (!ini) return;
     // Source name
     char* lName = types[i].name;

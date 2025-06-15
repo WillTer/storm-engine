@@ -73,7 +73,7 @@ FileService::FileService()
 
     m_paths.resource   = storm::fs::RESOURCE_DIR_DEFAULT;
     m_paths.program    = storm::fs::PROGRAM_DIR_DEFAULT;
-    m_paths.config     = storm::fs::CONFIG_DIR_DEFAULT;
+    m_paths.ini        = storm::fs::INI_DIR_DEFAULT;
     m_paths.aliases    = storm::fs::ALIASES_DIR_DEFAULT;
     m_paths.sounds     = storm::fs::SOUNDS_DIR_DEFAULT;
     m_paths.videos     = storm::fs::VIDEOS_DIR_DEFAULT;
@@ -318,7 +318,7 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     switch (dir) {
     case BaseDirectory::Resource: return m_paths.resource;
     case BaseDirectory::Program: return m_paths.program;
-    case BaseDirectory::Config: return m_paths.config;
+    case BaseDirectory::Ini: return m_paths.ini;
     case BaseDirectory::Aliases: return m_paths.aliases;
     case BaseDirectory::Sounds: return m_paths.sounds;
     case BaseDirectory::Videos: return m_paths.videos;

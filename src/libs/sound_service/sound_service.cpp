@@ -397,7 +397,7 @@ void SoundService::load_alias_file(std::string const& filename)
 
 void SoundService::init_aliases()
 {
-    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.toml", false);
+    auto const filenames = fio->string_paths_by_mask(fio->base_directory_path(BaseDirectory::Aliases), "*.ini", false);
     for (auto const& cur_name: filenames) {
         load_alias_file(cur_name);
     }
@@ -610,7 +610,7 @@ void SoundService::reset_scheme()
 bool SoundService::add_scheme(std::string_view const& scheme_name)
 {
     static char temp_string[COMMON_STRING_LENGTH];
-    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / SCHEME_INI_NAME);
+    auto        ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / SCHEME_INI_NAME);
 
     if (!ini) { return false; }
 

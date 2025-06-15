@@ -48,7 +48,7 @@ bool SeaFoam::Init()
     soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
 
     // FIXME: hardcode
-    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
+    psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
 
     InitializeShipFoam();
 

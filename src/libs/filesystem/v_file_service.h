@@ -12,7 +12,7 @@ enum class BaseDirectory {
     None,
     Resource,
     Program,
-    Config,
+    Ini,
     Aliases,
     Sounds,
     Videos,

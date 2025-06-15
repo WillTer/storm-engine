@@ -277,7 +277,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
 
 void LegacyDialog::LoadIni()
 {
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / DIALOG_INI_FILE_PATH);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / DIALOG_INI_FILE_PATH);
 
     mainFont_ = LoadFont("mainfont", *ini, *RenderService);
     nameFont_ = LoadFont("namefont", *ini, *RenderService);

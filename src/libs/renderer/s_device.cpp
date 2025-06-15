@@ -500,7 +500,7 @@ bool RendererService::Init()
     // get start ini file for fonts
     if (font_config.empty()) {
         core->Trace("Not found 'font_config' parameter in engine.toml file (must be in 'window' section)");
-        font_config = (fio->base_directory_path(BaseDirectory::Config) / "fonts.ini").string();
+        font_config = (fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini").string();
     }
 
     auto const len = font_config.size() + 1;

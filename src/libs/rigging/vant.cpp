@@ -83,7 +83,7 @@ void VANT_BASE::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
         if (fio->exists(file_path)) {
             auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) { LoadIni(); }
@@ -544,7 +544,7 @@ void Vant::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
@@ -615,7 +615,7 @@ void VantL::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
@@ -686,7 +686,7 @@ void VantZ::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }

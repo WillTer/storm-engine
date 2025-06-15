@@ -57,7 +57,7 @@ IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSf
     m_pRS = pRS;
 
     // open ini file
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / INI_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / INI_FILENAME);
     if (!ini) {
         core->Trace("ini file %s not found!", INI_FILENAME.data());
         return nullptr;

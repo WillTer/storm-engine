@@ -889,7 +889,7 @@ void XInterface::LoadIni()
     // GUARD(XINTERFACE::LoadIni());
     char section[256];
 
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
     auto windowSize = core->GetWindow()->GetWindowSize();
@@ -1020,7 +1020,7 @@ void XInterface::LoadDialog(char const* sFileName)
         return;
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
 
     sprintf_s(section, "MAIN");
 
@@ -1138,7 +1138,7 @@ void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char c
         }
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
 
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }

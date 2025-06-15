@@ -175,7 +175,7 @@ void StrService::SetLanguage(char const* sLanguage)
     if (m_sLanguage != nullptr && storm::iEquals(sLanguage, m_sLanguage)) return;
 
     // initialize ini file
-    auto langIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
+    auto langIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / sLanguageFile);
     if (!langIni) {
         core->Trace("ini file %s not found!", sLanguageFile.data());
         return;
@@ -229,10 +229,10 @@ void StrService::SetLanguage(char const* sLanguage)
     if (RenderService) {
         auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
-            fullIniPath = fio->base_directory_path(BaseDirectory::Config) / param;
+            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / param;
         } else {
             core->Trace("Warning: Not found font record for language %s", m_sLanguage);
-            fullIniPath = fio->base_directory_path(BaseDirectory::Config) / "fonts.ini";
+            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini";
         }
         RenderService->SetFontIniFileName(fullIniPath.string().c_str());
     }
@@ -257,7 +257,7 @@ void StrService::SetLanguage(char const* sLanguage)
     }
 
     // initialize ini file
-    auto const ini_path = fio->base_directory_path(BaseDirectory::Config) / "texts" / m_sLanguageDir / m_sIniFileName;
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Ini) / "texts" / m_sLanguageDir / m_sIniFileName;
     auto       ini      = fio->open_ini_file(ini_path);
     if (!ini) {
         core->Trace("WARNING! ini file \"%s\" not found!", ini_path.string().c_str());
@@ -408,7 +408,7 @@ void StrService::LoadIni()
     char param[256];
 
     // initialize ini file
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / sLanguageFile);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / sLanguageFile);
     if (!ini) {
         core->Trace("Error: Language ini file not found!");
         return;
@@ -486,7 +486,7 @@ int32_t StrService::OpenUsersStringFile(char const* fileName)
     auto pUSB = std::make_unique<UsersStringBlock>();
 
     // strings reading
-    auto const ini_path = fio->base_directory_path(BaseDirectory::Config) / "texts" / m_sLanguageDir / fileName;
+    auto const ini_path = fio->base_directory_path(BaseDirectory::Ini) / "texts" / m_sLanguageDir / fileName;
     auto       fileS    = fio->open_file<std::ifstream>(ini_path, std::ios::binary);
     if (!fileS.is_open()) {
         spdlog::warn("WARNING! Strings file \"{}\" does not exist", fileName);

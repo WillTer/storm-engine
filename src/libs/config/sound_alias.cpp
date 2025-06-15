@@ -1,9 +1,12 @@
 #include "sound_alias.h"
 
+#include <ranges>
+
 #include <libs/core/core.h>
-#include <toml.hpp>
 
 #include "i_config_loader.h"
+#include "ini_file.h"
+#include "ini_helpers.h"
 
 using namespace storm;
 
@@ -14,50 +17,45 @@ constexpr float DEFAULT_PROBABILITY = 1.0F;
 
 }  // namespace
 
-namespace toml
-{
-
 template <>
-struct from<storm::SoundAlias> {
-    static storm::SoundAlias from_toml(toml::value const& v)
+struct read_to<SoundAlias> {
+    static SoundAlias from_ini(IniFile const& ini, std::string const& section)
     {
-        // No sound_files - no alias
-        if (!v.is_table() || !v.contains("sound_files") || !v.at("sound_files").is_array()) { return {}; }
+        ProbabilityTable<std::string> files = {};
 
-        storm::ProbabilityTable<std::string> files = {};
-        for (auto const& file: v.at("sound_files").as_array()) {
-            if (!file.is_table() || !file.contains("name")) { return {}; }
+        // TODO: syntax check
+        auto [name_begin, name_end] = ini.get_section(section).equal_range("name");
+        std::for_each(name_begin, name_end, [&](std::pair<std::string, std::string> const& pair) {
+            auto const& [_, name] = pair;
+            // Check if it's just name or name with probability separated by comma
+            auto const comma = name.find_first_of(',');
 
-            auto const probability = toml::find_or(file, "probability", DEFAULT_PROBABILITY);
-            auto const name        = toml::find_or<std::string>(file, "name", "");
+            try {
+                float const       probability = comma == std::string::npos ? DEFAULT_PROBABILITY : std::stof(name.substr(comma + 1));
+                std::string const file_name   = comma == std::string::npos ? name : name.substr(0, comma);
 
-            if (name.empty()) { continue; }
-
-            files.emplace(probability, name);
-        }
+                files.emplace(probability, file_name);
+            } catch (std::invalid_argument const& e) {
+                core->Trace("IniFile::read_to<SoundAlias>() can't parse section \"%s\", name value \"%s\"", section.c_str(), name.c_str());
+            }
+        });
 
         return {
-            .min_distance = toml::find_or(v, "min_distance", -1.0F),
-            .max_distance = toml::find_or(v, "max_distance", -1.0F),
-            .volume       = toml::find_or(v, "volume", -1.0F),
+            .min_distance = ini.find_or(section, "minDistance", -1.0F),
+            .max_distance = ini.find_or(section, "maxDistance", -1.0F),
+            .volume       = ini.find_or(section, "volume", -1.0F),
             .files        = std::move(files),
         };
     }
 };
 
-}  // namespace toml
-
 std::unordered_map<std::string, SoundAlias> sound_alias::aliases(std::filesystem::path const& file)
 {
-    auto const config_file = config_loader->open_config_cached(file);
-    if (!config_file.is_table()) {
-        core->Trace("There are no aliases in file \"%s\"", file.string().c_str());
-        return {};
-    }
+    auto const& config_file = config_loader->open_config_cached(file);
 
     std::unordered_map<std::string, SoundAlias> aliases = {};
-    for (auto const& [name, value]: config_file.as_table()) {
-        aliases.emplace(name, toml::get<SoundAlias>(value));
+    for (auto const& name: config_file.get_sections() | std::views::keys) {
+        aliases.emplace(name, read_to<SoundAlias>::from_ini(config_file, name));
     }
 
     return aliases;
