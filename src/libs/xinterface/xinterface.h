@@ -14,10 +14,10 @@
 
 class CXI_WINDOW;
 
-class XINTERFACE: public XINTERFACE_BASE
+class XInterface: public XINTERFACE_BASE
 {
 public:
-    static XINTERFACE* pThis;
+    static XInterface* pThis;
 
 protected:
     storm::QuestFileReader* pQuestService;
@@ -73,10 +73,10 @@ protected:
     uint32_t m_dwStoreFlag_Fog;
 
 public:
-    XINTERFACE(XINTERFACE&&)      = delete;
-    XINTERFACE(const XINTERFACE&) = delete;
-    XINTERFACE();
-    ~XINTERFACE() override;
+    XInterface(XInterface&&)      = delete;
+    XInterface(const XInterface&) = delete;
+    XInterface();
+    ~XInterface() override;
 
     void     SetDevice();
     bool     Init() override;
@@ -407,7 +407,7 @@ protected:
     CINODE* m_pCurToolTipNode;
 };
 
-class CONTROLS_CONTAINER: public Entity
+class ControlsContainer: public Entity
 {
     struct CONTEINER_DESCR {
         float fMaxVal;
@@ -426,8 +426,8 @@ class CONTROLS_CONTAINER: public Entity
     }* pContainers;
 
 public:
-    CONTROLS_CONTAINER();
-    ~CONTROLS_CONTAINER() override;
+    ControlsContainer();
+    ~ControlsContainer() override;
     bool     Init() override;
     void     Execute(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;

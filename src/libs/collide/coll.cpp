@@ -7,7 +7,7 @@ entid_t last_trace_eid;
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------
-LOCAL_COLLIDE* COLL::CreateLocalCollide(layer_index_t idx)
+LOCAL_COLLIDE* CollideService::CreateLocalCollide(layer_index_t idx)
 {
     return new LCOLL(idx);
 }
@@ -15,7 +15,7 @@ LOCAL_COLLIDE* COLL::CreateLocalCollide(layer_index_t idx)
 //----------------------------------------------------------------------------------
 // Ray tracing
 //----------------------------------------------------------------------------------
-float COLL::Trace(entid_t entity, const CVECTOR& src, const CVECTOR& dst)
+float CollideService::Trace(entid_t entity, const CVECTOR& src, const CVECTOR& dst)
 {
     auto* cob = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(entity));
     if (static_cast<Entity*>(cob) == nullptr) return 2.0f;
@@ -27,7 +27,7 @@ float COLL::Trace(entid_t entity, const CVECTOR& src, const CVECTOR& dst)
 //----------------------------------------------------------------------------------
 // with enclusion list
 //----------------------------------------------------------------------------------
-float COLL::Trace(entity_container_cref entities, const CVECTOR& src, const CVECTOR& dst, entid_t const* exclude_list, int32_t exclude_num)
+float CollideService::Trace(entity_container_cref entities, const CVECTOR& src, const CVECTOR& dst, entid_t const* exclude_list, int32_t exclude_num)
 {
     auto best_res = 2.0f;
     for (auto const eid: entities) {
@@ -53,7 +53,7 @@ float COLL::Trace(entity_container_cref entities, const CVECTOR& src, const CVEC
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------
-bool COLL::Clip(
+bool CollideService::Clip(
     entity_container_cref entities,
     const PLANE*          planes,
     int32_t               nplanes,
@@ -85,7 +85,7 @@ bool COLL::Clip(
 //----------------------------------------------------------------------------------
 // get last trace entity id
 //----------------------------------------------------------------------------------
-entid_t COLL::GetObjectID()
+entid_t CollideService::GetObjectID()
 {
     return last_trace_eid;
 }

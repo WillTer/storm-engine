@@ -2,48 +2,48 @@
 
 #include <libs/core/core.h>
 
-LIGHTNING::LIGHTNING()
+Lightning::Lightning()
 {
     iLightningTexture = -1;
     iFlashTexture     = -1;
 }
 
-LIGHTNING::~LIGHTNING()
+Lightning::~Lightning()
 {
     Release();
 }
 
-void LIGHTNING::Release() const
+void Lightning::Release() const
 {
     pRS->TextureRelease(iLightningTexture);
     pRS->TextureRelease(iFlashTexture);
 }
 
-bool LIGHTNING::Init()
+bool Lightning::Init()
 {
     SetDevice();
     return true;
 }
 
-void LIGHTNING::SetDevice()
+void Lightning::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 }
 
-bool LIGHTNING::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Lightning::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool LIGHTNING::LoadState(ENTITY_STATE* state)
+bool Lightning::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void LIGHTNING::Execute(uint32_t Delta_Time)
+void Lightning::Execute(uint32_t Delta_Time)
 {
     auto const fDeltaTime = static_cast<float>(Delta_Time) * 0.001f;
 
@@ -66,7 +66,7 @@ void LIGHTNING::Execute(uint32_t Delta_Time)
     }
 }
 
-void LIGHTNING::Realize(uint32_t Delta_Time)
+void Lightning::Realize(uint32_t Delta_Time)
 {
     uint32_t i;
     RS_RECT  rs_rect;
@@ -103,7 +103,7 @@ void LIGHTNING::Realize(uint32_t Delta_Time)
     }
 }
 
-uint64_t LIGHTNING::ProcessMessage(MESSAGE& message)
+uint64_t Lightning::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SEA_REFLECTION_DRAW: Realize(0); break;
@@ -135,7 +135,7 @@ uint64_t LIGHTNING::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void LIGHTNING::CalcFlashPower(lightning_t* pL) const
+void Lightning::CalcFlashPower(lightning_t* pL) const
 {
     CVECTOR vCamPos, vCamAng, vTrace[3];
     float   fFov;
@@ -155,7 +155,7 @@ void LIGHTNING::CalcFlashPower(lightning_t* pL) const
     pL->fPower = fPower;
 }
 
-uint32_t LIGHTNING::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t Lightning::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     // std::string sTextureName;
 

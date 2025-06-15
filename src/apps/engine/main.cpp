@@ -17,10 +17,11 @@
 
 #include "libs/core/core_impl.h"
 
-std::unique_ptr<IFileService>         fio           = nullptr;
-std::shared_ptr<CoreImpl>             core_internal = nullptr;
-std::shared_ptr<Core>                 core          = nullptr;
-std::unique_ptr<storm::IConfigLoader> config_loader = nullptr;
+std::unique_ptr<IFileService>           fio              = nullptr;
+std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
+std::shared_ptr<CoreImpl>               core_internal    = nullptr;
+std::shared_ptr<Core>                   core             = nullptr;
+std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;
 
 namespace
 {

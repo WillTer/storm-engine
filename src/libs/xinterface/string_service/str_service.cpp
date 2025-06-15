@@ -73,7 +73,7 @@ bool GetStringDescribe(char* inStr, char* strName, char* outStr)
     return true;
 }
 
-STRSERVICE::STRSERVICE()
+StrService::StrService()
 {
     m_sLanguage    = nullptr;
     m_sIniFileName = nullptr;
@@ -89,7 +89,7 @@ STRSERVICE::STRSERVICE()
     m_nDialogSourceFile    = -1;
 }
 
-STRSERVICE::~STRSERVICE()
+StrService::~StrService()
 {
     int i;
 
@@ -138,27 +138,27 @@ STRSERVICE::~STRSERVICE()
     }
 }
 
-bool STRSERVICE::Init()
+bool StrService::Init()
 {
     LoadIni();
     return true;
 }
 
-bool STRSERVICE::LoadState(ENTITY_STATE* state)
+bool StrService::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-bool STRSERVICE::CreateState(ENTITY_STATE_GEN* state_gen)
+bool StrService::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-void STRSERVICE::RunStart() {}
+void StrService::RunStart() {}
 
-void STRSERVICE::RunEnd() {}
+void StrService::RunEnd() {}
 
-void STRSERVICE::SetLanguage(char const* sLanguage)
+void StrService::SetLanguage(char const* sLanguage)
 {
     // GUARD(void STRSERVICE::SetLanguage(const char* sLanguage))
 
@@ -224,7 +224,7 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     //==========================================================================
     // reread fonts
     //==========================================================================
-    auto* RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto* RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (RenderService) {
         auto fullIniPath = std::filesystem::path();
         if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
@@ -368,13 +368,13 @@ void STRSERVICE::SetLanguage(char const* sLanguage)
     // UNGUARD
 }
 
-char* STRSERVICE::GetLanguage()
+char* StrService::GetLanguage()
 {
     if (m_sLanguage != nullptr) return m_sLanguage;
     return nullptr;
 }
 
-char* STRSERVICE::GetString(char const* stringName, char* sBuffer, size_t bufferSize)
+char* StrService::GetString(char const* stringName, char* sBuffer, size_t bufferSize)
 {
     // GUARD(char* STRSERVICE::GetString(const char* stringName, char* sBuffer, size_t bufferSize))
 
@@ -394,13 +394,13 @@ char* STRSERVICE::GetString(char const* stringName, char* sBuffer, size_t buffer
     // UNGUARD
 }
 
-void STRSERVICE::SetDialogSourceFile(char const* fileName)
+void StrService::SetDialogSourceFile(char const* fileName)
 {
     CloseUsersStringFile(m_nDialogSourceFile);
     m_nDialogSourceFile = OpenUsersStringFile((char*)fileName);
 }
 
-void STRSERVICE::LoadIni()
+void StrService::LoadIni()
 {
     // GUARD(void STRSERVICE::LoadIni())
 
@@ -434,7 +434,7 @@ void STRSERVICE::LoadIni()
     // UNGUARD
 }
 
-int32_t STRSERVICE::GetStringNum(char const* stringName)
+int32_t StrService::GetStringNum(char const* stringName)
 {
     // GUARD(int32_t STRSERVICE::GetStringNum(const char* stringName))
 
@@ -446,7 +446,7 @@ int32_t STRSERVICE::GetStringNum(char const* stringName)
     // UNGUARD
 }
 
-char* STRSERVICE::GetString(int32_t strNum)
+char* StrService::GetString(int32_t strNum)
 {
     // GUARD(char* STRSERVICE::GetString(int32_t strNum))
 
@@ -456,7 +456,7 @@ char* STRSERVICE::GetString(int32_t strNum)
     // UNGUARD
 }
 
-char* STRSERVICE::GetStringName(int32_t strNum)
+char* StrService::GetStringName(int32_t strNum)
 {
     // GUARD(char* STRSERVICE::GetStringName(int32_t strNum))
 
@@ -466,7 +466,7 @@ char* STRSERVICE::GetStringName(int32_t strNum)
     // UNGUARD
 }
 
-int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
+int32_t StrService::OpenUsersStringFile(char const* fileName)
 {
     int i;
     if (fileName == nullptr) { return -1; }
@@ -542,7 +542,7 @@ int32_t STRSERVICE::OpenUsersStringFile(char const* fileName)
     return block_id;
 }
 
-void STRSERVICE::CloseUsersStringFile(int32_t id)
+void StrService::CloseUsersStringFile(int32_t id)
 {
     int i;
     if (id == -1) return;
@@ -581,7 +581,7 @@ void STRSERVICE::CloseUsersStringFile(int32_t id)
     delete pUSB;
 }
 
-char* STRSERVICE::TranslateFromUsers(int32_t id, char const* inStr)
+char* StrService::TranslateFromUsers(int32_t id, char const* inStr)
 {
     int i;
     if (inStr == nullptr || id == -1) return nullptr;
@@ -596,7 +596,7 @@ char* STRSERVICE::TranslateFromUsers(int32_t id, char const* inStr)
     return nullptr;
 }
 
-int32_t STRSERVICE::GetFreeUsersID() const
+int32_t StrService::GetFreeUsersID() const
 {
     int id;
     for (id = 0;; id++) {
@@ -608,7 +608,7 @@ int32_t STRSERVICE::GetFreeUsersID() const
     return id;
 }
 
-bool STRSERVICE::GetNextUsersString(char* src, int32_t& idx, char** strName, char** strData) const
+bool StrService::GetNextUsersString(char* src, int32_t& idx, char** strName, char** strData) const
 {
     char* tmpStr;
     char* dataBeg;
@@ -902,7 +902,7 @@ uint32_t _SetColorCorrection(VS_STACK* pS)
     float fContrast = 1.f;
     pContrast->Get(fContrast);
 
-    auto pVR = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto pVR = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!pVR) return IFUNCRESULT_FAILED;
 
     pVR->SetColorParameters(fGamma, fBright, fContrast);
@@ -922,7 +922,7 @@ uint32_t _SetMouseSensitivity(VS_STACK* pS)
     float fXSens = 1.f;
     pXSens->Get(fXSens);
 
-    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PCS_CONTROLS"));
+    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PcsControls"));
     if (!pCntrl) return IFUNCRESULT_FAILED;
 
     pCntrl->SetMouseSensivityX(fXSens);
@@ -945,7 +945,7 @@ uint32_t _ControlMakeInvert(VS_STACK* pS)
     pControlName->Get(sCntrlName);
     if (!sCntrlName) return IFUNCRESULT_FAILED;
 
-    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PCS_CONTROLS"));
+    auto pCntrl = static_cast<CONTROLS*>(core->GetService("PcsControls"));
     if (!pCntrl) return IFUNCRESULT_FAILED;
 
     int const n = pCntrl->CreateControl(sCntrlName);
@@ -974,7 +974,7 @@ uint32_t _InterfaceMakeNode(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* sFileName = pDat->GetString();
 
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->CreateNode(sFileName, sNodeType, sNodeName, nPriority);
+    if (XInterface::pThis != nullptr) XInterface::pThis->CreateNode(sFileName, sNodeType, sNodeName, nPriority);
 
     return IFUNCRESULT_OK;
 }
@@ -984,7 +984,7 @@ uint32_t _InterfaceDeleteNode(VS_STACK* pS)
     auto pDat = (VDATA*)pS->Pop();
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* pcNodeName = pDat->GetString();
-    if (XINTERFACE::pThis) XINTERFACE::pThis->DeleteNode(pcNodeName);
+    if (XInterface::pThis) XInterface::pThis->DeleteNode(pcNodeName);
     return IFUNCRESULT_OK;
 }
 
@@ -998,7 +998,7 @@ uint32_t _InterfaceWindowShow(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* sWindowName = pDat->GetString();
 
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->ShowWindow(sWindowName, nShow != 0);
+    if (XInterface::pThis != nullptr) XInterface::pThis->ShowWindow(sWindowName, nShow != 0);
 
     return IFUNCRESULT_OK;
 }
@@ -1013,7 +1013,7 @@ uint32_t _InterfaceWindowDisable(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* sWindowName = pDat->GetString();
 
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->DisableWindow(sWindowName, nShow != 0);
+    if (XInterface::pThis != nullptr) XInterface::pThis->DisableWindow(sWindowName, nShow != 0);
 
     return IFUNCRESULT_OK;
 }
@@ -1025,7 +1025,7 @@ uint32_t _InterfaceIsWindowEnable(VS_STACK* pS)
     char const* sWindowName = pDat->GetString();
 
     bool bActive = true;
-    if (XINTERFACE::pThis != nullptr) { bActive = XINTERFACE::pThis->IsWindowActive(sWindowName); }
+    if (XInterface::pThis != nullptr) { bActive = XInterface::pThis->IsWindowActive(sWindowName); }
 
     pDat = (VDATA*)pS->Push();
     if (!pDat) return IFUNCRESULT_FAILED;
@@ -1046,7 +1046,7 @@ uint32_t _InterfaceWindowAddNode(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* sWindowName = pDat->GetString();
 
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->AddNodeToWindow(sNodeName, sWindowName);
+    if (XInterface::pThis != nullptr) XInterface::pThis->AddNodeToWindow(sNodeName, sWindowName);
 
     return IFUNCRESULT_OK;
 }
@@ -1133,7 +1133,7 @@ uint32_t _DialogAssembleStr(VS_STACK* pS)
     char const* pcID = pDat->GetString();
 
     std::string param;
-    char const* pcStr = g_StringServicePointer ? static_cast<STRSERVICE*>(g_StringServicePointer)->TranslateForDialog(pcID) : pcID;
+    char const* pcStr = g_StringServicePointer ? static_cast<StrService*>(g_StringServicePointer)->TranslateForDialog(pcID) : pcID;
     if (pcStr) {
         std::vector<storm::QuestFileReader::UserData> userData;
         if (pcParam) storm::QuestFileReader::FillUserDataList((char*)pcParam, userData);
@@ -1179,7 +1179,7 @@ uint32_t _DialogAddParamToStr(VS_STACK* pS)
 uint32_t _StoreNodeLocksWithOff(VS_STACK* pS)
 {
     int32_t nStoreIndex = -1;
-    if (XINTERFACE::pThis != nullptr) nStoreIndex = XINTERFACE::pThis->StoreNodeLocksWithOff();
+    if (XInterface::pThis != nullptr) nStoreIndex = XInterface::pThis->StoreNodeLocksWithOff();
     auto pDat = (VDATA*)pS->Push();
     if (!pDat) return IFUNCRESULT_FAILED;
     pDat->Set(nStoreIndex);
@@ -1191,7 +1191,7 @@ uint32_t _RestoreNodeLocks(VS_STACK* pS)
     auto pDat = (VDATA*)pS->Pop();
     if (!pDat) return IFUNCRESULT_FAILED;
     int32_t const nStoreIndex = pDat->GetInt();
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->RestoreNodeLocks(nStoreIndex);
+    if (XInterface::pThis != nullptr) XInterface::pThis->RestoreNodeLocks(nStoreIndex);
     return IFUNCRESULT_OK;
 }
 
@@ -1241,7 +1241,7 @@ uint32_t _RegistryExitKey(VS_STACK* pS)
     if (!pDat) return IFUNCRESULT_FAILED;
     char const* strKeyName = nullptr;
     pDat->Get(strKeyName);
-    if (XINTERFACE::pThis != nullptr) XINTERFACE::pThis->RegistryExitKey(strKeyName);
+    if (XInterface::pThis != nullptr) XInterface::pThis->RegistryExitKey(strKeyName);
     return IFUNCRESULT_OK;
 }
 
@@ -1276,7 +1276,7 @@ uint32_t _AddControlTreeNode(VS_STACK* pS)
 }
 
 //==============================================================
-bool SCRIPT_INTERFACE_FUNCTIONS::Init()
+bool ScriptInterfaceFunctions::Init()
 {
     IFUNCINFO sIFuncInfo;
 

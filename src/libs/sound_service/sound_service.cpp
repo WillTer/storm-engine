@@ -76,7 +76,7 @@ bool SoundService::Init()
 {
     m_is_initialized = false;
 
-    m_renderer = static_cast<VDX9RENDER*>(core->GetService("DX9RENDER"));
+    m_renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (m_renderer == nullptr) { return false; }
 
     m_device =

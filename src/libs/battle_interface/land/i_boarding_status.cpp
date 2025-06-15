@@ -15,7 +15,7 @@ IBoardingStatus::~IBoardingStatus() {}
 
 bool IBoardingStatus::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 

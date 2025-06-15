@@ -56,14 +56,14 @@ void TSeagulls::Init()
     startY = 0.f;
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     soundService  = static_cast<VSoundService*>(core->GetService("SoundService"));
 
     if (!renderService) throw std::runtime_error("!Seagulls: No service: dx9render");
     // if(!soundService)
     //    throw std::runtime_error("!Seagulls: No service: sound");
 
-    seagullModel = core->CreateEntity("MODELR");
+    seagullModel = core->CreateEntity("ModelR");
     core->Send_Message(seagullModel, "ls", MSG_MODEL_LOAD_GEO, ANIMALS_SEAGULL_FILENAME);
 }
 

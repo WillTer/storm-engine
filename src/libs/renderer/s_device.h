@@ -77,25 +77,25 @@ extern uint32_t dwSoundBuffersCount;
 extern uint32_t dwSoundBytes;
 extern uint32_t dwSoundBytesCached;
 
-class DX9RENDER_SCRIPT_LIBRIARY: public SCRIPT_LIBRIARY
+class DX9RenderScriptLibrary: public SCRIPT_LIBRIARY
 {
 public:
-    DX9RENDER_SCRIPT_LIBRIARY() {};
+    DX9RenderScriptLibrary() {};
 
-    ~DX9RENDER_SCRIPT_LIBRIARY() override {};
+    ~DX9RenderScriptLibrary() override {};
     bool Init() override;
 };
 
 //-----------SDEVICE-----------
-class DX9RENDER: public VDX9RENDER
+class RendererService: public VDX9RENDER
 {
 #define RS_RECT_VERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 
 public:
-    static DX9RENDER* pRS;
+    static RendererService* pRS;
 
-    DX9RENDER();
-    ~DX9RENDER() override;
+    RendererService();
+    ~RendererService() override;
 
     // DX9Render: Init/Release
     bool InitDevice(bool windowed, HWND hwnd, int32_t width, int32_t height) override;

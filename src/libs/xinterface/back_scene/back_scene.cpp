@@ -83,7 +83,7 @@ void InterfaceBackScene::MenuDescr::Set(
 {
     if (!pcTechniqueName) pcTechniqueName = "InterfaceBackScene_Menu";
     sEventName = pcEvent;
-    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("Geometry"));
+    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (pGeo)
         if (pcPathName && pcPathName[0])
             pGeo->SetTexturePath((std::string("mainmenu/") + pcPathName + "/").c_str());
@@ -91,7 +91,7 @@ void InterfaceBackScene::MenuDescr::Set(
             pGeo->SetTexturePath("mainmenu/");
     // create active model
     if (pcActiveName) {
-        eiActive = core->CreateEntity("MODELR");
+        eiActive = core->CreateEntity("ModelR");
         core->Send_Message(eiActive, "ls", MSG_MODEL_LOAD_GEO, pcActiveName);
         pActive = static_cast<MODEL*>(core->GetEntityPointer(eiActive));
         if (pActive && pMtx) {
@@ -104,7 +104,7 @@ void InterfaceBackScene::MenuDescr::Set(
     }
     // create passive model
     if (pcPassiveName) {
-        eiPassive = core->CreateEntity("MODELR");
+        eiPassive = core->CreateEntity("ModelR");
         core->Send_Message(eiPassive, "ls", MSG_MODEL_LOAD_GEO, pcPassiveName);
         pPassive = static_cast<MODEL*>(core->GetEntityPointer(eiPassive));
         if (pPassive && pMtx) {
@@ -168,7 +168,7 @@ InterfaceBackScene::~InterfaceBackScene()
 
 bool InterfaceBackScene::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(m_pRS);
     flyTex          = m_pRS->TextureCreate("locefx/firefly.tga");
     m_nFlareTexture = m_pRS->TextureCreate("shipsflares/corona.tga");
@@ -179,7 +179,7 @@ void InterfaceBackScene::Execute(uint32_t Delta_Time)
 {
     auto const nOldMenuIndex = m_nSelectMenuIndex;
 
-    auto const pntMouse = XINTERFACE::pThis->GetMousePoint();
+    auto const pntMouse = XInterface::pThis->GetMousePoint();
     if (m_pntOldMouse.x != pntMouse.x || m_pntOldMouse.y != pntMouse.y) {
         m_pntOldMouse = pntMouse;
         auto const n  = CheckMousePos(pntMouse.x, pntMouse.y);
@@ -361,17 +361,17 @@ void InterfaceBackScene::LoadModel(char const* pcModelName)
         core->EraseEntity(m_eiLocators);
         m_pLocators = nullptr;
     }
-    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("Geometry"));
-    if (pGeo) pGeo->SetTexturePath((std::string("mainmenu/") + XINTERFACE::pThis->StringService()->GetLanguage() + "/").c_str());
+    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
+    if (pGeo) pGeo->SetTexturePath((std::string("mainmenu/") + XInterface::pThis->StringService()->GetLanguage() + "/").c_str());
     // create model
-    m_eiModel = core->CreateEntity("MODELR");
+    m_eiModel = core->CreateEntity("ModelR");
     core->Send_Message(m_eiModel, "ls", MSG_MODEL_LOAD_GEO, pcModelName);
     m_pModel = static_cast<MODEL*>(core->GetEntityPointer(m_eiModel));
     if (pGeo) pGeo->SetTexturePath("");
     core->AddToLayer(SUN_TRACE, m_eiModel, 0);
     core->AddToLayer(RAIN_DROPS, m_eiModel, 100);
     // create locators
-    m_eiLocators        = core->CreateEntity("MODELR");
+    m_eiLocators        = core->CreateEntity("ModelR");
     auto const sLocName = std::string(pcModelName) + "_locators";
     core->Send_Message(m_eiLocators, "ls", MSG_MODEL_LOAD_GEO, sLocName.c_str());
     m_pLocators = static_cast<MODEL*>(core->GetEntityPointer(m_eiLocators));
@@ -543,8 +543,8 @@ void InterfaceBackScene::ExecuteMenu(int32_t nMenuIndex)
 
 int32_t InterfaceBackScene::CheckMousePos(float fX, float fY)
 {
-    float fW    = static_cast<float>(XINTERFACE::pThis->GetScreenWidth());
-    auto  fH    = static_cast<float>(XINTERFACE::pThis->GetScreenHeight());
+    float fW    = static_cast<float>(XInterface::pThis->GetScreenWidth());
+    auto  fH    = static_cast<float>(XInterface::pThis->GetScreenHeight());
     float fRelX = 2.f * fX / fW - 1.f;
     float fRelY = 2.f * fY / fH - 1.f;
 
@@ -617,10 +617,10 @@ void InterfaceBackScene::InitLight(ATTRIBUTES* pAParam)
     // load model
     char const* pcFonarModel = pAParam->GetAttribute("model");
     if (pcFonarModel) {
-        auto pGeo = static_cast<VGEOMETRY*>(core->GetService("Geometry"));
+        auto pGeo = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
         if (pGeo) pGeo->SetTexturePath("mainmenu/");
         // create model
-        pLight->eiModel = core->CreateEntity("MODELR");
+        pLight->eiModel = core->CreateEntity("ModelR");
         core->Send_Message(pLight->eiModel, "ls", MSG_MODEL_LOAD_GEO, pcFonarModel);
         pLight->pModel = static_cast<MODEL*>(core->GetEntityPointer(pLight->eiModel));
         if (pGeo) pGeo->SetTexturePath("");
@@ -795,10 +795,10 @@ void InterfaceBackScene::InitAniModel(ATTRIBUTES* pAParam)
     Assert(pObj);
 
     auto* pAniService = static_cast<ANIMATION*>(core->GetService("AnimationServiceImp"));
-    auto* pGeo        = static_cast<VGEOMETRY*>(core->GetService("Geometry"));
+    auto* pGeo        = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (pGeo) pGeo->SetTexturePath("mainmenu/");
     // create model
-    pObj->ei = core->CreateEntity("MODELR");
+    pObj->ei = core->CreateEntity("ModelR");
     core->Send_Message(pObj->ei, "ls", MSG_MODEL_LOAD_GEO, pcMdlName);
     pObj->pModel = static_cast<MODEL*>(core->GetEntityPointer(pObj->ei));
     if (pGeo) pGeo->SetTexturePath("");
@@ -837,10 +837,10 @@ void InterfaceBackScene::InitStaticModel(ATTRIBUTES* pAParam)
     auto* pObj = new AniModelDescr;
     Assert(pObj);
 
-    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("Geometry"));
+    auto* pGeo = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (pGeo) pGeo->SetTexturePath("mainmenu/");
     // create model
-    pObj->ei = core->CreateEntity("MODELR");
+    pObj->ei = core->CreateEntity("ModelR");
     core->Send_Message(pObj->ei, "ls", MSG_MODEL_LOAD_GEO, pcMdlName);
     pObj->pModel = static_cast<MODEL*>(core->GetEntityPointer(pObj->ei));
     if (pGeo) pGeo->SetTexturePath("");

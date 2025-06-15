@@ -7,7 +7,7 @@
 
 #define MAX_LIGHTNING_TEXTURES 2
 
-class LIGHTNING: public Entity
+class Lightning: public Entity
 {
     struct flash_t {
         std::string sTechnique;
@@ -48,8 +48,8 @@ class LIGHTNING: public Entity
     void CalcFlashPower(lightning_t* pL) const;
 
 public:
-    LIGHTNING();
-    ~LIGHTNING() override;
+    Lightning();
+    ~Lightning() override;
 
     void     SetDevice();
     bool     Init() override;

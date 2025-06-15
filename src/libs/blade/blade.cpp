@@ -28,7 +28,7 @@ static char const* sabergunHandName = "sabergun_hand";
 static char const* sabergunBeltName = "sabergun_belt";
 static char const* sabergunFire     = "sabersabgun_fire";
 
-BLADE::BLADE_INFO::BLADE_INFO() : eid(0), vrt {}
+Blade::BLADE_INFO::BLADE_INFO() : eid(0), vrt {}
 {
     locatorName = beltName;
     defLifeTime = 0.15f;
@@ -40,12 +40,12 @@ BLADE::BLADE_INFO::BLADE_INFO() : eid(0), vrt {}
         vrtTime[v] = -1e20f;
 }
 
-BLADE::BLADE_INFO::~BLADE_INFO()
+Blade::BLADE_INFO::~BLADE_INFO()
 {
     core->EraseEntity(eid);
 }
 
-void BLADE::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
+void Blade::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
 {
     auto* obj = static_cast<MODEL*>(core->GetEntityPointer(eid));
     if (obj != nullptr) {
@@ -154,7 +154,7 @@ void BLADE::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL
     }
 }
 
-bool BLADE::BLADE_INFO::LoadBladeModel(MESSAGE& message)
+bool Blade::BLADE_INFO::LoadBladeModel(MESSAGE& message)
 {
     core->EraseEntity(eid);
 
@@ -166,10 +166,10 @@ bool BLADE::BLADE_INFO::LoadBladeModel(MESSAGE& message)
         strcpy_s(path, "ammo/");
         strcat_s(path, mdlName.c_str());
         // path of the textures
-        auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+        auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
         if (gs) gs->SetTexturePath("ammo/");
         // Create a model
-        eid = core->CreateEntity("modelr");
+        eid = core->CreateEntity("ModelR");
         if (!core->Send_Message(eid, "ls", MSG_MODEL_LOAD_GEO, path)) {
             core->EraseEntity(eid);
             if (gs) gs->SetTexturePath("");
@@ -185,13 +185,13 @@ bool BLADE::BLADE_INFO::LoadBladeModel(MESSAGE& message)
     return true;
 }
 
-BLADE::BLADE()
+Blade::Blade()
 {
     gunLocName = gunBeltName;
     blendValue = 0xFFFFFFFF;
 }
 
-BLADE::~BLADE()
+Blade::~Blade()
 {
     core->EraseEntity(gun);
 
@@ -199,14 +199,14 @@ BLADE::~BLADE()
         items[i].Release();
 }
 
-bool BLADE::Init()
+bool Blade::Init()
 {
-    col = static_cast<COLLIDE*>(core->GetService("coll"));
+    col = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (col == nullptr) throw std::runtime_error("No service: COLLIDE");
 
     core->AddToLayer(REALIZE, GetId(), 65550);
 
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     // UNGUARD
@@ -216,7 +216,7 @@ bool BLADE::Init()
 //------------------------------------------------------------------------------------
 // realize
 //------------------------------------------------------------------------------------
-void BLADE::Realize(uint32_t Delta_Time)
+void Blade::Realize(uint32_t Delta_Time)
 {
     blade[0].time += 0.001f * (Delta_Time);
 
@@ -297,7 +297,7 @@ void BLADE::Realize(uint32_t Delta_Time)
     rs->SetTransform(D3DTS_TEXTURE1, mtx);
 }
 
-bool BLADE::LoadBladeModel(MESSAGE& message)
+bool Blade::LoadBladeModel(MESSAGE& message)
 {
     auto const nBladeIdx = message.Long();
     if (nBladeIdx < 0 || nBladeIdx >= BLADE_INFO_QUANTITY) return false;
@@ -312,7 +312,7 @@ bool BLADE::LoadBladeModel(MESSAGE& message)
     return blade[nBladeIdx].LoadBladeModel(message);
 }
 
-bool BLADE::LoadGunModel(MESSAGE& message)
+bool Blade::LoadGunModel(MESSAGE& message)
 {
     core->EraseEntity(gun);
     man = message.EntityID();
@@ -324,10 +324,10 @@ bool BLADE::LoadGunModel(MESSAGE& message)
         strcpy_s(path, "ammo/");
         strcat_s(path, mdlName.c_str());
         // path of the textures
-        auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+        auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
         if (gs) gs->SetTexturePath("ammo/");
         // Create a model
-        gun = core->CreateEntity("modelr");
+        gun = core->CreateEntity("ModelR");
         if (!core->Send_Message(gun, "ls", MSG_MODEL_LOAD_GEO, path)) {
             core->EraseEntity(gun);
             if (gs) gs->SetTexturePath("");
@@ -339,7 +339,7 @@ bool BLADE::LoadGunModel(MESSAGE& message)
     return true;
 }
 
-void BLADE::GunFire()
+void Blade::GunFire()
 {
     auto* mdl     = static_cast<MODEL*>(core->GetEntityPointer(man));
     auto* manNode = mdl->GetNode(0);
@@ -395,7 +395,7 @@ void BLADE::GunFire()
             auto rp = perMtx * CVECTOR(lb.m[3][0], lb.m[3][1], lb.m[3][2]);
 
             core->Send_Message(
-                core->GetEntityId("particles"),
+                core->GetEntityId("Particles"),
                 "lsffffffl",
                 PS_CREATEX,
                 "gunfire",
@@ -411,7 +411,7 @@ void BLADE::GunFire()
     }
 }
 
-uint64_t BLADE::ProcessMessage(MESSAGE& message)
+uint64_t Blade::ProcessMessage(MESSAGE& message)
 {
     int32_t n;
 
@@ -485,7 +485,7 @@ uint64_t BLADE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void BLADE::AddTieItem(MESSAGE& message)
+void Blade::AddTieItem(MESSAGE& message)
 {
     auto const nItemIdx = message.Long();
 
@@ -507,20 +507,20 @@ void BLADE::AddTieItem(MESSAGE& message)
     }
 }
 
-void BLADE::DelTieItem(MESSAGE& message)
+void Blade::DelTieItem(MESSAGE& message)
 {
     auto const    nItemIdx = message.Long();
     int32_t const n        = FindTieItemByIndex(nItemIdx);
     if (n >= 0) items[n].Release();
 }
 
-void BLADE::DelAllTieItem()
+void Blade::DelAllTieItem()
 {
     for (int32_t i = 0; i < ITEMS_INFO_QUANTITY; i++)
         if (items[i].nItemIndex != -1) items[i].Release();
 }
 
-int32_t BLADE::FindTieItemByIndex(int32_t n)
+int32_t Blade::FindTieItemByIndex(int32_t n)
 {
     if (n < 0) return -1;
     for (int32_t i = 0; i < ITEMS_INFO_QUANTITY; i++)
@@ -528,7 +528,7 @@ int32_t BLADE::FindTieItemByIndex(int32_t n)
     return -1;
 }
 
-void BLADE::TIEITEM_INFO::Release()
+void Blade::TIEITEM_INFO::Release()
 {
     if (nItemIndex != -1) {
         nItemIndex = -1;
@@ -538,7 +538,7 @@ void BLADE::TIEITEM_INFO::Release()
     }
 }
 
-void BLADE::TIEITEM_INFO::DrawItem(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
+void Blade::TIEITEM_INFO::DrawItem(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
 {
     auto* obj = static_cast<MODEL*>(core->GetEntityPointer(eid));
     if (obj != nullptr) {
@@ -585,7 +585,7 @@ void BLADE::TIEITEM_INFO::DrawItem(VDX9RENDER* rs, unsigned int blendValue, MODE
     }
 }
 
-bool BLADE::TIEITEM_INFO::LoadItemModel(char const* mdlName, char const* locName)
+bool Blade::TIEITEM_INFO::LoadItemModel(char const* mdlName, char const* locName)
 {
     core->EraseEntity(eid);
     delete locatorName;
@@ -603,10 +603,10 @@ bool BLADE::TIEITEM_INFO::LoadItemModel(char const* mdlName, char const* locName
     strcpy_s(path, "ammo/");
     strcat_s(path, mdlName);
     // path of the textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (gs) gs->SetTexturePath("ammo/");
     // Create a model
-    eid = core->CreateEntity("modelr");
+    eid = core->CreateEntity("ModelR");
     if (!core->Send_Message(eid, "ls", MSG_MODEL_LOAD_GEO, path)) {
         core->EraseEntity(eid);
         if (gs) gs->SetTexturePath("");

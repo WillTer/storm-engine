@@ -130,32 +130,32 @@ protected:
     uint32_t nVert, nIndx;
 };
 
-class VANT: public VANT_BASE
+class Vant: public VANT_BASE
 {
 public:
-    VANT() {};
+    Vant() {};
 
-    ~VANT() override {};
+    ~Vant() override {};
 
     void LoadIni() override;
 };
 
-class VANTL: public VANT_BASE
+class VantL: public VANT_BASE
 {
 public:
-    VANTL() {};
+    VantL() {};
 
-    ~VANTL() override {};
+    ~VantL() override {};
 
     void LoadIni() override;
 };
 
-class VANTZ: public VANT_BASE
+class VantZ: public VANT_BASE
 {
 public:
-    VANTZ() {};
+    VantZ() {};
 
-    ~VANTZ() override {};
+    ~VantZ() override {};
 
     void LoadIni() override;
 };

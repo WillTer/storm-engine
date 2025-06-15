@@ -60,7 +60,7 @@ SAILONE::SAILONE() : rollType(0), m_vMastTrace {}, m_fMaxAngle(0), m_fMinAngle(0
 SAILONE::~SAILONE()
 {
     ROPE_BASE* prb = nullptr;
-    auto const eid = core->GetEntityId("rope");
+    auto const eid = core->GetEntityId("Rope");
     if (eid) prb = static_cast<ROPE_BASE*>(core->GetEntityPointer(eid));
     if (prb != nullptr && (sailtrope.pnttie[0] || sailtrope.pnttie[1] || sailtrope.pnttie[2] || sailtrope.pnttie[3]))
         prb->DoDeleteUntie(pp->gdata[HostNum].modelEI, hostNode, groupNum);
@@ -1060,7 +1060,7 @@ void SAILONE::TurnSail(float fTurnStep)
         if (bRolling) {
             if (sailtrope.pnttie[2]) *sailtrope.pPos[2] = ss.hardPoints[0];
             if (sailtrope.pnttie[3]) *sailtrope.pPos[3] = ss.hardPoints[1];
-        } else if (ropeEI = core->GetEntityId("rope")) {
+        } else if (ropeEI = core->GetEntityId("Rope")) {
             auto bChange = false;
             for (auto i = 0; i < 2; i++)
                 if (sailtrope.rrs[i]) {
@@ -1722,7 +1722,7 @@ void SAILONE::SetTurnLimits()
     if (ss.eSailType != SAIL_TREANGLE) return;
     if (!ss.turningSail) return;
     if (sailtrope.rrs[0] == nullptr) return;
-    auto const ropeEI = core->GetEntityId("rope");
+    auto const ropeEI = core->GetEntityId("Rope");
     if (!ropeEI) return;
     auto* prbase = static_cast<ROPE_BASE*>(core->GetEntityPointer(ropeEI));
     if (prbase == nullptr) return;

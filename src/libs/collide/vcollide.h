@@ -21,11 +21,11 @@ public:
     float          Trace(const CVECTOR& src, const CVECTOR& dst) override;
 };
 
-class COLL: public COLLIDE
+class CollideService: public COLLIDE
 {
 public:
-    COLL()           = default;
-    ~COLL() override = default;
+    CollideService()           = default;
+    ~CollideService() override = default;
     LOCAL_COLLIDE* CreateLocalCollide(layer_index_t idx) override;
     float          Trace(entid_t entity, const CVECTOR& src, const CVECTOR& dst) override;
     float          Trace(

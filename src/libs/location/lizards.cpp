@@ -24,7 +24,7 @@ Lizards::~Lizards() {}
 bool Lizards::Init()
 {
     // Location Pointer
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return false;
     // init lizards

@@ -154,7 +154,7 @@ void CXI_SCROLLER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char
 void CXI_SCROLLER::MakeOwnedControl()
 {
     for (int32_t n = 0; n < static_cast<int32_t>(m_asOwnedNodes.size()); n++) {
-        auto* const pNode = static_cast<XINTERFACE*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
+        auto* const pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
         if (!pNode) continue;
         switch (pNode->m_nNodeType) {
         case NODETYPE_FORMATEDTEXTS: static_cast<CXI_FORMATEDTEXT*>(pNode)->SetPointer(m_fPos); break;
@@ -191,7 +191,7 @@ float CXI_SCROLLER::GetOwnedStep()
 {
     CINODE* pNode = nullptr;
     for (int32_t n = 0; n < static_cast<int32_t>(m_asOwnedNodes.size()); n++) {
-        pNode = static_cast<XINTERFACE*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
+        pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
         if (pNode) break;
     }
     if (!pNode) return 0.f;

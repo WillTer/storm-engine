@@ -4,7 +4,7 @@
 #include "ai_fort.h"
 #include "ai_helper.h"
 
-class SEA_AI: public Entity
+class SeaAI: public Entity
 {
 private:
     bool bFirstInit;
@@ -13,8 +13,8 @@ private:
     void SetCompanionEnemy(ATTRIBUTES* pACharacter);
 
 public:
-    SEA_AI();
-    ~SEA_AI() override;
+    SeaAI();
+    ~SeaAI() override;
 
     bool Init() override;
     void SetDevice();

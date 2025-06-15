@@ -44,7 +44,7 @@ int32_t ModelArray::CreateModel(char const* modelName, char const* technique, in
     // Path to the model
     resPath = modelspath + modelName;
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) {
         core->Trace("Can't create geometry service!");
         return -1;
@@ -57,7 +57,7 @@ int32_t ModelArray::CreateModel(char const* modelName, char const* technique, in
     }
     // Create a model
     entid_t id, idModelRealizer;
-    if (!(id = core->CreateEntity("modelr"))) return -1;
+    if (!(id = core->CreateEntity("ModelR"))) return -1;
     if (!(idModelRealizer = core->CreateEntity("LocModelRealizer"))) {
         core->EraseEntity(id);
         return -1;

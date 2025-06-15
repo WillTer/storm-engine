@@ -14,7 +14,7 @@ struct FLAGLXVERTEX {
     float   tu, tv;
 };
 
-class FLAG: public Entity
+class Flag: public Entity
 {
     // parameters obtained from INI file //
     // -------------------------------------
@@ -60,8 +60,8 @@ class FLAG: public Entity
     std::filesystem::file_time_type ft_old;
 
 public:
-    FLAG();
-    ~FLAG() override;
+    Flag();
+    ~Flag() override;
     void     SetDevice();
     bool     Init() override;
     void     Execute(uint32_t Delta_Time);

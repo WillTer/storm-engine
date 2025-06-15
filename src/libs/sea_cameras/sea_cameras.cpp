@@ -6,18 +6,18 @@
 #include "free_camera.h"
 #include "ship_camera.h"
 
-SEA_CAMERAS::SEA_CAMERAS()
+SeaCameras::SeaCameras()
 {
     bActive = true;
     //    ShowCursor(false);
 }
 
-SEA_CAMERAS::~SEA_CAMERAS()
+SeaCameras::~SeaCameras()
 {
     //    ShowCursor(true);
 }
 
-void SEA_CAMERAS::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam)
+void SeaCameras::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam)
 {
     /*    //GUARD(SEA_CAMERAS::ProcessMessage(uint32_t,uint32_t,uint32_t))
       switch(iMsg)
@@ -33,7 +33,7 @@ void SEA_CAMERAS::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam
       //UNGUARD*/
 }
 
-uint64_t SEA_CAMERAS::ProcessMessage(MESSAGE& message)
+uint64_t SeaCameras::ProcessMessage(MESSAGE& message)
 {
     uint32_t i;
     switch (message.Long()) {

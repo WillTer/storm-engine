@@ -551,7 +551,7 @@ Player* Player::FindAttackCharacter()
 void Player::FireFromShootgun()
 {
     kSMReload = 0.0f;
-    if (auto const peid = core->GetEntityId("sound")) {
+    if (auto const peid = core->GetEntityId("Sound")) {
         core->Send_Message(peid, "lsllll", MSG_SOUND_PLAY, "objects/sgboom.wav", 4, false, false, false);
     }
     // Get the position from where to shoot
@@ -564,7 +564,7 @@ void Player::FireFromShootgun()
     auto const src = mtx.Pos() + mtx.Vz() * 0.7f;
     core->Send_Message(effects, "sffffff", "SGFireParticles", src.x, src.y - 0.35f, src.z, mtx.Vz().x, mtx.Vz().y, mtx.Vz().z);
 
-    auto* collide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    auto* collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!collide) { return; }
     struct ChrsDmg {
         Character* chr;

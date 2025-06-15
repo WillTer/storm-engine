@@ -90,11 +90,11 @@ struct TRACK_EVENT {
     float   value;
 };
 
-class PARTICLES;
+class Particles;
 
 class SEAFOAM_PS: VPARTICLE_SYSTEM
 {
-    friend PARTICLES;
+    friend Particles;
     TRACK_EVENT Visibility[TRACK_EVENT_MAX];
     TRACK_EVENT ParticleSize[TRACK_EVENT_MAX];
     TRACK_EVENT ParticleSpeed[TRACK_EVENT_MAX];

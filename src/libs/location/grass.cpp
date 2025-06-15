@@ -103,7 +103,7 @@ bool Grass::Init()
     // boal shader select <--
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     // Vertex declaration
     CreateVertexDeclaration();
@@ -353,7 +353,7 @@ void Grass::Realize(uint32_t delta_time)
     // Fog
     uint32_t dwOldFogDensity;
     rs->GetRenderState(D3DRS_FOGDENSITY, &dwOldFogDensity);
-    entid_t eidIsland = core->GetEntityId("ISLAND");
+    entid_t eidIsland = core->GetEntityId("Island");
     if (eidIsland) {
         auto        fIslandFogDensity = static_cast<float>(dwOldFogDensity);
         ATTRIBUTES* pA                = core->Entity_GetAttributePointer(eidIsland);

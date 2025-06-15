@@ -32,15 +32,15 @@ constexpr auto BUTTON_STATE_DOWNLIGHT  = 8;
 
 class VSoundService;
 
-class DIALOG final: public Entity
+class Dialog final: public Entity
 {
     static VDX9RENDER* RenderService;
 
 public:
-    DIALOG(DIALOG&&)      = delete;
-    DIALOG(const DIALOG&) = delete;
-    DIALOG();
-    ~DIALOG();
+    Dialog(Dialog&&)      = delete;
+    Dialog(const Dialog&) = delete;
+    Dialog();
+    ~Dialog();
 
     bool     Init() override;
     void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);

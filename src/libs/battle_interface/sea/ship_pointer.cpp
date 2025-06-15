@@ -16,7 +16,7 @@ struct SPV_VERTEX {
     float   tu, tv;
 };
 
-SHIPPOINTER::SHIPPOINTER()
+ShipPointer::ShipPointer()
 {
     m_bVisible    = false;
     m_idFriendTex = -1;
@@ -24,7 +24,7 @@ SHIPPOINTER::SHIPPOINTER()
     m_idVBuf      = -1;
 }
 
-SHIPPOINTER::~SHIPPOINTER()
+ShipPointer::~ShipPointer()
 {
     m_bVisible = false;
     TEXTURE_RELEASE(rs, m_idFriendTex);
@@ -32,9 +32,9 @@ SHIPPOINTER::~SHIPPOINTER()
     VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
 }
 
-bool SHIPPOINTER::Init()
+bool ShipPointer::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -66,7 +66,7 @@ bool SHIPPOINTER::Init()
     return true;
 }
 
-void SHIPPOINTER::Execute(uint32_t delta_time)
+void ShipPointer::Execute(uint32_t delta_time)
 {
     if (!m_bVisible) return;
 
@@ -78,7 +78,7 @@ void SHIPPOINTER::Execute(uint32_t delta_time)
     }
 }
 
-void SHIPPOINTER::Realize(uint32_t delta_time) const
+void ShipPointer::Realize(uint32_t delta_time) const
 {
     if (!m_bVisible) return;
 
@@ -93,7 +93,7 @@ void SHIPPOINTER::Realize(uint32_t delta_time) const
     rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(SPV_VERTEX), 0, 2, "battle_shippointer");
 }
 
-uint64_t SHIPPOINTER::ProcessMessage(MESSAGE& message)
+uint64_t ShipPointer::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SP_CHANGESHIP: {
@@ -119,7 +119,7 @@ uint64_t SHIPPOINTER::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void SHIPPOINTER::UpdateShipPointer() const
+void ShipPointer::UpdateShipPointer() const
 {
     if (!m_bVisible) return;
     if (m_pShip == nullptr) return;
@@ -148,11 +148,11 @@ void SHIPPOINTER::UpdateShipPointer() const
     }
 }
 
-VAI_OBJBASE* SHIPPOINTER::FindShipByChrIndex(int32_t chrIdx) const
+VAI_OBJBASE* ShipPointer::FindShipByChrIndex(int32_t chrIdx) const
 {
     if (chrIdx == -1) return nullptr;
 
-    auto&& entities = core->GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto ship: entities) {
         auto ps = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (ps != nullptr && ps->GetACharacter() != nullptr) {

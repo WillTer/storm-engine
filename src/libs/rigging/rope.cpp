@@ -9,7 +9,7 @@
 
 extern void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 
-ROPE::ROPE()
+Rope::Rope()
 {
     bUse          = false;
     bYesDeleted   = false;
@@ -35,7 +35,7 @@ ROPE::ROPE()
     nVert = nIndx = 0;
 }
 
-ROPE::~ROPE()
+Rope::~Rope()
 {
     // clearing and deleting the rope list
     if (rlist) {
@@ -60,16 +60,16 @@ ROPE::~ROPE()
     nVert = nIndx = 0;
 }
 
-bool ROPE::Init()
+bool Rope::Init()
 {
     SetDevice();
     return true;
 }
 
-void ROPE::SetDevice()
+void Rope::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
 
     LoadIni();
@@ -77,17 +77,17 @@ void ROPE::SetDevice()
     texl = RenderService->TextureCreate(TextureName);
 }
 
-bool ROPE::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Rope::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool ROPE::LoadState(ENTITY_STATE* state)
+bool Rope::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void ROPE::Execute(uint32_t Delta_Time)
+void Rope::Execute(uint32_t Delta_Time)
 {
     uint64_t rtm;
     RDTSC_B(rtm);
@@ -118,7 +118,7 @@ void ROPE::Execute(uint32_t Delta_Time)
     execute_tm = rtm;
 }
 
-void ROPE::Realize(uint32_t Delta_Time)
+void Rope::Realize(uint32_t Delta_Time)
 {
     if (bUse) {
         uint64_t rtm;
@@ -167,7 +167,7 @@ void ROPE::Realize(uint32_t Delta_Time)
     }
 }
 
-uint64_t ROPE::ProcessMessage(MESSAGE& message)
+uint64_t Rope::ProcessMessage(MESSAGE& message)
 {
     auto const code = message.Long();
     entid_t    tmp_id;
@@ -288,7 +288,7 @@ uint64_t ROPE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void ROPE::SetIndex() const
+void Rope::SetIndex() const
 {
     int i, j;
     int ti, vi;
@@ -344,7 +344,7 @@ void ROPE::SetIndex() const
     }
 }
 
-void ROPE::SetVertexes()
+void Rope::SetVertexes()
 {
     vertBuf = static_cast<ROPEVERTEX*>(RenderService->LockVertexBuffer(vBuf));
     if (vertBuf) {
@@ -358,7 +358,7 @@ void ROPE::SetVertexes()
     }
 }
 
-void ROPE::SetVertexes(ROPEDATA* pr, float dtime) const
+void Rope::SetVertexes(ROPEDATA* pr, float dtime) const
 {
     // set rope shape parameters
     float deepVal;
@@ -466,7 +466,7 @@ void ROPE::DoMove(ROPEDATA *pr)
     }
 }
 */
-void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
+void Rope::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
 {
     ROPEDATA* rd;
     int       ropeNum, grNum;
@@ -625,7 +625,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
             rd->angRot  = 0.f;
             rd->vDeep   = 0.f;
 
-            if (auto const sailEI = core->GetEntityId("sail")) {
+            if (auto const sailEI = core->GetEntityId("Sail")) {
                 auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(gdata[rd->HostGroup].modelEI));
                 if (mdl == nullptr)
                     rd->btie = rd->etie = false;
@@ -647,7 +647,7 @@ void ROPE::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
 }
 
 // get the end point of the rope in the coordinates of the start point
-void ROPE::GetEndPoint(CVECTOR* cv, int ropenum, entid_t mdl_id)
+void Rope::GetEndPoint(CVECTOR* cv, int ropenum, entid_t mdl_id)
 {
     int rn;
 
@@ -674,7 +674,7 @@ void ROPE::GetEndPoint(CVECTOR* cv, int ropenum, entid_t mdl_id)
         rlist[rn]->eMatWorld->MulToInv(*rlist[rn]->bMatWorld * rlist[rn]->pBeg, *cv);
 }
 
-void ROPE::LoadIni()
+void Rope::LoadIni()
 {
     // GUARD(ROPE::LoadIni());
     char section[256];
@@ -733,7 +733,7 @@ void ROPE::LoadIni()
     // UNGUARD
 }
 
-void ROPE::FirstRun()
+void Rope::FirstRun()
 {
     /*    SetAdd(wRopeLast);
         if(wRopeLast>0)
@@ -799,7 +799,7 @@ void ROPE::FirstRun()
     wRopeLast = ropeQuantity;
 }
 
-void ROPE::SetTextureGrid(ROPEDATA* pv) const
+void Rope::SetTextureGrid(ROPEDATA* pv) const
 {
     int iv = pv->sv;
 
@@ -828,7 +828,7 @@ void ROPE::SetTextureGrid(ROPEDATA* pv) const
     }
 }
 
-void ROPE::SetAdd(int firstNum)
+void Rope::SetAdd(int firstNum)
 {
     // set vertex and index buffers
     for (int rn = firstNum; rn < ropeQuantity; rn++) {
@@ -887,7 +887,7 @@ void ROPE::SetAdd(int firstNum)
     }*/
 }
 
-void ROPE::DoSTORM_DELETE()
+void Rope::DoSTORM_DELETE()
 {
     uint32_t const oldnVert = nVert;
 
@@ -984,7 +984,7 @@ void ROPE::DoSTORM_DELETE()
     bUse        = ropeQuantity > 0;
 }
 
-bool ROPE::IsAbsentRope(entid_t mdl_id, int ropenum)
+bool Rope::IsAbsentRope(entid_t mdl_id, int ropenum)
 {
     bool retVal = true;
 
@@ -1005,7 +1005,7 @@ bool ROPE::IsAbsentRope(entid_t mdl_id, int ropenum)
     return retVal;
 }
 
-void ROPE::DoDeleteUntie(entid_t mdl_id, NODE* rnod, int gNum)
+void Rope::DoDeleteUntie(entid_t mdl_id, NODE* rnod, int gNum)
 {
     int gn;
     for (gn = 0; gn < groupQuantity; gn++)

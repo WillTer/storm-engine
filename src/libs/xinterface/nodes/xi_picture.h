@@ -3,12 +3,12 @@
 #include "../inode.h"
 
 class INIFILE;
-class XINTERFACE;
+class XInterface;
 
 // video
 class CXI_PICTURE: public CINODE
 {
-    friend XINTERFACE;
+    friend XInterface;
 
 public:
     CXI_PICTURE();

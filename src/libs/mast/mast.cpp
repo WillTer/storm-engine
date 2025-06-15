@@ -37,7 +37,7 @@ float MIN_Z_DANG      = 0.07f;
 float VAR_Z_DANG      = 0.03f;
 float MIN_SIGNIFICANT = 0.1f;
 
-MAST::MAST()
+Mast::Mast()
 {
     RenderService = nullptr;
     wMoveCounter  = 0;
@@ -47,25 +47,25 @@ MAST::MAST()
     m_mount_param.pNode = nullptr;
 }
 
-MAST::~MAST()
+Mast::~Mast()
 {
     AllRelease();
 }
 
-bool MAST::Init()
+bool Mast::Init()
 {
     SetDevice();
     return true;
 }
 
-void MAST::SetDevice()
+void Mast::SetDevice()
 {
     // GUARD(MAST::SetDevice())
 
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 
     LoadIni();
@@ -73,7 +73,7 @@ void MAST::SetDevice()
     // UNGUARD
 }
 
-bool MAST::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Mast::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     // GUARD(bool MAST::CreateState(ENTITY_STATE_GEN * state_gen))
 
@@ -81,7 +81,7 @@ bool MAST::CreateState(ENTITY_STATE_GEN* state_gen)
     // UNGUARD
 }
 
-bool MAST::LoadState(ENTITY_STATE* state)
+bool Mast::LoadState(ENTITY_STATE* state)
 {
     // GUARD(bool MAST::LoadState(ENTITY_STATE * state))
 
@@ -91,7 +91,7 @@ bool MAST::LoadState(ENTITY_STATE* state)
     return true;
 }
 
-void MAST::Execute(uint32_t Delta_Time)
+void Mast::Execute(uint32_t Delta_Time)
 {
     // GUARD(void MAST::Execute(uint32_t Delta_Time))
 
@@ -113,7 +113,7 @@ void MAST::Execute(uint32_t Delta_Time)
 
 #define D3DLXLINEVERTEX_FORMAT (D3DFVF_DIFFUSE | D3DFVF_XYZ | D3DFVF_TEX0)
 
-void MAST::Realize(uint32_t Delta_Time)
+void Mast::Realize(uint32_t Delta_Time)
 {
     // GUARD(void MAST::Realize(uint32_t Delta_Time))
 
@@ -153,7 +153,7 @@ void MAST::Realize(uint32_t Delta_Time)
     // UNGUARD
 }
 
-uint64_t MAST::ProcessMessage(MESSAGE& message)
+uint64_t Mast::ProcessMessage(MESSAGE& message)
 {
     // GUARD(uint32_t MAST::ProcessMessage(MESSAGE message))
 
@@ -173,7 +173,7 @@ uint64_t MAST::ProcessMessage(MESSAGE& message)
 
 #define ADD_MINIMUM .01f
 
-void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
+void Mast::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
 {
     m_pMastNode = mastNodePointer;
     if (mastNodePointer == nullptr) return;
@@ -182,12 +182,12 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
     oldmodel_id = modelEI;
     ship_id     = shipEI;
 
-    auto const ropeEI  = core->GetEntityId("rope");
-    auto const sailEI  = core->GetEntityId("sail");
-    auto const flagEI  = core->GetEntityId("flag");
-    auto const vantEI  = core->GetEntityId("vant");
-    auto const vantlEI = core->GetEntityId("vantl");
-    auto const vantzEI = core->GetEntityId("vantz");
+    auto const ropeEI  = core->GetEntityId("Rope");
+    auto const sailEI  = core->GetEntityId("Sail");
+    auto const flagEI  = core->GetEntityId("Flag");
+    auto const vantEI  = core->GetEntityId("Vant");
+    auto const vantlEI = core->GetEntityId("VantL");
+    auto const vantzEI = core->GetEntityId("VantZ");
 
     // find the attributes
     VAI_OBJBASE* pVAI = nullptr;
@@ -279,7 +279,7 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
         float      minDist = 10000.f;
         SHIP_BASE* minDstShip;
 
-        auto const& ships = core->GetEntityIds("ship");
+        auto const& ships = core->GetEntityIds("Ship");
         for (auto ship: ships) {
             if (ship == ship_id) continue;
 
@@ -356,7 +356,7 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
     }
 }
 
-void MAST::LoadIni()
+void Mast::LoadIni()
 {
     // GUARD(MAST::LoadIni());
     char section[256];
@@ -418,7 +418,7 @@ void MAST::LoadIni()
     // UNGUARD
 }
 
-void MAST::doMove(uint32_t DeltaTime)
+void Mast::doMove(uint32_t DeltaTime)
 {
     if (wMoveCounter <= MAX_MOVE_CICLES) wMoveCounter++;
 
@@ -471,7 +471,7 @@ void MAST::doMove(uint32_t DeltaTime)
             while (bNextClass) {
                 bNextClass = false;
                 // collision with the island
-                entid_t findEI = core->GetEntityId("ISLAND");
+                entid_t findEI = core->GetEntityId("Island");
                 if (findEI && core->GetEntityPointer(findEI) != nullptr) {
                     auto modEI = static_cast<ISLAND_BASE*>(core->GetEntityPointer(findEI))->GetModelEID();
 
@@ -495,7 +495,7 @@ void MAST::doMove(uint32_t DeltaTime)
                     }
                 }
                 // collision with the ship
-                auto const& ships = core->GetEntityIds("ship");
+                auto const& ships = core->GetEntityIds("Ship");
                 for (auto ship: ships) {
                     if (core->GetEntityPointer(ship) == nullptr) continue;
                     auto    modEI = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship))->GetModelEID();
@@ -541,7 +541,7 @@ void MAST::doMove(uint32_t DeltaTime)
     }
 }
 
-int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECTOR& lrey, CVECTOR& rrey, float& angl)
+int Mast::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECTOR& lrey, CVECTOR& rrey, float& angl)
 {
     int retVal = 0;
 
@@ -610,7 +610,7 @@ int MAST::GetSlide(entid_t mod, CVECTOR& pbeg, CVECTOR& pend, CVECTOR& dp, CVECT
     return retVal;
 }
 
-void MAST::AllRelease()
+void Mast::AllRelease()
 {
     if (m_mount_param.pNode) {
         Mount(m_mount_param.modelEI, m_mount_param.shipEI, m_mount_param.pNode);
@@ -618,10 +618,10 @@ void MAST::AllRelease()
     }
 
     // delete sail group
-    core->Send_Message(core->GetEntityId("sail"), "li", MSG_SAIL_DEL_GROUP, GetId());
+    core->Send_Message(core->GetEntityId("Sail"), "li", MSG_SAIL_DEL_GROUP, GetId());
 
     // remove flag group
-    core->Send_Message(core->GetEntityId("flag"), "li", MSG_FLAG_DEL_GROUP, model_id);
+    core->Send_Message(core->GetEntityId("Flag"), "li", MSG_FLAG_DEL_GROUP, model_id);
 
     // announce deleting
     core->Send_Message(ship_id, "lp", MSG_MAST_DELGEOMETRY, m_pMastNode);
@@ -631,7 +631,7 @@ void MAST::AllRelease()
     m_pMastNode = nullptr;
 }
 
-HULL::HULL() : pCollide(nullptr), bModel(false), model_id(0), oldmodel_id(0), ship_id(0)
+Hull::Hull() : pCollide(nullptr), bModel(false), model_id(0), oldmodel_id(0), ship_id(0)
 {
     RenderService = nullptr;
     wMoveCounter  = 0;
@@ -641,38 +641,38 @@ HULL::HULL() : pCollide(nullptr), bModel(false), model_id(0), oldmodel_id(0), sh
     m_mount_param.pNode = nullptr;
 }
 
-HULL::~HULL()
+Hull::~Hull()
 {
     AllRelease();
 }
 
-bool HULL::Init()
+bool Hull::Init()
 {
     SetDevice();
     return true;
 }
 
-void HULL::SetDevice()
+void Hull::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 }
 
-bool HULL::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Hull::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool HULL::LoadState(ENTITY_STATE* state)
+bool Hull::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
     return true;
 }
 
-void HULL::Execute(uint32_t Delta_Time)
+void Hull::Execute(uint32_t Delta_Time)
 {
     if (bUse) {
         // an ini file has to be read here, but there is none
@@ -681,7 +681,7 @@ void HULL::Execute(uint32_t Delta_Time)
     }
 }
 
-void HULL::Realize(uint32_t Delta_Time)
+void Hull::Realize(uint32_t Delta_Time)
 {
     if (m_mount_param.pNode) {
         Mount(m_mount_param.modelEI, m_mount_param.shipEI, m_mount_param.pNode);
@@ -696,7 +696,7 @@ void HULL::Realize(uint32_t Delta_Time)
     }
 }
 
-uint64_t HULL::ProcessMessage(MESSAGE& message)
+uint64_t Hull::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_HULL_SETGEOMETRY: {
@@ -710,7 +710,7 @@ uint64_t HULL::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
+void Hull::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
 {
     m_pHullNode = hullNodePointer;
     if (hullNodePointer == nullptr) return;
@@ -720,7 +720,7 @@ void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
     oldmodel_id = modelEI;
     ship_id     = shipEI;
 
-    auto const ropeEI = core->GetEntityId("rope");
+    auto const ropeEI = core->GetEntityId("Rope");
 
     // find attributes
     VAI_OBJBASE* pVAI = nullptr;
@@ -762,7 +762,7 @@ void HULL::Mount(entid_t modelEI, entid_t shipEI, NODE* hullNodePointer)
     // bUse = true;
 }
 
-void HULL::AllRelease()
+void Hull::AllRelease()
 {
     if (m_mount_param.pNode) {
         Mount(m_mount_param.modelEI, m_mount_param.shipEI, m_mount_param.pNode);

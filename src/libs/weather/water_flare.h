@@ -3,7 +3,7 @@
 #include "typedef.h"
 #include "weather_base.h"
 
-class WATERFLARE: public Entity
+class WaterFlare: public Entity
 {
     RS_RECT*      pRSRect;
     float*        pfAlpha;
@@ -14,8 +14,8 @@ class WATERFLARE: public Entity
     void GenerateFlares();
 
 public:
-    WATERFLARE();
-    ~WATERFLARE() override;
+    WaterFlare();
+    ~WaterFlare() override;
 
     void SetDevice();
     bool Init() override;

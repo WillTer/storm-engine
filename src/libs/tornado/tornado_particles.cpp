@@ -47,7 +47,7 @@ TornadoParticles::~TornadoParticles() {}
 
 void TornadoParticles::SetSea()
 {
-    seaID = core->GetEntityId("sea");
+    seaID = core->GetEntityId("Sea");
 }
 
 void TornadoParticles::Update(float dltTime)

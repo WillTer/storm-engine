@@ -31,7 +31,7 @@ bool AISeaGoods::Init()
 
 void AISeaGoods::SetDevice()
 {
-    pGeoService = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    pGeoService = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGeoService);
 }
 
@@ -39,7 +39,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
 {
     auto const fDeltaTime = static_cast<float>(dwDeltaTime) * 0.001f;
 
-    if (!pSea) pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
+    if (!pSea) pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
     if (!pSea) return;
 
@@ -64,7 +64,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
                 aShips.clear();
 
                 // enumerate ships
-                auto&& entities = core->GetEntityIds("ship");
+                auto&& entities = core->GetEntityIds("Ship");
                 for (auto ent: entities) {
                     aShips.push_back(static_cast<SHIP_BASE*>(core->GetEntityPointer(ent)));
                 }

@@ -44,7 +44,7 @@ public:
     void     AppState(bool state);
     uint32_t MakeHashValue(char const* string);
     VMA*     FindVMA(char const* class_name);
-    VMA*     FindVMA(int32_t hash);
+    VMA*     FindVMA(uint32_t hash);
     //------------------------------------------------------------------------------------------------
     // API functions : (virtual API)
 

@@ -442,8 +442,8 @@ void NODER::Link(NODE* node) {}
 //-------------------------------------------------------------------
 entid_t NODER::Unlink2Model()
 {
-    entid_t const id  = core->CreateEntity("modelr");
-    auto*         mdl = static_cast<MODELR*>(core->GetEntityPointer(id));
+    entid_t const id  = core->CreateEntity("ModelR");
+    auto*         mdl = static_cast<ModelR*>(core->GetEntityPointer(id));
 
     // link node to as root
     mdl->root = this;
@@ -469,7 +469,7 @@ entid_t NODER::Unlink2Model()
 //-------------------------------------------------------------------
 void NODER::Link(entid_t id, bool transform)
 {
-    auto* mdl = static_cast<MODELR*>(core->GetEntityPointer(id));
+    auto* mdl = static_cast<ModelR*>(core->GetEntityPointer(id));
     if (mdl == nullptr) return;
 
     // increment number of children

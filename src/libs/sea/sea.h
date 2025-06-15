@@ -9,13 +9,13 @@
 
 #include "sea_base.h"
 
-class SEA: public SEA_BASE
+class Sea: public SEA_BASE
 {
 private:
     // uint32_t dwSkyCode = MakeHashValue("sky");
-    uint32_t dwIslandCode = MakeHashValue("island");
-    uint32_t dwShipCode   = MakeHashValue("ship");
-    uint32_t dwSailCode   = MakeHashValue("sail");
+    uint32_t dwIslandCode = entt::hashed_string::value("Island");
+    uint32_t dwShipCode   = entt::hashed_string::value("Ship");
+    uint32_t dwSailCode   = entt::hashed_string::value("Sail");
 
     static IDirect3DVertexDeclaration9* vertexDecl_;
 
@@ -64,7 +64,7 @@ private:
     };
 
     VDX9RENDER* rs;
-    static SEA* pSea;
+    static Sea* pSea;
 
     uint32_t dwMaxDim, dwMinDim;
     float    fMaxSeaHeight;
@@ -174,8 +174,8 @@ private:
     void CreateVertexDeclaration();
 
 public:
-    SEA();
-    ~SEA() override;
+    Sea();
+    ~Sea() override;
 
     bool Init() override;
     void BuildVolumeTexture();

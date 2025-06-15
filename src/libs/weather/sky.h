@@ -5,11 +5,11 @@
 
 #include "typedef.h"
 
-class SKY: public Entity
+class Sky: public Entity
 {
 public:
-    SKY();
-    ~SKY() override;
+    Sky();
+    ~Sky() override;
 
     bool     Init() override;
     void     SetDevice();

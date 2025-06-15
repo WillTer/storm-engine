@@ -10,7 +10,7 @@
 #define EQU_FLOAT(x, y) (x) - (y) > DISCR_F_VAL ? false : (y) - (x) > DISCR_F_VAL ? false : true
 #define BEF_FLOAT(x, y) (y) - (x) >= DISCR_F_VAL
 
-DECK_CAMERA::DECK_CAMERA()
+DeckCamera::DeckCamera()
 {
     vb_id         = 0;
     RenderService = nullptr;
@@ -20,32 +20,32 @@ DECK_CAMERA::DECK_CAMERA()
     bLoad         = false;
 }
 
-DECK_CAMERA::~DECK_CAMERA() {}
+DeckCamera::~DeckCamera() {}
 
-bool DECK_CAMERA::Init()
+bool DeckCamera::Init()
 {
     SetDevice();
     return true;
 }
 
-void DECK_CAMERA::SetDevice()
+void DeckCamera::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(RenderService);
 }
 
-bool DECK_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen)
+bool DeckCamera::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool DECK_CAMERA::LoadState(ENTITY_STATE* state)
+bool DeckCamera::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
     return true;
 }
 
-void DECK_CAMERA::Execute(uint32_t Delta_Time)
+void DeckCamera::Execute(uint32_t Delta_Time)
 {
     if (!isOn()) return;
     if (!FindShip() || !FindPath()) return;
@@ -55,12 +55,12 @@ void DECK_CAMERA::Execute(uint32_t Delta_Time)
     Move(Delta_Time);
 }
 
-void DECK_CAMERA::Realize(uint32_t Delta_Time)
+void DeckCamera::Realize(uint32_t Delta_Time)
 {
     if (!isOn()) return;
 }
 
-void DECK_CAMERA::Move(uint32_t DeltaTime)
+void DeckCamera::Move(uint32_t DeltaTime)
 {
     if (!isActive()) return;
 
@@ -262,12 +262,12 @@ void DECK_CAMERA::Move(uint32_t DeltaTime)
     RenderService->SetCamera(s_pos, s_ang, GetPerspective());
 }
 
-void DECK_CAMERA::SetCharacter(ATTRIBUTES* _pACharacter)
+void DeckCamera::SetCharacter(ATTRIBUTES* _pACharacter)
 {
     pACharacter = _pACharacter;
 }
 
-bool DECK_CAMERA::FindPath()
+bool DeckCamera::FindPath()
 {
     pModel = GetModelPointer();
     Assert(pModel);  // if the object is not null
@@ -283,7 +283,7 @@ bool DECK_CAMERA::FindPath()
     return true;
 }
 
-uint64_t DECK_CAMERA::ProcessMessage(MESSAGE& message)
+uint64_t DeckCamera::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_DECK_CAMERA_SET_VIEWPOINT: {
@@ -298,7 +298,7 @@ uint64_t DECK_CAMERA::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void DECK_CAMERA::SetStartPos()
+void DeckCamera::SetStartPos()
 {
     if (pModel) {
         GEOS::VERTEX src, dst;
@@ -358,7 +358,7 @@ void DECK_CAMERA::SetStartPos()
     }
 }
 
-bool DECK_CAMERA::GetCrossXZ(CVECTOR& spos, CVECTOR& dv, CVECTOR& p1, CVECTOR& p2, CVECTOR& res)
+bool DeckCamera::GetCrossXZ(CVECTOR& spos, CVECTOR& dv, CVECTOR& p1, CVECTOR& p2, CVECTOR& res)
 {
     auto bNoCross = false;
 
@@ -474,7 +474,7 @@ bool DECK_CAMERA::GetCrossXZ(CVECTOR& spos, CVECTOR& dv, CVECTOR& p1, CVECTOR& p
     return true;
 }
 
-uint32_t DECK_CAMERA::AttributeChanged(ATTRIBUTES* pAttr)
+uint32_t DeckCamera::AttributeChanged(ATTRIBUTES* pAttr)
 {
     if (*pAttr == "SensivityDistance") fSensivityDistance = pAttr->GetAttributeAsFloat();
     if (*pAttr == "SensivityHeightAngle") fSensivityHeightAngle = pAttr->GetAttributeAsFloat();
@@ -493,7 +493,7 @@ uint32_t DECK_CAMERA::AttributeChanged(ATTRIBUTES* pAttr)
     return 0;
 }
 
-void DECK_CAMERA::SetViewPoint(CVECTOR& cViewPoint)
+void DeckCamera::SetViewPoint(CVECTOR& cViewPoint)
 {
     if (pathNode == nullptr) return;
 
@@ -528,7 +528,7 @@ void DECK_CAMERA::SetViewPoint(CVECTOR& cViewPoint)
     camera_ang.y = atan2f(e_pos.x, e_pos.z);
 }
 
-float DECK_CAMERA::MultiTrace(const CVECTOR& cvUp, const CVECTOR& cvDown, float fHBase)
+float DeckCamera::MultiTrace(const CVECTOR& cvUp, const CVECTOR& cvDown, float fHBase)
 {
     if (pathNode == nullptr) return 2.f;
 
@@ -566,7 +566,7 @@ float DECK_CAMERA::MultiTrace(const CVECTOR& cvUp, const CVECTOR& cvDown, float 
     return fRet;
 }
 
-void DECK_CAMERA::Save(CSaveLoad* pSL)
+void DeckCamera::Save(CSaveLoad* pSL)
 {
     pSL->SaveBuffer((char const*)&tri, sizeof(tri));
     pSL->SaveFloat(fSensivityDistance);
@@ -600,7 +600,7 @@ void DECK_CAMERA::Save(CSaveLoad* pSL)
     pSL->SaveAPointer("character", pACharacter);
 }
 
-void DECK_CAMERA::Load(CSaveLoad* pSL)
+void DeckCamera::Load(CSaveLoad* pSL)
 {
     pSL->Load2Buffer(&tri);
     fSensivityDistance     = pSL->LoadFloat();

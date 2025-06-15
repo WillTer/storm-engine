@@ -14,12 +14,12 @@
 #include "../image/img_render.h"
 #include "../sea/ships_list.h"
 
-void ISPYGLASS::ImageParam::Release()
+void ISpyglass::ImageParam::Release()
 {
     STORM_DELETE(pImage);
 }
 
-void ISPYGLASS::ImageParam::LoadFromAttr(
+void ISpyglass::ImageParam::LoadFromAttr(
     BIImageRender* pImgRender,
     ATTRIBUTES*    pA,
     char const*    pcDefName,
@@ -42,7 +42,7 @@ void ISPYGLASS::ImageParam::LoadFromAttr(
     Assert(pImage);
 }
 
-void ISPYGLASS::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, FRECT& frUV)
+void ISpyglass::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, FRECT& frUV)
 {
     rUV = frUV;
     if (sTextureName == pcTextureName) {
@@ -55,7 +55,7 @@ void ISPYGLASS::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pc
     }
 }
 
-void ISPYGLASS::TextParam::LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos)
+void ISpyglass::TextParam::LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos)
 {
     this->rs = rs;
     nFontID  = BIUtils::GetFontIDFromAttr(pA, "font", rs, "interface_normal");
@@ -66,12 +66,12 @@ void ISPYGLASS::TextParam::LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char con
     sText   = BIUtils::GetStringFromAttr(pA, "text", pcDefText);
 }
 
-void ISPYGLASS::TextParam::Print() const
+void ISpyglass::TextParam::Print() const
 {
     if (rs && !sText.empty()) rs->ExtPrint(nFontID, dwColor, 0, nAlign, true, fScale, 0, 0, pos.x, pos.y, "%s", sText.c_str());
 }
 
-ISPYGLASS::ISPYGLASS()
+ISpyglass::ISpyglass()
 {
     rs                    = nullptr;
     m_pImgRender          = nullptr;
@@ -85,14 +85,14 @@ ISPYGLASS::ISPYGLASS()
     m_fMaxInfoKeepDelay = 1.5f;
 }
 
-ISPYGLASS::~ISPYGLASS()
+ISpyglass::~ISpyglass()
 {
     Release();
 }
 
-bool ISPYGLASS::Init()
+bool ISpyglass::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -147,7 +147,7 @@ bool ISPYGLASS::Init()
     return true;
 }
 
-void ISPYGLASS::Execute(uint32_t delta_time)
+void ISpyglass::Execute(uint32_t delta_time)
 {
     CONTROL_STATE cs;
     core->Controls->GetControlState("TelescopeIn", cs);
@@ -170,7 +170,7 @@ void ISPYGLASS::Execute(uint32_t delta_time)
     }
 }
 
-void ISPYGLASS::Realize(uint32_t delta_time) const
+void ISpyglass::Realize(uint32_t delta_time) const
 {
     if (m_bIsOn) {
         rs->MakePostProcess();
@@ -194,7 +194,7 @@ void ISPYGLASS::Realize(uint32_t delta_time) const
     }
 }
 
-uint64_t ISPYGLASS::ProcessMessage(MESSAGE& message)
+uint64_t ISpyglass::ProcessMessage(MESSAGE& message)
 {
     auto nMsgCode = message.Long();
 
@@ -286,7 +286,7 @@ uint64_t ISPYGLASS::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void ISPYGLASS::Release()
+void ISpyglass::Release()
 {
     TurnOnTelescope(false);
 
@@ -324,13 +324,13 @@ void ISPYGLASS::Release()
     STORM_DELETE(m_pImgRender);
 }
 
-ATTRIBUTES* ISPYGLASS::GetAttr(char const* pcAttrName) const
+ATTRIBUTES* ISpyglass::GetAttr(char const* pcAttrName) const
 {
     if (AttributesPointer) return AttributesPointer->FindAClass(AttributesPointer, pcAttrName);
     return nullptr;
 }
 
-void ISPYGLASS::TurnOnTelescope(bool bTurnOn)
+void ISpyglass::TurnOnTelescope(bool bTurnOn)
 {
     if (bTurnOn == m_bIsOn) return;
     m_bIsOn = bTurnOn;
@@ -356,7 +356,7 @@ void ISPYGLASS::TurnOnTelescope(bool bTurnOn)
     }
 }
 
-void ISPYGLASS::SetShipInfo(int32_t nCharIndex)
+void ISpyglass::SetShipInfo(int32_t nCharIndex)
 {
     // if( m_nInfoCharacterIndex == nCharIndex ) return;
     m_nInfoCharacterIndex = nCharIndex;
@@ -408,7 +408,7 @@ void ISPYGLASS::SetShipInfo(int32_t nCharIndex)
     }
 }
 
-void ISPYGLASS::FindNewTargetShip()
+void ISpyglass::FindNewTargetShip()
 {
     // get trace ray
     CMatrix mtxv;
@@ -475,7 +475,7 @@ void ISPYGLASS::FindNewTargetShip()
     }
 }
 
-void ISPYGLASS::ChangeTelescopeType(char const* pcTextureName, float fZoomScale, float fActivateTime, float fUpdateTime)
+void ISpyglass::ChangeTelescopeType(char const* pcTextureName, float fZoomScale, float fActivateTime, float fUpdateTime)
 {
     m_Camera.fActivateTime = fActivateTime;
     m_Camera.fUpdateTime   = fUpdateTime;
@@ -488,7 +488,7 @@ void ISPYGLASS::ChangeTelescopeType(char const* pcTextureName, float fZoomScale,
     m_Camera.bIsGrow   = true;
 }
 
-void ISPYGLASS::UpdateCamera()
+void ISpyglass::UpdateCamera()
 {
     if (!m_bIsOn) return;
     float const fTime = core->GetDeltaTime() * .001f;
@@ -518,7 +518,7 @@ void ISPYGLASS::UpdateCamera()
     }
 }
 
-void ISPYGLASS::ChangeTargetData(
+void ISpyglass::ChangeTargetData(
     char const* pcShipName,
     char const* pcShipType,
     float       fRelativeHP,
@@ -682,7 +682,7 @@ void ISPYGLASS::ChangeTargetData(
     m_TextCaptainName.sText = pcCaptainName;
 }
 
-void ISPYGLASS::FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES* pA) const
+void ISpyglass::FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES* pA) const
 {
     m_aUV.clear();
     if (!pA) return;
@@ -695,8 +695,8 @@ void ISPYGLASS::FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES*
     }
 }
 
-VAI_OBJBASE* ISPYGLASS::GetFort()
+VAI_OBJBASE* ISpyglass::GetFort()
 {
-    if (!m_pFortObj) { m_pFortObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(core->GetEntityId("AIFORT"))); }
+    if (!m_pFortObj) { m_pFortObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(core->GetEntityId("AIFort"))); }
     return m_pFortObj;
 }

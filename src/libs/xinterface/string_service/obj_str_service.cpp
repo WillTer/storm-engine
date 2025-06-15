@@ -3,25 +3,25 @@
 #include <libs/core/core.h>
 #include <libs/shared_headers/interface/messages.h>
 
-OBJ_STRSERVICE::OBJ_STRSERVICE()
+ObjStrService::ObjStrService()
 {
     m_pStrService = nullptr;
 }
 
-OBJ_STRSERVICE::~OBJ_STRSERVICE()
+ObjStrService::~ObjStrService()
 {
     m_pStrService = nullptr;
 }
 
-bool OBJ_STRSERVICE::Init()
+bool ObjStrService::Init()
 {
-    m_pStrService = static_cast<VSTRSERVICE*>(core->GetService("STRSERVICE"));
+    m_pStrService = static_cast<VSTRSERVICE*>(core->GetService("StrService"));
     if (!m_pStrService) throw std::runtime_error("No service: strservice");
 
     return true;
 }
 
-uint64_t OBJ_STRSERVICE::ProcessMessage(MESSAGE& message)
+uint64_t ObjStrService::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_STRSERVICE_OPEN_FILE: {

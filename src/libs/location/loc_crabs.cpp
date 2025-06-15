@@ -22,7 +22,7 @@ LocCrabs::~LocCrabs() {}
 bool LocCrabs::Init()
 {
     // Location Pointer
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return false;
     // Execution
@@ -39,7 +39,7 @@ uint64_t LocCrabs::ProcessMessage(MESSAGE& message)
     if (num < 1) num = 1;
     if (num > sizeof(crab) / sizeof(LocCrab)) num = sizeof(crab) / sizeof(LocCrab);
     // Location Pointer
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return 0;
     // start crabs

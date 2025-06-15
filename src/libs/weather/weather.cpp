@@ -8,29 +8,29 @@
 #include "sun_glow.h"
 #include "water_flare.h"
 
-WEATHER::WEATHER() {}
+Weather::Weather() {}
 
-WEATHER::~WEATHER()
+Weather::~Weather()
 {
     CleanUP();
 }
 
-void WEATHER::SetDevice()
+void Weather::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
 
     // LoadWeatherIni();
 }
 
-bool WEATHER::Init()
+bool Weather::Init()
 {
     SetDevice();
     SetBeginData();
     return true;
 }
 
-void WEATHER::SetBeginData()
+void Weather::SetBeginData()
 {
     fFloats[whf_time_counter] = 0.f;
     fFloats[whf_time_speed]   = 0.f;
@@ -52,11 +52,11 @@ void WEATHER::SetBeginData()
     fMoonEndTime  = 4.5f;
 }
 
-void WEATHER::Move() {}
+void Weather::Move() {}
 
-void WEATHER::Realize(uint32_t Delta_Time) {}
+void Weather::Realize(uint32_t Delta_Time) {}
 
-void WEATHER::Execute(uint32_t Delta_Time)
+void Weather::Execute(uint32_t Delta_Time)
 {
     /*    if (dwFrames) SetLong(whi_weather_update,0);
 
@@ -88,7 +88,7 @@ void WEATHER::Execute(uint32_t Delta_Time)
     }
 }
 
-void WEATHER::UpdateSunMoonPos()
+void Weather::UpdateSunMoonPos()
 {
     // sun
     auto fK = (fFloats[whf_time_counter] - fSunBegTime) / (fSunEndTime - fSunBegTime);
@@ -141,17 +141,17 @@ void WEATHER::UpdateSunMoonPos()
     }
 }
 
-bool WEATHER::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Weather::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool WEATHER::LoadState(ENTITY_STATE* state)
+bool Weather::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void WEATHER::CleanUP()
+void Weather::CleanUP()
 {
     pRS->SetRenderState(D3DRS_FOGENABLE, false);
     pRS->LightEnable(0, false);
@@ -239,7 +239,7 @@ void WEATHER::CleanUP()
     core->Trace("Weather: Load ini complete");
 }*/
 
-void WEATHER::SetCommonStates()
+void Weather::SetCommonStates()
 {
     pRS->SetRenderState(D3DRS_FOGENABLE, GetInt(whi_fog_enable));
 
@@ -316,12 +316,12 @@ void WEATHER::SetCommonStates()
     return true;
 }*/
 
-int32_t WEATHER::GetInt(uint32_t dwCode)
+int32_t Weather::GetInt(uint32_t dwCode)
 {
     return iLongs[dwCode];
 }
 
-uint32_t WEATHER::GetColor(uint32_t dwCode, CVECTOR* vOut)
+uint32_t Weather::GetColor(uint32_t dwCode, CVECTOR* vOut)
 {
     vOut->x = static_cast<float>((dwColors[dwCode] >> 0x10) & 0xFF) / 255.0f;
     vOut->y = static_cast<float>((dwColors[dwCode] >> 0x8) & 0xFF) / 255.0f;
@@ -329,22 +329,22 @@ uint32_t WEATHER::GetColor(uint32_t dwCode, CVECTOR* vOut)
     return dwColors[dwCode];
 }
 
-uint32_t WEATHER::GetColor(uint32_t dwCode)
+uint32_t Weather::GetColor(uint32_t dwCode)
 {
     return dwColors[dwCode];
 }
 
-float WEATHER::GetFloat(uint32_t dwCode)
+float Weather::GetFloat(uint32_t dwCode)
 {
     return fFloats[dwCode];
 }
 
-void WEATHER::GetVector(uint32_t dwCode, CVECTOR* vOut)
+void Weather::GetVector(uint32_t dwCode, CVECTOR* vOut)
 {
     *vOut = vVectors[dwCode];
 }
 
-uint32_t WEATHER::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t Weather::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     auto* const pParent = pAttribute->GetParent();  // if (*pAttribute == "Hour")
     if (*pParent == "fog") {

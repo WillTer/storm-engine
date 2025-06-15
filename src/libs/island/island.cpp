@@ -23,7 +23,7 @@
 
 #define DMAP_SIZE 2048
 
-ISLAND::ISLAND()
+Island::Island()
 {
     dynamicLightsOn  = false;  // dynamic lighting
     bForeignModels   = false;
@@ -36,12 +36,12 @@ ISLAND::ISLAND()
     fCurrentImmersion = 0.0f;
 }
 
-ISLAND::~ISLAND()
+Island::~Island()
 {
     Uninit();
 }
 
-void ISLAND::Uninit()
+void Island::Uninit()
 {
     for (uint32_t i = 0; i < aSpheres.size(); i++)
         core->EraseEntity(aSpheres[i]);
@@ -55,7 +55,7 @@ void ISLAND::Uninit()
     }
 }
 
-bool ISLAND::Init()
+bool Island::Init()
 {
     // core->AddToLayer("system_messages", GetId(), 1);
     SetDevice();
@@ -69,21 +69,21 @@ bool ISLAND::Init()
     return true;
 }
 
-void ISLAND::SetDevice()
+void Island::SetDevice()
 {
     // core->LayerCreate("island_trace", true, false);
 
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pGS = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    pGS = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGS);
 }
 
 bool bView = false;
 
-void ISLAND::Realize(uint32_t Delta_Time)
+void Island::Realize(uint32_t Delta_Time)
 {
     uint32_t dwAmbient, dwAmbientOld;
 
@@ -211,12 +211,12 @@ void ISLAND::Realize(uint32_t Delta_Time)
     }
 }
 
-bool ISLAND::GetDepth(FRECT* pRect, float* fMinH, float* fMaxH)
+bool Island::GetDepth(FRECT* pRect, float* fMinH, float* fMaxH)
 {
     return false;
 }
 
-uint64_t ISLAND::ProcessMessage(MESSAGE& message)
+uint64_t Island::ProcessMessage(MESSAGE& message)
 {
     entid_t eID;
     switch (message.Long()) {
@@ -251,13 +251,13 @@ uint64_t ISLAND::ProcessMessage(MESSAGE& message)
     return 1;
 }
 
-inline float ISLAND::GetShadowTemp(int32_t iX, int32_t iZ)
+inline float Island::GetShadowTemp(int32_t iX, int32_t iZ)
 {
     if (iX >= 0 && iX < DMAP_SIZE && iZ >= 0 && iZ < DMAP_SIZE) return static_cast<float>(mzShadow.Get(iX, iZ)) / 255.0f;
     return 1.0f;
 }
 
-bool ISLAND::GetShadow(float x, float z, float* fRes)
+bool Island::GetShadow(float x, float z, float* fRes)
 {
     float const fX = (x - vBoxCenter.x) / fShadowMapStep;
     float const fZ = (z - vBoxCenter.z) / fShadowMapStep;
@@ -267,7 +267,7 @@ bool ISLAND::GetShadow(float x, float z, float* fRes)
     return true;
 }
 
-void ISLAND::AddLocationModel(entid_t eid, std::string_view const& pIDStr, std::string_view const& pDir)
+void Island::AddLocationModel(entid_t eid, std::string_view const& pIDStr, std::string_view const& pDir)
 {
     Assert(!pDir.empty() && !pIDStr.empty());
     bForeignModels = true;
@@ -276,7 +276,7 @@ void ISLAND::AddLocationModel(entid_t eid, std::string_view const& pIDStr, std::
     core->AddToLayer(ISLAND_TRACE, eid, 10);
 }
 
-inline float ISLAND::GetDepthNoCheck(uint32_t iX, uint32_t iZ)
+inline float Island::GetDepthNoCheck(uint32_t iX, uint32_t iZ)
 {
     // if (!mzDepth.isLoaded()) return HMAP_MAXHEIGHT;
 
@@ -288,14 +288,14 @@ inline float ISLAND::GetDepthNoCheck(uint32_t iX, uint32_t iZ)
     return fDepthHeight[mzDepth.Get(iX, iZ)];
 }
 
-inline float ISLAND::GetDepthCheck(uint32_t iX, uint32_t iZ)
+inline float Island::GetDepthCheck(uint32_t iX, uint32_t iZ)
 {
     // if (iX>=iDMapSize) iX = iDMapSize - 1;
     // if (iZ>=iDMapSize) iZ = iDMapSize - 1;
     return GetDepthNoCheck(iX, iZ);
 }
 
-bool ISLAND::Check2DBoxDepth(CVECTOR vPos, CVECTOR vSize, float fAngY, float fMinDepth)
+bool Island::Check2DBoxDepth(CVECTOR vPos, CVECTOR vSize, float fAngY, float fMinDepth)
 {
     // if (!mzDepth.isLoaded()) return false;
 
@@ -310,7 +310,7 @@ bool ISLAND::Check2DBoxDepth(CVECTOR vPos, CVECTOR vSize, float fAngY, float fMi
     return false;
 }
 
-bool ISLAND::GetDepthFast(float x, float z, float* fRes)
+bool Island::GetDepthFast(float x, float z, float* fRes)
 {
     // if (!mzDepth.isLoaded()) { if (fRes) *fRes = -50.0f; return false; }
     x -= vBoxCenter.x;
@@ -329,7 +329,7 @@ bool ISLAND::GetDepthFast(float x, float z, float* fRes)
     return true;
 }
 
-bool ISLAND::GetDepth(float x, float z, float* fRes)
+bool Island::GetDepth(float x, float z, float* fRes)
 {
     // if (!mzDepth.isLoaded()) {if (fRes) *fRes = -50.0f;    return false; }
     x -= vBoxCenter.x;
@@ -349,7 +349,7 @@ bool ISLAND::GetDepth(float x, float z, float* fRes)
     return true;
 }
 
-bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
+bool Island::ActivateCamomileTrace(CVECTOR& vSrc)
 {
     float const   fRadius   = 100.0f;
     int32_t const iNumPetal = 8;
@@ -379,7 +379,7 @@ bool ISLAND::ActivateCamomileTrace(CVECTOR& vSrc)
     return false;
 }
 
-void ISLAND::CalcBoxParameters(CVECTOR& _vBoxCenter, CVECTOR& _vBoxSize)
+void Island::CalcBoxParameters(CVECTOR& _vBoxCenter, CVECTOR& _vBoxSize)
 {
     GEOS::INFO ginfo;
     float      x1 = 1e+8f, x2 = -1e+8f, z1 = 1e+8f, z2 = -1e+8f;
@@ -408,7 +408,7 @@ void ISLAND::CalcBoxParameters(CVECTOR& _vBoxCenter, CVECTOR& _vBoxSize)
     _vBoxSize   = CVECTOR(x2 - x1, 0.0f, z2 - z1);
 }
 
-bool ISLAND::CreateShadowMap(char* pDir, char* pName)
+bool Island::CreateShadowMap(char* pDir, char* pName)
 {
     auto* const pWeather = static_cast<WEATHER_BASE*>(core->GetEntityPointer(core->GetEntityId("Weather")));
     if (pWeather == nullptr) { throw std::runtime_error("No found WEATHER entity!"); }
@@ -479,7 +479,7 @@ bool ISLAND::CreateShadowMap(char* pDir, char* pName)
     return true;
 }
 
-void ISLAND::Blur8(uint8_t** pBuffer, uint32_t dwSize)
+void Island::Blur8(uint8_t** pBuffer, uint32_t dwSize)
 {
     uint32_t       x, z;
     uint8_t*       pNewBuffer = new uint8_t[dwSize * dwSize];
@@ -505,7 +505,7 @@ void ISLAND::Blur8(uint8_t** pBuffer, uint32_t dwSize)
     *pBuffer = pNewBuffer;
 }
 
-bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view const& pName)
+bool Island::CreateHeightMap(std::string_view const& pDir, std::string_view const& pName)
 {
     TGA_H tga_head;
     char  str_tmp[256];
@@ -655,7 +655,7 @@ bool ISLAND::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     return true;
 }
 
-bool ISLAND::SaveTga8(char* fname, uint8_t* pBuffer, uint32_t dwSizeX, uint32_t dwSizeY)
+bool Island::SaveTga8(char* fname, uint8_t* pBuffer, uint32_t dwSizeX, uint32_t dwSizeY)
 {
     TGA_H tga_head {};
 
@@ -676,7 +676,7 @@ bool ISLAND::SaveTga8(char* fname, uint8_t* pBuffer, uint32_t dwSizeX, uint32_t 
     return true;
 }
 
-bool ISLAND::Mount(std::string_view const& fname, std::string_view const& fdir, entid_t* eID)
+bool Island::Mount(std::string_view const& fname, std::string_view const& fdir, entid_t* eID)
 {
     // std::string        sRealFileName;
     // std::string sModelPath, sLightPath;
@@ -695,7 +695,7 @@ bool ISLAND::Mount(std::string_view const& fname, std::string_view const& fdir, 
     // core->Trace("ISLAND: island %s, dynamicLightsOn = %d", std::string(fname).c_str(), dynamicLightsOn);
     //  <---
 
-    model_id = core->CreateEntity("MODELR");
+    model_id = core->CreateEntity("ModelR");
     core->Send_Message(model_id, "ls", MSG_MODEL_SET_LIGHT_PATH, static_cast<char const*>(AttributesPointer->GetAttribute("LightingPath")));
     core->Send_Message(model_id, "ls", MSG_MODEL_LOAD_GEO, pathStr.c_str());
 
@@ -721,7 +721,7 @@ bool ISLAND::Mount(std::string_view const& fname, std::string_view const& fdir, 
     sLightPath.Format("%s", AttributesPointer->GetAttribute("LightingPath")); sLightPath.CheckPath();
     core->Send_Message(lighter_id, "ss", "LightPath", (char*)sLightPath);*/
 
-    auto const lighter_id = core->GetEntityId("lighter");
+    auto const lighter_id = core->GetEntityId("Lighter");
     core->Send_Message(lighter_id, "ssi", "AddModel", std::string(fname).c_str(), model_id);
     std::string const sSeaBedName = std::string(fname) + "_seabed";
     core->Send_Message(lighter_id, "ssi", "AddModel", (char*)sSeaBedName.c_str(), seabed_id);
@@ -732,7 +732,7 @@ bool ISLAND::Mount(std::string_view const& fname, std::string_view const& fdir, 
     return true;
 }
 
-float ISLAND::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& vDst)
+float Island::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& vDst)
 {
     float const fRes = Trace(vSrc, vDst);
     if (fRes <= 1.0f) {
@@ -742,13 +742,13 @@ float ISLAND::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTO
     return fRes;
 }
 
-float ISLAND::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
+float Island::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
 {
     return pCollide->Trace(core->GetEntityIds(ISLAND_TRACE), vSrc, vDst, nullptr, 0);
 }
 
 // Path section
-bool ISLAND::GetMovePoint(CVECTOR& vSrc, CVECTOR& vDst, CVECTOR& vRes)
+bool Island::GetMovePoint(CVECTOR& vSrc, CVECTOR& vDst, CVECTOR& vRes)
 {
     // check for one side
     uint32_t i, j;

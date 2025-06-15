@@ -5,13 +5,13 @@
 class WMShipIcon;
 class WMShipCommandList;
 
-class WM_INTERFACE: public Entity
+class WMInterface: public Entity
 {
     VDX9RENDER* rs;
 
 public:
-    WM_INTERFACE();
-    ~WM_INTERFACE() override;
+    WMInterface();
+    ~WMInterface() override;
     bool     Init() override;
     void     Realize(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;

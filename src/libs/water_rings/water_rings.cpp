@@ -20,10 +20,10 @@ bool WaterRings::Init()
 {
     core->AddToLayer(REALIZE, GetId(), 65551);
 
-    auto const seaID = core->GetEntityId("sea");
+    auto const seaID = core->GetEntityId("Sea");
     sea              = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!renderService) throw std::runtime_error("No service: dx9render");
 
     ivManager = new IVBufferManager(

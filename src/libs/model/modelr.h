@@ -18,7 +18,7 @@ class NODER: public NODE
     bool        isReleased;
 
     static int32_t depth, node;
-    uintptr_t      idGeoGroup;  // id of "geometry" string
+    uintptr_t      idGeoGroup;  // id of "GeometryService" string
     char           technique[256], name[256];
 
     // local radius and center of geometry
@@ -72,7 +72,7 @@ public:
 
 #define MODEL_ANI_MAXBUFFERS 16
 
-class MODELR: public MODEL
+class ModelR: public MODEL
 {
     std::string LightPath, lmPath;
 
@@ -104,8 +104,8 @@ class MODELR: public MODEL
 public:
     NODER* root;
 
-    MODELR();
-    ~MODELR() override;
+    ModelR();
+    ~ModelR() override;
     bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;

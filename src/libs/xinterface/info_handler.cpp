@@ -13,7 +13,7 @@ InfoHandler::~InfoHandler()
 bool InfoHandler::Init()
 {
     // get render service
-    m_rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    m_rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!m_rs) {
         core->Trace("No service: dx9render");
         return false;

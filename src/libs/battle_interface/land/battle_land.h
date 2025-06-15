@@ -5,12 +5,12 @@
 
 class BIManSign;
 
-class BATTLE_LAND_INTERFACE: public Entity
+class BattleLandInterface: public Entity
 {
     // metods
 public:
-    BATTLE_LAND_INTERFACE();
-    ~BATTLE_LAND_INTERFACE() override;
+    BattleLandInterface();
+    ~BattleLandInterface() override;
     bool     Init() override;
     void     Execute(uint32_t delta_time) const;
     void     Realize(uint32_t delta_time);

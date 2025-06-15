@@ -204,7 +204,7 @@ void AIGroup::SailMainGroup(CVECTOR vPos, float fAngle, ATTRIBUTES* pACharacter)
     Assert(pMG);
     AIGroup* pG1 = FindGroup(pACharacter);
 
-    auto const eidSea = core->GetEntityId("sea");
+    auto const eidSea = core->GetEntityId("Sea");
 
     for (auto pAIShip: pMG->aGroupShips) {
         if (pAIShip->isDead()) continue;

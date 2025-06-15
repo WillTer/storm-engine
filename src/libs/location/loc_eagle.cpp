@@ -40,18 +40,18 @@ LocEagle::~LocEagle()
 bool LocEagle::Init()
 {
     // The point we fly around
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = static_cast<Location*>(core->GetEntityPointer(loc));
     if (!location) return false;
     cnt = location->GetPtcData().middle + CVECTOR(0.0f, 30.0f, 0.0f);
     // Path for textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) {
         core->Trace("Can't create geometry service!");
         return false;
     }
     // Model
-    if (!(mdl = core->CreateEntity("modelr"))) return false;
+    if (!(mdl = core->CreateEntity("ModelR"))) return false;
     core->AddToLayer(REALIZE, mdl, 20);
     gs->SetTexturePath("animals/");
     if (!core->Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "animals/eagle")) {

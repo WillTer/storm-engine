@@ -8,11 +8,11 @@
 
 class BI_BaseGroup;
 
-class BI_InterfaceManager: public BI_ManagerBase
+class BIInterfaceManager: public BI_ManagerBase
 {
 public:
-    BI_InterfaceManager();
-    ~BI_InterfaceManager() override;
+    BIInterfaceManager();
+    ~BIInterfaceManager() override;
 
     bool     Init() override;
     void     Execute(uint32_t delta_time);

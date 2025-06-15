@@ -50,7 +50,7 @@ void PARTICLE_SYSTEM::Pause(bool _bPause)
     pSystem->PauseEmission(_bPause);
 }
 
-void PARTICLE_SYSTEM::SetManager(PARTICLES* _pManager)
+void PARTICLE_SYSTEM::SetManager(Particles* _pManager)
 {
     pManager = _pManager;
 }

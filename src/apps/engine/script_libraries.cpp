@@ -8,14 +8,14 @@
 #include <libs/steam_api/steam_api_script_lib.hpp>
 #include <libs/xinterface/string_service/str_service.h>
 
-CREATE_SCRIPTLIBRIARY(DX9RENDER_SCRIPT_LIBRIARY)
+CREATE_SCRIPT_LIBRARY(DX9RenderScriptLibrary)
 
-CREATE_SCRIPTLIBRIARY(ScriptLocationLibrary)
-CREATE_SCRIPTLIBRIARY(SCRIPT_INTERFACE_FUNCTIONS)
-CREATE_SCRIPTLIBRIARY(SCRIPT_LIBRIARY_TEST)
-CREATE_SCRIPTLIBRIARY(SCRIPT_RIGGING_FILES)
+CREATE_SCRIPT_LIBRARY(ScriptLocationLibrary)
+CREATE_SCRIPT_LIBRARY(ScriptInterfaceFunctions)
+CREATE_SCRIPT_LIBRARY(ScriptLibraryTest)
+CREATE_SCRIPT_LIBRARY(ScriptRiggingFiles)
 
 namespace steamapi
 {
-CREATE_SCRIPTLIBRIARY(SteamApiScriptLib)
+CREATE_SCRIPT_LIBRARY(SteamApiScriptLib)
 }

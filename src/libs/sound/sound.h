@@ -21,11 +21,11 @@
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
-class SOUND: public Entity
+class Sound: public Entity
 {
 public:
-    SOUND();
-    ~SOUND() override;
+    Sound();
+    ~Sound() override;
 
     bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;

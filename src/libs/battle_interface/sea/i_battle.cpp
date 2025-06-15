@@ -28,7 +28,7 @@ ISLAND_DESCRIBER   g_IslandDescr;
 #define MINIMAP_ZOOM_IN "MiniMapZoomIn"
 #define MINIMAP_ZOOM_OUT "MiniMapZoomOut"
 
-BATTLE_INTERFACE::BATTLE_INTERFACE()
+BattleInterface::BattleInterface()
 {
     g_IslandDescr.ReleaseAll();
     g_ShipList.ReleaseAll();
@@ -47,18 +47,18 @@ BATTLE_INTERFACE::BATTLE_INTERFACE()
     m_pShipInfoImages      = nullptr;
 }
 
-BATTLE_INTERFACE::~BATTLE_INTERFACE()
+BattleInterface::~BattleInterface()
 {
     // STORM_DELETE(m_pMessageIcons);
     STORM_DELETE(m_pShipIcon);
     STORM_DELETE(m_pShipInfoImages);
 }
 
-bool BATTLE_INTERFACE::Init()
+bool BattleInterface::Init()
 {
     BIUtils::idBattleInterface = GetId();
 
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -67,7 +67,7 @@ bool BATTLE_INTERFACE::Init()
     return true;
 }
 
-void BATTLE_INTERFACE::Execute(uint32_t delta_time)
+void BattleInterface::Execute(uint32_t delta_time)
 {
     m_fCurBlinkTime += delta_time * m_fBlinkSpeed;
     if (m_fCurBlinkTime > PIm2) m_fCurBlinkTime -= PIm2;
@@ -110,7 +110,7 @@ void BATTLE_INTERFACE::Execute(uint32_t delta_time)
     // if(m_pMessageIcons) m_pMessageIcons->Update(delta_time);
 }
 
-void BATTLE_INTERFACE::Realize(uint32_t delta_time)
+void BattleInterface::Realize(uint32_t delta_time)
 {
     if (core->Controls->GetDebugAsyncKeyState('K') < 0) return;
     if (m_bNeedIslandSet) {
@@ -142,7 +142,7 @@ void BATTLE_INTERFACE::Realize(uint32_t delta_time)
     }
 }
 
-void BATTLE_INTERFACE::LoadIniFile()
+void BattleInterface::LoadIniFile()
 {
     m_fBlinkSpeed = .003f;
     if (AttributesPointer != nullptr) m_fBlinkSpeed = AttributesPointer->GetAttributeAsFloat("blindSpeed", m_fBlinkSpeed);
@@ -182,12 +182,12 @@ void BATTLE_INTERFACE::LoadIniFile()
     }
 }
 
-uint32_t BATTLE_INTERFACE::AttributeChanged(ATTRIBUTES* pAttr)
+uint32_t BattleInterface::AttributeChanged(ATTRIBUTES* pAttr)
 {
     return 0;
 }
 
-uint64_t BATTLE_INTERFACE::ProcessMessage(MESSAGE& message)
+uint64_t BattleInterface::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case BI_MSG_SET_ISLAND:
@@ -270,7 +270,7 @@ uint64_t BATTLE_INTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void BATTLE_INTERFACE::CheckSeaState()
+void BattleInterface::CheckSeaState()
 {
     auto* main_sd = g_ShipList.GetMainCharacterShip();
     if (main_sd == nullptr) return;
@@ -319,7 +319,7 @@ void BATTLE_INTERFACE::CheckSeaState()
     m_bShowBattleBorder = !bMap;
 }
 
-void BATTLE_INTERFACE::EnableMessageIcons(VDATA* pvdat)
+void BattleInterface::EnableMessageIcons(VDATA* pvdat)
 {
     /*if(!m_pMessageIcons) return;
     m_pMessageIcons->SetShowMsg(false);

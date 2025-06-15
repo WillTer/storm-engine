@@ -8,7 +8,7 @@
 IDirect3DVertexDeclaration9* GEOM_SERVICE_R::vertexDecl_ = nullptr;
 
 char           technique[256]      = "";
-char           RenderServiceName[] = "dx9render";
+char           RenderServiceName[] = "RendererService";
 GEOM_SERVICE_R GSR;
 char           texturePath[256];
 
@@ -16,17 +16,17 @@ int32_t const SHIFT_VALUE = 999999999;
 #define AVB_MAX 1024
 VGEOMETRY::ANIMATION_VB avb[AVB_MAX];  //!!! temporary
 
-GEOMETRY::GEOMETRY()
+GeometryService::GeometryService()
 {
     strcpy_s(texturePath, "");
 }
 
-char const* GEOMETRY::GetTexturePath()
+char const* GeometryService::GetTexturePath()
 {
     return &texturePath[0];
 }
 
-void GEOMETRY::SetTexturePath(char const* path)
+void GeometryService::SetTexturePath(char const* path)
 {
     strcpy_s(texturePath, path);
 }
@@ -34,26 +34,26 @@ void GEOMETRY::SetTexturePath(char const* path)
 //=================================================================================================
 // Block 1
 //=================================================================================================
-void GEOMETRY::SetTechnique(char const* name)
+void GeometryService::SetTechnique(char const* name)
 {
     strcpy_s(technique, name);
 }
 
-GEOMETRY::ANIMATION_VB GEOMETRY::GetAnimationVBDesc(int32_t vb)
+GeometryService::ANIMATION_VB GeometryService::GetAnimationVBDesc(int32_t vb)
 {
     return avb[vb - SHIFT_VALUE];
 }
 
 VERTEX_TRANSFORM transform_func = nullptr;
 
-void GEOMETRY::SetVBConvertFunc(VERTEX_TRANSFORM _transform_func)
+void GeometryService::SetVBConvertFunc(VERTEX_TRANSFORM _transform_func)
 {
     transform_func = _transform_func;
 }
 
 static bool geoLog = false;
 
-bool GEOMETRY::Init()
+bool GeometryService::Init()
 {
     RenderService = static_cast<VDX9RENDER*>(core->GetService(RenderServiceName));
     if (!RenderService) { core->Trace("No service: %s", RenderServiceName); }
@@ -65,12 +65,12 @@ bool GEOMETRY::Init()
     return true;
 }
 
-void GEOMETRY::SetCausticMode(bool bSet)
+void GeometryService::SetCausticMode(bool bSet)
 {
     GSR.SetCausticMode(bSet);
 }
 
-bool GEOMETRY::LoadState(ENTITY_STATE* state)
+bool GeometryService::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
@@ -78,7 +78,7 @@ bool GEOMETRY::LoadState(ENTITY_STATE* state)
 char lightPath[256];
 int  vrtSize;
 
-GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath)
+GEOS* GeometryService::CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath)
 {
     if (light_file_name != nullptr) {
         sprintf_s(lightPath, "%s/%s", lmPath, file_name);
@@ -140,12 +140,12 @@ GEOS* GEOMETRY::CreateGeometry(char const* file_name, char const* light_file_nam
     return gp;
 }
 
-ANIMATION* GEOMETRY::LoadAnimation(char const* anim)
+ANIMATION* GeometryService::LoadAnimation(char const* anim)
 {
     return nullptr;
 }
 
-void GEOMETRY::DeleteGeometry(GEOS* gid)
+void GeometryService::DeleteGeometry(GEOS* gid)
 {
     delete gid;
 }

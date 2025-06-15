@@ -637,7 +637,7 @@ bool Character::Init()
     // register our appearance in the location
     location->supervisor.AddCharacter(this);
     // The sea
-    sea = core->GetEntityId("sea");
+    sea = core->GetEntityId("Sea");
     // save the identifier
     char const* id = nullptr;
     if (AttributesPointer) id = AttributesPointer->GetAttribute("id");
@@ -899,13 +899,13 @@ void Character::SetSignModel()
     core->EraseEntity(sign);
     if (!signModelName[0]) { return; }
     // Path to textures
-    VGEOMETRY* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    VGEOMETRY* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (gs) gs->SetTexturePath("quest_signs/");
     // Path to the model
     std::string path = "quest_signs/";
     path += signModelName;
     // Create and load the model
-    if (!(sign = core->CreateEntity("modelr"))) {
+    if (!(sign = core->CreateEntity("ModelR"))) {
         if (gs) gs->SetTexturePath("");
         return;
     }
@@ -2349,9 +2349,9 @@ void Character::ActionEvent(Animation* animation, int32_t playerIndex, char cons
                             entid_t    enemy {};
                             int32_t    isEnemyHitByGunfire = 1;
                             if (chr) {
-                                enemy = chr->GetId();
-                                VDATA* vd =
-                                    core->Event("Check_ChrHitFire", "iilf", GetId(), enemy, static_cast<int32_t>(chr->isRecoilState), kDist);
+                                enemy     = chr->GetId();
+                                VDATA* vd = core->Event(
+                                    "Check_ChrHitFire", "iilf", GetId(), enemy, static_cast<int32_t>(chr->isRecoilState), kDist);
                                 if (vd) { vd->Get(isEnemyHitByGunfire); }
                                 if (isEnemyHitByGunfire) { chr->Hit(fgt_hit_fire); }
                             }
@@ -2508,13 +2508,13 @@ bool Character::zLoadModel(MESSAGE& message)
     std::string const& name = message.String();
     std::string const& ani  = message.String();
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (gs) gs->SetTexturePath("characters/");
     // Path to the model
     strcpy_s(mpath, "characters/");
     strcat_s(mpath, name.c_str());
     // Create and load the model
-    if (!(mdl = core->CreateEntity("modelr"))) {
+    if (!(mdl = core->CreateEntity("ModelR"))) {
         if (gs) gs->SetTexturePath("");
         return false;
     }
@@ -2542,12 +2542,12 @@ bool Character::zLoadModel(MESSAGE& message)
     m->SetRenderTuner(&tuner);
     core->AddToLayer(REALIZE, mdl, 20);
     core->AddToLayer(SUN_TRACE, mdl, 10);
-    if (shadow = core->CreateEntity("shadow")) {
+    if (shadow = core->CreateEntity("Shadow")) {
         core->Send_Message(shadow, "li", 0, mdl);
     } else {
         core->Trace("Shadow not created!");
     }
-    if (!core->GetEntityId("waterrings")) { waterrings = core->CreateEntity("waterrings"); }
+    if (!core->GetEntityId("WaterRings")) { waterrings = core->CreateEntity("WaterRings"); }
     UpdateActionsData();
     return true;
 }
@@ -2642,7 +2642,7 @@ bool Character::zSetBlade(MESSAGE& message)
     int32_t const s = message.Long();
     int32_t const e = message.Long();
     if (!core->GetEntityPointer(blade)) {
-        if (!(blade = core->CreateEntity("blade"))) return false;
+        if (!(blade = core->CreateEntity("Blade"))) return false;
     }
     core->Send_Message(blade, "llisfll", MSG_BLADE_SET, nBladeIdx, mdl, name.c_str(), t, s, e);
     UpdateWeapons();
@@ -2657,7 +2657,7 @@ bool Character::zSetGun(MESSAGE& message)
     isGunSet                = true;
     if (name.empty()) isGunSet = false;
     if (!core->GetEntityPointer(blade)) {
-        if (!(blade = core->CreateEntity("blade"))) return false;
+        if (!(blade = core->CreateEntity("Blade"))) return false;
     }
     core->Send_Message(blade, "lis", MSG_BLADE_GUNSET, mdl, name.c_str());
     UpdateWeapons();
@@ -2730,7 +2730,7 @@ uint32_t Character::zExMessage(MESSAGE& message)
         std::string const& modelName   = message.String();
         std::string const& locatorName = message.String();
         if (!core->GetEntityPointer(blade)) {
-            if (!(blade = core->CreateEntity("blade"))) return 0;
+            if (!(blade = core->CreateEntity("Blade"))) return 0;
             UpdateWeapons();
         }
         core->Send_Message(blade, "lilss", 1001, mdl, i, modelName.c_str(), locatorName.c_str());
@@ -4337,7 +4337,7 @@ Location* Character::GetLocation()
 
     if (location) return location;
 
-    loc_id = core->GetEntityId("location");
+    loc_id = core->GetEntityId("Location");
     return static_cast<Location*>(core->GetEntityPointer(loc_id));
 }
 

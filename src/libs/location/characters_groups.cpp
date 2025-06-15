@@ -115,7 +115,7 @@ int32_t CharactersGroups::String::GetLen(char const* str)
 bool CharactersGroups::Init()
 {
     // Location Pointer
-    auto const loc = core->GetEntityId("location");
+    auto const loc = core->GetEntityId("Location");
     location       = static_cast<Location*>(core->GetEntityPointer(loc));
     if (!location) return false;
     RegistryGroup("");

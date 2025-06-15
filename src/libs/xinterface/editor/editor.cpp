@@ -7,7 +7,7 @@
 
 #include "list.h"
 
-GIEditor::GIEditor(XINTERFACE* pInterface)
+GIEditor::GIEditor(XInterface* pInterface)
 {
     m_pGIOwner = pInterface;
     m_pRS      = pInterface->RenderService();

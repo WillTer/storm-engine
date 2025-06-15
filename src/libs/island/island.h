@@ -43,7 +43,7 @@ public:
     }
 };
 
-class ISLAND: public ISLAND_BASE
+class Island: public ISLAND_BASE
 {
 private:
     std::string          sIslandName;
@@ -118,8 +118,8 @@ private:
     bool DoZapSuperGeneratorDecodeFile(const char *sname);*/
 
 public:
-    ISLAND();
-    ~ISLAND();
+    Island();
+    ~Island();
     bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message);

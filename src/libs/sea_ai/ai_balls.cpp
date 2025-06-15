@@ -41,7 +41,7 @@ AIBalls::~AIBalls()
 
 bool AIBalls::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     SetDevice();
     return true;
 }
@@ -139,7 +139,7 @@ void AIBalls::AddBall(ATTRIBUTES* pABall)
 
     if (aBallTypes[i].sParticleName.size()) {
         entid_t eidParticle;
-        if (eidParticle = core->GetEntityId("particles"); eidParticle != 0) {
+        if (eidParticle = core->GetEntityId("Particles"); eidParticle != 0) {
             pBall->pParticle = (VPARTICLE_SYSTEM*)core->Send_Message(
                 eidParticle,
                 "lsffffffl",
@@ -162,9 +162,9 @@ void AIBalls::Execute(uint32_t Delta_Time)
     CVECTOR  vSrc, vDst;
     entid_t  EID;
 
-    if (!pIsland && (EID = core->GetEntityId("island"))) pIsland = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
-    if (!pSail && (EID = core->GetEntityId("sail"))) pSail = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
-    if (!pSea && (EID = core->GetEntityId("sea"))) pSea = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
+    if (!pIsland && (EID = core->GetEntityId("Island"))) pIsland = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
+    if (!pSail && (EID = core->GetEntityId("Sail"))) pSail = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
+    if (!pSea && (EID = core->GetEntityId("Sea"))) pSea = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
 
     aBallRects.clear();
 
@@ -482,7 +482,7 @@ void AIBalls::Load(CSaveLoad* pSL)
             pB.Load(pSL);
             if (pB.pParticle) {
                 pB.pParticle = nullptr;
-                if (auto eidParticle = core->GetEntityId("particles")) {
+                if (auto eidParticle = core->GetEntityId("Particles")) {
                     pB.pParticle = (VPARTICLE_SYSTEM*)core->Send_Message(
                         eidParticle,
                         "lsffffffl",

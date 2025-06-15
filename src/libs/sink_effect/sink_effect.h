@@ -12,11 +12,11 @@
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
 
-class SINKEFFECT: public Entity
+class SinkEffect: public Entity
 {
 public:
-    SINKEFFECT();
-    ~SINKEFFECT() override;
+    SinkEffect();
+    ~SinkEffect() override;
 
     bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;

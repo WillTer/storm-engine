@@ -92,11 +92,11 @@ struct TRACK_EVENT {
 };
 }  // namespace sink_effect
 
-class PARTICLES;
+class Particles;
 
 class SEPS_PS
 {
-    friend PARTICLES;
+    friend Particles;
     sink_effect::TRACK_EVENT Visibility[TRACK_EVENT_MAX];
     sink_effect::TRACK_EVENT ParticleSize[TRACK_EVENT_MAX];
     sink_effect::TRACK_EVENT ParticleSpeed[TRACK_EVENT_MAX];

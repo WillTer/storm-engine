@@ -237,11 +237,6 @@ void CoreImpl::ProcessEngineIniFile()
 
 bool CoreImpl::LoadClassesTable()
 {
-    for (auto* c: __STORM_CLASSES_REGISTRY) {
-        auto const hash = MakeHashValue(c->GetName());
-        c->SetHash(hash);
-    }
-
     return true;
 }
 
@@ -364,34 +359,35 @@ VDATA* CoreImpl::Event(std::string_view const& event_name, MESSAGE& message)
 
 void* CoreImpl::MakeClass(char const* class_name)
 {
-    int32_t const hash = MakeHashValue(class_name);
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c->CreateClass();
+    auto* const vma = FindVMA(class_name);
+    if (vma != nullptr) { return vma->create_class(); }
 
     return nullptr;
 }
 
 void CoreImpl::ReleaseServices()
 {
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->Service()) c->Clear();
+    for (auto&& [key, value]: *classes_registry)
+        if (value->is_service()) value->clear();
 
     Controls = nullptr;
 }
 
 VMA* CoreImpl::FindVMA(char const* class_name)
 {
-    int32_t const hash = MakeHashValue(class_name);
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c;
+    auto const hashed_name = entt::hashed_string(class_name);
+    if (classes_registry->contains(hashed_name)) { return classes_registry->at(hashed_name); }
+
+    Trace("Class \"%s\" not found", class_name);
 
     return nullptr;
 }
 
-VMA* CoreImpl::FindVMA(int32_t hash)
+VMA* CoreImpl::FindVMA(uint32_t const hash)
 {
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash) return c;
+    if (classes_registry->contains(hash)) { return classes_registry->at(hash); }
+
+    Trace("Class with hash \"%u\" not found", hash);
 
     return nullptr;
 }
@@ -404,23 +400,21 @@ void* CoreImpl::GetService(char const* service_name)
         return nullptr;
     }
 
-    if (pClass->GetHash() == 0) {
+    if (pClass->get_hash() == 0) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
-    if (pClass->GetReference() > 0) return pClass->CreateClass();
+    if (pClass->get_ref_count() > 0) return pClass->create_class();
 
-    auto* service_PTR = static_cast<SERVICE*>(pClass->CreateClass());
+    auto* service_PTR = static_cast<SERVICE*>(pClass->create_class());
 
-    auto const class_code = MakeHashValue(service_name);
-    pClass->SetHash(class_code);
-
-    if (!service_PTR->Init()) {
+    if (service_PTR == nullptr) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
+    auto const class_code = pClass->get_hash();
     Services_List.Add(class_code, class_code, service_PTR);
 
     return service_PTR;

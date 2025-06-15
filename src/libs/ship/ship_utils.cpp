@@ -6,7 +6,7 @@
 #define MAST_IDENTIFY "mast"
 #define MAST_FIRST 1
 
-BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
+BOOL Ship::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
 {
     iNumVContour = 0;
 
@@ -135,7 +135,7 @@ BOOL SHIP::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
     return true;
 }
 
-bool SHIP::BuildMasts()
+bool Ship::BuildMasts()
 {
     char str[256];
 
@@ -198,7 +198,7 @@ bool SHIP::BuildMasts()
                 pM->fDamage = 1.0f;
                 pM->bBroken = true;
                 entid_t ent;
-                ent = core->CreateEntity("mast");
+                ent = core->CreateEntity("Mast");
                 core->Send_Message(ent, "lpii", MSG_MAST_SETGEOMETRY, pNode, GetId(), GetModelEID());
                 core->EraseEntity(ent);
                 // iIdx--;
@@ -212,7 +212,7 @@ bool SHIP::BuildMasts()
     return true;
 }
 
-bool SHIP::BuildHulls()
+bool Ship::BuildHulls()
 {
     char str[256];
 
@@ -260,7 +260,7 @@ bool SHIP::BuildHulls()
                 pM->fDamage = 1.0f;
                 pM->bBroken = true;
                 entid_t ent;
-                ent = core->CreateEntity("hull");
+                ent = core->CreateEntity("Hull");
                 core->Send_Message(ent, "lpii", MSG_HULL_SETGEOMETRY, pNode, GetId(), GetModelEID());
                 core->EraseEntity(ent);
                 // iIdx--;

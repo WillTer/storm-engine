@@ -53,7 +53,7 @@ FONT::~FONT()
 {
     if (vertexBuffer_) vertexBuffer_->Release();
     if (textureHandle_ >= 0) renderService_.TextureRelease(textureHandle_);
-    // core->FreeService("dx9render");
+    // core->FreeService("RendererService");
 }
 
 bool FONT::Init(char const* font_name, char const* iniName)

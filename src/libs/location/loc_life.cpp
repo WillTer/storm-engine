@@ -39,10 +39,10 @@ LocLife::~LocLife()
 bool LocLife::Init(Location* loc)
 {
     Assert(loc);
-    if (!(model = core->CreateEntity("modelr"))) return false;
+    if (!(model = core->CreateEntity("ModelR"))) return false;
     core->AddToLayer(REALIZE, model, 20);
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) {
         core->Trace("Can't create geometry service!");
         return false;

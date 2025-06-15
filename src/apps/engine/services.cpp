@@ -9,11 +9,11 @@
 #include <libs/xinterface/string_service/str_service.h>
 
 CREATE_SERVICE(AnimationServiceImp)
-CREATE_SERVICE(COLL)
-CREATE_SERVICE(DX9RENDER)
-CREATE_SERVICE(GEOMETRY)
+CREATE_SERVICE(CollideService)
+CREATE_SERVICE(RendererService)
+CREATE_SERVICE(GeometryService)
 CREATE_SERVICE(LostDeviceSentinel)
 CREATE_SERVICE(ParticleService)
-CREATE_SERVICE(PCS_CONTROLS)
+CREATE_SERVICE(PcsControls)
 CREATE_SERVICE(SoundService)
-CREATE_SERVICE(STRSERVICE)
+CREATE_SERVICE(StrService)

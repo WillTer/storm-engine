@@ -176,7 +176,7 @@ void Astronomy::STARS::Realize(double dDeltaTime, double dHour)
     if (fFadeTimeStart >= 0.f) {
         if ((fFadeTime > 0.f && fFadeValue < 1.f) || (fFadeTime < 0.f && fFadeValue > 0.f)) {
             entid_t eid;
-            if (eid = core->GetEntityId("weather")) {
+            if (eid = core->GetEntityId("Weather")) {
                 auto fTime = static_cast<WEATHER_BASE*>(core->GetEntityPointer(eid))->GetFloat(whf_time_counter);
                 if (fTime > fFadeTimeStart) {
                     auto fOldFadeValue = fFadeValue;

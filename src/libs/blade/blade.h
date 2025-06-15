@@ -15,7 +15,7 @@ model binded to an animated locator
 #define BLADE_INFO_QUANTITY 2
 #define ITEMS_INFO_QUANTITY 10
 
-class BLADE: public Entity
+class Blade: public Entity
 {
 #define FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 
@@ -85,8 +85,8 @@ class BLADE: public Entity
     int32_t FindTieItemByIndex(int32_t n);
 
 public:
-    BLADE();
-    ~BLADE() override;
+    Blade();
+    ~Blade() override;
     bool Init() override;
 
     void ProcessStage(Stage stage, uint32_t delta) override

@@ -19,7 +19,7 @@ using GEOPARTICLE = struct {
     bool    bEffect;
 };
 
-class BLAST: public Entity
+class Blast: public Entity
 {
     VDX9RENDER*              rs;
     VGEOMETRY*               gs;
@@ -32,8 +32,8 @@ class BLAST: public Entity
     entid_t                  Splash;
 
 public:
-    ~BLAST() override;
-    BLAST();
+    ~Blast() override;
+    Blast();
     bool     Init() override;
     uint64_t ProcessMessage(MESSAGE& message) override;
     uint32_t AttributeChanged(ATTRIBUTES*) override;

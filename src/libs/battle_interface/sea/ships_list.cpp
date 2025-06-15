@@ -211,7 +211,7 @@ void SHIP_DESCRIBE_LIST::Add(
     pr->next = nullptr;
 
     // find this ship
-    auto&& entities = core->GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto ship: entities) {
         auto* vob = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (vob == nullptr) continue;
@@ -274,7 +274,7 @@ void SHIP_DESCRIBE_LIST::Refresh()
 
     TMP_LONG_STACK tls;
 
-    auto&& entities = core->GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto ship: entities) {
         auto* vob = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
         if (vob == nullptr) continue;

@@ -7,7 +7,7 @@
 #include "typedef.h"
 #include "weather_base.h"
 
-class WEATHER: public WEATHER_BASE
+class Weather: public WEATHER_BASE
 {
 private:
     VDX9RENDER* pRS;
@@ -50,8 +50,8 @@ private:
     void     GetVector(uint32_t, CVECTOR*) override;
 
 public:
-    WEATHER();
-    ~WEATHER() override;
+    Weather();
+    ~Weather() override;
 
     void     SetDevice();
     bool     Init() override;

@@ -1,11 +1,11 @@
 #pragma once
 #include <libs/core/script_libriary.h>
 
-class SCRIPT_LIBRIARY_TEST: public SCRIPT_LIBRIARY
+class ScriptLibraryTest: public SCRIPT_LIBRIARY
 {
 public:
-    SCRIPT_LIBRIARY_TEST() {};
+    ScriptLibraryTest() {};
 
-    ~SCRIPT_LIBRIARY_TEST() override {};
+    ~ScriptLibraryTest() override {};
     bool Init() override;
 };

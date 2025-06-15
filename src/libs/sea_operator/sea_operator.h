@@ -10,7 +10,7 @@
 #define TIME_BETWEEN_ACTIONS 1000
 #define IDLE_ACTION_SEED 500
 
-class SEA_OPERATOR;
+class SeaOperator;
 
 //--------------------------------------------------------------------
 struct tAction {
@@ -20,7 +20,7 @@ struct tAction {
     CVECTOR    destination, direction;
     SHIP_BASE* attackerShip;
     int        hitIntoShip;
-    void (SEA_OPERATOR::*actionMethod)(tAction* _action);
+    void (SeaOperator::*actionMethod)(tAction* _action);
 };
 
 // typedef TFIFOBuffer<tAction> TActionBuffer;
@@ -30,11 +30,11 @@ using TActionBuffer = std::queue<tAction>;
 enum BORT_TYPE { BORT_FRONT, BORT_LEFT, BORT_RIGHT, BORT_REAR };
 
 //--------------------------------------------------------------------
-class SEA_OPERATOR: public Entity
+class SeaOperator: public Entity
 {
 public:
-    SEA_OPERATOR();
-    ~SEA_OPERATOR() override;
+    SeaOperator();
+    ~SeaOperator() override;
 
     bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;

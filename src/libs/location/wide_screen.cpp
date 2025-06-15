@@ -32,7 +32,7 @@ bool WideScreen::Init()
     // core->LayerCreate("realize", true, false);
     core->SetLayerType(REALIZE, layer_type_t::realize);
     core->AddToLayer(REALIZE, GetId(), -257);
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     D3DVIEWPORT9 vp;
     rs->GetViewport(&vp);

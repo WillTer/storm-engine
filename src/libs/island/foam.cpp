@@ -39,7 +39,7 @@ CoastFoam::~CoastFoam()
 
 bool CoastFoam::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     iVBuffer = rs->CreateVertexBuffer(
         D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2,
@@ -88,7 +88,7 @@ void CoastFoam::Realize(uint32_t Delta_Time)
     pFrustumPlanes = rs->GetPlanes();
 
     if (pSea == nullptr) {
-        pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
+        pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
         if (pSea == nullptr) return;
     }
 

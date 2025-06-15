@@ -7,18 +7,18 @@
 #define MSG_SOUND_ALIAS_ADD 77017  //"s"          alias_name
 
 //--------------------------------------------------------------------
-SOUND::SOUND() : soundService(nullptr), renderer(nullptr) {}
+Sound::Sound() : soundService(nullptr), renderer(nullptr) {}
 
 //--------------------------------------------------------------------
-SOUND::~SOUND() {}
+Sound::~Sound() {}
 
 //--------------------------------------------------------------------
-bool SOUND::Init()
+bool Sound::Init()
 {
     soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
     if (!soundService) core->Trace("!SOUND: Can`t create sound service");
 
-    renderer = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     core->AddToLayer(REALIZE, GetId(), -1);
 
     return true;
@@ -26,7 +26,7 @@ bool SOUND::Init()
 }
 
 //--------------------------------------------------------------------
-uint64_t SOUND::ProcessMessage(MESSAGE& message)
+uint64_t Sound::ProcessMessage(MESSAGE& message)
 {
     ////GUARD(SOUND::ProcessMessage)
 
@@ -215,7 +215,7 @@ uint64_t SOUND::ProcessMessage(MESSAGE& message)
 }
 
 //--------------------------------------------------------------------
-void SOUND::Realize(uint32_t dTime)
+void Sound::Realize(uint32_t dTime)
 {
     if (!soundService) return;
 }

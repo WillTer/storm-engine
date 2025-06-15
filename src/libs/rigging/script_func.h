@@ -1,11 +1,11 @@
 #pragma once
 #include <libs/core/script_libriary.h>
 
-class SCRIPT_RIGGING_FILES: public SCRIPT_LIBRIARY
+class ScriptRiggingFiles: public SCRIPT_LIBRIARY
 {
 public:
-    SCRIPT_RIGGING_FILES() {};
+    ScriptRiggingFiles() {};
 
-    ~SCRIPT_RIGGING_FILES() override {};
+    ~ScriptRiggingFiles() override {};
     bool Init() override;
 };

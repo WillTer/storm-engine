@@ -84,7 +84,7 @@ LocationCamera::~LocationCamera()
 bool LocationCamera::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     // core->LayerCreate("execute", true, false);
@@ -96,10 +96,10 @@ bool LocationCamera::Init()
     core->AddToLayer(REALIZE, GetId(), 100000);
 
     // The sea
-    sea = core->GetEntityId("sea");
+    sea = core->GetEntityId("Sea");
 
     // try to get the location
-    loc = core->GetEntityId("location");
+    loc = core->GetEntityId("Location");
 
     rs->SetPerspective(cameraPerspective);
     // rs->SetPerspective(1.0f);

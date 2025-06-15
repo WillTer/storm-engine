@@ -4,7 +4,7 @@
 
 #include "vano_files.h"
 
-bool SCRIPT_LIBRIARY_TEST::Init()
+bool ScriptLibraryTest::Init()
 {
     Vano_Init();
 

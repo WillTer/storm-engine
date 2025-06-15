@@ -2,7 +2,7 @@
 
 #include "editor_defines.h"
 
-class XINTERFACE;
+class XInterface;
 class CXI_IMAGE;
 class GIEditorList;
 class CINODE;
@@ -13,7 +13,7 @@ class GIEditor: public GIEditorObject
 public:
     GIEditor(GIEditor&&)      = delete;
     GIEditor(GIEditor const&) = delete;
-    GIEditor(XINTERFACE* pInterface);
+    GIEditor(XInterface* pInterface);
     ~GIEditor() override;
 
     void Release();
@@ -45,7 +45,7 @@ protected:
 
 public:
     VDX9RENDER* m_pRS;
-    XINTERFACE* m_pGIOwner;
+    XInterface* m_pGIOwner;
 
     void ChangeNodeName();
     void ChangeSubNodeName() const;

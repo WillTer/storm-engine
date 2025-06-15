@@ -2,13 +2,13 @@
 
 #include <libs/sea_ai/vai_objbase.h>
 
-class SHIPPOINTER: public Entity
+class ShipPointer: public Entity
 {
     VDX9RENDER* rs;
 
 public:
-    SHIPPOINTER();
-    ~SHIPPOINTER() override;
+    ShipPointer();
+    ~ShipPointer() override;
     bool     Init() override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time) const;

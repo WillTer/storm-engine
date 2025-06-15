@@ -9,7 +9,7 @@ class BIImageRender;
 class BIImage;
 class VAI_OBJBASE;
 
-class ISPYGLASS: public Entity
+class ISpyglass: public Entity
 {
     struct ImageParam {
         BIImage*    pImage;
@@ -89,8 +89,8 @@ class ISPYGLASS: public Entity
     };
 
 public:
-    ISPYGLASS();
-    ~ISPYGLASS() override;
+    ISpyglass();
+    ~ISpyglass() override;
     bool     Init() override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time) const;

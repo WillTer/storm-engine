@@ -198,7 +198,7 @@ bool AIFort::AddFort(ATTRIBUTES* pIslandAP, ATTRIBUTES* pFortLabelAP, ATTRIBUTES
     auto const bLights = (pALights) ? pALights->GetAttributeAsDword() != 0 : false;
     auto const bFlares = (pAFlares) ? pAFlares->GetAttributeAsDword() != 0 : false;
 
-    auto const eidTmp = core->GetEntityId("shiplights");
+    auto const eidTmp = core->GetEntityId("ShipLights");
     pShipsLights      = static_cast<IShipLights*>(core->GetEntityPointer(eidTmp));
     Assert(pShipsLights);
 
@@ -316,7 +316,7 @@ bool AIFort::ScanFortForCannons(AI_FORT* pFort, char const* pModelsDir, char con
     auto const pathStr = path.string();
     // MessageBoxA(NULL, (LPCSTR)path.c_str(), "", MB_OK); //~!~
     // sLocatorsName.Format("%s/%s", pModelsDir, pLocatorsName);
-    model_id = core->CreateEntity("MODELR");
+    model_id = core->CreateEntity("ModelR");
     core->Send_Message(model_id, "ls", MSG_MODEL_LOAD_GEO, (char*)pathStr.c_str());
 
     auto* pModel = static_cast<MODEL*>(core->GetEntityPointer(model_id));

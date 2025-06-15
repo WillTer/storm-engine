@@ -1442,7 +1442,7 @@ void BATTLE_NAVIGATOR::UpdateCurrentCharge()
 void BATTLE_NAVIGATOR::UpdateWindParam()
 {
     if (!m_wb && !m_pAWeather) {
-        m_wb = static_cast<WEATHER_BASE*>(core->GetEntityPointer(core->GetEntityId("weather")));
+        m_wb = static_cast<WEATHER_BASE*>(core->GetEntityPointer(core->GetEntityId("Weather")));
         /*if( core->IsNetActive() && !m_wb && m_pOwnerEI ) {
           VDATA * pSVWeather = (VDATA*)core->GetScriptVariable((m_pOwnerEI->IsServer()) ? "NSWeather" : "NCWeather");
         Assert(pSVWeather); m_pAWeather = pSVWeather->GetAClass(); Assert(m_pAWeather);

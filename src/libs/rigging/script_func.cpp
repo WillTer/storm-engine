@@ -20,8 +20,8 @@ uint32_t _ShipSailState(VS_STACK* pS)
     if (!pVR) return IFUNCRESULT_FAILED;
 
     // find sail class
-    if (auto const eid = core->GetEntityId("SAIL")) {
-        int32_t const n = static_cast<SAIL*>(core->GetEntityPointer(eid))->GetSailStateForCharacter(nChrIdx);
+    if (auto const eid = core->GetEntityId("Sail")) {
+        int32_t const n = static_cast<Sail*>(core->GetEntityPointer(eid))->GetSailStateForCharacter(nChrIdx);
         pVR->Set(n);
     } else
         pVR->Set(0);
@@ -139,7 +139,7 @@ uint32_t _RandomHole2Sail(VS_STACK* pS)
     if (!pVR) return IFUNCRESULT_FAILED;
 
     SAILONE_BASE* pSail = nullptr;
-    if (auto const ei = core->GetEntityId("sail")) {
+    if (auto const ei = core->GetEntityId("Sail")) {
         pSail = static_cast<SAIL_BASE*>(core->GetEntityPointer(ei))->FindSailForCharacter(_chrIdx, _reyName, _groupNum);
     }
 
@@ -190,7 +190,7 @@ uint32_t _DeleteOneSailHole(VS_STACK* pS)
     sscanf(_groupName, "%d", &_groupNum);
 
     SAILONE_BASE* pSail = nullptr;
-    if (auto const ei = core->GetEntityId("sail")) {
+    if (auto const ei = core->GetEntityId("Sail")) {
         pSail = static_cast<SAIL_BASE*>(core->GetEntityPointer(ei))->FindSailForCharacter(_chrIdx, _reyName, _groupNum);
     }
 
@@ -219,7 +219,7 @@ uint32_t _DeleteOneSailHole(VS_STACK* pS)
     return IFUNCRESULT_OK;
 }
 
-bool SCRIPT_RIGGING_FILES::Init()
+bool ScriptRiggingFiles::Init()
 {
     IFUNCINFO sIFuncInfo;
 

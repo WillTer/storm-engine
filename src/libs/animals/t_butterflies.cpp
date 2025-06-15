@@ -37,10 +37,10 @@ void TButterflies::Init()
 {
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!renderService) throw std::runtime_error("!Butterflies: No service 'dx9render'");
 
-    collide = static_cast<COLLIDE*>(core->GetService("coll"));
+    collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!collide) throw std::runtime_error("!Butterflies: No service COLLIDE");
 
     ivManager = new IVBufferManager(renderService, BUTTERFLY_VERTEX_TYPE, sizeof(tButterflyVertex), 3 * 4, 6, butterfliesCount);

@@ -5,7 +5,7 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
-LOCATOR::LOCATOR() : rs(nullptr), ParticlesID(0)
+Locator::Locator() : rs(nullptr), ParticlesID(0)
 {
     gs          = nullptr;
     geo         = nullptr;
@@ -13,30 +13,30 @@ LOCATOR::LOCATOR() : rs(nullptr), ParticlesID(0)
     stringIndex = -1;
 }
 
-LOCATOR::~LOCATOR()
+Locator::~Locator()
 {
     delete geo;
     geo = nullptr;
 }
 
-bool LOCATOR::Init()
+bool Locator::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
-    gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return false;
 
     return true;
 }
 
-bool LOCATOR::VerifyParticles()
+bool Locator::VerifyParticles()
 {
-    ParticlesID = core->GetEntityId("particles");
-    if (!ParticlesID) ParticlesID = core->CreateEntity("particles");
+    ParticlesID = core->GetEntityId("Particles");
+    if (!ParticlesID) ParticlesID = core->CreateEntity("Particles");
 
     return static_cast<bool>(ParticlesID);
 }
 
-void LOCATOR::LocateForI_L2(ATTRIBUTES* pA, GEOS* g, GEOS::LABEL& label)
+void Locator::LocateForI_L2(ATTRIBUTES* pA, GEOS* g, GEOS::LABEL& label)
 {
     char        name[16];
     GEOS::LABEL label2;
@@ -62,7 +62,7 @@ void LOCATOR::LocateForI_L2(ATTRIBUTES* pA, GEOS* g, GEOS::LABEL& label)
     }
 }
 
-void LOCATOR::LocateForI(VDATA* pData)
+void Locator::LocateForI(VDATA* pData)
 {
     ATTRIBUTES* pA;
     ATTRIBUTES* pAA;
@@ -191,7 +191,7 @@ void LOCATOR::LocateForI(VDATA* pData)
     delete g;
 }
 
-void LOCATOR::LocateForI_Locators(ATTRIBUTES* pA, GEOS* geo, int32_t iGroupID, uint32_t dwFlags)
+void Locator::LocateForI_Locators(ATTRIBUTES* pA, GEOS* geo, int32_t iGroupID, uint32_t dwFlags)
 {
     int32_t     i;
     GEOS::LABEL label;
@@ -207,7 +207,7 @@ void LOCATOR::LocateForI_Locators(ATTRIBUTES* pA, GEOS* geo, int32_t iGroupID, u
     }
 }
 
-uint64_t LOCATOR::ProcessMessage(MESSAGE& message)
+uint64_t Locator::ProcessMessage(MESSAGE& message)
 {
     int32_t     message_code;
     GEOS::LABEL label;
@@ -285,9 +285,9 @@ uint64_t LOCATOR::ProcessMessage(MESSAGE& message)
           groupID = geo->FindName("fire");
           if(groupID >= 0)
           {
-            if(!core->FindClass(&ParticlesID,"particles",0))
+            if(!core->FindClass(&ParticlesID,"Particles",0))
             {
-              if(!core->CreateEntity(&ParticlesID,"particles")) return 0;
+              if(!core->CreateEntity(&ParticlesID,"Particles")) return 0;
             }
             for(stringIndex = 0; (stringIndex = geo->FindLabelG(stringIndex, groupID)) >= 0; stringIndex++)
             {
@@ -300,9 +300,9 @@ uint64_t LOCATOR::ProcessMessage(MESSAGE& message)
           groupID = geo->FindName("water");
           if(groupID >= 0)
           {
-            if(!core->FindClass(&ParticlesID,"particles",0))
+            if(!core->FindClass(&ParticlesID,"Particles",0))
             {
-              if(!core->CreateEntity(&ParticlesID,"particles")) return 0;
+              if(!core->CreateEntity(&ParticlesID,"Particles")) return 0;
             }
             for(stringIndex = 0; (stringIndex = geo->FindLabelG(stringIndex, groupID)) >= 0; stringIndex++)
             {
@@ -318,7 +318,7 @@ uint64_t LOCATOR::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-uint32_t LOCATOR::AttributeChanged(ATTRIBUTES* pA)
+uint32_t Locator::AttributeChanged(ATTRIBUTES* pA)
 {
     return 0;
 }

@@ -461,7 +461,7 @@ bool WdmIslands::LabelsFindLocator(char const* name, CVECTOR& pos) const
         baseModel->geo->GetLabel(i, label);
         if (!label.group_name || !label.group_name[0]) continue;
         if (!storm::iEquals(label.group_name, "labels")) continue;
-        // if(!storm::iEquals(label.group_name, "geometry")) continue;
+        // if(!storm::iEquals(label.group_name, "GeometryService")) continue;
         if (storm::iEquals(label.name, name)) {
             pos = ((CMatrix*)label.m)->Pos();
             return true;

@@ -81,9 +81,9 @@ bool Sharks::Shark::Init(float vp_x, float vp_z, bool isLoadModel)
     angs.y            = SHARK_PI * rand() * (2.0f / RAND_MAX);
     if (!isLoadModel) return true;
     // Loading the model
-    if (!(model = core->CreateEntity("modelr"))) return false;
+    if (!(model = core->CreateEntity("ModelR"))) return false;
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) {
         core->Trace("Can't create geometry service!");
         return false;
@@ -463,7 +463,7 @@ Sharks::~Sharks()
 // Initialization
 bool Sharks::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     for (int32_t i = 0; i < numShakes; i++)
         if (!shark[i].Init(0.0f, 0.0f)) return false;
@@ -524,7 +524,7 @@ void Sharks::Execute(uint32_t delta_time)
             shark[i].Repulsion(shark[j]);
     // take into account ships
 
-    auto&& entities = core->GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto ent: entities) {
         // Object pointer
         auto* ship = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ent));
@@ -541,13 +541,13 @@ void Sharks::Execute(uint32_t delta_time)
     // The sea
     auto* sb = static_cast<SEA_BASE*>(core->GetEntityPointer(sea));
     if (!sb) {
-        sea = core->GetEntityId("sea");
+        sea = core->GetEntityId("Sea");
         sb  = static_cast<SEA_BASE*>(core->GetEntityPointer(sea));
         if (!sb) return;
     }
     auto* ib = static_cast<ISLAND_BASE*>(core->GetEntityPointer(island));
     if (!ib) {
-        island = core->GetEntityId("island");
+        island = core->GetEntityId("Island");
         ib     = static_cast<ISLAND_BASE*>(core->GetEntityPointer(island));
         if (!ib) return;
     }
@@ -595,8 +595,8 @@ void Sharks::Execute(uint32_t delta_time)
 
 bool Sharks::LoadPeriscopeModel()
 {
-    if (!(periscope.model = core->CreateEntity("modelr"))) return false;
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    if (!(periscope.model = core->CreateEntity("ModelR"))) return false;
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return false;
     gs->SetTexturePath("animals/");
     if (!core->Send_Message(periscope.model, "ls", MSG_MODEL_LOAD_GEO, "animals/periscope")) {

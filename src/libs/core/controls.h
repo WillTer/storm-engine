@@ -59,7 +59,10 @@ public:
 
     virtual ~CONTROLS() {};
 
-    virtual void Init() {}
+    virtual bool Init()
+    {
+        return true;
+    }
 
     virtual void Update(uint32_t DeltaTime) {};
 

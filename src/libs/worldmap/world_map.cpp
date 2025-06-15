@@ -109,12 +109,12 @@ bool WorldMap::Init()
     core->AddToLayer(REALIZE, GetId(), 10000);
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     rs->SetPerspective((1.57f + 1.0f) / 2);
     wdmObjects->rs = rs;
     // GS
-    wdmObjects->gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    wdmObjects->gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     // Create map objects
     WdmRenderObject* ro;
     // Create islands

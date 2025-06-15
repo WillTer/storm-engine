@@ -2,13 +2,13 @@
 
 #include <libs/renderer/dx9render.h>
 
-class HELPCHOOSER: public Entity
+class HelpChooser: public Entity
 {
     VDX9RENDER* rs;
 
 public:
-    HELPCHOOSER();
-    ~HELPCHOOSER() override;
+    HelpChooser();
+    ~HelpChooser() override;
     void     SetDevice();
     bool     Init() override;
     void     Execute(uint32_t Delta_Time);

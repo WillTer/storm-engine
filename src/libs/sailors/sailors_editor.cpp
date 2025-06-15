@@ -23,7 +23,7 @@ SailorsEditor::~SailorsEditor()
 
 bool SailorsEditor::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     sailors = core->CreateEntity("Sailors");
 
@@ -35,7 +35,7 @@ bool SailorsEditor::Init()
 
     LoadFromIni("SailorsEditor.ini");
 
-    shipID = core->CreateEntity("MODELR");
+    shipID = core->CreateEntity("ModelR");
     core->Send_Message(shipID, "ls", MSG_MODEL_LOAD_GEO, _shipName.c_str());
 
     core->AddToLayer(EDITOR_REALIZE, shipID, 100000);

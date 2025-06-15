@@ -7,7 +7,7 @@
 
 #include "sea.h"
 
-void SEA::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
+void Sea::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
 {
     CVECTOR vLookTo, vUp;
 
@@ -41,7 +41,7 @@ void SEA::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
     mView.BuildViewMatrix(0.0f, vLookTo, vUp);
 }
 
-bool SEA::SunRoad_Render2()
+bool Sea::SunRoad_Render2()
 {
     auto mOldView       = rs->GetView();
     auto mOldProjection = rs->GetProjection();
@@ -115,7 +115,7 @@ bool SEA::SunRoad_Render2()
     return true;
 }
 
-bool SEA::EnvMap_Render2()
+bool Sea::EnvMap_Render2()
 {
     auto mOldView       = rs->GetView();
     auto mOldProjection = rs->GetProjection();
@@ -206,7 +206,7 @@ bool SEA::EnvMap_Render2()
     return true;
 }
 
-bool SEA::SunRoad_Render()
+bool Sea::SunRoad_Render()
 {
     CMatrix mOldView       = rs->GetView();
     CMatrix mOldProjection = rs->GetProjection();
@@ -257,7 +257,7 @@ bool SEA::SunRoad_Render()
     return true;
 }
 
-bool SEA::EnvMap_Render()
+bool Sea::EnvMap_Render()
 {
     CMatrix mOldView       = rs->GetView();
     CMatrix mOldProjection = rs->GetProjection();

@@ -57,7 +57,7 @@ bool VANT_BASE::Init()
 void VANT_BASE::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
 
     LoadIni();
@@ -538,7 +538,7 @@ void VANT_BASE::SetAll()
     }
 }
 
-void VANT::LoadIni()
+void Vant::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];
@@ -609,7 +609,7 @@ void VANT::LoadIni()
     // UNGUARD
 }
 
-void VANTL::LoadIni()
+void VantL::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];
@@ -680,7 +680,7 @@ void VANTL::LoadIni()
     // UNGUARD
 }
 
-void VANTZ::LoadIni()
+void VantZ::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];

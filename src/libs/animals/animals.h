@@ -11,11 +11,11 @@
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
-class ANIMALS: public Entity
+class Animals: public Entity
 {
 public:
-    ANIMALS();
-    ~ANIMALS() override;
+    Animals();
+    ~Animals() override;
 
     bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;

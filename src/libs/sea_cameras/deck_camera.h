@@ -12,7 +12,7 @@
 #define D3DFVF_VERTEX (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 #define AIM_SIZE 0.05f
 
-class DECK_CAMERA: public COMMON_CAMERA
+class DeckCamera: public COMMON_CAMERA
 {
     struct VERTEX {
         D3DVECTOR v;
@@ -56,8 +56,8 @@ class DECK_CAMERA: public COMMON_CAMERA
     float       MultiTrace(const CVECTOR& cvBase, const CVECTOR& cvDown, float fHBase);
 
 public:
-    DECK_CAMERA();
-    ~DECK_CAMERA() override;
+    DeckCamera();
+    ~DeckCamera() override;
 
     void SetCharacter(ATTRIBUTES* _pACharacter) override;
 

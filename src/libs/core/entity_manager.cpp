@@ -97,34 +97,28 @@ void EntityManager::RemoveFromLayer(layer_index_t const index, EntityInternalDat
 entid_t EntityManager::CreateEntity(char const* name, ATTRIBUTES* attr)
 {
     // Find VMA
-    auto const hash = MakeHashValue(name);
-    if (hash == 0) { throw std::runtime_error("null hash"); }
-    VMA* pClass = nullptr;
-    for (auto const& c: __STORM_CLASSES_REGISTRY) {
-        if (c->GetHash() == hash && storm::iEquals(name, c->GetName())) {
-            pClass = c;
-            break;
-        }
-    }
-    if (pClass == nullptr) { throw std::runtime_error("invalid entity name"); }
+    auto const hashed_name = entt::hashed_string(name);
+    if (!classes_registry->contains(hashed_name)) { throw std::runtime_error("invalid entity name"); }
+
+    auto* const pClass = classes_registry->at(hashed_name);
 
     // Create entity
-    auto* ptr = static_cast<Entity*>(pClass->CreateClass());
+    auto* ptr = static_cast<Entity*>(pClass->create_class());
     if (ptr == nullptr) { throw std::runtime_error("CreateClass returned nullptr"); }
 
     // Init entity
     // set id first
-    auto const id          = InsertEntity(ptr, hash);
+    auto const id          = InsertEntity(ptr, hashed_name.value());
     ptr->data_.id          = id;
     ptr->AttributesPointer = attr;
 
     // add to cache
-    cache_.UpdateAdd(hash, id);
+    cache_.UpdateAdd(hashed_name.value(), id);
 
     // then init
     if (!ptr->Init()) {
         // remove from cache
-        cache_.UpdateErase(hash, id);
+        cache_.UpdateErase(hashed_name.value(), id);
 
         // delete if fail
         auto const index = static_cast<entid_index_t>(id);
@@ -209,7 +203,7 @@ entity_container_cref EntityManager::GetEntityIds(layer_type_t const type) const
 
 entity_container_cref EntityManager::GetEntityIds(char const* name) const
 {
-    return GetEntityIds(MakeHashValue(name));
+    return GetEntityIds(entt::hashed_string::value(name));
 }
 
 entity_container_cref EntityManager::GetEntityIds(uint32_t const hash) const
@@ -240,7 +234,7 @@ entity_container_cref EntityManager::GetEntityIds(layer_index_t const index) con
 
 entid_t EntityManager::GetEntityId(char const* name) const
 {
-    return GetEntityId(MakeHashValue(name));
+    return GetEntityId(entt::hashed_string::value(name));
 }
 
 bool EntityManager::IsEntityValid(entid_t id) const

@@ -28,7 +28,7 @@ LocRats::~LocRats() {}
 bool LocRats::Init()
 {
     // Location Pointer
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return false;
     // Execution
@@ -45,7 +45,7 @@ uint64_t LocRats::ProcessMessage(MESSAGE& message)
     if (num < 1) num = 1;
     if (num > sizeof(rat) / sizeof(LocRat)) num = sizeof(rat) / sizeof(LocRat);
     // Location Pointer
-    auto const loc      = core->GetEntityId("location");
+    auto const loc      = core->GetEntityId("Location");
     auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return 0;
     // Init rats

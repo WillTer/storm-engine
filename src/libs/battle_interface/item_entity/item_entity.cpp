@@ -102,7 +102,7 @@ bool ItemEntity::ReadAndCreate()
     auto* const pcModelName = BIUtils::GetStringFromAttr(AttributesPointer, "model", "");
     auto* const pcTechnique = BIUtils::GetStringFromAttr(AttributesPointer, "technique", "");
     if (pcModelName) {
-        if (m_eidModel = core->CreateEntity("modelr")) {
+        if (m_eidModel = core->CreateEntity("ModelR")) {
             core->Send_Message(m_eidModel, "ls", MSG_MODEL_LOAD_GEO, pcModelName);
             m_pModel = static_cast<MODEL*>(core->GetEntityPointer(m_eidModel));
             SetModelToPosition(m_mtxpos);
@@ -290,7 +290,7 @@ bool ItemEntity::CreateParticle()
     if (m_bVisible) {
         auto* const pcParticleName = BIUtils::GetStringFromAttr(AttributesPointer, "particle", "");
         if (pcParticleName && pcParticleName[0]) {
-            auto const eidParticle = core->GetEntityId("particles");
+            auto const eidParticle = core->GetEntityId("Particles");
             if (eidParticle) {
                 auto const vPos = m_mtxpos.Pos();
                 m_pParticle     = (VPARTICLE_SYSTEM*)core->Send_Message(
@@ -305,7 +305,7 @@ bool ItemEntity::CreateParticle()
 void ItemEntity::DeleteParticle()
 {
     if (m_pParticle) {
-        auto const eidParticle = core->GetEntityId("particles");
+        auto const eidParticle = core->GetEntityId("Particles");
         if (eidParticle) {
             if (core->Send_Message(eidParticle, "lp", PS_VALIDATE_PARTICLE, m_pParticle)) m_pParticle->Pause(true);
         }

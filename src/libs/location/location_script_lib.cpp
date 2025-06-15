@@ -172,7 +172,7 @@ uint32_t slNativeFindLaodLocation(VS_STACK* pS)
     auto pReturn = (VDATA*)pS->Push();
     if (!pReturn) return IFUNCRESULT_FAILED;
     // Looking for a location
-    auto const loc = core->GetEntityId("location");
+    auto const loc = core->GetEntityId("Location");
     if (!loc) {
         pReturn->Set(-1);
         return IFUNCRESULT_OK;
@@ -194,28 +194,28 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     char const* nm   = nullptr;
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Setting the picture
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (rs) { rs->SetProgressImage(nm); }
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (rs) rs->StartProgressView();
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (rs) rs->ProgressView();
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressEnd(VS_STACK* pS)
 {
-    auto* rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (rs) rs->EndProgressView();
     return IFUNCRESULT_OK;
 }
@@ -239,7 +239,7 @@ uint32_t slNativeExecuteTechnique(VS_STACK* pS)
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Execute technique
     if (nm && nm[0]) {
-        auto* rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+        auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
         rs->TechniqueExecuteStart(nm);
         while (rs->TechniqueExecuteNext())
             ;

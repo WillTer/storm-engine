@@ -40,11 +40,11 @@ ShipLights::~ShipLights()
 
 bool ShipLights::Init()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core->GetService("coll"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
-    pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
+    pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
     return true;
 }
 

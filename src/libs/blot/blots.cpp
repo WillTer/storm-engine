@@ -48,7 +48,7 @@ bool Blots::Init()
 {
     // GUARD(Blots::Init())
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     // Layers
     ////core->LayerCreate("realize", true, false);

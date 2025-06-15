@@ -140,11 +140,11 @@ void Debris::AddModel(char const* modelName, float prt, float spd)
     if (numModels > std::size(mdl)) return;
     // Create a model
     entid_t id;
-    if (!(id = core->CreateEntity("modelr"))) return;
+    if (!(id = core->CreateEntity("ModelR"))) return;
     auto* m = static_cast<MODEL*>(core->GetEntityPointer(id));
     if (!m) return;
     // Path to textures
-    auto* gs = static_cast<VGEOMETRY*>(core->GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return;
     gs->SetTexturePath("tornado/");
     // Loading
@@ -194,7 +194,7 @@ bool Debris::IsShip()
 {
     const CVECTOR p(pillar.GetX(0.0f), 0.0f, pillar.GetZ(0.0f));
     CVECTOR       pos;
-    auto&&        entities = core->GetEntityIds("ship");
+    auto&&        entities = core->GetEntityIds("Ship");
     for (auto id: entities) {
         // Object pointer
         auto* ship = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(id));

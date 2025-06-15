@@ -7,27 +7,27 @@
 
 #include "battle_man_sign.h"
 
-BATTLE_LAND_INTERFACE::BATTLE_LAND_INTERFACE() : m_bShowCommandos(false)
+BattleLandInterface::BattleLandInterface() : m_bShowCommandos(false)
 {
     m_pRS      = nullptr;
     m_pManSign = nullptr;
 }
 
-BATTLE_LAND_INTERFACE::~BATTLE_LAND_INTERFACE()
+BattleLandInterface::~BattleLandInterface()
 {
     Release();
 }
 
-bool BATTLE_LAND_INTERFACE::Init()
+bool BattleLandInterface::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!m_pRS) { throw std::runtime_error("Can`t create render service"); }
 
     SetShowParameters();
     return true;
 }
 
-void BATTLE_LAND_INTERFACE::Execute(uint32_t delta_time) const
+void BattleLandInterface::Execute(uint32_t delta_time) const
 {
     CONTROL_STATE cs;
 
@@ -41,7 +41,7 @@ void BATTLE_LAND_INTERFACE::Execute(uint32_t delta_time) const
     }
 }
 
-void BATTLE_LAND_INTERFACE::Realize(uint32_t delta_time)
+void BattleLandInterface::Realize(uint32_t delta_time)
 {
     if (m_bShowCommandos) {
         m_pRS->MakePostProcess();
@@ -52,7 +52,7 @@ void BATTLE_LAND_INTERFACE::Realize(uint32_t delta_time)
     }
 }
 
-uint64_t BATTLE_LAND_INTERFACE::ProcessMessage(MESSAGE& message)
+uint64_t BattleLandInterface::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_BATTLE_LAND_START:
@@ -94,13 +94,13 @@ uint64_t BATTLE_LAND_INTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void BATTLE_LAND_INTERFACE::SetParameters()
+void BattleLandInterface::SetParameters()
 {
     UpdateCommandos();
     UpdateAlarm();
 }
 
-void BATTLE_LAND_INTERFACE::Release()
+void BattleLandInterface::Release()
 {
     m_pRS = nullptr;
     STORM_DELETE(m_pManSign);
@@ -108,9 +108,9 @@ void BATTLE_LAND_INTERFACE::Release()
     m_TextInfo.clear();
 }
 
-void BATTLE_LAND_INTERFACE::EndShow() {}
+void BattleLandInterface::EndShow() {}
 
-void BATTLE_LAND_INTERFACE::SetShowParameters()
+void BattleLandInterface::SetShowParameters()
 {
     auto* const pA   = AttributesPointer ? AttributesPointer->GetAttributeClass("Parameters") : nullptr;
     m_bShowCommandos = 0 != BIUtils::GetIntFromAttr(pA, "DoShowCommandos", true);
@@ -124,17 +124,17 @@ void BATTLE_LAND_INTERFACE::SetShowParameters()
     m_Images.Init(m_pRS, AttributesPointer ? AttributesPointer->GetAttributeClass("imageslist") : nullptr);
 }
 
-void BATTLE_LAND_INTERFACE::UpdateCommandos() const
+void BattleLandInterface::UpdateCommandos() const
 {
     auto* pA = AttributesPointer ? AttributesPointer->GetAttributeClass("data") : nullptr;
     if (pA) pA = pA->GetAttributeClass("icons");
     if (!pA) return;
 }
 
-void BATTLE_LAND_INTERFACE::UpdateAlarm() {}
+void BattleLandInterface::UpdateAlarm() {}
 
-void BATTLE_LAND_INTERFACE::EnableMessageIcons(VDATA* pvdat) {}
+void BattleLandInterface::EnableMessageIcons(VDATA* pvdat) {}
 
-void BATTLE_LAND_INTERFACE::DisableMessageIcons() {}
+void BattleLandInterface::DisableMessageIcons() {}
 
-void BATTLE_LAND_INTERFACE::SetTextData() {}
+void BattleLandInterface::SetTextData() {}

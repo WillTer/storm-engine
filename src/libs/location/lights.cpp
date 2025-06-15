@@ -48,9 +48,9 @@ Lights::~Lights()
 bool Lights::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
-    collide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     // read the parameters
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");

@@ -11,7 +11,7 @@
 
 #include "p_system.h"
 
-PARTICLES::PARTICLES()
+Particles::Particles()
 {
     bSystemDelete   = false;
     pService        = nullptr;
@@ -19,13 +19,13 @@ PARTICLES::PARTICLES()
     CreationCapture = false;
 }
 
-PARTICLES::~PARTICLES()
+Particles::~Particles()
 {
     bSystemDelete = true;
     DeleteAll();
 }
 
-bool PARTICLES::Init()
+bool Particles::Init()
 {
     core->AddToLayer(REALIZE, GetId(), 0xfffff);
     core->AddToLayer(EXECUTE, GetId(), 0);
@@ -37,7 +37,7 @@ bool PARTICLES::Init()
     return true;
 }
 
-uint64_t PARTICLES::ProcessMessage(MESSAGE& message)
+uint64_t Particles::ProcessMessage(MESSAGE& message)
 {
     auto const code = message.Long();
 
@@ -178,7 +178,7 @@ uint64_t PARTICLES::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-PARTICLE_SYSTEM* PARTICLES::CreateSystem(char const* pFileName, uint32_t LifeTime)
+PARTICLE_SYSTEM* Particles::CreateSystem(char const* pFileName, uint32_t LifeTime)
 {
     auto        path    = fio->base_directory_path(BaseDirectory::Particles) / pFileName;
     std::string pathStr = path.extension().string();
@@ -211,7 +211,7 @@ PARTICLE_SYSTEM* PARTICLES::CreateSystem(char const* pFileName, uint32_t LifeTim
     return pNewPS;
 }
 
-void PARTICLES::DeleteSystem(uintptr_t SystemID)
+void Particles::DeleteSystem(uintptr_t SystemID)
 {
     bSystemDelete = true;
     for (uint32_t n = 0; n < CreatedSystems.size(); n++) {
@@ -231,7 +231,7 @@ void PARTICLES::DeleteSystem(uintptr_t SystemID)
     bSystemDelete = false;
 }
 
-void PARTICLES::DeleteAll()
+void Particles::DeleteAll()
 {
     bSystemDelete = true;
     for (uint32_t n = 0; n < CreatedSystems.size(); n++) {
@@ -242,7 +242,7 @@ void PARTICLES::DeleteAll()
     bSystemDelete = false;
 }
 
-void PARTICLES::DeleteResource(PARTICLE_SYSTEM* pResource)
+void Particles::DeleteResource(PARTICLE_SYSTEM* pResource)
 {
     if (bSystemDelete) return;
 
@@ -256,7 +256,7 @@ void PARTICLES::DeleteResource(PARTICLE_SYSTEM* pResource)
     }
 }
 
-void PARTICLES::Realize(uint32_t Delta_Time)
+void Particles::Realize(uint32_t Delta_Time)
 {
     bSystemDelete          = true;
     float const fDeltaTime = static_cast<float>(Delta_Time) * 0.001f;
@@ -289,16 +289,16 @@ void PARTICLES::Realize(uint32_t Delta_Time)
     bSystemDelete = false;
 }
 
-void PARTICLES::Execute(uint32_t Delta_Time) {}
+void Particles::Execute(uint32_t Delta_Time) {}
 
-void PARTICLES::PauseAllActive(bool bPaused)
+void Particles::PauseAllActive(bool bPaused)
 {
     for (uint32_t n = 0; n < CreatedSystems.size(); n++) {
         CreatedSystems[n].pSystem->Pause(bPaused);
     }
 }
 
-void PARTICLES::DeleteCaptured()
+void Particles::DeleteCaptured()
 {
     for (uint32_t n = 0; n < CaptureBuffer.size(); n++) {
         DeleteSystem(CaptureBuffer[n]);

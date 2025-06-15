@@ -4,12 +4,12 @@
 
 #include "ai_group.h"
 
-SEA_AI::SEA_AI()
+SeaAI::SeaAI()
 {
     bFirstInit = true;
 }
 
-SEA_AI::~SEA_AI()
+SeaAI::~SeaAI()
 {
     for (auto& i: AIGroup::AIGroups)
         STORM_DELETE(i);
@@ -18,17 +18,17 @@ SEA_AI::~SEA_AI()
     Helper.Uninit();
 }
 
-bool SEA_AI::Init()
+bool SeaAI::Init()
 {
     Helper.SetDevice();
     return true;
 }
 
-void SEA_AI::SetDevice() {}
+void SeaAI::SetDevice() {}
 
 uint64_t dwRDTSC;
 
-void SEA_AI::Execute(uint32_t Delta_Time)
+void SeaAI::Execute(uint32_t Delta_Time)
 {
     RDTSC_B(dwRDTSC);
     auto const fDeltaTime = 0.001f * static_cast<float>(Delta_Time);
@@ -50,7 +50,7 @@ void SEA_AI::Execute(uint32_t Delta_Time)
 
 extern uint32_t dwTotal;
 
-void SEA_AI::Realize(uint32_t Delta_Time)
+void SeaAI::Realize(uint32_t Delta_Time)
 {
     auto const fDeltaTime = 0.001f * static_cast<float>(Delta_Time);
     for (auto& i: AIGroup::AIGroups) {
@@ -60,19 +60,19 @@ void SEA_AI::Realize(uint32_t Delta_Time)
     // AIHelper::pRS->Print(0,90,"%d",dwRDTSC);//dwTotal);
 }
 
-bool SEA_AI::CreateState(ENTITY_STATE_GEN* state_gen)
+bool SeaAI::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool SEA_AI::LoadState(ENTITY_STATE* state)
+bool SeaAI::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void SEA_AI::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam) {}
+void SeaAI::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam) {}
 
-uint64_t SEA_AI::ProcessMessage(MESSAGE& message)
+uint64_t SeaAI::ProcessMessage(MESSAGE& message)
 {
     auto iCode = message.Long();
     switch (iCode) {
@@ -308,14 +308,14 @@ uint64_t SEA_AI::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void SEA_AI::Save(char const* pStr)
+void SeaAI::Save(char const* pStr)
 {
     CSaveLoad SL;
 
     SL.CreateWrite();
 
     Helper.Save(&SL);
-    core->Send_Message(core->GetEntityId("SEA_CAMERAS"), "lp", AI_MESSAGE_SEASAVE, &SL);
+    core->Send_Message(core->GetEntityId("SeaCameras"), "lp", AI_MESSAGE_SEASAVE, &SL);
 
     AIBalls::pAIBalls->Save(&SL);
 
@@ -326,7 +326,7 @@ void SEA_AI::Save(char const* pStr)
     if (AIFort::pAIFort) AIFort::pAIFort->Save(&SL);
 }
 
-void SEA_AI::Load(char const* pStr)
+void SeaAI::Load(char const* pStr)
 {
     Helper.Uninit();
 
@@ -335,7 +335,7 @@ void SEA_AI::Load(char const* pStr)
     SL.CreateLoad();
 
     Helper.Load(&SL);
-    core->Send_Message(core->GetEntityId("SEA_CAMERAS"), "lp", AI_MESSAGE_SEALOAD, &SL);
+    core->Send_Message(core->GetEntityId("SeaCameras"), "lp", AI_MESSAGE_SEALOAD, &SL);
 
     AIBalls::pAIBalls->Load(&SL);
 
@@ -349,7 +349,7 @@ void SEA_AI::Load(char const* pStr)
     Helper.Init();
 }
 
-uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t SeaAI::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     uint32_t i;
 
@@ -366,7 +366,7 @@ uint32_t SEA_AI::AttributeChanged(ATTRIBUTES* pAttribute)
     return 0;
 }
 
-void SEA_AI::AddShip(entid_t eidShip, ATTRIBUTES* pCharacter, ATTRIBUTES* pAShip)
+void SeaAI::AddShip(entid_t eidShip, ATTRIBUTES* pCharacter, ATTRIBUTES* pAShip)
 {
     Assert(pCharacter && pAShip);
     auto* pG = pCharacter->FindAClass(pCharacter, "SeaAI.Group");
@@ -379,7 +379,7 @@ void SEA_AI::AddShip(entid_t eidShip, ATTRIBUTES* pCharacter, ATTRIBUTES* pAShip
     AIGroup::FindOrCreateGroup(pGName)->AddShip(eidShip, pCharacter, pAShip);
 }
 
-void SEA_AI::SetCompanionEnemy(ATTRIBUTES* pACharacter)
+void SeaAI::SetCompanionEnemy(ATTRIBUTES* pACharacter)
 {
     Assert(pACharacter);
 

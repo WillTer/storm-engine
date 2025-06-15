@@ -13,8 +13,8 @@
 #define DIALOG_BOTTOM_LINESPACE 12
 #define DIALOG_TOP_LINESPACE 12
 
-VDX9RENDER* DIALOG::RenderService = nullptr;
-FRECT       DIALOG::m_frScreenData;
+VDX9RENDER* Dialog::RenderService = nullptr;
+FRECT       Dialog::m_frScreenData;
 
 inline void SetVerticesForSquare(XI_TEX_VERTEX* pV, FRECT uv, float left, float top, float right, float bottom)
 {
@@ -51,7 +51,7 @@ inline void SetVerticesForSquare(XI_TEX_VERTEX* pV, FRECT uv, float left, float 
     pV[3].v     = uv.bottom;
 }
 
-void DIALOG::DlgTextDescribe::ChangeText(std::string_view const text)
+void Dialog::DlgTextDescribe::ChangeText(std::string_view const text)
 {
     asText.clear();
     pageBreaks_.clear();
@@ -83,7 +83,7 @@ void DIALOG::DlgTextDescribe::ChangeText(std::string_view const text)
     pageBreaks_  = storm::dialog::SplitIntoPages(asText.size(), nShowQuantity, forced_page_breaks);
 }
 
-void DIALOG::DlgTextDescribe::Init(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni)
+void Dialog::DlgTextDescribe::Init(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni)
 {
     Assert(pRS);
 
@@ -109,7 +109,7 @@ void DIALOG::DlgTextDescribe::Init(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* p
     if (pIni) nShowQuantity = pIni->GetInt("DIALOG", "maxtextlines", nShowQuantity);
 }
 
-int32_t DIALOG::DlgTextDescribe::GetShowHeight()
+int32_t Dialog::DlgTextDescribe::GetShowHeight()
 {
     int32_t n;
     for (n = 0; n < pageBreaks_.size(); n++)
@@ -122,7 +122,7 @@ int32_t DIALOG::DlgTextDescribe::GetShowHeight()
     return (n * nLineInterval);
 }
 
-void DIALOG::DlgTextDescribe::Show(int32_t nY)
+void Dialog::DlgTextDescribe::Show(int32_t nY)
 {
     int32_t n, i, y, nEnd;
 
@@ -140,7 +140,7 @@ void DIALOG::DlgTextDescribe::Show(int32_t nY)
     }
 }
 
-bool DIALOG::DlgTextDescribe::IsLastPage()
+bool Dialog::DlgTextDescribe::IsLastPage()
 {
     int32_t n;
     for (n = 0; n < pageBreaks_.size(); n++)
@@ -149,7 +149,7 @@ bool DIALOG::DlgTextDescribe::IsLastPage()
     return false;
 }
 
-void DIALOG::DlgTextDescribe::PrevPage()
+void Dialog::DlgTextDescribe::PrevPage()
 {
     int32_t n;
     for (n = pageBreaks_.size() - 1; n >= 0; n--)
@@ -160,7 +160,7 @@ void DIALOG::DlgTextDescribe::PrevPage()
         currentLine_ = 0;
 }
 
-void DIALOG::DlgTextDescribe::NextPage()
+void Dialog::DlgTextDescribe::NextPage()
 {
     int32_t n;
     for (n = 0; n < pageBreaks_.size(); n++)
@@ -169,7 +169,7 @@ void DIALOG::DlgTextDescribe::NextPage()
 }
 
 //--------------------------------------------------------------------
-DIALOG::DIALOG()
+Dialog::Dialog()
 {
     curSnd              = 0;
     forceEmergencyClose = false;
@@ -194,7 +194,7 @@ DIALOG::DIALOG()
 }
 
 //--------------------------------------------------------------------
-DIALOG::~DIALOG()
+Dialog::~Dialog()
 {
     core->SetTimeScale(1.f);
 
@@ -212,7 +212,7 @@ DIALOG::~DIALOG()
     m_nCharNameTextFont = -1;
 }
 
-void DIALOG::CreateBack()
+void Dialog::CreateBack()
 {
     int32_t const nSquareQuantity = 9 + 3 + 1;            // 9-for back, 3-for name & 1-for divider
     m_nIQntBack                   = 6 * nSquareQuantity;  // 6 indices in one rectangle
@@ -242,7 +242,7 @@ void DIALOG::CreateBack()
     m_BackParams.m_frBorderInt.bottom = m_BackParams.m_frBorderExt.bottom - m_BackParams.frBorderRect.bottom;
 }
 
-void DIALOG::FillBack()
+void Dialog::FillBack()
 {
     if (m_idVBufBack == -1) return;
 
@@ -339,7 +339,7 @@ void DIALOG::FillBack()
     RenderService->UnLockVertexBuffer(m_idVBufBack);
 }
 
-void DIALOG::FillDivider()
+void Dialog::FillDivider()
 {
     if (m_idVBufBack == -1) return;
     if (!m_BackParams.bShowDivider) return;
@@ -356,7 +356,7 @@ void DIALOG::FillDivider()
     RenderService->UnLockVertexBuffer(m_idVBufBack);
 }
 
-void DIALOG::DrawBack()
+void Dialog::DrawBack()
 {
     RenderService->TextureSet(0, m_BackParams.m_idBackTex);
     if (m_BackParams.bShowDivider)
@@ -367,7 +367,7 @@ void DIALOG::DrawBack()
             m_idVBufBack, sizeof(XI_TEX_VERTEX), m_idIBufBack, 0, m_nVQntBack - 4, 0, m_nIQntBack / 3 - 2, "texturedialogfon");
 }
 
-void DIALOG::CreateButtons()
+void Dialog::CreateButtons()
 {
     m_nIQntButton = 6 * 2;  // 6 indices in one rectangle
     m_nVQntButton = 4 * 2;  // 4 vertices per rectangle
@@ -390,7 +390,7 @@ void DIALOG::CreateButtons()
     }
 }
 
-void DIALOG::FillButtons()
+void Dialog::FillButtons()
 {
     if (m_idVBufButton == -1) return;
 
@@ -441,7 +441,7 @@ void DIALOG::FillButtons()
     RenderService->UnLockVertexBuffer(m_idVBufButton);
 }
 
-void DIALOG::DrawButtons()
+void Dialog::DrawButtons()
 {
     RenderService->TextureSet(0, m_ButtonParams.m_idTexture);
     if (m_dwButtonState & BUTTON_STATE_UPENABLE) {
@@ -455,7 +455,7 @@ void DIALOG::DrawButtons()
         RenderService->DrawBuffer(m_idVBufButton, sizeof(XI_TEX_VERTEX), m_idIBufButton, 0, m_nVQntButton, 6, 2 * 1, "texturedialogfon");
 }
 
-void DIALOG::LoadFromIni()
+void Dialog::LoadFromIni()
 {
     // FIXME: hardcode
     auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
@@ -542,7 +542,7 @@ void DIALOG::LoadFromIni()
     m_fpCharNameTextOffset.y = GetScrHeight(m_fpCharNameTextOffset.y);
 }
 
-void DIALOG::GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FRECT& frect)
+void Dialog::GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FRECT& frect)
 {
     frect.left = frect.top = 0.f;
     frect.right = frect.bottom = 1.f;
@@ -553,7 +553,7 @@ void DIALOG::GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcK
     sscanf(param, "%f,%f,%f,%f", &frect.left, &frect.top, &frect.right, &frect.bottom);
 }
 
-void DIALOG::GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FPOINT& fpoint)
+void Dialog::GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FPOINT& fpoint)
 {
     fpoint.x = fpoint.y = 0.f;
     if (!ini) return;
@@ -564,14 +564,14 @@ void DIALOG::GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pc
 }
 
 //--------------------------------------------------------------------
-bool DIALOG::Init()
+bool Dialog::Init()
 {
     forceEmergencyClose = false;
     selectedLinkName[0] = 0;
     core->SetTimeScale(0.f);
     unfadeTime = 0;
 
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(RenderService);
 
     snd = static_cast<VSoundService*>(core->GetService("SoundService"));
@@ -602,7 +602,7 @@ bool DIALOG::Init()
     return true;
 }
 
-void DIALOG::InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni)
+void Dialog::InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni)
 {
     linkDescribe_.Init();
 
@@ -643,7 +643,7 @@ void DIALOG::InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni)
 }
 
 //--------------------------------------------------------------------
-void DIALOG::Realize(uint32_t Delta_Time)
+void Dialog::Realize(uint32_t Delta_Time)
 {
     RenderService->MakePostProcess();
     // delayed exit from pause
@@ -810,7 +810,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
 }
 
 //--------------------------------------------------------------------
-uint32_t DIALOG::AttributeChanged(ATTRIBUTES* pA)
+uint32_t Dialog::AttributeChanged(ATTRIBUTES* pA)
 {
     // search for default settings
     bool        parLinks = false;
@@ -834,7 +834,7 @@ uint32_t DIALOG::AttributeChanged(ATTRIBUTES* pA)
 }
 
 //--------------------------------------------------------------------
-uint64_t DIALOG::ProcessMessage(MESSAGE& message)
+uint64_t Dialog::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
         // get character ID
@@ -860,7 +860,7 @@ uint64_t DIALOG::ProcessMessage(MESSAGE& message)
 }
 
 //--------------------------------------------------------------------
-void DIALOG::EmergencyExit()
+void Dialog::EmergencyExit()
 {
     if (forceEmergencyClose) return;
     forceEmergencyClose = true;
@@ -868,7 +868,7 @@ void DIALOG::EmergencyExit()
     core->Event("EmergencyDialogExit");
 }
 
-void DIALOG::UpdateDlgTexts()
+void Dialog::UpdateDlgTexts()
 {
     if (!AttributesPointer) return;
 
@@ -879,7 +879,7 @@ void DIALOG::UpdateDlgTexts()
     m_bDlgChanged = false;
 }
 
-void DIALOG::UpdateDlgViewport()
+void Dialog::UpdateDlgViewport()
 {
     int32_t const nTextHeight  = m_DlgText.GetShowHeight();
     int32_t const nLinksHeight = m_DlgText.IsLastPage() ? linkDescribe_.GetShowHeight() : 0;

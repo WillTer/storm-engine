@@ -42,10 +42,10 @@
 
 #define GC_FREE 28
 
-SEA*                         SEA::pSea        = nullptr;
-IDirect3DVertexDeclaration9* SEA::vertexDecl_ = nullptr;
+Sea*                         Sea::pSea        = nullptr;
+IDirect3DVertexDeclaration9* Sea::vertexDecl_ = nullptr;
 
-SEA::SEA()
+Sea::Sea()
 {
     aBlocks.reserve(128);
     aSeaTrash.reserve(512);
@@ -120,7 +120,7 @@ SEA::SEA()
     pRenderTargetBumpMap = nullptr;
 }
 
-SEA::~SEA()
+Sea::~Sea()
 {
     rs->Release(pReflection);
     rs->Release(pReflectionSunroad);
@@ -159,7 +159,7 @@ SEA::~SEA()
     STORM_DELETE(pSeaNormalsFrame2);
 }
 
-void SEA::SFLB_CreateBuffers()
+void Sea::SFLB_CreateBuffers()
 {
     iVSeaBuffer = rs->CreateVertexBuffer(0, NUM_VERTEXS * sizeof(SeaVertex), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
     iISeaBuffer = rs->CreateIndexBuffer(NUM_INDICES * 3 * sizeof(uint16_t), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
@@ -168,7 +168,7 @@ void SEA::SFLB_CreateBuffers()
     pVSea    = new SeaVertex[NUM_VERTEXS];
 }
 
-void SEA::CreateVertexDeclaration()
+void Sea::CreateVertexDeclaration()
 {
     if (vertexDecl_ != nullptr) return;
 
@@ -181,9 +181,9 @@ void SEA::CreateVertexDeclaration()
     rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
-bool SEA::Init()
+bool Sea::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     CreateVertexDeclaration();
 
     auto const sea_info = storm::main_config::sea_info();
@@ -273,7 +273,7 @@ bool SEA::Init()
     return true;
 }
 
-void SEA::BuildVolumeTexture()
+void Sea::BuildVolumeTexture()
 {
     std::vector<CVECTOR*> aVectors;
     uint32_t              i, j;
@@ -458,7 +458,7 @@ void SEA::BuildVolumeTexture()
     pDst = nullptr;
 }
 
-bool SEA::EditMode_Update()
+bool Sea::EditMode_Update()
 {
     // return true;
     v4SeaColor = CVECTOR4(10.0f / 255.0f, 55.0f / 255.0f, 100.0f / 255.0f, 1.0f);
@@ -492,7 +492,7 @@ bool SEA::EditMode_Update()
     return true;
 }
 
-int32_t SEA::VisCode(const CVECTOR& vP)
+int32_t Sea::VisCode(const CVECTOR& vP)
 {
     int32_t vc = 0;
 
@@ -525,7 +525,7 @@ int32_t SEA::VisCode(const CVECTOR& vP)
     return vc;
 }
 
-bool SEA::isVisibleBBox(const CVECTOR& vCenter, const CVECTOR& v1, const CVECTOR& v2)
+bool Sea::isVisibleBBox(const CVECTOR& vCenter, const CVECTOR& v1, const CVECTOR& v2)
 {
     /*CVECTOR vc = vCenter - vCamPos;
     CVECTOR vp1 = v1 - vCamPos;
@@ -552,12 +552,12 @@ bool SEA::isVisibleBBox(const CVECTOR& vCenter, const CVECTOR& v1, const CVECTOR
     return vc == 0;
 }
 
-inline float SEA::CalcLod(float const& x, float const& y, float const& z)
+inline float Sea::CalcLod(float const& x, float const& y, float const& z)
 {
     return Sqr(x - vCamPos.x) + /*Sqr((y - vCamPos.y)) + */ Sqr(z - vCamPos.z);
 }
 
-void SEA::CalculateLOD(const CVECTOR& v1, const CVECTOR& v2, int32_t& iMaxLOD, int32_t& iMinLOD)
+void Sea::CalculateLOD(const CVECTOR& v1, const CVECTOR& v2, int32_t& iMaxLOD, int32_t& iMinLOD)
 {
     float fCur, fMax, fMin;
 
@@ -599,12 +599,12 @@ void SEA::CalculateLOD(const CVECTOR& v1, const CVECTOR& v2, int32_t& iMaxLOD, i
     if (iMinLOD < 4) iMinLOD = 4;
 }
 
-void SEA::AddBlock(int32_t iTX, int32_t iTY, int32_t iSize, int32_t iLOD)
+void Sea::AddBlock(int32_t iTX, int32_t iTY, int32_t iSize, int32_t iLOD)
 {
     aBlocks.emplace_back(SeaBlock {0, 0, 0, 0, iSize >> iLOD, iTX, iTY, iSize, iLOD, 0, 0, 0, false, false});
 }
 
-void SEA::BuildTree(int32_t iTX, int32_t iTY, int32_t iLev)
+void Sea::BuildTree(int32_t iTX, int32_t iTY, int32_t iLev)
 {
     int32_t       iMaxLOD, iMinLOD;
     int32_t const iSize  = static_cast<int32_t>(dwMaxDim >> iLev);
@@ -635,7 +635,7 @@ void SEA::BuildTree(int32_t iTX, int32_t iTY, int32_t iLev)
 // INTEL COMMENT:
 // This version of the function takes in 4 at a time, to take advantage of SSE.
 // In particular I have converted the normalise and square roots over to SSE.
-void SEA::SSE_WaveXZ(SeaVertex** pArray)
+void Sea::SSE_WaveXZ(SeaVertex** pArray)
 {
     CVECTOR vNormal[4];
     float   nY1[4];
@@ -765,7 +765,7 @@ void SEA::SSE_WaveXZ(SeaVertex** pArray)
     }
 }
 
-float SEA::WaveXZ(float x, float z, CVECTOR* pNormal)
+float Sea::WaveXZ(float x, float z, CVECTOR* pNormal)
 {
     int32_t iX11, iX12, iX21, iX22, iY11, iY12, iY21, iY22;
 
@@ -876,7 +876,7 @@ float SEA::WaveXZ(float x, float z, CVECTOR* pNormal)
     return fRes;
 }
 
-void SEA::PrepareIndicesForBlock(uint32_t dwBlockIndex)
+void Sea::PrepareIndicesForBlock(uint32_t dwBlockIndex)
 {
     SeaBlock* pB = &aBlocks[dwBlockIndex];
 
@@ -997,7 +997,7 @@ void SEA::PrepareIndicesForBlock(uint32_t dwBlockIndex)
         }
 }
 
-void SEA::SSE_WaveXZBlock(SeaBlock& pB)
+void Sea::SSE_WaveXZBlock(SeaBlock& pB)
 {
     SeaVertex* vTmp[4];
     SeaVertex  vFake;
@@ -1090,7 +1090,7 @@ void SEA::SSE_WaveXZBlock(SeaBlock& pB)
     pB.bDone = true;
 }
 
-SEA::SeaBlock* SEA::GetUndoneBlock()
+Sea::SeaBlock* Sea::GetUndoneBlock()
 {
     SeaBlock* pB = nullptr;
     for (int32_t i = 0; i < aBlocks.size(); i++)
@@ -1102,7 +1102,7 @@ SEA::SeaBlock* SEA::GetUndoneBlock()
     return pB;
 }
 
-void SEA::CalculateNormalMap(float fFrame, float fAmplitude, float* pfOut, std::vector<uint32_t*>& aFrames)
+void Sea::CalculateNormalMap(float fFrame, float fAmplitude, float* pfOut, std::vector<uint32_t*>& aFrames)
 {
     int32_t const iFrame1 = fftol(fFrame) % aFrames.size();
     int32_t const iFrame2 = (iFrame1 + 1) % aFrames.size();
@@ -1126,7 +1126,7 @@ void SEA::CalculateNormalMap(float fFrame, float fAmplitude, float* pfOut, std::
         }
 }
 
-void SEA::CalculateHeightMap(float fFrame, float fAmplitude, float* pfOut, std::vector<uint8_t*>& aFrames)
+void Sea::CalculateHeightMap(float fFrame, float fAmplitude, float* pfOut, std::vector<uint8_t*>& aFrames)
 {
     int32_t const iFrame1 = fftol(fFrame) % aFrames.size();
     int32_t const iFrame2 = (iFrame1 + 1) % aFrames.size();
@@ -1145,7 +1145,7 @@ void SEA::CalculateHeightMap(float fFrame, float fAmplitude, float* pfOut, std::
         }
 }
 
-void SEA::Realize(uint32_t dwDeltaTime)
+void Sea::Realize(uint32_t dwDeltaTime)
 {
     static float fTmp = 0.0f;
 
@@ -1586,7 +1586,7 @@ void SEA::Realize(uint32_t dwDeltaTime)
     bStarted = true;
 }
 
-float SEA::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
+float Sea::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
 {
     int32_t const iNumTests = 5;
     float         fRes      = 2.0f;
@@ -1604,7 +1604,7 @@ float SEA::Trace(const CVECTOR& vSrc, const CVECTOR& vDst)
     return 2.0f;
 }
 
-float SEA::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& vDst)
+float Sea::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& vDst)
 {
     float const fRes = Trace(vSrc, vDst);
 
@@ -1617,7 +1617,7 @@ float SEA::Cannon_Trace(int32_t iBallOwner, const CVECTOR& vSrc, const CVECTOR& 
     return fRes;
 }
 
-uint32_t SEA::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t Sea::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     ATTRIBUTES* pParent  = pAttribute->GetParent();
     ATTRIBUTES* pParent2 = (pParent) ? pParent->GetParent() : nullptr;
@@ -1784,7 +1784,7 @@ uint32_t SEA::AttributeChanged(ATTRIBUTES* pAttribute)
     return 0;
 }
 
-void SEA::LostRender()
+void Sea::LostRender()
 {
     rs->Release(pReflection);
     rs->Release(pReflectionSunroad);
@@ -1796,7 +1796,7 @@ void SEA::LostRender()
     rs->Release(pReflectionSurfaceDepth);
 }
 
-void SEA::RestoreRender()
+void Sea::RestoreRender()
 {
     rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
 

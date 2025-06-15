@@ -38,9 +38,9 @@ bool AIHelper::Uninit()
 
 bool AIHelper::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
     return true;
@@ -48,7 +48,7 @@ bool AIHelper::SetDevice()
 
 bool AIHelper::Init() const
 {
-    pIsland = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("island")));
+    pIsland = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("Island")));
 
     return true;
 }

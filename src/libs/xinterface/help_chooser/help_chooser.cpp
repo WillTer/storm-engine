@@ -16,7 +16,7 @@ struct HCHOOSER_VERTEX {
 
 extern char* XI_ParseStr(char* inStr, char* buf, size_t bufSize, char devChar = ',');
 
-HELPCHOOSER::HELPCHOOSER()
+HelpChooser::HelpChooser()
 {
     rs               = nullptr;
     m_idMouseTexture = -1;
@@ -28,25 +28,25 @@ HELPCHOOSER::HELPCHOOSER()
     m_psRectName     = nullptr;
 }
 
-HELPCHOOSER::~HELPCHOOSER()
+HelpChooser::~HelpChooser()
 {
     AllRelease();
 }
 
-void HELPCHOOSER::SetDevice()
+void HelpChooser::SetDevice()
 {
     // get render service
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
-bool HELPCHOOSER::Init()
+bool HelpChooser::Init()
 {
     SetDevice();
     return true;
 }
 
-void HELPCHOOSER::Execute(uint32_t Delta_Time)
+void HelpChooser::Execute(uint32_t Delta_Time)
 {
     int32_t       newCurRect;
     CONTROL_STATE cs;
@@ -135,7 +135,7 @@ void HELPCHOOSER::Execute(uint32_t Delta_Time)
     rs->UnLockVertexBuffer(m_idVBuf);
 }
 
-void HELPCHOOSER::Realize(uint32_t Delta_Time) const
+void HelpChooser::Realize(uint32_t Delta_Time) const
 {
     if (m_idVBuf == -1) return;
 
@@ -154,7 +154,7 @@ void HELPCHOOSER::Realize(uint32_t Delta_Time) const
     }
 }
 
-uint64_t HELPCHOOSER::ProcessMessage(MESSAGE& message)
+uint64_t HelpChooser::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_HELPCHOOSER_START: {
@@ -165,7 +165,7 @@ uint64_t HELPCHOOSER::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void HELPCHOOSER::AllRelease()
+void HelpChooser::AllRelease()
 {
     TEXTURE_RELEASE(rs, m_idMouseTexture);
     TEXTURE_RELEASE(rs, m_idPicTexture);
@@ -179,7 +179,7 @@ void HELPCHOOSER::AllRelease()
     STORM_DELETE(m_psRectName);
 }
 
-bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
+bool HelpChooser::RunChooser(char const* ChooserGroup)
 {
     int   i, j;
     char  param[512];
@@ -319,7 +319,7 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     return true;
 }
 
-void HELPCHOOSER::SetRectangle(int32_t newRectNum)
+void HelpChooser::SetRectangle(int32_t newRectNum)
 {
     if (newRectNum == m_nCurRect) return;
     if (newRectNum < 0 || newRectNum >= m_nRectQ) {
@@ -349,7 +349,7 @@ void HELPCHOOSER::SetRectangle(int32_t newRectNum)
     rs->UnLockVertexBuffer(m_idVBuf);
 }
 
-int32_t HELPCHOOSER::GetRectangleLeft() const
+int32_t HelpChooser::GetRectangleLeft() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto const left   = m_pRectList[m_nCurRect].left;
@@ -384,7 +384,7 @@ int32_t HELPCHOOSER::GetRectangleLeft() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleRight() const
+int32_t HelpChooser::GetRectangleRight() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -419,7 +419,7 @@ int32_t HELPCHOOSER::GetRectangleRight() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleUp() const
+int32_t HelpChooser::GetRectangleUp() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -454,7 +454,7 @@ int32_t HELPCHOOSER::GetRectangleUp() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleDown() const
+int32_t HelpChooser::GetRectangleDown() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -489,7 +489,7 @@ int32_t HELPCHOOSER::GetRectangleDown() const
     return nRectNum;
 }
 
-bool HELPCHOOSER::MouseMove()
+bool HelpChooser::MouseMove()
 {
     auto oldX = m_fCurMouseX;
     auto oldY = m_fCurMouseY;
@@ -512,7 +512,7 @@ bool HELPCHOOSER::MouseMove()
     return false;
 }
 
-int32_t HELPCHOOSER::GetRectangleFromPos(float x, float y) const
+int32_t HelpChooser::GetRectangleFromPos(float x, float y) const
 {
     if (m_pRectList == nullptr) return m_nCurRect;
     x /= m_fScreenWidth;

@@ -43,7 +43,7 @@ bool Lighter::Init()
     geometry.useColor    = ini->GetInt(nullptr, "usecolor", 0) != 0;
     if (!isLoading) return false;
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
     //
     core->SetLayerType(LIGHTER_EXECUTE, layer_type_t::execute);

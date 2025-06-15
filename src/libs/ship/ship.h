@@ -30,7 +30,7 @@
 #define TOPMAST_BEGIN 100  // start of topmast numbering (if any)
 #define HULL_IDENTIFY "shatter"
 
-class SHIP: public SHIP_BASE
+class Ship: public SHIP_BASE
 {
 protected:
     // struct section
@@ -165,8 +165,8 @@ protected:
     void InitSailState();
 
 public:
-    ~SHIP() override;
-    SHIP();
+    ~Ship() override;
+    Ship();
 
     float   GetMaxSpeedZ() override;
     float   GetMaxSpeedY() override;

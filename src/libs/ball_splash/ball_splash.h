@@ -12,11 +12,11 @@
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
 
-class BALLSPLASH: public Entity
+class BallSplash: public Entity
 {
 public:
-    BALLSPLASH();
-    ~BALLSPLASH() override;
+    BallSplash();
+    ~BallSplash() override;
 
     bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;

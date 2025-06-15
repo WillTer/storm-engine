@@ -7,10 +7,10 @@
 #include <stdio.h>
 
 //--------------------------------------------------------------------
-BALLSPLASH::BALLSPLASH() : renderer(nullptr), sea(nullptr) {}
+BallSplash::BallSplash() : renderer(nullptr), sea(nullptr) {}
 
 //--------------------------------------------------------------------
-BALLSPLASH::~BALLSPLASH()
+BallSplash::~BallSplash()
 {
     // GUARD(BALLSPLASH::~BALLSPLASH)
 
@@ -18,13 +18,13 @@ BALLSPLASH::~BALLSPLASH()
 }
 
 //--------------------------------------------------------------------
-bool BALLSPLASH::Init()
+bool BallSplash::Init()
 {
-    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("sea")));
+    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
-    renderer = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
-    // core->CreateEntity(&arrowModel,"MODELR");
+    // core->CreateEntity(&arrowModel,"ModelR");
     // core->Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
     InitializeSplashes();
 
@@ -33,7 +33,7 @@ bool BALLSPLASH::Init()
 }
 
 //--------------------------------------------------------------------
-uint64_t BALLSPLASH::ProcessMessage(MESSAGE& message)
+uint64_t BallSplash::ProcessMessage(MESSAGE& message)
 {
     // GUARD(BALLSPLASH::ProcessMessage)
 
@@ -65,7 +65,7 @@ uint64_t BALLSPLASH::ProcessMessage(MESSAGE& message)
 }
 
 //--------------------------------------------------------------------
-void BALLSPLASH::Realize(uint32_t _dTime)
+void BallSplash::Realize(uint32_t _dTime)
 {
     // GUARD(BALLSPLASH::Realize)
 
@@ -120,7 +120,7 @@ void BALLSPLASH::Realize(uint32_t _dTime)
 }
 
 //--------------------------------------------------------------------
-void BALLSPLASH::Execute(uint32_t dTime)
+void BallSplash::Execute(uint32_t dTime)
 {
     // GUARD(BALLSPLASH::Execute)
 
@@ -128,7 +128,7 @@ void BALLSPLASH::Execute(uint32_t dTime)
 }
 
 //--------------------------------------------------------------------
-void BALLSPLASH::InitializeSplashes()
+void BallSplash::InitializeSplashes()
 {
     // FIXME: hardcode
     auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
@@ -140,7 +140,7 @@ void BALLSPLASH::InitializeSplashes()
 }
 
 //--------------------------------------------------------------------
-TSplash* BALLSPLASH::TryToAddSplash(const CVECTOR& _pos, const CVECTOR& _dir)
+TSplash* BallSplash::TryToAddSplash(const CVECTOR& _pos, const CVECTOR& _dir)
 {
     auto backDir = !_dir;
     backDir.y    = -backDir.y;

@@ -24,7 +24,7 @@ public:
     {
         Assert(pACharacter);
         // get entity id from loaded ships
-        auto&& entities = core->GetEntityIds("ship");
+        auto&& entities = core->GetEntityIds("Ship");
         for (auto ship: entities) {
             auto* pObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
             if (pObj->GetACharacter() == pACharacter) {

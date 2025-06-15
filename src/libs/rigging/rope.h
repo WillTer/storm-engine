@@ -17,7 +17,7 @@ struct ROPEVERTEX {
 
 #define ROPE_EDGE 5  // number of edges in the rope section
 
-class ROPE: public ROPE_BASE
+class Rope: public ROPE_BASE
 {
     // parameters obtained from INI file //
     // -------------------------------------
@@ -50,8 +50,8 @@ class ROPE: public ROPE_BASE
     VDX9RENDER* RenderService;
 
 public:
-    ROPE();
-    ~ROPE() override;
+    Rope();
+    ~Rope() override;
     // Entity Function
     void SetDevice();
     bool Init() override;

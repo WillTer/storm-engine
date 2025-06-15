@@ -25,7 +25,7 @@ FirePlace::~FirePlace()
 
 bool FirePlace::CreateParticle(char const* pParticleSmokeName, char const* pParticleFireName)
 {
-    if (auto const eidParticle = core->GetEntityId("particles")) {
+    if (auto const eidParticle = core->GetEntityId("Particles")) {
         auto const vPos = GetPos();
         pParticleSmoke  = (VPARTICLE_SYSTEM*)core->Send_Message(
             eidParticle, "lsffffffl", PS_CREATE_RIC, pParticleSmokeName, vPos.x, vPos.y, vPos.z, 0.0f, 1.0f, 0.0f, 0);
@@ -38,7 +38,7 @@ bool FirePlace::CreateParticle(char const* pParticleSmokeName, char const* pPart
 
 void FirePlace::DeleteParticle()
 {
-    if (auto const eidParticle = core->GetEntityId("particles")) {
+    if (auto const eidParticle = core->GetEntityId("Particles")) {
         if (pParticleSmoke && core->Send_Message(eidParticle, "lp", PS_VALIDATE_PARTICLE, pParticleSmoke)) {
             pParticleSmoke->Pause(true);  //>StopEmitter();
         }

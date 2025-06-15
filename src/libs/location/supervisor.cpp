@@ -26,7 +26,8 @@ Supervisor::Supervisor() : isDelete(false)
     time      = 0.0f;
     waveTime  = 0.0f;
     curUpdate = 0;
-    player    = nullptr;
+    // character = {};
+    player = nullptr;
 }
 
 Supervisor::~Supervisor()

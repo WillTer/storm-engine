@@ -5,7 +5,7 @@
 
 #include "common_camera.h"
 
-class FREE_CAMERA: public COMMON_CAMERA
+class FreeCamera: public COMMON_CAMERA
 {
 private:
     VDX9RENDER* pRS;
@@ -18,8 +18,8 @@ private:
     float        fCameraOnEarthHeight;
 
 public:
-    FREE_CAMERA();
-    ~FREE_CAMERA() override;
+    FreeCamera();
+    ~FreeCamera() override;
 
     void SetDevice();
     bool Init() override;

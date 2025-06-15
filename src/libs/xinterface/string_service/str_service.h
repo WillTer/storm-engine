@@ -6,7 +6,7 @@
 #include "../string_service.h"
 
 //-----------SDEVICE-----------
-class STRSERVICE: public VSTRSERVICE
+class StrService: public VSTRSERVICE
 {
     struct UsersStringBlock {
         int32_t nref;
@@ -20,8 +20,8 @@ class STRSERVICE: public VSTRSERVICE
     };
 
 public:
-    STRSERVICE();
-    ~STRSERVICE() override;
+    StrService();
+    ~StrService() override;
 
     bool Init() override;
     bool LoadState(ENTITY_STATE* state) override;
@@ -67,11 +67,11 @@ protected:
     int32_t m_nDialogSourceFile;
 };
 
-class SCRIPT_INTERFACE_FUNCTIONS: public SCRIPT_LIBRIARY
+class ScriptInterfaceFunctions: public SCRIPT_LIBRIARY
 {
 public:
-    SCRIPT_INTERFACE_FUNCTIONS() {};
+    ScriptInterfaceFunctions() {};
 
-    ~SCRIPT_INTERFACE_FUNCTIONS() override {};
+    ~ScriptInterfaceFunctions() override {};
     bool Init() override;
 };

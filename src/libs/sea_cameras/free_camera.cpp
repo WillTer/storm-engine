@@ -9,7 +9,7 @@
 entid_t  sphere;
 COLLIDE* pCollide;
 
-FREE_CAMERA::FREE_CAMERA()
+FreeCamera::FreeCamera()
 {
     SetOn(false);
     SetActive(false);
@@ -27,33 +27,33 @@ FREE_CAMERA::FREE_CAMERA()
     bCameraOnEarth       = false;
 }
 
-FREE_CAMERA::~FREE_CAMERA() {}
+FreeCamera::~FreeCamera() {}
 
-bool FREE_CAMERA::Init()
+bool FreeCamera::Init()
 {
     SetDevice();
     return true;
 }
 
-void FREE_CAMERA::SetDevice()
+void FreeCamera::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core->GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
-    /*core->CreateEntity(&sphere,"modelr");
+    /*core->CreateEntity(&sphere,"ModelR");
     core->Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
     core->AddToLayer(realize,sphere,10000);*/
 }
 
-bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen) const
+bool FreeCamera::CreateState(ENTITY_STATE_GEN* state_gen) const
 {
     state_gen->SetState("vv", sizeof(vPos), vPos, sizeof(vAng), vAng);
     return true;
 }
 
-bool FREE_CAMERA::LoadState(ENTITY_STATE* state)
+bool FreeCamera::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
     state->Struct(sizeof(vPos), (char*)&vPos);
@@ -61,7 +61,7 @@ bool FREE_CAMERA::LoadState(ENTITY_STATE* state)
     return true;
 }
 
-void FREE_CAMERA::Execute(uint32_t Delta_Time)
+void FreeCamera::Execute(uint32_t Delta_Time)
 {
     if (!isOn()) return;
 
@@ -70,12 +70,12 @@ void FREE_CAMERA::Execute(uint32_t Delta_Time)
     float persp;
     pRS->GetCamera(vPos, vAng, persp);
 
-    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("Island")));
 
     Move(core->GetDeltaTime());
 }
 
-void FREE_CAMERA::Move(uint32_t DeltaTime)
+void FreeCamera::Move(uint32_t DeltaTime)
 {
     if (!isActive()) return;
 
@@ -139,7 +139,7 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     delete pVW;*/
 }
 
-void FREE_CAMERA::Save(CSaveLoad* pSL)
+void FreeCamera::Save(CSaveLoad* pSL)
 {
     pSL->SaveVector(vPos);
     pSL->SaveVector(vAng);
@@ -151,7 +151,7 @@ void FREE_CAMERA::Save(CSaveLoad* pSL)
     pSL->SaveFloat(fCameraOnEarthHeight);
 }
 
-void FREE_CAMERA::Load(CSaveLoad* pSL)
+void FreeCamera::Load(CSaveLoad* pSL)
 {
     vPos   = pSL->LoadVector();
     vAng   = pSL->LoadVector();

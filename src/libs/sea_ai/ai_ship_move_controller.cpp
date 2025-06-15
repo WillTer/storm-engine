@@ -4,7 +4,7 @@
 
 AIShipMoveController::AIShipMoveController(AIShip* pShip)
 {
-    // core->CreateEntity(&eidSphere,"modelr");
+    // core->CreateEntity(&eidSphere,"ModelR");
     // core->Send_Message(eidSphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
     // core->AddToLayer("sea_realize",eidSphere,10000);
     fMoveTime     = FRAND(2.0f);

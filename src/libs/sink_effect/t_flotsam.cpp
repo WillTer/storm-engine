@@ -54,7 +54,7 @@ void TFlotsam::Initialize(SEA_BASE* _sea)
         strcpy_s(modelNames[3], "particles/palka04");
 
         for (auto i = 0; i < sink_effect::FLOTSAM_MODELS_COUNT; i++) {
-            modelIDs[i] = core->CreateEntity("MODELR");
+            modelIDs[i] = core->CreateEntity("ModelR");
             core->Send_Message(modelIDs[i], "ls", MSG_MODEL_LOAD_GEO, modelNames[i]);
             models[i] = static_cast<MODEL*>(core->GetEntityPointer(modelIDs[i]));
         }

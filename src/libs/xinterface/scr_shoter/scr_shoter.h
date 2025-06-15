@@ -2,7 +2,7 @@
 
 #include <libs/renderer/dx9render.h>
 
-class SCRSHOTER: public Entity
+class ScrShoter: public Entity
 {
     struct SAVETEXTURES {
         char*         fileName;
@@ -12,7 +12,7 @@ class SCRSHOTER: public Entity
     };
 
 public:
-    ~SCRSHOTER() override;
+    ~ScrShoter() override;
     void     SetDevice();
     bool     Init() override;
     void     Execute(uint32_t Delta_Time);

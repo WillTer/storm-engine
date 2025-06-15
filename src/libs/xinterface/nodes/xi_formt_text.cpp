@@ -1243,7 +1243,7 @@ void CXI_FORMATEDTEXT::SetSpecialStrings(ATTRIBUTES* pARoot)
 void CXI_FORMATEDTEXT::ControlSyncronouseNodes()
 {
     for (int32_t n = 0; n < static_cast<int32_t>(m_asSyncNodes.size()); n++) {
-        CINODE* pNode = static_cast<XINTERFACE*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asSyncNodes[n].c_str(), nullptr);
+        CINODE* pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asSyncNodes[n].c_str(), nullptr);
         if (!pNode) continue;
         switch (pNode->m_nNodeType) {
         case NODETYPE_FORMATEDTEXTS: static_cast<CXI_FORMATEDTEXT*>(pNode)->SetCurrentGroupNum(GetFirstGroupNum(), m_nCurGroupNum); break;
@@ -1373,7 +1373,7 @@ void CXI_FORMATEDTEXT::SetCurLine(STRING_DESCRIBER* pNewCurLine)
 void CXI_FORMATEDTEXT::ScrollerUpdate()
 {
     if (!m_sScrollerName) return;
-    CINODE* pNode = static_cast<XINTERFACE*>(core->GetEntityPointer(g_idInterface))->FindNode(m_sScrollerName, nullptr);
+    CINODE* pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_sScrollerName, nullptr);
     if (!pNode) return;
 
     if (pNode->m_nNodeType != NODETYPE_SCROLLER) {

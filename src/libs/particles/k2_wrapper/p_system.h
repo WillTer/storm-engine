@@ -6,12 +6,12 @@
 #include <libs/particles/v_particle_system.h>
 
 class IParticleSystem;
-class PARTICLES;
+class Particles;
 
 class PARTICLE_SYSTEM: public VPARTICLE_SYSTEM
 {
     IParticleSystem* pSystem;
-    PARTICLES*       pManager;
+    Particles*       pManager;
 
 public:
     PARTICLE_SYSTEM(IParticleSystem* _pSystem);
@@ -25,6 +25,6 @@ public:
     void Pause(bool _bPause) override;
 
 public:
-    void             SetManager(PARTICLES* _pManager);
+    void             SetManager(Particles* _pManager);
     IParticleSystem* GetSystem() const;
 };

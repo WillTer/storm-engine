@@ -17,7 +17,7 @@ struct SAILGROUP {
     int32_t  vertBuf, indxBuf;
 };
 
-class SAIL: public SAIL_BASE
+class Sail: public SAIL_BASE
 {
     // parameters loaded from INI file //
     // --------------------------------------
@@ -84,8 +84,8 @@ class SAIL: public SAIL_BASE
     int32_t                         m_nEmptyGerbTex;
 
 public:
-    SAIL();
-    ~SAIL() override;
+    Sail();
+    ~Sail() override;
     // Entity func
     bool     Init() override;
     void     Realize(uint32_t Delta_Time);

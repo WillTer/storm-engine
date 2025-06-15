@@ -10,7 +10,7 @@
 #define SR_STOPROTATE 2
 #define SR_YROTATE 4
 
-class MAST: public Entity
+class Mast: public Entity
 {
     struct MountData {
         NODE*   pNode;
@@ -30,8 +30,8 @@ class MAST: public Entity
     NODE*                           m_pMastNode;
 
 public:
-    MAST();
-    ~MAST() override;
+    Mast();
+    ~Mast() override;
     void SetDevice();
     bool Init() override;
     void Move();
@@ -74,7 +74,7 @@ protected:
     MASTMOVE mm;
 };
 
-class HULL: public Entity
+class Hull: public Entity
 {
     struct MountData {
         NODE*   pNode;
@@ -94,8 +94,8 @@ class HULL: public Entity
     entid_t ship_id;
 
 public:
-    HULL();
-    ~HULL() override;
+    Hull();
+    ~Hull() override;
     void     SetDevice();
     bool     Init() override;
     bool     CreateState(ENTITY_STATE_GEN* state_gen);

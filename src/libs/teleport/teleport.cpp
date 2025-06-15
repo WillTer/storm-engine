@@ -57,21 +57,21 @@ void GetQuotedString(char* inBuf, char* outBuf, int32_t bufSize)
     *outBuf = 0;
 }
 
-TMPTELEPORT::TMPTELEPORT() : m_leftPos(0), m_topPos(0), m_deltaPos(0), m_showStrQuantity(0), m_nShowType(0)
+TmpTeleport::TmpTeleport() : m_leftPos(0), m_topPos(0), m_deltaPos(0), m_showStrQuantity(0), m_nShowType(0)
 {
     rs             = nullptr;
     m_descrArray   = nullptr;
     m_nStrQuantity = m_nCurStr = m_nCurShowPos = 0;
 }
 
-TMPTELEPORT::~TMPTELEPORT()
+TmpTeleport::~TmpTeleport()
 {
     ReleaseAll();
 }
 
-bool TMPTELEPORT::Init()
+bool TmpTeleport::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     m_leftPos         = 20;
@@ -84,10 +84,10 @@ bool TMPTELEPORT::Init()
     return true;
 }
 
-void TMPTELEPORT::Execute(uint32_t Delta_Time)
+void TmpTeleport::Execute(uint32_t Delta_Time)
 {
     CONTROL_STATE cs;
-    if (!static_cast<PCS_CONTROLS*>(core->Controls)->m_is_debug_keys_enabled) return;
+    if (!static_cast<PcsControls*>(core->Controls)->m_is_debug_keys_enabled) return;
     core->Controls->GetControlState("TeleportActive", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nShowType == 0) {
@@ -134,7 +134,7 @@ void TMPTELEPORT::Execute(uint32_t Delta_Time)
     }
 }
 
-void TMPTELEPORT::Realize(uint32_t Delta_Time)
+void TmpTeleport::Realize(uint32_t Delta_Time)
 {
     if (m_nStrQuantity > 0) {
         auto j    = 0;
@@ -151,7 +151,7 @@ void TMPTELEPORT::Realize(uint32_t Delta_Time)
     }
 }
 
-void TMPTELEPORT::ReleaseAll()
+void TmpTeleport::ReleaseAll()
 {
     if (m_descrArray != nullptr) {
         for (auto i = 0; i < m_nStrQuantity; i++) {
@@ -164,7 +164,7 @@ void TMPTELEPORT::ReleaseAll()
     m_nShowType               = 0;
 }
 
-uint64_t TMPTELEPORT::ProcessMessage(MESSAGE& message)
+uint64_t TmpTeleport::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case 42222: {
@@ -179,7 +179,7 @@ uint64_t TMPTELEPORT::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void TMPTELEPORT::SetShowData(ATTRIBUTES* pA)
+void TmpTeleport::SetShowData(ATTRIBUTES* pA)
 {
     ReleaseAll();
     m_nStrQuantity = 0;
@@ -201,7 +201,7 @@ void TMPTELEPORT::SetShowData(ATTRIBUTES* pA)
     SortShowData();
 }
 
-void TMPTELEPORT::SortShowData()
+void TmpTeleport::SortShowData()
 {
     if (m_nStrQuantity == 0) return;
     auto bContinueSort = true;
@@ -222,7 +222,7 @@ void TMPTELEPORT::SortShowData()
     } while (bContinueSort);
 }
 
-void TMPTELEPORT::XChange(TELEPORT_DESCR& d1, TELEPORT_DESCR& d2)
+void TmpTeleport::XChange(TELEPORT_DESCR& d1, TELEPORT_DESCR& d2)
 {
     auto const n = d1.num;
     d1.num       = d2.num;
@@ -233,7 +233,7 @@ void TMPTELEPORT::XChange(TELEPORT_DESCR& d1, TELEPORT_DESCR& d2)
     d2.name        = nm;
 }
 
-bool FINDFILESINTODIRECTORY::Init()
+bool FindFilesIntoDirectory::Init()
 {
     if (AttributesPointer) {
         char const* const dirName  = AttributesPointer->GetAttribute("dir");
@@ -254,7 +254,7 @@ bool FINDFILESINTODIRECTORY::Init()
     return false;
 }
 
-bool FINDDIALOGNODES::Init()
+bool FindDialogNodes::Init()
 {
     if (AttributesPointer) {
         char const* fileName = AttributesPointer->GetAttribute("file");

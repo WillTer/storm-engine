@@ -624,11 +624,13 @@ void ShipWalk::CreateNewMan(SailorsPoints& sailorsPoints)
     if (std::size(shipMan) >= 50 || !sailorsPoints.points.count) { return; }
 
     auto& man    = shipMan.emplace_back();
-    man.modelID  = core->CreateEntity("MODELR");
+    man.modelID  = core->CreateEntity("ModelR");
     int modelIdx = rand() % std::size(shipManModels_);
     core->Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_GEO, shipManModels_[modelIdx].c_str());
 
-    if (!core->Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_ANI, "Lo_Man")) { throw std::runtime_error("cannot load animation 'Lo_Man'"); }
+    if (!core->Send_Message(man.modelID, "ls", MSG_MODEL_LOAD_ANI, "Lo_Man")) {
+        throw std::runtime_error("cannot load animation 'Lo_Man'");
+    }
 
     man.SetAnimation(0, shipState);
 
@@ -649,7 +651,7 @@ bool ShipWalk::Init(entid_t _shipID, int editorMode, char const* shipType, std::
     bHide  = false;
     shipID = _shipID;
 
-    auto const seaID = core->GetEntityId("sea");
+    auto const seaID = core->GetEntityId("Sea");
     shipState.sea    = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
     if (!editorMode) {
@@ -801,7 +803,7 @@ Sailors::Sailors() : rs(nullptr)
 
 bool Sailors::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     core->SetLayerType(SEA_REALIZE, layer_type_t::realize);
     core->AddToLayer(SEA_REALIZE, GetId(), 65530);

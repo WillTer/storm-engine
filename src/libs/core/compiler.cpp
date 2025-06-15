@@ -1194,9 +1194,7 @@ bool COMPILER::Compile(SEGMENT_DESC& Segment, char* pInternalCode, uint32_t pInt
                 break;
             }
 
-            pLib = static_cast<SCRIPT_LIBRIARY*>(pClass->CreateClass());
-            if (pLib) pLib->Init();
-
+            pLib = static_cast<SCRIPT_LIBRIARY*>(pClass->create_class());
             LibriaryFuncs.emplace_back(pLib, Token.GetData());
             if (script_cache_mode_ != kCacheDisabled) { script_cache_.script_libs.emplace_back(Token.GetData()); }
 
@@ -6124,9 +6122,7 @@ void COMPILER::LoadScriptLibrariesFromCache(storm::script_cache::BufferReader& r
             continue;
         }
 
-        auto lib = static_cast<SCRIPT_LIBRIARY*>(cls->CreateClass());
-        if (lib) { lib->Init(); }
-
+        auto* lib = static_cast<SCRIPT_LIBRIARY*>(cls->create_class());
         LibriaryFuncs.emplace_back(lib, name.c_str());
     }
 }

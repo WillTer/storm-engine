@@ -151,12 +151,12 @@ struct SAILTIME {
     uint64_t idx, vert, noholedraw, holedraw;
 };
 
-class SAIL;
+class Sail;
 struct SAILLIST;
 
 class SAILONE: public SAILONE_BASE
 {
-    friend SAIL;
+    friend Sail;
 
 public:
     VDX9RENDER* RenderService;
@@ -229,7 +229,7 @@ private:
     SAILROLLING* sroll;     // structure at the time of folding / unfolding of the sail
     bool         bRolling;  // the sail is rolled on the yard
 
-    SAIL* pp;
+    Sail* pp;
     // ------------------------------------
     // parameters for determining the position in the sail list
     int      groupNum;   // sail group number in the node
