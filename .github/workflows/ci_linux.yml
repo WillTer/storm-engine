@@ -41,10 +41,7 @@ jobs:
           submodules: 'recursive'
       - name: Install libs
         run: |
-          sudo apt-get update && sudo apt-get install meson libstdc++-13-dev |
-          libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev |
-          libcurlpp-dev zlib1g-dev libvorbis-dev libogg-dev libopenal-dev |
-          libd3dadapter9-mesa-dev libxcb-present-dev libxcb-dri3-dev libx11-xcb-dev
+          sudo apt-get update && sudo apt-get install meson libstdc++-13-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev libcurlpp-dev zlib1g-dev libvorbis-dev libogg-dev libopenal-dev libd3dadapter9-mesa-dev libxcb-present-dev libxcb-dri3-dev libx11-xcb-dev
       - name: Configure with CMake
         run: |
           export CC=clang-18
