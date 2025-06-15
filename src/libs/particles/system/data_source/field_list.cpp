@@ -29,37 +29,37 @@ void FieldList::Load(MemFile* File)
 
         switch (fldType) {
         case FIELD_BOOL: {
-            // core.Trace ("Particles info: BOOL field");
+            // core->Trace ("Particles info: BOOL field");
             CreateBoolField(File);
             break;
         }
         case FIELD_FLOAT: {
-            // core.Trace ("Particles info: FLOAT field");
+            // core->Trace ("Particles info: FLOAT field");
             CreateFloatField(File);
             break;
         }
         case FIELD_GRAPH: {
-            // core.Trace ("Particles info: GRAPH field");
+            // core->Trace ("Particles info: GRAPH field");
             CreateGraphField(File);
             break;
         }
         case FIELD_POSITION: {
-            // core.Trace ("Particles info: POSITION field");
+            // core->Trace ("Particles info: POSITION field");
             CreatePositionField(File);
             break;
         }
         case FIELD_STRING: {
-            // core.Trace ("Particles info: STRING field");
+            // core->Trace ("Particles info: STRING field");
             CreateStringField(File);
             break;
         }
         case FIELD_UV: {
-            // core.Trace ("Particles info: UV field");
+            // core->Trace ("Particles info: UV field");
             CreateUVField(File);
             break;
         }
         case FIELD_COLOR: {
-            // core.Trace ("Particles info: COLOR field");
+            // core->Trace ("Particles info: COLOR field");
             CreateColorField(File);
             break;
         }
@@ -79,7 +79,7 @@ void FieldList::CreateEmptyBoolField(char const* Name, bool def_value)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_BOOL;
     Fields.push_back(pDesc);
@@ -94,7 +94,7 @@ void FieldList::CreateEmptyFloatField(char const* Name, float def_value)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_FLOAT;
     Fields.push_back(pDesc);
@@ -109,7 +109,7 @@ void FieldList::CreateEmptyGraphField(char const* Name, float def_value_min, flo
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_GRAPH;
     Fields.push_back(pDesc);
@@ -124,7 +124,7 @@ void FieldList::CreateEmptyPositionField(char const* Name, Vector const& def_val
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_POSITION;
     Fields.push_back(pDesc);
@@ -139,7 +139,7 @@ void FieldList::CreateEmptyStringField(char const* Name, char const* def_value)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_STRING;
     Fields.push_back(pDesc);
@@ -155,7 +155,7 @@ void FieldList::CreateEmptyUVField(char const* Name)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_UV;
     Fields.push_back(pDesc);
@@ -175,7 +175,7 @@ void FieldList::CreateEmptyColorField(char const* Name, uint32_t def_value)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_COLOR;
     Fields.push_back(pDesc);
@@ -189,7 +189,7 @@ void FieldList::CreateBoolField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_BOOL;
     Fields.push_back(pDesc);
@@ -203,7 +203,7 @@ void FieldList::CreateFloatField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_FLOAT;
     Fields.push_back(pDesc);
@@ -217,7 +217,7 @@ void FieldList::CreateGraphField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_GRAPH;
     Fields.push_back(pDesc);
@@ -231,7 +231,7 @@ void FieldList::CreatePositionField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_POSITION;
     Fields.push_back(pDesc);
@@ -245,7 +245,7 @@ void FieldList::CreateStringField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_STRING;
     Fields.push_back(pDesc);
@@ -259,7 +259,7 @@ void FieldList::CreateUVField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_UV;
     Fields.push_back(pDesc);
@@ -273,7 +273,7 @@ void FieldList::CreateColorField(MemFile* pMemFile)
     FieldDesc pDesc;
     pDesc.MarkForDelete = false;
     pDesc.Name          = Field->GetName();
-    pDesc.HashValue     = MakeHashValue(pDesc.Name.c_str());
+    pDesc.HashValue     = case_insensitive_hash(pDesc.Name.c_str());
     pDesc.pPointer      = Field;
     pDesc.Type          = FIELD_COLOR;
     Fields.push_back(pDesc);
@@ -290,7 +290,7 @@ void FieldList::DelAll()
 
 DataColor* FieldList::FindColor(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_COLOR) {
             if (SearchHash == Fields[n].HashValue) {
@@ -304,7 +304,7 @@ DataColor* FieldList::FindColor(char const* AttrName)
 
 DataBool* FieldList::FindBool(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_BOOL) {
             if (SearchHash == Fields[n].HashValue) {
@@ -318,7 +318,7 @@ DataBool* FieldList::FindBool(char const* AttrName)
 
 DataFloat* FieldList::FindFloat(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_FLOAT) {
             if (SearchHash == Fields[n].HashValue) {
@@ -332,7 +332,7 @@ DataFloat* FieldList::FindFloat(char const* AttrName)
 
 DataGraph* FieldList::FindGraph(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
 
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_GRAPH) {
@@ -347,7 +347,7 @@ DataGraph* FieldList::FindGraph(char const* AttrName)
 
 DataString* FieldList::FindString(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
 
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_STRING) {
@@ -362,7 +362,7 @@ DataString* FieldList::FindString(char const* AttrName)
 
 DataPosition* FieldList::FindPosition(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
 
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_POSITION) {
@@ -377,7 +377,7 @@ DataPosition* FieldList::FindPosition(char const* AttrName)
 
 DataUV* FieldList::FindUV(char const* AttrName)
 {
-    uint32_t const SearchHash = MakeHashValue(AttrName);
+    uint32_t const SearchHash = case_insensitive_hash(AttrName);
 
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (Fields[n].Type == FIELD_UV) {
@@ -391,7 +391,7 @@ DataUV* FieldList::FindUV(char const* AttrName)
 
 FieldList::FieldDesc* FieldList::FindField(char const* Name)
 {
-    uint32_t const SearchHash = MakeHashValue(Name);
+    uint32_t const SearchHash = case_insensitive_hash(Name);
 
     for (uint32_t n = 0; n < Fields.size(); n++) {
         if (SearchHash == Fields[n].HashValue) {

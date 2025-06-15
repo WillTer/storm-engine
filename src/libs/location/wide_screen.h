@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 class WideScreen: public Entity
@@ -23,7 +22,7 @@ public:
     ~WideScreen() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
     // Work

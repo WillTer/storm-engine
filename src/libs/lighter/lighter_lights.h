@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <libs/util/storm_assert.h>
 
 #include "l_types.h"

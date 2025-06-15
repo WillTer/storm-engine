@@ -2,8 +2,6 @@
 
 #include <libs/shared_headers/sea_ai/script_defines.h>
 
-CREATE_CLASS(AISeaGoods)
-
 AISeaGoods::AISeaGoods() : TmpItem(), fDistanceMultiply(0)
 {
     pSea        = nullptr;
@@ -25,17 +23,15 @@ AISeaGoods::~AISeaGoods()
     aGoods.clear();
 }
 
-bool AISeaGoods::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool AISeaGoods::Init()
 {
-    Entity::Init(service_locator);
-
     SetDevice();
     return true;
 }
 
 void AISeaGoods::SetDevice()
 {
-    pGeoService = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    pGeoService = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGeoService);
 }
 
@@ -43,7 +39,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
 {
     auto const fDeltaTime = static_cast<float>(dwDeltaTime) * 0.001f;
 
-    if (!pSea) pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    if (!pSea) pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
     if (!pSea) return;
 
@@ -68,9 +64,9 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
                 aShips.clear();
 
                 // enumerate ships
-                auto&& entities = core.GetEntityIds("ship");
+                auto&& entities = core->GetEntityIds("Ship");
                 for (auto ent: entities) {
-                    aShips.push_back(static_cast<SHIP_BASE*>(core.GetEntityPointer(ent)));
+                    aShips.push_back(static_cast<SHIP_BASE*>(core->GetEntityPointer(ent)));
                 }
 
                 // check ships
@@ -80,7 +76,7 @@ void AISeaGoods::Execute(uint32_t dwDeltaTime)
                     auto const fDistance       = sqrtf(~(pS->State.vPos - pI->vPos));
                     if (fDistance <= pS->State.vBoxSize.z * fDistanceMultiply) {
                         auto* pVData =
-                            core.Event(SHIP_EAT_SWIM_GOOD, "llsl", iCharacterIndex, pI->iCharIndex, pI->sGoodName, pI->iQuantity);
+                            core->Event(SHIP_EAT_SWIM_GOOD, "llsl", iCharacterIndex, pI->iCharIndex, pI->sGoodName, pI->iQuantity);
                         if (pVData->GetInt() || bDeleteGoodAnyway) {
                             aGoods[i]->aItems[j] = aGoods[i]->aItems.back();
                             aGoods[i]->aItems.pop_back();

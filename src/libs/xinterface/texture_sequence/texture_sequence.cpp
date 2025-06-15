@@ -1,10 +1,8 @@
 #include "texture_sequence.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
-
 
 #define FILE_PATH "texturesequence/%s.tga"
 // FIXME: hardcode
@@ -61,7 +59,7 @@ IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSf
     // open ini file
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / INI_FILENAME);
     if (!ini) {
-        core.Trace("ini file %s not found!", INI_FILENAME.data());
+        core->Trace("ini file %s not found!", INI_FILENAME.data());
         return nullptr;
     }
     m_dwDeltaTime = ini->GetInt((char*)cTSfileName, "timeDelay", 128);
@@ -87,7 +85,7 @@ IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSf
     // create output texture
     if (S_OK != m_pRS->CreateTexture(m_texWidth, m_texHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTexture)) {
         m_pTexture = nullptr;
-        core.Trace("Can`t create texture");
+        core->Trace("Can`t create texture");
         return nullptr;
     }
 
@@ -105,7 +103,7 @@ IDirect3DTexture9* TextureSequence::Initialize(VDX9RENDER* pRS, char const* cTSf
 //-----------------------------------------------------------------------------
 bool TextureSequence::FrameUpdate()
 {
-    m_dwCurDeltaTime += core.GetRDeltaTime();
+    m_dwCurDeltaTime += core->GetRDeltaTime();
     while (m_dwCurDeltaTime > m_dwDeltaTime) {
         m_dwCurDeltaTime -= m_dwDeltaTime;
         m_curNum++;

@@ -2,18 +2,18 @@
 
 #include <vector>
 
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "ship_base.h"
 
+class VDX9RENDER;
 class ShipTracks: public Entity
 {
 public:
     ShipTracks() = default;
     ~ShipTracks() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     void Execute(uint32_t dwDeltaTime);
     void Realize(uint32_t dwDeltaTime);

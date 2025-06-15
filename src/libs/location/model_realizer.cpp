@@ -24,12 +24,10 @@ LocModelRealizer::LocModelRealizer()
 LocModelRealizer::~LocModelRealizer() {}
 
 // Initialization
-bool LocModelRealizer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocModelRealizer::Init()
 {
-    Entity::Init(service_locator);
-
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     return true;
 }
 
@@ -39,7 +37,7 @@ void LocModelRealizer::Execute(uint32_t delta_time) {}
 void LocModelRealizer::Realize(uint32_t delta_time) const
 {
     if (!bShow) return;
-    auto* pE = core.GetEntityPointer(eid_model);
+    auto* pE = core->GetEntityPointer(eid_model);
     if (pE) {
         BOOL     bLight0Enable;
         uint32_t dwLighting;

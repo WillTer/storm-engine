@@ -340,7 +340,7 @@ float CameraFollow::FindRadius(float curAng) const
     numPoly1 = 0;
     camSteps = 0;
     //!!!
-    if (core.Controls->GetDebugAsyncKeyState('8') < 0) {
+    if (core->Controls->GetDebugAsyncKeyState('8') < 0) {
         isFndTrg = true;
         numTrg   = 0;
         numP1    = 0;
@@ -368,7 +368,7 @@ float CameraFollow::FindRadius(float curAng) const
     /////////////////////
     static CVECTOR ps(0.0f);
     static CVECTOR vv[5];
-    if (core.Controls->GetDebugAsyncKeyState('8') < 0) {
+    if (core->Controls->GetDebugAsyncKeyState('8') < 0) {
         ps = pos;
         CVECTOR vvv;
         CalcPosition(curAng, 2.0f, 0.0f, vvv);

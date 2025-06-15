@@ -2,14 +2,14 @@
 
 #include <libs/sea_ai/vai_objbase.h>
 
-class SHIPPOINTER: public Entity
+class ShipPointer: public Entity
 {
     VDX9RENDER* rs;
 
 public:
-    SHIPPOINTER();
-    ~SHIPPOINTER() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    ShipPointer();
+    ~ShipPointer() override;
+    bool     Init() override;
     void     Execute(uint32_t delta_time);
     void     Realize(uint32_t delta_time) const;
     uint64_t ProcessMessage(MESSAGE& message) override;

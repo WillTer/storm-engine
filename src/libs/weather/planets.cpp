@@ -87,8 +87,8 @@ void Astronomy::PLANETS::Realize(double dDeltaTime, double dHour)
     // update fade
     if (fFadeTimeStart >= 0.f) {
         if ((fFadeTime > 0.f && fPlanetFade < 1.f) || (fFadeTime < 0.f && fPlanetFade > 0.f)) {
-            if (auto const eid = core.GetEntityId("weather")) {
-                auto fTime = static_cast<WEATHER_BASE*>(core.GetEntityPointer(eid))->GetFloat(whf_time_counter);
+            if (auto const eid = core->GetEntityId("Weather")) {
+                auto fTime = static_cast<WEATHER_BASE*>(core->GetEntityPointer(eid))->GetFloat(whf_time_counter);
                 if (fFadeTime > 0.f) fPlanetFade = (fTime - fFadeTimeStart) / fFadeTime;
                 if (fFadeTime < 0.f) fPlanetFade = 1.f + (fTime - fFadeTimeStart) / fFadeTime;
                 if (fPlanetFade < 0.f) fPlanetFade = 0.f;

@@ -31,7 +31,7 @@ using rainblock_t = struct {
     CVECTOR  vAng;
 };
 
-class RAIN: public Entity
+class Rain: public Entity
 {
     struct ship_t {
         entid_t    eid;
@@ -102,11 +102,11 @@ private:
     void RealizeDrops(uint32_t Delta_Time);
 
 public:
-    RAIN();
-    ~RAIN() override;
+    Rain();
+    ~Rain() override;
 
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);

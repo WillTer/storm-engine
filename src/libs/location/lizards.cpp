@@ -21,21 +21,19 @@ Lizards::Lizards()
 Lizards::~Lizards() {}
 
 // Initialization
-bool Lizards::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Lizards::Init()
 {
-    Entity::Init(service_locator);
-
     // Location Pointer
-    auto const loc      = core.GetEntityId("location");
-    auto*      location = (Location*)core.GetEntityPointer(loc);
+    auto const loc      = core->GetEntityId("Location");
+    auto*      location = (Location*)core->GetEntityPointer(loc);
     if (!location) return false;
     // init lizards
     for (int32_t i = 0; i < num; i++)
         lizard[i].Init(location);
     // Execution
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(REALIZE, GetId(), 100000);
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(REALIZE, GetId(), 100000);
     return true;
 }
 

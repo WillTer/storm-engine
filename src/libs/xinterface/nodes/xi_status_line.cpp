@@ -79,7 +79,7 @@ void CXI_STATUSLINE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         // get lenght of filled status line
         m_fLineOffset  = GetIniFloat(ini1, name1, ini2, name2, "lineOffset", 0.f);
         auto  fMediumX = static_cast<float>(m_rect.right - m_rect.left) - m_fLineOffset * 2.f;
-        auto* pAttr    = core.Entity_GetAttributeClass(g_idInterface, "StatusLine");
+        auto* pAttr    = core->Entity_GetAttributeClass(g_idInterface, "StatusLine");
         if (pAttr != nullptr) pAttr = pAttr->GetAttributeClass(m_nodeName);
         if (pAttr != nullptr) {
             auto const fMaxValue = pAttr->GetAttributeAsFloat("Max", 0);
@@ -182,7 +182,7 @@ void CXI_STATUSLINE::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -205,7 +205,7 @@ void CXI_STATUSLINE::Refresh() const
     auto* pVBuf = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_vBuf));
     if (!pVBuf) return;
 
-    auto* pAttr = core.Entity_GetAttributeClass(g_idInterface, "StatusLine");
+    auto* pAttr = core->Entity_GetAttributeClass(g_idInterface, "StatusLine");
     if (pAttr != nullptr) pAttr = pAttr->GetAttributeClass(m_nodeName);
     if (pAttr != nullptr) {
         auto        fMediumX  = static_cast<float>(m_rect.right - m_rect.left) - m_fLineOffset * 2.f;

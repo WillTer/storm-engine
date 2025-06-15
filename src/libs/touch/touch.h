@@ -26,7 +26,7 @@ struct TOUCH_SHIP {
     int32_t      iNumVContour;          // num points in contour
 };
 
-class TOUCH: public Entity
+class Touch: public Entity
 {
 protected:
     VDX9RENDER*  pRS;
@@ -48,7 +48,7 @@ protected:
 
     bool IsSinked(int32_t iIndex);
 
-    float   Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, float fPower, float fSlide);
+    float   touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, float fPower, float fSlide);
     BOOL    FakeTouch();
     BOOL    IsIntersectShipsRects(int32_t idx1, int32_t idx2);
     BOOL    IsIntersectShipsReal(int32_t idx1, int32_t cidx, CVECTOR* vPos, CVECTOR* vAng, CVECTOR* vRecoil, float* fPower, float* fSlide);
@@ -64,10 +64,10 @@ protected:
     void SetDevices();
 
 public:
-    ~TOUCH() override;
-    TOUCH();
+    ~Touch() override;
+    Touch();
     void     LoadServices();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;

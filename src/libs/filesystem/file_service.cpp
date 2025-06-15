@@ -7,9 +7,9 @@
 #include <string>
 
 #include <SDL2/SDL.h>
+#include <libs/config/i_config_loader.h>
 #include <libs/core/core_impl.h>
-#include <libs/util/platform/platform.hpp>
-#include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "default_paths.h"
 
@@ -22,8 +22,6 @@
 
 namespace
 {
-
-FileService file_service;
 
 template <typename DirIterator>
 auto iter_directory(DirIterator& it, std::string const& mask, bool get_paths, bool only_dirs, bool only_files)
@@ -56,8 +54,6 @@ auto iter_directory(DirIterator& it, std::string const& mask, bool get_paths, bo
 }
 
 }  // namespace
-
-IFileService* fio = &file_service;
 
 void FileService::flush_ini_files()
 {
@@ -339,19 +335,19 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     return executable_directory();
 }
 
-void FileService::init_from_main_config(storm::IConfigLoader& config_loader)
+void FileService::init_from_main_config()
 {
-    auto const compat = storm::main_config::compatibility_info(config_loader);
+    auto const compat = storm::main_config::compatibility_info();
     m_use_lowercase   = compat.use_lowercase_paths;
 
-    m_paths = storm::main_config::paths_info(config_loader);
+    m_paths = storm::main_config::paths_info();
 }
 
 //=================================================================================================
 
 INIFILE_T::~INIFILE_T()
 {
-    if (auto* file_service = dynamic_cast<FileService*>(fio); file_service) {
+    if (auto* file_service = dynamic_cast<FileService*>(fio.get()); file_service) {
         try {
             file_service->ref_decrement(ifs_PTR);
         } catch (std::exception const& e) {

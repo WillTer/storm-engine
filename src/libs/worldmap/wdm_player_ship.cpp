@@ -89,7 +89,7 @@ void WdmPlayerShip::Update(float dltTime)
     if (i >= 0) {
         if (stormEventTime <= 0.0f) {
             stormEventTime = 0.5f;
-            core.Event("WorldMap_PlayerInStorm", "fffl", mtx.Pos().x, mtx.Pos().z, ay, i);
+            core->Event("WorldMap_PlayerInStorm", "fffl", mtx.Pos().x, mtx.Pos().z, ay, i);
         }
     }
     wdmObjects->playarInStorm = (i == -2);
@@ -115,7 +115,7 @@ void WdmPlayerShip::Update(float dltTime)
                     // ((WdmEnemyShip *)wdmObjects->ships[i])->isLive = false;
                     wdmObjects->ships[i]->isSelect = true;
                     if (es->attack) es->attack->isSelect = true;
-                    core.Event("WorldMap_ShipEncounter", "fffl", mtx.Pos().x, mtx.Pos().z, ay, i);
+                    core->Event("WorldMap_ShipEncounter", "fffl", mtx.Pos().x, mtx.Pos().z, ay, i);
                 } else {
                     if (!es->isEntryPlayer || (wdmObjects->enemyShip && !wdmObjects->enemyShip->isEnemy)) {
                         wdmObjects->enemyShip = es;
@@ -190,7 +190,7 @@ void WdmPlayerShip::Update(float dltTime)
     }
     if (nOldIslandVal != wdmObjects->wm->AttributesPointer->GetAttributeAsDword("encounter_island", 0)
         || nOldEncounterType != wdmObjects->wm->AttributesPointer->GetAttributeAsDword("encounter_type", 0))
-        core.Event("WM_UpdateCurrentAction");
+        core->Event("WM_UpdateCurrentAction");
 }
 
 void WdmPlayerShip::LRender(VDX9RENDER* rs)
@@ -220,7 +220,7 @@ bool WdmPlayerShip::ExitFromMap()
     }
     if (found < 0) return false;
     if (wdmObjects->enemyShip->attack) wdmObjects->enemyShip->attack->isSelect = true;
-    core.Event("WorldMap_ShipEncounter", "fffl", mtx.Pos().x, mtx.Pos().z, ay, found);
+    core->Event("WorldMap_ShipEncounter", "fffl", mtx.Pos().x, mtx.Pos().z, ay, found);
     return true;
 }
 
@@ -270,34 +270,34 @@ void WdmPlayerShip::Move(float dltTime)
 {
     CONTROL_STATE cs;
     // Forward
-    core.Controls->GetControlState("WMapShipSailUp", cs);
+    core->Controls->GetControlState("WMapShipSailUp", cs);
     if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) goForward = true;
-    core.Controls->GetControlState("WMapShipSailUp1", cs);
+    core->Controls->GetControlState("WMapShipSailUp1", cs);
     if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) goForward = true;
     if (goForward) speed += WDM_SHIP_INER_ST * WDM_SHIP_MAX_SPEED * dltTime * 0.5f;
     // Back
     auto isBack = false;
-    core.Controls->GetControlState("WMapShipSailDown", cs);
+    core->Controls->GetControlState("WMapShipSailDown", cs);
     if (cs.state == CST_ACTIVE) isBack = true;
-    core.Controls->GetControlState("WMapShipSailDown1", cs);
+    core->Controls->GetControlState("WMapShipSailDown1", cs);
     if (cs.state == CST_ACTIVE) isBack = true;
     if (isBack) {
         goForward = false;
         speed -= WDM_SHIP_INER_ST * WDM_SHIP_MAX_SPEED * dltTime * 0.5f;
         if (speed < 0.0f) { speed = 0.0f; }
     }
-    core.Controls->GetControlState("WMapShipSailDown", cs);
+    core->Controls->GetControlState("WMapShipSailDown", cs);
     // Turns
     auto isTurn = false;
-    core.Controls->GetControlState("WMapShipTurnLeft", cs);
+    core->Controls->GetControlState("WMapShipTurnLeft", cs);
     if (cs.state == CST_ACTIVE) isTurn = true;
-    core.Controls->GetControlState("WMapShipTurnLeft1", cs);
+    core->Controls->GetControlState("WMapShipTurnLeft1", cs);
     if (cs.state == CST_ACTIVE) isTurn = true;
     if (isTurn) turnspd -= WDM_SHIP_INER_ST * WDM_SHIP_TSPEED * dltTime;
     isTurn = false;
-    core.Controls->GetControlState("WMapShipTurnRight", cs);
+    core->Controls->GetControlState("WMapShipTurnRight", cs);
     if (cs.state == CST_ACTIVE) isTurn = true;
-    core.Controls->GetControlState("WMapShipTurnRight1", cs);
+    core->Controls->GetControlState("WMapShipTurnRight1", cs);
     if (cs.state == CST_ACTIVE) isTurn = true;
     if (isTurn) turnspd += WDM_SHIP_INER_ST * WDM_SHIP_TSPEED * dltTime;
 }

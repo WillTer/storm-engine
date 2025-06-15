@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 
@@ -49,7 +48,7 @@ public:
     ~Blots() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
 

@@ -13,7 +13,7 @@
 #define CAMERA_HEIGHT 1.0f
 #define CAMERA_ANGLE PI / 18
 
-class SHIP_CAMERA: public COMMON_CAMERA
+class ShipCamera: public COMMON_CAMERA
 {
 private:
     float   fMinHeightOnSea, fMaxHeightOnShip;
@@ -41,7 +41,7 @@ private:
 
     void Move(float fDeltaTime);
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void SetDevices();
     void Execute(uint32_t dwDeltaTime);
     void Realize(uint32_t dwDeltaTime) const;
@@ -62,7 +62,7 @@ private:
     bool     IslandCollision(CVECTOR& pos);
 
 public:
-    SHIP_CAMERA();
+    ShipCamera();
 
     void Save(CSaveLoad* pSL) override;
     void Load(CSaveLoad* pSL) override;

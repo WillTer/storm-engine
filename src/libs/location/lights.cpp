@@ -10,6 +10,8 @@
 
 #include "lights.h"
 
+#include <format>
+
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
@@ -45,19 +47,17 @@ Lights::~Lights()
 }
 
 // Initialization
-bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Lights::Init()
 {
-    Entity::Init(service_locator);
-
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
-    collide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     // read the parameters
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "lights.ini");
     if (!ini) {
-        core.Trace(
+        core->Trace(
             "Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
@@ -68,7 +68,7 @@ bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
         int32_t i;
         for (i = 0; i < numTypes; i++) {
             if (storm::iEquals(lName, types[i].name)) {
-                core.Trace("Location lights redefinition light: %s", lName);
+                core->Trace("Location lights redefinition light: %s", lName);
                 break;
             }
         }
@@ -117,21 +117,21 @@ bool Lights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
         res = ini->GetSectionNameNext(lName, sizeof(lName) - 1);
     }
     if (numTypes == 0) {
-        core.Trace("Location lights not inited -> 0 light types");
+        core->Trace("Location lights not inited -> 0 light types");
         return false;
     }
     // start executing
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    core.AddToLayer(EXECUTE, GetId(), 10);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(REALIZE, GetId(), -1000);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    core->AddToLayer(EXECUTE, GetId(), 10);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(REALIZE, GetId(), -1000);
     return true;
 }
 
 // Execution
 void Lights::Execute(uint32_t delta_time)
 {
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState(VK_F11) < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core->Controls->GetDebugAsyncKeyState(VK_F11) < 0) {
         for (int32_t i = 0; i < numTypes; i++)
             UpdateLightTypes(i);
     }
@@ -223,7 +223,7 @@ void Lights::Realize(uint32_t delta_time)
         // Visibility
         if (collide) {
             auto const dist =
-                collide->Trace(core.GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
+                collide->Trace(core->GetEntityIds(SUN_TRACE), pos, CVECTOR(ls.pos.x, ls.pos.y, ls.pos.z), lampModels, numLampModels);
             isVisible = dist > 1.0f;
         }
         ls.corona += isVisible ? 0.008f * delta_time : -0.008f * delta_time;
@@ -312,7 +312,7 @@ void Lights::Realize(uint32_t delta_time)
     rs->SetTransform(D3DTS_VIEW, camMtx);
 
     // Debug
-    if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SPACE) < 0) { PrintDebugInfo(); }
+    if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core->Controls->GetDebugAsyncKeyState(VK_SPACE) < 0) { PrintDebugInfo(); }
 }
 
 // Find source index
@@ -346,8 +346,8 @@ void Lights::AddLight(int32_t index, const CVECTOR& pos)
     lights[numLights].intensity = 0;
 
     // Send a message to the lighter
-    if (auto const eid = core.GetEntityId("Lighter")) {
-        core.Send_Message(
+    if (auto const eid = core->GetEntityId("Lighter")) {
+        core->Send_Message(
             eid,
             "sffffffffffs",
             "AddLight",
@@ -562,7 +562,7 @@ void Lights::PrintDebugInfo()
             0,
             static_cast<int32_t>(vrt.x),
             static_cast<int32_t>(vrt.y),
-            fmt::format("{}", d).c_str());
+            std::format("{}", d).c_str());
 
         // print idx
         auto color = D3DCOLOR_ARGB(255, 233, 30, 30);
@@ -581,7 +581,7 @@ void Lights::PrintDebugInfo()
             0,
             static_cast<int32_t>(vrt.x),
             static_cast<int32_t>(vrt.y),
-            fmt::format("{}", i).c_str());
+            std::format("{}", i).c_str());
 
         rs->SetTransform(D3DTS_VIEW, view);
     }

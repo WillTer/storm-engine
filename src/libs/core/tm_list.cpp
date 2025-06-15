@@ -281,7 +281,7 @@ void TM_LIST::ProcessMessageBase(uint64_t iMsg, uint64_t wParam, uint64_t lParam
         case LVN_KEYDOWN:
             vKey = ((LPNMLVKEYDOWN)lParam)->wVKey;
             if (vKey == VK_F4) StartEditSelectedItem();
-            if (vKey == 'O' && core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->OpenNewFile();
+            if (vKey == 'O' && core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->OpenNewFile();
             if (vKey == VK_F10) { CDebug->SetTraceMode(TMODE_MAKESTEP_OVER); }
             if (vKey == VK_F11) { CDebug->SetTraceMode(TMODE_MAKESTEP); }
             if (vKey == VK_F5) {

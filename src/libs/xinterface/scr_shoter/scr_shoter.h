@@ -2,7 +2,7 @@
 
 #include <libs/renderer/dx9render.h>
 
-class SCRSHOTER: public Entity
+class ScrShoter: public Entity
 {
     struct SAVETEXTURES {
         char*         fileName;
@@ -12,9 +12,9 @@ class SCRSHOTER: public Entity
     };
 
 public:
-    ~SCRSHOTER() override;
+    ~ScrShoter() override;
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;

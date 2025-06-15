@@ -23,7 +23,7 @@ struct FOGVERTEX {
 
 FOGVERTEX CreateFogVertex(const CVECTOR& vPos)
 {
-    auto* pvData = core.Event(WEATHER_CALC_FOG_COLOR, "fff", vPos.x, vPos.y, vPos.z);
+    auto* pvData = core->Event(WEATHER_CALC_FOG_COLOR, "fff", vPos.x, vPos.y, vPos.z);
     Assert(pvData);
 
     return {vPos, static_cast<uint32_t>(pvData->GetInt())};
@@ -31,7 +31,7 @@ FOGVERTEX CreateFogVertex(const CVECTOR& vPos)
 
 }  // namespace
 
-SKY::SKY()
+Sky::Sky()
 {
     fAngleY = 0.0f;
     pRS     = nullptr;
@@ -41,12 +41,12 @@ SKY::SKY()
     pSunGlow   = nullptr;
 }
 
-SKY::~SKY()
+Sky::~Sky()
 {
     Release();
 }
 
-void SKY::Release()
+void Sky::Release()
 {
     for (int32_t i = 0; i < SKY_NUM_TEXTURES; i++) {
         if (TexturesID[i] >= 0) {
@@ -70,20 +70,19 @@ void SKY::Release()
     iFogIndexID = -1;
 }
 
-bool SKY::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Sky::Init()
 {
-    Entity::Init(service_locator);
     SetDevice();
     return true;
 }
 
-void SKY::SetDevice()
+void Sky::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
 }
 
-void SKY::UpdateFogSphere(bool const initialize)
+void Sky::UpdateFogSphere(bool const initialize)
 {
     if (initialize) {
         if (iFogVertsID < 0) {
@@ -140,7 +139,7 @@ void SKY::UpdateFogSphere(bool const initialize)
     }
 }
 
-void SKY::GenerateSky(bool const initialize)
+void Sky::GenerateSky(bool const initialize)
 {
     if (initialize) {
         Release();
@@ -263,7 +262,7 @@ void SKY::GenerateSky(bool const initialize)
     UpdateFogSphere(true);
 }
 
-void SKY::LoadTextures()
+void Sky::LoadTextures()
 {
     char        str[256];
     char const* names[SKY_NUM_TEXTURES] = {"sky_fr.tga", "sky_lf.tga", "sky_bk.tga", "sky_rt.tga", "sky_up.tga"};
@@ -284,18 +283,18 @@ void SKY::LoadTextures()
     fAngleY = 0.0f;
 }
 
-bool SKY::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Sky::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool SKY::LoadState(ENTITY_STATE* state)
+bool Sky::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
     return true;
 }
 
-void SKY::Realize(uint32_t Delta_Time)
+void Sky::Realize(uint32_t Delta_Time)
 {
     fAngleY += static_cast<float>(Delta_Time) * 0.001f * fSkySpeedRotate;
 
@@ -332,14 +331,14 @@ void SKY::Realize(uint32_t Delta_Time)
             entid_t eid;
 
             if (!pAstronomy)
-                if (eid = core.GetEntityId("Astronomy")) pAstronomy = static_cast<Entity*>(core.GetEntityPointer(eid));
+                if (eid = core->GetEntityId("Astronomy")) pAstronomy = static_cast<Entity*>(core->GetEntityPointer(eid));
 
             if (!pSunGlow)
-                if (eid = core.GetEntityId("SUNGLOW")) pSunGlow = static_cast<Entity*>(core.GetEntityPointer(eid));
+                if (eid = core->GetEntityId("SunGlow")) pSunGlow = static_cast<Entity*>(core->GetEntityPointer(eid));
 
             if (pAstronomy || pSunGlow) {
                 if (pAstronomy) pAstronomy->ProcessStage(Stage::realize, Delta_Time);
-                if (pSunGlow) static_cast<SUNGLOW*>(pSunGlow)->DrawSunMoon();
+                if (pSunGlow) static_cast<SunGlow*>(pSunGlow)->DrawSunMoon();
 
                 pRS->SetTransform(D3DTS_WORLD, pMatWorld);
                 if (pRS->TechniqueExecuteStart(sTechSkyBlendAlpha.c_str())) do {
@@ -377,7 +376,7 @@ void SKY::Realize(uint32_t Delta_Time)
     pRS->DrawBuffer(iFogVertsID, sizeof(FOGVERTEX), iFogIndexID, 0, kFogVertsNum, 0, kFogTrgsNum / 3, sTechSkyFog.c_str());
 }
 
-uint32_t SKY::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t Sky::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     // if (*pAttribute == "dir")            { sSkyDir = pAttribute->GetThisAttr(); return 0; }
     if (*pAttribute == "dir") {
@@ -434,18 +433,18 @@ uint32_t SKY::AttributeChanged(ATTRIBUTES* pAttribute)
     return 0;
 }
 
-uint64_t SKY::ProcessMessage(MESSAGE& message)
+uint64_t Sky::ProcessMessage(MESSAGE& message)
 {
     if (message.Long() == MSG_SEA_REFLECTION_DRAW) Realize(0);
     return 0;
 }
 
-void SKY::RestoreRender()
+void Sky::RestoreRender()
 {
     GenerateSky(false);
 }
 
-void SKY::FillSkyDirArray(ATTRIBUTES* pAttribute)
+void Sky::FillSkyDirArray(ATTRIBUTES* pAttribute)
 {
     aSkyDirArray.clear();
     int32_t const q = pAttribute->GetAttributesNum();
@@ -469,7 +468,7 @@ void SKY::FillSkyDirArray(ATTRIBUTES* pAttribute)
     fTimeFactor *= (1.f / 24.f) * aSkyDirArray.size();
 }
 
-void SKY::GetSkyDirStrings(std::string& sSkyDir, std::string& sSkyDirNext)
+void Sky::GetSkyDirStrings(std::string& sSkyDir, std::string& sSkyDirNext)
 {
     auto n1 = static_cast<int32_t>(fTimeFactor);
     if (n1 >= 0) {
@@ -484,14 +483,14 @@ void SKY::GetSkyDirStrings(std::string& sSkyDir, std::string& sSkyDirNext)
     sSkyDir = sSkyDirNext = "";
 }
 
-void SKY::UpdateTimeFactor()
+void Sky::UpdateTimeFactor()
 {
     auto const nPrev = static_cast<int32_t>(fTimeFactor);
 
-    // fTimeFactor += core.GetDeltaTime() * 0.00005f;
+    // fTimeFactor += core->GetDeltaTime() * 0.00005f;
     entid_t eid;
-    if (!(eid = core.GetEntityId("weather"))) return;
-    fTimeFactor = static_cast<WEATHER_BASE*>(core.GetEntityPointer(eid))->GetFloat(whf_time_counter);
+    if (!(eid = core->GetEntityId("Weather"))) return;
+    fTimeFactor = static_cast<WEATHER_BASE*>(core->GetEntityPointer(eid))->GetFloat(whf_time_counter);
     fTimeFactor *= (1.f / 24.f) * aSkyDirArray.size();
 
     if (static_cast<int32_t>(fTimeFactor) >= static_cast<int32_t>(aSkyDirArray.size())) fTimeFactor -= aSkyDirArray.size();
@@ -515,7 +514,7 @@ void SKY::UpdateTimeFactor()
     }
 }
 
-float SKY::CalculateAlphaForSun(const CVECTOR& vSunPos, float fSunSize)
+float Sky::CalculateAlphaForSun(const CVECTOR& vSunPos, float fSunSize)
 {
     // get Sky
     float   fFov;
@@ -623,7 +622,7 @@ float SKY::CalculateAlphaForSun(const CVECTOR& vSunPos, float fSunSize)
     return 1.f;
 }
 
-uint32_t SKY::GetPixelColor(IDirect3DTexture9* pTex, float fu, float fv) const
+uint32_t Sky::GetPixelColor(IDirect3DTexture9* pTex, float fu, float fv) const
 {
     HRESULT hok;
     auto    dwCol = 0xFFFFFFFF;

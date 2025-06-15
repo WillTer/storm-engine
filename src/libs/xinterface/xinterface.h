@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
@@ -14,10 +13,10 @@
 
 class CXI_WINDOW;
 
-class XINTERFACE: public XINTERFACE_BASE
+class XInterface: public XINTERFACE_BASE
 {
 public:
-    static XINTERFACE* pThis;
+    static XInterface* pThis;
 
 protected:
     storm::QuestFileReader* pQuestService;
@@ -73,13 +72,13 @@ protected:
     uint32_t m_dwStoreFlag_Fog;
 
 public:
-    XINTERFACE(XINTERFACE&&)      = delete;
-    XINTERFACE(const XINTERFACE&) = delete;
-    XINTERFACE();
-    ~XINTERFACE() override;
+    XInterface(XInterface&&)      = delete;
+    XInterface(XInterface const&) = delete;
+    XInterface();
+    ~XInterface() override;
 
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);
@@ -407,7 +406,7 @@ protected:
     CINODE* m_pCurToolTipNode;
 };
 
-class CONTROLS_CONTAINER: public Entity
+class ControlsContainer: public Entity
 {
     struct CONTEINER_DESCR {
         float fMaxVal;
@@ -426,9 +425,9 @@ class CONTROLS_CONTAINER: public Entity
     }* pContainers;
 
 public:
-    CONTROLS_CONTAINER();
-    ~CONTROLS_CONTAINER() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    ControlsContainer();
+    ~ControlsContainer() override;
+    bool     Init() override;
     void     Execute(uint32_t delta_time);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

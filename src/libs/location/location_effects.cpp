@@ -60,21 +60,19 @@ LocationEffects::~LocationEffects()
 }
 
 // Initialization
-bool LocationEffects::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocationEffects::Init()
 {
-    Entity::Init(service_locator);
-
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    core.AddToLayer(EXECUTE, GetId(), 10);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    core->AddToLayer(EXECUTE, GetId(), 10);
 
-    // core.LayerCreate("realize", true, false);
-    core.SetLayerType(REALIZE, layer_type_t::realize);
-    core.AddToLayer(REALIZE, GetId(), 1000000);
+    // core->LayerCreate("realize", true, false);
+    core->SetLayerType(REALIZE, layer_type_t::realize);
+    core->AddToLayer(REALIZE, GetId(), 1000000);
 
     splashesTxt = rs->TextureCreate("locefx/chrsplprt.tga");
     flyTex      = rs->TextureCreate("locefx/firefly.tga");
@@ -493,14 +491,14 @@ void LocationEffects::ProcessedShotgun(float dltTime)
 {
     if (!isShgInited) return;
     CVECTOR winDir = 0.0f;
-    VDATA*  param  = core.Event("EWhr_GetWindAngle");
+    VDATA*  param  = core->Event("EWhr_GetWindAngle");
     if (param) {
         float ang;
         if (!param->Get(ang)) ang = 0.0f;
         winDir.x = sinf(ang);
         winDir.z = cosf(ang);
     }
-    param = core.Event("EWhr_GetWindSpeed");
+    param = core->Event("EWhr_GetWindSpeed");
     if (param) {
         float spd;
         if (!param->Get(spd)) spd = 0.0f;

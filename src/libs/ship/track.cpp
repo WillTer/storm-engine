@@ -4,6 +4,7 @@
 #include <libs/core/entity.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
+#include <libs/renderer/dx9render.h>
 
 VDX9RENDER* ShipTracks::ShipTrack::pRS              = nullptr;
 SEA_BASE*   ShipTracks::ShipTrack::pSea             = nullptr;
@@ -19,15 +20,13 @@ ShipTracks::~ShipTracks()
     // aShips.DelAllWithPointers();
 }
 
-bool ShipTracks::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ShipTracks::Init()
 {
-    Entity::Init(service_locator);
-
     entid_t sea_id;
 
-    ShipTrack::pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    ShipTrack::pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(ShipTrack::pRS);
-    if (sea_id = core.GetEntityId("sea")) ShipTrack::pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(sea_id));
+    if (sea_id = core->GetEntityId("Sea")) ShipTrack::pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(sea_id));
     return true;
 }
 

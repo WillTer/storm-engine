@@ -7,7 +7,7 @@
 
 #define MAX_LIGHTNING_TEXTURES 2
 
-class LIGHTNING: public Entity
+class Lightning: public Entity
 {
     struct flash_t {
         std::string sTechnique;
@@ -48,11 +48,11 @@ class LIGHTNING: public Entity
     void CalcFlashPower(lightning_t* pL) const;
 
 public:
-    LIGHTNING();
-    ~LIGHTNING() override;
+    Lightning();
+    ~Lightning() override;
 
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     bool     CreateState(ENTITY_STATE_GEN* state_gen);

@@ -9,9 +9,9 @@ Import library main file
 ******************************************************************************/
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <vector>
 
-#include <fmt/format.h>
 #include <libs/core/storm/config.hpp>
 #include <libs/util/string_compare.hpp>
 
@@ -193,7 +193,7 @@ GEOM::GEOM(char const* fname, char const* lightname, GEOM_SERVICE& _srv, int32_t
             bool const valid = std::all_of(std::begin(btrg), std::end(btrg), [this](auto const& triangle) {
                 return triangle.getIndex(0) < vrt.size() && triangle.getIndex(1) < vrt.size() && triangle.getIndex(2) < vrt.size();
             });
-            if (!valid) { throw std::runtime_error(fmt::format("Detected invalid collision data while loading file '{}'", fname)); }
+            if (!valid) { throw std::runtime_error(std::format("Detected invalid collision data while loading file '{}'", fname)); }
         }
     }
 

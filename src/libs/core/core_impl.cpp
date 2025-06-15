@@ -4,15 +4,14 @@
 
 #include <SDL2/SDL.h>
 #include <libs/config/main_config.h>
-#include <libs/filesystem/default_paths.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "compiler.h"
 #include "controls.h"
-
-Core& core = core_internal;
+#include "vma.hpp"
 
 uint64_t get_performance_counter()
 {
@@ -54,7 +53,7 @@ void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
     window_ = std::move(window);
 }
 
-void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+void CoreImpl::Init()
 {
     Initialized         = false;
     bEngineIniProcessed = false;
@@ -64,9 +63,8 @@ void CoreImpl::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
     Memory_Leak_flag    = false;
     Controls            = nullptr;
     fTimeScale          = 1.0f;
-    Compiler            = std::make_unique<COMPILER>(service_locator);
-    entity_manager_     = std::make_unique<EntityManager>(service_locator);
-    m_service_locator   = service_locator;
+    Compiler            = std::make_unique<COMPILER>();
+    entity_manager_     = std::make_unique<EntityManager>();
 
     /* TODO: place this outside CoreImpl */
     SetLayerType(EXECUTE, layer_type_t::execute);
@@ -101,22 +99,22 @@ bool CoreImpl::Run()
     stopFrameProcessing_ = false;
 
     auto const bDebugWindow = true;
-    if (bDebugWindow && core_internal.Controls && core_internal.Controls->GetDebugAsyncKeyState(VK_F7) < 0) DumpEntitiesInfo();
+    if (bDebugWindow && core_internal->Controls && core_internal->Controls->GetDebugAsyncKeyState(VK_F7) < 0) DumpEntitiesInfo();
     dwNumberScriptCommandsExecuted = 0;
 
     if (Exit_flag) return false;  // exit
 
     Timer.Run();  // calc delta time
 
-    auto* pVCTime = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDeltaTime"));
+    auto* pVCTime = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealDeltaTime"));
     if (pVCTime) pVCTime->Set(static_cast<int32_t>(GetRDeltaTime()));
 
     auto tt       = std::time(nullptr);
     auto local_tm = *std::localtime(&tt);
 
-    auto* pVYear  = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealYear"));
-    auto* pVMonth = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealMonth"));
-    auto* pVDay   = static_cast<VDATA*>(core_internal.GetScriptVariable("iRealDay"));
+    auto* pVYear  = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealYear"));
+    auto* pVMonth = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealMonth"));
+    auto* pVDay   = static_cast<VDATA*>(core_internal->GetScriptVariable("iRealDay"));
 
     if (pVYear) pVYear->Set(local_tm.tm_year + 1900);
     if (pVMonth) pVMonth->Set(local_tm.tm_mon + 1);  // tm_mon belongs [0, 11]
@@ -198,26 +196,25 @@ void CoreImpl::ProcessEngineIniFile()
 {
     bEngineIniProcessed = true;
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const script_info   = storm::main_config::script_info(*config_loader);
-    auto const controls_info = storm::main_config::controls_info(*config_loader);
+    auto const script_info   = storm::main_config::script_info();
+    auto const controls_info = storm::main_config::controls_info();
 
     auto const program_dir = fio->base_directory_path(BaseDirectory::Program);
     Compiler->SetProgramDirectory(program_dir.string().c_str());
 
     if (!controls_info.scheme.empty()) {
-        core_internal.Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
-        if (core_internal.Controls == nullptr) { core_internal.Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
+        core_internal->Controls = static_cast<CONTROLS*>(MakeClass(controls_info.scheme.c_str()));
+        if (core_internal->Controls == nullptr) { core_internal->Controls = static_cast<CONTROLS*>(MakeClass("controls")); }
     } else {
         delete Controls;
         Controls = nullptr;
 
-        core_internal.Controls = new CONTROLS;
+        core_internal->Controls = new CONTROLS;
     }
 
-    core_internal.Controls->Init(m_service_locator);
+    core_internal->Controls->Init();
 
-    auto const compat_info = storm::main_config::compatibility_info(*config_loader);
+    auto const compat_info = storm::main_config::compatibility_info();
     targetVersion_         = compat_info.target_version;
 
     if (!Compiler->CreateProgram(script_info.entry_point.c_str())) { throw std::runtime_error("fail to create program"); }
@@ -226,7 +223,7 @@ void CoreImpl::ProcessEngineIniFile()
     // Script version test
     if (targetVersion_ >= storm::ENGINE_VERSION::LATEST) {
         auto  script_version      = std::numeric_limits<int32_t>::max();
-        auto* script_version_data = static_cast<VDATA*>(core_internal.GetScriptVariable("iScriptVersion"));
+        auto* script_version_data = static_cast<VDATA*>(core_internal->GetScriptVariable("iScriptVersion"));
         if (script_version_data != nullptr) { script_version_data->Get(script_version); }
 
         if (script_version != ENGINE_SCRIPT_VERSION) {
@@ -241,11 +238,6 @@ void CoreImpl::ProcessEngineIniFile()
 
 bool CoreImpl::LoadClassesTable()
 {
-    for (auto* c: __STORM_CLASSES_REGISTRY) {
-        auto const hash = MakeHashValue(c->GetName());
-        c->SetHash(hash);
-    }
-
     return true;
 }
 
@@ -368,34 +360,35 @@ VDATA* CoreImpl::Event(std::string_view const& event_name, MESSAGE& message)
 
 void* CoreImpl::MakeClass(char const* class_name)
 {
-    int32_t const hash = MakeHashValue(class_name);
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c->CreateClass();
+    auto* const vma = FindVMA(class_name);
+    if (vma != nullptr) { return vma->create_class(); }
 
     return nullptr;
 }
 
 void CoreImpl::ReleaseServices()
 {
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->Service()) c->Clear();
+    for (auto&& [key, value]: *classes_registry)
+        if (value->is_service()) value->clear();
 
     Controls = nullptr;
 }
 
 VMA* CoreImpl::FindVMA(char const* class_name)
 {
-    int32_t const hash = MakeHashValue(class_name);
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash && storm::iEquals(class_name, c->GetName())) return c;
+    auto const hashed_name = entt::hashed_string(class_name);
+    if (classes_registry->contains(hashed_name)) { return classes_registry->at(hashed_name); }
+
+    Trace("Class \"%s\" not found", class_name);
 
     return nullptr;
 }
 
-VMA* CoreImpl::FindVMA(int32_t hash)
+VMA* CoreImpl::FindVMA(uint32_t const hash)
 {
-    for (auto* const c: __STORM_CLASSES_REGISTRY)
-        if (c->GetHash() == hash) return c;
+    if (classes_registry->contains(hash)) { return classes_registry->at(hash); }
+
+    Trace("Class with hash \"%u\" not found", hash);
 
     return nullptr;
 }
@@ -408,23 +401,21 @@ void* CoreImpl::GetService(char const* service_name)
         return nullptr;
     }
 
-    if (pClass->GetHash() == 0) {
+    if (pClass->get_hash() == 0) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
-    if (pClass->GetReference() > 0) return pClass->CreateClass();
+    if (pClass->get_ref_count() > 0) return pClass->create_class();
 
-    auto* service_PTR = static_cast<SERVICE*>(pClass->CreateClass());
+    auto* service_PTR = static_cast<SERVICE*>(pClass->create_class());
 
-    auto const class_code = MakeHashValue(service_name);
-    pClass->SetHash(class_code);
-
-    if (!service_PTR->Init(m_service_locator)) {
+    if (service_PTR == nullptr) {
         CheckAutoExceptions(0);
         return nullptr;
     }
 
+    auto const class_code = pClass->get_hash();
     Services_List.Add(class_code, class_code, service_PTR);
 
     return service_PTR;
@@ -449,9 +440,9 @@ void CoreImpl::ProcessExecute()
     ProcessRunStart(SECTION_EXECUTE);
 
     auto const  deltatime = Timer.GetDeltaTime();
-    auto const& entIds    = core.GetEntityIds(layer_type_t::execute);
+    auto const& entIds    = core->GetEntityIds(layer_type_t::execute);
     for (auto id: entIds) {
-        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
     }
 
     ProcessRunEnd(SECTION_EXECUTE);
@@ -462,9 +453,9 @@ void CoreImpl::ProcessRealize()
     ProcessRunStart(SECTION_REALIZE);
 
     auto const  deltatime = Timer.GetDeltaTime();
-    auto const& entIds    = core.GetEntityIds(layer_type_t::realize);
+    auto const& entIds    = core->GetEntityIds(layer_type_t::realize);
     for (auto id: entIds) {
-        if (auto* ptr = core.GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
     }
 
     ProcessRunEnd(SECTION_REALIZE);

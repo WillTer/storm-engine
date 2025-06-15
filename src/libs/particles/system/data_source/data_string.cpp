@@ -1,6 +1,5 @@
 #include "data_string.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/platform/platform.hpp>
 
 // constructor / destructor
@@ -37,7 +36,7 @@ void DataString::Load(MemFile* File)
 
 void DataString::SetName(char const* szName)
 {
-    // core.Trace("DataString::SetName - '%s'", szName);
+    // core->Trace("DataString::SetName - '%s'", szName);
     Name = szName;
 }
 

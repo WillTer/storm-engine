@@ -5,7 +5,9 @@
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
+#include <libs/sound_service/v_sound_service.h>
 #include <libs/util/rands.h>
 
 // #pragma warning (disable : 4244)
@@ -16,7 +18,7 @@ TSeagulls::TSeagulls() : enabled(true), count(0), frightened(false) {}
 //--------------------------------------------------------------------
 TSeagulls::~TSeagulls()
 {
-    core.EraseEntity(seagullModel);
+    core->EraseEntity(seagullModel);
 }
 
 //--------------------------------------------------------------------
@@ -56,15 +58,15 @@ void TSeagulls::Init()
     startY = 0.f;
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    soundService  = static_cast<VSoundService*>(core.GetService("SoundService"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    soundService  = static_cast<VSoundService*>(core->GetService("SoundService"));
 
     if (!renderService) throw std::runtime_error("!Seagulls: No service: dx9render");
     // if(!soundService)
     //    throw std::runtime_error("!Seagulls: No service: sound");
 
-    seagullModel = core.CreateEntity("MODELR");
-    core.Send_Message(seagullModel, "ls", MSG_MODEL_LOAD_GEO, ANIMALS_SEAGULL_FILENAME);
+    seagullModel = core->CreateEntity("ModelR");
+    core->Send_Message(seagullModel, "ls", MSG_MODEL_LOAD_GEO, ANIMALS_SEAGULL_FILENAME);
 }
 
 //--------------------------------------------------------------------
@@ -180,7 +182,7 @@ void TSeagulls::Realize(uint32_t _dTime)
     renderService->GetCamera(cameraPos, cameraAng, persp);
     if (!count) Add(cameraPos.x, cameraPos.y, cameraPos.z);
 
-    auto* seagull = static_cast<MODEL*>(core.GetEntityPointer(seagullModel));
+    auto* seagull = static_cast<MODEL*>(core->GetEntityPointer(seagullModel));
     if (!seagull) return;
 
     for (auto i = 0; i < count; i++) {

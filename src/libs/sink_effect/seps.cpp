@@ -120,7 +120,7 @@ SEPS_PS::~SEPS_PS()
     RenderService->Release(VBuffer);
     for (n = 0; n < TexturesNum; n++)
         RenderService->TextureRelease(TextureID[n]);
-    // core.FreeService("dx9render");
+    // core->FreeService("RendererService");
     delete Particle;
     Particle = nullptr;
     delete pFlowTrack;
@@ -204,10 +204,10 @@ bool SEPS_PS::Init(INIFILE* ini, char* psname)
     bool    bRes;
 
     // load render service -----------------------------------------------------
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) throw std::runtime_error("No service: dx9render");
 
-    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     // if(!gs) return false;
 
     // read textures ------------------------------------------------------------
@@ -228,7 +228,7 @@ bool SEPS_PS::Init(INIFILE* ini, char* psname)
     }
 
     if (!ini->ReadString(psname, PSKEY_TECHNIQUE, string, sizeof(string), "")) {
-        core.Trace("Particle system: %s", psname);
+        core->Trace("Particle system: %s", psname);
         throw std::runtime_error("no technique for particle system");
     }
 
@@ -472,7 +472,7 @@ void SEPS_PS::Execute(uint32_t DeltaTime)
     if(bLinkEmitter)
     {
       COLLISION_OBJECT * pLink;
-      pLink = (COLLISION_OBJECT *)core.GetEntityPointer(LinkObject);
+      pLink = (COLLISION_OBJECT *)core->GetEntityPointer(LinkObject);
       if(pLink)
       {
         Emitter = pLink->mtx * LinkPos;
@@ -491,7 +491,7 @@ void SEPS_PS::LayOnSurface(uint32_t index)
     COLLISION_OBJECT* pLink;
     CVECTOR           from, to;
     float             dist;
-    pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(SurfaceID));
+    pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(SurfaceID));
     if (pLink == nullptr) return;
     from                  = Particle[index].pos;
     to                    = from;
@@ -510,7 +510,7 @@ void SEPS_PS::Realize(uint32_t DeltaTime)
 
     if (bLinkEmitter) {
         COLLISION_OBJECT* pLink;
-        pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(LinkObject));
+        pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(LinkObject));
         if (pLink) {
             Emitter          = pLink->mtx * LinkPos;
             EmitterDirection = pLink->mtx * LinkDirPos;
@@ -652,7 +652,7 @@ void SEPS_PS::ProcessParticles(uint32_t DeltaTime)
         // bComplete = false;    // still have particles to run
     }
 
-    // core.Trace("Delta: %d",DeltaTime);
+    // core->Trace("Delta: %d",DeltaTime);
 
     DeltaTimeSLE += DeltaTime;
     if (DeltaTimeSLE >= (EmissionTime + CurrentEmissionTimeRand)) {
@@ -827,7 +827,7 @@ void SEPS_PS::LinkToObject(entid_t id, CVECTOR _LinkPos)
     LinkDirPos   = LinkPos + LinkDir;
 
     COLLISION_OBJECT* pLink;
-    pLink = static_cast<COLLISION_OBJECT*>(core.GetEntityPointer(LinkObject));
+    pLink = static_cast<COLLISION_OBJECT*>(core->GetEntityPointer(LinkObject));
     if (pLink) Emitter = pLink->mtx * LinkPos;
 
     for (n = 0; n < ParticlesNum; n++) {
@@ -862,7 +862,7 @@ void SEPS_PS::SetFlowTrack(uint32_t index)
     Particle[index].ang = !dest;
     auto const dist     = ~dest;
     if (dist < fTrackPointRadius) { Particle[index].flow_track_index++; }
-    // if(index==0)core.Trace("track: %d",Particle[index].flow_track_index);
+    // if(index==0)core->Trace("track: %d",Particle[index].flow_track_index);
 }
 
 void SEPS_PS::UseSurface(entid_t surface_id)

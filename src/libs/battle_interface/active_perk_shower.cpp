@@ -3,7 +3,6 @@
 #include <exception>
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 #include <libs/util/string_compare.hpp>
 
@@ -31,11 +30,9 @@ ActivePerkShower::~ActivePerkShower()
     ReleaseAll();
 }
 
-bool ActivePerkShower::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ActivePerkShower::Init()
 {
-    Entity::Init(service_locator);
-
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 

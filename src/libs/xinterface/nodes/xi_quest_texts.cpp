@@ -216,7 +216,7 @@ int CXI_QUESTTEXTS::CommandExecute(int wActCode)
             }
         } break;
         }
-        core.Event("SetScrollerPos", "sf", m_nodeName, static_cast<float>(m_listCur->strNum) / static_cast<float>(m_nAllTextStrings));
+        core->Event("SetScrollerPos", "sf", m_nodeName, static_cast<float>(m_listCur->strNum) / static_cast<float>(m_nAllTextStrings));
     }
     return -1;
 }
@@ -237,7 +237,7 @@ void CXI_QUESTTEXTS::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -320,7 +320,7 @@ void CXI_QUESTTEXTS::StartQuestShow(ATTRIBUTES* pA, int qn)
     }
     m_nAllTextStrings = m_listCur == nullptr ? 0 : m_listCur->strNum;
     m_listCur         = m_listRoot;
-    core.Event("SetScrollerPos", "sf", m_nodeName, 0.f);
+    core->Event("SetScrollerPos", "sf", m_nodeName, 0.f);
 }
 
 float CXI_QUESTTEXTS::GetLineStep() const

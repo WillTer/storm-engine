@@ -1,6 +1,5 @@
 #include "data_color.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 #include "../../i_common/graph_time.h"
@@ -128,7 +127,7 @@ void DataColor::Load(MemFile* File)
 
 void DataColor::SetName(char const* szName)
 {
-    // core.Trace("DataColor::SetName - '%s'", szName);
+    // core->Trace("DataColor::SetName - '%s'", szName);
     Name = szName;
 }
 

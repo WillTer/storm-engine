@@ -47,21 +47,19 @@ CAviPlayer::~CAviPlayer()
     ReleaseAll();
 }
 
-bool CAviPlayer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool CAviPlayer::Init()
 {
-    Entity::Init(service_locator);
-
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
-    // core.LayerCreate("vRealize",true,false);
-    core.SetLayerType(VIDEO_REALIZE, layer_type_t::realize);
-    core.AddToLayer(VIDEO_REALIZE, GetId(), -1);
+    // core->LayerCreate("vRealize",true,false);
+    core->SetLayerType(VIDEO_REALIZE, layer_type_t::realize);
+    core->AddToLayer(VIDEO_REALIZE, GetId(), -1);
 
-    // core.LayerCreate("vExecute",true,false);
-    core.SetLayerType(VIDEO_EXECUTE, layer_type_t::execute);
-    core.AddToLayer(VIDEO_EXECUTE, GetId(), 1);
+    // core->LayerCreate("vExecute",true,false);
+    core->SetLayerType(VIDEO_EXECUTE, layer_type_t::execute);
+    core->AddToLayer(VIDEO_EXECUTE, GetId(), 1);
 
     if (!GetInterfaces()) {
         m_bContinue = false;
@@ -78,7 +76,7 @@ void CAviPlayer::Execute(uint32_t delta_time)
         if (pAMStream != nullptr) pAMStream->SetState(STREAMSTATE_STOP);
 #endif
         CleanupInterfaces();
-        core.Event("ievntEndVideo");
+        core->Event("ievntEndVideo");
     }
 }
 
@@ -146,7 +144,7 @@ uint64_t CAviPlayer::ProcessMessage(MESSAGE& message)
         filename                 = (fio->base_directory_path(BaseDirectory::Videos) / param).string();
         if (!PlayMedia(filename.c_str())) {
             CleanupInterfaces();
-            core.PostEvent("ievntEndVideo", 1, nullptr);
+            core->PostEvent("ievntEndVideo", 1, nullptr);
         }
         break;
     }
@@ -173,31 +171,31 @@ bool CAviPlayer::PlayMedia(char const* fileName)
 
     hr = pAMStream->OpenFile(wPath, 0);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!!(0x%8x) Can`t load video file = %s", hr, fileName);
+        core->Trace("Video Error!!!(0x%8x) Can`t load video file = %s", hr, fileName);
         return false;
     }
 
     hr = pAMStream->GetMediaStream(MSPID_PrimaryVideo, &pPrimaryVidStream);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t get media stream");
+        core->Trace("Video Error!!! Can`t get media stream");
         return false;
     }
     hr = pPrimaryVidStream->QueryInterface(IID_IDirectDrawMediaStream, (void**)&pDDStream);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t query interface DirectDrawMediaStream");
+        core->Trace("Video Error!!! Can`t query interface DirectDrawMediaStream");
         return false;
     }
     ddsd.dwSize = sizeof(ddsd);
     hr          = pDDStream->GetFormat(&ddsd, nullptr, nullptr, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t get stream format");
+        core->Trace("Video Error!!! Can`t get stream format");
         return false;
     }
     int32_t srcWidth  = ddsd.dwWidth;
     int32_t srcHeight = ddsd.dwHeight;
     hr                = pDD->CreateSurface(&ddsd, &pVideoSurface, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t create surface for video imaging");
+        core->Trace("Video Error!!! Can`t create surface for video imaging");
         return false;
     }
 
@@ -208,12 +206,12 @@ bool CAviPlayer::PlayMedia(char const* fileName)
 
     hr = pDDStream->CreateSample(static_cast<IDirectDrawSurface*>(pVideoSurface), nullptr, 0, &pSample);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t create sample for this video");
+        core->Trace("Video Error!!! Can`t create sample for this video");
         return false;
     }
 
     RECT dstRect;
-    GetWindowRect(static_cast<HWND>(core.GetWindow()->OSHandle()), &dstRect);
+    GetWindowRect(static_cast<HWND>(core->GetWindow()->OSHandle()), &dstRect);
     auto dstWidth  = dstRect.right - dstRect.left;
     auto dstHeight = dstRect.bottom - dstRect.top;
 
@@ -242,7 +240,7 @@ bool CAviPlayer::PlayMedia(char const* fileName)
 
     hr = rs->CreateTexture(AVI_GetTextureSize(srcWidth), AVI_GetTextureSize(srcHeight), 1, 0, d3d9surf_desc.Format, D3DPOOL_MANAGED, &pTex);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t create texture for this video");
+        core->Trace("Video Error!!! Can`t create texture for this video");
         return false;
     }
 
@@ -268,7 +266,7 @@ bool CAviPlayer::PlayMedia(char const* fileName)
 
     hr = pAMStream->SetState(STREAMSTATE_RUN);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t run media stream");
+        core->Trace("Video Error!!! Can`t run media stream");
         return false;
     }
 
@@ -289,33 +287,33 @@ bool CAviPlayer::GetInterfaces()
 
     hr = DirectDrawCreate(nullptr, &pDD, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t create DirectDraw interface");
+        core->Trace("Video Error!!! Can`t create DirectDraw interface");
         return false;
     }
-    hr = pDD->SetCooperativeLevel(static_cast<HWND>(core.GetWindow()->OSHandle()), DDSCL_NORMAL);
+    hr = pDD->SetCooperativeLevel(static_cast<HWND>(core->GetWindow()->OSHandle()), DDSCL_NORMAL);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t SetCooperativeLevel for DirectDraw");
+        core->Trace("Video Error!!! Can`t SetCooperativeLevel for DirectDraw");
         return false;
     }
     hr = CoCreateInstance(CLSID_AMMultiMediaStream, nullptr, CLSCTX_INPROC_SERVER, IID_IAMMultiMediaStream, (void**)&pAMStream);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t create interface AMMultiMediaStream");
+        core->Trace("Video Error!!! Can`t create interface AMMultiMediaStream");
         return false;
     }
 
     hr = pAMStream->Initialize(STREAMTYPE_READ, AMMSF_NOGRAPHTHREAD, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t initialize interface AMMultiMediaStream");
+        core->Trace("Video Error!!! Can`t initialize interface AMMultiMediaStream");
         return false;
     }
     hr = pAMStream->AddMediaStream(pDD, &MSPID_PrimaryVideo, 0, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t add video stream");
+        core->Trace("Video Error!!! Can`t add video stream");
         return false;
     }
     hr = pAMStream->AddMediaStream(nullptr, &MSPID_PrimaryAudio, AMMSF_ADDDEFAULTRENDERER, nullptr);
     if (FAILED(hr)) {
-        core.Trace("Video Error!!! Can`t add audio stream");
+        core->Trace("Video Error!!! Can`t add audio stream");
         return false;
     }
 

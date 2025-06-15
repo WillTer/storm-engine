@@ -16,10 +16,8 @@ BITimer::~BITimer()
     Release();
 }
 
-bool BITimer::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BITimer::Init()
 {
-    Entity::Init(service_locator);
-
     if (!ReadAndCreate()) return false;
     return true;
 }
@@ -92,7 +90,7 @@ void BITimer::SetBeginData()
     m_fCurTimerCounter = 0.f;
     m_fMaxTimerCounter = 0.f;
 
-    m_pRender = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    m_pRender = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(m_pRender);
     m_pImgRndr   = new BIImageRender(m_pRender);
     m_pBackImage = nullptr;
@@ -116,5 +114,5 @@ void BITimer::CloseTimer(bool bTimeOut)
 {
     m_fCurTimerCounter = 0.f;
     m_pForeImage->CutSide(0.f, 0.f, 0.f, 0.f);
-    if (bTimeOut) { core.Event(m_sEventName); }
+    if (bTimeOut) { core->Event(m_sEventName); }
 }

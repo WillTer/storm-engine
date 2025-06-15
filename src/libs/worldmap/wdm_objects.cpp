@@ -12,6 +12,7 @@
 
 #include <chrono>
 
+#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/util/string_compare.hpp>
 
@@ -139,7 +140,7 @@ GEOS* WdmObjects::CreateGeometry(char const* path)
 {
     if (!path || !path[0] || !gs) return nullptr;
     // Looking among added
-    uint32_t const hash = MakeHashValue(path);
+    uint32_t const hash = case_insensitive_hash(path);
     int32_t        i    = hash & (sizeof(entryModels) / sizeof(entryModels[0]) - 1);
     for (i = entryModels[i]; i >= 0; i = models[i].next) {
         if (models[i].hash == hash) {

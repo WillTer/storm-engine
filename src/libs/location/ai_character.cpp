@@ -123,7 +123,7 @@ void AICharacter::Update(float dltTime)
 void AICharacter::CharacterTeleport()
 {
     currentNode = FindNodeIndex(curPos);
-    if (currentNode < 0) core.Trace("Warning: NPCharacter <%s>-> trace node not found", characterID);
+    if (currentNode < 0) core->Trace("Warning: NPCharacter <%s>-> trace node not found", characterID);
 }
 
 //============================================================================================
@@ -272,7 +272,7 @@ void AICharacter::CmdProcessGotoPoint(float dltTime)
                         StopMove();
                         FailureCommand();
                     } else {
-                        core.Event("Location_CharacterBusyPos", "ifff", GetId(), command.pnt.x, command.pnt.y, command.pnt.z);
+                        core->Event("Location_CharacterBusyPos", "ifff", GetId(), command.pnt.x, command.pnt.y, command.pnt.z);
                         command.cnt++;
                         command.isWait   = true;
                         command.waitTime = 2.0f + rand() * 2.0f / RAND_MAX;

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <libs/math/math3d.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 
 #include "ship.h"
@@ -38,14 +39,13 @@ ShipLights::~ShipLights()
     bLoadLights = false;
 }
 
-bool ShipLights::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ShipLights::Init()
 {
-    Entity::Init(service_locator);
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("coll"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
-    pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
     return true;
 }
 
@@ -130,7 +130,7 @@ void ShipLights::AddDynamicLights(VAI_OBJBASE* pObject, const CVECTOR& vPos)
     std::string sLightType = "cannondefault";
     auto*       pLT        = FindLightType(sLightType);
     if (!pLT) {
-        core.Trace("Can find ship light \"%s\"", sLightType.c_str());
+        core->Trace("Can find ship light \"%s\"", sLightType.c_str());
         return;
     }
 
@@ -319,7 +319,7 @@ void ShipLights::AddLights(VAI_OBJBASE* pObject, MODEL* pModel, bool bLights, bo
 
     LightType* pLT = FindLightType(sLightType);
     if (!pLT) {
-        core.Trace("Can't find ship light \"%s\"", sLightType.c_str());
+        core->Trace("Can't find ship light \"%s\"", sLightType.c_str());
         return;
     }
 
@@ -439,10 +439,10 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
         if (pCollide) {
             L.bVisible = true;
 
-            float fDistance  = pCollide->Trace(core.GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
+            float fDistance  = pCollide->Trace(core->GetEntityIds(SAILS_TRACE), L.vCurPos, vCamPos, nullptr, 0);
             L.fFlareAlphaMax = (fDistance >= 1.0f) ? 1.0f : 0.2f;
 
-            auto const its   = core.GetEntityIds(SUN_TRACE);
+            auto const its   = core->GetEntityIds(SUN_TRACE);
             fDistance        = pCollide->Trace(its, L.vCurPos, vCamPos, nullptr, 0);
             float const fLen = fDistance * sqrtf(~(vCamPos - L.vCurPos));
             L.bVisible       = fDistance >= 1.0f || (fLen < 0.6f);

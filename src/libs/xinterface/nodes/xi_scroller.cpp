@@ -57,7 +57,7 @@ void CXI_SCROLLER::Draw(bool bSelected, uint32_t Delta_Time)
     if (m_bUse) {
         if (m_bDragRoll) {
             CONTROL_STATE cs;
-            core.Controls->GetControlState("ILClick", cs);
+            core->Controls->GetControlState("ILClick", cs);
             if (cs.state == CST_INACTIVE || cs.state == CST_INACTIVATED) m_bDragRoll = false;
             if (m_bDragRoll) MouseMove();
         }
@@ -109,7 +109,7 @@ int CXI_SCROLLER::CommandExecute(int wActCode)
                 }
                 // middle
                 CONTROL_STATE cs;
-                core.Controls->GetControlState("ILClick", cs);
+                core->Controls->GetControlState("ILClick", cs);
                 if (cs.state == CST_ACTIVATED) m_bDragRoll = true;
                 MouseMove();
             }
@@ -154,7 +154,7 @@ void CXI_SCROLLER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char
 void CXI_SCROLLER::MakeOwnedControl()
 {
     for (int32_t n = 0; n < static_cast<int32_t>(m_asOwnedNodes.size()); n++) {
-        auto* const pNode = static_cast<XINTERFACE*>(core.GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
+        auto* const pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
         if (!pNode) continue;
         switch (pNode->m_nNodeType) {
         case NODETYPE_FORMATEDTEXTS: static_cast<CXI_FORMATEDTEXT*>(pNode)->SetPointer(m_fPos); break;
@@ -162,14 +162,14 @@ void CXI_SCROLLER::MakeOwnedControl()
         case NODETYPE_QTEXTS: static_cast<CXI_QUESTTEXTS*>(pNode)->ScrollerChanged(m_fPos); break;
         case NODETYPE_QTITLE: static_cast<CXI_QUESTTITLE*>(pNode)->ScrollerChanged(m_fPos); break;
 
-        default: core.Trace("Warning! Control %s owned not legal type of control (%s).", m_nodeName, pNode->m_nodeName);
+        default: core->Trace("Warning! Control %s owned not legal type of control (%s).", m_nodeName, pNode->m_nodeName);
         }
     }
 }
 
 void CXI_SCROLLER::UpPress()
 {
-    core.Event("ScrollTopChange", "l", -1);
+    core->Event("ScrollTopChange", "l", -1);
     auto const fDelta = GetOwnedStep();
     if (fDelta != 0.f) {
         SetRollerPos(m_fPos - fDelta);
@@ -179,7 +179,7 @@ void CXI_SCROLLER::UpPress()
 
 void CXI_SCROLLER::DownPress()
 {
-    core.Event("ScrollTopChange", "l", 1);
+    core->Event("ScrollTopChange", "l", 1);
     auto const fDelta = GetOwnedStep();
     if (fDelta != 0.f) {
         SetRollerPos(m_fPos + fDelta);
@@ -191,7 +191,7 @@ float CXI_SCROLLER::GetOwnedStep()
 {
     CINODE* pNode = nullptr;
     for (int32_t n = 0; n < static_cast<int32_t>(m_asOwnedNodes.size()); n++) {
-        pNode = static_cast<XINTERFACE*>(core.GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
+        pNode = static_cast<XInterface*>(core->GetEntityPointer(g_idInterface))->FindNode(m_asOwnedNodes[n].c_str(), nullptr);
         if (pNode) break;
     }
     if (!pNode) return 0.f;
@@ -201,7 +201,7 @@ float CXI_SCROLLER::GetOwnedStep()
     case NODETYPE_QTEXTS: return static_cast<CXI_QUESTTEXTS*>(pNode)->GetLineStep(); break;
     case NODETYPE_QTITLE: return static_cast<CXI_QUESTTITLE*>(pNode)->GetLineStep(); break;
 
-    default: core.Trace("Warning! Control %s owned not legal type of control (%s).", m_nodeName, pNode->m_nodeName);
+    default: core->Trace("Warning! Control %s owned not legal type of control (%s).", m_nodeName, pNode->m_nodeName);
     }
     return 0.f;
 }
@@ -236,7 +236,7 @@ void CXI_SCROLLER::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -265,7 +265,7 @@ void CXI_SCROLLER::LinkNodeChanged(float fPos)
 {
     if (m_fPos == fPos) return;
     SetRollerPos(fPos);
-    core.Event("ScrollPosChange", "fs", fPos, m_nodeName);
+    core->Event("ScrollPosChange", "fs", fPos, m_nodeName);
 }
 
 void CXI_SCROLLER::FillVertexBuffer()
@@ -341,7 +341,7 @@ void CXI_SCROLLER::MouseMove()
 
         float const newPos = (fY - m_rollerPlace.top - m_rollerHeight * .5f) / (m_rollerPlace.bottom - m_rollerPlace.top - m_rollerHeight);
         SetRollerPos(newPos);
-        core.Event("ScrollPosChange", "fs", newPos, m_nodeName);
+        core->Event("ScrollPosChange", "fs", newPos, m_nodeName);
         MakeOwnedControl();
     }
 }

@@ -74,7 +74,7 @@ void CINODE::FrameProcess(uint32_t DeltaTime)
             }
 
             if (m_pCommands[m_nCurrentCommandNumber].sEventName != nullptr)
-                core.Send_Message(
+                core->Send_Message(
                     g_idInterface,
                     "lssl",
                     MSG_INTERFACE_SET_EVENT,
@@ -84,7 +84,7 @@ void CINODE::FrameProcess(uint32_t DeltaTime)
 
             if (m_pCommands[m_nCurrentCommandNumber].sRetControl) {
                 auto* const pTmpNod = ptrOwner->FindNode(m_pCommands[m_nCurrentCommandNumber].sRetControl, nullptr);
-                if (pTmpNod) core.Send_Message(g_idInterface, "lp", MSG_INTERFACE_SET_CURRENT_NODE, pTmpNod);
+                if (pTmpNod) core->Send_Message(g_idInterface, "lp", MSG_INTERFACE_SET_CURRENT_NODE, pTmpNod);
             }
 
             m_nCurrentCommandNumber = -1;
@@ -109,8 +109,8 @@ CINODE* CINODE::DoAction(int wActCode, bool& bBreakPress, bool bFirstPress)
     auto n = i;
     if (m_pCommands[i].bUse) {
         // if(m_pCommands[i].nSound!=0)
-        if (bFirstPress) core.Event(ISOUND_EVENT, "l", 1);
-        // core.Event(ISOUND_EVENT,"l",m_pCommands[i].nSound);
+        if (bFirstPress) core->Event(ISOUND_EVENT, "l", 1);
+        // core->Event(ISOUND_EVENT,"l",m_pCommands[i].nSound);
         // execute command
         while (n != COMMAND_QUANTITY) {
             auto const ac = CommandExecute(pCommandsList[n].code);
@@ -121,10 +121,10 @@ CINODE* CINODE::DoAction(int wActCode, bool& bBreakPress, bool bFirstPress)
         }
         m_nDoDelay = m_pCommands[i].nActionDelay;
         if (n < COMMAND_QUANTITY) {
-            core.Event("ievnt_command", "ss", pCommandsList[n].sName, m_nodeName);
+            core->Event("ievnt_command", "ss", pCommandsList[n].sName, m_nodeName);
             m_nCurrentCommandNumber = n;
         } else {
-            core.Event("ievnt_command", "ss", pCommandsList[i].sName, m_nodeName);
+            core->Event("ievnt_command", "ss", pCommandsList[i].sName, m_nodeName);
             m_nCurrentCommandNumber = i;
         }
     }
@@ -328,7 +328,7 @@ uint32_t CINODE::GetColorFromStr(char const* inStr, uint32_t dwDefColor)
 bool CINODE::CheckByToolTip(float fX, float fY)
 {
     if (m_pToolTip) {
-        m_pToolTip->MousePos(core.GetDeltaTime() * .001f, static_cast<int32_t>(fX), static_cast<int32_t>(fY));
+        m_pToolTip->MousePos(core->GetDeltaTime() * .001f, static_cast<int32_t>(fX), static_cast<int32_t>(fY));
         return true;
     }
     return false;

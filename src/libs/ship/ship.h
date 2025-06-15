@@ -9,7 +9,6 @@
 #include <libs/geometry/geometry.h>
 #include <libs/island/island_base.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "fire_place.h"
@@ -30,7 +29,9 @@
 #define TOPMAST_BEGIN 100  // start of topmast numbering (if any)
 #define HULL_IDENTIFY "shatter"
 
-class SHIP: public SHIP_BASE
+class VDX9RENDER;
+
+class Ship: public SHIP_BASE
 {
 protected:
     // struct section
@@ -165,8 +166,8 @@ protected:
     void InitSailState();
 
 public:
-    ~SHIP() override;
-    SHIP();
+    ~Ship() override;
+    Ship();
 
     float   GetMaxSpeedZ() override;
     float   GetMaxSpeedY() override;
@@ -245,7 +246,7 @@ public:
     bool Mount(ATTRIBUTES*) override;
 
     // inherit functions Entity
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;

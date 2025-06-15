@@ -6,13 +6,11 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
 
-CREATE_CLASS(SINKEFFECT)
+//--------------------------------------------------------------------
+SinkEffect::SinkEffect() : renderer(nullptr), sea(nullptr) {}
 
 //--------------------------------------------------------------------
-SINKEFFECT::SINKEFFECT() : renderer(nullptr), sea(nullptr) {}
-
-//--------------------------------------------------------------------
-SINKEFFECT::~SINKEFFECT()
+SinkEffect::~SinkEffect()
 {
     // GUARD(SINKEFFECT::~SINKEFFECT)
 
@@ -20,15 +18,11 @@ SINKEFFECT::~SINKEFFECT()
 }
 
 //--------------------------------------------------------------------
-bool SINKEFFECT::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SinkEffect::Init()
 {
-    Entity::Init(service_locator);
+    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
-    // GUARD(SINKEFFECT::Init)
-
-    sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
-
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     InitializeSinks();
 
@@ -37,7 +31,7 @@ bool SINKEFFECT::Init(std::shared_ptr<storm::ServiceLocator> const& service_loca
 }
 
 //--------------------------------------------------------------------
-uint64_t SINKEFFECT::ProcessMessage(MESSAGE& message)
+uint64_t SinkEffect::ProcessMessage(MESSAGE& message)
 {
     // GUARD(SINKEFFECT::ProcessMessage)
 
@@ -48,17 +42,17 @@ uint64_t SINKEFFECT::ProcessMessage(MESSAGE& message)
     case MSG_SHIP_DELETE: {
         auto* const attrs = message.AttributePointer();
         if (attrs) {
-            auto&& entities = core.GetEntityIds("ship");
+            auto&& entities = core->GetEntityIds("Ship");
             for (auto ent: entities) {
                 /*
-                shipBase = (SHIP_BASE *) core.GetEntityPointer(shipID);
+                shipBase = (SHIP_BASE *) core->GetEntityPointer(shipID);
                 if (shipBase->GetACharacter() == attrs)
                 {
                   TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
                   return outValue;
                 }*/
 
-                auto* shipBase = static_cast<SHIP_BASE*>(core.GetEntityPointer(ent));
+                auto* shipBase = static_cast<SHIP_BASE*>(core->GetEntityPointer(ent));
                 if (shipBase->GetACharacter() == attrs) {
                     TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
                     return outValue;
@@ -74,7 +68,7 @@ uint64_t SINKEFFECT::ProcessMessage(MESSAGE& message)
 }
 
 //--------------------------------------------------------------------
-void SINKEFFECT::Realize(uint32_t _dTime)
+void SinkEffect::Realize(uint32_t _dTime)
 {
     // GUARD(SINKEFFECT::Realize)
 
@@ -85,11 +79,11 @@ void SINKEFFECT::Realize(uint32_t _dTime)
 }
 
 //--------------------------------------------------------------------
-void SINKEFFECT::Execute(uint32_t _dTime)
+void SinkEffect::Execute(uint32_t _dTime)
 {
     // GUARD(SINKEFFECT::Execute)
     /*
-      if (core.Controls->GetAsyncKeyState('X'))
+      if (core->Controls->GetAsyncKeyState('X'))
       {
         if (renderer && sea)
         {
@@ -117,7 +111,7 @@ void SINKEFFECT::Execute(uint32_t _dTime)
 }
 
 //--------------------------------------------------------------------
-void SINKEFFECT::InitializeSinks()
+void SinkEffect::InitializeSinks()
 {
     // FIXME: hardcode
     auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
@@ -129,7 +123,7 @@ void SINKEFFECT::InitializeSinks()
 }
 
 //--------------------------------------------------------------------
-TSink* SINKEFFECT::TryToAddSink(const CVECTOR& _pos, float _r)
+TSink* SinkEffect::TryToAddSink(const CVECTOR& _pos, float _r)
 {
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i) {
         if (!sinks[i].Enabled()) {

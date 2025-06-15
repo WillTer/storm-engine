@@ -1,8 +1,6 @@
 #pragma once
 
-#include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/ship/ship_base.h>
 
@@ -25,6 +23,8 @@ public:
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
+class VDX9RENDER;
+
 class TFishSchools: public TDynamicSystem
 {
     friend class TFishSchool;

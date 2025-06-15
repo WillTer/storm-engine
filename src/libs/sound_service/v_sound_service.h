@@ -63,7 +63,7 @@ private:
 class VSoundService: public SERVICE
 {
 public:
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override = 0;
+    bool     Init() override = 0;
     uint32_t RunSection() override                                                        = 0;
     void     RunStart() override                                                          = 0;
 

@@ -2,7 +2,6 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
 class COMMON_CAMERA: public Entity
@@ -24,9 +23,9 @@ public:
     {
         Assert(pACharacter);
         // get entity id from loaded ships
-        auto&& entities = core.GetEntityIds("ship");
+        auto&& entities = core->GetEntityIds("Ship");
         for (auto ship: entities) {
-            auto* pObj = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ship));
+            auto* pObj = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ship));
             if (pObj->GetACharacter() == pACharacter) {
                 SetEID(pObj->GetModelEID());
                 SetAIObj(pObj);
@@ -38,7 +37,7 @@ public:
 
     MODEL* GetModelPointer() const
     {
-        return static_cast<MODEL*>(core.GetEntityPointer(eidObject));
+        return static_cast<MODEL*>(core->GetEntityPointer(eidObject));
     }
 
     void SetAIObj(VAI_OBJBASE* _pAIObj)

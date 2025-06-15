@@ -10,7 +10,6 @@
 #endif
 #include <d3d9types.h>
 #include <libs/core/script_libriary.h>
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
 
@@ -77,25 +76,25 @@ extern uint32_t dwSoundBuffersCount;
 extern uint32_t dwSoundBytes;
 extern uint32_t dwSoundBytesCached;
 
-class DX9RENDER_SCRIPT_LIBRIARY: public SCRIPT_LIBRIARY
+class DX9RenderScriptLibrary: public SCRIPT_LIBRIARY
 {
 public:
-    DX9RENDER_SCRIPT_LIBRIARY() {};
+    DX9RenderScriptLibrary() {};
 
-    ~DX9RENDER_SCRIPT_LIBRIARY() override {};
+    ~DX9RenderScriptLibrary() override {};
     bool Init() override;
 };
 
 //-----------SDEVICE-----------
-class DX9RENDER: public VDX9RENDER
+class RendererService: public VDX9RENDER
 {
 #define RS_RECT_VERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 
 public:
-    static DX9RENDER* pRS;
+    static RendererService* pRS;
 
-    DX9RENDER();
-    ~DX9RENDER() override;
+    RendererService();
+    ~RendererService() override;
 
     // DX9Render: Init/Release
     bool InitDevice(bool windowed, HWND hwnd, int32_t width, int32_t height) override;
@@ -383,7 +382,7 @@ public:
         bool                   isSwizzled);
 
     // core interface
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void RunStart() override;
     void RunEnd() override;
 
@@ -653,4 +652,10 @@ private:
 
     bool TextureLoad(int32_t texid);
     bool TextureLoadUsingD3DX(char const* path, int32_t texid);
+};
+
+class LostDeviceSentinel: public SERVICE
+{
+public:
+    void RunStart() override;
 };

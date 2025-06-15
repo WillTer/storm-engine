@@ -13,7 +13,7 @@
 // FIXME: hardcode
 constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
-FLAG::FLAG()
+Flag::Flag()
 {
     bUse          = false;
     RenderService = nullptr;
@@ -29,7 +29,7 @@ FLAG::FLAG()
     nVert = nIndx = 0;
 }
 
-FLAG::~FLAG()
+Flag::~Flag()
 {
     TEXTURE_RELEASE(RenderService, texl);
     STORM_DELETE(gdata);
@@ -43,19 +43,16 @@ FLAG::~FLAG()
     STORM_DELETE(flist);
 }
 
-bool FLAG::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Flag::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(FLAG::FLAG())
     SetDevice();
-    // UNGUARD
     return true;
 }
 
-void FLAG::SetDevice()
+void Flag::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
     globalWind.ang.x = 0.f;
     globalWind.ang.y = 0.f;
@@ -65,17 +62,17 @@ void FLAG::SetDevice()
     texl = RenderService->TextureCreate(textureName_.c_str());
 }
 
-bool FLAG::CreateState(ENTITY_STATE_GEN* state_gen)
+bool Flag::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool FLAG::LoadState(ENTITY_STATE* state)
+bool Flag::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void FLAG::Execute(uint32_t Delta_Time)
+void Flag::Execute(uint32_t Delta_Time)
 {
     if (bFirstRun) {
         FirstRun();
@@ -94,8 +91,8 @@ void FLAG::Execute(uint32_t Delta_Time)
         }
 
         // get the wind value
-        if (auto const ei = core.GetEntityId("weather")) {
-            auto* wb         = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ei));
+        if (auto const ei = core->GetEntityId("Weather")) {
+            auto* wb         = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ei));
             globalWind.ang.x = wb->GetFloat(whf_wind_angle);
             globalWind.ang.z = cosf(globalWind.ang.x);
             globalWind.ang.x = sinf(globalWind.ang.x);
@@ -113,7 +110,7 @@ void FLAG::Execute(uint32_t Delta_Time)
     }
 }
 
-void FLAG::Realize(uint32_t Delta_Time)
+void Flag::Realize(uint32_t Delta_Time)
 {
     if (bUse) {
         //_asm rdtsc _asm mov rtm,eax
@@ -132,7 +129,7 @@ void FLAG::Realize(uint32_t Delta_Time)
     }
 }
 
-uint64_t FLAG::ProcessMessage(MESSAGE& message)
+uint64_t Flag::ProcessMessage(MESSAGE& message)
 {
     auto const code = message.Long();
 
@@ -144,9 +141,9 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
         auto const eidModel = message.EntityID();
         auto const nNation  = message.Long();
 
-        MODEL* host_mdl = static_cast<MODEL*>(core.GetEntityPointer(eidModel));
+        MODEL* host_mdl = static_cast<MODEL*>(core->GetEntityPointer(eidModel));
         if (host_mdl == nullptr) {
-            core.Trace("Missing INIT message to FLAG: bad MODEL");
+            core->Trace("Missing INIT message to FLAG: bad MODEL");
             return 0;
         }
 
@@ -169,7 +166,7 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
             entid_t eidShip                  = message.EntityID();
             gdata[groupQuantity - 1].ship_id = eidShip;
             gdata[groupQuantity - 1].char_attributes =
-                ((VAI_OBJBASE*)core.GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
+                ((VAI_OBJBASE*)core->GetEntityPointer(gdata[groupQuantity - 1].ship_id))->GetACharacter();
         }
 
         NODE*       nod;
@@ -205,8 +202,8 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
         int32_t nNation  = message.Long();
 
         MODEL* host_mdl;
-        host_mdl = (MODEL*)core.GetEntityPointer(eidModel);
-        if (host_mdl == nullptr) { core.Trace("Missing INIT message to FLAG: bad MODEL"); }
+        host_mdl = (MODEL*)core->GetEntityPointer(eidModel);
+        if (host_mdl == nullptr) { core->Trace("Missing INIT message to FLAG: bad MODEL"); }
 
         if (groupQuantity == 0) {
             gdata = new GROUPDATA[1];
@@ -266,7 +263,7 @@ uint64_t FLAG::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void FLAG::SetTextureCoordinate()
+void Flag::SetTextureCoordinate()
 {
     if (bUse && verticesNeedUpdate_) {
         int     i;
@@ -310,7 +307,7 @@ void FLAG::SetTextureCoordinate()
     }
 }
 
-void FLAG::DoMove(FLAGDATA* pr, float delta_time) const
+void Flag::DoMove(FLAGDATA* pr, float delta_time) const
 {
     if (pr == nullptr || pr->bDisabled) return;
     CVECTOR cPos;
@@ -401,7 +398,7 @@ void FLAG::DoMove(FLAGDATA* pr, float delta_time) const
     }
 }
 
-void FLAG::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip, int groupNumber)
+void Flag::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip, int groupNumber)
 {
     FLAGDATA* fd;
 
@@ -468,14 +465,14 @@ void FLAG::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip,
     }
 }
 
-void FLAG::SetAll()
+void Flag::SetAll()
 {
     // set vertex and index buffers
     nVert = nIndx = 0;
     SetAdd(0);
 }
 
-void FLAG::SetTreangle() const
+void Flag::SetTreangle() const
 {
     int i, idx;
 
@@ -495,7 +492,7 @@ void FLAG::SetTreangle() const
     }
 }
 
-void FLAG::LoadIni()
+void Flag::LoadIni()
 {
     // GUARD(FLAG::LoadIni());
     char section[256];
@@ -514,7 +511,7 @@ void FLAG::LoadIni()
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "flagall.tga");
     UpdateTexture(param);
 
-    if (core.GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS) {
+    if (core->GetTargetEngineVersion() <= storm::ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS) {
         FlagTextureQuantity    = static_cast<int>(ini->GetInt(section, "TextureCount", 10));
         FlagTextureQuantityRow = 1;
     } else {
@@ -557,7 +554,7 @@ void FLAG::LoadIni()
     // UNGUARD
 }
 
-uint32_t FLAG::AttributeChanged(ATTRIBUTES* attributes)
+uint32_t Flag::AttributeChanged(ATTRIBUTES* attributes)
 {
     std::string_view const attributeName = attributes->GetThisName();
 
@@ -574,7 +571,7 @@ uint32_t FLAG::AttributeChanged(ATTRIBUTES* attributes)
     return Entity::AttributeChanged(attributes);
 }
 
-void FLAG::FirstRun()
+void Flag::FirstRun()
 {
     if (wFlagLast)
         SetAdd(wFlagLast);
@@ -598,7 +595,7 @@ void FLAG::FirstRun()
     wFlagLast = flagQuantity;
 }
 
-void FLAG::GroupSTORM_DELETE(entid_t m_id)
+void Flag::GroupSTORM_DELETE(entid_t m_id)
 {
     // find a group corresponding to the resulting model
     for (auto gn = 0; gn < groupQuantity; gn++)
@@ -609,7 +606,7 @@ void FLAG::GroupSTORM_DELETE(entid_t m_id)
         }
 }
 
-void FLAG::DoSTORM_DELETE()
+void Flag::DoSTORM_DELETE()
 {
     // go through all deleted groups and remove the flags they contain
     auto ngn = 0;
@@ -696,7 +693,7 @@ void FLAG::DoSTORM_DELETE()
     bUse        = flagQuantity > 0;
 }
 
-void FLAG::SetAdd(int flagNum)
+void Flag::SetAdd(int flagNum)
 {
     VDATA* pvdat;
     // set vertex and index buffers
@@ -740,7 +737,7 @@ void FLAG::SetAdd(int flagNum)
             // set texture number
             if (flist[fn]->isShip)  // ship
             {
-                pvdat = core.Event(
+                pvdat = core->Event(
                     "GetRiggingData",
                     "sllla",
                     "GetShipFlagTexNum",
@@ -749,7 +746,7 @@ void FLAG::SetAdd(int flagNum)
                     flist[fn]->isSpecialFlag,
                     gdata[flist[fn]->HostGroup].char_attributes);
             } else {
-                pvdat = core.Event(
+                pvdat = core->Event(
                     "GetRiggingData",
                     "slll",
                     "GetTownFlagTexNum",
@@ -805,7 +802,7 @@ void FLAG::SetAdd(int flagNum)
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
 }
 
-void FLAG::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
+void Flag::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
 {
     // find the old group
     int oldgn;
@@ -841,7 +838,7 @@ void FLAG::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
     if (fn < flagQuantity) flist[fn]->HostGroup = newgn;
 }
 
-void FLAG::UpdateTexture(std::string_view const& texturePath)
+void Flag::UpdateTexture(std::string_view const& texturePath)
 {
     if (textureName_ != texturePath) {
         textureName_ = texturePath;

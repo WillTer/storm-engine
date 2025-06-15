@@ -22,7 +22,7 @@ public:
 
     ~LegacyDialog() noexcept override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     void ProcessStage(Stage stage, uint32_t delta) override;
 

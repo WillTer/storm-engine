@@ -35,13 +35,13 @@ struct tShipFoamInfo {
     bool         enabled;
 };
 
-class SEAFOAM: public Entity
+class SeaFoam: public Entity
 {
 public:
-    SEAFOAM();
-    ~SEAFOAM() override;
+    SeaFoam();
+    ~SeaFoam() override;
 
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         Init() override;
     uint32_t     AttributeChanged(ATTRIBUTES* pA) override;
     uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);

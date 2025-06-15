@@ -368,7 +368,7 @@ void CSteamDLC::OnOverlayActivated(GameOverlayActivated_t* pCallback)
     } else {
         isOverlayActivated = false;
     }
-    VDATA* pvdat = core.Event("evntSteamOverlayActivated", "l", isOverlayActivated);
+    VDATA* pvdat = core->Event("evntSteamOverlayActivated", "l", isOverlayActivated);
 }
 
 uint32_t CSteamDLC::getDLCCount()

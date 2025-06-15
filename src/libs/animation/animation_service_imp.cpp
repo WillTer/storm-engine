@@ -18,8 +18,6 @@
 #include "an_file.h"
 #include "animation_imp.h"
 
-CREATE_SERVICE(AnimationServiceImp)
-
 //============================================================================================
 
 // Unused animation unload time
@@ -68,7 +66,7 @@ AnimationServiceImp::~AnimationServiceImp()
 {
     for (auto const& animation: animations) {
         if (animation) {
-            core.Trace("No release Animation pnt:0x%x for %s.ani", animation, animation->GetAnimationInfo()->GetName());
+            core->Trace("No release Animation pnt:0x%x for %s.ani", animation, animation->GetAnimationInfo()->GetName());
             delete animation;
         }
     }
@@ -88,8 +86,8 @@ uint32_t AnimationServiceImp::RunSection()
 // Execution functions
 void AnimationServiceImp::RunStart()
 {
-    if (core.Controls->GetDebugAsyncKeyState(VK_F4)) return;
-    auto dltTime = core.GetDeltaTime();
+    if (core->Controls->GetDebugAsyncKeyState(VK_F4)) return;
+    auto dltTime = core->GetDeltaTime();
     if (dltTime > 1000) dltTime = 1000;
     // Check all animations
     for (int32_t i = 0; i < ainfo.size(); i++)
@@ -97,7 +95,7 @@ void AnimationServiceImp::RunStart()
             ainfo[i]->AddDowntime(dltTime);
             if (ainfo[i]->GetDowntime() >= ASRV_DOWNTIME) {
                 // Unloading unused animation
-                // core.Trace("Download animation %s", ainfo[i]->GetName());
+                // core->Trace("Download animation %s", ainfo[i]->GetName());
                 delete ainfo[i];
                 ainfo[i] = nullptr;
             }
@@ -109,7 +107,7 @@ void AnimationServiceImp::RunStart()
             for (dt = dltTime; dt > ASRV_MAXDLTTIME; dt -= ASRV_MAXDLTTIME)
                 animations[i]->Execute(ASRV_MAXDLTTIME);
             if (dt > 0) animations[i]->Execute(dt);
-            // core.Trace("Animation: 0x%.8x Time: %f", animation[i], animation[i]->Player(0).GetPosition());
+            // core->Trace("Animation: 0x%.8x Time: %f", animation[i], animation[i]->Player(0).GetPosition());
         }
 }
 
@@ -150,7 +148,7 @@ void AnimationServiceImp::DeleteAnimation(AnimationImp* ani)
 void AnimationServiceImp::Event(char const* eventName)
 {
     // Sending a message to the system
-    core.Trace("Called function <void AnimationServiceImp::Event(%s)>, please make it.", eventName);
+    core->Trace("Called function <void AnimationServiceImp::Event(%s)>, please make it.", eventName);
 }
 
 // load animation
@@ -161,14 +159,14 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
     // Open the ini file describing the animation
     auto ani = fio->open_ini_file(ani_path);
     if (!ani) {
-        core.Trace("Cannot open animation file %s", ani_path.string().c_str());
+        core->Trace("Cannot open animation file %s", ani_path.string().c_str());
         return -1;
     }
 
     // Get the name of the jfa file with the skeleton
     char an_file_name[MAX_PATH];
     if (!ani->ReadString(nullptr, ASKW_JFA_FILE, an_file_name, MAX_PATH - 1, nullptr)) {
-        core.Trace("Incorrect key \"%s\" in animation file %s.ani", ASKW_JFA_FILE, animationName);
+        core->Trace("Incorrect key \"%s\" in animation file %s.ani", ASKW_JFA_FILE, animationName);
         return -1;
     }
 
@@ -179,7 +177,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
     // read the bones
     if (!LoadAN(an_path.string().c_str(), info)) {
         delete info;
-        core.Trace("Animation file %s is damaged!", an_file_name);
+        core->Trace("Animation file %s is damaged!", an_file_name);
         return -1;
     }
     // Global user data
@@ -191,24 +189,24 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
          isHaveSection      = ani->GetSectionNameNext(section_name, 63)) {
         // Action handling
         if (section_name[0] == 0 || strlen(section_name) >= 64) {
-            core.Trace("Incorrect name action [%s] of animation file %s.ani", section_name, animationName);
+            core->Trace("Incorrect name action [%s] of animation file %s.ani", section_name, animationName);
             continue;
         }
         // Reading the times
         auto const stime = ani->GetInt(section_name, ASKW_STIME, -1);
         if (stime < 0) {
-            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_STIME, section_name, animationName);
+            core->Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_STIME, section_name, animationName);
             continue;
         }
         auto const etime = ani->GetInt(section_name, ASKW_ETIME, -1);
         if (etime < 0) {
-            core.Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_ETIME, section_name, animationName);
+            core->Trace("Incorrect %s in action [%s] of animation file %s.ani", ASKW_ETIME, section_name, animationName);
             continue;
         }
         // Add an action
         auto* aci = info->AddAction(section_name, stime, etime);
         if (aci == nullptr) {
-            core.Trace("Warning! Action [%s] of animation file %s.ani is repeated, skip it", section_name, animationName);
+            core->Trace("Warning! Action [%s] of animation file %s.ani is repeated, skip it", section_name, animationName);
             continue;
         }
         // Playback speed ratio
@@ -226,7 +224,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
             else if (storm::iEquals(key, ASKWAT_RPINGPONG))
                 type = at_rpingpong;
             else {
-                core.Trace(
+                core->Trace(
                     "Incorrect %s in action [%s] of animation file %s.ani\nNo set %s, set type is %s\n",
                     ASKW_TYPE,
                     section_name,
@@ -244,7 +242,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
             else if (storm::iEquals(key, ASKWAL_FALSE))
                 isLoop = false;
             else {
-                core.Trace(
+                core->Trace(
                     "Incorrect %s in action [%s] of animation file %s.ani\nThis parameter (%s) use is default "
                     "value %s\n",
                     ASKW_LOOP,
@@ -262,7 +260,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                 memcpy(key + 257, key, 257);
                 // The beginning of the name
                 if (key[0] != '"') {
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nFirst symbol is not '\"'\n",
                         ASKW_EVENT,
                         key + 257,
@@ -275,7 +273,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                 for (p = 1; key[p] && key[p] != '"'; p++)
                     ;
                 if (!key[p]) {
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nNot found closed symbol '\"'\n",
                         ASKW_EVENT,
                         key + 257,
@@ -284,7 +282,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                     continue;
                 }
                 if (p == 1) {
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nName have zero lenght\n",
                         ASKW_EVENT,
                         key + 257,
@@ -293,7 +291,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                     continue;
                 }
                 if (p > 65) {
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nName have big length (max 63)\n",
                         ASKW_EVENT,
                         key + 257,
@@ -307,7 +305,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                 for (; key[p] && (key[p] < '0' || key[p] > '9'); p++)
                     ;
                 if (!key[p]) {
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s <%s> in action [%s] of animation file %s.ani\nNo found time\n",
                         ASKW_EVENT,
                         key + 257,
@@ -353,7 +351,7 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                     } else if (storm::iEquals(em, ASKWAE_REVERSE)) {
                         ev = eae_reverse;
                     } else {
-                        core.Trace(
+                        core->Trace(
                             "Warning: Incorrect %s <%s> in action [%s] of animation file %s.ani,\nunknow event "
                             "type <%s> -> set is default value\n",
                             ASKW_EVENT,
@@ -363,10 +361,10 @@ int32_t AnimationServiceImp::LoadAnimation(char const* animationName)
                             em);
                     }
                 }
-                // core.Trace("Add event %s, time = %f to action %s", key + 1, (tm - stime)/float(etime - stime), section_name);
+                // core->Trace("Add event %s, time = %f to action %s", key + 1, (tm - stime)/float(etime - stime), section_name);
                 // Add an event
                 if (!aci->AddEvent(key + 1, tm, ev)) {
-                    core.Trace(
+                    core->Trace(
                         "Warning: Incorrect %s <%s> in action [%s] of animation file %s.ani,\nvery many events "
                         "-> ignory it\n",
                         ASKW_EVENT,
@@ -403,13 +401,13 @@ void AnimationServiceImp::LoadUserData(
             // The beginning of the name
             if (key[0] != '"') {
                 if (sectionName)
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in action [%s] of animation file %s.ani\nFirst symbol is not '\"'",
                         ASKW_DATA,
                         sectionName,
                         animationName);
                 else
-                    core.Trace("Incorrect %s in global data of animation file %s.ani\nFirst symbol is not '\"'", ASKW_DATA, animationName);
+                    core->Trace("Incorrect %s in global data of animation file %s.ani\nFirst symbol is not '\"'", ASKW_DATA, animationName);
                 continue;
             }
             // End of name
@@ -418,14 +416,14 @@ void AnimationServiceImp::LoadUserData(
                 ;
             if (!key[p]) {
                 if (sectionName)
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in action [%s] of animation file %s.ani\nNot found closed symbol '\"' for "
                         "data name",
                         ASKW_DATA,
                         sectionName,
                         animationName);
                 else
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in global data of animation file %s.ani\nNot found closed symbol '\"' for "
                         "data name",
                         ASKW_DATA,
@@ -434,23 +432,23 @@ void AnimationServiceImp::LoadUserData(
             }
             if (p == 1) {
                 if (sectionName)
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in action [%s] of animation file %s.ani\nName have zero lenght",
                         ASKW_DATA,
                         sectionName,
                         animationName);
                 else
-                    core.Trace("Incorrect %s in global data of animation file %s.ani\nName have zero lenght", ASKW_DATA, animationName);
+                    core->Trace("Incorrect %s in global data of animation file %s.ani\nName have zero lenght", ASKW_DATA, animationName);
                 continue;
             }
             key[p++] = 0;
             // Checking for data availability
             if (data.count(key + 1)) {
                 if (sectionName)
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in action [%s] of animation file %s.ani\nUser data repeated", ASKW_DATA, sectionName, animationName);
                 else
-                    core.Trace("Incorrect %s in global data of animation file %s.ani\nUser data repeated", ASKW_DATA, animationName);
+                    core->Trace("Incorrect %s in global data of animation file %s.ani\nUser data repeated", ASKW_DATA, animationName);
 
                 continue;
             }
@@ -459,10 +457,10 @@ void AnimationServiceImp::LoadUserData(
                 ;
             if (!key[p]) {
                 if (sectionName)
-                    core.Trace(
+                    core->Trace(
                         "Incorrect %s in action [%s] of animation file %s.ani\nNo data string", ASKW_DATA, sectionName, animationName);
                 else
-                    core.Trace("Incorrect %s in global data of animation file %s.ani\nNo data string", ASKW_DATA, animationName);
+                    core->Trace("Incorrect %s in global data of animation file %s.ani\nNo data string", ASKW_DATA, animationName);
                 continue;
             }
             // Looking for the end of the data string
@@ -471,7 +469,7 @@ void AnimationServiceImp::LoadUserData(
                 ;
             key[p] = 0;
             // Add data
-            // core.Trace("Add user data \"%s\", \"%s\" of \"%s\"", key + 1, uds, sectionName);
+            // core->Trace("Add user data \"%s\", \"%s\" of \"%s\"", key + 1, uds, sectionName);
             data[key + 1] = uds;
         } while (ani->ReadStringNext((char*)sectionName, ASKW_DATA, key, 1023));
     }
@@ -483,14 +481,14 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
     try {
         auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
         if (!fileS.is_open()) {
-            core.Trace("Cannot open file: %s", fname);
+            core->Trace("Cannot open file: %s", fname);
             return false;
         }
         // Reading the file header
         ANFILE::HEADER header;
         fileS.read(reinterpret_cast<char*>(&header), sizeof(ANFILE::HEADER));
         if (header.nFrames <= 0 || header.nJoints <= 0 || header.framesPerSec < 0.0f || header.framesPerSec > 1000.0f) {
-            core.Trace("Incorrect file header in animation file: %s", fname);
+            core->Trace("Incorrect file header in animation file: %s", fname);
             return false;
         }
         // Set animation time
@@ -528,7 +526,7 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
         auto* ang = new Quaternion[header.nFrames];
         for (int32_t i = 0; i < header.nJoints; i++) {
             if (!fileS.read(reinterpret_cast<char*>(ang), header.nFrames * sizeof(*ang))) {
-                core.Trace("Incorrect joint angle block (%i) block in animation file: %s", i, fname);
+                core->Trace("Incorrect joint angle block (%i) block in animation file: %s", i, fname);
 
                 return false;
             }
@@ -547,7 +545,7 @@ bool AnimationServiceImp::LoadAN(char const* fname, AnimationInfo* info)
 
         return true;
     } catch (...) {
-        core.Trace("Error reading animation file: %s", fname);
+        core->Trace("Error reading animation file: %s", fname);
         return false;
     }
 }

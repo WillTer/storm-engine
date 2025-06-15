@@ -24,7 +24,7 @@ uint32_t GetA8R8G8B8_FromFMT(void* p, uint32_t fmt)
     return retVal;
 }
 
-SCRSHOTER::~SCRSHOTER()
+ScrShoter::~ScrShoter()
 {
     if (textureIndex_ != -1 && rs != nullptr) rs->TextureRelease(textureIndex_);
     texture_ = nullptr;
@@ -38,35 +38,32 @@ SCRSHOTER::~SCRSHOTER()
     }
 }
 
-bool SCRSHOTER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ScrShoter::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(SCRSHOTER::Init())
     SetDevice();
-    // UNGUARD
     return true;
 }
 
-void SCRSHOTER::SetDevice()
+void ScrShoter::SetDevice()
 {
     // get render service
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
-void SCRSHOTER::Execute(uint32_t Delta_Time) {}
+void ScrShoter::Execute(uint32_t Delta_Time) {}
 
-void SCRSHOTER::Realize(uint32_t Delta_Time)
+void ScrShoter::Realize(uint32_t Delta_Time)
 {
     if (texture_ == nullptr)
         if (!MakeScreenShot()) {
-            core.Trace("ERROR!!! screen shot create error");
-            core.Event("makescrshot");
+            core->Trace("ERROR!!! screen shot create error");
+            core->Event("makescrshot");
         } else
-            core.Event("makescrshot");
+            core->Event("makescrshot");
 }
 
-bool SCRSHOTER::MakeScreenShot()
+bool ScrShoter::MakeScreenShot()
 {
     int            n;
     D3DLOCKED_RECT inRect, outRect;
@@ -76,12 +73,12 @@ bool SCRSHOTER::MakeScreenShot()
     // make the video card draw all unfinished tasks
     hr = rs->EndScene();
     if (hr != D3D_OK) {
-        core.Trace("ERROR!!! Can`t EndScene");
+        core->Trace("ERROR!!! Can`t EndScene");
         return false;
     }
     hr = rs->BeginScene();
     if (hr != D3D_OK) {
-        core.Trace("ERROR!!! Can`t BeginScene");
+        core->Trace("ERROR!!! Can`t BeginScene");
         return false;
     }
 
@@ -200,7 +197,7 @@ bool SCRSHOTER::MakeScreenShot()
     return hr == D3D_OK;
 }
 
-uint64_t SCRSHOTER::ProcessMessage(MESSAGE& message)
+uint64_t ScrShoter::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SCRSHOT_MAKE: return textureIndex_; break;
@@ -229,7 +226,7 @@ uint64_t SCRSHOTER::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-int32_t SCRSHOTER::FindSaveTexture(char const* fileName) const
+int32_t ScrShoter::FindSaveTexture(char const* fileName) const
 {
     if (!fileName) return -1;
     auto* ps = m_list;
@@ -240,7 +237,7 @@ int32_t SCRSHOTER::FindSaveTexture(char const* fileName) const
     return -1;
 }
 
-char* SCRSHOTER::FindSaveData(char const* fileName) const
+char* ScrShoter::FindSaveData(char const* fileName) const
 {
     if (!fileName) return nullptr;
     SAVETEXTURES* ps = m_list;
@@ -251,7 +248,7 @@ char* SCRSHOTER::FindSaveData(char const* fileName) const
     return nullptr;
 }
 
-int32_t SCRSHOTER::AddSaveTexture(char const* dirName, char const* fileName)
+int32_t ScrShoter::AddSaveTexture(char const* dirName, char const* fileName)
 {
     if (fileName == nullptr) return -1;
     int32_t rval = FindSaveTexture(fileName);
@@ -275,7 +272,7 @@ int32_t SCRSHOTER::AddSaveTexture(char const* dirName, char const* fileName)
     return m_list->textureId;
 }
 
-void SCRSHOTER::DelSaveTexture(char const* fileName)
+void ScrShoter::DelSaveTexture(char const* fileName)
 {
     if (!fileName) return;
     SAVETEXTURES* oldps = nullptr;
@@ -297,7 +294,7 @@ void SCRSHOTER::DelSaveTexture(char const* fileName)
     }
 }
 
-int32_t SCRSHOTER::GetTexFromSave(char* fileName, char** pDatStr) const
+int32_t ScrShoter::GetTexFromSave(char* fileName, char** pDatStr) const
 {
     HRESULT        hr = D3D_OK;
     D3DLOCKED_RECT outRect;
@@ -306,7 +303,7 @@ int32_t SCRSHOTER::GetTexFromSave(char* fileName, char** pDatStr) const
 
     int32_t datSize  = 0;
     char*   pdat     = nullptr;
-    pdat             = static_cast<char*>(core.GetSaveData(fileName, datSize));
+    pdat             = static_cast<char*>(core->GetSaveData(fileName, datSize));
     int32_t startIdx = 0;
     int32_t texSize  = 0;
     if (pdat != nullptr && datSize > sizeof(SAVE_DATA_HANDLE)) {

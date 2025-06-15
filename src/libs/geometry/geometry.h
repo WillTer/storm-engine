@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/service.h>
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geos.h>
 
 class ANIMATION

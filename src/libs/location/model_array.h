@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 
 class Animation;

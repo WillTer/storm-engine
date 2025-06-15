@@ -53,24 +53,24 @@ LRESULT CALLBACK SourceViewWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM l
         case WM_KEYDOWN:
             switch (static_cast<int>(wParam)) {
             case VK_HOME:
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->SetActiveLine(0);
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->SetActiveLine(0);
                 break;
             case VK_END:
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->SetActiveLine(CDebug->SourceView->nLinesNum - 1);
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->SetActiveLine(CDebug->SourceView->nLinesNum - 1);
                 break;
             case 'G': break;
             case 'F':
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->FindModal();
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->SourceView->FindModal();
                 break;
             case 'O':
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->OpenNewFile();
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) CDebug->OpenNewFile();
                 break;
             case VK_F2:
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetAsyncKeyState(VK_SHIFT) < 0) {
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0 && core->Controls->GetAsyncKeyState(VK_SHIFT) < 0) {
                     CDebug->SourceView->ClearAllBookmarks();
                     break;
                 }
-                if (core.Controls->GetAsyncKeyState(VK_CONTROL) < 0) {
+                if (core->Controls->GetAsyncKeyState(VK_CONTROL) < 0) {
                     CDebug->SourceView->ToogleBookmark();
                     break;
                 }
@@ -983,7 +983,7 @@ bool SOURCE_VIEW::SetVariableOnChange(char const* pString, bool bSet)
 
     pStr = GetToken(pStr, sVarName);
     if (!pStr) {
-        pObject = static_cast<VDATA*>(core_internal.GetScriptVariable(sVarName.c_str(), nullptr));
+        pObject = static_cast<VDATA*>(core_internal->GetScriptVariable(sVarName.c_str(), nullptr));
         if (!pObject) return false;
         // set VOC to alone variable
         return true;
@@ -993,13 +993,13 @@ bool SOURCE_VIEW::SetVariableOnChange(char const* pString, bool bSet)
         pStr = GetToken(pStr, sDigit);
         pStr = GetToken(pStr, sToken);
         if (sToken != "]") { return false; }
-        auto* pV = static_cast<VDATA*>(core_internal.GetScriptVariable(sVarName.c_str(), nullptr));
+        auto* pV = static_cast<VDATA*>(core_internal->GetScriptVariable(sVarName.c_str(), nullptr));
         if (!pV) return false;
         sscanf(sDigit.c_str(), "%d", &iDigit);
         pObject = pV->GetArrayElement(iDigit);
         pStr    = GetToken(pStr, sToken);
     } else if (sToken == ".") {
-        pObject = static_cast<VDATA*>(core_internal.GetScriptVariable(sVarName.c_str(), nullptr));
+        pObject = static_cast<VDATA*>(core_internal->GetScriptVariable(sVarName.c_str(), nullptr));
     } else
         return false;
 

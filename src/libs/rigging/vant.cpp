@@ -48,19 +48,16 @@ VANT_BASE::~VANT_BASE()
     nVert = nIndx = 0;
 }
 
-bool VANT_BASE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool VANT_BASE::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(VANT::VANT())
     SetDevice();
-    // UNGUARD
     return true;
 }
 
 void VANT_BASE::SetDevice()
 {
     // get render service
-    RenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
 
     LoadIni();
@@ -115,14 +112,14 @@ void VANT_BASE::Realize(uint32_t Delta_Time)
         pr = tanf(pr * .5f);
         for (auto gn = 0; gn < groupQuantity; gn++)
             if (gdata[gn].nIndx && nVert && (~(gdata[gn].pMatWorld->Pos() - cp)) * pr < fVantMaxDist) {
-                static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[gn].shipEI))->SetLightAndFog(true);
-                static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[gn].shipEI))->SetLights();
+                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLightAndFog(true);
+                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLights();
 
                 RenderService->SetTransform(D3DTS_WORLD, *gdata[gn].pMatWorld);
                 RenderService->DrawBuffer(vBuf, sizeof(VANTVERTEX), iBuf, 0, nVert, gdata[gn].sIndx, gdata[gn].nIndx);
 
-                static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[gn].shipEI))->UnSetLights();
-                static_cast<SHIP_BASE*>(core.GetEntityPointer(gdata[gn].shipEI))->RestoreLightAndFog();
+                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->UnSetLights();
+                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->RestoreLightAndFog();
                 //_asm rdtsc  _asm sub eax,rtm _asm mov rtm,eax
             }
         while (RenderService->TechniqueExecuteNext()) {}
@@ -151,7 +148,7 @@ uint64_t VANT_BASE::ProcessMessage(MESSAGE& message)
         gdata[groupQuantity - 1].shipEI   = message.EntityID();
         gdata[groupQuantity - 1].model_id = message.EntityID();
         MODEL* mdl;
-        mdl = static_cast<MODEL*>(core.GetEntityPointer(gdata[groupQuantity - 1].model_id));
+        mdl = static_cast<MODEL*>(core->GetEntityPointer(gdata[groupQuantity - 1].model_id));
         if (mdl == nullptr) throw std::runtime_error("Bad Vant INIT");
 
         gdata[groupQuantity - 1].pMatWorld = &mdl->mtx;
@@ -541,7 +538,7 @@ void VANT_BASE::SetAll()
     }
 }
 
-void VANT::LoadIni()
+void Vant::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];
@@ -612,7 +609,7 @@ void VANT::LoadIni()
     // UNGUARD
 }
 
-void VANTL::LoadIni()
+void VantL::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];
@@ -683,7 +680,7 @@ void VANTL::LoadIni()
     // UNGUARD
 }
 
-void VANTZ::LoadIni()
+void VantZ::LoadIni()
 {
     // GUARD(VANT::LoadIni());
     char section[256];

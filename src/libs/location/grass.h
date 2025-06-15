@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #include "grs.h"
@@ -113,7 +112,7 @@ public:
     ~Grass() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Work
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);

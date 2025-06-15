@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #include "geometry.h"
@@ -8,13 +7,13 @@
 //-------------------------------------------------------------------
 // animated vertices
 //-------------------------------------------------------------------
-class GEOMETRY final: public VGEOMETRY
+class GeometryService final: public VGEOMETRY
 {
     VDX9RENDER* RenderService;
 
 public:
-    GEOMETRY();
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    GeometryService();
+    bool         Init() override;
     bool         LoadState(ENTITY_STATE* state) override;
     GEOS*        CreateGeometry(char const* file_name, char const* light_file_name, int32_t flags, char const* lmPath) override;
     void         DeleteGeometry(GEOS*) override;

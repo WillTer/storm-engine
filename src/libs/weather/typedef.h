@@ -2,7 +2,6 @@
 
 #include <libs/collide/collide.h>
 #include <libs/core/entity.h>
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/geometry/geos.h>
 #include <libs/math/matrix.h>

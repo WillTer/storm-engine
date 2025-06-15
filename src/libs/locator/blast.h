@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/collide/cannon_trace.h>
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
@@ -19,7 +18,7 @@ using GEOPARTICLE = struct {
     bool    bEffect;
 };
 
-class BLAST: public Entity
+class Blast: public Entity
 {
     VDX9RENDER*              rs;
     VGEOMETRY*               gs;
@@ -32,9 +31,9 @@ class BLAST: public Entity
     entid_t                  Splash;
 
 public:
-    ~BLAST() override;
-    BLAST();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    ~Blast() override;
+    Blast();
+    bool     Init() override;
     uint64_t ProcessMessage(MESSAGE& message) override;
     uint32_t AttributeChanged(ATTRIBUTES*) override;
     void     Realize(uint32_t Delta_Time);

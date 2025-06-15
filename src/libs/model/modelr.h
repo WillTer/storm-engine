@@ -72,7 +72,7 @@ public:
 
 #define MODEL_ANI_MAXBUFFERS 16
 
-class MODELR: public MODEL
+class ModelR: public MODEL
 {
     std::string LightPath, lmPath;
 
@@ -104,9 +104,9 @@ class MODELR: public MODEL
 public:
     NODER* root;
 
-    MODELR();
-    ~MODELR() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    ModelR();
+    ~ModelR() override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;
     void     LostRender();

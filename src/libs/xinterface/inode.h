@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/renderer/video_texture.h>
@@ -9,7 +8,6 @@
 #include "nodes/xi_tooltips.h"
 
 #include "vx_service.h"
-
 
 class CXI_ToolTip;
 

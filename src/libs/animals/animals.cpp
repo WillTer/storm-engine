@@ -3,28 +3,24 @@
 #include <libs/core/core.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(ANIMALS)
-
-ANIMALS::ANIMALS() : seagulls(nullptr), fishSchools(nullptr), butterflies(nullptr)
+Animals::Animals() : seagulls(nullptr), fishSchools(nullptr), butterflies(nullptr)
 {
     seagulls    = new TSeagulls();
     fishSchools = new TFishSchools();
     butterflies = new TButterflies();
 }
 
-ANIMALS::~ANIMALS()
+Animals::~Animals()
 {
     delete seagulls;
     delete fishSchools;
     delete butterflies;
 }
 
-bool ANIMALS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Animals::Init()
 {
-    Entity::Init(service_locator);
-
-    core.AddToLayer(REALIZE, GetId(), 77);
-    core.AddToLayer(EXECUTE, GetId(), 77);
+    core->AddToLayer(REALIZE, GetId(), 77);
+    core->AddToLayer(EXECUTE, GetId(), 77);
 
     seagulls->Init();
     fishSchools->Init();
@@ -33,7 +29,7 @@ bool ANIMALS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
     return true;
 }
 
-uint64_t ANIMALS::ProcessMessage(MESSAGE& message)
+uint64_t Animals::ProcessMessage(MESSAGE& message)
 {
     auto const code     = message.Long();
     uint64_t   outValue = 0;
@@ -54,21 +50,21 @@ uint64_t ANIMALS::ProcessMessage(MESSAGE& message)
     return outValue;
 }
 
-void ANIMALS::Realize(uint32_t _dTime)
+void Animals::Realize(uint32_t _dTime)
 {
     seagulls->Realize(_dTime);
     fishSchools->Realize(_dTime);
     butterflies->Realize(_dTime);
 }
 
-void ANIMALS::Execute(uint32_t _dTime)
+void Animals::Execute(uint32_t _dTime)
 {
     seagulls->Execute(_dTime);
     fishSchools->Execute(_dTime);
     butterflies->Execute(_dTime);
 }
 
-uint32_t ANIMALS::AttributeChanged(ATTRIBUTES* _pA)
+uint32_t Animals::AttributeChanged(ATTRIBUTES* _pA)
 {
     if (*_pA == "midY") { seagulls->SetStartY(this->AttributesPointer->GetAttributeAsFloat("midY")); }
 

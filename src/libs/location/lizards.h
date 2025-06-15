@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #include "lizard.h"
@@ -22,7 +21,7 @@ public:
     ~Lizards() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Update
     void Execute(uint32_t delta_time);
     // Rendering

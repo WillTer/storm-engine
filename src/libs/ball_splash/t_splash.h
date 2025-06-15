@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 // #include "../sound_service/v_sound_service.h"
@@ -23,6 +22,7 @@ struct GRID_VERTEX2 {
     float    tu2, tv2;
 };
 
+class VDX9RENDER;
 class TSplash
 {
 public:

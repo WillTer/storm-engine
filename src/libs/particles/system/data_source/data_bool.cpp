@@ -1,6 +1,5 @@
 #include "data_bool.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 #pragma warning(disable : 4800)
@@ -42,7 +41,7 @@ void DataBool::Load(MemFile* File)
 
 void DataBool::SetName(char const* szName)
 {
-    // core.Trace("DataBool::SetName - '%s'", szName);
+    // core->Trace("DataBool::SetName - '%s'", szName);
     Name = szName;
 }
 

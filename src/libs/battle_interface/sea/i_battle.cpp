@@ -1,7 +1,6 @@
 #include "i_battle.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 #include <libs/util/string_compare.hpp>
@@ -22,35 +21,13 @@
 #include "ship_info_images.h"
 #include "ship_pointer.h"
 
-CREATE_CLASS(BATTLE_INTERFACE)
-
-CREATE_CLASS(ILogAndActions)
-
-CREATE_CLASS(IBoardingStatus)
-
-CREATE_CLASS(BATTLE_LAND_INTERFACE)
-
-CREATE_CLASS(ISPYGLASS)
-
-CREATE_CLASS(SHIPPOINTER)
-
-CREATE_CLASS(ActivePerkShower)
-
-CREATE_CLASS(BITimer)
-
-CREATE_CLASS(ItemEntity)
-
-CREATE_CLASS(WM_INTERFACE)
-
-CREATE_CLASS(BI_InterfaceManager)
-
 SHIP_DESCRIBE_LIST g_ShipList;
 ISLAND_DESCRIBER   g_IslandDescr;
 
 #define MINIMAP_ZOOM_IN "MiniMapZoomIn"
 #define MINIMAP_ZOOM_OUT "MiniMapZoomOut"
 
-BATTLE_INTERFACE::BATTLE_INTERFACE()
+BattleInterface::BattleInterface()
 {
     g_IslandDescr.ReleaseAll();
     g_ShipList.ReleaseAll();
@@ -69,20 +46,18 @@ BATTLE_INTERFACE::BATTLE_INTERFACE()
     m_pShipInfoImages      = nullptr;
 }
 
-BATTLE_INTERFACE::~BATTLE_INTERFACE()
+BattleInterface::~BattleInterface()
 {
     // STORM_DELETE(m_pMessageIcons);
     STORM_DELETE(m_pShipIcon);
     STORM_DELETE(m_pShipInfoImages);
 }
 
-bool BATTLE_INTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BattleInterface::Init()
 {
-    Entity::Init(service_locator);
-
     BIUtils::idBattleInterface = GetId();
 
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -91,7 +66,7 @@ bool BATTLE_INTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& servic
     return true;
 }
 
-void BATTLE_INTERFACE::Execute(uint32_t delta_time)
+void BattleInterface::Execute(uint32_t delta_time)
 {
     m_fCurBlinkTime += delta_time * m_fBlinkSpeed;
     if (m_fCurBlinkTime > PIm2) m_fCurBlinkTime -= PIm2;
@@ -101,15 +76,15 @@ void BATTLE_INTERFACE::Execute(uint32_t delta_time)
         CONTROL_STATE cs;
 
         if (m_bShowBattleNavigator) {
-            core.Controls->GetControlState(MINIMAP_ZOOM_IN, cs);
+            core->Controls->GetControlState(MINIMAP_ZOOM_IN, cs);
             if (cs.state == CST_ACTIVE) BattleNavigator.DecrementScale();
-            core.Controls->GetControlState(MINIMAP_ZOOM_OUT, cs);
+            core->Controls->GetControlState(MINIMAP_ZOOM_OUT, cs);
             if (cs.state == CST_ACTIVE) BattleNavigator.IncrementScale();
         }
 
         if (m_bShowCommandMenu && m_pShipIcon) {
             if (!m_pShipIcon->IsActive()) {
-                core.Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
+                core->Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
                 if (cs.state == CST_ACTIVATED) { m_pShipIcon->SetActive(true); }
             } else {
                 m_pShipIcon->MakeControl();
@@ -121,7 +96,7 @@ void BATTLE_INTERFACE::Execute(uint32_t delta_time)
         {
           if( !m_pShipIcon || !m_pShipIcon->IsActive() )
           {
-            if(!m_bMyShipView) core.Event("blieGetMsgIconRoot");
+            if(!m_bMyShipView) core->Event("blieGetMsgIconRoot");
             m_bMyShipView = true;
           }
           else
@@ -134,11 +109,11 @@ void BATTLE_INTERFACE::Execute(uint32_t delta_time)
     // if(m_pMessageIcons) m_pMessageIcons->Update(delta_time);
 }
 
-void BATTLE_INTERFACE::Realize(uint32_t delta_time)
+void BattleInterface::Realize(uint32_t delta_time)
 {
-    if (core.Controls->GetDebugAsyncKeyState('K') < 0) return;
+    if (core->Controls->GetDebugAsyncKeyState('K') < 0) return;
     if (m_bNeedIslandSet) {
-        core.Trace("Island Set");
+        core->Trace("Island Set");
         BattleNavigator.SetIsland();
         m_bNeedIslandSet = false;
     }
@@ -166,7 +141,7 @@ void BATTLE_INTERFACE::Realize(uint32_t delta_time)
     }
 }
 
-void BATTLE_INTERFACE::LoadIniFile()
+void BattleInterface::LoadIniFile()
 {
     m_fBlinkSpeed = .003f;
     if (AttributesPointer != nullptr) m_fBlinkSpeed = AttributesPointer->GetAttributeAsFloat("blindSpeed", m_fBlinkSpeed);
@@ -206,12 +181,12 @@ void BATTLE_INTERFACE::LoadIniFile()
     }
 }
 
-uint32_t BATTLE_INTERFACE::AttributeChanged(ATTRIBUTES* pAttr)
+uint32_t BattleInterface::AttributeChanged(ATTRIBUTES* pAttr)
 {
     return 0;
 }
 
-uint64_t BATTLE_INTERFACE::ProcessMessage(MESSAGE& message)
+uint64_t BattleInterface::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case BI_MSG_SET_ISLAND:
@@ -294,16 +269,16 @@ uint64_t BATTLE_INTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void BATTLE_INTERFACE::CheckSeaState()
+void BattleInterface::CheckSeaState()
 {
     auto* main_sd = g_ShipList.GetMainCharacterShip();
     if (main_sd == nullptr) return;
 
     int32_t nReloadTargetIndex = -1;
-    auto    sqrRadius          = core.Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "boardRadius", 0.f);
+    auto    sqrRadius          = core->Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "boardRadius", 0.f);
     sqrRadius *= sqrRadius;
     auto minReloadRadius = sqrRadius;
-    auto sqrFreeDistance = core.Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "freeDistance", 500.f);
+    auto sqrFreeDistance = core->Entity_GetAttributeAsFloat(BIUtils::idBattleInterface, "freeDistance", 500.f);
     sqrFreeDistance *= sqrFreeDistance;
 
     auto bSailTo = false, bLandTroops = false, bMap = true;
@@ -339,11 +314,11 @@ void BATTLE_INTERFACE::CheckSeaState()
 
     if (g_IslandDescr.GetFirstEnemyFort() != nullptr) bAttack = true;
 
-    core.Event(BI_EVENT_SET_SEA_STATE, "lllllll", bSailTo, bLandTroops, bMap, bAttack, bDefend, bReload, nReloadTargetIndex);
+    core->Event(BI_EVENT_SET_SEA_STATE, "lllllll", bSailTo, bLandTroops, bMap, bAttack, bDefend, bReload, nReloadTargetIndex);
     m_bShowBattleBorder = !bMap;
 }
 
-void BATTLE_INTERFACE::EnableMessageIcons(VDATA* pvdat)
+void BattleInterface::EnableMessageIcons(VDATA* pvdat)
 {
     /*if(!m_pMessageIcons) return;
     m_pMessageIcons->SetShowMsg(false);

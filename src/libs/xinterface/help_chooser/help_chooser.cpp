@@ -16,7 +16,7 @@ struct HCHOOSER_VERTEX {
 
 extern char* XI_ParseStr(char* inStr, char* buf, size_t bufSize, char devChar = ',');
 
-HELPCHOOSER::HELPCHOOSER()
+HelpChooser::HelpChooser()
 {
     rs               = nullptr;
     m_idMouseTexture = -1;
@@ -28,49 +28,46 @@ HELPCHOOSER::HELPCHOOSER()
     m_psRectName     = nullptr;
 }
 
-HELPCHOOSER::~HELPCHOOSER()
+HelpChooser::~HelpChooser()
 {
     AllRelease();
 }
 
-void HELPCHOOSER::SetDevice()
+void HelpChooser::SetDevice()
 {
     // get render service
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 }
 
-bool HELPCHOOSER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool HelpChooser::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(HELPCHOOSER::Init())
     SetDevice();
-    // UNGUARD
     return true;
 }
 
-void HELPCHOOSER::Execute(uint32_t Delta_Time)
+void HelpChooser::Execute(uint32_t Delta_Time)
 {
     int32_t       newCurRect;
     CONTROL_STATE cs;
 
     auto const bMouseMoved = MouseMove();
 
-    core.Controls->GetControlState("HelpChooser_Cancel", cs);
+    core->Controls->GetControlState("HelpChooser_Cancel", cs);
     if (cs.state == CST_ACTIVATED) {
-        core.Event("EventEndHelpChooser", "s", "");
+        core->Event("EventEndHelpChooser", "s", "");
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Action", cs);
+    core->Controls->GetControlState("HelpChooser_Action", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nCurRect >= 0 && m_nCurRect < m_nRectQ && m_psRectName != nullptr) {
-            core.Event("EventEndHelpChooser", "s", m_psRectName[m_nCurRect]);
+            core->Event("EventEndHelpChooser", "s", m_psRectName[m_nCurRect]);
         }
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Next", cs);
+    core->Controls->GetControlState("HelpChooser_Next", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nCurRect < m_nRectQ - 1)
             SetRectangle(m_nCurRect + 1);
@@ -79,7 +76,7 @@ void HELPCHOOSER::Execute(uint32_t Delta_Time)
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Prev", cs);
+    core->Controls->GetControlState("HelpChooser_Prev", cs);
     if (cs.state == CST_ACTIVATED) {
         if (m_nCurRect > 0)
             SetRectangle(m_nCurRect - 1);
@@ -88,35 +85,35 @@ void HELPCHOOSER::Execute(uint32_t Delta_Time)
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Left", cs);
+    core->Controls->GetControlState("HelpChooser_Left", cs);
     if (cs.state == CST_ACTIVATED) {
         SetRectangle(GetRectangleLeft());
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Right", cs);
+    core->Controls->GetControlState("HelpChooser_Right", cs);
     if (cs.state == CST_ACTIVATED) {
         SetRectangle(GetRectangleRight());
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Up", cs);
+    core->Controls->GetControlState("HelpChooser_Up", cs);
     if (cs.state == CST_ACTIVATED) {
         SetRectangle(GetRectangleUp());
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_Down", cs);
+    core->Controls->GetControlState("HelpChooser_Down", cs);
     if (cs.state == CST_ACTIVATED) {
         SetRectangle(GetRectangleDown());
         return;
     }
 
-    core.Controls->GetControlState("HelpChooser_LeftClick", cs);
+    core->Controls->GetControlState("HelpChooser_LeftClick", cs);
     if (cs.state == CST_ACTIVATED) {
         newCurRect = GetRectangleFromPos(m_fCurMouseX, m_fCurMouseY);
         if (newCurRect >= 0 && newCurRect < m_nRectQ) {
-            core.Event("EventEndHelpChooser", "s", m_psRectName[newCurRect]);
+            core->Event("EventEndHelpChooser", "s", m_psRectName[newCurRect]);
             return;
         }
     }
@@ -138,7 +135,7 @@ void HELPCHOOSER::Execute(uint32_t Delta_Time)
     rs->UnLockVertexBuffer(m_idVBuf);
 }
 
-void HELPCHOOSER::Realize(uint32_t Delta_Time) const
+void HelpChooser::Realize(uint32_t Delta_Time) const
 {
     if (m_idVBuf == -1) return;
 
@@ -157,7 +154,7 @@ void HELPCHOOSER::Realize(uint32_t Delta_Time) const
     }
 }
 
-uint64_t HELPCHOOSER::ProcessMessage(MESSAGE& message)
+uint64_t HelpChooser::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_HELPCHOOSER_START: {
@@ -168,7 +165,7 @@ uint64_t HELPCHOOSER::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void HELPCHOOSER::AllRelease()
+void HelpChooser::AllRelease()
 {
     TEXTURE_RELEASE(rs, m_idMouseTexture);
     TEXTURE_RELEASE(rs, m_idPicTexture);
@@ -182,7 +179,7 @@ void HELPCHOOSER::AllRelease()
     STORM_DELETE(m_psRectName);
 }
 
-bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
+bool HelpChooser::RunChooser(char const* ChooserGroup)
 {
     int   i, j;
     char  param[512];
@@ -195,7 +192,7 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "helpchooser.ini");
     if (!ini) {
-        core.Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 
@@ -272,7 +269,7 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     // create a vertex buffer
     m_idVBuf = rs->CreateVertexBuffer(HCHOOSER_FVF, 18 * sizeof(HCHOOSER_VERTEX), D3DUSAGE_WRITEONLY);
     if (m_idVBuf == -1)
-        core.Trace("WARNING! Can`t create vertex buffer for help chooser");
+        core->Trace("WARNING! Can`t create vertex buffer for help chooser");
     else {
         auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
         if (pv != nullptr) {
@@ -322,11 +319,11 @@ bool HELPCHOOSER::RunChooser(char const* ChooserGroup)
     return true;
 }
 
-void HELPCHOOSER::SetRectangle(int32_t newRectNum)
+void HelpChooser::SetRectangle(int32_t newRectNum)
 {
     if (newRectNum == m_nCurRect) return;
     if (newRectNum < 0 || newRectNum >= m_nRectQ) {
-        core.Trace("WARNING! Wrong rectangle number into HELPCHOOSER");
+        core->Trace("WARNING! Wrong rectangle number into HELPCHOOSER");
         return;
     }
     if (m_idVBuf == -1) return;
@@ -352,7 +349,7 @@ void HELPCHOOSER::SetRectangle(int32_t newRectNum)
     rs->UnLockVertexBuffer(m_idVBuf);
 }
 
-int32_t HELPCHOOSER::GetRectangleLeft() const
+int32_t HelpChooser::GetRectangleLeft() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto const left   = m_pRectList[m_nCurRect].left;
@@ -387,7 +384,7 @@ int32_t HELPCHOOSER::GetRectangleLeft() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleRight() const
+int32_t HelpChooser::GetRectangleRight() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -422,7 +419,7 @@ int32_t HELPCHOOSER::GetRectangleRight() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleUp() const
+int32_t HelpChooser::GetRectangleUp() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -457,7 +454,7 @@ int32_t HELPCHOOSER::GetRectangleUp() const
     return nRectNum;
 }
 
-int32_t HELPCHOOSER::GetRectangleDown() const
+int32_t HelpChooser::GetRectangleDown() const
 {
     if (m_nCurRect < 0 || m_nCurRect >= m_nRectQ || m_pRectList == nullptr) return 0;
     auto       left   = m_pRectList[m_nCurRect].left;
@@ -492,14 +489,14 @@ int32_t HELPCHOOSER::GetRectangleDown() const
     return nRectNum;
 }
 
-bool HELPCHOOSER::MouseMove()
+bool HelpChooser::MouseMove()
 {
     auto oldX = m_fCurMouseX;
     auto oldY = m_fCurMouseY;
 
     CONTROL_STATE csv, csh;
-    core.Controls->GetControlState("ITurnV", csv);
-    core.Controls->GetControlState("ITurnH", csh);
+    core->Controls->GetControlState("ITurnV", csv);
+    core->Controls->GetControlState("ITurnH", csh);
     if (csv.lValue == 0 && csh.lValue == 0) return false;
     m_fCurMouseX += csh.fValue;
     m_fCurMouseY -= csv.fValue;
@@ -515,7 +512,7 @@ bool HELPCHOOSER::MouseMove()
     return false;
 }
 
-int32_t HELPCHOOSER::GetRectangleFromPos(float x, float y) const
+int32_t HelpChooser::GetRectangleFromPos(float x, float y) const
 {
     if (m_pRectList == nullptr) return m_nCurRect;
     x /= m_fScreenWidth;

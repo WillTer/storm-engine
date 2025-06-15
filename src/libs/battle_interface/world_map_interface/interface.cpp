@@ -8,7 +8,7 @@
 #include "ship_command.h"
 #include "ship_sign.h"
 
-WM_INTERFACE::WM_INTERFACE() : rs(nullptr)
+WMInterface::WMInterface() : rs(nullptr)
 {
     m_pShipIcon    = nullptr;
     m_pCommandList = nullptr;
@@ -20,24 +20,22 @@ WM_INTERFACE::WM_INTERFACE() : rs(nullptr)
     m_bVisible = true;
 }
 
-WM_INTERFACE::~WM_INTERFACE()
+WMInterface::~WMInterface()
 {
     STORM_DELETE(m_pShipIcon);
     STORM_DELETE(m_pCommandList);
 }
 
-bool WM_INTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WMInterface::Init()
 {
-    Entity::Init(service_locator);
-
-    rs = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(rs);
 
     LoadIniFile();
     return true;
 }
 
-void WM_INTERFACE::Realize(uint32_t delta_time)
+void WMInterface::Realize(uint32_t delta_time)
 {
     if (m_bVisible) {
         rs->MakePostProcess();
@@ -46,7 +44,7 @@ void WM_INTERFACE::Realize(uint32_t delta_time)
         if (m_pCommandList) {
             if (!m_pCommandList->GetActive()) {
                 CONTROL_STATE cs;
-                core.Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
+                core->Controls->GetControlState(BI_COMMANDS_ACTIVATE_SEA, cs);
                 if (cs.state == CST_ACTIVATED) {
                     m_pCommandList->SetActive(true);
                     m_nCommandMode = BI_COMMODE_COMMAND_SELECT;
@@ -60,7 +58,7 @@ void WM_INTERFACE::Realize(uint32_t delta_time)
     }
 }
 
-uint64_t WM_INTERFACE::ProcessMessage(MESSAGE& message)
+uint64_t WMInterface::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_BATTLE_LAND_MAKE_COMMAND: {
@@ -75,12 +73,12 @@ uint64_t WM_INTERFACE::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-uint32_t WM_INTERFACE::AttributeChanged(ATTRIBUTES* pAttr)
+uint32_t WMInterface::AttributeChanged(ATTRIBUTES* pAttr)
 {
     return 0;
 }
 
-void WM_INTERFACE::LoadIniFile()
+void WMInterface::LoadIniFile()
 {
     m_pShipIcon = new WMShipIcon(GetId(), rs);
     Assert(m_pShipIcon);
@@ -96,30 +94,30 @@ void WM_INTERFACE::LoadIniFile()
     UpdateCommandList();
 }
 
-void WM_INTERFACE::MakeControl()
+void WMInterface::MakeControl()
 {
     CONTROL_STATE cs;
 
-    core.Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CONFIRM, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_ACTIVATE);
 
-    core.Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_LEFTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_LEFT);
 
-    core.Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_RIGHTSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_RIGHT);
 
-    core.Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_UPSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_UP);
 
-    core.Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
+    core->Controls->GetControlState(BI_COMMANDS_DOWNSTEP, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DOWN);
 
-    core.Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
+    core->Controls->GetControlState(BI_COMMANDS_CANCEL, cs);
     if (cs.state == CST_ACTIVATED) ExecuteCommand(BI_MSG_COMMAND_DEACTIVATE);
 }
 
-void WM_INTERFACE::ExecuteCommand(int32_t command)
+void WMInterface::ExecuteCommand(int32_t command)
 {
     switch (command) {
     case BI_MSG_COMMAND_ACTIVATE:
@@ -156,31 +154,31 @@ void WM_INTERFACE::ExecuteCommand(int32_t command)
         }
         break;
 
-    default: core.Trace("Warning! Unknown executing command: %d", command);
+    default: core->Trace("Warning! Unknown executing command: %d", command);
     }
 }
 
-void WM_INTERFACE::UpdateCommandList() const
+void WMInterface::UpdateCommandList() const
 {
     if (m_pCommandList) m_pCommandList->Update(GetCurrentCommandTopLine(), GetCurrentCommandCharacterIndex(), GetCurrentCommandMode());
 }
 
-int32_t WM_INTERFACE::GetCurrentCommandTopLine() const
+int32_t WMInterface::GetCurrentCommandTopLine() const
 {
     return m_pShipIcon->GetLineY(0) + m_nCommandListVerticalOffset;
 }
 
-int32_t WM_INTERFACE::GetCurrentCommandCharacterIndex() const
+int32_t WMInterface::GetCurrentCommandCharacterIndex() const
 {
     return m_nMainCharIndex;
 }
 
-int32_t WM_INTERFACE::GetCurrentCommandMode() const
+int32_t WMInterface::GetCurrentCommandMode() const
 {
     return m_nCommandMode;
 }
 
-bool WM_INTERFACE::IsCommandMenuActive() const
+bool WMInterface::IsCommandMenuActive() const
 {
     if (!m_pCommandList) return false;
     return m_pCommandList->GetActive();

@@ -14,7 +14,6 @@
 #include <string>
 
 #include <libs/animation/animation.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/model/model.h>
 #include <libs/util/string_compare.hpp>
@@ -188,7 +187,7 @@ public:
     virtual ~Character();
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
     // Changing an attribute

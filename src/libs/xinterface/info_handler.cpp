@@ -1,7 +1,6 @@
 #include "info_handler.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 InfoHandler::InfoHandler() : m_rs(nullptr), tex(nullptr) {}
 
@@ -10,25 +9,23 @@ InfoHandler::~InfoHandler()
     if (tex) m_rs->Release(tex);
 }
 
-bool InfoHandler::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool InfoHandler::Init()
 {
-    Entity::Init(service_locator);
-
     // get render service
-    m_rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    m_rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!m_rs) {
-        core.Trace("No service: dx9render");
+        core->Trace("No service: dx9render");
         return false;
     }
     if (m_rs->IsInsideScene()) { m_rs->MakePostProcess(); }
 
     if (!DoPreOut()) {
-        core.Trace("DoPreOut failed");
+        core->Trace("DoPreOut failed");
         return false;
     }
 
     if (!m_rs->GetRenderTargetAsTexture(&tex)) {
-        core.Trace("[InfoHandler] GetRenderTargetAsTexture failed");
+        core->Trace("[InfoHandler] GetRenderTargetAsTexture failed");
         return false;
     }
 

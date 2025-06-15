@@ -67,7 +67,7 @@ void CXI_VIMAGESCROLL::Draw(bool bSelected, uint32_t Delta_Time)
                 m_bDoMove     = false;
 
                 // Set new current image
-                auto* tmpAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+                auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
                 if (tmpAttr != nullptr) tmpAttr->SetAttributeUseDword("current", m_nCurImage);
 
                 ChangeDinamicParameters(0);
@@ -365,7 +365,7 @@ void CXI_VIMAGESCROLL::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
         m_pStrParam[i].m_fScale = GetIniFloat(ini1, name1, ini2, name2, param1, 1.f);
         sprintf_s(param1, sizeof(param1), "font%d", i + 1);
         if (ReadIniString(ini1, name1, ini2, name2, param1, param, sizeof(param), ""))
-            if ((m_pStrParam[i].m_nFont = m_rs->LoadFont(param)) == -1) core.Trace("can not load font:'%s'", param);
+            if ((m_pStrParam[i].m_nFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
         sprintf_s(param1, sizeof(param1), "dwXOffset%d", i + 1);
         m_pStrParam[i].m_nStrX = GetIniLong(ini1, name1, ini2, name2, param1, 0);
         if (m_pStrParam[i].m_nStrX > 0)
@@ -383,7 +383,7 @@ void CXI_VIMAGESCROLL::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
             else if (storm::iEquals(param, "center"))
                 m_pStrParam[i].m_nAlign = PR_ALIGN_CENTER;
             else
-                core.Trace("Warning! unknown align: %s", param);
+                core->Trace("Warning! unknown align: %s", param);
         }
         sprintf_s(param1, sizeof(param1), "dwYOffset%d", i + 1);
         m_pStrParam[i].m_nStrY = GetIniLong(ini1, name1, ini2, name2, param1, 0);
@@ -395,7 +395,7 @@ void CXI_VIMAGESCROLL::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
         m_pStrParam[i].line_space = GetIniLong(ini1, name1, ini2, name2, param1, 24);
     }
 
-    auto* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    auto* pAttribute = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pAttribute != nullptr) {
         // get special technique name and color
         m_dwSpecTechniqueARGB  = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
@@ -604,7 +604,7 @@ float CXI_VIMAGESCROLL::ChangeDinamicParameters(float fYDelta)
                 if (m_Image[curImage].saveName[n] != nullptr) {
                     if (m_Image[curImage].ptex[n] == -1) {
                         m_Image[curImage].ptex[n] =
-                            GetTexFromEvent(core.Event("GetInterfaceTexture", "sl", m_Image[curImage].saveName[n], curImage));
+                            GetTexFromEvent(core->Event("GetInterfaceTexture", "sl", m_Image[curImage].saveName[n], curImage));
                         break;
                     }
                 }
@@ -659,7 +659,7 @@ float CXI_VIMAGESCROLL::ChangeDinamicParameters(float fYDelta)
             if (curImage >= m_nListSize) curImage = 0;
             for (n = 0; n < m_nSlotsQnt; n++) {
                 if (m_Image[curImage].saveName[n] != nullptr && m_Image[curImage].ptex[n] != -1) {
-                    core.Event("DelInterfaceTexture", "s", m_Image[curImage].saveName[n]);
+                    core->Event("DelInterfaceTexture", "s", m_Image[curImage].saveName[n]);
                     m_Image[curImage].ptex[n] = -1;
                 }
             }
@@ -680,7 +680,7 @@ float CXI_VIMAGESCROLL::ChangeDinamicParameters(float fYDelta)
             if (curImage < 0) curImage = m_nListSize - 1;
             for (n = 0; n < m_nSlotsQnt; n++) {
                 if (m_Image[curImage].saveName[n] != nullptr && m_Image[curImage].ptex[n] != -1) {
-                    core.Event("DelInterfaceTexture", "s", m_Image[curImage].saveName[n]);
+                    core->Event("DelInterfaceTexture", "s", m_Image[curImage].saveName[n]);
                     m_Image[curImage].ptex[n] = -1;
                 }
             }
@@ -872,7 +872,7 @@ void CXI_VIMAGESCROLL::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -890,7 +890,7 @@ void CXI_VIMAGESCROLL::SaveParametersToIni()
 
 void CXI_VIMAGESCROLL::ChangeScroll(int nScrollItemNum)
 {
-    ATTRIBUTES* pAttr = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pAttr = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pAttr != nullptr) {
         // check maybe the whole list needs to be changed
         if (nScrollItemNum == -1
@@ -976,7 +976,7 @@ void CXI_VIMAGESCROLL::DeleteImage(int imgNum)
 
     if (m_nCurImage >= m_nListSize - m_nNotUsedQuantity) m_nCurImage = m_nListSize - m_nNotUsedQuantity - 1;
     if (m_nCurImage < 0) m_nCurImage = 0;
-    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pA != nullptr) { pA->SetAttributeUseDword("current", m_nCurImage); }
     ChangeDinamicParameters(0);
 }
@@ -1020,7 +1020,7 @@ void CXI_VIMAGESCROLL::RefreshScroll()
     m_nListSize        = 0;
     m_nNotUsedQuantity = 0;
 
-    ATTRIBUTES* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pAttribute = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pAttribute != nullptr) {
         // get special technique name and color
         m_dwSpecTechniqueARGB  = pAttribute->GetAttributeAsDword("SpecTechniqueColor");
@@ -1171,7 +1171,7 @@ void CXI_VIMAGESCROLL::RefreshScroll()
 
     if (m_nCurImage >= m_nListSize - m_nNotUsedQuantity) m_nCurImage = m_nListSize - m_nNotUsedQuantity - 1;
     if (m_nCurImage < 0) m_nCurImage = 0;
-    ATTRIBUTES* pA = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pA = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pA != nullptr) { pA->SetAttributeUseDword("current", m_nCurImage); }
 
     ChangeDinamicParameters(0);
@@ -1314,7 +1314,7 @@ void CXI_VIMAGESCROLL::UpdateTexturesGroup()
     int const nPrevQ     = m_nGroupQuantity;
 
     // get textures
-    ATTRIBUTES* pAttribute = core.Entity_GetAttributeClass(g_idInterface, m_nodeName);
+    ATTRIBUTES* pAttribute = core->Entity_GetAttributeClass(g_idInterface, m_nodeName);
     if (pAttribute == nullptr) return;
 
     ATTRIBUTES* pA = pAttribute->GetAttributeClass("ImagesGroup");

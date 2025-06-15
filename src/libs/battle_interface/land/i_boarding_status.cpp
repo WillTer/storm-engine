@@ -13,11 +13,9 @@ IBoardingStatus::IBoardingStatus()
 
 IBoardingStatus::~IBoardingStatus() {}
 
-bool IBoardingStatus::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool IBoardingStatus::Init()
 {
-    Entity::Init(service_locator);
-
-    if ((rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"))) == nullptr) {
+    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
         throw std::runtime_error("Can`t create render service");
     }
 
@@ -48,7 +46,7 @@ void IBoardingStatus::Realize(uint32_t delta_time)
 void IBoardingStatus::Create()
 {
     // Set parameters for active action icon
-    auto* pA = core.Entity_GetAttributePointer(GetId());
+    auto* pA = core->Entity_GetAttributePointer(GetId());
     if (pA != nullptr) {
         m_myPos.x    = static_cast<float>(pA->GetAttributeAsDword("myLeft", 10));
         m_myPos.y    = static_cast<float>(pA->GetAttributeAsDword("myTop", 460));

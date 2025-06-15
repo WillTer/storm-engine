@@ -26,7 +26,8 @@ Supervisor::Supervisor() : isDelete(false)
     time      = 0.0f;
     waveTime  = 0.0f;
     curUpdate = 0;
-    player    = nullptr;
+    // character = {};
+    player = nullptr;
 }
 
 Supervisor::~Supervisor()
@@ -34,7 +35,7 @@ Supervisor::~Supervisor()
     isDelete = true;
     for (size_t i = 0; i < character.size(); i++) {
         character[i].c->AlreadyDeleted();
-        core.EraseEntity(character[i].c->GetId());
+        core->EraseEntity(character[i].c->GetId());
     }
 }
 
@@ -176,7 +177,7 @@ void Supervisor::PreUpdate(float dltTime) const
     // Resetting the state of the characters
     for (size_t i = 0; i < character.size(); i++)
         character[i].c->Reset();
-    core.Event("CharactersStateUpdate", "f", dltTime);
+    core->Event("CharactersStateUpdate", "f", dltTime);
 }
 
 void Supervisor::PostUpdate(float dltTime)
@@ -202,8 +203,8 @@ void Supervisor::PostUpdate(float dltTime)
             if (curUpdate >= character.size()) break;
             auto const dlt                = time - character[curUpdate].lastTime;
             character[curUpdate].lastTime = time;
-            if (core.GetEntityPointer(character[curUpdate].c->GetId())) {
-                core.Event("CharacterUpdate", "if", character[curUpdate].c->GetId(), dlt);
+            if (core->GetEntityPointer(character[curUpdate].c->GetId())) {
+                core->Event("CharacterUpdate", "if", character[curUpdate].c->GetId(), dlt);
             }
             curUpdate++;
         }

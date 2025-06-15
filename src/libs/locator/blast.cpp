@@ -7,7 +7,7 @@
 
 #define ANGLESPEED_MUL 0.2f
 
-BLAST::BLAST() : sea_eid(0), Splash(0)
+Blast::Blast() : sea_eid(0), Splash(0)
 {
     rs             = nullptr;
     gs             = nullptr;
@@ -16,26 +16,24 @@ BLAST::BLAST() : sea_eid(0), Splash(0)
     pSea           = nullptr;
 }
 
-BLAST::~BLAST()
+Blast::~Blast()
 {
     for (uint32_t i = 0; i < ItemsNum; i++)
         if (!Item[i].bDouble) delete Item[i].geo;
 }
 
-bool BLAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Blast::Init()
 {
-    Entity::Init(service_locator);
-
-    gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return false;
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) return false;
 
     //    int32_t n;
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles" / "particles.ini");
     if (!ini) {
-        core.Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("not found: %s/particles/particles.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
         return false;
     }
 
@@ -47,12 +45,12 @@ bool BLAST::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
         AddGeometry(name, RandomNum * rand() / RAND_MAX + 1);
     }
 
-    Splash = core.GetEntityId("BallSplash");
+    Splash = core->GetEntityId("BallSplash");
 
     return true;
 }
 
-void BLAST::AddGeometry(char* name, int32_t num)
+void Blast::AddGeometry(char* name, int32_t num)
 {
     // n = ItemsNum;
     // ItemsNum++;
@@ -72,7 +70,7 @@ void BLAST::AddGeometry(char* name, int32_t num)
     ItemsNum += num;
 }
 
-void BLAST::SetBlastCenter(CVECTOR pos, CVECTOR ang)
+void Blast::SetBlastCenter(CVECTOR pos, CVECTOR ang)
 {
     uint32_t n;
     CMatrix  m;
@@ -99,14 +97,14 @@ void BLAST::SetBlastCenter(CVECTOR pos, CVECTOR ang)
     }
 }
 
-void BLAST::ProcessTime(uint32_t DT)
+void Blast::ProcessTime(uint32_t DT)
 {
     uint32_t n;
     float    res;
 
-    if (!core.GetEntityPointer(sea_eid)) {
-        sea_eid = core.GetEntityId("sea");
-        pSea    = static_cast<CANNON_TRACE_BASE*>(core.GetEntityPointer(sea_eid));
+    if (!core->GetEntityPointer(sea_eid)) {
+        sea_eid = core->GetEntityId("Sea");
+        pSea    = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(sea_eid));
     }
 
     auto const Delta_Time = static_cast<float>(DT);  //*0.1;
@@ -138,7 +136,7 @@ void BLAST::ProcessTime(uint32_t DT)
             } else {
                 if (Item[n].pos.y < 0) {
                     Item[n].bEffect = true;
-                    // core.Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
+                    // core->Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
                 }
             }
         }
@@ -147,15 +145,15 @@ void BLAST::ProcessTime(uint32_t DT)
         if(Item[n].pos.y < 0 && !Item[n].bEffect)
         {
           Item[n].bEffect = true;
-          //core.Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
+          //core->Send_Message(Splash,"lfff",MSG_BALLSPLASH_ADD,Item[n].pos.x,Item[n].pos.y,Item[n].pos.z);
 
         }*/
     }
 
-    if (bStop) core.EraseEntity(GetId());
+    if (bStop) core->EraseEntity(GetId());
 }
 
-uint64_t BLAST::ProcessMessage(MESSAGE& message)
+uint64_t Blast::ProcessMessage(MESSAGE& message)
 {
     int32_t code;
     CVECTOR ang;
@@ -183,12 +181,12 @@ uint64_t BLAST::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-uint32_t BLAST::AttributeChanged(ATTRIBUTES* pA)
+uint32_t Blast::AttributeChanged(ATTRIBUTES* pA)
 {
     return 0;
 }
 
-void BLAST::Realize(uint32_t Delta_Time)
+void Blast::Realize(uint32_t Delta_Time)
 {
     uint32_t n;
 

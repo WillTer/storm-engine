@@ -12,7 +12,6 @@
 
 #include <libs/animation/animation.h>
 #include <libs/core/entity.h>
-#include <libs/core/vma.hpp>
 
 class VDX9RENDER;
 
@@ -26,7 +25,7 @@ public:
     virtual ~CharacterAnimationKipper();
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void LockTexture(char const* texture);
 
     void ProcessStage(Stage, uint32_t) override {}

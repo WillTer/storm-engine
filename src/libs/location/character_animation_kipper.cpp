@@ -40,22 +40,20 @@ CharacterAnimationKipper::~CharacterAnimationKipper()
 }
 
 // Initialization
-bool CharacterAnimationKipper::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool CharacterAnimationKipper::Init()
 {
-    Entity::Init(service_locator);
-
     // check that the it's the only one
-    auto&& entities = core.GetEntityIds("CharacterAnimationKipper");
+    auto&& entities = core->GetEntityIds("CharacterAnimationKipper");
     for (auto eid: entities) {
-        if (core.GetEntityPointer(eid) == this) continue;
+        if (core->GetEntityPointer(eid) == this) continue;
 
-        core.Trace("CharacterAnimationKipper::Init() -> CharacterAnimationKipper already created");
+        core->Trace("CharacterAnimationKipper::Init() -> CharacterAnimationKipper already created");
         return false;
     }
 
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
-    auto* asr = static_cast<AnimationService*>(core.GetService("AnimationServiceImp"));
+    auto* asr = static_cast<AnimationService*>(core->GetService("AnimationServiceImp"));
     if (!asr) throw std::runtime_error("Anumation service not created!");
     aniMan   = asr->CreateAnimation("man");
     aniWoman = asr->CreateAnimation("towngirl");

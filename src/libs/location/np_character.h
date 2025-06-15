@@ -207,7 +207,7 @@ private:
 inline Character* NPCharacter::GetAttackedCharacter() const
 {
     if (task.task != npct_fight) return nullptr;
-    return static_cast<Character*>(core.GetEntityPointer(task.target));
+    return static_cast<Character*>(core->GetEntityPointer(task.target));
 }
 
 // Check event

@@ -1,14 +1,9 @@
 #include "particle_service.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 #include "../k2_wrapper/particles.h"
 #include "../manager/particle_manager.h"
-
-CREATE_SERVICE(ParticleService)
-
-CREATE_CLASS(PARTICLES)
 
 ParticleService::ParticleService()
 {
@@ -21,9 +16,9 @@ ParticleService::~ParticleService()
     if (pDefaultManager) pDefaultManager->Release();
     sysDelete = true;
 
-    if (!CreatedManagers.empty()) { core.Trace("Unreleased particles managers found !\n"); }
+    if (!CreatedManagers.empty()) { core->Trace("Unreleased particles managers found !\n"); }
     for (auto n = 0; n < CreatedManagers.size(); n++) {
-        core.Trace("Manager created in %s, Line %d\n", CreatedManagers[n].FileName.c_str(), CreatedManagers[n].Line);
+        core->Trace("Manager created in %s, Line %d\n", CreatedManagers[n].FileName.c_str(), CreatedManagers[n].Line);
         CreatedManagers[n].pManager->Release();
     }
 }
@@ -65,10 +60,8 @@ IParticleManager* ParticleService::GetManagerByIndex(uint32_t Index)
     return CreatedManagers[Index].pManager;
 }
 
-bool ParticleService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ParticleService::Init()
 {
-    SERVICE::Init(service_locator);
-
     pDefaultManager = CreateManagerEx(nullptr, __FILE__, __LINE__);
     Assert(pDefaultManager);
     pDefaultManager->OpenDefaultProject();

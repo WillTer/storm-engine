@@ -4,9 +4,9 @@
 
 AIShipMoveController::AIShipMoveController(AIShip* pShip)
 {
-    // core.CreateEntity(&eidSphere,"modelr");
-    // core.Send_Message(eidSphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
-    // core.AddToLayer("sea_realize",eidSphere,10000);
+    // core->CreateEntity(&eidSphere,"ModelR");
+    // core->Send_Message(eidSphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
+    // core->AddToLayer("sea_realize",eidSphere,10000);
     fMoveTime     = FRAND(2.0f);
     dwCurPnt      = 0;
     vDeflectForce = 0.0f;
@@ -26,9 +26,9 @@ void AIShipMoveController::Execute(float fDeltaTime)
 {
     // return;
     // entid_t    eid;
-    // core.FindClass(&eid,"sea",0);
-    // SEA_BASE * pSea = (SEA_BASE*)core.GetEntityPointer(eid);
-    // MODEL* pModel = (MODEL*)core.GetEntityPointer(eidSphere);
+    // core->FindClass(&eid,"sea",0);
+    // SEA_BASE * pSea = (SEA_BASE*)core->GetEntityPointer(eid);
+    // MODEL* pModel = (MODEL*)core->GetEntityPointer(eidSphere);
     // pModel->mtx.BuildPosition(100.0f,pSea->WaveXZ(100.0f,200.0f),200.0f);
     // pModel->mtx.m[3][3] = 1.0f / 0.1f;
 

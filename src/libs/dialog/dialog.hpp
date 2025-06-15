@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
@@ -32,17 +31,17 @@ constexpr auto BUTTON_STATE_DOWNLIGHT  = 8;
 
 class VSoundService;
 
-class DIALOG final: public Entity
+class Dialog final: public Entity
 {
     static VDX9RENDER* RenderService;
 
 public:
-    DIALOG(DIALOG&&)      = delete;
-    DIALOG(const DIALOG&) = delete;
-    DIALOG();
-    ~DIALOG();
+    Dialog(Dialog&&)      = delete;
+    Dialog(Dialog const&) = delete;
+    Dialog();
+    ~Dialog();
 
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
     void     Realize(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pA);

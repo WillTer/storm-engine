@@ -35,7 +35,7 @@ void ControlTree::ControlChild::Process(float fDeltaTime, ControlTree* pControlT
     }
 
     CONTROL_STATE cs;
-    core.Controls->GetControlState((char*)sControlName.c_str(), cs);
+    core->Controls->GetControlState((char*)sControlName.c_str(), cs);
 
     // if the node is already activated, then calculate the timeout
     if (bActive) {
@@ -126,7 +126,7 @@ void ControlTree::Process()
     }
 
     // process the tree
-    m_RootControl.Process(core.GetDeltaTime() * 0.001f, this);
+    m_RootControl.Process(core->GetDeltaTime() * 0.001f, this);
 
     // remove deactivated controls
     for (n = 0; n < m_aOutControlList.size(); n++) {

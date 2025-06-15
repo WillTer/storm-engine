@@ -1,7 +1,5 @@
 #include "data_graph.h"
 
-#include <libs/core/vma.hpp>
-
 #include "../../i_common/graph_time.h"
 #include "../../i_common/types.h"
 
@@ -143,7 +141,7 @@ void DataGraph::Load(MemFile* File)
         MaxVertex.Val  = fValue;
         MaxGraph.push_back(MaxVertex);
 
-        // core.Trace("Max value %d = %3.2f, %3.2f", i, fTime, fValue);
+        // core->Trace("Max value %d = %3.2f, %3.2f", i, fTime, fValue);
     }
 
     uint32_t MinGraphItemsCount = 0;
@@ -163,7 +161,7 @@ void DataGraph::Load(MemFile* File)
         MinVertex.Val  = fValue;
         MinGraph.push_back(MinVertex);
 
-        // core.Trace("Min value %d = %3.2f, %3.2f", i, fTime, fValue);
+        // core->Trace("Min value %d = %3.2f, %3.2f", i, fTime, fValue);
     }
 
     static char AttribueName[128];
@@ -172,7 +170,7 @@ void DataGraph::Load(MemFile* File)
     Assert(NameLength < 128);
     File->Read(AttribueName, NameLength);
 
-    // core.Trace("Name %s", AttribueName);
+    // core->Trace("Name %s", AttribueName);
 
     SetName(AttribueName);
 
@@ -209,7 +207,7 @@ bool DataGraph::GetRelative() const
 
 void DataGraph::SetName(char const* szName)
 {
-    // core.Trace("DataGraph::SetName - '%s'", szName);
+    // core->Trace("DataGraph::SetName - '%s'", szName);
     Name = szName;
 }
 

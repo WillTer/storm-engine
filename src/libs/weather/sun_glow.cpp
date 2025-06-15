@@ -5,7 +5,7 @@
 
 #include "sky.h"
 
-SUNGLOW::SUNGLOW()
+SunGlow::SunGlow()
 {
     fAlpha                 = 0.0f;
     fAlphaFlare            = 0.0f;
@@ -34,7 +34,7 @@ SUNGLOW::SUNGLOW()
     fBottomClip = 0.f;
 }
 
-SUNGLOW::~SUNGLOW()
+SunGlow::~SunGlow()
 {
     Release();
     if (idRectBuf != -1) {
@@ -43,10 +43,8 @@ SUNGLOW::~SUNGLOW()
     }
 }
 
-bool SUNGLOW::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SunGlow::Init()
 {
-    Entity::Init(service_locator);
-
     pRS = nullptr;
 
     SetDevice();
@@ -54,28 +52,28 @@ bool SUNGLOW::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator
     return true;
 }
 
-void SUNGLOW::SetDevice()
+void SunGlow::SetDevice()
 {
     entid_t ent;
 
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
-    if (!(ent = core.GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
-    pWeather = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ent));
+    if (!(ent = core->GetEntityId("Weather"))) throw std::runtime_error("No found WEATHER entity!");
+    pWeather = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ent));
     Assert(pWeather);
 
-    if (ent = core.GetEntityId("sky"))
-        pSky = static_cast<SKY*>(core.GetEntityPointer(ent));
+    if (ent = core->GetEntityId("Sky"))
+        pSky = static_cast<Sky*>(core->GetEntityPointer(ent));
     else
         pSky = nullptr;
 
     if (idRectBuf == -1) idRectBuf = pRS->CreateVertexBuffer(SUNGLOWVERTEX_FORMAT, sizeof(SUNGLOWVERTEX) * 8, D3DUSAGE_WRITEONLY);
 }
 
-void SUNGLOW::Release()
+void SunGlow::Release()
 {
     if (iSunTex >= 0) pRS->TextureRelease(iSunTex);
     iSunTex = -1;
@@ -92,7 +90,7 @@ void SUNGLOW::Release()
     iReflTexture = -1;
 }
 
-void SUNGLOW::GenerateSunGlow()
+void SunGlow::GenerateSunGlow()
 {
     int32_t iOldTex[16];
     int32_t nTex = 0;
@@ -115,7 +113,7 @@ void SUNGLOW::GenerateSunGlow()
         if (iOldTex[n] >= 0) pRS->TextureRelease(iOldTex[n]);
 }
 
-void SUNGLOW::Execute(uint32_t Delta_Time)
+void SunGlow::Execute(uint32_t Delta_Time)
 {
     if (bHaveGlow) {
         fAlpha += ((bVisible) ? 1.0f : -1.0f) * static_cast<float>(Delta_Time) * Glow.fDecayTime * 0.001f;
@@ -136,7 +134,7 @@ void SUNGLOW::Execute(uint32_t Delta_Time)
     }
 }
 
-float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
+float SunGlow::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
 {
     if (its.empty()) return 2.0f;
 
@@ -146,7 +144,7 @@ float SUNGLOW::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
     return pCollide->Trace(its, vSrc, vDst, nullptr, 0);
 }
 
-void SUNGLOW::Realize(uint32_t Delta_Time)
+void SunGlow::Realize(uint32_t Delta_Time)
 {
     CMatrix OldMatrix, IMatrix, View;
     pRS->GetTransform(D3DTS_VIEW, OldMatrix);
@@ -177,8 +175,8 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
     bVisible       = true;
     fMinAlphaValue = 0.0f;
 
-    auto fSunTrace  = LayerTrace(vCamPos, core.GetEntityIds(SUN_TRACE));
-    auto fSailTrace = LayerTrace(vCamPos, core.GetEntityIds(SAILS_TRACE));
+    auto fSunTrace  = LayerTrace(vCamPos, core->GetEntityIds(SUN_TRACE));
+    auto fSailTrace = LayerTrace(vCamPos, core->GetEntityIds(SAILS_TRACE));
 
     if (fSunTrace <= 1.0f || fSailTrace <= 1.0f) bVisible = false;
     if (fSailTrace <= 1.0f && fSunTrace > 1.0f) {
@@ -186,7 +184,7 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
         fMinAlphaValue = 0.2f;
     }
 
-    /*walker_t pVW = core.LayerGetWalker("sun_trace");
+    /*walker_t pVW = core->LayerGetWalker("sun_trace");
     if (pVW)
     {
       vSrc = vCamPos;
@@ -283,7 +281,7 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
     }
 }
 
-void SUNGLOW::DrawSunMoon()
+void SunGlow::DrawSunMoon()
 {
     auto const fGlowSize = bMoon ? Glow.fMoonSize : Glow.fSunSize;
 
@@ -310,7 +308,7 @@ void SUNGLOW::DrawSunMoon()
     }
 }
 
-uint32_t SUNGLOW::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t SunGlow::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     if (*pAttribute == "isDone") {
         GenerateSunGlow();
@@ -476,7 +474,7 @@ uint32_t SUNGLOW::AttributeChanged(ATTRIBUTES* pAttribute)
     return 0;
 }
 
-void SUNGLOW::DrawReflection() const
+void SunGlow::DrawReflection() const
 {
     if (!bHaveReflection) return;
 
@@ -504,7 +502,7 @@ void SUNGLOW::DrawReflection() const
     pRS->DrawRects(&r_spr, 1, Reflection.sTechnique.c_str(), 0, 0, (bSimpleSea) ? fCoeffX : 1.0f, (bSimpleSea) ? fCoeffY : 1.0f);
 }
 
-uint64_t SUNGLOW::ProcessMessage(MESSAGE& message)
+uint64_t SunGlow::ProcessMessage(MESSAGE& message)
 {
     auto const iCode = message.Long();
 
@@ -518,7 +516,7 @@ uint64_t SUNGLOW::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void SUNGLOW::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float fAngle, char const* pcTechnique, float fBClip) const
+void SunGlow::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float fAngle, char const* pcTechnique, float fBClip) const
 {
     if (idRectBuf == -1) return;
 
@@ -645,9 +643,9 @@ void SUNGLOW::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float 
     pRS->DrawLines( lines, 4, "Line" );*/
 }
 
-float SUNGLOW::GetSunFadeoutFactor(const CVECTOR& vSunPos, float fSunSize)
+float SunGlow::GetSunFadeoutFactor(const CVECTOR& vSunPos, float fSunSize)
 {
     // get a pointer to the sky
-    if (!pSky) { pSky = static_cast<SKY*>(core.GetEntityPointer(core.GetEntityId("sky"))); }
+    if (!pSky) { pSky = static_cast<Sky*>(core->GetEntityPointer(core->GetEntityId("Sky"))); }
     return pSky ? pSky->CalculateAlphaForSun(vSunPos, fSunSize) : 1.0f;
 }

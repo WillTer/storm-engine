@@ -1,12 +1,10 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
 #include <libs/particles/v_particle_system.h>
 #include <libs/renderer/dx9render.h>
-
 
 #define MAX_PS_TEXTURES 8
 #define VERTEXS_ON_PARTICLE 6
@@ -90,11 +88,11 @@ struct TRACK_EVENT {
     float   value;
 };
 
-class PARTICLES;
+class Particles;
 
 class SEAFOAM_PS: VPARTICLE_SYSTEM
 {
-    friend PARTICLES;
+    friend Particles;
     TRACK_EVENT Visibility[TRACK_EVENT_MAX];
     TRACK_EVENT ParticleSize[TRACK_EVENT_MAX];
     TRACK_EVENT ParticleSpeed[TRACK_EVENT_MAX];

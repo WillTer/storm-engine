@@ -11,23 +11,20 @@
 #define INVALID_SHIP_IDX 0xACACAC
 #define DELTA_TIME 80
 
-CREATE_CLASS(TOUCH)
-
-void TOUCH::SetDevices()
+void Touch::SetDevices()
 {
     entid_t ent;
 
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 }
 
-bool TOUCH::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Touch::Init()
 {
-    Entity::Init(service_locator);
     SetDevices();
     return true;
 }
 
-TOUCH::TOUCH() : pRS(nullptr), fCollisionDepth(0), iDeltaTime(0), pShips {}
+Touch::Touch() : pRS(nullptr), fCollisionDepth(0), iDeltaTime(0), pShips {}
 {
     iNumShips   = 0;
     fScale      = 6.0f;
@@ -36,13 +33,13 @@ TOUCH::TOUCH() : pRS(nullptr), fCollisionDepth(0), iDeltaTime(0), pShips {}
     bUseTouch   = false;
 }
 
-TOUCH::~TOUCH()
+Touch::~Touch()
 {
     for (int32_t i = 0; i < iNumShips; i++)
         STORM_DELETE(pShips[i]);
 }
 
-uint64_t TOUCH::ProcessMessage(MESSAGE& message)
+uint64_t Touch::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_SHIP_CREATE:
@@ -70,17 +67,17 @@ int32_t  MaxDepth, CurDepth;
 uint64_t dwRdtsc;
 CVECTOR  vGlobalRecoil;
 
-void TOUCH::Realize(uint32_t DeltaTime)
+void Touch::Realize(uint32_t DeltaTime)
 {
     DrawShips();
 }
 
-void TOUCH::Execute(uint32_t dwCoreDeltaTime)
+void Touch::Execute(uint32_t dwCoreDeltaTime)
 {
     // GUARD(void TOUCH::Execute(uint32_t dwCoreDeltaTime))
     int32_t i;
     entid_t ent;
-    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("Island")));
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
@@ -88,7 +85,7 @@ void TOUCH::Execute(uint32_t dwCoreDeltaTime)
 
     if (dwCoreDeltaTime == 0) return;
     for (i = 0; i < iNumShips; i++) {
-        pShips[i]->pShip = static_cast<SHIP_BASE*>(core.GetEntityPointer(pShips[i]->eID));
+        pShips[i]->pShip = static_cast<SHIP_BASE*>(core->GetEntityPointer(pShips[i]->eID));
         if (pShips[i]->pShip && !pShips[i]->iNumVContour) {
             pShips[i]->pShip->BuildContour(&pShips[i]->vContour[0], pShips[i]->iNumVContour);
         }
@@ -103,18 +100,18 @@ void TOUCH::Execute(uint32_t dwCoreDeltaTime)
         // iDeltaTime = (iTempDeltaTime>DELTA_TIME) ? DELTA_TIME : iTempDeltaTime;
         iDeltaTime = dwCoreDeltaTime;
         for (i = 0; i < iNumShips; i++)
-            Touch(i, INVALID_SHIP_IDX, nullptr, nullptr, 0.0f, 0.0f);
+            touch(i, INVALID_SHIP_IDX, nullptr, nullptr, 0.0f, 0.0f);
     }
 
     FakeTouch();  // just push out the ships that are still in each other
 
-    // if (core.Controls->GetAsyncKeyState('5')) fScale -= 0.1f;
-    // if (core.Controls->GetAsyncKeyState('6')) fScale += 0.1f;
+    // if (core->Controls->GetAsyncKeyState('5')) fScale -= 0.1f;
+    // if (core->Controls->GetAsyncKeyState('6')) fScale += 0.1f;
 
     RDTSC_E(dwRdtsc);
 }
 
-BOOL TOUCH::IsIntersectShipsRects(int32_t idx1, int32_t idx2)
+BOOL Touch::IsIntersectShipsRects(int32_t idx1, int32_t idx2)
 {
     Assert(idx1 >= 0 && idx1 <= iNumShips && idx2 <= iNumShips);
     if (idx2 == ISLAND_CODE) return true;
@@ -133,7 +130,7 @@ BOOL TOUCH::IsIntersectShipsRects(int32_t idx1, int32_t idx2)
     return (bRadiusIntersects);
 }
 
-CVECTOR TOUCH::GetPoint(float x, float y, float xx, float yy, float xscale, float yscale, float fCos, float fSin, POINT ss)
+CVECTOR Touch::GetPoint(float x, float y, float xx, float yy, float xscale, float yscale, float fCos, float fSin, POINT ss)
 {
     CVECTOR vPos;
     vPos.x = xscale * xx;
@@ -144,7 +141,7 @@ CVECTOR TOUCH::GetPoint(float x, float y, float xx, float yy, float xscale, floa
     return vPos;
 }
 
-void TOUCH::DrawLine(std::vector<RS_LINE2D>& aLines, float x1, float y1, float x2, float y2, uint32_t dwColor)
+void Touch::DrawLine(std::vector<RS_LINE2D>& aLines, float x1, float y1, float x2, float y2, uint32_t dwColor)
 {
     RS_LINE2D l1, l2;
     l1.rhw     = 0.5f;
@@ -158,7 +155,7 @@ void TOUCH::DrawLine(std::vector<RS_LINE2D>& aLines, float x1, float y1, float x
     aLines.emplace_back(l2);
 }
 
-void TOUCH::DrawShips()
+void Touch::DrawShips()
 {
     int32_t                i, j;
     CVECTOR                p1, p2;
@@ -220,7 +217,7 @@ void TOUCH::DrawShips()
     if (aLines.size()) pRS->DrawLines2D(&aLines[0], aLines.size() / 2, "Line");
 }
 
-BOOL TOUCH::BuildContour(int32_t ship_idx)
+BOOL Touch::BuildContour(int32_t ship_idx)
 {
     int32_t i, j;
 
@@ -242,7 +239,7 @@ BOOL TOUCH::BuildContour(int32_t ship_idx)
     return true;
 }
 
-BOOL TOUCH::IsPointInContour(CVECTOR* vP, CVECTOR* vContourTemp, int32_t numvContourTemp)
+BOOL Touch::IsPointInContour(CVECTOR* vP, CVECTOR* vContourTemp, int32_t numvContourTemp)
 {
     auto    xx = 1.0f;
     int32_t i;
@@ -264,14 +261,14 @@ BOOL TOUCH::IsPointInContour(CVECTOR* vP, CVECTOR* vContourTemp, int32_t numvCon
     return (xx <= 0.0f);
 }
 
-void TOUCH::GetLineABC(CVECTOR& v1, CVECTOR& v2, float& A, float& B, float& C)
+void Touch::GetLineABC(CVECTOR& v1, CVECTOR& v2, float& A, float& B, float& C)
 {
     A = (v2.z - v1.z);
     B = (v1.x - v2.x);
     C = -v1.x * v2.z + v1.z * v2.x;
 }
 
-CVECTOR TOUCH::GetLineIntersectPoint(CVECTOR& v1, CVECTOR& v2, CVECTOR& o1, CVECTOR& o2)
+CVECTOR Touch::GetLineIntersectPoint(CVECTOR& v1, CVECTOR& v2, CVECTOR& o1, CVECTOR& o2)
 {
     auto  res = CVECTOR(10000.0f, 0.0f, 10000.0f);
     float A1, B1, C1, A2, B2, C2;
@@ -285,7 +282,7 @@ CVECTOR TOUCH::GetLineIntersectPoint(CVECTOR& v1, CVECTOR& v2, CVECTOR& o1, CVEC
 }
 
 // calculate collision point
-BOOL TOUCH::IsIntersectShipsReal(int32_t idx, int32_t cidx, CVECTOR* vPos, CVECTOR* vAng, CVECTOR* vRecoil, float* fPower, float* fSlide)
+BOOL Touch::IsIntersectShipsReal(int32_t idx, int32_t cidx, CVECTOR* vPos, CVECTOR* vAng, CVECTOR* vRecoil, float* fPower, float* fSlide)
 {
     int32_t     i, j;
     int32_t     l_idx1 = -1, l_idx2 = -1;
@@ -387,7 +384,7 @@ BOOL TOUCH::IsIntersectShipsReal(int32_t idx, int32_t cidx, CVECTOR* vPos, CVECT
     return false;
 }
 
-int32_t TOUCH::ProcessImpulse(int32_t iOurIdx, CVECTOR vPos, CVECTOR vDir, float fPowerApplied)
+int32_t Touch::ProcessImpulse(int32_t iOurIdx, CVECTOR vPos, CVECTOR vDir, float fPowerApplied)
 {
     STRENGTH strength {};
     strength.bInertia = false;
@@ -421,7 +418,7 @@ int32_t TOUCH::ProcessImpulse(int32_t iOurIdx, CVECTOR vPos, CVECTOR vDir, float
     return pS1->pShip->AddStrength(&strength);
 }
 
-int32_t TOUCH::GetTouchPoint(int32_t iIdx, const CVECTOR& vPos)
+int32_t Touch::GetTouchPoint(int32_t iIdx, const CVECTOR& vPos)
 {
     return 1;
 }
@@ -432,7 +429,7 @@ int32_t TOUCH::GetTouchPoint(int32_t iIdx, const CVECTOR& vPos)
 // vRecoil - recoil vector
 // fPower - blow power (without mass dependence)
 // fSlide - blow slide coefficient
-float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, float fPower, float fSlide)
+float Touch::touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, float fPower, float fSlide)
 {
     CVECTOR    vPos1, vAng1, vRecoil;
     float      fPower1, fSlide1, fPowerReturn = 0.0f;
@@ -474,7 +471,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
 
         // script event initiate
 
-        core.Event(
+        core->Event(
             SHIP_SHIP2SHIP_COLLISION,
             "llfflfff",
             GetIndex(pOur->GetACharacter()),
@@ -496,7 +493,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
         if (i != idx && i != skip_idx && IsIntersectShipsRects(idx, i)) {
             if (IsSinked(i)) continue;
             if (IsIntersectShipsReal(idx, i, &vPos1, &vAng1, &vRecoil, &fPower1, &fSlide1)) {
-                if (i != ISLAND_CODE) fPower1 = Touch(i, idx, &vPos1, &vAng1, fPower1, fSlide1);  // return recoil power
+                if (i != ISLAND_CODE) fPower1 = touch(i, idx, &vPos1, &vAng1, fPower1, fSlide1);  // return recoil power
 
                 auto       vPosTemp = vPos1, vDirTemp = vRecoil;
                 auto const fAngle = -PI - pShips[idx]->TP[1].vAng.y;
@@ -506,7 +503,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
 
                 // script event initiate
                 auto const iEnemyCharacterIndex = (i == ISLAND_CODE) ? -1 : GetIndex(pShips[i]->pShip->GetACharacter());
-                core.Event(
+                core->Event(
                     (i != ISLAND_CODE) ? SHIP_SHIP2SHIP_COLLISION : SHIP_SHIP2ISLAND_COLLISION,
                     "llfflfff",
                     GetIndex(pOur->GetACharacter()),
@@ -530,7 +527,7 @@ float TOUCH::Touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, 
     return fPowerReturn;
 }
 
-bool TOUCH::IsSinked(int32_t iIndex)
+bool Touch::IsSinked(int32_t iIndex)
 {
     if (iIndex == ISLAND_CODE) return false;
 
@@ -542,7 +539,7 @@ bool TOUCH::IsSinked(int32_t iIndex)
     return false;
 }
 
-BOOL TOUCH::FakeTouch()
+BOOL Touch::FakeTouch()
 {
     CVECTOR    vPos1, vAng1, vRecoil;
     float      fPower1, fSlide1, fPowerReturn = 0.0f;
@@ -595,7 +592,7 @@ BOOL TOUCH::FakeTouch()
     return true;
 }
 
-uint32_t TOUCH::AttributeChanged(ATTRIBUTES* pAttribute)
+uint32_t Touch::AttributeChanged(ATTRIBUTES* pAttribute)
 {
     if (*pAttribute == "CollisionDepth") {
         fCollisionDepth = pAttribute->GetAttributeAsFloat();

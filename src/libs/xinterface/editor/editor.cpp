@@ -7,7 +7,7 @@
 
 #include "list.h"
 
-GIEditor::GIEditor(XINTERFACE* pInterface)
+GIEditor::GIEditor(XInterface* pInterface)
 {
     m_pGIOwner = pInterface;
     m_pRS      = pInterface->RenderService();
@@ -60,7 +60,7 @@ void GIEditor::Render() const
     if (m_bSubNameOn) m_pSubNameList->CheckMouseInside(pntMouse.x, pntMouse.y);
 
     CONTROL_STATE cs;
-    core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
     if (cs.state == CST_ACTIVATED) {
         m_pNodeList->MakeMouseClick(pntMouse.x, pntMouse.y);
         if (m_bSubNameOn) m_pSubNameList->MakeMouseClick(pntMouse.x, pntMouse.y);
@@ -79,8 +79,8 @@ void GIEditor::Render() const
 bool GIEditor::ProcessControl()
 {
     if (!m_bShowMode) {
-        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
-            && core.Controls->GetDebugAsyncKeyState('E') < 0) {
+        if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+            && core->Controls->GetDebugAsyncKeyState('E') < 0) {
             m_bShowMode  = true;
             m_bSubNameOn = false;
             return true;
@@ -88,12 +88,12 @@ bool GIEditor::ProcessControl()
     }
 
     if (m_bShowMode) {
-        if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
-            && core.Controls->GetDebugAsyncKeyState('Q') < 0)
+        if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+            && core->Controls->GetDebugAsyncKeyState('Q') < 0)
             m_bShowMode = false;
 
         CONTROL_STATE cs;
-        core.Controls->GetControlState("IStartButton", cs);
+        core->Controls->GetControlState("IStartButton", cs);
         if (cs.state == CST_INACTIVATED) {
             m_bShowMode = false;
             if (!m_bSubNameOn) {
@@ -111,7 +111,7 @@ bool GIEditor::ProcessControl()
             }
         }
 
-        if (m_bSubNameOn && core.Controls->GetDebugAsyncKeyState(VK_ESCAPE) < 0) { m_bSubNameOn = false; }
+        if (m_bSubNameOn && core->Controls->GetDebugAsyncKeyState(VK_ESCAPE) < 0) { m_bSubNameOn = false; }
 
         return true;
     }
@@ -120,18 +120,18 @@ bool GIEditor::ProcessControl()
 
     auto bMove = false;
     auto bSize = false;
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // moving
+    if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // moving
     {
         bMove = true;
-        if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)  // change the size
+        if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0)  // change the size
         {
             bMove = false;
             bSize = true;
         }
     }
 
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
-        && core.Controls->GetDebugAsyncKeyState('S') < 0) {
+    if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0 && core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0
+        && core->Controls->GetDebugAsyncKeyState('S') < 0) {
         // save real rect to INI considering relative shift
         auto const orig_rect = m_pEditableNode->m_rect;
         m_pEditableNode->GetAbsoluteRectForSave(m_pEditableNode->m_rect, m_pEditableNode->m_nAbsoluteRectVal);
@@ -141,24 +141,24 @@ bool GIEditor::ProcessControl()
 
     if (bMove || bSize) {
         int32_t nHorz = 0;
-        if (core.Controls->GetDebugAsyncKeyState(VK_LEFT) < 0)
-            if (core.Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
+        if (core->Controls->GetDebugAsyncKeyState(VK_LEFT) < 0)
+            if (core->Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
                 nHorz -= 10;
             else
                 nHorz--;
-        if (core.Controls->GetDebugAsyncKeyState(VK_RIGHT) < 0)
-            if (core.Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
+        if (core->Controls->GetDebugAsyncKeyState(VK_RIGHT) < 0)
+            if (core->Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
                 nHorz += 10;
             else
                 nHorz++;
         int32_t nVert = 0;
-        if (core.Controls->GetDebugAsyncKeyState(VK_UP) < 0)
-            if (core.Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
+        if (core->Controls->GetDebugAsyncKeyState(VK_UP) < 0)
+            if (core->Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
                 nVert -= 10;
             else
                 nVert--;
-        if (core.Controls->GetDebugAsyncKeyState(VK_DOWN) < 0)
-            if (core.Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
+        if (core->Controls->GetDebugAsyncKeyState(VK_DOWN) < 0)
+            if (core->Controls->GetDebugAsyncKeyState(VK_MENU) < 0)
                 nVert += 10;
             else
                 nVert++;
@@ -167,7 +167,7 @@ bool GIEditor::ProcessControl()
             if (m_fLastKeyPressTime < 0.f)
                 m_fLastKeyPressTime = 0.f;
             else {
-                m_fLastKeyPressTime += core.GetDeltaTime() * .001f;
+                m_fLastKeyPressTime += core->GetDeltaTime() * .001f;
                 if (m_fLastKeyPressTime < 0.8f) nHorz = nVert = 0;
             }
         } else
@@ -242,7 +242,7 @@ void GIEditor::DelNode(CINODE* pNode) const
 void GIEditor::DrawSizeBox() const
 {
     if (!m_pEditableNode) return;
-    if (core.Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // showing
+    if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // showing
     {
         RS_LINE rsl[8];
         for (int32_t n = 0; n < 8; n++) {
@@ -272,7 +272,7 @@ void GIEditor::DrawSizeBox() const
         // boal -->
         // idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys,
         // left, top, "%s", str
-        auto const& screenSize = core.GetScreenSize();
+        auto const& screenSize = core->GetScreenSize();
         auto const  m_fontID   = m_pGIOwner->GetRenderService()->LoadFont("interface_normal");
         m_pGIOwner->GetRenderService()->ExtPrint(
             m_fontID,

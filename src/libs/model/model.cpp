@@ -1,6 +1,7 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
+#include <spdlog/spdlog.h>
 
 #include "modelr.h"
 
@@ -8,11 +9,9 @@
 #include <DirectXMath.h>
 #endif
 
-CREATE_CLASS(MODELR)
-
 IDirect3DVertexBuffer9* dest_vb;
 
-MODELR::MODELR()
+ModelR::ModelR()
 {
     bSetupFog    = false;
     LightPath[0] = 0;
@@ -30,7 +29,7 @@ MODELR::MODELR()
 
 CMatrix* bones;
 
-MODELR::~MODELR()
+ModelR::~ModelR()
 {
     if (d3dDestVB != nullptr) d3dDestVB->Release();
     delete root;
@@ -41,14 +40,12 @@ MODELR::~MODELR()
     delete idxBuff;
 }
 
-bool MODELR::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ModelR::Init()
 {
-    Entity::Init(service_locator);
-
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
-    GeometyService = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    GeometyService = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!GeometyService) throw std::runtime_error("No service: geometry");
 
     return true;
@@ -161,7 +158,7 @@ void SetChildrenTechnique(NODE* _root, char const* _name)
 //-----------------------------------------------------------------------------------
 GEOS::PLANE ViewPlane[4];
 
-void MODELR::Realize(uint32_t Delta_Time)
+void ModelR::Realize(uint32_t Delta_Time)
 {
     // GUARD(MODELR::Realize)
     if (!root) return;
@@ -262,14 +259,14 @@ void MODELR::Realize(uint32_t Delta_Time)
     // UNGUARD
 }
 
-Animation* MODELR::GetAnimation()
+Animation* ModelR::GetAnimation()
 {
     return ani;
 }
 
-void MODELR::AniRender() {}
+void ModelR::AniRender() {}
 
-uint64_t MODELR::ProcessMessage(MESSAGE& message)
+uint64_t ModelR::ProcessMessage(MESSAGE& message)
 {
     std::string   str;
     int32_t const code = message.Long();
@@ -278,7 +275,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
     case MSG_SEA_REFLECTION_DRAW: Realize(0); break;
     case MSG_MODEL_SET_PARENT: {
         /*entid_t ParentID = message.EntityID();
-        if (core.ValidateEntity(&ParentID))
+        if (core->ValidateEntity(&ParentID))
         {
           parent = (MODEL*)ParentID.pointer;
         }*/
@@ -324,7 +321,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
         if (!root->Init(LightPath.c_str(), str.c_str(), "", CMatrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), mtx, nullptr, lmPath.c_str())) {
             delete root;
             root = nullptr;
-            core.EraseEntity(GetId());
+            core->EraseEntity(GetId());
             return 0;
         }
         // CVECTOR tmp;
@@ -335,7 +332,7 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
     case MSG_MODEL_LOAD_ANI:  // set animation
     {
         str      = message.String();
-        auto asr = static_cast<AnimationService*>(core.GetService("AnimationServiceImp"));
+        auto asr = static_cast<AnimationService*>(core->GetService("AnimationServiceImp"));
         ani      = asr->CreateAnimation(str.c_str());
         if (ani) return 1;
         return 0;
@@ -400,17 +397,17 @@ uint64_t MODELR::ProcessMessage(MESSAGE& message)
     return 1;
 }
 
-NODE* MODELR::GetNode(int32_t n)
+NODE* ModelR::GetNode(int32_t n)
 {
     return root->GetNode(n);
 }
 
-NODE* MODELR::FindNode(char const* cNodeName)
+NODE* ModelR::FindNode(char const* cNodeName)
 {
     return root->FindNode(cNodeName);
 }
 
-void MODELR::Update()
+void ModelR::Update()
 {
     CVECTOR tmp;
     static_cast<NODER*>(root)->Update(mtx, tmp);
@@ -428,7 +425,7 @@ int32_t                clip_nps;
 
 bool AddPolygon(const GEOS::VERTEX* vr, int32_t nv);
 //-------------------------------------------------------------------
-bool MODELR::Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& center, float radius, ADD_POLYGON_FUNC addpoly)
+bool ModelR::Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& center, float radius, ADD_POLYGON_FUNC addpoly)
 {
     clip_p   = planes;
     clip_nps = nplanes;
@@ -444,7 +441,7 @@ bool MODELR::Clip(const PLANE* planes, int32_t nplanes, const CVECTOR& center, f
 
 extern NODE* bestTraceNode;
 //-------------------------------------------------------------------
-char const* MODELR::GetCollideMaterialName()
+char const* ModelR::GetCollideMaterialName()
 {
     GEOS::TRACE_INFO ti;
     if (colideNode->geo->GetCollisionDetails(ti) == false) return "";
@@ -456,7 +453,7 @@ char const* MODELR::GetCollideMaterialName()
 }
 
 //-------------------------------------------------------------------
-bool MODELR::GetCollideTriangle(TRIANGLE& triangle)
+bool ModelR::GetCollideTriangle(TRIANGLE& triangle)
 {
     GEOS::TRACE_INFO ti;
     if (colideNode->geo->GetCollisionDetails(ti) == false) return false;
@@ -469,7 +466,7 @@ bool MODELR::GetCollideTriangle(TRIANGLE& triangle)
 //-------------------------------------------------------------------
 CVECTOR cold[1024 * 1024];
 
-float MODELR::Trace(const CVECTOR& src, const CVECTOR& dst)
+float ModelR::Trace(const CVECTOR& src, const CVECTOR& dst)
 {
     // collision with skinned geometry
     if (ani) {
@@ -479,8 +476,8 @@ float MODELR::Trace(const CVECTOR& src, const CVECTOR& dst)
         float   dlmn      = ~(lmn);
         // hierarchy test
         if (dist2ray2 > dlmn * root->radius * root->radius) return 2.0f;
-        // if(core.Controls->GetAsyncKeyState(0xC0)>=0)    return 2.0f;
-        // if(core.Controls->GetAsyncKeyState(VK_SHIFT)<0 && dist2ray2 > dlmn*root->radius*root->radius)    return 2.0f;
+        // if(core->Controls->GetAsyncKeyState(0xC0)>=0)    return 2.0f;
+        // if(core->Controls->GetAsyncKeyState(VK_SHIFT)<0 && dist2ray2 > dlmn*root->radius*root->radius)    return 2.0f;
 
         // get bones
         bones = &ani->GetAnimationMatrix(0);
@@ -599,12 +596,12 @@ float MODELR::Trace(const CVECTOR& src, const CVECTOR& dst)
 }
 
 //-------------------------------------------------------------------
-NODE* MODELR::GetCollideNode()
+NODE* ModelR::GetCollideNode()
 {
     return colideNode;
 }
 
-void MODELR::FindPlanes(CMatrix const& view, CMatrix const& proj)
+void ModelR::FindPlanes(CMatrix const& view, CMatrix const& proj)
 {
     CVECTOR v[4];
     // left
@@ -669,13 +666,13 @@ void MODELR::FindPlanes(CMatrix const& view, CMatrix const& proj)
     ViewPlane[3].d = (pos.x * ViewPlane[3].nrm.x + pos.y * ViewPlane[3].nrm.y + pos.z * ViewPlane[3].nrm.z);
 }
 
-void MODELR::LostRender()
+void ModelR::LostRender()
 {
     root->ReleaseGeometry();
     rs->Release(d3dDestVB);
 }
 
-void MODELR::RestoreRender()
+void ModelR::RestoreRender()
 {
     root->RestoreGeometry();
     int32_t const fvf = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1;

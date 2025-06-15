@@ -6,7 +6,7 @@
 // Constructor / destructor
 GeomCache::GeomCache()
 {
-    pGS = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    pGS = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGS);
 }
 

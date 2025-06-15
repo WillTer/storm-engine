@@ -129,7 +129,7 @@ public:
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
     std::filesystem::path base_directory_path(BaseDirectory dir) override;
 
-    void init_from_main_config(storm::IConfigLoader& config_loader) override;
+    void init_from_main_config() override;
 
     // ini files section
     void                     close_ini_files();

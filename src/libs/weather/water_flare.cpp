@@ -6,7 +6,7 @@
 
 #define WATERFLARE_DIR "weather/sea/flare/"
 
-WATERFLARE::WATERFLARE()
+WaterFlare::WaterFlare()
 {
     // GUARD(WATERFLARE::WATERFLARE())
     iFlareTex  = -1;
@@ -18,7 +18,7 @@ WATERFLARE::WATERFLARE()
     // UNGUARD
 }
 
-WATERFLARE::~WATERFLARE()
+WaterFlare::~WaterFlare()
 {
     // GUARD(WATERFLARE::~WATERFLARE())
     STORM_DELETE(pRSRect);
@@ -26,49 +26,44 @@ WATERFLARE::~WATERFLARE()
     // UNGUARD
 }
 
-bool WATERFLARE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WaterFlare::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(bool WATERFLARE::Init())
-
-    core.AddToLayer(REALIZE, GetId(), -1);
-    core.AddToLayer(EXECUTE, GetId(), -1);
+    core->AddToLayer(REALIZE, GetId(), -1);
+    core->AddToLayer(EXECUTE, GetId(), -1);
 
     SetDevice();
-
-    // UNGUARD
     return true;
 }
 
-void WATERFLARE::SetDevice()
+void WaterFlare::SetDevice()
 {
     // GUARD(void WATERFLARE::SetDevice())
 
-    RS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    RS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!RS) throw std::runtime_error("No service: dx9render");
 
     entid_t ent;
-    if (!(ent = core.GetEntityId("weather"))) throw std::runtime_error("No found WEATHER entity!");
-    pWeather = static_cast<WEATHER_BASE*>(core.GetEntityPointer(ent));
+    if (!(ent = core->GetEntityId("Weather"))) throw std::runtime_error("No found WEATHER entity!");
+    pWeather = static_cast<WEATHER_BASE*>(core->GetEntityPointer(ent));
 
     // UNGUARD
 }
 
-bool WATERFLARE::CreateState(ENTITY_STATE_GEN* state_gen)
+bool WaterFlare::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     // GUARD(bool WATERFLARE::CreateState(ENTITY_STATE_GEN * state_gen))
     // UNGUARD
     return true;
 }
 
-bool WATERFLARE::LoadState(ENTITY_STATE* state)
+bool WaterFlare::LoadState(ENTITY_STATE* state)
 {
     // GUARD(bool WATERFLARE::LoadState(ENTITY_STATE * state))
     // UNGUARD
     return true;
 }
 
-void WATERFLARE::Execute(uint32_t Delta_Time)
+void WaterFlare::Execute(uint32_t Delta_Time)
 {
     // GUARD(void WATERFLARE::Execute(uint32_t Delta_Time))
 
@@ -85,7 +80,7 @@ void WATERFLARE::Execute(uint32_t Delta_Time)
     // UNGUARD
 }
 
-void WATERFLARE::GenerateFlares()
+void WaterFlare::GenerateFlares()
 {
     iFlaresNum = 1024 + (rand() % 64);
     pRSRect    = static_cast<RS_RECT*>(new RS_RECT[iFlaresNum]);
@@ -99,7 +94,7 @@ void WATERFLARE::GenerateFlares()
     }
 }
 
-void WATERFLARE::Realize(uint32_t Delta_Time) const
+void WaterFlare::Realize(uint32_t Delta_Time) const
 {
     // GUARD(void WATERFLARE::Realize(uint32_t Delta_Time))
 
@@ -115,12 +110,12 @@ void WATERFLARE::Realize(uint32_t Delta_Time) const
     }
 
     RS->TextureSet(0, iFlareTex);
-    RS->DrawRects(pRSRect, iFlaresNum, "waterflare");
+    RS->DrawRects(pRSRect, iFlaresNum, "WaterFlare");
 
     // UNGUARD
 }
 
-void WATERFLARE::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam)
+void WaterFlare::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam)
 {
     // GUARD(void WATERFLARE::ProcessMessage(uint32_t iMsg,uint32_t wParam,uint32_t lParam))
     // UNGUARD

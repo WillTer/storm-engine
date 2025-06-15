@@ -8,13 +8,11 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/rands.h>
 
-CREATE_CLASS(SEA_OPERATOR)
-
 char               dbgs[1024];
 static float const MIN_TIME_DELTA = 0.05f;
 CVECTOR            lastCP;
 
-SEA_OPERATOR::SEA_OPERATOR()
+SeaOperator::SeaOperator()
     : enabled(false)
     , active(false)
     , sea(nullptr)
@@ -33,27 +31,26 @@ SEA_OPERATOR::SEA_OPERATOR()
 {
 }
 
-SEA_OPERATOR::~SEA_OPERATOR() {}
+SeaOperator::~SeaOperator() {}
 
-bool SEA_OPERATOR::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SeaOperator::Init()
 {
-    Entity::Init(service_locator);
-    core.AddToLayer(REALIZE, GetId(), 1);
-    core.AddToLayer(EXECUTE, GetId(), 0);
+    core->AddToLayer(REALIZE, GetId(), 1);
+    core->AddToLayer(EXECUTE, GetId(), 0);
 
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     return true;
 }
 
-uint32_t SEA_OPERATOR::AttributeChanged(ATTRIBUTES* _newAttr)
+uint32_t SeaOperator::AttributeChanged(ATTRIBUTES* _newAttr)
 {
     if (*_newAttr == "FirstInit") FirstInit();
 
     return 0;
 }
 
-uint64_t SEA_OPERATOR::ProcessMessage(MESSAGE& message)
+uint64_t SeaOperator::ProcessMessage(MESSAGE& message)
 {
     if (!enabled) return 0;
 
@@ -65,7 +62,7 @@ uint64_t SEA_OPERATOR::ProcessMessage(MESSAGE& message)
         if (!IsTimeToActivate(false)) break;
 
         auto const firedShip = message.EntityID();
-        if (myShip != static_cast<SHIP_BASE*>(core.GetEntityPointer(firedShip))) break;
+        if (myShip != static_cast<SHIP_BASE*>(core->GetEntityPointer(firedShip))) break;
 
         std::string const& bortName = message.String();
         CVECTOR            direction, destination;
@@ -115,7 +112,7 @@ uint64_t SEA_OPERATOR::ProcessMessage(MESSAGE& message)
     return 0;
 }
 
-void SEA_OPERATOR::Realize(uint32_t dTime)
+void SeaOperator::Realize(uint32_t dTime)
 {
     if (!enabled) return;
 
@@ -136,7 +133,7 @@ void SEA_OPERATOR::Realize(uint32_t dTime)
     }
 }
 
-void SEA_OPERATOR::Execute(uint32_t _dTime)
+void SeaOperator::Execute(uint32_t _dTime)
 {
     if (!enabled) return;
 
@@ -146,11 +143,11 @@ void SEA_OPERATOR::Execute(uint32_t _dTime)
     ProcessActions(_dTime);
 }
 
-void SEA_OPERATOR::FirstInit()
+void SeaOperator::FirstInit()
 {
-    sea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto ent: entities) {
         SetIfMyShip(ent);
     }
@@ -161,7 +158,7 @@ void SEA_OPERATOR::FirstInit()
     if (!myShip) enabled = false;
 }
 
-void SEA_OPERATOR::ProcessActions(uint32_t _dTime)
+void SeaOperator::ProcessActions(uint32_t _dTime)
 {
     if (active) {
         // auto* currentAction = actionBuffer.TopElement(); //~!~
@@ -176,13 +173,13 @@ void SEA_OPERATOR::ProcessActions(uint32_t _dTime)
         StartNewAction();
 }
 
-void SEA_OPERATOR::StartNewAction()
+void SeaOperator::StartNewAction()
 {
     // auto* currentAction = actionBuffer.TopElement(); //~!~
     auto* currentAction = &actionBuffer.front();
     if (active && !currentAction) {
         active = false;
-        core.SetTimeScale(1.0f);
+        core->SetTimeScale(1.0f);
         sinceLastActionTime = 0;
         return;
     }
@@ -195,7 +192,7 @@ void SEA_OPERATOR::StartNewAction()
     currentAction = &actionBuffer.front();
     if (!currentAction) {
         if (active) {
-            core.SetTimeScale(1.0f);
+            core->SetTimeScale(1.0f);
             sinceLastActionTime = 0;
         }
         active = false;
@@ -204,28 +201,28 @@ void SEA_OPERATOR::StartNewAction()
 
     active                    = true;
     currentAction->timePassed = 0;
-    core.SetTimeScale(currentAction->timeK);
+    core->SetTimeScale(currentAction->timeK);
 }
 
-void SEA_OPERATOR::SetIfMyShip(entid_t _shipID)
+void SeaOperator::SetIfMyShip(entid_t _shipID)
 {
-    auto* ship = static_cast<SHIP_BASE*>(core.GetEntityPointer(_shipID));
+    auto* ship = static_cast<SHIP_BASE*>(core->GetEntityPointer(_shipID));
     if (!ship) return;
     auto* attr = ship->GetACharacter();
     if (attr->GetAttribute("MainCharacter")) myShip = ship;
 }
 
-void SEA_OPERATOR::HandleShipHit()
+void SeaOperator::HandleShipHit()
 {
     tAction action;
     action.timeK        = 0.3f;
     action.actionTime   = 5000;
-    action.actionMethod = &SEA_OPERATOR::ShowBallAtMyShip;
+    action.actionMethod = &SeaOperator::ShowBallAtMyShip;
     // actionBuffer.Push(action); //~!~
     actionBuffer.push(action);
 }
 
-void SEA_OPERATOR::HandleShipIdle()
+void SeaOperator::HandleShipIdle()
 {
     tAction action;
 
@@ -238,19 +235,19 @@ void SEA_OPERATOR::HandleShipIdle()
     action.direction.z += startDistance * sinf(startAngle + myShip->GetAng().y);
     action.direction.x += startDistance * cosf(startAngle + myShip->GetAng().y);
 
-    action.actionMethod = &SEA_OPERATOR::ShowMyShipFromPoint;
+    action.actionMethod = &SeaOperator::ShowMyShipFromPoint;
     // actionBuffer.Push(action); // ~!~
     actionBuffer.push(action);
 }
 
-void SEA_OPERATOR::HandleShipFire(entid_t _shipID, char const* _bortName, const CVECTOR& _destination, const CVECTOR& _direction)
+void SeaOperator::HandleShipFire(entid_t _shipID, char const* _bortName, const CVECTOR& _destination, const CVECTOR& _direction)
 {
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
     using std::chrono::system_clock;
 
     auto  bort = BORT_FRONT;
-    auto* ship = static_cast<SHIP_BASE*>(core.GetEntityPointer(_shipID));
+    auto* ship = static_cast<SHIP_BASE*>(core->GetEntityPointer(_shipID));
 
     if (!strcmp(_bortName, "cannonf"))
         bort = BORT_FRONT;
@@ -281,24 +278,24 @@ void SEA_OPERATOR::HandleShipFire(entid_t _shipID, char const* _bortName, const 
     action.attackerShip = ship;
     action.direction    = _direction;
     action.destination  = _destination;
-    action.actionMethod = &SEA_OPERATOR::ShowAttackerBort;
+    action.actionMethod = &SeaOperator::ShowAttackerBort;
     // actionBuffer.Push(action); // ~!~
     actionBuffer.push(action);
 
     action.timeK        = 0.7f;
     action.actionTime   = -1;
-    action.actionMethod = &SEA_OPERATOR::ShowFromBall;
+    action.actionMethod = &SeaOperator::ShowFromBall;
     // actionBuffer.Push(action); //~!~
     actionBuffer.push(action);
 
     action.timeK        = 0.15f;
     action.actionTime   = 5000;
-    action.actionMethod = &SEA_OPERATOR::ShowAroundPoint;
+    action.actionMethod = &SeaOperator::ShowAroundPoint;
     // actionBuffer.Push(action); //~!~
     actionBuffer.push(action);
 }
 
-void SEA_OPERATOR::ShowAttackerBort(tAction* _action)
+void SeaOperator::ShowAttackerBort(tAction* _action)
 {
     auto const shipPosition      = _action->attackerShip->GetPos();
     auto const addY              = 0.5f * _action->attackerShip->GetBoxsize().y;
@@ -315,7 +312,7 @@ void SEA_OPERATOR::ShowAttackerBort(tAction* _action)
     cameraPos.y = 1.0f + sea->WaveXZ(cameraPos.x, cameraPos.z);
 }
 
-void SEA_OPERATOR::ShowFromBall(tAction* _action)
+void SeaOperator::ShowFromBall(tAction* _action)
 {
     auto const timeDistance = static_cast<float>(_action->timePassed) / 60.0f;
     auto const newCameraPos = 0.8f * ballPosition + 0.2f * _action->destination;
@@ -325,10 +322,10 @@ void SEA_OPERATOR::ShowFromBall(tAction* _action)
     cameraTargetPos.y += 0.1f * sinf(timeDistance * 1.3f);
     cameraTargetPos.z += 0.1f * sinf(timeDistance * 1.9f);
     lastCP = cameraPos;
-    core.SetTimeScale(0.3f);
+    core->SetTimeScale(0.3f);
 }
 
-void SEA_OPERATOR::ShowAroundPoint(tAction* _action)
+void SeaOperator::ShowAroundPoint(tAction* _action)
 {
     auto const deltaVector = _action->destination - _action->attackerShip->GetPos();
     auto const aroundAngle = atan2f(deltaVector.z, deltaVector.x);
@@ -340,10 +337,10 @@ void SEA_OPERATOR::ShowAroundPoint(tAction* _action)
     if (~(cameraPos - cameraTargetPos) < 40.0f)
         cameraPos = lastCP + (20.0f + static_cast<float>(_action->timePassed) / 1000.0f) * !(lastCP - finalBallPosition);
 
-    core.SetTimeScale(timeScale);
+    core->SetTimeScale(timeScale);
 }
 
-void SEA_OPERATOR::ShowBallAtMyShip(tAction* _action)
+void SeaOperator::ShowBallAtMyShip(tAction* _action)
 {
     cameraTargetPos      = myShip->GetPos();
     auto const timeK     = (static_cast<float>(_action->timePassed) / _action->actionTime);
@@ -352,10 +349,10 @@ void SEA_OPERATOR::ShowBallAtMyShip(tAction* _action)
     auto const timeScale = MIN_TIME_DELTA + (1.0f - MIN_TIME_DELTA) * powf(timeK, 0.37f);
     if (cameraPos.y < minY) cameraPos.y = minY;
 
-    core.SetTimeScale(timeScale);
+    core->SetTimeScale(timeScale);
 }
 
-void SEA_OPERATOR::ShowMyShipFromPoint(tAction* _action)
+void SeaOperator::ShowMyShipFromPoint(tAction* _action)
 {
     cameraTargetPos = myShip->GetPos();
     cameraPos       = _action->direction;
@@ -363,12 +360,12 @@ void SEA_OPERATOR::ShowMyShipFromPoint(tAction* _action)
     if (cameraPos.y < minY) cameraPos.y = minY;
 }
 
-bool SEA_OPERATOR::IsTimeToActivate(bool _testControls)
+bool SeaOperator::IsTimeToActivate(bool _testControls)
 {
     if (active) return false;
 
     if (_testControls) {
-        uint32_t const lastControlTime = core.Controls->LastControlTime();
+        uint32_t const lastControlTime = core->Controls->LastControlTime();
         if (lastControlTime < idleTime) return false;
     }
 

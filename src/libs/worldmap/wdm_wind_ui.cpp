@@ -312,14 +312,14 @@ void WdmWindUI::LRender(VDX9RENDER* rs)
     if (!wdmObjects->showWindUI) return;
 
     if ((wdmObjects->isNextDayUpdate) || (wdmObjects->forceUpdate)) {
-        auto* data = core.Event("WorldMap_GetMoral");
+        auto* data = core->Event("WorldMap_GetMoral");
         if (data) { morale = data->GetFloat() * 0.02f - 1.0f; }
-        data = core.Event("WorldMap_GetFood");
+        data = core->Event("WorldMap_GetFood");
         if (data) {
             food = static_cast<int32_t>(data->GetFloat() + 0.5f);
             if (food < 0) food = 0;
         }
-        data = core.Event("WorldMap_GetRum");
+        data = core->Event("WorldMap_GetRum");
         if (data) {
             rum = static_cast<int32_t>(data->GetFloat() + 0.5f);
             if (rum < 0) rum = 0;

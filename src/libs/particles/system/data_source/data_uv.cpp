@@ -1,7 +1,5 @@
 #include "data_uv.h"
 
-#include <libs/core/vma.hpp>
-
 // constructor / destructor
 DataUV::DataUV() {}
 
@@ -60,7 +58,7 @@ void DataUV::Load(MemFile* File)
 
 void DataUV::SetName(char const* szName)
 {
-    // core.Trace("DataUV::SetName - '%s'", szName);
+    // core->Trace("DataUV::SetName - '%s'", szName);
     Name = szName;
 }
 

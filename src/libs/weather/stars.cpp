@@ -155,7 +155,7 @@ void Astronomy::STARS::Init(ATTRIBUTES* pAP)
             pVPos[i]    = vPos;
             pVColors[i] = ARGB(s.fAlpha * 255.0f, 255, 255, 255);
         }
-        // core.Trace("Stars: min = %.3f, max = %.3f", fMinMag, fMaxMag);
+        // core->Trace("Stars: min = %.3f, max = %.3f", fMinMag, fMaxMag);
 
         // write all the buffers to a file in order not to recalculate the next time
         auto out_stream = fio->open_file<std::ofstream>(fio->base_directory_path(BaseDirectory::Resource) / "star.dat", std::ios::binary);
@@ -176,8 +176,8 @@ void Astronomy::STARS::Realize(double dDeltaTime, double dHour)
     if (fFadeTimeStart >= 0.f) {
         if ((fFadeTime > 0.f && fFadeValue < 1.f) || (fFadeTime < 0.f && fFadeValue > 0.f)) {
             entid_t eid;
-            if (eid = core.GetEntityId("weather")) {
-                auto fTime = static_cast<WEATHER_BASE*>(core.GetEntityPointer(eid))->GetFloat(whf_time_counter);
+            if (eid = core->GetEntityId("Weather")) {
+                auto fTime = static_cast<WEATHER_BASE*>(core->GetEntityPointer(eid))->GetFloat(whf_time_counter);
                 if (fTime > fFadeTimeStart) {
                     auto fOldFadeValue = fFadeValue;
 
@@ -213,7 +213,7 @@ void Astronomy::STARS::Realize(double dDeltaTime, double dHour)
     if (fabsf(fFov - fPrevFov) > 1e-5f) {
         float fTmpK[5];
         float fTmpRnd[7];
-        m_fTwinklingTime += core.GetDeltaTime() * 0.001f * (0.8f + FRAND(0.2f));
+        m_fTwinklingTime += core->GetDeltaTime() * 0.001f * (0.8f + FRAND(0.2f));
         if (m_fTwinklingTime > PI * 2 * 3 * 5 * 7) m_fTwinklingTime -= PI * 2 * 3 * 5 * 7;
         fTmpK[0] = 0.7f + 0.3f * sinf(m_fTwinklingTime * 0.5f);
         fTmpK[1] = 0.75f + 0.25f * sinf(m_fTwinklingTime * 3.f);
@@ -350,7 +350,7 @@ void Astronomy::STARS::Realize(double dDeltaTime, double dHour)
 
     fPrevFov = fFov;
 
-    // core.Trace("RDTSC = %d", dw1);
+    // core->Trace("RDTSC = %d", dw1);
     // Astronomy::pRS->SetTransform(D3DTS_VIEW, mView);
 }
 
@@ -379,7 +379,7 @@ void Astronomy::STARS::TimeUpdate(ATTRIBUTES* pAP)
     if (!bEnable) return;
     if (iVertexBuffer == -1) {
         bEnable = false;
-        core.Trace("Warning! Weather has not stars parameters");
+        core->Trace("Warning! Weather has not stars parameters");
         return;
     }
 

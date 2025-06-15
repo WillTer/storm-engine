@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/collide/collide.h>
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 
@@ -26,7 +25,7 @@ public:
 
     Shadow();
     ~Shadow() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

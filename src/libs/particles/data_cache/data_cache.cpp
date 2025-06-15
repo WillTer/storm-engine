@@ -1,7 +1,6 @@
 #include "data_cache.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/util/string_compare.hpp>
@@ -32,7 +31,7 @@ void DataCache::CacheSystem(char const* FileName)
     auto sysFile = fio->open_file<std::ifstream>(pathStr, std::ios::binary);
 
     if (!sysFile.is_open()) {
-        core.Trace("Particles: '%s' File not found !!!", pathStr.c_str());
+        core->Trace("Particles: '%s' File not found !!!", pathStr.c_str());
         return;
     }
 
@@ -93,7 +92,7 @@ void DataCache::CreateDataSource(void* pBuffer, uint32_t BufferSize, char const*
     NewDataSource.pData    = new DataSource(Master);
     Cache.push_back(NewDataSource);
 
-    // core.Trace("\nCreate data source for file %s", SourceFileName);
+    // core->Trace("\nCreate data source for file %s", SourceFileName);
 
     auto* ReadFile = new MemFile;
     ReadFile->OpenRead(pBuffer, BufferSize);

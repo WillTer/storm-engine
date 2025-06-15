@@ -1,7 +1,6 @@
 #include "battle_man_command.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 
 BIManCommandList::BIManCommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs) : BICommandList(eid, pA, rs)
@@ -46,7 +45,7 @@ void BIManCommandList::Release() {}
 
 int32_t BIManCommandList::CommandAdding()
 {
-    core.Event("BI_SetPossibleCommands", "l", m_nCurrentCommandCharacterIndex);
+    core->Event("BI_SetPossibleCommands", "l", m_nCurrentCommandCharacterIndex);
     int32_t retVal = 0;
     auto*   pAttr  = m_pARoot->GetAttributeClass("Commands");
     if (!pAttr) return 0;
@@ -90,7 +89,7 @@ int32_t BIManCommandList::UserIconsAdding()
 
 int32_t BIManCommandList::AbilityAdding()
 {
-    core.Event("evntSetUsingAbility", "l", m_nCurrentCommandCharacterIndex);
+    core->Event("evntSetUsingAbility", "l", m_nCurrentCommandCharacterIndex);
     int32_t retVal = 0;
     auto*   pAttr  = m_pARoot->GetAttributeClass("AbilityIcons");
     if (!pAttr) return 0;

@@ -1,7 +1,6 @@
 #include "data_source.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/util/string_compare.hpp>
 
 #include "../../i_common/names.h"
@@ -115,7 +114,7 @@ void DataSource::Load(MemFile* pMemFile)
     Id[4] = 0;
     pMemFile->Read(Id, 4);
     if (strcmp(Id, HEADER) != 0) {
-        core.Trace("Particles: Incorrect file type");
+        core->Trace("Particles: Incorrect file type");
         return;
     }
 
@@ -126,7 +125,7 @@ void DataSource::Load(MemFile* pMemFile)
 
     /* // show warnings
       if (strcmp (Ver, VERSION) != 0)
-              core.Trace ("Particles: Warning !!! Incorrect file version %s, must be %s", Ver, VERSION);
+              core->Trace ("Particles: Warning !!! Incorrect file version %s, must be %s", Ver, VERSION);
     */
 
     // Number of emitters ...
@@ -139,7 +138,7 @@ void DataSource::Load(MemFile* pMemFile)
 
         switch (emType) {
         case POINT_EMITTER: {
-            //                core.Trace ("Particles info: Point emitter");
+            //                core->Trace ("Particles info: Point emitter");
             CreatePointEmitter(pMemFile);
             break;
         }
@@ -153,7 +152,7 @@ void DataSource::Load(MemFile* pMemFile)
 
 void DataSource::CreatePointEmitter(MemFile* pMemFile)
 {
-    // core.Trace ("Particles info: Point emitter");
+    // core->Trace ("Particles info: Point emitter");
     Emitters.push_back(EmitterDesc {});
     auto* PointEmitter = &Emitters.back();
     // EmitterDesc* PointEmitter = &Emitters[Emitters.Add()];
@@ -171,12 +170,12 @@ void DataSource::CreatePointEmitter(MemFile* pMemFile)
 
         switch (ptType) {
         case BILLBOARD_PARTICLE: {
-            // core.Trace ("Particles info: Billboard particle");
+            // core->Trace ("Particles info: Billboard particle");
             CreateBillBoardParticle(PointEmitter->Particles, pMemFile);
             break;
         }
         case MODEL_PARTICLE: {
-            // core.Trace ("Particles info: Model particle");
+            // core->Trace ("Particles info: Model particle");
             CreateModelParticle(PointEmitter->Particles, pMemFile);
             break;
         }

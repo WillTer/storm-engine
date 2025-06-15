@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "attributes.h"  // TODO: REMOVE
-#include "service_locator.hpp"
 
 /* typedefs */
 class Entity;
@@ -44,9 +43,8 @@ public:
     Entity& operator=(Entity const&) = delete;
     virtual ~Entity()                = default;
 
-    virtual bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+    virtual bool Init()
     {
-        m_service_locator = service_locator;
         return true;
     }
 
@@ -61,9 +59,6 @@ public:
     {
         return {};
     }
-
-protected:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
 
 private:
     EntitySelfData data_ {};

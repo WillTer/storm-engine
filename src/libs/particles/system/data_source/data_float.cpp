@@ -1,7 +1,5 @@
 #include "data_float.h"
 
-#include <libs/core/vma.hpp>
-
 // constructor / destructor
 DataFloat::DataFloat()
 {
@@ -39,7 +37,7 @@ void DataFloat::Load(MemFile* File)
 
 void DataFloat::SetName(char const* szName)
 {
-    // core.Trace("DataFloat::SetName - '%s'", szName);
+    // core->Trace("DataFloat::SetName - '%s'", szName);
     Name = szName;
 }
 

@@ -2,7 +2,6 @@
 
 #include <libs/battle_interface/image/img_render.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/bimanager/messages.h>
 #include <libs/util/string_compare.hpp>
 
@@ -11,7 +10,7 @@
 
 #include "mouse_pointer.h"
 
-BI_InterfaceManager::BI_InterfaceManager()
+BIInterfaceManager::BIInterfaceManager()
 {
     m_pRS             = nullptr;
     m_pImgRender      = nullptr;
@@ -19,7 +18,7 @@ BI_InterfaceManager::BI_InterfaceManager()
     m_pInterfaceSheet = nullptr;
 }
 
-BI_InterfaceManager::~BI_InterfaceManager()
+BIInterfaceManager::~BIInterfaceManager()
 {
     STORM_DELETE(m_pInterfaceSheet);
     // m_aNodes.DelAllWithPointers();
@@ -29,18 +28,16 @@ BI_InterfaceManager::~BI_InterfaceManager()
     STORM_DELETE(m_pImgRender);
 }
 
-bool BI_InterfaceManager::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool BIInterfaceManager::Init()
 {
-    Entity::Init(service_locator);
-
-    m_pRS = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(m_pRS);
     m_pImgRender = new BIImageRender(m_pRS);
     Assert(m_pImgRender);
     m_pMouse = new MousePointer(this, AttributesPointer);
     Assert(m_pMouse);
 
-    auto [nBaseWidth, nBaseHeight] = core.GetScreenSize();
+    auto [nBaseWidth, nBaseHeight] = core->GetScreenSize();
 
     int32_t nBaseXOffset = 0;
     int32_t nBaseYOffset = 0;
@@ -58,9 +55,9 @@ bool BI_InterfaceManager::Init(std::shared_ptr<storm::ServiceLocator> const& ser
     return true;
 }
 
-void BI_InterfaceManager::Execute(uint32_t delta_time) {}
+void BIInterfaceManager::Execute(uint32_t delta_time) {}
 
-void BI_InterfaceManager::Realize(uint32_t delta_time)
+void BIInterfaceManager::Realize(uint32_t delta_time)
 {
     if (m_pInterfaceSheet) m_pInterfaceSheet->Update();
 
@@ -72,7 +69,7 @@ void BI_InterfaceManager::Realize(uint32_t delta_time)
     m_pImgRender->Render();
 }
 
-uint64_t BI_InterfaceManager::ProcessMessage(MESSAGE& message)
+uint64_t BIInterfaceManager::ProcessMessage(MESSAGE& message)
 {
     switch (message.Long()) {
     case MSG_BIMANAGER_DELETE_SHEET: STORM_DELETE(m_pInterfaceSheet); break;
@@ -93,20 +90,20 @@ uint64_t BI_InterfaceManager::ProcessMessage(MESSAGE& message)
 }
 
 BI_ManagerNodeBase*
-BI_InterfaceManager::CreateImageNode(char const* texture, const FRECT& uv, const RECT& pos, uint32_t color, int32_t nPrioritet)
+BIInterfaceManager::CreateImageNode(char const* texture, const FRECT& uv, const RECT& pos, uint32_t color, int32_t nPrioritet)
 {
     BI_ManagerNodeBase* pNod = new BI_ImageNode(this, texture, uv, pos, color, nPrioritet);
     return pNod;
 }
 
-BI_ManagerNodeBase* BI_InterfaceManager::CreateStringNode(
+BI_ManagerNodeBase* BIInterfaceManager::CreateStringNode(
     char const* text, char const* font, uint32_t color, float scale, const RECT& pos, int32_t nHAlign, int32_t nVAlign, int32_t prioritet)
 {
     BI_ManagerNodeBase* pNod = new BI_StringNode(this, text, font, color, scale, pos, nHAlign, nVAlign, prioritet);
     return pNod;
 }
 
-void BI_InterfaceManager::DeleteNode(BI_ManagerNodeBase* pNod)
+void BIInterfaceManager::DeleteNode(BI_ManagerNodeBase* pNod)
 {
     auto const it = std::find(m_aNodes.begin(), m_aNodes.end(), pNod);
     if (it != m_aNodes.end()) m_aNodes.erase(it);
@@ -116,7 +113,7 @@ void BI_InterfaceManager::DeleteNode(BI_ManagerNodeBase* pNod)
     // m_aNodes.DelIndex( n );
 }
 
-int32_t BI_InterfaceManager::MsgLoadSheet(MESSAGE& message)
+int32_t BIInterfaceManager::MsgLoadSheet(MESSAGE& message)
 {
     // remove the old interface
     STORM_DELETE(m_pInterfaceSheet);
@@ -132,7 +129,7 @@ int32_t BI_InterfaceManager::MsgLoadSheet(MESSAGE& message)
     return 0;
 }
 
-int32_t BI_InterfaceManager::MsgCreateImage(MESSAGE& message)
+int32_t BIInterfaceManager::MsgCreateImage(MESSAGE& message)
 {
     /*char texture[MAX_PATH];    message.String( sizeof(texture), texture );
     FRECT uv;
@@ -144,13 +141,13 @@ int32_t BI_InterfaceManager::MsgCreateImage(MESSAGE& message)
     return 0;
 }
 
-int32_t BI_InterfaceManager::MsgCreateString(MESSAGE& message)
+int32_t BIInterfaceManager::MsgCreateString(MESSAGE& message)
 {
     // return (int32_t)CreateStringNode();
     return 0;
 }
 
-int32_t BI_InterfaceManager::MsgDeleteNode(MESSAGE& message)
+int32_t BIInterfaceManager::MsgDeleteNode(MESSAGE& message)
 {
     auto* pNod = (BI_ManagerNodeBase*)message.Pointer();
     if (!pNod) return 0;
@@ -165,7 +162,7 @@ int32_t BI_InterfaceManager::MsgDeleteNode(MESSAGE& message)
     return 0;
 }
 
-int32_t BI_InterfaceManager::MsgEvent(MESSAGE& message)
+int32_t BIInterfaceManager::MsgEvent(MESSAGE& message)
 {
     return 0;
 }

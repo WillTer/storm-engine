@@ -2,15 +2,15 @@
 
 #include <libs/renderer/dx9render.h>
 
-class HELPCHOOSER: public Entity
+class HelpChooser: public Entity
 {
     VDX9RENDER* rs;
 
 public:
-    HELPCHOOSER();
-    ~HELPCHOOSER() override;
+    HelpChooser();
+    ~HelpChooser() override;
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time) const;
     uint64_t ProcessMessage(MESSAGE& message) override;

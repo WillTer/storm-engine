@@ -2,7 +2,6 @@
 
 #include <libs/geometry/geometry.h>
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "ball_splash_defines.h"
@@ -12,13 +11,13 @@
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
 
-class BALLSPLASH: public Entity
+class BallSplash: public Entity
 {
 public:
-    BALLSPLASH();
-    ~BALLSPLASH() override;
+    BallSplash();
+    ~BallSplash() override;
 
-    bool         Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool         Init() override;
     uint64_t     ProcessMessage(MESSAGE& message) override;
     virtual void Realize(uint32_t dTime);
     virtual void Execute(uint32_t dTime);

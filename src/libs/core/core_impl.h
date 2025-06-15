@@ -5,14 +5,14 @@
 #include "entity_manager.h"
 #include "services_list.h"
 #include "timer.h"
-#include "vma.hpp"
 
 #define ENGINE_SCRIPT_VERSION 54128
 
+class VMA;
 class CoreImpl final: public CorePrivate
 {
 public:
-    void Init(std::shared_ptr<storm::ServiceLocator> const& service_locator);
+    void Init();
 
     void InitBase();
     void ReleaseBase();
@@ -44,7 +44,7 @@ public:
     void     AppState(bool state);
     uint32_t MakeHashValue(char const* string);
     VMA*     FindVMA(char const* class_name);
-    VMA*     FindVMA(int32_t hash);
+    VMA*     FindVMA(uint32_t hash);
     //------------------------------------------------------------------------------------------------
     // API functions : (virtual API)
 
@@ -143,8 +143,6 @@ public:
     bool Exit_flag;  // true if the program closing
 
 private:
-    std::shared_ptr<storm::ServiceLocator> m_service_locator;
-
     std::unique_ptr<EntityManager> entity_manager_;
 
     storm::ENGINE_VERSION targetVersion_ = storm::ENGINE_VERSION::LATEST;
@@ -172,4 +170,4 @@ private:
     float fTimeScale;
 };
 
-inline CoreImpl core_internal;
+extern std::shared_ptr<CoreImpl> core_internal;

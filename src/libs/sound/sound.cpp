@@ -1,37 +1,30 @@
 #include "sound.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/messages.h>
-
-CREATE_CLASS(SOUND)
 
 #define MSG_SOUND_ALIAS_ADD 77017  //"s"          alias_name
 
 //--------------------------------------------------------------------
-SOUND::SOUND() : soundService(nullptr), renderer(nullptr) {}
+Sound::Sound() : soundService(nullptr) {}
 
 //--------------------------------------------------------------------
-SOUND::~SOUND() {}
+Sound::~Sound() {}
 
 //--------------------------------------------------------------------
-bool SOUND::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Sound::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(SOUND::Init)
+    soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
+    if (!soundService) core->Trace("!SOUND: Can`t create sound service");
 
-    soundService = static_cast<VSoundService*>(core.GetService("SoundService"));
-    if (!soundService) core.Trace("!SOUND: Can`t create sound service");
-
-    renderer = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
-    core.AddToLayer(REALIZE, GetId(), -1);
+    core->AddToLayer(REALIZE, GetId(), -1);
 
     return true;
     // UNGUARD
 }
 
 //--------------------------------------------------------------------
-uint64_t SOUND::ProcessMessage(MESSAGE& message)
+uint64_t Sound::ProcessMessage(MESSAGE& message)
 {
     ////GUARD(SOUND::ProcessMessage)
 
@@ -220,7 +213,7 @@ uint64_t SOUND::ProcessMessage(MESSAGE& message)
 }
 
 //--------------------------------------------------------------------
-void SOUND::Realize(uint32_t dTime)
+void Sound::Realize(uint32_t dTime)
 {
     if (!soundService) return;
 }

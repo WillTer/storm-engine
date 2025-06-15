@@ -8,7 +8,7 @@
 
 CXI_IMAGE::CXI_IMAGE()
 {
-    m_rs = XINTERFACE::GetRenderService();
+    m_rs = XInterface::GetRenderService();
     if (!m_rs) { throw std::runtime_error("No service: dx9render"); }
 
     m_bDisableDraw = false;
@@ -57,12 +57,12 @@ void CXI_IMAGE::LoadFromBase(char const* sListName, char const* sPictureName, bo
         if (!m_pcPictureListName) { throw std::runtime_error("allocate memory error"); }
         memcpy(m_pcPictureListName, sListName, len);
     }
-    m_nTextureID  = XINTERFACE::GetPictureService()->GetTextureID(m_pcPictureListName);
-    m_nPictureNum = XINTERFACE::GetPictureService()->GetImageNum(m_pcPictureListName, sPictureName);
+    m_nTextureID  = XInterface::GetPictureService()->GetTextureID(m_pcPictureListName);
+    m_nPictureNum = XInterface::GetPictureService()->GetImageNum(m_pcPictureListName, sPictureName);
 
     if (bGetSizeFromSource) {
         XYRECT rPos;
-        if (XINTERFACE::GetPictureService()->GetTexturePos(m_nPictureNum, rPos)) {
+        if (XInterface::GetPictureService()->GetTexturePos(m_nPictureNum, rPos)) {
             m_pntSize.x = rPos.right - rPos.left;
             m_pntSize.y = rPos.bottom - rPos.top;
         }
@@ -100,13 +100,13 @@ void CXI_IMAGE::LoadAccordingToString(char const* pcImageParam)
             m_bThisIsColorRectangle = false;
             if (CXI_UTILS::StringGetTokenString(pcParam, tokenString, sizeof(tokenString))) {
                 CXI_UTILS::StringDoublicate(tokenString, m_pcPictureListName);
-                m_nTextureID = XINTERFACE::GetPictureService()->GetTextureID(m_pcPictureListName);
+                m_nTextureID = XInterface::GetPictureService()->GetTextureID(m_pcPictureListName);
             }
             break;
         case InterfaceToken_picture_name:
             m_bThisIsColorRectangle = false;
             if (CXI_UTILS::StringGetTokenString(pcParam, tokenString, sizeof(tokenString))) {
-                m_nPictureNum = XINTERFACE::GetPictureService()->GetImageNum(m_pcPictureListName, tokenString);
+                m_nPictureNum = XInterface::GetPictureService()->GetImageNum(m_pcPictureListName, tokenString);
                 UpdateTexture();
             }
             break;
@@ -271,7 +271,7 @@ void CXI_IMAGE::Unload()
     if (m_nTextureID != -1) {
         m_nPictureNum = -1;
         if (m_pcPictureListName) {
-            PICTURE_TEXTURE_RELEASE(XINTERFACE::GetPictureService(), m_pcPictureListName, m_nTextureID);
+            PICTURE_TEXTURE_RELEASE(XInterface::GetPictureService(), m_pcPictureListName, m_nTextureID);
         } else {
             TEXTURE_RELEASE(m_rs, m_nTextureID);
         }
@@ -290,10 +290,10 @@ void CXI_IMAGE::UpdateTexture()
 {
     FXYRECT frTex;
     if (m_nPictureNum != -1) {
-        XINTERFACE::GetPictureService()->GetTexturePos(m_nPictureNum, frTex);
+        XInterface::GetPictureService()->GetTexturePos(m_nPictureNum, frTex);
     } else {
         if (m_pcPictureListName) {
-            XINTERFACE::GetPictureService()->GetTextureCutForSize(m_pcPictureListName, m_nLeftTopCutUV, m_pntSize, -1, -1, frTex);
+            XInterface::GetPictureService()->GetTextureCutForSize(m_pcPictureListName, m_nLeftTopCutUV, m_pntSize, -1, -1, frTex);
         } else
             frTex = m_frUV;
     }

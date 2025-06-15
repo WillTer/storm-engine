@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/collide/collide.h>
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
@@ -45,7 +44,7 @@ class WaterRings: public Entity
 public:
     WaterRings();
     ~WaterRings() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t dTime);
     uint64_t ProcessMessage(MESSAGE& message) override;
 

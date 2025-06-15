@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include <memory.h>
-
 //--------------------------------------------------------------------
 TDynamicSystem::TDynamicSystem()
 {

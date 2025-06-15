@@ -3,7 +3,7 @@
 #include "typedef.h"
 #include "weather_base.h"
 
-class WATERFLARE: public Entity
+class WaterFlare: public Entity
 {
     RS_RECT*      pRSRect;
     float*        pfAlpha;
@@ -14,11 +14,11 @@ class WATERFLARE: public Entity
     void GenerateFlares();
 
 public:
-    WATERFLARE();
-    ~WATERFLARE() override;
+    WaterFlare();
+    ~WaterFlare() override;
 
     void SetDevice();
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     void Realize(uint32_t Delta_Time) const;
     void Execute(uint32_t Delta_Time);
     bool CreateState(ENTITY_STATE_GEN* state_gen);

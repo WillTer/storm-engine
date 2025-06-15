@@ -1,9 +1,8 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
-class TMPTELEPORT: public Entity
+class TmpTeleport: public Entity
 {
     VDX9RENDER* rs;
 
@@ -13,9 +12,9 @@ class TMPTELEPORT: public Entity
     }* m_descrArray;
 
 public:
-    TMPTELEPORT();
-    ~TMPTELEPORT() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    TmpTeleport();
+    ~TmpTeleport() override;
+    bool     Init() override;
     void     Execute(uint32_t Delta_Time);
     void     Realize(uint32_t Delta_Time);
     uint64_t ProcessMessage(MESSAGE& message) override;
@@ -53,26 +52,26 @@ protected:
     int32_t m_nShowType;
 };
 
-class FINDFILESINTODIRECTORY: public Entity
+class FindFilesIntoDirectory: public Entity
 {
 public:
-    FINDFILESINTODIRECTORY() {}
+    FindFilesIntoDirectory() {}
 
-    ~FINDFILESINTODIRECTORY() override {}
+    ~FindFilesIntoDirectory() override {}
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     void ProcessStage(Stage, uint32_t) override {}
 };
 
-class FINDDIALOGNODES: public Entity
+class FindDialogNodes: public Entity
 {
 public:
-    FINDDIALOGNODES() {}
+    FindDialogNodes() {}
 
-    ~FINDDIALOGNODES() override {}
+    ~FindDialogNodes() override {}
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     void ProcessStage(Stage, uint32_t) override {}
 };

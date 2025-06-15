@@ -12,8 +12,6 @@ dynamic shadow cpp file
 #include <libs/core/core.h>
 #include <libs/shared_headers/messages.h>
 
-CREATE_CLASS(Shadow)
-
 static uint32_t    HEAD_DENSITY = 0xFF606060;
 static uint32_t    DENSITY      = 0xFF606040;
 static float const nearBlend    = 8.0f;
@@ -41,17 +39,14 @@ Shadow::~Shadow()
     }
 }
 
-bool Shadow::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Shadow::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(Shadow::SHADOW())
-
-    col = static_cast<COLLIDE*>(core.GetService("coll"));
+    col = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (col == nullptr) throw std::runtime_error("No service: COLLIDE");
 
-    core.AddToLayer(REALIZE, GetId(), 900);
+    core->AddToLayer(REALIZE, GetId(), 900);
 
-    rs = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!rs) throw std::runtime_error("No service: dx9render");
 
     if (refcount == 0) {
@@ -123,20 +118,20 @@ bool AddPoly(const CVECTOR* vr, int32_t nverts)
 //------------------------------------------------------------------------------------
 void Shadow::Realize(uint32_t Delta_Time)
 {
-    auto* obj = static_cast<MODEL*>(core.GetEntityPointer(entity));
+    auto* obj = static_cast<MODEL*>(core->GetEntityPointer(entity));
     if (!obj) return;
 
-    auto* pV     = core.Event("EWhr_GetShadowDensity");
+    auto* pV     = core->Event("EWhr_GetShadowDensity");
     HEAD_DENSITY = ((VDATA*)pV->GetArrayElement(0))->GetInt();
     DENSITY      = ((VDATA*)pV->GetArrayElement(1))->GetInt();
 
     D3DVIEWPORT9 vp;
     rs->GetViewport(&vp);
 
-    pV              = core.Event("EWhr_GetFogDensity");
+    pV              = core->Event("EWhr_GetFogDensity");
     auto fogDensity = pV->GetFloat();
 
-    // MODEL *obj = (MODEL*)core.GetEntityPointer(entity);
+    // MODEL *obj = (MODEL*)core->GetEntityPointer(entity);
     auto*      node = obj->GetNode(0);
     GEOS::INFO gi;
     node->geo->GetInfo(gi);
@@ -175,7 +170,7 @@ void Shadow::Realize(uint32_t Delta_Time)
     rs->GetTransform(D3DTS_PROJECTION, visPoj);
     FindPlanes(visView, visPoj);
 
-    auto const its = core.GetEntityIds(SHADOW);
+    auto const its = core->GetEntityIds(SHADOW);
 
     CVECTOR hdest = headPos + !(headPos - light_pos) * 100.0f;
     float   ray   = col->Trace(its, headPos, hdest, nullptr, 0);
@@ -214,7 +209,7 @@ void Shadow::Realize(uint32_t Delta_Time)
     shading = std::max(0.2f, std::max(minVal, std::min(shading, 1.0f)));
     shading *= (blendValue >> 24) / 255.0f;
 
-    // if(core.Controls->GetAsyncKeyState(0xc0)<0)
+    // if(core->Controls->GetAsyncKeyState(0xc0)<0)
     {
         float dist = sqrtf(~(cen - camPos));
         if (dist > farBlend)  // too far

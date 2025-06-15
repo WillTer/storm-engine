@@ -1,6 +1,7 @@
 #include "xi_check_buttons.h"
 
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 #include <stdio.h>
 
 #include "xi_util.h"
@@ -95,7 +96,7 @@ void CXI_CHECKBUTTONS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
     // get font number
     if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) {
-        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core.Trace("can not load font:'%s'", param);
+        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     }
     m_fFontScale = GetIniFloat(ini1, name1, ini2, name2, "fontScale", 1.f);
 
@@ -222,7 +223,7 @@ void CXI_CHECKBUTTONS::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -447,7 +448,7 @@ void CXI_CHECKBUTTONS::SetCheckToButton(int32_t nButtonNum, bool bCheck)
     else
         SetButtonOff(nButtonNum);
 
-    core.Event("CheckButtonChange", "sll", m_nodeName, nButtonNum + 1, (bCheck ? 1 : 0));
+    core->Event("CheckButtonChange", "sll", m_nodeName, nButtonNum + 1, (bCheck ? 1 : 0));
 }
 
 void CXI_CHECKBUTTONS::UpdateAllTextInfo()

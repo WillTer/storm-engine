@@ -18,7 +18,7 @@ CXI_VIDEORECT::~CXI_VIDEORECT()
 void CXI_VIDEORECT::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        if (auto* const ptr = core.GetEntityPointer(m_eiVideo)) {
+        if (auto* const ptr = core->GetEntityPointer(m_eiVideo)) {
             auto* const pTex = static_cast<xiBaseVideo*>(ptr)->GetCurrentVideoTexture();
             if (pTex != nullptr) {
                 // Create rectangle
@@ -70,7 +70,7 @@ void CXI_VIDEORECT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 
 void CXI_VIDEORECT::ReleaseAll()
 {
-    core.EraseEntity(m_eiVideo);
+    core->EraseEntity(m_eiVideo);
 }
 
 void CXI_VIDEORECT::ChangePosition(XYRECT& rNewPos)
@@ -84,7 +84,7 @@ void CXI_VIDEORECT::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -113,13 +113,13 @@ uint32_t CXI_VIDEORECT::MessageProc(int32_t msgcode, MESSAGE& message)
 
 void CXI_VIDEORECT::StartVideoPlay(char const* videoFileName)
 {
-    if (core.GetEntityPointer(m_eiVideo)) { core.EraseEntity(m_eiVideo); }
+    if (core->GetEntityPointer(m_eiVideo)) { core->EraseEntity(m_eiVideo); }
     if (videoFileName == nullptr) return;
 
-    m_eiVideo        = core.CreateEntity("CAviPlayer");
+    m_eiVideo        = core->CreateEntity("CAviPlayer");
     m_rectTex.bottom = 1.f - m_rectTex.bottom;
     m_rectTex.top    = 1.f - m_rectTex.top;
-    if (auto* const ptr = core.GetEntityPointer(m_eiVideo)) static_cast<xiBaseVideo*>(ptr)->SetShowVideo(false);
-    core.Send_Message(m_eiVideo, "ll", MSG_SET_VIDEO_FLAGS, m_dwFlags);
-    core.Send_Message(m_eiVideo, "ls", MSG_SET_VIDEO_PLAY, videoFileName);
+    if (auto* const ptr = core->GetEntityPointer(m_eiVideo)) static_cast<xiBaseVideo*>(ptr)->SetShowVideo(false);
+    core->Send_Message(m_eiVideo, "ll", MSG_SET_VIDEO_FLAGS, m_dwFlags);
+    core->Send_Message(m_eiVideo, "ls", MSG_SET_VIDEO_PLAY, videoFileName);
 }

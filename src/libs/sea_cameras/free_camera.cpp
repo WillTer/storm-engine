@@ -9,7 +9,7 @@
 entid_t  sphere;
 COLLIDE* pCollide;
 
-FREE_CAMERA::FREE_CAMERA()
+FreeCamera::FreeCamera()
 {
     SetOn(false);
     SetActive(false);
@@ -27,38 +27,33 @@ FREE_CAMERA::FREE_CAMERA()
     bCameraOnEarth       = false;
 }
 
-FREE_CAMERA::~FREE_CAMERA() {}
+FreeCamera::~FreeCamera() {}
 
-bool FREE_CAMERA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool FreeCamera::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(FREE_CAMERA::FREE_CAMERA())
-    // core.LayerCreate("realize",true,false);
-    // core.AddToLayer("system_messages",GetId(),1);
     SetDevice();
-    // UNGUARD
     return true;
 }
 
-void FREE_CAMERA::SetDevice()
+void FreeCamera::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
-    pCollide = static_cast<COLLIDE*>(core.GetService("COLL"));
+    pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
-    /*core.CreateEntity(&sphere,"modelr");
-    core.Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
-    core.AddToLayer(realize,sphere,10000);*/
+    /*core->CreateEntity(&sphere,"ModelR");
+    core->Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
+    core->AddToLayer(realize,sphere,10000);*/
 }
 
-bool FREE_CAMERA::CreateState(ENTITY_STATE_GEN* state_gen) const
+bool FreeCamera::CreateState(ENTITY_STATE_GEN* state_gen) const
 {
     state_gen->SetState("vv", sizeof(vPos), vPos, sizeof(vAng), vAng);
     return true;
 }
 
-bool FREE_CAMERA::LoadState(ENTITY_STATE* state)
+bool FreeCamera::LoadState(ENTITY_STATE* state)
 {
     SetDevice();
     state->Struct(sizeof(vPos), (char*)&vPos);
@@ -66,7 +61,7 @@ bool FREE_CAMERA::LoadState(ENTITY_STATE* state)
     return true;
 }
 
-void FREE_CAMERA::Execute(uint32_t Delta_Time)
+void FreeCamera::Execute(uint32_t Delta_Time)
 {
     if (!isOn()) return;
 
@@ -75,12 +70,12 @@ void FREE_CAMERA::Execute(uint32_t Delta_Time)
     float persp;
     pRS->GetCamera(vPos, vAng, persp);
 
-    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core.GetEntityPointer(core.GetEntityId("island")));
+    if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("Island")));
 
-    Move(core.GetDeltaTime());
+    Move(core->GetDeltaTime());
 }
 
-void FREE_CAMERA::Move(uint32_t DeltaTime)
+void FreeCamera::Move(uint32_t DeltaTime)
 {
     if (!isActive()) return;
 
@@ -90,9 +85,9 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     CONTROL_STATE cs;
 
     {
-        core.Controls->GetControlState("FreeCamera_Turn_H", cs);
+        core->Controls->GetControlState("FreeCamera_Turn_H", cs);
         vAng.y += SENSITIVITY * static_cast<float>(cs.fValue);
-        core.Controls->GetControlState("FreeCamera_Turn_V", cs);
+        core->Controls->GetControlState("FreeCamera_Turn_V", cs);
         vAng.x += SENSITIVITY * static_cast<float>(cs.fValue);
         // SetCursorPos(iLockX,iLockY);
     }
@@ -108,18 +103,18 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     float      s2    = sinf(vAng.z);
     float      speed = 5.0f * 0.001f * static_cast<float>(DeltaTime);
 
-    if (core.Controls->GetAsyncKeyState(VK_SHIFT)) speed *= 4.0f;
-    if (core.Controls->GetAsyncKeyState(VK_CONTROL)) speed *= 8.0f;
+    if (core->Controls->GetAsyncKeyState(VK_SHIFT)) speed *= 4.0f;
+    if (core->Controls->GetAsyncKeyState(VK_CONTROL)) speed *= 8.0f;
 
-    core.Controls->GetControlState("FreeCamera_Forward", cs);
+    core->Controls->GetControlState("FreeCamera_Forward", cs);
     if (cs.state == CST_ACTIVE) vPos += speed * CVECTOR(s0 * c1, -s1, c0 * c1);
-    core.Controls->GetControlState("FreeCamera_Backward", cs);
+    core->Controls->GetControlState("FreeCamera_Backward", cs);
     if (cs.state == CST_ACTIVE) vPos -= speed * CVECTOR(s0 * c1, -s1, c0 * c1);
 
-    /*if (core.Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if (core.Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if(core.Controls->GetAsyncKeyState('I'))    vPos += speed*CVECTOR(0.0f, 0.1f , 0.0f);
-    if(core.Controls->GetAsyncKeyState('K'))    vPos += speed*CVECTOR(0.0f, -0.1f, 0.0f);*/
+    /*if (core->Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
+    if (core->Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
+    if(core->Controls->GetAsyncKeyState('I'))    vPos += speed*CVECTOR(0.0f, 0.1f , 0.0f);
+    if(core->Controls->GetAsyncKeyState('K'))    vPos += speed*CVECTOR(0.0f, -0.1f, 0.0f);*/
 
     // vPos = CVECTOR(0.0f, 20.0f, 0.0f);
 
@@ -128,23 +123,23 @@ void FREE_CAMERA::Move(uint32_t DeltaTime)
     /*CVECTOR vRes;
     CVECTOR vDst = vPos + 2000.0f*CVECTOR(s0*c1, -s1, c0*c1);
 
-    walker_tpVW = core.LayerGetWalker("sun_trace");
+    walker_tpVW = core->LayerGetWalker("sun_trace");
     float fRes = pCollide->Trace(*pVW,vPos,vDst,nullptr,0);
     if (fRes > 1.0f) vRes = vDst;
     else
     {
       vRes = vPos + fRes * (vDst - vPos);
       entid_t ent = pCollide->GetObjectID();
-      MODELR *pEntity = (MODELR*)core.GetEntityPointer(ent);
+      MODELR *pEntity = (MODELR*)core->GetEntityPointer(ent);
     }
 
 
-    MODEL* pModel = (MODEL*)core.GetEntityPointer(sphere);
+    MODEL* pModel = (MODEL*)core->GetEntityPointer(sphere);
     pModel->mtx.BuildPosition(vRes.x,vRes.y,vRes.z);
     delete pVW;*/
 }
 
-void FREE_CAMERA::Save(CSaveLoad* pSL)
+void FreeCamera::Save(CSaveLoad* pSL)
 {
     pSL->SaveVector(vPos);
     pSL->SaveVector(vAng);
@@ -156,7 +151,7 @@ void FREE_CAMERA::Save(CSaveLoad* pSL)
     pSL->SaveFloat(fCameraOnEarthHeight);
 }
 
-void FREE_CAMERA::Load(CSaveLoad* pSL)
+void FreeCamera::Load(CSaveLoad* pSL)
 {
     vPos   = pSL->LoadVector();
     vAng   = pSL->LoadVector();

@@ -67,9 +67,9 @@ char* XI_ParseStr(char* inStr, char* buf, size_t bufSize, char devChar = ',')
 
 bool CheckPCcd();
 
-XINTERFACE* XINTERFACE::pThis = nullptr;
+XInterface* XInterface::pThis = nullptr;
 
-XINTERFACE::XINTERFACE()
+XInterface::XInterface()
 {
     pThis = this;
 
@@ -140,7 +140,7 @@ XINTERFACE::XINTERFACE()
     m_pMouseNode      = nullptr;
 }
 
-XINTERFACE::~XINTERFACE()
+XInterface::~XInterface()
 {
     ReleaseOld();
 
@@ -160,17 +160,13 @@ XINTERFACE::~XINTERFACE()
     ReleaseSaveFindList();
 }
 
-bool XINTERFACE::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool XInterface::Init()
 {
-    Entity::Init(service_locator);
-
-    // GUARD(XINTERFACE::Init())
     SetDevice();
-    // UNGUARD
     return true;
 }
 
-void XINTERFACE::SetDevice()
+void XInterface::SetDevice()
 {
     // GUARD(XINTERFACE::SetDevice())
 
@@ -178,10 +174,10 @@ void XINTERFACE::SetDevice()
     m_UtilContainer.Init();
 
     // get render service
-    pRenderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!pRenderService) { throw std::runtime_error("No service: dx9render"); }
 
-    pStringService = static_cast<VSTRSERVICE*>(core.GetService("STRSERVICE"));
+    pStringService = static_cast<VSTRSERVICE*>(core->GetService("StrService"));
     if (!pStringService) { throw std::runtime_error("No service: strservice"); }
 
     // Load common parameters
@@ -194,7 +190,7 @@ void XINTERFACE::SetDevice()
 
     pQuestService = new storm::QuestFileReader;
     if (pQuestService == nullptr) { throw std::runtime_error("Not memory allocate"); }
-    auto* pvd = core.Event("GetQuestTextFileName", "");
+    auto* pvd = core->Event("GetQuestTextFileName", "");
     if (pvd != nullptr) {
         int const   nq = pvd->GetElementsNum();
         char const* pstr;
@@ -204,9 +200,9 @@ void XINTERFACE::SetDevice()
         }
     }
 
-    core.SetLayerType(INTERFACE_EXECUTE, layer_type_t::execute);
-    core.SetLayerType(INTERFACE_REALIZE, layer_type_t::realize);
-    // core.SystemMessages(GetId(),true);
+    core->SetLayerType(INTERFACE_EXECUTE, layer_type_t::execute);
+    core->SetLayerType(INTERFACE_REALIZE, layer_type_t::realize);
+    // core->SystemMessages(GetId(),true);
 
     if (AttributesPointer) {
         auto* pA = AttributesPointer->GetAttributeClass("GameTime");
@@ -217,28 +213,28 @@ void XINTERFACE::SetDevice()
         }
     }
 
-    m_pMouseWeel = core.Event("evGetMouseWeel");
+    m_pMouseWeel = core->Event("evGetMouseWeel");
 
     m_pEditor = new GIEditor(this);
 
     // UNGUARD
 }
 
-bool XINTERFACE::CreateState(ENTITY_STATE_GEN* state_gen)
+bool XInterface::CreateState(ENTITY_STATE_GEN* state_gen)
 {
     return true;
 }
 
-bool XINTERFACE::LoadState(ENTITY_STATE* state)
+bool XInterface::LoadState(ENTITY_STATE* state)
 {
     return true;
 }
 
-void XINTERFACE::Execute(uint32_t)
+void XInterface::Execute(uint32_t)
 {
     m_UtilContainer.FrameUpdate();
 
-    auto Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core->GetRDeltaTime();
     if (!bActive) return;
     IncrementGameTime(Delta_Time);
     if (!m_bUse) return;
@@ -258,7 +254,7 @@ void XINTERFACE::Execute(uint32_t)
     }
 
     while (m_pEvents != nullptr) {
-        core.Event(m_pEvents->sEventName, "ls", m_pEvents->nCommandIndex, m_pEvents->sNodeName);
+        core->Event(m_pEvents->sEventName, "ls", m_pEvents->nCommandIndex, m_pEvents->sNodeName);
         if (m_pEvents != nullptr) {
             auto* const pE = m_pEvents;
             m_pEvents      = m_pEvents->next;
@@ -288,13 +284,13 @@ void XINTERFACE::Execute(uint32_t)
     if (m_pMouseWeel) m_pMouseWeel->Set(0);
 }
 
-void XINTERFACE::Realize(uint32_t)
+void XInterface::Realize(uint32_t)
 {
     if (!m_bUse || !bActive) return;
 
     pRenderService->MakePostProcess();
 
-    auto Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core->GetRDeltaTime();
 
     CMatrix moldv, moldp, moldw;
 
@@ -318,7 +314,7 @@ void XINTERFACE::Realize(uint32_t)
     auto* pOldNode = m_pCurNode;
     MouseMove();
     if (pOldNode != m_pCurNode) {
-        core.Event(ISOUND_EVENT, "l", 2);  // choosing a new node
+        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
     }
 
     // show dinamic pictures
@@ -362,7 +358,7 @@ void XINTERFACE::Realize(uint32_t)
 
     // Show dinamic stringes
     if (m_nStringQuantity > 0) {
-        auto* tmpAttr = core.Entity_GetAttributeClass(g_idInterface, "strings");
+        auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, "strings");
 
         if (tmpAttr != nullptr)
             for (auto i = 0; i < m_nStringQuantity; i++)
@@ -414,7 +410,7 @@ void XINTERFACE::Realize(uint32_t)
 
 int32_t oldCurNum = -1L;
 
-uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
+uint64_t XInterface::ProcessMessage(MESSAGE& message)
 {
     auto cod = message.Long();
 
@@ -888,7 +884,7 @@ uint64_t XINTERFACE::ProcessMessage(MESSAGE& message)
 // FIXME: hardcode
 constexpr std::string_view RESOURCE_FILENAME = "interfaces/interfaces.ini";
 
-void XINTERFACE::LoadIni()
+void XInterface::LoadIni()
 {
     // GUARD(XINTERFACE::LoadIni());
     char section[256];
@@ -896,10 +892,10 @@ void XINTERFACE::LoadIni()
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
-    auto windowSize = core.GetWindow()->GetWindowSize();
+    auto windowSize = core->GetWindow()->GetWindowSize();
 
     fScale                = 1.0f;
-    auto const screenSize = core.GetScreenSize();
+    auto const screenSize = core->GetScreenSize();
     dwScreenHeight        = screenSize.height;
     dwScreenWidth         = windowSize.width * dwScreenHeight / windowSize.height;
     if (dwScreenWidth < screenSize.width) dwScreenWidth = screenSize.width;
@@ -928,12 +924,12 @@ void XINTERFACE::LoadIni()
         } while (!sectionFound && ini->GetSectionNameNext(platform, sizeof(platform) - 1));
     }
     if (!sectionFound) strcpy_s(platform, "PC_SCREEN");
-    core.Trace("Using %s parameters", platform);
+    core->Trace("Using %s parameters", platform);
     sprintf_s(section, "COMMON");
 
     // set screen parameters
     if (ini->GetInt(platform, "bDynamicScaling", 0) == 0) {
-        auto const& canvas_size = core.GetScreenSize();
+        auto const& canvas_size = core->GetScreenSize();
         fScale                  = ini->GetFloat(platform, "fScale", 1.f);
         if (fScale < MIN_SCALE || fScale > MAX_SCALE) fScale = 1.f;
         dwScreenWidth           = ini->GetInt(platform, "wScreenWidth", canvas_size.width);
@@ -975,7 +971,7 @@ void XINTERFACE::LoadIni()
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
     m_idTex = pRenderService->TextureCreate(param2);
-    core.GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
+    core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
     fYMousePos = static_cast<float>(dwScreenHeight / 2);
     for (int i = 0; i < 4; i++)
@@ -1006,7 +1002,7 @@ void XINTERFACE::LoadIni()
     // UNGUARD
 }
 
-void XINTERFACE::LoadDialog(char const* sFileName)
+void XInterface::LoadDialog(char const* sFileName)
 {
     char section[255];
     char skey[255];
@@ -1019,8 +1015,8 @@ void XINTERFACE::LoadDialog(char const* sFileName)
     m_sDialogFileName = sFileName;
     auto ini          = fio->open_ini_file(sFileName);
     if (!ini) {
-        core.Trace("ini file %s not found!", sFileName);
-        core.PostEvent("exitCancel", 1, nullptr);
+        core->Trace("ini file %s not found!", sFileName);
+        core->PostEvent("exitCancel", 1, nullptr);
         return;
     }
     // FIXME: hardcode
@@ -1128,7 +1124,7 @@ void XINTERFACE::LoadDialog(char const* sFileName)
     }
 }
 
-void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)
+void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)
 {
     // there is already such a node
     if (m_pNodes && m_pNodes->FindNode(sNodeName)) return;
@@ -1137,7 +1133,7 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
     if (sFileName && sFileName[0]) {
         ini = fio->open_ini_file(sFileName);
         if (!ini) {
-            core.Trace("ini file %s not found!", sFileName);
+            core->Trace("ini file %s not found!", sFileName);
             return;
         }
     }
@@ -1147,16 +1143,16 @@ void XINTERFACE::CreateNode(char const* sFileName, char const* sNodeType, char c
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }
 
-void XINTERFACE::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char const* sNodeType, char const* sNodeName, int32_t priority)
+void XInterface::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char const* sNodeType, char const* sNodeName, int32_t priority)
 {
     if (!sNodeType || !sNodeType[0]) {
-        core.Trace("Warning! Interface: Can`t create node with null type.");
+        core->Trace("Warning! Interface: Can`t create node with null type.");
         return;
     }
     /*if( !pOwnerIni->TestSection( sNodeType ) &&
       !pUserIni->TestSection( sNodeType ) )
     {
-      core.Trace("Warning! Interface: Node type %s not present into describe.",sNodeType);
+      core->Trace("Warning! Interface: Node type %s not present into describe.",sNodeType);
       return;
     }*/
 
@@ -1252,7 +1248,7 @@ void XINTERFACE::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char con
     if (m_pEditor && pNewNod) m_pEditor->AddNode(pNewNod);
 }
 
-CINODE* XINTERFACE::NewNode(char const* pcNodType)
+CINODE* XInterface::NewNode(char const* pcNodType)
 {
     if (!pcNodType) return nullptr;
     CINODE* pNewNod = nullptr;
@@ -1329,11 +1325,11 @@ CINODE* XINTERFACE::NewNode(char const* pcNodType)
     else if (storm::iEquals(pcNodType, "GLOWCURSOR"))
         m_pGlowCursorNode = pNewNod = new CXI_GLOWCURSOR;
     else
-        core.Trace("Not supported node type:\"%s\"", pcNodType);
+        core->Trace("Not supported node type:\"%s\"", pcNodType);
     return pNewNod;
 }
 
-void XINTERFACE::DeleteNode(char const* pcNodeName)
+void XInterface::DeleteNode(char const* pcNodeName)
 {
     if (!pcNodeName) return;
     // looking for a node by name
@@ -1360,7 +1356,7 @@ void XINTERFACE::DeleteNode(char const* pcNodeName)
     }
 }
 
-void XINTERFACE::SetTooltip(
+void XInterface::SetTooltip(
     char const* pcHeader,
     char const* pcText1,
     uint32_t    dwTextColor1,
@@ -1405,7 +1401,7 @@ void XINTERFACE::SetTooltip(
         pTmpNod ? pTmpNod->m_nNodeType == NODETYPE_FORMATEDTEXTS ? static_cast<CXI_FORMATEDTEXT*>(pTmpNod) : nullptr : nullptr;
     if (!pNodFrame || !pNodTitleRect || !pNodPic || !pNodTextFrame2 || !pNodTextFrame4 || !pNodTitle || !pNodText1 || !pNodText2
         || !pNodText3 || !pNodText4) {
-        core.Trace("Warning! Interface::SetTooltip - no precreated node");
+        core->Trace("Warning! Interface::SetTooltip - no precreated node");
         return;
     }
     // set
@@ -1540,7 +1536,7 @@ void XINTERFACE::SetTooltip(
     pNodText4->ChangePosition(rTex4);
 }
 
-void XINTERFACE::ShowWindow(char const* pcWindowName, bool bShow)
+void XInterface::ShowWindow(char const* pcWindowName, bool bShow)
 {
     if (!m_pNodes) return;
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
@@ -1550,7 +1546,7 @@ void XINTERFACE::ShowWindow(char const* pcWindowName, bool bShow)
     static_cast<CXI_WINDOW*>(pNod)->SetShow(bShow);
 }
 
-void XINTERFACE::DisableWindow(char const* pcWindowName, bool bDisable)
+void XInterface::DisableWindow(char const* pcWindowName, bool bDisable)
 {
     if (!m_pNodes) return;
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
@@ -1560,42 +1556,42 @@ void XINTERFACE::DisableWindow(char const* pcWindowName, bool bDisable)
     static_cast<CXI_WINDOW*>(pNod)->SetActive(!bDisable);
 }
 
-void XINTERFACE::AddNodeToWindow(char const* pcNodeName, char const* pcWindowName)
+void XInterface::AddNodeToWindow(char const* pcNodeName, char const* pcWindowName)
 {
     if (!m_pNodes) {
-        core.Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Empty node list", pcNodeName, pcWindowName);
+        core->Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Empty node list", pcNodeName, pcWindowName);
         return;
     }
 
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
     if (!pNod || pNod->m_nNodeType != NODETYPE_WINDOW) {
-        core.Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Window not found", pcNodeName, pcWindowName);
+        core->Trace("Warning! Interface::AddNodeToWindow(%s,%s) : Window not found", pcNodeName, pcWindowName);
         return;
     }
 
     static_cast<CXI_WINDOW*>(pNod)->AddNode(pcNodeName);
 }
 
-CXI_WINDOW* XINTERFACE::FindWindow(char const* pcWindowName)
+CXI_WINDOW* XInterface::FindWindow(char const* pcWindowName)
 {
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
     if (pNod && pNod->m_nNodeType == NODETYPE_WINDOW) return static_cast<CXI_WINDOW*>(pNod);
     return nullptr;
 }
 
-bool XINTERFACE::IsWindowActive(char const* pcWindowName)
+bool XInterface::IsWindowActive(char const* pcWindowName)
 {
     CINODE* pNod = m_pNodes->FindNode(pcWindowName);
     if (pNod && pNod->m_nNodeType == NODETYPE_WINDOW) return static_cast<CXI_WINDOW*>(pNod)->GetActive();
     return false;
 }
 
-void XINTERFACE::RegistryExitKey(char const* pcKeyName)
+void XInterface::RegistryExitKey(char const* pcKeyName)
 {
     m_asExitKey.push_back(pcKeyName);
 }
 
-int32_t XINTERFACE::StoreNodeLocksWithOff()
+int32_t XInterface::StoreNodeLocksWithOff()
 {
     m_aLocksArray.push_back(LocksInfo {});
     // int32_t nStoreSlot = m_aLocksArray.Add();
@@ -1617,7 +1613,7 @@ int32_t XINTERFACE::StoreNodeLocksWithOff()
     return nStoreCode;
 }
 
-void XINTERFACE::RestoreNodeLocks(int32_t nStoreCode)
+void XInterface::RestoreNodeLocks(int32_t nStoreCode)
 {
     int32_t n;
     for (n = 0; n < m_aLocksArray.size(); n++)
@@ -1630,7 +1626,7 @@ void XINTERFACE::RestoreNodeLocks(int32_t nStoreCode)
     m_aLocksArray.erase(m_aLocksArray.begin() + n);
 }
 
-void XINTERFACE::DrawNode(CINODE* nod, uint32_t Delta_Time, int32_t startPrior, int32_t endPrior) const
+void XInterface::DrawNode(CINODE* nod, uint32_t Delta_Time, int32_t startPrior, int32_t endPrior) const
 {
     for (; nod != nullptr; nod = nod->m_next) {
         if (nod->GetPriority() < startPrior) continue;
@@ -1650,13 +1646,13 @@ void XINTERFACE::DrawNode(CINODE* nod, uint32_t Delta_Time, int32_t startPrior, 
     }
 }
 
-void XINTERFACE::DoControl()
+void XInterface::DoControl()
 {
     int32_t       nExitKey;
     CONTROL_STATE cs;
     if (!m_bUse) return;
 
-    core.Controls->GetControlState("IContextHelp", cs);
+    core->Controls->GetControlState("IContextHelp", cs);
 
     if (m_nInterfaceMode == CONTEXTHELP_IMODE) {
         if (cs.state == CST_ACTIVATED || cs.state == CST_INACTIVATED) ReleaseContextHelpData();
@@ -1671,41 +1667,41 @@ void XINTERFACE::DoControl()
     if (m_pEditor && m_pEditor->ProcessControl()) return;
 
     if (bDisableControl) {
-        core.Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IStartButton", cs);
+        core->Controls->GetControlState("IStartButton", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IUp2", cs);
+        core->Controls->GetControlState("IUp2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IDown2", cs);
+        core->Controls->GetControlState("IDown2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("IRight2", cs);
+        core->Controls->GetControlState("IRight2", cs);
         if (cs.state != CST_INACTIVE) return;
-        core.Controls->GetControlState("ILeft2", cs);
+        core->Controls->GetControlState("ILeft2", cs);
         if (cs.state != CST_INACTIVE) return;
 
         for (nExitKey = 0; nExitKey < m_asExitKey.size(); nExitKey++) {
-            core.Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
+            core->Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
             if (cs.state != CST_INACTIVE) return;
         }
     }
@@ -1713,9 +1709,9 @@ void XINTERFACE::DoControl()
     bDisableControl = false;
 
     for (nExitKey = 0; nExitKey < m_asExitKey.size(); nExitKey++) {
-        core.Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
+        core->Controls->GetControlState((char*)m_asExitKey[nExitKey].c_str(), cs);
         if (cs.state == CST_ACTIVATED) {
-            core.Event("exitCancel");
+            core->Event("exitCancel");
             break;
         }
     }
@@ -1729,7 +1725,7 @@ void XINTERFACE::DoControl()
     bool bWasFirst   = false;
     m_bMouseClick    = false;
     m_bDblMouseClick = false;
-    core.Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_LCLICK, cs);
     if (cs.state == CST_ACTIVATED) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_LBUTTON;
@@ -1745,14 +1741,14 @@ void XINTERFACE::DoControl()
         m_idButton    = MOUSE_LBUTTON;
     }
 
-    core.Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
+    core->Controls->GetControlState(INTERFACE_CONTROL_RCLICK, cs);
     if (!m_bMouseClick && cs.state == CST_ACTIVATED) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_RBUTTON;
         bWasFirst     = true;
-        core.Event("MouseRClickDown");
+        core->Event("MouseRClickDown");
     }
-    if (cs.state == CST_INACTIVATED) { core.Event("MouseRClickUP"); }
+    if (cs.state == CST_INACTIVATED) { core->Event("MouseRClickUP"); }
     if (!m_bMouseClick && cs.state == CST_ACTIVE) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_RBUTTON;
@@ -1765,54 +1761,54 @@ void XINTERFACE::DoControl()
         // Get action code CST_ACTIVATED, CST_ACTIVE
 
         // right press
-        core.Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RIGHT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.rightButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IRight2", cs);
+        core->Controls->GetControlState("IRight2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.rightButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // left press
-        core.Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LEFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.leftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("ILeft2", cs);
+        core->Controls->GetControlState("ILeft2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.leftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // up press
-        core.Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_UP, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.upButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IUp2", cs);
+        core->Controls->GetControlState("IUp2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.upButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // down press
-        core.Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_DOWN, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.downButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IDown2", cs);
+        core->Controls->GetControlState("IDown2", cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.downButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // left shift press
-        core.Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_LSHIFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.shiftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // right shift press
-        core.Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_RSHIFT, cs);
         if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) curKS.shiftButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // enter button press
-        core.Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_ENTER, cs);
         if (cs.state == CST_ACTIVATED)  //~!~
             curKS.enterButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState("IStartButton", cs);
+        core->Controls->GetControlState("IStartButton", cs);
         if (cs.state == CST_ACTIVATED) curKS.enterButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
         // back button press
-        core.Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BACK, cs);
         if (cs.state == CST_ACTIVATED) curKS.backButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
-        core.Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
+        core->Controls->GetControlState(INTERFACE_CONTROL_BREAK, cs);
         if (cs.state == CST_ACTIVATED) curKS.backButton = true;
         if (cs.state == CST_ACTIVATED) bFirstPress = true;
 
@@ -1862,7 +1858,7 @@ void XINTERFACE::DoControl()
             if (curKS.backButton) wActCode = ACTION_DEACTIVATE;
 
             if (m_pCurNode == nullptr) {
-                if (wActCode == ACTION_DEACTIVATE) core.Event("exitCancel");
+                if (wActCode == ACTION_DEACTIVATE) core->Event("exitCancel");
                 return;
             }
 
@@ -1892,7 +1888,7 @@ void XINTERFACE::DoControl()
     }
 }
 
-CINODE* XINTERFACE::GetActivingNode(CINODE* findRoot)
+CINODE* XInterface::GetActivingNode(CINODE* findRoot)
 {
     CINODE* retVal = nullptr;
 
@@ -1909,12 +1905,12 @@ CINODE* XINTERFACE::GetActivingNode(CINODE* findRoot)
     return retVal;
 }
 
-void XINTERFACE::MouseMove()
+void XInterface::MouseMove()
 {
     if (m_nInterfaceMode == CONTEXTHELP_IMODE) return;
     CONTROL_STATE csv, csh;
-    core.Controls->GetControlState(INTERFACE_MOUSE_VERT, csv);
-    core.Controls->GetControlState(INTERFACE_MOUSE_HORZ, csh);
+    core->Controls->GetControlState(INTERFACE_MOUSE_VERT, csv);
+    core->Controls->GetControlState(INTERFACE_MOUSE_HORZ, csh);
 
     float fOutX = 0.f;
     float fOutY = 0.f;
@@ -1991,7 +1987,7 @@ void XINTERFACE::MouseMove()
     }
 }
 
-void XINTERFACE::MouseClick(bool bFirstClick)
+void XInterface::MouseClick(bool bFirstClick)
 {
     if (!bFirstClick && m_nPressDelay > 0) return;
     CINODE* clickNod = GetClickNode(m_pNodes, static_cast<int32_t>(fXMousePos) + m_lXMouse, static_cast<int32_t>(fYMousePos) + m_lYMouse);
@@ -2043,7 +2039,7 @@ void XINTERFACE::MouseClick(bool bFirstClick)
         }
 }
 
-void XINTERFACE::MouseDeClick()
+void XInterface::MouseDeClick()
 {
     if (!m_pMouseNode || !m_pMouseNode->m_bMakeActionInDeclick) return;
 
@@ -2061,7 +2057,7 @@ void XINTERFACE::MouseDeClick()
     }
 }
 
-CINODE* XINTERFACE::GetClickNode(CINODE* searchNod, int32_t xPos, int32_t yPos) const
+CINODE* XInterface::GetClickNode(CINODE* searchNod, int32_t xPos, int32_t yPos) const
 {
     CINODE* findNod = nullptr;
 
@@ -2082,7 +2078,7 @@ CINODE* XINTERFACE::GetClickNode(CINODE* searchNod, int32_t xPos, int32_t yPos) 
     return findNod;
 }
 
-void XINTERFACE::ShowPrevTexture()
+void XInterface::ShowPrevTexture()
 {
     XI_ONETEX_VERTEX pV[32];
     int              idx    = 0;
@@ -2126,7 +2122,7 @@ void XINTERFACE::ShowPrevTexture()
     pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 30, pV, sizeof(XI_ONETEX_VERTEX));
 }
 
-void XINTERFACE::ReleaseOld()
+void XInterface::ReleaseOld()
 {
     if (m_pEditor) m_pEditor->ReCreate();
 
@@ -2172,7 +2168,7 @@ void XINTERFACE::ReleaseOld()
     m_pMouseNode = nullptr;
 }
 
-bool XINTERFACE::SetCurNode(CINODE* pNod)
+bool XInterface::SetCurNode(CINODE* pNod)
 {
     if (m_pCurNode == pNod) return false;
     m_pCurNode = pNod;
@@ -2182,7 +2178,7 @@ bool XINTERFACE::SetCurNode(CINODE* pNod)
     return true;
 }
 
-uint32_t XINTERFACE::AttributeChanged(ATTRIBUTES* patr)
+uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
 {
     if (patr != nullptr && patr->GetParent() != nullptr && patr->GetParent()->GetParent() != nullptr) {
         char const* sParentName = patr->GetParent()->GetParent()->GetThisName();
@@ -2235,15 +2231,15 @@ uint32_t XINTERFACE::AttributeChanged(ATTRIBUTES* patr)
     return 0;
 }
 
-bool XINTERFACE::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char const* saveData) const
+bool XInterface::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char const* saveData) const
 {
     if (saveData == nullptr) return false;
     int32_t const slen = strlen(saveData) + 1;
     if (slen <= 1) return false;
 
     entid_t ei;
-    if (!(ei = core.GetEntityId("SCRSHOTER"))) return false;
-    int32_t textureId = core.Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
+    if (!(ei = core->GetEntityId("ScrShoter"))) return false;
+    int32_t textureId = core->Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
     if (textureId == -1) return false;
 
     auto* pTex = static_cast<IDirect3DTexture9*>(pRenderService->GetTextureFromID(textureId));
@@ -2268,19 +2264,19 @@ bool XINTERFACE::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
             memcpy(&pdat[sizeof(SAVE_DATA_HANDLE) + slen], lockRect.pBits, ssize);
             pTex->UnlockRect(0);
         } else
-            core.Trace("Can`t lock screenshot texture");
+            core->Trace("Can`t lock screenshot texture");
     }
 
-    core.SetSaveData(saveName, pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize);
+    core->SetSaveData(saveName, pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize);
     free(pdat);
     return true;
 }
 
-bool XINTERFACE::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int32_t bufSize, char* buf)
+bool XInterface::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int32_t bufSize, char* buf)
 {
     if (buf == nullptr || bufSize <= 0) return false;
     int32_t allDatSize = 0;
-    auto    pdat       = static_cast<char*>(core.GetSaveData(saveName, allDatSize));
+    auto    pdat       = static_cast<char*>(core->GetSaveData(saveName, allDatSize));
     if (pdat == nullptr) return false;
 
     char* stringData = &pdat[sizeof(SAVE_DATA_HANDLE)];
@@ -2297,7 +2293,7 @@ bool XINTERFACE::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int
     return strSize > 0;
 }
 
-void XINTERFACE::ReleaseSaveFindList()
+void XInterface::ReleaseSaveFindList()
 {
     while (m_pSaveFindRoot) {
         SAVE_FIND_DATA* p = m_pSaveFindRoot;
@@ -2307,7 +2303,7 @@ void XINTERFACE::ReleaseSaveFindList()
     }
 }
 
-void XINTERFACE::AddFindData(std::filesystem::path filePath)
+void XInterface::AddFindData(std::filesystem::path filePath)
 {
     auto* p = new SAVE_FIND_DATA;
     if (p) {
@@ -2322,7 +2318,7 @@ void XINTERFACE::AddFindData(std::filesystem::path filePath)
     }
 }
 
-void XINTERFACE::Sorting_FindData()
+void XInterface::Sorting_FindData()
 {
     if (!m_pSaveFindRoot) {
         return;  // do nothing (empty list)
@@ -2349,7 +2345,7 @@ void XINTERFACE::Sorting_FindData()
     }
 }
 
-XINTERFACE::SAVE_FIND_DATA* XINTERFACE::GetSaveDataByIndex(int n) const
+XInterface::SAVE_FIND_DATA* XInterface::GetSaveDataByIndex(int n) const
 {
     SAVE_FIND_DATA* p = m_pSaveFindRoot;
     for (int i = 0; i < n; i++)
@@ -2357,7 +2353,7 @@ XINTERFACE::SAVE_FIND_DATA* XINTERFACE::GetSaveDataByIndex(int n) const
     return p;
 }
 
-char* XINTERFACE::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, int32_t& fileSize)
+char* XInterface::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, int32_t& fileSize)
 {
     if (!m_pSaveFindRoot)  // create save file list
     {
@@ -2393,14 +2389,14 @@ char* XINTERFACE::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, in
     return buffer;
 }
 
-bool XINTERFACE::NewSaveFileName(std::filesystem::path const& fileName) const
+bool XInterface::NewSaveFileName(std::filesystem::path const& fileName) const
 {
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
 
     return sSavePath == nullptr ? !fio->exists(fileName) : !fio->exists(std::filesystem::path(sSavePath) / fileName);
 }
 
-void XINTERFACE::DeleteSaveFile(std::filesystem::path const& fileName)
+void XInterface::DeleteSaveFile(std::filesystem::path const& fileName)
 {
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
     if (sSavePath == nullptr) {
@@ -2423,7 +2419,7 @@ uint32_t XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float 
     return ARGB(ad, rd, gd, bd);
 }
 
-void XINTERFACE::AddNodeToList(CINODE* nod, int32_t priority)
+void XInterface::AddNodeToList(CINODE* nod, int32_t priority)
 {
     if (nod == nullptr) return;
     if (m_pNodes == nullptr || m_pNodes->GetPriority() > priority) {
@@ -2438,7 +2434,7 @@ void XINTERFACE::AddNodeToList(CINODE* nod, int32_t priority)
     pnod->m_next = nod;
 }
 
-void XINTERFACE::SetExclusiveNode(CINODE* nod)
+void XInterface::SetExclusiveNode(CINODE* nod)
 {
     g_bIExclusiveMode = true;
     for (CINODE* pnod = m_pNodes; pnod != nullptr; pnod = pnod->m_next)
@@ -2446,19 +2442,19 @@ void XINTERFACE::SetExclusiveNode(CINODE* nod)
     if (nod != nullptr) nod->m_bLockedNode = false;
 }
 
-void XINTERFACE::AddExclusiveNode(CINODE* nod)
+void XInterface::AddExclusiveNode(CINODE* nod)
 {
     if (nod != nullptr) nod->m_bLockedNode = false;
 }
 
-void XINTERFACE::ExitFromExclusive()
+void XInterface::ExitFromExclusive()
 {
     g_bIExclusiveMode = false;
     for (CINODE* pnod = m_pNodes; pnod != nullptr; pnod = pnod->m_next)
         pnod->m_bLockedNode = false;
 }
 
-void XINTERFACE::ReleaseDinamicPic(char const* sPicName)
+void XInterface::ReleaseDinamicPic(char const* sPicName)
 {
     if (sPicName == nullptr) return;
 
@@ -2500,7 +2496,7 @@ int32_t FindMaxStrForWidth(VDX9RENDER* pVR, int nW, char* str, int nFontID, floa
     return nPrev;
 }
 
-int32_t XINTERFACE::PrintIntoWindow(
+int32_t XInterface::PrintIntoWindow(
     int32_t     wl,
     int32_t     wr,
     int32_t     idFont,
@@ -2589,7 +2585,7 @@ int32_t XINTERFACE::PrintIntoWindow(
     return pRenderService->ExtPrint(idFont, dwFCol, dwBCol, PR_ALIGN_LEFT, shadow, scale, sxs, sys, strLeft, top, "%s", newStr);
 }
 
-void XINTERFACE::IncrementGameTime(uint32_t dwDeltaTime)
+void XInterface::IncrementGameTime(uint32_t dwDeltaTime)
 {
     bool bYesChange = false;
     m_dwCurDeltaTime += dwDeltaTime;
@@ -2610,7 +2606,7 @@ void XINTERFACE::IncrementGameTime(uint32_t dwDeltaTime)
         m_dwGameTimeMin -= 60;
     }
 
-    if (bYesChange && m_bUse) core.Event("ievent_SetGameTime", "lll", m_dwGameTimeHour, m_dwGameTimeMin, m_dwGameTimeSec);
+    if (bYesChange && m_bUse) core->Event("ievent_SetGameTime", "lll", m_dwGameTimeHour, m_dwGameTimeMin, m_dwGameTimeSec);
 }
 
 char* AddAttributesStringsToBuffer(char* inBuffer, char* prevStr, ATTRIBUTES* pAttr)
@@ -2664,7 +2660,7 @@ char* AddAttributesStringsToBuffer(char* inBuffer, char* prevStr, ATTRIBUTES* pA
     return inBuffer;
 }
 
-void XINTERFACE::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
+void XInterface::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
 {
     char FullPath[MAX_PATH];
 
@@ -2685,7 +2681,7 @@ void XINTERFACE::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
     }
 }
 
-void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
+void XInterface::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
 {
     constexpr unsigned int const OPTION_NAME_MAX_LENGTH  = 512;
     constexpr unsigned int const OPTION_VALUE_MAX_LENGTH = 1024;
@@ -2697,7 +2693,7 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
 
     uint32_t const fileSize = fio->file_size(fileName.data());
     if (fileSize == 0) {
-        core.Event("evntOptionsBreak");
+        core->Event("evntOptionsBreak");
         return;
     }
 
@@ -2710,7 +2706,7 @@ void XINTERFACE::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
     }
 }
 
-void XINTERFACE::GetContextHelpData()
+void XInterface::GetContextHelpData()
 {
     ReleaseContextHelpData();
 
@@ -2720,7 +2716,7 @@ void XINTERFACE::GetContextHelpData()
         texName              = m_pCurNode->m_strHelpTextureFile;
         m_frectHelpTextureUV = m_pCurNode->m_frectHelpTextureUV;
         if (texName == nullptr) {
-            VDATA* pvdat = core.Event("ievntGetHelpTexture", "s", m_pCurNode->m_nodeName);
+            VDATA* pvdat = core->Event("ievntGetHelpTexture", "s", m_pCurNode->m_nodeName);
             if (pvdat != nullptr) pvdat->Get(texName);
             if (texName != nullptr && strlen(texName) < 1) texName = nullptr;
         }
@@ -2734,13 +2730,13 @@ void XINTERFACE::GetContextHelpData()
     if (m_idHelpTexture != -1) m_nInterfaceMode = CONTEXTHELP_IMODE;
 }
 
-void XINTERFACE::ReleaseContextHelpData()
+void XInterface::ReleaseContextHelpData()
 {
     TEXTURE_RELEASE(pRenderService, m_idHelpTexture);
     m_nInterfaceMode = DEFAULT_IMODE;
 }
 
-void XINTERFACE::ShowContextHelp()
+void XInterface::ShowContextHelp()
 {
     if (m_nInterfaceMode != CONTEXTHELP_IMODE) return;
     if (m_idHelpTexture == -1) return;
@@ -2772,7 +2768,7 @@ void XINTERFACE::ShowContextHelp()
     pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
 }
 
-int XINTERFACE::LoadIsExist()
+int XInterface::LoadIsExist()
 {
     char* sCurLngName = GetStringService()->GetLanguage();
     if (sCurLngName == nullptr) { return 0; }
@@ -2802,7 +2798,7 @@ int XINTERFACE::LoadIsExist()
     return bFindFile ? 1 : 0;
 }
 
-void XINTERFACE::PrecreateDirForFile(char const* pcFullFileName)
+void XInterface::PrecreateDirForFile(char const* pcFullFileName)
 {
     if (!pcFullFileName) return;
     char path[MAX_PATH];
@@ -2817,12 +2813,12 @@ void XINTERFACE::PrecreateDirForFile(char const* pcFullFileName)
 }
 
 // controls Container
-CONTROLS_CONTAINER::CONTROLS_CONTAINER()
+ControlsContainer::ControlsContainer()
 {
     pContainers = nullptr;
 }
 
-CONTROLS_CONTAINER::~CONTROLS_CONTAINER()
+ControlsContainer::~ControlsContainer()
 {
     CONTEINER_DESCR* pCont = pContainers;
     while (pContainers) {
@@ -2842,14 +2838,13 @@ CONTROLS_CONTAINER::~CONTROLS_CONTAINER()
     }
 }
 
-bool CONTROLS_CONTAINER::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ControlsContainer::Init()
 {
-    Entity::Init(service_locator);
     if (AttributesPointer != nullptr) return CreateConteinerList(AttributesPointer);
     return false;
 }
 
-void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
+void ControlsContainer::Execute(uint32_t delta_time)
 {
     CONTEINER_DESCR* pCont = pContainers;
     while (pCont) {
@@ -2859,11 +2854,11 @@ void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
         cs.state  = CST_INACTIVE;
         cs.fValue = 0.f;
         cs.lValue = 0;
-        core.Controls->GetControlState(pCont->resultName, csPrev);
+        core->Controls->GetControlState(pCont->resultName, csPrev);
         while (pDescr) {
             if (pDescr->controlName) {
                 CONTROL_STATE insideCS;
-                core.Controls->GetControlState(pDescr->controlName, insideCS);
+                core->Controls->GetControlState(pDescr->controlName, insideCS);
 
                 switch (insideCS.state)  //~!~
                 {
@@ -2900,18 +2895,18 @@ void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
             if (cs.state != CST_INACTIVE)
                 cs.state = cs.state;
         */
-        core.Controls->SetControlState(pCont->resultName, cs);
-        core.Controls->GetControlState(pCont->resultName, csPrev);
+        core->Controls->SetControlState(pCont->resultName, cs);
+        core->Controls->GetControlState(pCont->resultName, csPrev);
         pCont = pCont->next;
     }
 }
 
-uint64_t CONTROLS_CONTAINER::ProcessMessage(MESSAGE& message)
+uint64_t ControlsContainer::ProcessMessage(MESSAGE& message)
 {
     return 0;
 }
 
-bool CONTROLS_CONTAINER::CreateConteinerList(ATTRIBUTES* pA)
+bool ControlsContainer::CreateConteinerList(ATTRIBUTES* pA)
 {
     if (!pA) return false;
 
@@ -2933,7 +2928,7 @@ bool CONTROLS_CONTAINER::CreateConteinerList(ATTRIBUTES* pA)
     return true;
 }
 
-void CONTROLS_CONTAINER::AddContainer(char const* container)
+void ControlsContainer::AddContainer(char const* container)
 {
     if (!container) return;
 
@@ -2953,14 +2948,14 @@ void CONTROLS_CONTAINER::AddContainer(char const* container)
     memcpy(pContainers->resultName, container, len);
 }
 
-void CONTROLS_CONTAINER::SetContainerLimitVal(char const* container, float fLimitVal)
+void ControlsContainer::SetContainerLimitVal(char const* container, float fLimitVal)
 {
     CONTEINER_DESCR* pCont = FindContainer(container);
     if (!pCont) return;
     pCont->fMaxVal = fLimitVal;
 }
 
-void CONTROLS_CONTAINER::AddControlsToContainer(char const* container, char const* controlName, float fValLimit)
+void ControlsContainer::AddControlsToContainer(char const* container, char const* controlName, float fValLimit)
 {
     if (!container || !controlName) return;
     CONTEINER_DESCR* pCont = FindContainer(container);
@@ -2981,7 +2976,7 @@ void CONTROLS_CONTAINER::AddControlsToContainer(char const* container, char cons
     memcpy(pCont->pControls->controlName, controlName, len);
 }
 
-CONTROLS_CONTAINER::CONTEINER_DESCR* CONTROLS_CONTAINER::FindContainer(char const* sContainer)
+ControlsContainer::CONTEINER_DESCR* ControlsContainer::FindContainer(char const* sContainer)
 {
     if (!sContainer) return nullptr;
     CONTEINER_DESCR* pCont = pContainers;
@@ -2990,7 +2985,7 @@ CONTROLS_CONTAINER::CONTEINER_DESCR* CONTROLS_CONTAINER::FindContainer(char cons
     return nullptr;
 }
 
-CONTROLS_CONTAINER::CONTEINER_DESCR::CONTROL_DESCR* CONTROLS_CONTAINER::CONTEINER_DESCR::FindControl(char const* cntrlName)
+ControlsContainer::CONTEINER_DESCR::CONTROL_DESCR* ControlsContainer::CONTEINER_DESCR::FindControl(char const* cntrlName)
 {
     if (!cntrlName) return nullptr;
 

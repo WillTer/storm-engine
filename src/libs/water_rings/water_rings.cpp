@@ -5,8 +5,6 @@
 #include <libs/renderer/iv_buffer_manager.h>
 #include <libs/util/rands.h>
 
-CREATE_CLASS(WaterRings)
-
 //------------------------------------------------------------------------------------
 WaterRings::WaterRings() : ivManager(nullptr) {}
 
@@ -18,17 +16,14 @@ WaterRings::~WaterRings()
 }
 
 //------------------------------------------------------------------------------------
-bool WaterRings::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool WaterRings::Init()
 {
-    Entity::Init(service_locator);
-    // GUARD(WaterRings::Init())
+    core->AddToLayer(REALIZE, GetId(), 65551);
 
-    core.AddToLayer(REALIZE, GetId(), 65551);
+    auto const seaID = core->GetEntityId("Sea");
+    sea              = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
-    auto const seaID = core.GetEntityId("sea");
-    sea              = static_cast<SEA_BASE*>(core.GetEntityPointer(seaID));
-
-    renderService = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (!renderService) throw std::runtime_error("No service: dx9render");
 
     ivManager = new IVBufferManager(

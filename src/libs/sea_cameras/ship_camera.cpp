@@ -8,7 +8,7 @@
 #define SCMR_BOXSCALE_Y 1.3f
 #define SCMR_BOXSCALE_Z 1.4f
 
-SHIP_CAMERA::SHIP_CAMERA()
+ShipCamera::ShipCamera()
     : fDistanceDlt(0.0f)
     , fDistanceInertia(15.0f)
     , fAngleXDlt(0.0f)
@@ -25,30 +25,28 @@ SHIP_CAMERA::SHIP_CAMERA()
     SetActive(false);
 }
 
-bool SHIP_CAMERA::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool ShipCamera::Init()
 {
-    Entity::Init(service_locator);
     SetDevices();
-
     return true;
 }
 
-void SHIP_CAMERA::SetDevices()
+void ShipCamera::SetDevices()
 {
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
 
-    pSea = static_cast<SEA_BASE*>(core.GetEntityPointer(core.GetEntityId("sea")));
+    pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 }
 
-void SHIP_CAMERA::Execute(uint32_t dwDeltaTime)
+void ShipCamera::Execute(uint32_t dwDeltaTime)
 {
     if (!isOn()) return;
     if (!FindShip()) return;
 
     SetPerspective(AttributesPointer->GetAttributeAsFloat("Perspective"));
 
-    auto const fDeltaTime = 0.001f * static_cast<float>(core.GetDeltaTime());
+    auto const fDeltaTime = 0.001f * static_cast<float>(core->GetDeltaTime());
 
     auto const* pModel = GetModelPointer();
     Assert(pModel);
@@ -60,13 +58,13 @@ void SHIP_CAMERA::Execute(uint32_t dwDeltaTime)
     Move(fDeltaTime);
 }
 
-void SHIP_CAMERA::Realize(uint32_t dwDeltaTime) const
+void ShipCamera::Realize(uint32_t dwDeltaTime) const
 {
     pRS->DrawEllipsoid(GetAIObj()->GetPos(), a, b, c, fModelAy, 0x900C0C0C);
     pRS->DrawSphere(vCenter, 5.0f, 0xFFFFFFFF);
 }
 
-void SHIP_CAMERA::Move(float fDeltaTime)
+void ShipCamera::Move(float fDeltaTime)
 {
     if (!pSea) return;
     if (!isActive()) return;
@@ -77,9 +75,9 @@ void SHIP_CAMERA::Move(float fDeltaTime)
 
     // Distance
     auto fSensivityDistanceDlt = 0.0f;
-    core.Controls->GetControlState("ShipCamera_Forward", cs);
+    core->Controls->GetControlState("ShipCamera_Forward", cs);
     if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) fSensivityDistanceDlt -= fSensivityDistance;
-    core.Controls->GetControlState("ShipCamera_Backward", cs);
+    core->Controls->GetControlState("ShipCamera_Backward", cs);
     if (cs.state == CST_ACTIVE || cs.state == CST_ACTIVATED) fSensivityDistanceDlt += fSensivityDistance;
 
     auto fKInert = fDistanceInertia * fSpeed;
@@ -91,7 +89,7 @@ void SHIP_CAMERA::Move(float fDeltaTime)
     if (fDistance < 0.0f) fDistance = 0.0f;
 
     // Rotate
-    core.Controls->GetControlState("ShipCamera_Turn_H", cs);
+    core->Controls->GetControlState("ShipCamera_Turn_H", cs);
 
     auto fValue = fInvertMouseX * 2.0f * (cs.fValue) * fSensivityAzimuthAngle;
     fKInert     = fAngleYInertia * fSpeed;
@@ -100,7 +98,7 @@ void SHIP_CAMERA::Move(float fDeltaTime)
     fAngleYDlt += (fValue - fAngleYDlt) * fKInert;
     vAng.y += fSpeed * fAngleYDlt;
 
-    core.Controls->GetControlState("ShipCamera_Turn_V", cs);
+    core->Controls->GetControlState("ShipCamera_Turn_V", cs);
 
     fValue  = fInvertMouseY * 3.0f * (cs.fValue) * fSensivityHeightAngle;
     fKInert = fAngleXInertia * fSpeed;
@@ -164,12 +162,12 @@ void SHIP_CAMERA::Move(float fDeltaTime)
     pRS->SetPerspective(GetPerspective());
 }
 
-void SHIP_CAMERA::SetCharacter(ATTRIBUTES* _pACharacter)
+void ShipCamera::SetCharacter(ATTRIBUTES* _pACharacter)
 {
     pACharacter = _pACharacter;
 }
 
-uint32_t SHIP_CAMERA::AttributeChanged(ATTRIBUTES* pAttr)
+uint32_t ShipCamera::AttributeChanged(ATTRIBUTES* pAttr)
 {
     if (*pAttr == "SensivityDistance") fSensivityDistance = pAttr->GetAttributeAsFloat();
     if (*pAttr == "SensivityAzimuthAngle") fSensivityAzimuthAngle = pAttr->GetAttributeAsFloat();
@@ -188,12 +186,12 @@ uint32_t SHIP_CAMERA::AttributeChanged(ATTRIBUTES* pAttr)
     return 0;
 }
 
-void SHIP_CAMERA::ShipsCollision(CVECTOR& pos)
+void ShipCamera::ShipsCollision(CVECTOR& pos)
 {
-    auto&& entities = core.GetEntityIds("ship");
+    auto&& entities = core->GetEntityIds("Ship");
     for (auto const ent: entities) {
         // Object pointer
-        auto* ship = static_cast<VAI_OBJBASE*>(core.GetEntityPointer(ent));
+        auto* ship = static_cast<VAI_OBJBASE*>(core->GetEntityPointer(ent));
         if (!ship) break;
         if (ship == GetAIObj()) continue;
         // Camera position in the ship system
@@ -223,20 +221,20 @@ void SHIP_CAMERA::ShipsCollision(CVECTOR& pos)
     }
 }
 
-bool SHIP_CAMERA::IslandCollision(CVECTOR& pos)
+bool ShipCamera::IslandCollision(CVECTOR& pos)
 {
     constexpr auto camRadius = 0.4f;
     // Island
     if (pIsland == nullptr) {
         if (lIlsInitCnt < 10) {
-            if (auto const island_id = core.GetEntityId("island")) pIsland = static_cast<ISLAND_BASE*>(core.GetEntityPointer(island_id));
+            if (auto const island_id = core->GetEntityId("Island")) pIsland = static_cast<ISLAND_BASE*>(core->GetEntityPointer(island_id));
             lIlsInitCnt++;
             if (pIsland == nullptr) return false;
         } else
             return false;
     }
     // Model
-    auto* mdl = static_cast<MODEL*>(core.GetEntityPointer(pIsland->GetModelEID()));
+    auto* mdl = static_cast<MODEL*>(core->GetEntityPointer(pIsland->GetModelEID()));
     if (mdl == nullptr) return false;
     // Find direction, distance
     auto dir  = pos - vCenter;
@@ -273,7 +271,7 @@ bool SHIP_CAMERA::IslandCollision(CVECTOR& pos)
     return kRes < 1.0f;
 }
 
-void SHIP_CAMERA::Save(CSaveLoad* pSL)
+void ShipCamera::Save(CSaveLoad* pSL)
 {
     // TODO: remove
     pSL->SaveLong({});
@@ -309,7 +307,7 @@ void SHIP_CAMERA::Save(CSaveLoad* pSL)
     pSL->SaveAPointer("character", pACharacter);
 }
 
-void SHIP_CAMERA::Load(CSaveLoad* pSL)
+void ShipCamera::Load(CSaveLoad* pSL)
 {
     // TODO: remove
     pSL->LoadLong();

@@ -33,47 +33,45 @@ LocEagle::LocEagle() : mdl(0), cnt()
 
 LocEagle::~LocEagle()
 {
-    core.EraseEntity(mdl);
+    core->EraseEntity(mdl);
 }
 
 // Initialization
-bool LocEagle::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool LocEagle::Init()
 {
-    Entity::Init(service_locator);
-
     // The point we fly around
-    auto const loc      = core.GetEntityId("location");
-    auto*      location = static_cast<Location*>(core.GetEntityPointer(loc));
+    auto const loc      = core->GetEntityId("Location");
+    auto*      location = static_cast<Location*>(core->GetEntityPointer(loc));
     if (!location) return false;
     cnt = location->GetPtcData().middle + CVECTOR(0.0f, 30.0f, 0.0f);
     // Path for textures
-    auto* gs = static_cast<VGEOMETRY*>(core.GetService("geometry"));
+    auto* gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) {
-        core.Trace("Can't create geometry service!");
+        core->Trace("Can't create geometry service!");
         return false;
     }
     // Model
-    if (!(mdl = core.CreateEntity("modelr"))) return false;
-    core.AddToLayer(REALIZE, mdl, 20);
+    if (!(mdl = core->CreateEntity("ModelR"))) return false;
+    core->AddToLayer(REALIZE, mdl, 20);
     gs->SetTexturePath("animals/");
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "animals/eagle")) {
+    if (!core->Send_Message(mdl, "ls", MSG_MODEL_LOAD_GEO, "animals/eagle")) {
         gs->SetTexturePath("");
         return false;
     }
     gs->SetTexturePath("");
     // Animation
-    if (!core.Send_Message(mdl, "ls", MSG_MODEL_LOAD_ANI, "eagle")) return false;
+    if (!core->Send_Message(mdl, "ls", MSG_MODEL_LOAD_ANI, "eagle")) return false;
     // Start playing the animation
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(mdl));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(mdl));
     if (!m) return false;
     auto* ani = m->GetAnimation();
     if (!ani) return false;
     if (!ani->Player(0).SetAction("flight")) return false;
     if (!ani->Player(0).Play()) return false;
     // include in the execution list
-    // core.LayerCreate("execute", true, false);
-    core.SetLayerType(EXECUTE, layer_type_t::execute);
-    core.AddToLayer(EXECUTE, GetId(), 10);
+    // core->LayerCreate("execute", true, false);
+    core->SetLayerType(EXECUTE, layer_type_t::execute);
+    core->AddToLayer(EXECUTE, GetId(), 10);
     return true;
 }
 
@@ -81,7 +79,7 @@ bool LocEagle::Init(std::shared_ptr<storm::ServiceLocator> const& service_locato
 void LocEagle::Execute(uint32_t delta_time)
 {
     // Model
-    auto* m = static_cast<MODEL*>(core.GetEntityPointer(mdl));
+    auto* m = static_cast<MODEL*>(core->GetEntityPointer(mdl));
     if (!m) return;
     // Updating position
     auto const dltTime = delta_time * 0.001f;

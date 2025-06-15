@@ -6,16 +6,16 @@
 #include "typedef.h"
 #include "weather_base.h"
 
-class SKY;
+class Sky;
 
-class SUNGLOW: public Entity
+class SunGlow: public Entity
 {
 public:
-    SUNGLOW();
-    ~SUNGLOW() override;
+    SunGlow();
+    ~SunGlow() override;
 
     void     SetDevice();
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool     Init() override;
     void     Realize(uint32_t Delta_Time);
     void     Execute(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pAttribute) override;
@@ -95,7 +95,7 @@ private:
     reflection_t  Reflection;
     COLLIDE*      pCollide;
     WEATHER_BASE* pWeather;
-    SKY*          pSky;
+    Sky*          pSky;
     VDX9RENDER*   pRS;
     int32_t       idRectBuf;
 

@@ -14,10 +14,8 @@ EnemyStatShower::~EnemyStatShower()
     Release();
 }
 
-bool EnemyStatShower::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool EnemyStatShower::Init()
 {
-    Entity::Init(service_locator);
-
     if (!ReadAndCreate()) return false;
     return true;
 }
@@ -49,9 +47,9 @@ void EnemyStatShower::Release() {}
 entid_t EnemyStatShower::GetModelEIDFromCharacterEID(entid_t chrEID)
 {
     entid_t eid;
-    auto*   pvdat = static_cast<VDATA*>(core.GetScriptVariable("g_TmpModelVariable"));
+    auto*   pvdat = static_cast<VDATA*>(core->GetScriptVariable("g_TmpModelVariable"));
     if (pvdat) {
-        core.Send_Message(chrEID, "le", MSG_CHARACTER_GETMODEL, pvdat);
+        core->Send_Message(chrEID, "le", MSG_CHARACTER_GETMODEL, pvdat);
         eid = pvdat->GetEntityID();
     }
     return eid;

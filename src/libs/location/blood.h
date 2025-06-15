@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <libs/collide/collide.h>
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #define MAX_BLOOD_TRIANGLES 10000
@@ -41,7 +40,7 @@ public:
     virtual ~Blood();
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Work
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);

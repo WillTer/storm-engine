@@ -10,7 +10,7 @@ class IParticleManager;
 class IParticleSystem;
 class PARTICLE_SYSTEM;
 
-class PARTICLES: public Entity
+class Particles: public Entity
 {
     bool CreationCapture;
     bool bSystemDelete;
@@ -48,10 +48,10 @@ public:
     void DeleteResource(PARTICLE_SYSTEM* pResource);
 
 public:
-    PARTICLES();
-    ~PARTICLES() override;
+    Particles();
+    ~Particles() override;
 
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
 
     uint64_t ProcessMessage(MESSAGE& message) override;
 

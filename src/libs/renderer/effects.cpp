@@ -12,7 +12,7 @@
 inline bool Effects::ErrorHandler(HRESULT hr, char const* file, unsigned line, char const* func, char const* expr) const
 {
     if (hr != D3D_OK && hr != S_FALSE) {
-        core.Trace(
+        core->Trace(
             "[%s:%s:%d] %s: %s (%s) (%.*s)",
             file,
             func,
@@ -50,7 +50,7 @@ void Effects::compile(char const* fxPath)
         D3DXCreateEffectFromFile(device_, _fxPath.c_str(), nullptr, nullptr, D3DXSHADER_OPTIMIZATION_LEVEL3, nullptr, &fx, &errors));
 
     if (errors) {
-        core.Trace(static_cast<char const*>(errors->GetBufferPointer()));
+        core->Trace(static_cast<char const*>(errors->GetBufferPointer()));
         return;
     }
 
@@ -69,7 +69,7 @@ void Effects::compile(char const* fxPath)
         std::transform(desc.Name, desc.Name + len, std::back_inserter(name_in_lowercase), tolower);
 
         if (techniques_.count(name_in_lowercase) > 0) {
-            core.Trace("Warning: duplicate technique (%s)", desc.Name);
+            core->Trace("Warning: duplicate technique (%s)", desc.Name);
         } else {
             techniques_.emplace(std::move(name_in_lowercase), Technique(fx, technique, desc));
         }
@@ -97,7 +97,7 @@ bool Effects::begin(std::string const& techniqueName)
     debugMsg_            = name_in_lowercase;
     auto const technique = techniques_.find(name_in_lowercase);
     if (technique == techniques_.end()) {
-        core.Trace("Warning: technique (%s) not found!", name_in_lowercase.c_str());
+        core->Trace("Warning: technique (%s) not found!", name_in_lowercase.c_str());
         return false;
     }
 
@@ -108,7 +108,7 @@ bool Effects::begin(std::string const& techniqueName)
     UINT passes = 0;
     CHECKD3DERR(fx->Begin(&passes, 0));
     if (passes == 0) {
-        core.Trace("Warning: empty technique (%s)!", name_in_lowercase.c_str());
+        core->Trace("Warning: empty technique (%s)!", name_in_lowercase.c_str());
         return false;
     }
 

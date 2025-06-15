@@ -5,18 +5,15 @@
 
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
-#include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math3d/color.h>
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
 #include <libs/util/rands.h>
+#include <storm_audio/device.h>
 #include <storm_audio/source.h>
 
 using namespace storm::audio;
-
-CREATE_SERVICE(SoundService)
 
 #define DISTANCEFACTOR 1.0F
 
@@ -39,7 +36,7 @@ class Tracer: public DebugTracer
         size_t                       line,
         std::string const&           function_name) override
     {
-        core.Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
+        core->Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
     }
 };
 
@@ -74,27 +71,19 @@ SoundService::~SoundService()
     }
 }
 
-bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool SoundService::Init()
 {
     m_is_initialized = false;
 
-    if (!service_locator) {
-        core.Trace("%s: service locator is null", __func__);
-        return false;
-    }
-
-    SERVICE::Init(service_locator);
-
-    m_renderer = static_cast<VDX9RENDER*>(core.GetService("DX9RENDER"));
+    m_renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (m_renderer == nullptr) { return false; }
 
     m_device =
         std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const sound_info    = storm::main_config::sound_info(*config_loader);
-    m_fade_time              = std::chrono::milliseconds(sound_info.fade_time_ms);
+    auto const sound_info = storm::main_config::sound_info();
+    m_fade_time           = std::chrono::milliseconds(sound_info.fade_time_ms);
 
     // Reserve first two for music
     m_playing_sounds.resize(2);
@@ -108,7 +97,7 @@ bool SoundService::Init(std::shared_ptr<storm::ServiceLocator> const& service_lo
 
 void SoundService::RunEnd()
 {
-    m_device->update(std::chrono::milliseconds(core.GetDeltaTime()));
+    m_device->update(std::chrono::milliseconds(core->GetDeltaTime()));
 }
 
 void SoundService::RunStart()
@@ -144,7 +133,7 @@ bool SoundService::allocate_sound(SoundID& id)
     }
 
     if (m_playing_sounds.size() >= std::numeric_limits<uint16_t>::max()) {
-        core.Trace("SoundService::allocate_sound(): no empty slots!");
+        core->Trace("SoundService::allocate_sound(): no empty slots!");
         return false;
     }
 
@@ -175,7 +164,7 @@ SoundID SoundService::play(
 
         // play sound from the alias ...
         sound_path = fio->base_directory_path(BaseDirectory::Sounds) / alias.files.pickRandom();
-        if constexpr (TRACE_INFORMATION) { core.Trace("Play sound from alias %s", sound_path.c_str()); }
+        if constexpr (TRACE_INFORMATION) { core->Trace("Play sound from alias %s", sound_path.c_str()); }
 
         alias_min_distance = alias.min_distance;
         alias_max_distance = alias.max_distance;
@@ -196,7 +185,7 @@ SoundID SoundService::play(
     auto&          sound     = m_playing_sounds[sound_idx];
 
     if constexpr (TRACE_INFORMATION) {
-        core.Trace(
+        core->Trace(
             "Sound attached, name %s, idx = %d, channel = %p, state = %d",
             sound_path.string().c_str(),
             sound_idx,
@@ -252,17 +241,17 @@ void SoundService::set_3d_param(SoundID id, SoundMessageType msg, void const* da
 
 void SoundService::sound_restart(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound restart !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound restart !"); }
 }
 
 void SoundService::sound_release(SoundID /*id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound release !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound release !"); }
 }
 
 void SoundService::set_volume(SoundID id, float const volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound set volume !"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound set volume !"); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -282,7 +271,7 @@ bool SoundService::is_playing(SoundID id)
 
 void SoundService::resume(SoundID id, int32_t time /* = 0*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Resume sound %d", id.index()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Resume sound %d", id.index()); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -318,7 +307,7 @@ void SoundService::set_camera_orientation(const CVECTOR& nose, const CVECTOR& he
 
 void SoundService::set_master_volume(float fx_volume, float music_volume, float speech_volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Set master volume"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Set master volume"); }
 
     m_fx_volume     = std::clamp(fx_volume, 0.0F, 1.0F);
     m_music_volume  = std::clamp(music_volume, 0.0F, 1.0F);
@@ -333,7 +322,7 @@ void SoundService::set_master_volume(float fx_volume, float music_volume, float 
 
 void SoundService::get_master_volume(float& fx_volume, float& music_volume, float& speech_volume)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Get master volume"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Get master volume"); }
 
     fx_volume     = m_fx_volume;
     music_volume  = m_music_volume;
@@ -342,7 +331,7 @@ void SoundService::get_master_volume(float& fx_volume, float& music_volume, floa
 
 void SoundService::set_pitch(float pitch)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Set pitch"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Set pitch"); }
 
     m_pitch = pitch > std::numeric_limits<float>::epsilon() ? pitch : 0.0F;
 
@@ -355,14 +344,14 @@ void SoundService::set_pitch(float pitch)
 
 float SoundService::get_pitch()
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Get pitch"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Get pitch"); }
 
     return m_pitch;
 }
 
 SoundID SoundService::duplicate(SoundID /*source_id*/)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Sound duplicate"); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Sound duplicate"); }
 
     return 0;
 }
@@ -386,7 +375,7 @@ void SoundService::set_active_with_fade(bool const is_active)
 
 void SoundService::stop(SoundID id, int32_t time)
 {
-    if constexpr (TRACE_INFORMATION) { core.Trace("Stop sound %d", id.index()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Stop sound %d", id.index()); }
     if (!is_id_valid(id)) { return; }
 
     if (id.master()) {
@@ -399,18 +388,11 @@ void SoundService::stop(SoundID id, int32_t time)
 
 void SoundService::load_alias_file(std::string const& filename)
 {
-    if (!m_service_locator) {
-        core.Trace("%s: m_service_locator is null", __func__);
-        return;
-    }
-
     auto config_file = fio->base_directory_path(BaseDirectory::Aliases) / filename;
 
-    if constexpr (TRACE_INFORMATION) { core.Trace("Find sound alias file %s", config_file.string().c_str()); }
+    if constexpr (TRACE_INFORMATION) { core->Trace("Find sound alias file %s", config_file.string().c_str()); }
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-
-    m_aliases.merge(storm::sound_alias::aliases(*config_loader, config_file));
+    m_aliases.merge(storm::sound_alias::aliases(config_file));
 }
 
 void SoundService::init_aliases()
@@ -425,7 +407,7 @@ SoundID SoundService::prepare_music(std::string const& name, int32_t fade_time /
 {
     auto const sound = m_device->create_sound_stream(name, Sound::Flags::Stereo2D);
     if (!sound) {
-        core.Trace("Error creating sound stream for file %s", name.c_str());
+        core->Trace("Error creating sound stream for file %s", name.c_str());
         return 0;
     }
 
@@ -459,7 +441,7 @@ SoundID SoundService::prepare_sound(
 {
     auto const sound = get_from_cache(name, sound_type);
     if (sound == nullptr) {
-        core.Trace("Problem with sound loading !!! '%s'", name.c_str());
+        core->Trace("Problem with sound loading !!! '%s'", name.c_str());
         return 0;
     }
 
@@ -699,7 +681,7 @@ bool SoundService::add_sound_scheme_channel(std::string const& in_string, bool i
 void SoundService::process_sound_schemes()
 {
     // handle schemes
-    uint32_t const delta_time = core.GetDeltaTime();
+    uint32_t const delta_time = core->GetDeltaTime();
 
     auto const play_from_channel = [this](auto const& channel, bool const is_looped) {
         play(channel.name, SoundType::SoundStereo, VolumeType::Fx, false, is_looped, 0, nullptr, -1.F, -1.F, channel.volume);

@@ -796,7 +796,7 @@ uint32_t CTechnique::GetSRSIndex(char* pStr)
     uint32_t dwNumParam = sizeof(RenderStates) / sizeof(STSS);
     for (uint32_t i = 0; i < dwNumParam; i++)
         if (storm::iEquals(pStr, RenderStates[i].cName)) return i;
-    core.Trace(
+    core->Trace(
         "ERROR: SetRenderState: unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
     // THROW;
     return INVALID_SRS_INDEX;
@@ -827,7 +827,7 @@ uint32_t CTechnique::GetIndex(char* pStr, SRSPARAM* pParam, uint32_t dwNumParam,
     for (uint32_t i = 0; i < dwNumParam; i++)
         if (storm::iEquals(pStr, pParam[i].cName)) return i;
     if (!bCanBeNumber)
-        core.Trace("ERROR: Unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
+        core->Trace("ERROR: Unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
     // THROW;
     return INVALID_INDEX;
 }
@@ -854,7 +854,7 @@ uint32_t CTechnique::GetCode(char* pStr, SRSPARAM* pParam, uint32_t dwNumParam, 
         if (pPassCode) *pPassCode |= FLAGS_CODE_NUMBER;
         return dwCode;
     } else {
-        core.Trace("ERROR: unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
+        core->Trace("ERROR: unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
         return 0;
     }
 }
@@ -870,7 +870,7 @@ uint32_t CTechnique::AddShader(char* pShaderName)
     auto const len         = strlen(pShaderName) + 1;
     pS->pName              = new char[len];
     memcpy(pS->pName, pShaderName, len);
-    pS->dwHashName    = MakeHashValue(pShaderName);
+    pS->dwHashName    = case_insensitive_hash(pShaderName);
     pS->pVertexDecl   = nullptr;
     pS->pVertexShader = nullptr;
     pS->pPixelShader  = nullptr;
@@ -996,7 +996,7 @@ uint32_t CTechnique::ProcessPass(char* pFile, uint32_t dwSize, char** pStr)
                 *pPass++ = dwTextureIndex;
                 if (TexturesStageStates[dwIndex].bUse && TexturesStageStates[dwIndex].dwUseSubCode & (1 << dwTextureIndex)
                     && dwAdditionalFlags & FLAGS_CODE_RESTORE)
-                    core.Trace(
+                    core->Trace(
                         "WARN: STSS: dup restore param type <%s[%d]> in <%s> file, technique <%s>",
                         temp,
                         dwTextureIndex,
@@ -1022,7 +1022,7 @@ uint32_t CTechnique::ProcessPass(char* pFile, uint32_t dwSize, char** pStr)
                 if (dwIndex != INVALID_INDEX) {
                     if (SampleStates[dwIndex].bUse && SampleStates[dwIndex].dwUseSubCode & (1 << dwTextureIndex)
                         && dwAdditionalFlags & FLAGS_CODE_RESTORE)
-                        core.Trace(
+                        core->Trace(
                             "WARN: SAMP: dup restore param type <%s[%d]> in <%s> file, technique <%s>",
                             temp,
                             dwTextureIndex,
@@ -1042,7 +1042,7 @@ uint32_t CTechnique::ProcessPass(char* pFile, uint32_t dwSize, char** pStr)
                         *pPass++ = GetCode(temp, SampleStates[dwIndex].pParam, SampleStates[dwIndex].dwParamNum, pPassCode, true);
                     }
                 } else
-                    core.Trace(
+                    core->Trace(
                         "ERROR: unknown parameter type <%s> in <%s> file, technique <%s>", pStr, sCurrentFileName, sCurrentBlockName);
             }
             SKIP3;
@@ -1125,7 +1125,7 @@ uint32_t CTechnique::ProcessPass(char* pFile, uint32_t dwSize, char** pStr)
             uint32_t dwSRSIndex = GetSRSIndex(temp);
             Assert(dwSRSIndex != INVALID_SRS_INDEX);
             if (RenderStates[dwSRSIndex].bUse && dwAdditionalFlags & FLAGS_CODE_RESTORE)
-                core.Trace(
+                core->Trace(
                     "WARN: SRS: dup restore param type <%s> in <%s> file, technique <%s>", temp, sCurrentFileName, sCurrentBlockName);
             if (dwAdditionalFlags & FLAGS_CODE_RESTORE) RenderStates[dwSRSIndex].bUse = true;
             uint32_t* pPassCode = pPass;
@@ -1258,7 +1258,7 @@ uint32_t CTechnique::ProcessVertexDeclaration(shader_t* pS, char* pFile, uint32_
     *CurDeclElement(pS) = D3DDECL_END();
 
     HRESULT hr = pRS->CreateVertexDeclaration(pS->pDecl, &pS->pVertexDecl);
-    if (hr != S_OK) core.Trace("ERROR: invalid shader declaration <%s>", pS->pName);
+    if (hr != S_OK) core->Trace("ERROR: invalid shader declaration <%s>", pS->pName);
 
     return 0;
 }
@@ -1389,7 +1389,7 @@ uint32_t CTechnique::ProcessShaderAsm(shader_t* pS, char* pFile, uint32_t dwSize
             GetTokenWhile(SkipToken(*pStr, "\""), &sName[0], "\"");
             sprintf_s(sIncFileName, "%s/%s", sCurrentDir, sName);
             if (!fio->read_file_to_mem(sIncFileName, buffer)) {
-                core.Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, sIncFileName);
+                core->Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, sIncFileName);
                 TOTAL_SKIP;
             }
         }
@@ -1447,7 +1447,7 @@ uint32_t CTechnique::ProcessShaderAsm(shader_t* pS, char* pFile, uint32_t dwSize
         char*      pErrStr = new char[len];
         strncpy_s(pErrStr, len, (char*)ErrorShader->GetBufferPointer(), ErrorShader->GetBufferSize());
         pErrStr[ErrorShader->GetBufferSize()] = 0;
-        core.Trace("ERROR: in compile shader %s\nerror:\n%s", pS->pName, pErrStr);
+        core->Trace("ERROR: in compile shader %s\nerror:\n%s", pS->pName, pErrStr);
         RELEASE(CompiledShader);
         RELEASE(ErrorShader);
         STORM_DELETE(pBuffer);
@@ -1494,7 +1494,7 @@ uint32_t CTechnique::ProcessShaderBin(shader_t* pS, char* pFile, uint32_t dwShad
 {
     std::vector<char> pBuffer = {};
     if (!fio->read_file_to_mem(pFile, pBuffer)) {
-        core.Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, pFile);
+        core->Trace("ERROR: in file %s, file not found : %s", sCurrentFileName, pFile);
         return 0;
     }
 
@@ -1505,7 +1505,7 @@ uint32_t CTechnique::ProcessShaderBin(shader_t* pS, char* pFile, uint32_t dwShad
         hr = pRS->CreatePixelShader((uint32_t*)pBuffer.data(), &pS->pPixelShader);
     }
 
-    if (hr != D3D_OK) { core.Trace("ERROR: can't create shader from %s\nfrom file: %s", pS->pName, pFile); }
+    if (hr != D3D_OK) { core->Trace("ERROR: can't create shader from %s\nfrom file: %s", pS->pName, pFile); }
 
     return 0;
 }
@@ -1581,13 +1581,13 @@ uint32_t CTechnique::ProcessBlock(char* pFile, uint32_t dwSize, char** pStr)
 #endif
     strcpy_s(sCurrentBlockName, pName);
     GetTokenWhile(pName, &temp[0], "(");
-    pB->dwHashBlockName = MakeHashValue(temp);
+    pB->dwHashBlockName = case_insensitive_hash(temp);
     auto const len      = strlen(temp) + 1;
     pB->pBlockName      = new char[len];
     memcpy(pB->pBlockName, temp, len);
     for (i = 0; i < dwNumBlocks; i++)
         if (pBlocks[i].dwHashBlockName == pB->dwHashBlockName && (storm::iEquals(pBlocks[i].pBlockName, pB->pBlockName))) {
-            core.Trace("ERROR: Techniques: Find duplicate technique name: %s", pB->pBlockName);
+            core->Trace("ERROR: Techniques: Find duplicate technique name: %s", pB->pBlockName);
             break;
         }
 
@@ -1688,9 +1688,9 @@ void CTechnique::DecodeFiles(char* sub_dir)
 
     STORM_DELETE(pPassStorage);
     RDTSC_E(dwRDTSC);
-    core.Trace("Techniques: %d shaders compiled.", dwNumShaders);
-    core.Trace("Techniques: %d techniques compiled.", dwNumBlocks);
-    core.Trace("Techniques: compiled by %d ticks.", dwRDTSC);
+    core->Trace("Techniques: %d shaders compiled.", dwNumShaders);
+    core->Trace("Techniques: %d techniques compiled.", dwNumBlocks);
+    core->Trace("Techniques: compiled by %d ticks.", dwRDTSC);
 
     // some optimize
     for (uint32_t i = 0; i < dwNumBlocks; i++)
@@ -2090,7 +2090,7 @@ void CTechnique::SetCurrentBlock(char const* name, uint32_t _dwNumParams, void* 
         for (uint32_t i = 0; i < _dwNumParams; i++)
             pCurParams[i] = ((uint32_t*)pParams)[i];
     } else {
-        core.Trace("ERROR: SetCurrentBlock: unknown technique <%s> first character is <%s> ", name, name[0]);
+        core->Trace("ERROR: SetCurrentBlock: unknown technique <%s> first character is <%s> ", name, name[0]);
     }
 }
 #endif  // _WIN32

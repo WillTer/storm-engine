@@ -28,14 +28,12 @@ Blood::~Blood()
 }
 
 // Initialization
-bool Blood::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool Blood::Init()
 {
-    Entity::Init(service_locator);
-
-    pRS = static_cast<VDX9RENDER*>(core.GetService("dx9render"));
+    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     Assert(pRS);
 
-    pCol = static_cast<COLLIDE*>(core.GetService("coll"));
+    pCol = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCol);
 
     texID = pRS->TextureCreate("blood.tga");
@@ -163,7 +161,7 @@ void Blood::AddBlood(const CVECTOR& pos)
 
     auto cpos = pos;
 
-    auto&& entities = core.GetEntityIds(BLOOD);
+    auto&& entities = core->GetEntityIds(BLOOD);
 
     auto src = pos;
     src.y += 1.f;
@@ -219,7 +217,7 @@ void Blood::AddBlood(const CVECTOR& pos)
 
     // loop through the layer
     for (auto ent_id: entities) {
-        auto* m = static_cast<MODEL*>(core.GetEntityPointer(ent_id));
+        auto* m = static_cast<MODEL*>(core->GetEntityPointer(ent_id));
         if (!m) continue;
         auto* root = m->GetNode(0);
         m->Clip(p, 6, cpos, BLOOD_RADIUS, AddClipPoligon);
@@ -227,7 +225,7 @@ void Blood::AddBlood(const CVECTOR& pos)
 
     // loop through the array of models
     for (int32_t n = 0; n < aModels.size(); n++) {
-        auto* m = static_cast<MODEL*>(core.GetEntityPointer(aModels[n]));
+        auto* m = static_cast<MODEL*>(core->GetEntityPointer(aModels[n]));
         if (!m) continue;
         auto* root = m->GetNode(0);
         m->Clip(p, 6, cpos, BLOOD_RADIUS, AddClipPoligon);
@@ -252,7 +250,7 @@ void Blood::BuildBloodDataByCollision(const CVECTOR& cpos)
         curBlood.nStartIdx = nStartT + nUsedTQ;
         if (curBlood.nStartIdx >= MAX_BLOOD_TRIANGLES) curBlood.nStartIdx -= MAX_BLOOD_TRIANGLES;
     } else {
-        core.Trace("Blood::BuildData() : can`t blood add - insufficient buffer space");
+        core->Trace("Blood::BuildData() : can`t blood add - insufficient buffer space");
         return;
     }
     nUsedTQ += nClipTQ;

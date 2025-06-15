@@ -48,7 +48,7 @@ void CXI_WINDOW::SaveParametersToIni()
 
     auto pIni = fio->open_ini_file(ptrOwner->m_sDialogFileName.c_str());
     if (!pIni) {
-        core.Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
+        core->Trace("Warning! Can`t open ini file name %s", ptrOwner->m_sDialogFileName.c_str());
         return;
     }
 
@@ -97,7 +97,7 @@ void CXI_WINDOW::AddNode(char const* pcNodeName)
 {
     auto* pNod = ptrOwner->FindNode(pcNodeName, nullptr);
     if (!pNod) {
-        core.Trace("Warning! CXI_WINDOW::AddNode(%s) : Node not found", pcNodeName);
+        core->Trace("Warning! CXI_WINDOW::AddNode(%s) : Node not found", pcNodeName);
         return;
     }
     m_aNodeNameList.push_back(pcNodeName);

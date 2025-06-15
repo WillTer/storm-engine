@@ -7,7 +7,7 @@
 
 #include "sea.h"
 
-void SEA::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
+void Sea::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
 {
     CVECTOR vLookTo, vUp;
 
@@ -41,7 +41,7 @@ void SEA::EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView)
     mView.BuildViewMatrix(0.0f, vLookTo, vUp);
 }
 
-bool SEA::SunRoad_Render2()
+bool Sea::SunRoad_Render2()
 {
     auto mOldView       = rs->GetView();
     auto mOldProjection = rs->GetProjection();
@@ -91,12 +91,12 @@ bool SEA::SunRoad_Render2()
         // Render scene here.
         // uint32_t dwSkyCode = MakeHashValue("sky");
 
-        if (!core.IsLayerFrozen(SEA_REFLECTION2)) {
-            auto&& entities = core.GetEntityIds(SEA_SUNROAD);
+        if (!core->IsLayerFrozen(SEA_REFLECTION2)) {
+            auto&& entities = core->GetEntityIds(SEA_SUNROAD);
             for (auto ent_id: entities) {
-                auto const hash = core.GetClassCode(ent_id);
+                auto const hash = core->GetClassCode(ent_id);
                 if (hash != dwShipCode && hash != dwSailCode && hash != dwIslandCode) {
-                    core.Send_Message(ent_id, "ll", MSG_SEA_SUNROAD_DRAW, static_cast<int32_t>(bSimpleSea));
+                    core->Send_Message(ent_id, "ll", MSG_SEA_SUNROAD_DRAW, static_cast<int32_t>(bSimpleSea));
                 }
             }
         }
@@ -115,7 +115,7 @@ bool SEA::SunRoad_Render2()
     return true;
 }
 
-bool SEA::EnvMap_Render2()
+bool Sea::EnvMap_Render2()
 {
     auto mOldView       = rs->GetView();
     auto mOldProjection = rs->GetProjection();
@@ -164,20 +164,20 @@ bool SEA::EnvMap_Render2()
         // mView.m[3][1] = -(mView.m[0][1] * vCamPos.x - mView.m[1][1] * vCamPos.y + mView.m[2][1] * vCamPos.z);
         // mView.m[3][2] = -(mView.m[0][2] * vCamPos.x - mView.m[1][2] * vCamPos.y + mView.m[2][2] * vCamPos.z);
 
-        // core.Trace("sea: %.3f, %.3f, %.3f", mView.m[3][0], mView.m[3][1], mView.m[3][2]);
+        // core->Trace("sea: %.3f, %.3f, %.3f", mView.m[3][0], mView.m[3][1], mView.m[3][2]);
         // rs->SetView(mView);
 
         // Render scene here.
         {
-            auto&& entities = core.GetEntityIds(SEA_REFLECTION);
+            auto&& entities = core->GetEntityIds(SEA_REFLECTION);
             for (auto ent_id: entities) {
-                core.Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
+                core->Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
             }
         }
         {
-            auto&& entities = core.GetEntityIds(SEA_REFLECTION2);
+            auto&& entities = core->GetEntityIds(SEA_REFLECTION2);
             for (auto ent_id: entities) {
-                core.Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
+                core->Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
             }
         }
 
@@ -206,7 +206,7 @@ bool SEA::EnvMap_Render2()
     return true;
 }
 
-bool SEA::SunRoad_Render()
+bool Sea::SunRoad_Render()
 {
     CMatrix mOldView       = rs->GetView();
     CMatrix mOldProjection = rs->GetProjection();
@@ -234,12 +234,12 @@ bool SEA::SunRoad_Render()
         rs->SetView(mView);
 
         // Render scene here.
-        if (!core.IsLayerFrozen(SEA_REFLECTION2)) {
-            auto&& entities = core.GetEntityIds(SEA_SUNROAD);
+        if (!core->IsLayerFrozen(SEA_REFLECTION2)) {
+            auto&& entities = core->GetEntityIds(SEA_SUNROAD);
             for (auto ent_id: entities) {
-                auto const hash = core.GetClassCode(ent_id);
+                auto const hash = core->GetClassCode(ent_id);
                 if (hash != dwShipCode && hash != dwSailCode && hash != dwIslandCode) {
-                    core.Send_Message(ent_id, "ll", MSG_SEA_SUNROAD_DRAW, static_cast<int32_t>(bSimpleSea));
+                    core->Send_Message(ent_id, "ll", MSG_SEA_SUNROAD_DRAW, static_cast<int32_t>(bSimpleSea));
                 }
             }
         }
@@ -257,7 +257,7 @@ bool SEA::SunRoad_Render()
     return true;
 }
 
-bool SEA::EnvMap_Render()
+bool Sea::EnvMap_Render()
 {
     CMatrix mOldView       = rs->GetView();
     CMatrix mOldProjection = rs->GetProjection();
@@ -282,20 +282,20 @@ bool SEA::EnvMap_Render()
         mView.m[3][1] = -(mView.m[0][1] * vCamPos.x - mView.m[1][1] * vCamPos.y + mView.m[2][1] * vCamPos.z);
         mView.m[3][2] = -(mView.m[0][2] * vCamPos.x - mView.m[1][2] * vCamPos.y + mView.m[2][2] * vCamPos.z);
 
-        // core.Trace("sea: %.3f, %.3f, %.3f", mView.m[3][0], mView.m[3][1], mView.m[3][2]);
+        // core->Trace("sea: %.3f, %.3f, %.3f", mView.m[3][0], mView.m[3][1], mView.m[3][2]);
         rs->SetView(mView);
 
         // Render scene here.
         {
-            auto&& entities = core.GetEntityIds(SEA_REFLECTION);
+            auto&& entities = core->GetEntityIds(SEA_REFLECTION);
             for (auto ent_id: entities) {
-                core.Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
+                core->Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
             }
         }
         {
-            auto&& entities = core.GetEntityIds(SEA_REFLECTION2);
+            auto&& entities = core->GetEntityIds(SEA_REFLECTION2);
             for (auto ent_id: entities) {
-                core.Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
+                core->Send_Message(ent_id, "ll", MSG_SEA_REFLECTION_DRAW, static_cast<int32_t>(bSimpleSea));
             }
         }
 

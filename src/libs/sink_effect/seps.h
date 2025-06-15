@@ -1,11 +1,9 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
-
 
 #define MAX_PS_TEXTURES 8
 #define VERTEXS_ON_PARTICLE 6
@@ -92,11 +90,11 @@ struct TRACK_EVENT {
 };
 }  // namespace sink_effect
 
-class PARTICLES;
+class Particles;
 
 class SEPS_PS
 {
-    friend PARTICLES;
+    friend Particles;
     sink_effect::TRACK_EVENT Visibility[TRACK_EVENT_MAX];
     sink_effect::TRACK_EVENT ParticleSize[TRACK_EVENT_MAX];
     sink_effect::TRACK_EVENT ParticleSpeed[TRACK_EVENT_MAX];

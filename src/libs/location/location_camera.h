@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
@@ -46,7 +45,7 @@ public:
     ~LocationCamera() override;
 
     // Initialization
-    bool Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    bool Init() override;
     // Execution
     void Execute(uint32_t delta_time);
     void Realize(uint32_t delta_time);

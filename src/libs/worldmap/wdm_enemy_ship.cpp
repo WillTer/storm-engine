@@ -55,7 +55,7 @@ WdmEnemyShip::~WdmEnemyShip()
     {
       ATTRIBUTES * atr = saveAttribute->GetParent();
       atr->DeleteAttributeClassX(saveAttribute);
-      core.Event("WorldMap_DeleteShipEncounter", "l", type);
+      core->Event("WorldMap_DeleteShipEncounter", "l", type);
     }*/
 }
 
@@ -98,7 +98,7 @@ void WdmEnemyShip::Update(float dltTime)
                 auto const* delEnc = "";
                 if (saveAttribute) { delEnc = saveAttribute->GetThisName(); }
                 VDATA* pVDat = nullptr;
-                if (!killMe && delEnc && delEnc[0]) { pVDat = core.Event("WorldMap_EncounterDelete", "s", delEnc); }
+                if (!killMe && delEnc && delEnc[0]) { pVDat = core->Event("WorldMap_EncounterDelete", "s", delEnc); }
                 deleteAlpha = 0;
                 if (!pVDat || pVDat->GetInt() != 0) {
                     killMe = true;

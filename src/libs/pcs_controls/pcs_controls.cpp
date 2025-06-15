@@ -6,11 +6,9 @@
 #include <libs/input/input.hpp>
 #include <libs/util/string_compare.hpp>
 
-CREATE_SERVICE(PCS_CONTROLS)
-
 using namespace storm;
 
-PCS_CONTROLS::PCS_CONTROLS() : m_is_debug_keys_enabled {false}
+PcsControls::PcsControls() : m_is_debug_keys_enabled {false}
 {
     m_bLockAll = false;
 
@@ -32,40 +30,38 @@ PCS_CONTROLS::PCS_CONTROLS() : m_is_debug_keys_enabled {false}
     inputHandlerID_ = input_->Subscribe([this](InputEvent const& evt) { HandleEvent(evt); });
 
     // RECT r;
-    // GetWindowRect(core.GetAppHWND(),&r);
+    // GetWindowRect(core->GetAppHWND(),&r);
     // ClipCursor(&r);
 }
 
-PCS_CONTROLS::~PCS_CONTROLS()
+PcsControls::~PcsControls()
 {
     input_->Unsubscribe(inputHandlerID_);
     Release();
     // ClipCursor(0);
 }
 
-void PCS_CONTROLS::Init(std::shared_ptr<storm::ServiceLocator> const& service_locator)
+bool PcsControls::Init()
 {
-    CONTROLS::Init(service_locator);
+    auto const controls_info = storm::main_config::controls_info();
+    m_is_debug_keys_enabled  = controls_info.use_debug_keys;
 
-    auto const config_loader = m_service_locator->get<storm::IConfigLoader>();
-    auto const controls_info = storm::main_config::controls_info(*config_loader);
-
-    m_is_debug_keys_enabled = controls_info.use_debug_keys;
+    return true;
 }
 
-void PCS_CONTROLS::AppState(bool state)
+void PcsControls::AppState(bool state)
 {
     updateCursor_ = state;
     if (state) {
         // RECT r;
-        // GetWindowRect(core.GetAppHWND(),&r);
+        // GetWindowRect(core->GetAppHWND(),&r);
         // ClipCursor(&r);
     } else {
         // ClipCursor(0);
     }
 }
 
-void PCS_CONTROLS::Release()
+void PcsControls::Release()
 {
     int32_t n;
     for (n = 0; n < nControlsNum; n++) {
@@ -77,12 +73,12 @@ void PCS_CONTROLS::Release()
     nSystemControlsNum = 0;
 }
 
-int32_t PCS_CONTROLS::GetSystemControlsNum()
+int32_t PcsControls::GetSystemControlsNum()
 {
     return nSystemControlsNum;
 }
 
-bool PCS_CONTROLS::GetSystemControlDesc(int32_t code, SYSTEM_CONTROL_DESC& _control_desc_struct)
+bool PcsControls::GetSystemControlDesc(int32_t code, SYSTEM_CONTROL_DESC& _control_desc_struct)
 {
     if (code >= CONTROL_ELEMENTS_NUM) {
         _control_desc_struct.pControlName = "invalid control";
@@ -126,7 +122,7 @@ bool PCS_CONTROLS::GetSystemControlDesc(int32_t code, SYSTEM_CONTROL_DESC& _cont
     return true;
 }
 
-int32_t PCS_CONTROLS::CreateControl(char const* control_name)
+int32_t PcsControls::CreateControl(char const* control_name)
 {
     int32_t n;
     if (control_name == nullptr) return INVALID_CONTROL_CODE;
@@ -149,12 +145,12 @@ int32_t PCS_CONTROLS::CreateControl(char const* control_name)
     return n;
 }
 
-int32_t PCS_CONTROLS::GetControlsNum()
+int32_t PcsControls::GetControlsNum()
 {
     return nControlsNum;
 }
 
-bool PCS_CONTROLS::GetControlDesc(int32_t code, USER_CONTROL& _user_desc_struct)
+bool PcsControls::GetControlDesc(int32_t code, USER_CONTROL& _user_desc_struct)
 {
     if (code < 0 || code >= nControlsNum) return false;
 
@@ -164,18 +160,18 @@ bool PCS_CONTROLS::GetControlDesc(int32_t code, USER_CONTROL& _user_desc_struct)
     return true;
 }
 
-int32_t PCS_CONTROLS::GetDevicesNum()
+int32_t PcsControls::GetDevicesNum()
 {
     return 1;
 }
 
-bool PCS_CONTROLS::GetDeviceDesc(int32_t code, DEVICE_DESC& _device_desc)
+bool PcsControls::GetDeviceDesc(int32_t code, DEVICE_DESC& _device_desc)
 {
     _device_desc.name = "Keyboard and Mouse";
     return true;
 }
 
-int32_t PCS_CONTROLS::AddControlTreeNode(int32_t nParent, char const* pcBaseControl, char const* pcOutControl, float fTimeOut)
+int32_t PcsControls::AddControlTreeNode(int32_t nParent, char const* pcBaseControl, char const* pcOutControl, float fTimeOut)
 {
     auto const ntree = m_ControlTree.AddControlChild(nParent, pcBaseControl, pcOutControl, fTimeOut);
     if (ntree >= 0 && pcOutControl) {
@@ -188,7 +184,7 @@ int32_t PCS_CONTROLS::AddControlTreeNode(int32_t nParent, char const* pcBaseCont
     return ntree;
 }
 
-void PCS_CONTROLS::MapControl(int32_t control_code, int32_t system_control_code)
+void PcsControls::MapControl(int32_t control_code, int32_t system_control_code)
 {
     if (control_code < 0 || control_code >= nControlsNum) {
         pUserControls[control_code].system_code = UNASSIGNED_CONTROL;
@@ -197,7 +193,7 @@ void PCS_CONTROLS::MapControl(int32_t control_code, int32_t system_control_code)
     pUserControls[control_code].system_code = system_control_code;
 }
 
-bool PCS_CONTROLS::GetControlState(char const* control_name, CONTROL_STATE& _state_struct)
+bool PcsControls::GetControlState(char const* control_name, CONTROL_STATE& _state_struct)
 {
     /*
       int32_t n;
@@ -256,7 +252,7 @@ bool PCS_CONTROLS::GetControlState(char const* control_name, CONTROL_STATE& _sta
     return bControlFound;
 }
 
-bool PCS_CONTROLS::GetControlState(int32_t control_code, CONTROL_STATE& _state_struct)
+bool PcsControls::GetControlState(int32_t control_code, CONTROL_STATE& _state_struct)
 {
     uint32_t system_code;
     int32_t  lRes;
@@ -372,7 +368,7 @@ bool PCS_CONTROLS::GetControlState(int32_t control_code, CONTROL_STATE& _state_s
     return true;
 }
 
-void PCS_CONTROLS::Update(uint32_t DeltaTime)
+void PcsControls::Update(uint32_t DeltaTime)
 {
 #ifdef _WIN32
     static int nMouseXPrev, nMouseYPrev;
@@ -384,7 +380,7 @@ void PCS_CONTROLS::Update(uint32_t DeltaTime)
         nMouseDy = point.y - nMouseYPrev;
 
         RECT r;
-        GetWindowRect(static_cast<HWND>(core.GetWindow()->OSHandle()), &r);
+        GetWindowRect(static_cast<HWND>(core->GetWindow()->OSHandle()), &r);
         nMouseXPrev = r.left + (r.right - r.left) / 2;
         nMouseYPrev = r.top + (r.bottom - r.top) / 2;
         SetCursorPos(nMouseXPrev, nMouseYPrev);
@@ -452,14 +448,14 @@ void PCS_CONTROLS::Update(uint32_t DeltaTime)
     nLastControlTime += DeltaTime;
 }
 
-bool PCS_CONTROLS::SetControlFlags(int32_t code, uint32_t _flags)
+bool PcsControls::SetControlFlags(int32_t code, uint32_t _flags)
 {
     if (code < 0 || code >= nControlsNum) return false;
     pUserControls[code].flags = _flags;
     return true;
 }
 
-bool PCS_CONTROLS::SetControlState(char const* control_name, CONTROL_STATE& _state_struct)
+bool PcsControls::SetControlState(char const* control_name, CONTROL_STATE& _state_struct)
 {
     int32_t n;
     if (control_name == nullptr) return false;
@@ -469,24 +465,24 @@ bool PCS_CONTROLS::SetControlState(char const* control_name, CONTROL_STATE& _sta
     return false;
 }
 
-bool PCS_CONTROLS::SetControlState(int32_t control_code, CONTROL_STATE& _state_struct)
+bool PcsControls::SetControlState(int32_t control_code, CONTROL_STATE& _state_struct)
 {
     if (control_code < 0 || control_code >= nControlsNum) return false;
     pUserControls[control_code].state = _state_struct.state;
     return true;
 }
 
-int32_t PCS_CONTROLS::LastControlTime()
+int32_t PcsControls::LastControlTime()
 {
     return nLastControlTime;
 }
 
-void PCS_CONTROLS::SetControlTreshold(int32_t control_code, float thval)
+void PcsControls::SetControlTreshold(int32_t control_code, float thval)
 {
     // ~!~
 }
 
-void PCS_CONTROLS::LockControl(char const* control_name, bool mode)
+void PcsControls::LockControl(char const* control_name, bool mode)
 {
     int32_t n;
     if (control_name == nullptr || control_name[0] == 0) {
@@ -502,53 +498,53 @@ void PCS_CONTROLS::LockControl(char const* control_name, bool mode)
     }
 }
 
-void PCS_CONTROLS::SetMouseSensivityX(float _s)
+void PcsControls::SetMouseSensivityX(float _s)
 {
     fMouseSensivityX = _s;
 }
 
-void PCS_CONTROLS::SetMouseSensivityY(float _s)
+void PcsControls::SetMouseSensivityY(float _s)
 {
     fMouseSensivityY = _s;
 }
 
-int32_t PCS_CONTROLS::GetKeyBufferLength()
+int32_t PcsControls::GetKeyBufferLength()
 {
     return m_KeyBuffer.GetBufferLength();
 }
 
-KeyDescr const* PCS_CONTROLS::GetKeyBuffer()
+KeyDescr const* PcsControls::GetKeyBuffer()
 {
     return m_KeyBuffer.c_str();
 }
 
-void PCS_CONTROLS::ClearKeyBuffer()
+void PcsControls::ClearKeyBuffer()
 {
     m_KeyBuffer.Reset();
 }
 
-short PCS_CONTROLS::GetAsyncKeyState(int vk)
+short PcsControls::GetAsyncKeyState(int vk)
 {
     return IsKeyPressed(vk) ? -1 : 0;
 }
 
-short PCS_CONTROLS::GetKeyState(int vk)
+short PcsControls::GetKeyState(int vk)
 {
     return GetAsyncKeyState(vk);
 }
 
-short PCS_CONTROLS::GetDebugAsyncKeyState(int vk)
+short PcsControls::GetDebugAsyncKeyState(int vk)
 {
     // -1 because WinAPI sets msb when key pressed, so old code expects negative value
     return m_is_debug_keys_enabled && IsKeyPressed(vk) ? -1 : 0;
 }
 
-short PCS_CONTROLS::GetDebugKeyState(int vk)
+short PcsControls::GetDebugKeyState(int vk)
 {
     return GetDebugAsyncKeyState(vk);
 }
 
-bool PCS_CONTROLS::IsKeyPressed(int vk)
+bool PcsControls::IsKeyPressed(int vk)
 {
     auto pressed = false;
     if (vk == VK_LBUTTON)
@@ -587,7 +583,7 @@ bool PCS_CONTROLS::IsKeyPressed(int vk)
     return pressed;
 }
 
-void PCS_CONTROLS::HandleEvent(InputEvent const& evt)
+void PcsControls::HandleEvent(InputEvent const& evt)
 {
     if (evt.type == InputEvent::KeyboardKeyDown) {
         char text[5];
@@ -603,6 +599,6 @@ void PCS_CONTROLS::HandleEvent(InputEvent const& evt)
     } else if (evt.type == InputEvent::MouseWheel) {
         auto const& dxdy = std::get<MousePos>(evt.data);
         nMouseWheel += dxdy.y * input_->GetWheelFactor();
-        core.Event("evMouseWeel", "l", static_cast<short>(dxdy.y));
+        core->Event("evMouseWeel", "l", static_cast<short>(dxdy.y));
     }
 }

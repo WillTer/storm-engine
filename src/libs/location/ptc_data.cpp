@@ -66,21 +66,21 @@ bool PtcData::Load(char const* path)
     middle                = 0.0f;
     // Loading data
     if (!fio->read_file_to_mem(path, buf)) {
-        core.Trace("Ptc(\"%s\") -> file not found", path);
+        core->Trace("Ptc(\"%s\") -> file not found", path);
         return false;
     }
     // Checking the file for correctness
     if (buf.size() < sizeof(PtcHeader)) {
-        core.Trace("Ptc(\"%s\") -> invalide file size", path);
+        core->Trace("Ptc(\"%s\") -> invalide file size", path);
         return false;
     }
     auto& hdr = *reinterpret_cast<PtcHeader*>(buf.data());
     if (hdr.id != PTC_ID) {
-        core.Trace("Ptc(\"%s\") -> invalide file ID", path);
+        core->Trace("Ptc(\"%s\") -> invalide file ID", path);
         return false;
     }
     if (hdr.ver != PTC_VERSION && hdr.ver != PTC_PREVERSION1) {
-        core.Trace("Ptc(\"%s\") -> invalide file version", path);
+        core->Trace("Ptc(\"%s\") -> invalide file version", path);
         return false;
     }
     size_t tsize = sizeof(PtcHeader);
@@ -92,12 +92,12 @@ bool PtcData::Load(char const* path)
     tsize += hdr.lineSize * hdr.numTriangles * sizeof(uint8_t);
     if (hdr.ver == PTC_VERSION) { tsize += sizeof(PtcMaterials); }
     if (tsize != buf.size()) {
-        core.Trace("Ptc(\"%s\") -> invalide file size", path);
+        core->Trace("Ptc(\"%s\") -> invalide file size", path);
         return false;
     }
     if (hdr.numTriangles < 1 || hdr.numVerteces < 3 || hdr.numNormals < 1 || hdr.mapL < 1 || hdr.mapW < 1 || hdr.numIndeces < 1
         || hdr.lineSize < 1 || hdr.minX >= hdr.maxX || hdr.minY > hdr.maxY || hdr.minZ >= hdr.maxZ) {
-        core.Trace("Ptc(\"%s\") -> invalide file header", path);
+        core->Trace("Ptc(\"%s\") -> invalide file header", path);
         return false;
     }
     // form data structures
@@ -361,7 +361,7 @@ int32_t PtcData::Move(int32_t curNode, const CVECTOR& to, CVECTOR& pos, int32_t 
             float d = nx * nx + nz * nz;
             if (d == 0.0f) {
                 // Abnormal situation
-                core.Trace("Patch have some problem -> triangle edge by zero length");
+                core->Trace("Patch have some problem -> triangle edge by zero length");
                 // Just stop
                 pos = pnt;
                 return curNode;

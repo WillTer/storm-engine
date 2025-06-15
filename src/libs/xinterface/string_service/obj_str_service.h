@@ -4,14 +4,14 @@
 
 #include "../string_service.h"
 
-class OBJ_STRSERVICE: public Entity
+class ObjStrService: public Entity
 {
     VSTRSERVICE* m_pStrService;
 
 public:
-    OBJ_STRSERVICE();
-    ~OBJ_STRSERVICE() override;
-    bool     Init(std::shared_ptr<storm::ServiceLocator> const& service_locator) override;
+    ObjStrService();
+    ~ObjStrService() override;
+    bool     Init() override;
     uint64_t ProcessMessage(MESSAGE& message) override;
 
     void ProcessStage(Stage, uint32_t) override {}

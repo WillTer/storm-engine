@@ -11,7 +11,6 @@
 #include "bone.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 // ============================================================================================
@@ -139,7 +138,7 @@ inline float Bone::Clamp(float v, const char* str)
         v     = 1.0f;
         isErr = true;
     }
-    if (isErr && str) core.Trace(str);
+    if (isErr && str) core->Trace(str);
     return v;
 }
 
