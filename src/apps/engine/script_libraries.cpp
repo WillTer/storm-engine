@@ -1,5 +1,3 @@
-
-
 #include <libs/core/vma.hpp>
 #include <libs/location/location_script_lib.h>
 #include <libs/renderer/s_device.h>
