@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include <libs/core/core.h>
+#include <libs/core/vma.hpp>
 #include <libs/math/math_inlines.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/string_compare.hpp>
@@ -869,7 +870,7 @@ uint32_t CTechnique::AddShader(char* pShaderName)
     auto const len         = strlen(pShaderName) + 1;
     pS->pName              = new char[len];
     memcpy(pS->pName, pShaderName, len);
-    pS->dwHashName    = MakeHashValue(pShaderName);
+    pS->dwHashName    = case_insensitive_hash(pShaderName);
     pS->pVertexDecl   = nullptr;
     pS->pVertexShader = nullptr;
     pS->pPixelShader  = nullptr;
@@ -1580,7 +1581,7 @@ uint32_t CTechnique::ProcessBlock(char* pFile, uint32_t dwSize, char** pStr)
 #endif
     strcpy_s(sCurrentBlockName, pName);
     GetTokenWhile(pName, &temp[0], "(");
-    pB->dwHashBlockName = MakeHashValue(temp);
+    pB->dwHashBlockName = case_insensitive_hash(temp);
     auto const len      = strlen(temp) + 1;
     pB->pBlockName      = new char[len];
     memcpy(pB->pBlockName, temp, len);

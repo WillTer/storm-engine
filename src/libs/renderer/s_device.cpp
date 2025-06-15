@@ -2912,20 +2912,16 @@ void RendererService::FindPlanes(IDirect3DDevice9* d3dDevice)
     viewplane[3].D = (pos.x * viewplane[3].Nx + pos.y * viewplane[3].Ny + pos.z * viewplane[3].Nz);
 }
 
+bool RendererService::TechniqueExecuteStart(char const* cBlockName)
+{
+    if (cBlockName == nullptr) { return false; }
 #ifdef _WIN32  // Effects
-bool RendererService::TechniqueExecuteStart(const char* cBlockName)
-{
-    if (!cBlockName) return false;
     return effects_.begin(cBlockName);
-}
 #else
-bool DX9RENDER::TechniqueExecuteStart(const char* cBlockName)
-{
-    if (!cBlockName) return false;
     pTechnique->SetCurrentBlock(cBlockName, 0, nullptr);
     return pTechnique->ExecutePassStart();
-}
 #endif
+}
 
 bool RendererService::TechniqueExecuteNext()
 {
