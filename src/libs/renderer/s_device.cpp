@@ -1,19 +1,22 @@
 #include "s_device.h"
 
 #include <algorithm>
+#include <chrono>
+#include <format>
 
 #include <SDL_timer.h>
-#include <fmt/chrono.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
+#include <libs/core/vma.hpp>
 #include <libs/filesystem/default_paths.h>
 #include <libs/math/math_inlines.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "texture.h"
 
@@ -2833,7 +2836,7 @@ void RendererService::MakeScreenShot()
         return;
     }
 
-    auto const screenshot_base_filename = fmt::format("{:%Y-%m-%d_%H-%M-%S}", fmt::localtime(std::time(nullptr)));
+    auto const screenshot_base_filename = std::format("{0:%F}_{0:%H}-{0:%M}-{0:%S}", std::chrono::system_clock::now());
     auto       screenshot_path          = fs::GetScreenshotsPath() / screenshot_base_filename;
     screenshot_path.replace_extension(screenshotExt);
     for (size_t i = 0; exists(screenshot_path); ++i) {
@@ -3098,7 +3101,8 @@ void RendererService::DrawLines2D(RS_LINE2D* pRSL2D, size_t dwLinesNum, char con
 }
 
 //-----------------------
-HRESULT RendererService::CreateVertexBuffer(UINT Length, uint32_t Usage, uint32_t FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer)
+HRESULT
+RendererService::CreateVertexBuffer(UINT Length, uint32_t Usage, uint32_t FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer)
 {
     return CHECKD3DERR(d3d9->CreateVertexBuffer(Length, Usage, FVF, Pool, ppVertexBuffer, NULL));
 }
@@ -3950,7 +3954,8 @@ bool RendererService::PopRenderTarget()
     return true;
 }
 
-bool RendererService::SetRenderTarget(IDirect3DCubeTexture9* pRenderTarget, uint32_t FaceType, uint32_t dwLevel, IDirect3DSurface9* pZStencil)
+bool RendererService::SetRenderTarget(
+    IDirect3DCubeTexture9* pRenderTarget, uint32_t FaceType, uint32_t dwLevel, IDirect3DSurface9* pZStencil)
 {
     IDirect3DSurface9* pSurface;
     return !CHECKD3DERR(pRenderTarget->GetCubeMapSurface(static_cast<D3DCUBEMAP_FACES>(FaceType), dwLevel, &pSurface))

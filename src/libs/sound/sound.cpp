@@ -1,13 +1,12 @@
 #include "sound.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/messages.h>
 
 #define MSG_SOUND_ALIAS_ADD 77017  //"s"          alias_name
 
 //--------------------------------------------------------------------
-Sound::Sound() : soundService(nullptr), renderer(nullptr) {}
+Sound::Sound() : soundService(nullptr) {}
 
 //--------------------------------------------------------------------
 Sound::~Sound() {}
@@ -18,7 +17,6 @@ bool Sound::Init()
     soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
     if (!soundService) core->Trace("!SOUND: Can`t create sound service");
 
-    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     core->AddToLayer(REALIZE, GetId(), -1);
 
     return true;

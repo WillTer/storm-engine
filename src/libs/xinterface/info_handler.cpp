@@ -1,7 +1,6 @@
 #include "info_handler.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 InfoHandler::InfoHandler() : m_rs(nullptr), tex(nullptr) {}
 

@@ -1,7 +1,6 @@
 #include "data_source.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/util/string_compare.hpp>
 
 #include "../../i_common/names.h"

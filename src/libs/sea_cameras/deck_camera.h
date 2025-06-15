@@ -3,7 +3,6 @@
 // ==================================================================== ||
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 

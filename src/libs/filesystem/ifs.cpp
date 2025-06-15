@@ -3,7 +3,7 @@
 #include <array>
 
 #include <libs/core/core_impl.h>
-#include <libs/core/vma.hpp>
+#include <spdlog/spdlog.h>
 
 #define COMMENT ';'
 #define SECTION_A '['

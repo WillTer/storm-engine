@@ -1,8 +1,10 @@
 #include "t_butterfly.h"
 
+#include <libs/collide/collide.h>
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
+#include <libs/renderer/iv_buffer_manager.h>
 #include <libs/util/rands.h>
 
 CVECTOR TButterfly::center;

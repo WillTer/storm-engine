@@ -4,6 +4,7 @@
 #include <libs/core/entity.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
+#include <libs/renderer/dx9render.h>
 
 VDX9RENDER* ShipTracks::ShipTrack::pRS              = nullptr;
 SEA_BASE*   ShipTracks::ShipTrack::pSea             = nullptr;

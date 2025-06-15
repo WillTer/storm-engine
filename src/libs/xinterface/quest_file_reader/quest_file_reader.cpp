@@ -7,6 +7,7 @@
 
 #include <libs/core/core.h>
 #include <libs/util/storm_assert.h>
+#include <spdlog/spdlog.h>
 
 namespace
 {

@@ -1,7 +1,5 @@
 #include "data_uv.h"
 
-#include <libs/core/vma.hpp>
-
 // constructor / destructor
 DataUV::DataUV() {}
 

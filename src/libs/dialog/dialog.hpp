@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
@@ -38,7 +37,7 @@ class Dialog final: public Entity
 
 public:
     Dialog(Dialog&&)      = delete;
-    Dialog(const Dialog&) = delete;
+    Dialog(Dialog const&) = delete;
     Dialog();
     ~Dialog();
 

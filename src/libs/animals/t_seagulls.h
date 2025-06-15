@@ -2,8 +2,6 @@
 
 #include <libs/core/message.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
-#include <libs/sound_service/v_sound_service.h>
 
 #include "animals_defines.h"
 
@@ -26,6 +24,10 @@ struct tSeagull {
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
 ///////////////////////////////////////////////////////////////////
+
+class VDX9RENDER;
+class VSoundService;
+
 class TSeagulls
 {
 public:

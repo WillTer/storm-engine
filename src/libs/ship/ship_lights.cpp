@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <libs/math/math3d.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 
 #include "ship.h"

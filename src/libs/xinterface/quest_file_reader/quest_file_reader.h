@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <libs/core/vma.hpp>
-
 namespace storm
 {
 class QuestFileReader

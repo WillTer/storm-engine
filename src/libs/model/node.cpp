@@ -1,5 +1,7 @@
 // #define SHOW_SPHERES 'Q'
 
+#include <format>
+
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/util/string_compare.hpp>
@@ -171,11 +173,11 @@ bool NODER::Init(
     loc_mtx = m;
     glob_mtx.EqMultiply(loc_mtx, globm);
 
-    if (pname == nullptr) { throw std::runtime_error(fmt::format("NODER::Init: got nullptr model name")); }
+    if (pname == nullptr) { throw std::runtime_error(std::format("NODER::Init: got nullptr model name")); }
     sys_modelName_base = pname;
 
     if (oname && oname[0])
-        sys_modelName_full = fmt::format("{}_{}", sys_modelName_base, oname);
+        sys_modelName_full = std::format("{}_{}", sys_modelName_base, oname);
     else
         sys_modelName_full = sys_modelName_base;
 
@@ -273,7 +275,7 @@ void NODER::RestoreGeometry()
     geo = gs->CreateGeometry(sys_modelName_full.c_str(), sys_LightPath.c_str(), 0, sys_lmPath.c_str());
     gs->SetTexturePath(ttPath);
     delete[] ttPath;
-    if (!geo) throw std::runtime_error(fmt::format("Cannot restore geometry {}", sys_modelName_full));
+    if (!geo) throw std::runtime_error(std::format("Cannot restore geometry {}", sys_modelName_full));
 
     isReleased = false;
     for (int32_t i = 0; i < next.size(); i++) {
@@ -513,7 +515,7 @@ void NODER::SetMaxViewDist(float fDist)
 
 void NODER::SubstituteGeometry(std::string const& new_model)
 {
-    sys_modelName_full = fmt::format("{}_{}", sys_modelName_base, new_model);
+    sys_modelName_full = std::format("{}_{}", sys_modelName_base, new_model);
     ReleaseGeometry();
     RestoreGeometry();
 }

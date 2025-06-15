@@ -5,7 +5,6 @@
 #include <ranges>
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/math_inlines.h>
 #include <libs/util/debug-trap.h>
 #include <libs/util/string_compare.hpp>

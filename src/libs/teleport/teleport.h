@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 class TmpTeleport: public Entity

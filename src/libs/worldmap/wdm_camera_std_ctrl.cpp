@@ -12,7 +12,6 @@
 
 #include <libs/core/controls.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 #define WDM_CAMERASTDCTRL_MAXDLT 400
 

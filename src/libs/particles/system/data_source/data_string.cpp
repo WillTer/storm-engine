@@ -1,6 +1,5 @@
 #include "data_string.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/platform/platform.hpp>
 
 // constructor / destructor

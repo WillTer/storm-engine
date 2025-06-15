@@ -1,6 +1,5 @@
 #include "data_bool.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 #pragma warning(disable : 4800)

@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include <libs/config/i_config_loader.h>
-
 class INIFILE;
 
 enum class BaseDirectory {

@@ -76,11 +76,9 @@ private:
 
 extern std::unique_ptr<storm::ClassesRegistry> classes_registry;
 
-using namespace entt::literals;
-
 class VMA
 {
-    constexpr static auto vma_name = "VMA"_hs;
+    constexpr static entt::hashed_string vma_name = "VMA";
 
 protected:
     VMA*    m_next;
@@ -145,7 +143,7 @@ public:
 #define CREATE_CLASS(a) \
     class a##vmacd: public VMA \
     { \
-        constexpr static auto m_name = #a##_hs; \
+        constexpr static entt::hashed_string m_name = #a; \
 \
     public: \
         a##vmacd() : VMA(m_name) {} \
@@ -162,7 +160,7 @@ public:
 #define CREATE_SERVICE(a) \
     class a##vmacd: public VMA \
     { \
-        constexpr static auto m_name = #a##_hs; \
+        constexpr static entt::hashed_string m_name = #a; \
 \
         std::unique_ptr<a> m_service = nullptr; \
 \
@@ -197,7 +195,7 @@ public:
 #define CREATE_SCRIPT_LIBRARY(a) \
     class a##vmacd: public VMA \
     { \
-        constexpr static auto m_name = #a##_hs; \
+        constexpr static entt::hashed_string m_name = #a; \
 \
     public: \
         a##vmacd() : VMA(m_name) {} \

@@ -7,10 +7,16 @@
 #include <libs/math/c_vector.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
-#include <storm_audio/device.h>
 
 #include "sound_defines.h"
 #include "v_sound_service.h"
+
+namespace storm::audio
+{
+class Source;
+class Sound;
+class Device;
+}  // namespace storm::audio
 
 class INIFILE;
 

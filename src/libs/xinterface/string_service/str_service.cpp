@@ -7,6 +7,7 @@
 #include <libs/core/v_s_stack.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "../xinterface.h"
 

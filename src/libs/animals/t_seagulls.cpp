@@ -5,7 +5,9 @@
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
+#include <libs/sound_service/v_sound_service.h>
 #include <libs/util/rands.h>
 
 // #pragma warning (disable : 4244)

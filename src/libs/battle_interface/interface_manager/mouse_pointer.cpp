@@ -2,7 +2,6 @@
 
 #include <libs/battle_interface/bi_utils.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 #include "../image/img_render.h"
 

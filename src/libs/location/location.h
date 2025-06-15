@@ -12,7 +12,6 @@
 
 #include <cstdint>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 
 #include "locator_array.h"

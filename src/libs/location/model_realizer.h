@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/renderer/dx9render.h>
 

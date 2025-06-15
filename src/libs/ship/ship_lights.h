@@ -2,11 +2,11 @@
 
 #include <libs/collide/collide.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "i_ship_lights.h"
 
+class VDX9RENDER;
 class ShipLights: public IShipLights
 {
 private:

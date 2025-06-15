@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
+#include <cstdint>
 
 #define TRND_PI 3.141592654f
 

@@ -1,7 +1,5 @@
 #include "data_float.h"
 
-#include <libs/core/vma.hpp>
-
 // constructor / destructor
 DataFloat::DataFloat()
 {

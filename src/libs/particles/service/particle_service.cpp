@@ -1,7 +1,6 @@
 #include "particle_service.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 
 #include "../k2_wrapper/particles.h"
 #include "../manager/particle_manager.h"

@@ -6,7 +6,6 @@
 #include <libs/shared_headers/layers.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/window/os_window.hpp>
-#include <spdlog/spdlog.h>
 
 // common includes
 #include "controls.h"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/d_timer.h>
-#include <libs/core/vma.hpp>
 
 class AIShip;
 

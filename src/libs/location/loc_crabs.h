@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #include "loc_crab.h"

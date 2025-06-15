@@ -4,7 +4,6 @@
 
 #include <libs/model/model.h>
 #include <libs/particles/v_particle_system.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "ship_base.h"

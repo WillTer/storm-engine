@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/script_libriary.h>
-#include <libs/core/vma.hpp>
 
 #include "../string_service.h"
 

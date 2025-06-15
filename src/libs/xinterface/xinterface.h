@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>
 
@@ -74,7 +73,7 @@ protected:
 
 public:
     XInterface(XInterface&&)      = delete;
-    XInterface(const XInterface&) = delete;
+    XInterface(XInterface const&) = delete;
     XInterface();
     ~XInterface() override;
 

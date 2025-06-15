@@ -1,6 +1,7 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/shared_headers/messages.h>
+#include <spdlog/spdlog.h>
 
 #include "modelr.h"
 

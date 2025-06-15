@@ -2,7 +2,6 @@
 
 #include <libs/core/entity.h>
 #include <libs/core/service.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/c_vector.h>
 #include <libs/math/types3d.h>
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/math/c_vector.h>
 #include <libs/sea_ai/vai_objbase.h>
 

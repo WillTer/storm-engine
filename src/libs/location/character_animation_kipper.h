@@ -12,7 +12,6 @@
 
 #include <libs/animation/animation.h>
 #include <libs/core/entity.h>
-#include <libs/core/vma.hpp>
 
 class VDX9RENDER;
 

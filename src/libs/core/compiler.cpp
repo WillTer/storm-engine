@@ -19,8 +19,10 @@
 #include <libs/util/debug-trap.h>
 #include <libs/util/fs.h>
 #include <libs/util/storm_assert.h>
+#include <spdlog/spdlog.h>
 
 #include "script_cache.h"
+#include "vma.hpp"
 
 #define SKIP_COMMENT_TRACING
 #define TRACE_OFF

@@ -3,7 +3,6 @@
 #include <libs/core/core.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/math_inlines.h>
 
 uint32_t _RDTSC_B(VS_STACK* pS)

@@ -1,6 +1,5 @@
 #include "data_color.h"
 
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 #include "../../i_common/graph_time.h"

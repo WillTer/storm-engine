@@ -3,8 +3,7 @@
 #include "message.h"
 
 #include <algorithm>
-
-#include <fmt/format.h>
+#include <format>
 
 void MESSAGE::Move2Start()
 {
@@ -192,6 +191,6 @@ storm::MessageParam MESSAGE::GetParamValue(char const c, va_list& args)
         char* ptr = va_arg(args, char*);
         return std::string(ptr);
     }
-    default: throw std::runtime_error(fmt::format("Unknown message format: '{}'", c));
+    default: throw std::runtime_error(std::format("Unknown message format: '{}'", c));
     }
 }

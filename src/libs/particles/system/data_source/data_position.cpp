@@ -1,7 +1,5 @@
 #include "data_position.h"
 
-#include <libs/core/vma.hpp>
-
 // constructor / destructor
 DataPosition::DataPosition()
 {

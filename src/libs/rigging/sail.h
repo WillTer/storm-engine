@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geos.h>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>

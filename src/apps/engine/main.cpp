@@ -4,7 +4,9 @@
 #include <SDL2/SDL.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
+#include <libs/core/core_impl.h>
 #include <libs/core/core_private.h>
+#include <libs/core/vma.hpp>
 #include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
@@ -14,8 +16,6 @@
 #include <libs/util/fs.h>
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
-
-#include "libs/core/core_impl.h"
 
 std::unique_ptr<IFileService>           fio              = nullptr;
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)

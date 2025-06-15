@@ -4,6 +4,7 @@
 #include <libs/core/entity.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/rands.h>
 

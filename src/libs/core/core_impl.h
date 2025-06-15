@@ -5,10 +5,10 @@
 #include "entity_manager.h"
 #include "services_list.h"
 #include "timer.h"
-#include "vma.hpp"
 
 #define ENGINE_SCRIPT_VERSION 54128
 
+class VMA;
 class CoreImpl final: public CorePrivate
 {
 public:

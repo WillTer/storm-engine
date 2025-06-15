@@ -1,11 +1,10 @@
 #include "legacy_dialog.hpp"
 
 #include <array>
+#include <format>
 
 #include <libs/animation/animation.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
-#include <libs/filesystem/default_paths.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
@@ -268,7 +267,7 @@ uint64_t LegacyDialog::ProcessMessage(MESSAGE& msg)
         auto const             last_name_attr = core->Entity_GetAttribute(charId, "lastname");
         std::string_view const name           = name_attr ? name_attr : "";
         std::string_view const last_name      = last_name_attr ? last_name_attr : "";
-        characterName_                        = fmt::format("{} {}", name, last_name);
+        characterName_                        = std::format("{} {}", name, last_name);
         std::transform(characterName_.begin(), characterName_.end(), characterName_.begin(), ::toupper);
         break;
     }
@@ -452,7 +451,7 @@ void LegacyDialog::SetAction(std::string action)
 
 void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
 {
-    std::string const newHeadModelPath = fmt::format("Heads/{}", headModelPath);
+    std::string const newHeadModelPath = std::format("Heads/{}", headModelPath);
 
     if (headModelPath_ != newHeadModelPath) {
         headModelPath_ = newHeadModelPath;

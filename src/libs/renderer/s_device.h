@@ -10,7 +10,6 @@
 #endif
 #include <d3d9types.h>
 #include <libs/core/script_libriary.h>
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
 

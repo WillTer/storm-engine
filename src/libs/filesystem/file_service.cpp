@@ -7,9 +7,9 @@
 #include <string>
 
 #include <SDL2/SDL.h>
+#include <libs/config/i_config_loader.h>
 #include <libs/core/core_impl.h>
-#include <libs/util/platform/platform.hpp>
-#include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "default_paths.h"
 

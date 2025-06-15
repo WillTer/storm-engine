@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libs/core/vma.hpp>
 #include <libs/math/c_vector.h>
 #include <libs/math/matrix.h>
 #include <libs/particles/v_particle_system.h>

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/collide/collide.h>
-#include <libs/core/vma.hpp>
 #include <libs/model/model.h>
 #include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>

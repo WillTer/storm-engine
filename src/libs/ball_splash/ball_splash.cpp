@@ -3,6 +3,7 @@
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <stdio.h>
 

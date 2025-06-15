@@ -2,7 +2,6 @@
 
 #include <libs/geometry/geometry.h>
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "ball_splash_defines.h"

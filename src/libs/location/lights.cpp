@@ -10,6 +10,8 @@
 
 #include "lights.h"
 
+#include <format>
+
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
@@ -560,7 +562,7 @@ void Lights::PrintDebugInfo()
             0,
             static_cast<int32_t>(vrt.x),
             static_cast<int32_t>(vrt.y),
-            fmt::format("{}", d).c_str());
+            std::format("{}", d).c_str());
 
         // print idx
         auto color = D3DCOLOR_ARGB(255, 233, 30, 30);
@@ -579,7 +581,7 @@ void Lights::PrintDebugInfo()
             0,
             static_cast<int32_t>(vrt.x),
             static_cast<int32_t>(vrt.y),
-            fmt::format("{}", i).c_str());
+            std::format("{}", i).c_str());
 
         rs->SetTransform(D3DTS_VIEW, view);
     }

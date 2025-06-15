@@ -2,7 +2,6 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/core/vma.hpp>
 #include <libs/sea_ai/vai_objbase.h>
 
 class COMMON_CAMERA: public Entity

@@ -1,6 +1,7 @@
 #include "xi_check_buttons.h"
 
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 #include <stdio.h>
 
 #include "xi_util.h"

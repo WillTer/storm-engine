@@ -3,7 +3,7 @@
 // ************************************************************************
 #pragma once
 
-#include <libs/core/vma.hpp>
+#include <entt/core/hashed_string.hpp>
 #include <libs/math/c_vector4.h>
 #include <libs/renderer/dx9render.h>
 

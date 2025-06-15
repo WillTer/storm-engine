@@ -1,5 +1,6 @@
 #include "rain.h"
 
+#include <entt/core/hashed_string.hpp>
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
 

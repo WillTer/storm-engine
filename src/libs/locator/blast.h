@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/collide/cannon_trace.h>
-#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
 #include <libs/renderer/dx9render.h>

@@ -1,7 +1,6 @@
 #include "bi_utils.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/util/string_compare.hpp>
 
 #include "image/img_render.h"

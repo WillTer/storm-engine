@@ -2,7 +2,6 @@
 
 #include <libs/battle_interface/image/img_render.h>
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/bimanager/messages.h>
 #include <libs/util/string_compare.hpp>
 

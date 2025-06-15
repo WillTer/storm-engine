@@ -12,6 +12,7 @@
 
 #include <chrono>
 
+#include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
 #include <libs/util/string_compare.hpp>
 

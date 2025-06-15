@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <libs/collide/collide.h>
-#include <libs/core/vma.hpp>
 #include <libs/renderer/dx9render.h>
 
 #define MAX_BLOOD_TRIANGLES 10000

@@ -14,7 +14,6 @@
 #include <string>
 
 #include <libs/animation/animation.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/matrix.h>
 #include <libs/model/model.h>
 #include <libs/util/string_compare.hpp>

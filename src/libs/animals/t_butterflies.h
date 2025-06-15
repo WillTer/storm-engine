@@ -1,16 +1,16 @@
 #pragma once
 
 #include <libs/animation/animation.h>
-#include <libs/collide/collide.h>
-#include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
-#include <libs/renderer/iv_buffer_manager.h>
 
 #include "animals_defines.h"
 #include "t_butterfly.h"
 
 #define Y_REDEFINE_TIME 250
+
+class VDX9RENDER;
+class COLLIDE;
+class IVBufferManager;
 
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION

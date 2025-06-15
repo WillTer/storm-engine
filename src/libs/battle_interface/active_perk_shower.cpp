@@ -3,7 +3,6 @@
 #include <exception>
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 #include <libs/util/string_compare.hpp>
 

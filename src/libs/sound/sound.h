@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/entity.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sound_service/v_sound_service.h>
 
 ///////////////////////////////////////////////////////////////////
@@ -47,5 +46,4 @@ public:
 
 private:
     VSoundService* soundService;
-    VDX9RENDER*    renderer;
 };

@@ -6,6 +6,7 @@
 #include <libs/core/core.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/shared_headers/sea_ai/script_defines.h>
+#include <spdlog/spdlog.h>
 
 namespace
 {

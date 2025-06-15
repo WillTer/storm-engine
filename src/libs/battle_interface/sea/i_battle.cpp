@@ -1,7 +1,6 @@
 #include "i_battle.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/math/math_inlines.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>
 #include <libs/util/string_compare.hpp>

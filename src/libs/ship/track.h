@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "ship_base.h"
 
+class VDX9RENDER;
 class ShipTracks: public Entity
 {
 public:

@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <libs/core/vma.hpp>
-
 #include "animation.h"
 #include "animation_info.h"
 

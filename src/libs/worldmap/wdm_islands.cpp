@@ -14,6 +14,8 @@
 #include <libs/math/math_inlines.h>
 #include <libs/util/string_compare.hpp>
 
+#include "libs/core/vma.hpp"
+
 #include "wdm_camera.h"
 #include "wdm_ship.h"
 #include "world_map.h"

@@ -1,5 +1,7 @@
 #include "island_descr.h"
 
+#include <cassert>
+
 #include <libs/core/core.h>
 #include <libs/model/model.h>
 #include <libs/shared_headers/battle_interface/msg_control.h>

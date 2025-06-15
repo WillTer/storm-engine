@@ -4,13 +4,14 @@
 
 #include <SDL2/SDL.h>
 #include <libs/config/main_config.h>
-#include <libs/filesystem/default_paths.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #include "compiler.h"
 #include "controls.h"
+#include "vma.hpp"
 
 uint64_t get_performance_counter()
 {

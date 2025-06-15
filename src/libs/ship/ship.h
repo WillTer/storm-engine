@@ -9,7 +9,6 @@
 #include <libs/geometry/geometry.h>
 #include <libs/island/island_base.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "fire_place.h"
@@ -29,6 +28,8 @@
 #define MAST_FIRST 1
 #define TOPMAST_BEGIN 100  // start of topmast numbering (if any)
 #define HULL_IDENTIFY "shatter"
+
+class VDX9RENDER;
 
 class Ship: public SHIP_BASE
 {

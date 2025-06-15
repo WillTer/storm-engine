@@ -4,12 +4,15 @@
 
 #include <libs/location/character_helpers.h>
 #include <libs/math/math_inlines.h>
+#include <libs/renderer/dx9render.h>
 #include <libs/sea_ai/ai_flow_graph.h>
 #include <libs/shared_headers/mast_msg.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/shared_headers/sea_ai/script_defines.h>
 #include <libs/shared_headers/sound.h>
+
+#include "spdlog/spdlog.h"
 
 #include "ship_lights.h"
 #include "track.h"

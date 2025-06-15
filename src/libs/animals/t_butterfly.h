@@ -1,9 +1,7 @@
 #pragma once
 
-#include <libs/collide/collide.h>
 #include <libs/math/c_vector.h>
 #include <libs/model/model.h>
-#include <libs/renderer/iv_buffer_manager.h>
 
 ///////////////////////////////////////////////////////////////////
 // DEFINES & TYPES
@@ -34,6 +32,11 @@ struct tButterflyVertex {
 };
 #pragma pack(pop)
 //--------------------------------------------------------------------
+
+class COLLIDE;
+class VDX9RENDER;
+class IVBufferManager;
+
 class TButterfly
 {
 public:

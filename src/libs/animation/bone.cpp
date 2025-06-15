@@ -11,7 +11,6 @@
 #include "bone.h"
 
 #include <libs/core/core.h>
-#include <libs/core/vma.hpp>
 #include <libs/util/storm_assert.h>
 
 // ============================================================================================
