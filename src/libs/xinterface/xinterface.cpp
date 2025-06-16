@@ -2,7 +2,6 @@
 
 #include <cstdio>
 
-#include <SDL2/SDL.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 

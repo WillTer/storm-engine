@@ -3,7 +3,7 @@ storm_lib(
     LINK_DEPENDENCIES
         config
         core
-        SDL2-storm
+        SDL3::SDL3
         spdlog::spdlog
 
         $<$<PLATFORM_ID:Windows>:legacy_stdio_definitions>

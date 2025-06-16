@@ -2,9 +2,8 @@
 
 #include <map>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <libs/input/input.hpp>
-#include <libs/util/platform/platform.hpp>
 
 namespace storm
 {
@@ -28,14 +27,14 @@ public:
     int  ControllerAxisValue(ControllerAxis const& axis) const override;
 
 private:
-    static int SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
-    void               ProcessEvent(SDL_Event const& event);
-    void               OpenController();
+    static bool SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
+    void                ProcessEvent(SDL_Event const& event);
+    void                OpenController();
 
 private:
-    std::map<int, EventHandler>                                                   handlers_;
-    uint8_t const*                                                                keyStates_;
-    std::unique_ptr<SDL_GameController, std::function<void(SDL_GameController*)>> controller_;
-    SDL_JoystickID                                                                joyID_;
+    std::map<int, EventHandler>                                     handlers_;
+    bool const*                                                     keyStates_;
+    std::unique_ptr<SDL_Gamepad, std::function<void(SDL_Gamepad*)>> controller_;
+    SDL_JoystickID                                                  joyID_;
 };
 }  // namespace storm

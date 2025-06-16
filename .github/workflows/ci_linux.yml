@@ -41,7 +41,7 @@ jobs:
           submodules: 'recursive'
       - name: Install libs
         run: |
-          sudo apt-get update && sudo apt-get install meson libstdc++-13-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev libcurlpp-dev zlib1g-dev libvorbis-dev libogg-dev libopenal-dev libd3dadapter9-mesa-dev libxcb-present-dev libxcb-dri3-dev libx11-xcb-dev
+          sudo apt-get update && sudo apt-get install  build-essential make meson libstdc++-13-dev libvulkan-dev glslang-tools libsdl2-dev libgl-dev libegl-dev libcurlpp-dev zlib1g-dev libvorbis-dev libogg-dev libopenal-dev libd3dadapter9-mesa-dev libxcb-present-dev libxcb-dri3-dev libx11-xcb-dev pkg-config gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
       - name: Configure with CMake
         run: |
           export CC=clang-18

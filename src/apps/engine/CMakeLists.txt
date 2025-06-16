@@ -3,7 +3,7 @@ set(SYSTEM_DEPS_LINUX ffi)
 storm_exe(
     NAME engine
     LINK_DEPENDENCIES
-        SDL2-storm
+        SDL3::SDL3
 
         # Modules
         animals

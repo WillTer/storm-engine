@@ -10,7 +10,7 @@
 
 #include "sharks.h"
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>

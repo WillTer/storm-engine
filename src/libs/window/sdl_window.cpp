@@ -1,28 +1,35 @@
 #include "sdl_window.hpp"
 
-#include <SDL2/SDL_syswm.h>
-
 namespace storm
 {
 SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered) : fullscreen_(fullscreen)
 {
-    uint32_t flags = (fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_HIDDEN;
+    auto const props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display));
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display));
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, fullscreen);
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
+
 #if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
-    flags |= SDL_WINDOW_VULKAN;
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
 #endif
+
     window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
-        SDL_CreateWindow(
-            "", SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display), width, height, flags),
-        [](SDL_Window* w) { SDL_DestroyWindow(w); });
+        SDL_CreateWindowWithProperties(props), [](SDL_Window* w) { SDL_DestroyWindow(w); });
+
+    SDL_DestroyProperties(props);
 
     sdlID_ = SDL_GetWindowID(window_.get());
-    SDL_SetWindowBordered(window_.get(), bordered ? SDL_TRUE : SDL_FALSE);
+    SDL_SetWindowBordered(window_.get(), bordered);
+    SDL_SetWindowRelativeMouseMode(window_.get(), true);
     SDL_AddEventWatch(&SDLEventHandler, this);
 }
 
 SDLWindow::~SDLWindow()
 {
-    SDL_DelEventWatch(&SDLEventHandler, this);
+    SDL_RemoveEventWatch(&SDLEventHandler, this);
 }
 
 void SDLWindow::Show()
@@ -94,7 +101,8 @@ void SDLWindow::SetTitle(std::string const& title)
 
 void SDLWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256])
 {
-    SDL_SetWindowGammaRamp(window_.get(), red, green, blue);
+    // Removed in SDL3
+    // SDL_SetWindowGammaRamp(window_.get(), red, green, blue);
 }
 
 int SDLWindow::Subscribe(EventHandler const& handler)
@@ -117,10 +125,7 @@ void* SDLWindow::OSHandle()
     if (!window_) return nullptr;
 
 #ifdef _WIN32
-    SDL_SysWMinfo info;
-    SDL_VERSION(&info.version);
-    SDL_GetWindowWMInfo(window_.get(), &info);
-    return info.info.win.window;
+    return SDL_GetPointerProperty(SDL_GetWindowProperties(window_.get()), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
 #else
     // dxvk-native uses HWND as SDL2 window handle, so this is allowed
     return window_.get();
@@ -135,12 +140,12 @@ SDL_Window* SDLWindow::SDLHandle() const
 void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
 {
     Event winEvent;
-    switch (evt.event) {
-    case SDL_WINDOWEVENT_FOCUS_GAINED: winEvent = FocusGained; break;
+    switch (evt.type) {
+    case SDL_EVENT_WINDOW_FOCUS_GAINED: winEvent = FocusGained; break;
 
-    case SDL_WINDOWEVENT_FOCUS_LOST: winEvent = FocusLost; break;
+    case SDL_EVENT_WINDOW_FOCUS_LOST: winEvent = FocusLost; break;
 
-    case SDL_WINDOWEVENT_CLOSE: winEvent = Closed; break;
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED: winEvent = Closed; break;
 
     default: return;
     }
@@ -154,14 +159,14 @@ std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_
     return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
 }
 
-int SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
+bool SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
 {
-    auto w = static_cast<SDLWindow*>(userdata);
+    auto const* const w = static_cast<SDLWindow*>(userdata);
 
-    if ((evt->type != SDL_WINDOWEVENT) || (evt->window.windowID != w->sdlID_)) return 0;
+    if (evt->type < SDL_EVENT_WINDOW_FIRST || evt->type > SDL_EVENT_WINDOW_LAST || evt->window.windowID != w->sdlID_) return false;
 
     w->ProcessEvent(evt->window);
 
-    return 0;
+    return false;
 }
 }  // namespace storm

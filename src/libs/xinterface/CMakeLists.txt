@@ -3,7 +3,7 @@ storm_lib(
     LINK_DEPENDENCIES
         core
         renderer
-        SDL2-storm
+        SDL3::SDL3
         spdlog::spdlog
 
         $<$<PLATFORM_ID:Windows>:amstrmid ddraw>
