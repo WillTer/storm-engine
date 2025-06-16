@@ -77,7 +77,7 @@ struct CompatibilityInfo {
 struct PathsInfo {
     std::filesystem::path resource;
     std::filesystem::path program;
-    std::filesystem::path config;
+    std::filesystem::path ini;
     std::filesystem::path aliases;
     std::filesystem::path sounds;
     std::filesystem::path videos;

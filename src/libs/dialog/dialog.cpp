@@ -458,9 +458,9 @@ void Dialog::DrawButtons()
 void Dialog::LoadFromIni()
 {
     // FIXME: hardcode
-    auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
+    auto pIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "dialog.ini");
     if (!pIni) {
-        core->Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("Warning! DIALOG: Can`t open ini file %s/dialog.ini", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return;
     }
 
@@ -592,7 +592,7 @@ bool Dialog::Init()
     textViewport.MaxZ   = 1.0f;
 
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "dialog.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "dialog.ini");
     m_DlgText.Init(RenderService, textViewport, ini.get());
     InitLinks(RenderService, textViewport, ini.get());
 

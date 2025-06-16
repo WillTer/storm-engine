@@ -204,7 +204,7 @@ void XSERVICE::LoadAllPicturesInfo()
     char param[255];
 
     // initialize ini file
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / LISTS_INIFILE);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / LISTS_INIFILE);
     if (!ini) { throw std::runtime_error("ini file not found!"); }
 
     m_dwListQuantity  = 0;
@@ -253,7 +253,7 @@ void XSERVICE::LoadAllPicturesInfo()
             if (m_pImage == nullptr) throw std::runtime_error("allocate memory error");
             if (oldpImage != nullptr) {
                 memcpy(m_pImage, oldpImage, m_dwImageQuantity * sizeof(PICTUREDESCR));
-                delete oldpImage;
+                delete[] oldpImage;
             }
             m_dwImageQuantity += m_pList[i].pictureQuantity;
 
@@ -288,20 +288,20 @@ void XSERVICE::ReleaseAll()
         for (auto i = 0; i < m_dwListQuantity; i++) {
             if (m_pList[i].textureQuantity != 0) m_pRS->TextureRelease(m_pList[i].textureID);
 
-            delete m_pList[i].sImageListName;
+            delete[] m_pList[i].sImageListName;
 
-            delete m_pList[i].sTextureName;
+            delete[] m_pList[i].sTextureName;
         }
 
-        delete m_pList;
+        delete[] m_pList;
     }
 
     if (m_pImage != nullptr) {
         for (auto i = 0; i < m_dwImageQuantity; i++) {
-            delete m_pImage[i].sPictureName;
+            delete[] m_pImage[i].sPictureName;
         }
 
-        delete m_pImage;
+        delete[] m_pImage;
     }
 
     m_dwListQuantity  = 0;

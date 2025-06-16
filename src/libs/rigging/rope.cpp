@@ -38,22 +38,28 @@ Rope::Rope()
 Rope::~Rope()
 {
     // clearing and deleting the rope list
-    if (rlist) {
+    if (rlist != nullptr) {
         for (auto i = 0; i < ropeQuantity; i++)
             STORM_DELETE(rlist[i]);
-        STORM_DELETE(rlist);
+        delete[] rlist;
+        rlist = nullptr;
+
         ropeQuantity = 0;
     }
     // clearing and deleting the group list
-    if (gdata) {
-        for (auto i = 0; i < groupQuantity; i++)
-            STORM_DELETE(gdata[i].ropeIdx);
-        STORM_DELETE(gdata);
+    if (gdata != nullptr) {
+        for (auto i = 0; i < groupQuantity; i++) {
+            delete[] gdata[i].ropeIdx;
+        }
+        delete[] gdata;
+        gdata = nullptr;
+
         groupQuantity = 0;
     }
     // removing textures
     TEXTURE_RELEASE(RenderService, texl);
-    STORM_DELETE(TextureName);
+    delete[] TextureName;
+    TextureName = nullptr;
 
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
@@ -188,7 +194,7 @@ uint64_t Rope::ProcessMessage(MESSAGE& message)
             gdata                = new GROUPDATA[groupQuantity + 1];
             if (gdata == nullptr) { throw std::runtime_error("allocate memory error"); }
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-            delete oldgdata;
+            delete[] oldgdata;
             groupQuantity++;
         } else {
             gdata         = new GROUPDATA[1];
@@ -681,7 +687,7 @@ void Rope::LoadIni()
     char param[256];
 
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "rigging.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "rigging.ini");
     if (!ini) throw std::runtime_error("rigging.ini file not found!");
 
     sprintf_s(section, "ROPES");

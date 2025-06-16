@@ -28,10 +28,13 @@ SunGlow::SunGlow()
     bHaveGlow       = false;
     bHaveOverflow   = false;
     bHaveReflection = false;
+    bVisibleFlare   = false;
 
     idRectBuf = -1;
 
     fBottomClip = 0.f;
+
+    Overflow = {};
 }
 
 SunGlow::~SunGlow()

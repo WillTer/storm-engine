@@ -12,7 +12,7 @@ enum class BaseDirectory {
     None,
     Resource,
     Program,
-    Config,
+    Ini,
     Aliases,
     Sounds,
     Videos,
@@ -69,9 +69,9 @@ public:
     virtual void init_from_main_config() = 0;
 
     // ini files section
-    [[deprecated("Ini config files are deprecated, rewrite configs for TOML parser in libs/config")]] virtual std::unique_ptr<INIFILE>
+    [[deprecated("Rewrite config parsing on new parser in libs/config")]] virtual std::unique_ptr<INIFILE>
     create_ini_file(std::filesystem::path const& file, bool fail_if_exist) = 0;
-    [[deprecated("Ini config files are deprecated, rewrite configs for TOML parser in libs/config")]] virtual std::unique_ptr<INIFILE>
+    [[deprecated("Rewrite config parsing on new parser in libs/config")]] virtual std::unique_ptr<INIFILE>
     open_ini_file(std::filesystem::path const& file) = 0;
 
     virtual uint64_t path_fingerprint(std::filesystem::path const& path) = 0;

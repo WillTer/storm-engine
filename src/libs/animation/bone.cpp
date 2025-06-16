@@ -27,8 +27,8 @@ Bone::Bone()
 
 Bone::~Bone()
 {
-    delete ang;
-    delete pos;
+    delete[] ang;
+    delete[] pos;
 }
 
 // how many frames of animation there will be

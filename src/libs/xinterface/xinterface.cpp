@@ -889,7 +889,7 @@ void XInterface::LoadIni()
     // GUARD(XINTERFACE::LoadIni());
     char section[256];
 
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / RESOURCE_FILENAME);
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
     auto windowSize = core->GetWindow()->GetWindowSize();
@@ -1020,7 +1020,7 @@ void XInterface::LoadDialog(char const* sFileName)
         return;
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
 
     sprintf_s(section, "MAIN");
 
@@ -1138,7 +1138,7 @@ void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char c
         }
     }
     // FIXME: hardcode
-    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "interfaces" / "defaultnode.ini");
+    auto ownerIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "interfaces" / "defaultnode.ini");
 
     SFLB_CreateNode(ownerIni.get(), ini.get(), sNodeType, sNodeName, priority);
 }
@@ -1908,7 +1908,8 @@ CINODE* XInterface::GetActivingNode(CINODE* findRoot)
 void XInterface::MouseMove()
 {
     if (m_nInterfaceMode == CONTEXTHELP_IMODE) return;
-    CONTROL_STATE csv, csh;
+    CONTROL_STATE csv = {};
+    CONTROL_STATE csh = {};
     core->Controls->GetControlState(INTERFACE_MOUSE_VERT, csv);
     core->Controls->GetControlState(INTERFACE_MOUSE_HORZ, csh);
 
@@ -2131,7 +2132,9 @@ void XInterface::ReleaseOld()
 
     oldKeyState.dwKeyCode = 0;
     for (int i = 0; i < m_nStringQuantity; i++) {
-        STORM_DELETE(m_stringes[i].sStringName);
+        delete[] m_stringes[i].sStringName;
+        m_stringes[i].sStringName = nullptr;
+
         FONT_RELEASE(pRenderService, m_stringes[i].fontNum);
     }
     m_nStringQuantity = 0;
@@ -2644,7 +2647,7 @@ char* AddAttributesStringsToBuffer(char* inBuffer, char* prevStr, ATTRIBUTES* pA
             strcat_s(pNew, nadd, "=");
             strcat_s(pNew, nadd, attrVal);
 
-            delete inBuffer;
+            delete[] inBuffer;
             inBuffer = pNew;
         }
 
@@ -2677,7 +2680,7 @@ void XInterface::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
 
     if (pOutBuffer) {
         fileS.write(pOutBuffer, strlen(pOutBuffer));
-        delete pOutBuffer;
+        delete[] pOutBuffer;
     }
 }
 

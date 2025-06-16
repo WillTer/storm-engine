@@ -32,7 +32,9 @@ Flag::Flag()
 Flag::~Flag()
 {
     TEXTURE_RELEASE(RenderService, texl);
-    STORM_DELETE(gdata);
+    delete[] gdata;
+    gdata = nullptr;
+
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
 
@@ -40,7 +42,9 @@ Flag::~Flag()
         flagQuantity--;
         STORM_DELETE(flist[flagQuantity]);
     }
-    STORM_DELETE(flist);
+
+    delete[] flist;
+    flist = nullptr;
 }
 
 bool Flag::Init()
@@ -84,7 +88,7 @@ void Flag::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
         if (fio->exists(file_path)) {
             auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) { LoadIni(); }
@@ -154,7 +158,7 @@ uint64_t Flag::ProcessMessage(MESSAGE& message)
             auto* const oldgdata = gdata;
             gdata                = new GROUPDATA[groupQuantity + 1];
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-            delete oldgdata;
+            delete[] oldgdata;
             groupQuantity++;
         }
         gdata[groupQuantity - 1].model_id = eidModel;
@@ -498,7 +502,7 @@ void Flag::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }

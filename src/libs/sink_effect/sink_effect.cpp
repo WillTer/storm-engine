@@ -114,7 +114,7 @@ void SinkEffect::Execute(uint32_t _dTime)
 void SinkEffect::InitializeSinks()
 {
     // FIXME: hardcode
-    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "particles.ini");
+    auto psIni = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "particles.ini");
 
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i) {
         sinks[i].Release();

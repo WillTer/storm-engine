@@ -32,17 +32,21 @@ VANT_BASE::VANT_BASE()
 VANT_BASE::~VANT_BASE()
 {
     TEXTURE_RELEASE(RenderService, texl);
-    STORM_DELETE(TextureName);
+    delete[] TextureName;
+    TextureName = nullptr;
     while (groupQuantity > 0) {
         groupQuantity--;
-        STORM_DELETE(gdata[groupQuantity].vantIdx);
+        delete[] gdata[groupQuantity].vantIdx;
     }
-    STORM_DELETE(gdata);
+    delete[] gdata;
+    gdata = nullptr;
     while (vantQuantity > 0) {
         vantQuantity--;
         STORM_DELETE(vlist[vantQuantity]);
     }
-    STORM_DELETE(vlist);
+    delete[] vlist;
+    vlist = nullptr;
+
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
     nVert = nIndx = 0;
@@ -83,7 +87,7 @@ void VANT_BASE::Execute(uint32_t Delta_Time)
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+        auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
         if (fio->exists(file_path)) {
             auto ft_new = fio->last_write_time(file_path);
             if (ft_old != ft_new) { LoadIni(); }
@@ -178,7 +182,7 @@ uint64_t VANT_BASE::ProcessMessage(MESSAGE& message)
         if (vantQuantity == oldvantQuantity)  // there were no shrouds - delete the whole group
         {
             if (groupQuantity == 1) {
-                delete gdata;
+                delete[] gdata;
                 gdata         = nullptr;
                 groupQuantity = 0;
             } else {
@@ -189,7 +193,7 @@ uint64_t VANT_BASE::ProcessMessage(MESSAGE& message)
                     gdata = oldgdata;
                 else {
                     memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-                    delete oldgdata;
+                    delete[] oldgdata;
                 }
             }
             return 0;
@@ -544,7 +548,7 @@ void Vant::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
@@ -615,7 +619,7 @@ void VantL::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }
@@ -686,7 +690,7 @@ void VantZ::LoadIni()
     char section[256];
     char param[256];
 
-    auto const file_path = fio->base_directory_path(BaseDirectory::Config) / RIGGING_INI_FILE;
+    auto const file_path = fio->base_directory_path(BaseDirectory::Ini) / RIGGING_INI_FILE;
     if (fio->exists(file_path)) { ft_old = fio->last_write_time(file_path); }
     auto ini = fio->open_ini_file(file_path);
     if (!ini) { throw std::runtime_error("rigging.ini file not found!"); }

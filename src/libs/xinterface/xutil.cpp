@@ -77,7 +77,7 @@ void DublicateString(char*& pDstStr, char const* pSrcStr)
     {
         pDstStr = nullptr;
     } else {
-        delete pDstStr;
+        delete[] pDstStr;
         auto const len = strlen(pSrcStr) + 1;
         pDstStr        = new char[len];
         Assert(pDstStr);

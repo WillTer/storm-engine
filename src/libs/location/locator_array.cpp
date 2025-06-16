@@ -37,7 +37,7 @@ LocatorArray::LocatorArray(char const* groupName)
 
 LocatorArray::~LocatorArray()
 {
-    delete group;
+    delete[] group;
     free(locatorNames);
 }
 

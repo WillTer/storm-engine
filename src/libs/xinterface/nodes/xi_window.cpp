@@ -86,9 +86,9 @@ void CXI_WINDOW::SetActive(bool bActive)
     // pass through all nodes and lock / unlock them
     for (int32_t n = 0; n < m_aNodeNameList.size(); n++) {
         auto* const pNod = ptrOwner->FindNode(m_aNodeNameList[n].c_str(), nullptr);
-        if (pNod) {
+        if (pNod != nullptr) {
             pNod->m_bLockedNode = !bActive;
-            if (pNod->m_nNodeType == NODETYPE_WINDOW) static_cast<CXI_WINDOW*>(pNod)->SetActive(bActive);
+            if (pNod->m_nNodeType == NODETYPE_WINDOW) { static_cast<CXI_WINDOW*>(pNod)->SetActive(bActive); }
         }
     }
 }

@@ -34,7 +34,8 @@ CINODE::~CINODE()
 {
     STORM_DELETE(m_strHelpTextureFile);
 
-    STORM_DELETE(m_nodeName);
+    delete[] m_nodeName;
+    m_nodeName = nullptr;
 
     if (m_list) {
         m_list->ReleaseAll();
@@ -42,8 +43,11 @@ CINODE::~CINODE()
     }
 
     for (auto i = 0; i < COMMAND_QUANTITY; i++) {
-        STORM_DELETE(m_pCommands[i].sRetControl);
-        STORM_DELETE(m_pCommands[i].sEventName);
+        delete[] m_pCommands[i].sRetControl;
+        m_pCommands[i].sRetControl = nullptr;
+
+        delete[] m_pCommands[i].sEventName;
+        m_pCommands[i].sEventName = nullptr;
 
         auto* pContrl = m_pCommands[i].pNextControl;
         while (pContrl != nullptr) {

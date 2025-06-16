@@ -36,6 +36,7 @@ BIManSign::BIManSign(entid_t BIEntityID, VDX9RENDER* pRS)
 
     m_nCurrentManIndex = 0;
 
+    std::memset(m_Man, 0, sizeof(m_Man));
     for (int32_t n = 0; n < MAX_MAN_QUANTITY; n++)
         m_Man[n].nTexture = -1;
 

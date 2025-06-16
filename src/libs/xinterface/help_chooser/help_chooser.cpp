@@ -190,9 +190,9 @@ bool HelpChooser::RunChooser(char const* ChooserGroup)
 
     if (ChooserGroup == nullptr) return false;
     // FIXME: hardcode
-    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Config) / "helpchooser.ini");
+    auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "helpchooser.ini");
     if (!ini) {
-        core->Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Config).string().c_str());
+        core->Trace("Can`t open INI file \"%s/helpchooser.ini\"", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
 

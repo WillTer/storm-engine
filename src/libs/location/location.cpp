@@ -57,6 +57,16 @@ Location::Location()
     bDrawBars          = true;
     bSwimming          = true;
     bCausticEnable     = false;
+
+    grass        = {};
+    eagle        = {};
+    lizards      = {};
+    rats         = {};
+    crabs        = {};
+    blood        = {};
+    lightsid     = {};
+    loceffectsid = {};
+    lighter      = {};
 }
 
 Location::~Location()
