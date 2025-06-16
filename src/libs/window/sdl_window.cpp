@@ -14,6 +14,7 @@ SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscre
 
 #if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+    SDL_SetWindowRelativeMouseMode(window_.get(), true);
 #endif
 
     window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
@@ -23,7 +24,6 @@ SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscre
 
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered);
-    SDL_SetWindowRelativeMouseMode(window_.get(), true);
     SDL_AddEventWatch(&SDLEventHandler, this);
 }
 
@@ -91,7 +91,7 @@ void SDLWindow::Resize(int width, int height)
 
 void SDLWindow::WarpMouseInWindow(int x, int y)
 {
-    SDL_WarpMouseInWindow(window_.get(), x, y);
+    SDL_WarpMouseInWindow(window_.get(), static_cast<float>(x), static_cast<float>(y));
 }
 
 void SDLWindow::SetTitle(std::string const& title)
