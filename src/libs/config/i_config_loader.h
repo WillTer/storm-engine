@@ -2,8 +2,6 @@
 
 #include <filesystem>
 
-#include <toml_fwd.hpp>
-
 namespace storm
 {
 

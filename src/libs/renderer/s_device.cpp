@@ -499,7 +499,7 @@ bool RendererService::Init()
     auto font_config = window_info.font_config;
     // get start ini file for fonts
     if (font_config.empty()) {
-        core->Trace("Not found 'font_config' parameter in engine.toml file (must be in 'window' section)");
+        core->Trace("Not found 'font_config' parameter in engine.ini file (must be in 'window' section)");
         font_config = (fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini").string();
     }
 
