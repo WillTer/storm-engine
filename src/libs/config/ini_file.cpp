@@ -31,7 +31,7 @@ std::string get_section_name(std::string_view const& str, std::string const& ini
             "%s:%d: syntax error: no closing bracket (']') - section name ends unexpectedly\n\t%s",
             ini_file_name.c_str(),
             ini_file_line,
-            str.data());
+            std::string(str).data());
         return {};
     }
 
@@ -51,10 +51,9 @@ std::pair<std::string, std::string>
 get_key_value_pair(std::string_view const& str, std::string const& ini_file_name, size_t const ini_file_line)
 {
     auto const key_end = str.find_first_of(KEY_VALUE_SEP);  // Find '=' sign
-    if (key_end == std::string_view::npos) {
-        core->Trace("%s:%d: syntax error: no '=' after key name\n\t%s", ini_file_name.c_str(), ini_file_line, str.data());
-        return std::make_pair(std::string {}, std::string {});
-    }
+    // If there is no value - add key with empty value
+    // In this case key itself acts as a flag, and we're not interested in its value
+    if (key_end == std::string_view::npos) { return std::make_pair(trim(str), std::string {}); }
 
     auto const value_start = key_end + 1;                       // Skip '='
     auto const value_end   = str.find_first_of(KEY_VALUE_END);  // Find comment start (or npos)
@@ -92,7 +91,11 @@ read_section(std::string_view const& str, size_t& offset, std::string const& fil
 
             case INI_SECTION_START:
                 if (!is_section_started) {
-                    section_name       = get_section_name(line, file_name, file_line);
+                    section_name = get_section_name(line, file_name, file_line);
+                    if (section_name.empty()) {  // Parsing error, stop here
+                        is_section_ended = true;
+                        offset           = std::string_view::npos;
+                    }
                     is_section_started = true;  // Section name is parsed, section is started
                 } else {
                     is_section_ended = true;  // If there is another section start, then we're done with current section
@@ -135,12 +138,17 @@ IniFile::IniFile(std::filesystem::path const& file_path)
 
     auto const content = std::string_view(file_data.begin(), file_data.end());
     size_t     offset  = 0;
-    size_t     line    = 0;
+    size_t     line    = 1;
 
     while (offset < content.size()) {
         auto const [section_name, section_table] = read_section(content, offset, file_path.string(), line);
         m_table.emplace(section_name, section_table);
     }
+}
+
+bool IniFile::contains(std::string const& section, std::string const& key) const
+{
+    return m_table.contains(section) && m_table.at(section).contains(key);
 }
 
 std::optional<std::string> IniFile::try_get_string(std::string const& section, std::string const& key) const
@@ -150,7 +158,7 @@ std::optional<std::string> IniFile::try_get_string(std::string const& section, s
     auto const& s           = m_table.at(section);
     auto const [begin, end] = s.equal_range(key);
 
-    return begin->second;
+    return begin->second.empty() ? std::nullopt : std::optional(begin->second);
 }
 
 std::string IniFile::get_string(std::string const& section, std::string const& key) const

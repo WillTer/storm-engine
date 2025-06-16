@@ -18,6 +18,8 @@ public:
 
     explicit IniFile(std::filesystem::path const& file_path);
 
+    bool contains(std::string const& section, std::string const& key) const;
+
     std::optional<std::string> try_get_string(std::string const& section, std::string const& key) const;
     std::string                get_string(std::string const& section, std::string const& key) const;
 

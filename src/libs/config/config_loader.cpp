@@ -24,9 +24,12 @@ std::unique_ptr<IniFile> ConfigLoader::open_config(std::filesystem::path const& 
 
 IniFile const& ConfigLoader::open_config_cached(std::filesystem::path const& path)
 {
-    // Add to cache even if load fails
-    // Then try to parse file again when someone asks it
-    if (!m_files.contains(path) || m_files.at(path)->is_empty()) { m_files[path] = open_config(path); }
+    if (!m_files.contains(path)) {
+        auto config = open_config(path);
+        if (!config) { throw std::runtime_error("Could not open config file"); }
+
+        m_files.emplace(path, std::move(config));
+    }
 
     return *m_files.at(path);
 }
