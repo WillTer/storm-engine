@@ -155,13 +155,14 @@ void CXI_STRCOLLECTION::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2,
 void CXI_STRCOLLECTION::ReleaseAll()
 {
     for (auto i = 0; i < m_nStr; i++) {
-        STORM_DELETE(m_pStrDescr[i].strID);
-        STORM_DELETE(m_pStrDescr[i].strStr);
-        STORM_DELETE(m_pStrDescr[i].sFontName);
+        delete[] m_pStrDescr[i].strID;
+        delete[] m_pStrDescr[i].strStr;
+        delete[] m_pStrDescr[i].sFontName;
         FONT_RELEASE(m_rs, m_pStrDescr[i].nFontNum);
     }
-    STORM_DELETE(m_pStrDescr);
-    m_nStr = 0;
+    delete[] m_pStrDescr;
+    m_pStrDescr = nullptr;
+    m_nStr      = 0;
 }
 
 bool CXI_STRCOLLECTION::IsClick(int buttonID, int32_t xPos, int32_t yPos)

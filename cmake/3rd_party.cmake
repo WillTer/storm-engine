@@ -59,7 +59,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     storm-audio
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
-    GIT_TAG         1f7544fad34178d65d9a42d688d17282bbe9502e
+    GIT_TAG         f4c7a52c668365118dcf712fa4efabebfe44c53c
 )
 
 FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog toml11 entt storm-audio)

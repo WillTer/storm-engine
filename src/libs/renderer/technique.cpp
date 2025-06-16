@@ -1686,15 +1686,19 @@ void CTechnique::DecodeFiles(char* sub_dir)
 
     InnerDecodeFiles(sub_dir);
 
-    STORM_DELETE(pPassStorage);
+    delete[] pPassStorage;
+    pPassStorage = nullptr;
+
     RDTSC_E(dwRDTSC);
     core->Trace("Techniques: %d shaders compiled.", dwNumShaders);
     core->Trace("Techniques: %d techniques compiled.", dwNumBlocks);
     core->Trace("Techniques: compiled by %d ticks.", dwRDTSC);
 
     // some optimize
-    for (uint32_t i = 0; i < dwNumBlocks; i++)
-        STORM_DELETE(pBlocks[i].pBlockName);
+    for (uint32_t i = 0; i < dwNumBlocks; i++) {
+        delete[] pBlocks[i].pBlockName;
+        pBlocks[i].pBlockName = nullptr;
+    }
 }
 
 void CTechnique::InnerDecodeFiles(char* sub_dir)
@@ -1759,7 +1763,7 @@ bool CTechnique::DecodeFile(std::string sname)
         SKIP;
     }
 
-    STORM_DELETE(pFile);
+    delete[] pFile;
     return true;
 }
 

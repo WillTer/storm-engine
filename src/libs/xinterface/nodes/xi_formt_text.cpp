@@ -559,7 +559,7 @@ void CXI_FORMATEDTEXT::ReleaseString(STRING_DESCRIBER* pCur)
     if (pCur->next) pCur->next->prev = pCur->prev;
     pCur->next = pCur->prev = nullptr;
     m_nAllTextStrings--;
-    STORM_DELETE(pCur->lineStr);
+    delete[] pCur->lineStr;
     delete pCur;
 }
 
@@ -694,7 +694,7 @@ void CXI_FORMATEDTEXT::SetFormatedText(char const* str)
     while (m_listRoot != nullptr) {
         m_listCur  = m_listRoot;
         m_listRoot = m_listRoot->next;
-        STORM_DELETE(m_listCur->lineStr);
+        delete[] m_listCur->lineStr;
         STORM_DELETE(m_listCur);
     }
     m_nStringGroupQuantity = 0;

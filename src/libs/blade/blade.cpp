@@ -189,6 +189,8 @@ Blade::Blade()
 {
     gunLocName = gunBeltName;
     blendValue = 0xFFFFFFFF;
+    man        = {};
+    gun        = {};
 }
 
 Blade::~Blade()

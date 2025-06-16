@@ -39,7 +39,7 @@ Lights::~Lights()
 {
     for (int32_t i = 0; i < numTypes; i++) {
         if (types[i].corona >= 0 && rs) rs->TextureRelease(types[i].corona);
-        delete types[i].name;
+        delete[] types[i].name;
     }
     if (rs)
         for (int32_t i = 1; i < 8; i++)
@@ -57,8 +57,7 @@ bool Lights::Init()
     // FIXME: hardcode
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / "lights.ini");
     if (!ini) {
-        core->Trace(
-            "Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
+        core->Trace("Location lights not inited -> %s/lights.ini not found", fio->base_directory_path(BaseDirectory::Ini).string().c_str());
         return false;
     }
     char lName[256];

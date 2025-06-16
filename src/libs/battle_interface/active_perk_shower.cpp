@@ -352,12 +352,15 @@ void ActivePerkShower::ReleaseAll()
 
     for (i = 0; i < m_nTextureQ; i++)
         TEXTURE_RELEASE(rs, m_pTexDescr[i].m_idTexture);
-    STORM_DELETE(m_pTexDescr);
+    delete[] m_pTexDescr;
+    m_pTexDescr = nullptr;
     m_nTextureQ = 0;
 
-    STORM_DELETE(m_pShowPlaces);
+    delete[] m_pShowPlaces;
+    m_pShowPlaces = nullptr;
     m_nShowPlaceQ = 0;
 
-    STORM_DELETE(m_pIconsList);
-    m_nIShowQ = 0;
+    delete[] m_pIconsList;
+    m_pIconsList = nullptr;
+    m_nIShowQ    = 0;
 }

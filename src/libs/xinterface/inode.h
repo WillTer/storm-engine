@@ -143,7 +143,8 @@ public:
 
         ~COMMAND_REDIRECT()
         {
-            STORM_DELETE(sControlName);
+            delete[] sControlName;
+            sControlName = nullptr;
         }
     };
 

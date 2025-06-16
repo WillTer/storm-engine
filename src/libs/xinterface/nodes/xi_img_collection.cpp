@@ -45,7 +45,8 @@ void CXI_IMGCOLLECTION::ReleaseAll()
     PICTURE_TEXTURE_RELEASE(pPictureService, sGroupName, texl);
     VERTEX_BUFFER_RELEASE(m_rs, vBuf);
     INDEX_BUFFER_RELEASE(m_rs, iBuf);
-    STORM_DELETE(sGroupName);
+    delete[] sGroupName;
+    sGroupName = nullptr;
 }
 
 int CXI_IMGCOLLECTION::CommandExecute(int wActCode)

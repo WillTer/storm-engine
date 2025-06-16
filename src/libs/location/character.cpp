@@ -122,7 +122,7 @@ Character::ActionCharacter::ActionCharacter()
 
 void Character::ActionCharacter::SetName(char const* _name)
 {
-    if (name) delete name;
+    if (name) delete[] name;
     name = nullptr;
     if (_name && _name[0]) {
         int32_t const l = strlen(_name) + 1;
@@ -139,7 +139,7 @@ void Character::ActionCharacter::ChangeName(char const* _name)
 
 Character::ActionCharacter::~ActionCharacter()
 {
-    if (name) delete name;
+    if (name) delete[] name;
     name = nullptr;
 }
 
@@ -590,6 +590,15 @@ Character::Character()
     headLookPointTarget = 0.0f;
     curHeadAX           = 0.0f;
     curHeadAY           = 0.0f;
+
+    enemyAttack = {};
+    mdl         = {};
+    shadow      = {};
+    blade       = {};
+    sea         = {};
+    effects     = {};
+    sign        = {};
+    waterrings  = {};
 }
 
 Character::~Character()
@@ -623,7 +632,7 @@ Character::~Character()
     core->EraseEntity(mdl);
     core->EraseEntity(blade);
     core->EraseEntity(sign);
-    delete characterID;
+    delete[] characterID;
 }
 
 // Initialization

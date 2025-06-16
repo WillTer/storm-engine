@@ -42,7 +42,7 @@ CharactersGroups::~CharactersGroups()
 {
     for (int32_t i = 0; i < maxGroups; i++) {
         if (groups[i]) {
-            if (groups[i]->relations) delete groups[i]->relations;
+            if (groups[i]->relations) delete[] groups[i]->relations;
             delete groups[i];
         }
     }
@@ -67,7 +67,7 @@ CharactersGroups::String::String(char const* str)
 
 CharactersGroups::String::~String()
 {
-    if (name) delete name;
+    if (name) delete[] name;
 }
 
 void CharactersGroups::String::operator=(char const* str)
@@ -79,7 +79,7 @@ void CharactersGroups::String::operator=(char const* str)
     } else {
         len = strlen(str);
         if (len + 1 > max) {
-            if (name) delete name;
+            if (name) delete[] name;
             max  = (len + 16) & ~15;
             name = new char[max];
         }

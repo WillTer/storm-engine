@@ -32,7 +32,9 @@ Flag::Flag()
 Flag::~Flag()
 {
     TEXTURE_RELEASE(RenderService, texl);
-    STORM_DELETE(gdata);
+    delete[] gdata;
+    gdata = nullptr;
+
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
 
@@ -40,7 +42,9 @@ Flag::~Flag()
         flagQuantity--;
         STORM_DELETE(flist[flagQuantity]);
     }
-    STORM_DELETE(flist);
+
+    delete[] flist;
+    flist = nullptr;
 }
 
 bool Flag::Init()
@@ -154,7 +158,7 @@ uint64_t Flag::ProcessMessage(MESSAGE& message)
             auto* const oldgdata = gdata;
             gdata                = new GROUPDATA[groupQuantity + 1];
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-            delete oldgdata;
+            delete[] oldgdata;
             groupQuantity++;
         }
         gdata[groupQuantity - 1].model_id = eidModel;

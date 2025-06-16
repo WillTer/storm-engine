@@ -56,7 +56,9 @@ bool CXI_TITLE::Init(
 void CXI_TITLE::ReleaseAll()
 {
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName, m_idTex);
-    STORM_DELETE(m_sGroupName);
+    delete[] m_sGroupName;
+    m_sGroupName = nullptr;
+
     m_idString = -1L;
     VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
     INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);

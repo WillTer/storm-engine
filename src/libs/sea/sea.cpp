@@ -142,21 +142,35 @@ Sea::~Sea()
     if (iFoamTexture >= 0) rs->TextureRelease(iFoamTexture);
     iFoamTexture = -1;
 
-    STORM_DELETE(pIndices);
-    STORM_DELETE(pVSea);
+    delete[] pIndices;
+    pIndices = nullptr;
+
+    delete[] pVSea;
+    pVSea = nullptr;
 
     for (int32_t i = 0; i < aBumpMaps.size(); i++)
         rs->Release(aBumpMaps[i]);
 
-    for (int32_t i = 0; i < aBumps.size(); i++)
-        STORM_DELETE(aBumps[i]);
-    for (int32_t i = 0; i < aNormals.size(); i++)
-        STORM_DELETE(aNormals[i]);
+    for (int32_t i = 0; i < aBumps.size(); i++) {
+        delete[] aBumps[i];
+        aBumps[i] = nullptr;
+    }
+    for (int32_t i = 0; i < aNormals.size(); i++) {
+        delete[] aNormals[i];
+        aNormals[i] = nullptr;
+    }
 
-    STORM_DELETE(pSeaFrame1);
-    STORM_DELETE(pSeaFrame2);
-    STORM_DELETE(pSeaNormalsFrame1);
-    STORM_DELETE(pSeaNormalsFrame2);
+    delete[] pSeaFrame1;
+    pSeaFrame1 = nullptr;
+
+    delete[] pSeaFrame2;
+    pSeaFrame2 = nullptr;
+
+    delete[] pSeaNormalsFrame1;
+    pSeaNormalsFrame1 = nullptr;
+
+    delete[] pSeaNormalsFrame2;
+    pSeaNormalsFrame2 = nullptr;
 }
 
 void Sea::SFLB_CreateBuffers()
@@ -263,8 +277,10 @@ bool Sea::Init()
             }
     }
 
-    for (i = 0; i < aTmpBumps.size(); i++)
-        STORM_DELETE(aTmpBumps[i]);
+    for (i = 0; i < aTmpBumps.size(); i++) {
+        delete[] aTmpBumps[i];
+        aTmpBumps[i] = nullptr;
+    }
 
     BuildVolumeTexture();
 

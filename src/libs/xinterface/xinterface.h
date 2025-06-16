@@ -376,8 +376,11 @@ protected:
 
         ~EVENT_Entity()
         {
-            STORM_DELETE(sEventName);
-            STORM_DELETE(sNodeName);
+            delete[] sEventName;
+            sEventName = nullptr;
+            delete[] sNodeName;
+            sNodeName = nullptr;
+
             nCommandIndex = 0;
         }
     };

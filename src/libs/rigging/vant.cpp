@@ -32,17 +32,21 @@ VANT_BASE::VANT_BASE()
 VANT_BASE::~VANT_BASE()
 {
     TEXTURE_RELEASE(RenderService, texl);
-    STORM_DELETE(TextureName);
+    delete[] TextureName;
+    TextureName = nullptr;
     while (groupQuantity > 0) {
         groupQuantity--;
-        STORM_DELETE(gdata[groupQuantity].vantIdx);
+        delete[] gdata[groupQuantity].vantIdx;
     }
-    STORM_DELETE(gdata);
+    delete[] gdata;
+    gdata = nullptr;
     while (vantQuantity > 0) {
         vantQuantity--;
         STORM_DELETE(vlist[vantQuantity]);
     }
-    STORM_DELETE(vlist);
+    delete[] vlist;
+    vlist = nullptr;
+
     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
     INDEX_BUFFER_RELEASE(RenderService, iBuf);
     nVert = nIndx = 0;
@@ -178,7 +182,7 @@ uint64_t VANT_BASE::ProcessMessage(MESSAGE& message)
         if (vantQuantity == oldvantQuantity)  // there were no shrouds - delete the whole group
         {
             if (groupQuantity == 1) {
-                delete gdata;
+                delete[] gdata;
                 gdata         = nullptr;
                 groupQuantity = 0;
             } else {
@@ -189,7 +193,7 @@ uint64_t VANT_BASE::ProcessMessage(MESSAGE& message)
                     gdata = oldgdata;
                 else {
                     memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-                    delete oldgdata;
+                    delete[] oldgdata;
                 }
             }
             return 0;

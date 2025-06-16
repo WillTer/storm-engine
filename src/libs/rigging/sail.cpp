@@ -178,13 +178,14 @@ Sail::~Sail()
     if (slist != nullptr) {
         for (auto i = 0; i < sailQuantity; i++)
             STORM_DELETE(slist[i]);
-        STORM_DELETE(slist);
+        delete[] slist;
+        slist = nullptr;
     }
     if (gdata != nullptr) {
         for (auto i = 0; i < groupQuantity; i++) {
-            STORM_DELETE(gdata[i].sailIdx);
+            delete[] gdata[i].sailIdx;
         }
-        delete (char*)gdata;
+        delete[] gdata;
         gdata = nullptr;
     }
 
@@ -192,9 +193,12 @@ Sail::~Sail()
     INDEX_BUFFER_RELEASE(RenderService, sg.indxBuf);
     TEXTURE_RELEASE(RenderService, texl);
     TEXTURE_RELEASE(RenderService, m_nEmptyGerbTex);
-    STORM_DELETE(WindVect);
+    delete[] WindVect;
+    WindVect = nullptr;
+
     m_nMastCreatedCharacter = -1;
-    STORM_DELETE(m_sMastName);
+    delete[] m_sMastName;
+    m_sMastName = nullptr;
 }
 
 bool Sail::Init()
@@ -595,7 +599,7 @@ uint64_t Sail::ProcessMessage(MESSAGE& message)
             GROUPDATA* oldgdata = gdata;
             gdata               = new GROUPDATA[groupQuantity + 1];
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-            delete oldgdata;
+            delete[] oldgdata;
             oldgdata = nullptr;
             groupQuantity++;
         } else {
@@ -859,7 +863,9 @@ uint64_t Sail::ProcessMessage(MESSAGE& message)
 
         // start / end attaching sails to the drop mast
     case MSG_SAIL_MAST_PROCESSING:
-        STORM_DELETE(m_sMastName);
+        delete[] m_sMastName;
+        m_sMastName = nullptr;
+
         m_nMastCreatedCharacter = message.Long();
         if (m_nMastCreatedCharacter != -1) {
             std::string const& param = message.String();
@@ -1071,12 +1077,12 @@ void Sail::SetAllSails(int groupNum)
             gdata               = new GROUPDATA[groupQuantity];
             if (gdata) {
                 memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-                delete oldgdata;
+                delete[] oldgdata;
                 oldgdata = nullptr;
             } else
                 gdata = oldgdata;
         } else {
-            delete gdata;
+            delete[] gdata;
             gdata = nullptr;
         }
     }

@@ -1181,7 +1181,7 @@ int32_t RendererService::TextureCreate(char const* fname)
     if (!bLoadTextureEnabled) return -1;
 
     for (int32_t i = 3; i >= -1; i--) {
-        char _fname[256];
+        char _fname[256] = {};
 
         if (i >= 0 && TexPaths[i].str[0] == 0) continue;
         if (i >= 0) {
@@ -1202,7 +1202,7 @@ int32_t RendererService::TextureCreate(char const* fname)
             strcpy_s(_fname, fname);
         }
 
-        std::ranges::for_each(_fname, [](char& c) { c = std::tolower(c); });
+        std::ranges::transform(_fname, _fname, [](unsigned char const c) { return std::tolower(c); });
 
         uint32_t const hf = case_insensitive_hash(_fname);
 
@@ -2522,7 +2522,7 @@ int32_t RendererService::ExtPrint(
 int32_t RendererService::LoadFont(char const* fontName)
 {
     if (fontName == nullptr) return -1L;
-    char sDup[256];
+    char sDup[256] = {};
     if (strlen(fontName) < sizeof(sDup) - 1)
         strcpy_s(sDup, fontName);
     else {
@@ -2530,7 +2530,7 @@ int32_t RendererService::LoadFont(char const* fontName)
         sDup[sizeof(sDup) - 1] = 0;
     }
 
-    std::ranges::for_each(sDup, [](char& c) { c = std::toupper(c); });
+    std::ranges::transform(sDup, sDup, [](unsigned char const c) { return std::tolower(c); });
     fontName = sDup;
 
     uint32_t const hashVal = case_insensitive_hash(fontName);

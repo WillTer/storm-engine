@@ -378,7 +378,9 @@ void CXI_PICTURE::ReleasePicture()
 {
     PICTURE_TEXTURE_RELEASE(pPictureService, m_pcGroupName, m_idTex);
 
-    STORM_DELETE(m_pcGroupName);
+    delete[] m_pcGroupName;
+    m_pcGroupName = nullptr;
+
     TEXTURE_RELEASE(m_rs, m_idTex);
     VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
 }

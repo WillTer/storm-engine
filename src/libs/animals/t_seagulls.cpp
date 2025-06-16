@@ -13,7 +13,10 @@
 // #pragma warning (disable : 4244)
 
 //--------------------------------------------------------------------
-TSeagulls::TSeagulls() : enabled(true), count(0), frightened(false) {}
+TSeagulls::TSeagulls() : enabled(true), count(0), frightened(false)
+{
+    std::memset(seagulls, 0, sizeof(seagulls));
+}
 
 //--------------------------------------------------------------------
 TSeagulls::~TSeagulls()

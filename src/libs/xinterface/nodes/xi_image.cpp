@@ -277,7 +277,8 @@ void CXI_IMAGE::Unload()
         }
     }
     RELEASE(m_pTexture);
-    STORM_DELETE(m_pcPictureListName);
+    delete[] m_pcPictureListName;
+    m_pcPictureListName = nullptr;
 }
 
 bool CXI_IMAGE::IsPointInside(int32_t nX, int32_t nY) const
