@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <libs/config/main_config.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -228,7 +228,7 @@ void CoreImpl::ProcessEngineIniFile()
 
         if (script_version != ENGINE_SCRIPT_VERSION) {
 #ifdef _WIN32  // FIX_LINUX Cursor
-            ShowCursor(SDL_TRUE);
+            ShowCursor(true);
 #endif
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
             Compiler->ExitProgram();

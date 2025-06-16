@@ -12,7 +12,7 @@
 #endif
 #include <unordered_map>
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 #include <libs/config/main_config.h>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/filesystem/default_paths.h>

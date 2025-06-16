@@ -6,7 +6,7 @@
 #include <regex>
 #include <string>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL_filesystem.h>
 #include <libs/config/i_config_loader.h>
 #include <libs/core/core_impl.h>
 #include <spdlog/spdlog.h>
@@ -147,11 +147,10 @@ std::time_t FileService::to_time_t(std::filesystem::file_time_type tp)
 
 std::string FileService::executable_directory()
 {
-    char*             path   = SDL_GetBasePath();
-    std::string const result = path;
-    SDL_free(path);
+    char const* path = SDL_GetBasePath();
+    if (path == nullptr) { return {}; }
 
-    return result;
+    return path;
 }
 
 std::filesystem::path FileService::current_path()

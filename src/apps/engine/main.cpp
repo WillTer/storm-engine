@@ -1,7 +1,7 @@
 #include <thread>
 
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_impl.h>
@@ -111,7 +111,7 @@ int main()
     // Load parameters of file service
     fio->init_from_main_config();
 
-    SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
     // Init diagnostics
     auto const lifecycle_diagnostics_guard =
@@ -170,7 +170,7 @@ int main()
     bool is_running = true;
     while (is_running && !should_close) {
         SDL_PumpEvents();
-        SDL_FlushEvents(0, SDL_LASTEVENT);
+        SDL_FlushEvents(0, SDL_EVENT_LAST);
 
         if (is_active || window_info.run_in_background) {
             if (window_info.max_fps != 0U) {

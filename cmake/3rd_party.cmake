@@ -15,9 +15,9 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-    SDL2
+    SDL3
     GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
-    GIT_TAG         release-2.32.6
+    GIT_TAG         release-3.2.16
     GIT_SHALLOW     ON
 )
 
@@ -58,25 +58,25 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog entt storm-audio)
 
 if (WIN32)
-    FetchContent_MakeAvailable(SDL2 zlib)
+    FetchContent_MakeAvailable(SDL3 zlib)
 
     include(cmake/directxsdk.cmake)
 elseif(LINUX)
-    # On Linux use SDL2 and zlib from package manager
-    find_package(SDL2 REQUIRED)
+    # On Linux use SDL3 and zlib from package manager
+    find_package(SDL3 REQUIRED)
     find_package(ZLIB REQUIRED)
     include(cmake/linux_d3d9.cmake)
 endif()
 
-add_library(SDL2-storm INTERFACE)
-target_link_libraries(SDL2-storm
+add_library(SDL3-storm INTERFACE)
+target_link_libraries(SDL3-storm
     INTERFACE
-        $<$<PLATFORM_ID:Windows>:SDL2::SDL2-static>
-        $<$<PLATFORM_ID:Linux>:${SDL2_LIBRARIES}>
+        $<$<PLATFORM_ID:Windows>:SDL3::SDL3>
+        $<$<PLATFORM_ID:Linux>:${SDL3_LIBRARIES}>
 )
-target_include_directories(SDL2-storm
+target_include_directories(SDL3-storm
     INTERFACE
-        $<$<PLATFORM_ID:Linux>:${SDL2_INCLUDE_DIRS}>
+        $<$<PLATFORM_ID:Linux>:${SDL3_INCLUDE_DIRS}>
 )
 
 add_library(Zlib-storm INTERFACE)

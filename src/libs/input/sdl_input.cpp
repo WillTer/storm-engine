@@ -2,9 +2,8 @@
 
 #include <map>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_system.h>
-#include <SDL2/SDL_video.h>
+#include <SDL3/SDL.h>
+#include <libs/util/platform/platform.hpp>
 #include <windows.h>
 
 namespace storm
@@ -12,7 +11,7 @@ namespace storm
 namespace
 {
 // TODO: Use scancodes everywhere instead of Windows virtual key
-static std::map<unsigned int, unsigned int> const VK_TO_SDL_MAP {
+std::map<unsigned int, unsigned int> const VK_TO_SDL_MAP {
     {VK_CANCEL, SDL_SCANCODE_CANCEL},
     {VK_BACK, SDL_SCANCODE_BACKSPACE},
     {VK_TAB, SDL_SCANCODE_TAB},
@@ -142,7 +141,7 @@ static std::map<unsigned int, unsigned int> const VK_TO_SDL_MAP {
     {VK_VOLUME_UP, SDL_SCANCODE_VOLUMEUP},
 };
 
-static std::map<unsigned int, unsigned int> const SDL_TO_VK_MAP {
+std::map<unsigned int, unsigned int> const SDL_TO_VK_MAP {
     {SDL_SCANCODE_CANCEL, VK_CANCEL},
     {SDL_SCANCODE_BACKSPACE, VK_BACK},
     {SDL_SCANCODE_TAB, VK_TAB},
@@ -272,17 +271,17 @@ static std::map<unsigned int, unsigned int> const SDL_TO_VK_MAP {
     {SDL_SCANCODE_VOLUMEUP, VK_VOLUME_UP},
 };
 
-inline KeyboardKey sdlToKey(unsigned int code)
+KeyboardKey sdlToKey(unsigned int code)
 {
     auto it = SDL_TO_VK_MAP.find(code);
     if (it == SDL_TO_VK_MAP.end()) return 0;
     return it->second;
 }
 
-inline unsigned int keyToSDL(KeyboardKey key)
+unsigned int keyToSDL(KeyboardKey key)
 {
-    auto it = VK_TO_SDL_MAP.find(key);
-    if (it == VK_TO_SDL_MAP.end()) return 0;
+    auto const it = VK_TO_SDL_MAP.find(key);
+    if (it == VK_TO_SDL_MAP.end()) { return 0; }
     return it->second;
 }
 }  // namespace
@@ -290,17 +289,13 @@ inline unsigned int keyToSDL(KeyboardKey key)
 SDLInput::SDLInput()
 {
     keyStates_ = SDL_GetKeyboardState(nullptr);
-#ifndef _WIN32
-    // since SDL 2.0.18 breaks WINAPI mouse api
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-#endif
     SDL_AddEventWatch(&SDLEventHandler, this);
     OpenController();
 }
 
 SDLInput::~SDLInput()
 {
-    SDL_DelEventWatch(&SDLEventHandler, this);
+    SDL_RemoveEventWatch(&SDLEventHandler, this);
 }
 
 int SDLInput::Subscribe(EventHandler const& handler)
@@ -323,41 +318,41 @@ void SDLInput::ProcessEvent(SDL_Event const& event)
     out.type = InputEvent::Unknown;
 
     // Mouse/keyboard
-    if (event.type == SDL_MOUSEMOTION) {
+    if (event.type == SDL_EVENT_MOUSE_MOTION) {
         out.type = InputEvent::MouseMove;
-        out.data = MousePos {event.motion.xrel, event.motion.yrel};
-    } else if (event.type == SDL_MOUSEWHEEL) {
+        out.data = MousePos {static_cast<int>(event.motion.xrel), static_cast<int>(event.motion.yrel)};
+    } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
         out.type = InputEvent::MouseWheel;
-        out.data = MousePos {event.wheel.x, event.wheel.y};
-    } else if (event.type == SDL_KEYDOWN) {
+        out.data = MousePos {static_cast<int>(event.wheel.x), static_cast<int>(event.wheel.y)};
+    } else if (event.type == SDL_EVENT_KEY_DOWN) {
         out.type = InputEvent::KeyboardKeyDown;
-        out.data = sdlToKey(event.key.keysym.scancode);
-    } else if (event.type == SDL_KEYUP) {
+        out.data = sdlToKey(event.key.scancode);
+    } else if (event.type == SDL_EVENT_KEY_UP) {
         out.type = InputEvent::KeyboardKeyUp;
-        out.data = sdlToKey(event.key.keysym.scancode);
-    } else if (event.type == SDL_TEXTINPUT) {
+        out.data = sdlToKey(event.key.scancode);
+    } else if (event.type == SDL_EVENT_TEXT_INPUT) {
         out.type = InputEvent::KeyboardText;
         out.data = std::string(event.text.text);
-    } else if (event.type == SDL_CONTROLLERDEVICEADDED) {
+    } else if (event.type == SDL_EVENT_GAMEPAD_ADDED) {
         // Try to open controller if it wasn't open already
         if (!controller_) OpenController();
-    } else if ((event.type == SDL_CONTROLLERDEVICEREMOVED) && (joyID_ == event.cdevice.which)) {
+    } else if ((event.type == SDL_EVENT_GAMEPAD_REMOVED) && (joyID_ == event.cdevice.which)) {
         // Close controller if it was removed
         controller_ = nullptr;
         joyID_      = -1;
-    } else if ((event.type == SDL_CONTROLLERAXISMOTION) && (joyID_ == event.caxis.which)) {
+    } else if ((event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) && (joyID_ == event.gaxis.which)) {
         ControllerAxisState state;
-        state.axis  = static_cast<ControllerAxis>(event.caxis.axis);
-        state.value = event.caxis.value;
+        state.axis  = static_cast<ControllerAxis>(event.gaxis.axis);
+        state.value = event.gaxis.value;
 
         out.type = InputEvent::ControllerAxis;
         out.data = state;
-    } else if ((event.type == SDL_CONTROLLERBUTTONDOWN) && (joyID_ == event.cbutton.which)) {
+    } else if ((event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) && (joyID_ == event.gbutton.which)) {
         out.type = InputEvent::ControllerButtonDown;
-        out.data = static_cast<ControllerButton>(event.cbutton.button);
-    } else if ((event.type == SDL_CONTROLLERBUTTONUP) && (joyID_ == event.cbutton.which)) {
+        out.data = static_cast<ControllerButton>(event.gbutton.button);
+    } else if ((event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) && (joyID_ == event.gbutton.which)) {
         out.type = InputEvent::ControllerButtonUp;
-        out.data = static_cast<ControllerButton>(event.cbutton.button);
+        out.data = static_cast<ControllerButton>(event.gbutton.button);
     }
 
     if (out.type != InputEvent::Unknown) {
@@ -368,38 +363,35 @@ void SDLInput::ProcessEvent(SDL_Event const& event)
 
 bool SDLInput::KeyboardModState(KeyboardKey const& key) const
 {
-    if (key == VK_NUMLOCK)
-        return SDL_GetModState() & KMOD_NUM;
-    else if (key == VK_CAPITAL)
-        return SDL_GetModState() & KMOD_CAPS;
-    else if (key == VK_SCROLL)
-        return SDL_GetModState() & KMOD_SCROLL;
-    else
-        return false;
+    if (key == VK_NUMLOCK) { return (SDL_GetModState() & SDL_KMOD_NUM) == SDL_KMOD_NUM; }
+    if (key == VK_CAPITAL) { return (SDL_GetModState() & SDL_KMOD_CAPS) == SDL_KMOD_CAPS; }
+    if (key == VK_SCROLL) { return (SDL_GetModState() & SDL_KMOD_SCROLL) == SDL_KMOD_SCROLL; }
+
+    return false;
 }
 
 bool SDLInput::KeyboardKeyState(KeyboardKey const& key) const
 {
-    return keyStates_[keyToSDL(key)] != 0;
+    return keyStates_[keyToSDL(key)];
 }
 
 bool SDLInput::KeyboardSDLKeyState(SDL_Scancode const& key) const
 {
-    return keyStates_[key] != 0;
+    return keyStates_[key];
 }
 
 bool SDLInput::ControllerButtonState(ControllerButton const& button) const
 {
     if (!controller_) return false;
 
-    return SDL_GameControllerGetButton(controller_.get(), static_cast<SDL_GameControllerButton>(button)) == SDL_PRESSED;
+    return SDL_GetGamepadButton(controller_.get(), static_cast<SDL_GamepadButton>(button));
 }
 
 int SDLInput::ControllerAxisValue(ControllerAxis const& axis) const
 {
     if (!controller_) return 0;
 
-    return SDL_GameControllerGetAxis(controller_.get(), static_cast<SDL_GameControllerAxis>(axis));
+    return SDL_GetGamepadAxis(controller_.get(), static_cast<SDL_GamepadAxis>(axis));
 }
 
 bool SDLInput::MouseKeyState(MouseKey const& key) const
@@ -425,21 +417,20 @@ uint32_t SDLInput::GetWheelFactor() const
     return WHEEL_DELTA;
 }
 
-int SDLInput::SDLEventHandler(void* userdata, SDL_Event* evt)
+bool SDLInput::SDLEventHandler(void* userdata, SDL_Event* evt)
 {
-    auto in = static_cast<SDLInput*>(userdata);
+    auto* in = static_cast<SDLInput*>(userdata);
     in->ProcessEvent(*evt);
-    return 0;
+    return false;
 }
 
 void SDLInput::OpenController()
 {
     // TODO: GameController selection, open only first for now
-    controller_ =
-        std::unique_ptr<SDL_GameController, std::function<void(SDL_GameController*)>>(SDL_GameControllerOpen(0), &SDL_GameControllerClose);
+    controller_ = std::unique_ptr<SDL_Gamepad, std::function<void(SDL_Gamepad*)>>(SDL_OpenGamepad(0), &SDL_CloseGamepad);
 
     if (controller_)
-        joyID_ = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller_.get()));
+        joyID_ = SDL_GetJoystickID(SDL_GetGamepadJoystick(controller_.get()));
     else
         joyID_ = -1;
 }

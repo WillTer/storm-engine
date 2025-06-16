@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #include "os_window.hpp"
 
@@ -39,7 +39,7 @@ public:
     void        ProcessEvent(SDL_WindowEvent const& evt) const;
 
 private:
-    static int SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
+    static bool SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
 
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window_ = nullptr;
     uint32_t                                                      sdlID_;

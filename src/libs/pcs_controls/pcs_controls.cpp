@@ -46,6 +46,9 @@ bool PcsControls::Init()
     auto const controls_info = storm::main_config::controls_info();
     m_is_debug_keys_enabled  = controls_info.use_debug_keys;
 
+    input_          = Input::Create();
+    inputHandlerID_ = input_->Subscribe([this](InputEvent const& evt) { HandleEvent(evt); });
+
     return true;
 }
 
