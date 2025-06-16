@@ -12,15 +12,18 @@ SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscre
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, fullscreen);
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
 
-#if !defined(_WIN32) && !defined(STORM_MESA_NINE)  // DXVK-Native
+#if !defined(_WIN32)
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
-    SDL_SetWindowRelativeMouseMode(window_.get(), true);
 #endif
 
     window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
         SDL_CreateWindowWithProperties(props), [](SDL_Window* w) { SDL_DestroyWindow(w); });
 
     SDL_DestroyProperties(props);
+
+#if !defined(_WIN32)
+    SDL_SetWindowRelativeMouseMode(window_.get(), true);
+#endif
 
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered);

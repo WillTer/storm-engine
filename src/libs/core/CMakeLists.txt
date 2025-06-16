@@ -4,7 +4,7 @@ storm_lib(
         config_iface
         diagnostics
         FastFloat::fast_float
-        SDL3::SDL3
+        SDL3-storm
         spdlog::spdlog
         Zlib-storm
 

@@ -3,5 +3,5 @@ storm_lib(
     LINK_DEPENDENCIES
         config
         spdlog::spdlog
-        SDL3::SDL3
+        SDL3-storm
 )

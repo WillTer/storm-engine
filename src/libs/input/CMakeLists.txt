@@ -1,5 +1,5 @@
 storm_lib(
     NAME input
     HEADER_DEPENDENCIES
-        SDL3::SDL3
+        SDL3-storm
 )

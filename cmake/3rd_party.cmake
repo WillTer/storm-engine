@@ -55,17 +55,29 @@ FetchContent_Declare(
     GIT_TAG         f4c7a52c668365118dcf712fa4efabebfe44c53c
 )
 
-FetchContent_MakeAvailable(SDL3 Catch2 fast_float sentry spdlog entt storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog entt storm-audio)
 
 if (WIN32)
-    FetchContent_MakeAvailable(zlib)
+    FetchContent_MakeAvailable(SDL3 zlib)
 
     include(cmake/directxsdk.cmake)
 elseif(LINUX)
-    # On Linux use zlib from package manager
+    # On Linux use SDL3 and zlib from package manager
+    find_package(SDL3 REQUIRED)
     find_package(ZLIB REQUIRED)
     include(cmake/linux_d3d9.cmake)
 endif()
+
+add_library(SDL3-storm INTERFACE)
+target_link_libraries(SDL3-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Windows>:SDL3::SDL3>
+        $<$<PLATFORM_ID:Linux>:${SDL3_LIBRARIES}>
+)
+target_include_directories(SDL3-storm
+    INTERFACE
+        $<$<PLATFORM_ID:Linux>:${SDL3_INCLUDE_DIRS}>
+)
 
 add_library(Zlib-storm INTERFACE)
 target_link_libraries(Zlib-storm
