@@ -27,18 +27,15 @@ constexpr float FADE_DEFAULT   = 0.5F;
 constexpr size_t STREAM_BUFFER_COUNT = 2;
 constexpr size_t BUFFER_SAMPLE_COUNT = 16384;
 
-class Tracer: public DebugTracer
+void trace_message(
+    [[maybe_unused]] MessageSeverity severity,
+    std::string const&               message,
+    std::filesystem::path const&     source_file,
+    size_t                           line,
+    std::string const&               function_name)
 {
-    void trace_message(
-        [[maybe_unused]] Severity    severity,
-        std::string const&           message,
-        std::filesystem::path const& source_file,
-        size_t                       line,
-        std::string const&           function_name) override
-    {
-        core->Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
-    }
-};
+    core->Trace("[%s:%zd][%s] %s", source_file.filename().string().c_str(), line, function_name.c_str(), message.c_str());
+}
 
 void free_sound(SoundService::PlayingSound& sound)
 {
@@ -57,11 +54,16 @@ SoundService::SoundService()
     , m_music_volume {VOLUME_DEFAULT}
     , m_speech_volume {VOLUME_DEFAULT}
     , m_pitch {PITCH_DEFAULT}
+    , m_fade_time {std::chrono::milliseconds {0}}
 {
+    m_thread_should_stop.store(false);
 }
 
 SoundService::~SoundService()
 {
+    m_thread_should_stop.store(true);
+    m_update_thread.join();
+
     if (m_is_initialized) {
         for (auto& sound: m_playing_sounds) {
             sound.source.reset();
@@ -78,8 +80,7 @@ bool SoundService::Init()
     m_renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     if (m_renderer == nullptr) { return false; }
 
-    m_device =
-        std::make_unique<Device>(std::make_shared<Tracer>(), Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
+    m_device = std::make_unique<Device>(trace_message, Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
     auto const sound_info = storm::main_config::sound_info();
@@ -90,15 +91,20 @@ bool SoundService::Init()
 
     init_aliases();
 
+    m_update_thread = std::thread([&device = *m_device, &should_stop = m_thread_should_stop]() {
+        constexpr auto delay = std::chrono::milliseconds(1);
+        while (!should_stop.load()) {
+            std::this_thread::sleep_for(delay);
+            device.update(delay);
+        }
+    });
+
     m_is_initialized = true;
 
     return true;
 }
 
-void SoundService::RunEnd()
-{
-    m_device->update(std::chrono::milliseconds(core->GetDeltaTime()));
-}
+void SoundService::RunEnd() {}
 
 void SoundService::RunStart()
 {
