@@ -1,6 +1,8 @@
 #pragma once
 
+#include <atomic>
 #include <string>
+#include <thread>
 #include <unordered_map>
 
 #include <libs/config/sound_alias.h>
@@ -162,4 +164,7 @@ private:
     float m_pitch;
 
     std::chrono::milliseconds m_fade_time;
+
+    std::thread      m_update_thread;
+    std::atomic_bool m_thread_should_stop;
 };
