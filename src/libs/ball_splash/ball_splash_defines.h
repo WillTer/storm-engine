@@ -3,11 +3,6 @@
 #include <libs/util/rands.h>
 #include <stdlib.h>
 
-// clang-format off
-#include <windows.h>
-#include <d3d9types.h>
-// clang-format on
-
 #define BALLSPLASH_TRACE_INFORMATION
 
 constexpr int   MAX_SPLASHES  = 100;
@@ -32,8 +27,9 @@ constexpr int   SPLASH_FRAME_DELAY  = 65;
 constexpr int   SPLASH_FRAMES_COUNT = 64;
 constexpr float SPLASH_MOVE_Y2      = -0.5f;
 
-constexpr int GRID_FVF  = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
-constexpr int GRID_FVF2 = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2);
+// FIXME: Renderer Next
+// constexpr int GRID_FVF  = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
+// constexpr int GRID_FVF2 = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2);
 
 #ifndef BALLSPLASH_TRACE_INFORMATION
 #define BALLSPLASH_TRACE(a) true

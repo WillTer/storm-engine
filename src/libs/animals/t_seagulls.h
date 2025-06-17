@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/core/message.h>
-#include <libs/math/matrix.h>
 
 #include "animals_defines.h"
 
@@ -49,9 +48,10 @@ private:
     void LoadSettings();
     void Frighten();
 
-    entid_t        seagullModel;
-    tSeagull       seagulls[SEAGULL_COUNT];
-    VDX9RENDER*    renderService;
+    entid_t  seagullModel;
+    tSeagull seagulls[SEAGULL_COUNT];
+    // FIXME: Renderer Next
+    // VDX9RENDER*    renderService;
     VSoundService* soundService;
     bool           enabled;
     int32_t        count;

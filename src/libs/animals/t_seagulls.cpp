@@ -5,7 +5,6 @@
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/util/rands.h>
@@ -61,10 +60,11 @@ void TSeagulls::Init()
     startY = 0.f;
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    soundService  = static_cast<VSoundService*>(core->GetService("SoundService"));
-
-    if (!renderService) throw std::runtime_error("!Seagulls: No service: dx9render");
+    // FIXME: Renderer Next
+    // renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // soundService  = static_cast<VSoundService*>(core->GetService("SoundService"));
+    //
+    // if (!renderService) throw std::runtime_error("!Seagulls: No service: dx9render");
     // if(!soundService)
     //    throw std::runtime_error("!Seagulls: No service: sound");
 
@@ -181,8 +181,12 @@ void TSeagulls::Realize(uint32_t _dTime)
 {
     if (!enabled) return;
 
-    float persp;
-    renderService->GetCamera(cameraPos, cameraAng, persp);
+    float persp = 0.0F;
+    cameraPos   = {};
+    cameraAng   = {};
+
+    // FIXME: Renderer Next
+    // renderService->GetCamera(cameraPos, cameraAng, persp);
     if (!count) Add(cameraPos.x, cameraPos.y, cameraPos.z);
 
     auto* seagull = static_cast<MODEL*>(core->GetEntityPointer(seagullModel));

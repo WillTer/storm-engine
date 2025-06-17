@@ -34,7 +34,6 @@ struct tButterflyVertex {
 //--------------------------------------------------------------------
 
 class COLLIDE;
-class VDX9RENDER;
 class IVBufferManager;
 
 class TButterfly

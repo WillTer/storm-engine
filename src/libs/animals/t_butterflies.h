@@ -29,12 +29,13 @@ public:
 private:
     void LoadSettings();
 
-    VDX9RENDER*      renderService;
-    COLLIDE*         collide;
-    IVBufferManager* ivManager;
-    entid_t          butterflyModel;
-    TButterfly       butterflies[BUTTERFLY_COUNT];
-    int32_t          butterfliesCount;
+    // FIXME: Renderer Next
+    // VDX9RENDER*      renderService;
+    // IVBufferManager* ivManager;
+    COLLIDE*   collide;
+    entid_t    butterflyModel;
+    TButterfly butterflies[BUTTERFLY_COUNT];
+    int32_t    butterfliesCount;
 
     float maxDistance;
 

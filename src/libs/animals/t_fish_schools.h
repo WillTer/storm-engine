@@ -41,7 +41,8 @@ public:
 private:
     void LoadSettings();
 
-    VDX9RENDER*    renderService;
+    // FIXME: Renderer Next
+    // VDX9RENDER*    renderService;
     entid_t        fishSchoolModel;
     TFishSchool*   fishSchools[FISHSCHOOL_COUNT];
     int32_t        shipsCount;

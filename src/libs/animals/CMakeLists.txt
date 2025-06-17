@@ -3,6 +3,6 @@ storm_lib(
     LINK_DEPENDENCIES
         config
         core
-        renderer
+        renderer_next
         sound_service
 )
