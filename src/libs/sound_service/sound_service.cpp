@@ -205,11 +205,14 @@ SoundID SoundService::play(
     sound.volume      = alias_volume;
     sound.name        = sound_path.string();
 
-    if (is_paused) {
-        sound.source->set_volume(get_volume_by_type(sound));
-    } else {
-        // play() call will set volume itself so we don't need to do it manually
-        sound.source->play(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
+    sound.source->set_volume(get_volume_by_type(sound));
+
+    if (!is_paused) {
+        if (sound_type == SoundType::MusicStereo) {
+            sound.source->play_with_fade(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
+        } else {
+            sound.source->play();
+        }
     }
 
     sound.source->set_pitch(m_pitch);
@@ -372,7 +375,7 @@ void SoundService::set_active_with_fade(bool const is_active)
         if (sound.is_free) { continue; }
 
         if (is_active) {
-            sound.source->play(0.0F, get_volume_by_type(sound), m_fade_time);
+            sound.source->play_with_fade(0.0F, get_volume_by_type(sound), m_fade_time);
         } else {
             sound.source->pause();  // No fade on pause
         }
@@ -527,7 +530,7 @@ void SoundService::resume_sound(PlayingSound& sound, int32_t fade_time /*= 0*/)
     if (sound.is_free) { return; }
 
     if (sound.sound_type == SoundType::MusicStereo) {
-        sound.source->play(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
+        sound.source->play_with_fade(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
     } else {
         sound.source->play();
     }
@@ -551,7 +554,7 @@ void SoundService::stop_sound(PlayingSound& sound, int32_t fade_time /*= 0*/)
     if (sound.sound_type == SoundType::MusicStereo) { m_ogg_pos[sound.name] = sound.source->get_playback_position(); }
     if (fade_time > 0) {
         float const vol = sound.source->get_volume();
-        sound.source->stop(vol, 0.0F, std::chrono::milliseconds(fade_time));
+        sound.source->stop_with_fade(vol, 0.0F, std::chrono::milliseconds(fade_time));
     } else {
         sound.source->stop();
         free_sound(sound);
