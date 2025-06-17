@@ -30,6 +30,7 @@ storm_exe(
         particles
         pcs_controls
         renderer
+        renderer_next
         rigging
         sailors
         script_library
