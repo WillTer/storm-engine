@@ -540,7 +540,7 @@ void SoundService::stop_all(int32_t fade_time /*= 0*/)
 void SoundService::stop_sound(PlayingSound& sound, int32_t fade_time /*= 0*/)
 {
     if (sound.is_free) { return; }
-    if (!sound.source) {
+    if (!sound.source || sound.source->get_state() == SourceState::Free) {
         free_sound(sound);
         return;
     }
