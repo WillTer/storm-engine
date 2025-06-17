@@ -207,13 +207,7 @@ SoundID SoundService::play(
 
     sound.source->set_volume(get_volume_by_type(sound));
 
-    if (!is_paused) {
-        if (sound_type == SoundType::MusicStereo) {
-            sound.source->play_with_fade(0.0F, get_volume_by_type(sound), std::chrono::milliseconds(fade_time));
-        } else {
-            sound.source->play();
-        }
-    }
+    if (!is_paused) { resume_sound(sound, fade_time); }
 
     sound.source->set_pitch(m_pitch);
     sound.source->set_looping(is_looped);
