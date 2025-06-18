@@ -1,10 +1,9 @@
 #pragma once
 
 #include <libs/core/v_data.h>
-#include <libs/filesystem/default_paths.h>
-#include <libs/renderer/dx9render.h>
+#include <libs/math/c_vector.h>
+#include <libs/renderer_next/types.h>
 #include <libs/util/storm_assert.h>
-
 
 #define FULLRECT(r) \
     { \
@@ -24,6 +23,10 @@
         p.y = _y; \
     }
 
+#define PR_ALIGN_LEFT 0
+#define PR_ALIGN_RIGHT 1
+#define PR_ALIGN_CENTER 2
+
 // icons control defines
 #define BI_MSG_COMMAND_ACTIVATE 1
 #define BI_MSG_COMMAND_RIGHT 2
@@ -41,7 +44,8 @@
 #define BI_COMMANDS_DOWNSTEP "BICommandsDown"
 #define BI_COMMANDS_CANCEL "BICommandsCancel"
 
-#define BI_ONETEX_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// FIXME: Renderer Next
+#define BI_ONETEX_VERTEX_FORMAT 0  // (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct BI_ONETEXTURE_VERTEX {
     CVECTOR pos;
@@ -49,58 +53,7 @@ struct BI_ONETEXTURE_VERTEX {
     float   tu, tv;
 };
 
-struct BIFPOINT {
-    float x, y;
-
-    BIFPOINT() {}
-
-    BIFPOINT(const BIFPOINT& bp)
-    {
-        x = bp.x;
-        y = bp.y;
-    }
-
-    const BIFPOINT& operator+=(const BIFPOINT& bp)
-    {
-        x += bp.x;
-        y += bp.y;
-        return *this;
-    }
-
-    const BIFPOINT& operator-=(const BIFPOINT& bp)
-    {
-        x -= bp.x;
-        y -= bp.y;
-        return *this;
-    }
-
-    friend BIFPOINT operator+(const BIFPOINT& p1, const BIFPOINT& p2)
-    {
-        BIFPOINT bp(p1);
-        bp += p2;
-        return bp;
-    }
-
-    friend BIFPOINT operator+(const FPOINT& p1, const BIFPOINT& p2)
-    {
-        BIFPOINT bp(p2);
-        bp.x += p1.x;
-        bp.y += p1.y;
-        return bp;
-    }
-
-    friend BIFPOINT operator+(const BIFPOINT& p1, const FPOINT& p2)
-    {
-        BIFPOINT bp(p1);
-        bp.x += p2.x;
-        bp.y += p2.y;
-        return bp;
-    }
-
-    // FPOINT operator FPOINT() {return *(FPOINT*)this;}
-};
-
-#define BI_COLOR_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+#define BI_COLOR_VERTEX_FORMAT 0  // (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct BI_COLOR_VERTEX {
     CVECTOR  pos;
@@ -109,14 +62,14 @@ struct BI_COLOR_VERTEX {
     float    tu, tv;
 };
 
-#define BI_NOTEX_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_TEX0)
+#define BI_NOTEX_VERTEX_FORMAT 0  // (D3DFVF_XYZRHW | D3DFVF_TEX0)
 
 struct BI_NOTEXTURE_VERTEX {
     CVECTOR pos;
     float   w;
 };
 
-#define BI_COLORONLY_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX0)
+#define BI_COLORONLY_VERTEX_FORMAT 0  // (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX0)
 
 struct BI_COLORONLY_VERTEX {
     CVECTOR  pos;
@@ -124,7 +77,7 @@ struct BI_COLORONLY_VERTEX {
     uint32_t col;
 };
 
-#define BI_3D_VERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+#define BI_3D_VERTEX_FORMAT 0  // (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct BI_3D_VERTEX {
     CVECTOR pos;
@@ -138,7 +91,7 @@ inline float GetBetwinFloat(float beg, float end, float ratio)
     return beg + ratio * (end - beg);
 }
 
-inline FRECT& GetTexRectFromPosition(FRECT& fr, int posNum, int hq, int vq)
+inline storm::FRect& GetTexRectFromPosition(storm::FRect& fr, int posNum, int hq, int vq)
 {
     if (posNum < 0) posNum = 0;
     int py    = posNum / hq;
@@ -150,7 +103,7 @@ inline FRECT& GetTexRectFromPosition(FRECT& fr, int posNum, int hq, int vq)
     return fr;
 }
 
-inline FRECT& GetTexRectFromPosition(FRECT& fr, int posNum, int hq, int vq, bool bSelected)
+inline storm::FRect& GetTexRectFromPosition(storm::FRect& fr, int posNum, int hq, int vq, bool bSelected)
 {
     int py    = posNum / hq;
     int px    = posNum - py * hq;
@@ -165,7 +118,7 @@ inline FRECT& GetTexRectFromPosition(FRECT& fr, int posNum, int hq, int vq, bool
     return fr;
 }
 
-inline void SetRectanglePos(BI_ONETEXTURE_VERTEX* pv, FRECT& tr)
+inline void SetRectanglePos(BI_ONETEXTURE_VERTEX* pv, storm::FRect& tr)
 {
     Assert(pv != NULL);
     pv[0].pos.x = pv[1].pos.x = tr.left;
@@ -174,7 +127,7 @@ inline void SetRectanglePos(BI_ONETEXTURE_VERTEX* pv, FRECT& tr)
     pv[1].pos.y = pv[3].pos.y = tr.bottom;
 }
 
-inline void SetRectangleTexture(BI_ONETEXTURE_VERTEX* pv, FRECT& tr)
+inline void SetRectangleTexture(BI_ONETEXTURE_VERTEX* pv, storm::FRect& tr)
 {
     Assert(pv != NULL);
     pv[0].tu = pv[1].tu = tr.left;
@@ -183,7 +136,7 @@ inline void SetRectangleTexture(BI_ONETEXTURE_VERTEX* pv, FRECT& tr)
     pv[1].tv = pv[3].tv = tr.bottom;
 }
 
-inline void SetRectanglePos(BI_COLOR_VERTEX* pv, FRECT& tr)
+inline void SetRectanglePos(BI_COLOR_VERTEX* pv, storm::FRect& tr)
 {
     Assert(pv != NULL);
     pv[0].pos.x = pv[1].pos.x = tr.left;
@@ -201,7 +154,7 @@ inline void SetRectanglePos(BI_COLOR_VERTEX* pv, float fl, float ft, float fr, f
     pv[1].pos.y = pv[3].pos.y = fb;
 }
 
-inline void SetRectangleTexture(BI_COLOR_VERTEX* pv, FRECT& tr)
+inline void SetRectangleTexture(BI_COLOR_VERTEX* pv, storm::FRect& tr)
 {
     Assert(pv != NULL);
     pv[0].tu = pv[1].tu = tr.left;

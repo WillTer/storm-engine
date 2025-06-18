@@ -12,7 +12,7 @@
 
 BIInterfaceManager::BIInterfaceManager()
 {
-    m_pRS             = nullptr;
+    // m_pRS             = nullptr;
     m_pImgRender      = nullptr;
     m_pMouse          = nullptr;
     m_pInterfaceSheet = nullptr;
@@ -30,9 +30,9 @@ BIInterfaceManager::~BIInterfaceManager()
 
 bool BIInterfaceManager::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(m_pRS);
-    m_pImgRender = new BIImageRender(m_pRS);
+    // m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // Assert(m_pRS);
+    m_pImgRender = new BIImageRender(/*m_pRS*/ nullptr);
     Assert(m_pImgRender);
     m_pMouse = new MousePointer(this, AttributesPointer);
     Assert(m_pMouse);
@@ -90,14 +90,21 @@ uint64_t BIInterfaceManager::ProcessMessage(MESSAGE& message)
 }
 
 BI_ManagerNodeBase*
-BIInterfaceManager::CreateImageNode(char const* texture, const FRECT& uv, const RECT& pos, uint32_t color, int32_t nPrioritet)
+BIInterfaceManager::CreateImageNode(char const* texture, storm::FRect const& uv, storm::Rect const& pos, uint32_t color, int32_t nPrioritet)
 {
     BI_ManagerNodeBase* pNod = new BI_ImageNode(this, texture, uv, pos, color, nPrioritet);
     return pNod;
 }
 
 BI_ManagerNodeBase* BIInterfaceManager::CreateStringNode(
-    char const* text, char const* font, uint32_t color, float scale, const RECT& pos, int32_t nHAlign, int32_t nVAlign, int32_t prioritet)
+    char const*        text,
+    char const*        font,
+    uint32_t           color,
+    float              scale,
+    storm::Rect const& pos,
+    int32_t            nHAlign,
+    int32_t            nVAlign,
+    int32_t            prioritet)
 {
     BI_ManagerNodeBase* pNod = new BI_StringNode(this, text, font, color, scale, pos, nHAlign, nVAlign, prioritet);
     return pNod;
@@ -107,10 +114,6 @@ void BIInterfaceManager::DeleteNode(BI_ManagerNodeBase* pNod)
 {
     auto const it = std::find(m_aNodes.begin(), m_aNodes.end(), pNod);
     if (it != m_aNodes.end()) m_aNodes.erase(it);
-
-    // int32_t n = m_aNodes.Find( pNod );
-    // if( n<0 ) return;
-    // m_aNodes.DelIndex( n );
 }
 
 int32_t BIInterfaceManager::MsgLoadSheet(MESSAGE& message)
@@ -131,19 +134,11 @@ int32_t BIInterfaceManager::MsgLoadSheet(MESSAGE& message)
 
 int32_t BIInterfaceManager::MsgCreateImage(MESSAGE& message)
 {
-    /*char texture[MAX_PATH];    message.String( sizeof(texture), texture );
-    FRECT uv;
-    RECT pos;
-    uint32_t color;
-    int32_t nPrioritet;
-
-    return (int32_t)CreateImageNode(texture,uv,pos,color,nPrioritet);*/
     return 0;
 }
 
 int32_t BIInterfaceManager::MsgCreateString(MESSAGE& message)
 {
-    // return (int32_t)CreateStringNode();
     return 0;
 }
 
@@ -152,10 +147,6 @@ int32_t BIInterfaceManager::MsgDeleteNode(MESSAGE& message)
     auto* pNod = (BI_ManagerNodeBase*)message.Pointer();
     if (!pNod) return 0;
 
-    // if( m_aNodes.Find(pNod) != INVALID_ARRAY_INDEX ) {
-    //    STORM_DELETE(pNod);
-    //}
-    //~!~ DeleteNode?
     auto const it = std::find(m_aNodes.begin(), m_aNodes.end(), pNod);
     if (it != m_aNodes.end()) STORM_DELETE(*it);
 

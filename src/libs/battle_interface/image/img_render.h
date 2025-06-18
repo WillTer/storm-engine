@@ -5,31 +5,31 @@
 class BIImageRender
 {
 public:
-    BIImageRender(VDX9RENDER* pRS);
+    BIImageRender(/*VDX9RENDER*/ void* pRS);
     ~BIImageRender();
 
-    void     Render();
-    uint64_t ProcessMessage(MESSAGE& message);
+    void Render();
+    // uint64_t ProcessMessage(MESSAGE& message);
 
     IBIImage* CreateImage(
-        BIImageType  type,
-        char const*  pcTextureName,
-        uint32_t     color,
-        const FRECT& uv,
-        int32_t      nLeft,
-        int32_t      nTop,
-        int32_t      nRight,
-        int32_t      nBottom,
-        int32_t      nPrior          = ImagePrioritet_DefaultValue,
-        char const*  pcTechniqueName = nullptr);
+        BIImageType         type,
+        char const*         pcTextureName,
+        uint32_t            color,
+        storm::FRect const& uv,
+        int32_t             nLeft,
+        int32_t             nTop,
+        int32_t             nRight,
+        int32_t             nBottom,
+        int32_t             nPrior          = ImagePrioritet_DefaultValue,
+        char const*         pcTechniqueName = nullptr);
     IBIImage* CreateImage(
-        BIImageType  type,
-        char const*  pcTextureName,
-        uint32_t     color,
-        const FRECT& uv,
-        const RECT&  pos,
-        int32_t      nPrior          = ImagePrioritet_DefaultValue,
-        char const*  pcTechniqueName = nullptr);
+        BIImageType         type,
+        char const*         pcTextureName,
+        uint32_t            color,
+        storm::FRect const& uv,
+        storm::Rect const&  pos,
+        int32_t             nPrior          = ImagePrioritet_DefaultValue,
+        char const*         pcTechniqueName = nullptr);
 
     BIImageMaterial* FindMaterial(char const* pcTextureName, char const* pcTechniqueName);
     BIImageMaterial* CreateMaterial(char const* pcTextureName, char const* pcTechniqueName = nullptr);
@@ -56,14 +56,14 @@ public:
         int32_t     nBottom,
         int32_t     nPrior = ImagePrioritet_DefaultValue);
     IBIString* CreateString(
-        char const* text,
-        char const* font_name,
-        float       font_scale,
-        uint32_t    font_color,
-        int32_t     valign,
-        int32_t     halign,
-        const RECT& pos,
-        int32_t     nPrior = ImagePrioritet_DefaultValue);
+        char const*        text,
+        char const*        font_name,
+        float              font_scale,
+        uint32_t           font_color,
+        int32_t            valign,
+        int32_t            halign,
+        storm::Rect const& pos,
+        int32_t            nPrior = ImagePrioritet_DefaultValue);
     void DeleteString(IBIString* str);
     void CutPrioritetRangeByStrings();
 
@@ -77,7 +77,7 @@ protected:
     int32_t m_nBeginOutputPrioritet;
     int32_t m_nEndOutputPrioritet;
 
-    VDX9RENDER*                   m_pRS;
+    // VDX9RENDER*                   m_pRS;
     std::vector<BIImageMaterial*> m_apMaterial;
     std::vector<IBIString*>       m_apStrings;
     // bool m_bDeleteEverything;

@@ -20,8 +20,8 @@ struct SHIP_STATE {
 };
 
 struct STRENGTH {
-    BOOL    bUse;      // true if use
-    BOOL    bInertia;  // inertia(true) or impulse(false)
+    bool    bUse;      // true if use
+    bool    bInertia;  // inertia(true) or impulse(false)
     CVECTOR vSpeed;    // speed power
     CVECTOR vRotate;   // rotate power
 };
@@ -47,9 +47,9 @@ public:
         return pAShip;
     }
 
-    virtual BOOL BuildContour(CVECTOR* vContour, int32_t& iNumVContour) = 0;
+    virtual bool BuildContour(CVECTOR* vContour, int32_t& iNumVContour) = 0;
 
-    virtual BOOL    TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew) = 0;
+    virtual bool    TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew) = 0;
     virtual int32_t AddStrength(STRENGTH* strength)                                           = 0;
     virtual bool    DelStrength(int32_t iIdx)                                                 = 0;
 

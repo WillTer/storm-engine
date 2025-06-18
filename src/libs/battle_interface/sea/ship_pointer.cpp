@@ -27,21 +27,22 @@ ShipPointer::ShipPointer()
 ShipPointer::~ShipPointer()
 {
     m_bVisible = false;
-    TEXTURE_RELEASE(rs, m_idFriendTex);
-    TEXTURE_RELEASE(rs, m_idEnemyTex);
-    VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
+    // TEXTURE_RELEASE(rs, m_idFriendTex);
+    // TEXTURE_RELEASE(rs, m_idEnemyTex);
+    // VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
 }
 
 bool ShipPointer::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
+    //
+    // m_idVBuf = rs->CreateVertexBuffer(SPV_FORMAT, 4 * sizeof(SPV_VERTEX), D3DUSAGE_WRITEONLY);
+    // if (m_idVBuf < 0) return false;
 
-    m_idVBuf = rs->CreateVertexBuffer(SPV_FORMAT, 4 * sizeof(SPV_VERTEX), D3DUSAGE_WRITEONLY);
-    if (m_idVBuf < 0) return false;
-
-    auto* pv = static_cast<SPV_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    SPV_VERTEX* pv = nullptr;
+    // auto* pv = static_cast<SPV_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
     if (pv != nullptr) {
         pv[0].tu = 0.f;
         pv[0].tv = 0.f;
@@ -51,7 +52,7 @@ bool ShipPointer::Init()
         pv[2].tv = 0.f;
         pv[3].tu = 1.f;
         pv[3].tv = 1.f;
-        rs->UnLockVertexBuffer(m_idVBuf);
+        // rs->UnLockVertexBuffer(m_idVBuf);
     }
 
     auto* pA = core->Entity_GetAttributeClass(GetId(), "textures");
@@ -60,8 +61,8 @@ bool ShipPointer::Init()
         return false;
     }
 
-    m_idFriendTex = rs->TextureCreate(pA->GetAttribute("friend"));
-    m_idEnemyTex  = rs->TextureCreate(pA->GetAttribute("enemy"));
+    // m_idFriendTex = rs->TextureCreate(pA->GetAttribute("friend"));
+    // m_idEnemyTex  = rs->TextureCreate(pA->GetAttribute("enemy"));
 
     return true;
 }
@@ -83,14 +84,14 @@ void ShipPointer::Realize(uint32_t delta_time) const
     if (!m_bVisible) return;
 
     CMatrix matw;
-    rs->SetTransform(D3DTS_WORLD, matw);
+    // rs->SetTransform(D3DTS_WORLD, matw);
 
-    if (m_bFriend)
-        rs->TextureSet(0, m_idFriendTex);
-    else
-        rs->TextureSet(0, m_idEnemyTex);
+    // if (m_bFriend)
+    //     rs->TextureSet(0, m_idFriendTex);
+    // else
+    //     rs->TextureSet(0, m_idEnemyTex);
 
-    rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(SPV_VERTEX), 0, 2, "battle_shippointer");
+    // rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(SPV_VERTEX), 0, 2, "battle_shippointer");
 }
 
 uint64_t ShipPointer::ProcessMessage(MESSAGE& message)
@@ -124,11 +125,13 @@ void ShipPointer::UpdateShipPointer() const
     if (!m_bVisible) return;
     if (m_pShip == nullptr) return;
 
-    auto* pv = static_cast<SPV_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    SPV_VERTEX* pv = nullptr;
+    // auto* pv = static_cast<SPV_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
     if (pv != nullptr) {
-        CVECTOR campos, camang;
-        float   camper;
-        rs->GetCamera(campos, camang, camper);
+        CVECTOR campos = {};
+        CVECTOR camang = {};
+        float   camper = 0.0F;
+        // rs->GetCamera(campos, camang, camper);
 
         auto ourPos = m_pShip->GetPos() + CVECTOR(0.f, m_fShiftTop + m_fShiftAmp * sinf(m_fShiftVal), 0.f);
         auto k      = camper * .05f * sqrtf(~(campos - ourPos));
@@ -144,7 +147,7 @@ void ShipPointer::UpdateShipPointer() const
         pv[2].pos = ourPos + cvhorz + cvvert;
         pv[3].pos = ourPos + cvhorz;
 
-        rs->UnLockVertexBuffer(m_idVBuf);
+        // rs->UnLockVertexBuffer(m_idVBuf);
     }
 }
 

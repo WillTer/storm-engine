@@ -3,7 +3,7 @@
 #include <libs/battle_interface/bi_utils.h>
 #include <libs/util/platform/platform.hpp>
 
-WMShipIcon::WMShipIcon(entid_t BIEntityID, VDX9RENDER* pRS) : BISignIcon(BIEntityID, pRS) {}
+WMShipIcon::WMShipIcon(entid_t BIEntityID, /*VDX9RENDER*/ void* pRS) : BISignIcon(BIEntityID, pRS) {}
 
 WMShipIcon::~WMShipIcon() {}
 

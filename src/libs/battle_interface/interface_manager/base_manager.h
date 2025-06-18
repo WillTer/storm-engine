@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/battle_interface/bi_defines.h>
-#include <libs/renderer/dx9render.h>
 
 class BIImageRender;
 class BI_ManagerBase;
@@ -38,10 +37,10 @@ public:
 
     ~BI_ManagerBase() override {}
 
-    VDX9RENDER* GetDX9Render() const
-    {
-        return m_pRS;
-    }
+    // VDX9RENDER* GetDX9Render() const
+    // {
+    //     return m_pRS;
+    // }
 
     BIImageRender* GetImageRender() const
     {
@@ -54,20 +53,20 @@ public:
     }
 
     virtual BI_ManagerNodeBase*
-    CreateImageNode(char const* texture, const FRECT& uv, const RECT& pos, uint32_t color, int32_t nPrioritet) = 0;
+    CreateImageNode(char const* texture, storm::FRect const& uv, storm::Rect const& pos, uint32_t color, int32_t nPrioritet) = 0;
     virtual BI_ManagerNodeBase* CreateStringNode(
-        char const* text,
-        char const* font,
-        uint32_t    color,
-        float       scale,
-        const RECT& pos,
-        int32_t     nHAlign,
-        int32_t     nVAlign,
-        int32_t     prioritet)                            = 0;
+        char const*        text,
+        char const*        font,
+        uint32_t           color,
+        float              scale,
+        storm::Rect const& pos,
+        int32_t            nHAlign,
+        int32_t            nVAlign,
+        int32_t            prioritet)                            = 0;
     virtual void DeleteNode(BI_ManagerNodeBase* pNod) = 0;
 
 protected:
-    VDX9RENDER*          m_pRS;
+    // VDX9RENDER*          m_pRS;
     BIImageRender*       m_pImgRender;
     BI_MousePointerBase* m_pMouse;
 };

@@ -10,7 +10,7 @@
 
 ActivePerkShower::ActivePerkShower() : m_nIconWidth(0), m_nIconHeight(0), m_nSpaceHorz(0), m_nSpaceVert(0)
 {
-    rs = nullptr;
+    // rs = nullptr;
 
     m_idVBuf = -1;
     m_idIBuf = -1;
@@ -32,9 +32,9 @@ ActivePerkShower::~ActivePerkShower()
 
 bool ActivePerkShower::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
 
     if (AttributesPointer == nullptr) return false;
 
@@ -56,21 +56,21 @@ void ActivePerkShower::Execute(uint32_t delta_time) {}
 void ActivePerkShower::Realize(uint32_t delta_time) const
 {
     if (m_pTexDescr == nullptr) return;
-    rs->MakePostProcess();
+    // rs->MakePostProcess();
 
-    for (auto i = 0; i < m_nTextureQ; i++) {
-        if (m_pTexDescr[i].m_nPicsQ == 0) continue;
-        rs->TextureSet(0, m_pTexDescr[i].m_idTexture);
-        rs->DrawBuffer(
-            m_idVBuf,
-            sizeof(BI_ONETEXTURE_VERTEX),
-            m_idIBuf,
-            m_pTexDescr[i].m_nVertStart,
-            m_pTexDescr[i].m_nPicsQ * 4,
-            m_pTexDescr[i].m_nIndxStart,
-            m_pTexDescr[i].m_nPicsQ * 2,
-            "battle_rectangle");
-    }
+    // for (auto i = 0; i < m_nTextureQ; i++) {
+    // if (m_pTexDescr[i].m_nPicsQ == 0) continue;
+    // rs->TextureSet(0, m_pTexDescr[i].m_idTexture);
+    // rs->DrawBuffer(
+    //     m_idVBuf,
+    //     sizeof(BI_ONETEXTURE_VERTEX),
+    //     m_idIBuf,
+    //     m_pTexDescr[i].m_nVertStart,
+    //     m_pTexDescr[i].m_nPicsQ * 4,
+    //     m_pTexDescr[i].m_nIndxStart,
+    //     m_pTexDescr[i].m_nPicsQ * 2,
+    //     "battle_rectangle");
+    // }
 }
 
 uint64_t ActivePerkShower::ProcessMessage(MESSAGE& message)
@@ -106,9 +106,9 @@ bool ActivePerkShower::CreateTextures(ATTRIBUTES* pATextureRoot)
             m_pTexDescr[i].m_nCol      = 1;
             m_pTexDescr[i].m_nRow      = 1;
         } else {
-            m_pTexDescr[i].m_idTexture = rs->TextureCreate(pA->GetAttribute("file"));
-            m_pTexDescr[i].m_nCol      = pA->GetAttributeAsDword("horz", 1);
-            m_pTexDescr[i].m_nRow      = pA->GetAttributeAsDword("vert", 1);
+            // m_pTexDescr[i].m_idTexture = rs->TextureCreate(pA->GetAttribute("file"));
+            m_pTexDescr[i].m_nCol = pA->GetAttributeAsDword("horz", 1);
+            m_pTexDescr[i].m_nRow = pA->GetAttributeAsDword("vert", 1);
         }
         m_pTexDescr[i].m_nPicsQ     = 0;
         m_pTexDescr[i].m_nVertStart = 0;
@@ -259,7 +259,8 @@ void ActivePerkShower::FillVIBuffers()
 {
     int pi, ti, start_idx;
 
-    auto* pvb = static_cast<BI_ONETEXTURE_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    BI_ONETEXTURE_VERTEX* pvb = nullptr;
+    // auto* pvb = static_cast<BI_ONETEXTURE_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
     if (pvb == nullptr) return;
 
     start_idx = 0;
@@ -274,10 +275,10 @@ void ActivePerkShower::FillVIBuffers()
         }
     }
 
-    rs->UnLockVertexBuffer(m_idVBuf);
+    // rs->UnLockVertexBuffer(m_idVBuf);
 }
 
-void ActivePerkShower::FillRectData(void* vbuf, const FRECT& rectPos, const FRECT& rectTex)
+void ActivePerkShower::FillRectData(void* vbuf, storm::FRect const& rectPos, storm::FRect const& rectTex)
 {
     if (vbuf == nullptr) return;
     auto* ptmp    = static_cast<BI_ONETEXTURE_VERTEX*>(vbuf);
@@ -300,9 +301,9 @@ void ActivePerkShower::FillRectData(void* vbuf, const FRECT& rectPos, const FREC
     ptmp[3].tv = rectTex.bottom;
 }
 
-FRECT ActivePerkShower::GetTextureRect(int textIdx, int picIdx) const
+storm::FRect ActivePerkShower::GetTextureRect(int textIdx, int picIdx) const
 {
-    FRECT retRect;
+    storm::FRect retRect;
 
     int const vIdx = picIdx / m_pTexDescr[textIdx].m_nCol;
     int const hIdx = picIdx - vIdx * m_pTexDescr[textIdx].m_nCol;
@@ -317,13 +318,14 @@ FRECT ActivePerkShower::GetTextureRect(int textIdx, int picIdx) const
 
 bool ActivePerkShower::InitCommonBuffers()
 {
-    m_idVBuf = rs->CreateVertexBuffer(BI_ONETEX_VERTEX_FORMAT, m_nShowPlaceQ * 4 * sizeof(BI_ONETEXTURE_VERTEX), D3DUSAGE_WRITEONLY);
-    m_idIBuf = rs->CreateIndexBuffer(m_nShowPlaceQ * 6 * 2);
+    // m_idVBuf = rs->CreateVertexBuffer(BI_ONETEX_VERTEX_FORMAT, m_nShowPlaceQ * 4 * sizeof(BI_ONETEXTURE_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idIBuf = rs->CreateIndexBuffer(m_nShowPlaceQ * 6 * 2);
     if (m_idIBuf == -1 || m_idVBuf == -1) return false;
 
-    int   i;
-    auto* pibuf = static_cast<uint16_t*>(rs->LockIndexBuffer(m_idIBuf));
-    for (i = 0; i < m_nShowPlaceQ; i++) {
+    int       i;
+    uint16_t* pibuf = nullptr;
+    // auto* pibuf = static_cast<uint16_t*>(rs->LockIndexBuffer(m_idIBuf));
+    for (i = 0; i < m_nShowPlaceQ && pibuf != nullptr; i++) {
         pibuf[i * 6 + 0] = i * 4 + 0;
         pibuf[i * 6 + 1] = i * 4 + 1;
         pibuf[i * 6 + 2] = i * 4 + 2;
@@ -331,14 +333,15 @@ bool ActivePerkShower::InitCommonBuffers()
         pibuf[i * 6 + 4] = i * 4 + 1;
         pibuf[i * 6 + 5] = i * 4 + 3;
     }
-    rs->UnLockIndexBuffer(m_idIBuf);
+    // rs->UnLockIndexBuffer(m_idIBuf);
 
-    auto* pvbuf = static_cast<BI_ONETEXTURE_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
-    for (i = 0; i < m_nShowPlaceQ * 4; i++) {
+    BI_ONETEXTURE_VERTEX* pvbuf = nullptr;
+    // auto* pvbuf = static_cast<BI_ONETEXTURE_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    for (i = 0; i < m_nShowPlaceQ * 4 && pvbuf != nullptr; i++) {
         pvbuf[i].pos.z = 1.f;
         pvbuf[i].w     = .5f;
     }
-    rs->UnLockVertexBuffer(m_idVBuf);
+    // rs->UnLockVertexBuffer(m_idVBuf);
 
     return true;
 }
@@ -347,11 +350,11 @@ void ActivePerkShower::ReleaseAll()
 {
     int i;
 
-    VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
-    INDEX_BUFFER_RELEASE(rs, m_idIBuf);
+    // VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
+    // INDEX_BUFFER_RELEASE(rs, m_idIBuf);
 
-    for (i = 0; i < m_nTextureQ; i++)
-        TEXTURE_RELEASE(rs, m_pTexDescr[i].m_idTexture);
+    // for (i = 0; i < m_nTextureQ; i++)
+    //     TEXTURE_RELEASE(rs, m_pTexDescr[i].m_idTexture);
     delete[] m_pTexDescr;
     m_pTexDescr = nullptr;
     m_nTextureQ = 0;

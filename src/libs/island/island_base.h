@@ -1,8 +1,7 @@
 #pragma once
 
 #include <libs/collide/cannon_trace.h>
-
-struct FRECT;
+#include <libs/renderer_next/types.h>
 
 class ISLAND_BASE: public CANNON_TRACE_BASE
 {
@@ -12,7 +11,7 @@ public:
     virtual bool Check2DBoxDepth(CVECTOR vPos, CVECTOR vSize, float fAngY, float fMinDepth) = 0;
     virtual bool GetDepth(float x, float z, float* fRes = nullptr)                          = 0;
     virtual bool GetDepthFast(float x, float z, float* fRes = nullptr)                      = 0;
-    virtual bool GetDepth(FRECT* pRect, float* fMinH, float* fMaxH)                         = 0;
+    virtual bool GetDepth(storm::FRect* pRect, float* fMinH, float* fMaxH)                  = 0;
 
     virtual bool GetShadow(float x, float z, float* fRes = nullptr) = 0;
 

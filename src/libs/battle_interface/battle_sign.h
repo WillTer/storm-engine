@@ -22,7 +22,8 @@ public:
 
     BISignIcon(BISignIcon&&)      = delete;
     BISignIcon(BISignIcon const&) = delete;
-    BISignIcon(entid_t BIEntityID, VDX9RENDER* pRS);
+    // FIXME: Renderer Next
+    BISignIcon(entid_t BIEntityID, /*VDX9RENDER*/ void* pRS);
     virtual ~BISignIcon();
 
     virtual void Draw();
@@ -54,61 +55,63 @@ protected:
     virtual int32_t CalculateSignQuantity();
     virtual void    UpdateChildrens() = 0;
 
-    void    Release();
-    void    UpdateBuffers(int32_t nQ);
-    void    FillIndexBuffer() const;
-    void    FillVertexBuffer();
-    int32_t WriteSquareToVBuff(BI_COLOR_VERTEX* pv, const FRECT& uv, uint32_t color, const BIFPOINT& center, const FPOINT& size);
+    void Release();
+    void UpdateBuffers(int32_t nQ);
+    void FillIndexBuffer() const;
+    void FillVertexBuffer();
+    int32_t
+    WriteSquareToVBuff(BI_COLOR_VERTEX* pv, storm::FRect const& uv, uint32_t color, storm::FPoint const& center, storm::FPoint const& size);
     int32_t WriteSquareToVBuffWithProgress(
-        BI_COLOR_VERTEX* pv,
-        const FRECT&     uv,
-        uint32_t         color,
-        const BIFPOINT&  center,
-        const FPOINT&    size,
-        float            fClampUp,
-        float            fClampDown,
-        float            fClampLeft,
-        float            fClampRight);
+        BI_COLOR_VERTEX*     pv,
+        storm::FRect const&  uv,
+        uint32_t             color,
+        storm::FPoint const& center,
+        storm::FPoint const& size,
+        float                fClampUp,
+        float                fClampDown,
+        float                fClampLeft,
+        float                fClampRight);
 
-    VDX9RENDER* m_pRS;
+    // FIXME: Renderer Next
+    // VDX9RENDER* m_pRS;
 
     int32_t m_nVBufID;
     int32_t m_nIBufID;
 
-    int32_t  m_nBackTextureID;
-    int32_t  m_nBackSquareQ;
-    uint32_t m_dwBackColor;
-    FRECT    m_rBackUV;
-    BIFPOINT m_pntBackOffset;
-    FPOINT   m_pntBackIconSize;
+    int32_t       m_nBackTextureID;
+    int32_t       m_nBackSquareQ;
+    uint32_t      m_dwBackColor;
+    storm::FRect  m_rBackUV;
+    storm::FPoint m_pntBackOffset;
+    storm::FPoint m_pntBackIconSize;
 
-    int32_t  m_nSignStateTextureID;
-    int32_t  m_nSignStateSquareQ;
-    uint32_t m_dwSignStateColor;
-    FRECT    m_rSignStateLeftUV;
-    BIFPOINT m_pntSignStateLeftOffset;
-    FPOINT   m_pntSignStateLeftIconSize;
-    FRECT    m_rSignStateRightUV;
-    BIFPOINT m_pntSignStateRightOffset;
-    FPOINT   m_pntSignStateRightIconSize;
+    int32_t       m_nSignStateTextureID;
+    int32_t       m_nSignStateSquareQ;
+    uint32_t      m_dwSignStateColor;
+    storm::FRect  m_rSignStateLeftUV;
+    storm::FPoint m_pntSignStateLeftOffset;
+    storm::FPoint m_pntSignStateLeftIconSize;
+    storm::FRect  m_rSignStateRightUV;
+    storm::FPoint m_pntSignStateRightOffset;
+    storm::FPoint m_pntSignStateRightIconSize;
 
-    int32_t  m_nSignStarTextureID;
-    int32_t  m_nSignStarSquareQ;
-    uint32_t m_dwSignStarColor;
-    FRECT    m_rSignStarUV;
-    BIFPOINT m_pntSignStarOffset;
-    FPOINT   m_pntSignStarIconSize;
+    int32_t       m_nSignStarTextureID;
+    int32_t       m_nSignStarSquareQ;
+    uint32_t      m_dwSignStarColor;
+    storm::FRect  m_rSignStarUV;
+    storm::FPoint m_pntSignStarOffset;
+    storm::FPoint m_pntSignStarIconSize;
 
-    int32_t  m_nSignFaceTextureID;
-    int32_t  m_nSignFaceSquareQ;
-    uint32_t m_dwSignFaceColor;
-    BIFPOINT m_pntSignFaceOffset;
-    FPOINT   m_pntSignFaceIconSize;
+    int32_t       m_nSignFaceTextureID;
+    int32_t       m_nSignFaceSquareQ;
+    uint32_t      m_dwSignFaceColor;
+    storm::FPoint m_pntSignFaceOffset;
+    storm::FPoint m_pntSignFaceIconSize;
 
-    int32_t  m_idSignTextFont;
-    uint32_t m_dwSignTextFontColor;
-    float    m_fSignTextFontScale;
-    POINT    m_SignTextFontOffset;
+    int32_t      m_idSignTextFont;
+    uint32_t     m_dwSignTextFontColor;
+    float        m_fSignTextFontScale;
+    storm::Point m_SignTextFontOffset;
 
     bool m_bMakeUpdate;
     bool m_bActive;
@@ -118,13 +121,13 @@ protected:
     entid_t     m_idHostEntity;
 
     struct SignDescr {
-        bool        bUse;
-        FPOINT      pntPos;  // center
-        float       fLeftState;
-        float       fRightState;
-        float       fStarProgress;
-        FRECT       rFaceUV;
-        std::string sText;
+        bool          bUse;
+        storm::FPoint pntPos;  // center
+        float         fLeftState;
+        float         fRightState;
+        float         fStarProgress;
+        storm::FRect  rFaceUV;
+        std::string   sText;
     } m_Sign[MAX_SIGN_QUANTITY];
 
     int32_t m_nMaxSquareQ;

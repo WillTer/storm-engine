@@ -7,7 +7,7 @@ class WMShipCommandList;
 
 class WMInterface: public Entity
 {
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
 public:
     WMInterface();

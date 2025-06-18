@@ -5,9 +5,9 @@
 #include "image.h"
 #include "img_render.h"
 
-BIImageMaterial::BIImageMaterial(VDX9RENDER* pRS, BIImageRender* pImgRender)
+BIImageMaterial::BIImageMaterial(/*VDX9RENDER*/ void* pRS, BIImageRender* pImgRender)
 {
-    m_pRS            = pRS;
+    // m_pRS            = pRS;
     m_pImageRender   = pImgRender;
     m_sTechniqueName = "battle_tex_col_Rectangle";
 
@@ -37,17 +37,18 @@ void BIImageMaterial::Render(int32_t nBegPrior, int32_t nEndPrior)
     size_t nTriangleQuantity = m_nTriangleQuantity;
     if (!GetOutputRangeByPriority(nBegPrior, nEndPrior, nStartIndex, nTriangleQuantity)) return;
 
-    if (m_nTextureID >= 0 && m_nVBufID >= 0 && m_nIBufID >= 0) {
-        m_pRS->TextureSet(0, m_nTextureID);
-        m_pRS->DrawBuffer(
-            m_nVBufID, sizeof(BI_IMAGE_VERTEX), m_nIBufID, 0, m_nVertexQuantity, nStartIndex, nTriangleQuantity, m_sTechniqueName.c_str());
-    }
+    // if (m_nTextureID >= 0 && m_nVBufID >= 0 && m_nIBufID >= 0) {
+    //     m_pRS->TextureSet(0, m_nTextureID);
+    //     m_pRS->DrawBuffer(
+    //         m_nVBufID, sizeof(BI_IMAGE_VERTEX), m_nIBufID, 0, m_nVertexQuantity, nStartIndex, nTriangleQuantity,
+    //         m_sTechniqueName.c_str());
+    // }
 }
 
 BIImage const* BIImageMaterial::CreateImage(
-    BIImageType type, uint32_t color, const FRECT& uv, int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom, int32_t nPrior)
+    BIImageType type, uint32_t color, storm::FRect const& uv, int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom, int32_t nPrior)
 {
-    auto* pImg = new BIImage(m_pRS, this);
+    auto* pImg = new BIImage(/*m_pRS*/ nullptr, this);
     Assert(pImg);
     pImg->SetColor(color);
     pImg->SetPosition(nLeft, nTop, nRight, nBottom);
@@ -77,8 +78,8 @@ void BIImageMaterial::SetTexture(char const* pcTextureName)
 {
     if (pcTextureName == m_sTextureName) return;  // this texture is already there
     m_sTextureName = pcTextureName;
-    m_pRS->TextureRelease(m_nTextureID);
-    m_nTextureID = m_pRS->TextureCreate(pcTextureName);
+    // m_pRS->TextureRelease(m_nTextureID);
+    // m_nTextureID = m_pRS->TextureCreate(pcTextureName);
 }
 
 void BIImageMaterial::ReleaseAllImages()
@@ -99,9 +100,9 @@ void BIImageMaterial::Release()
     for (auto const& image: m_apImage)
         delete image;
     // m_apImage.DelAllWithPointers();
-    TEXTURE_RELEASE(m_pRS, m_nTextureID);
-    VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
-    INDEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
+    // TEXTURE_RELEASE(m_pRS, m_nTextureID);
+    // VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
+    // INDEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
 
     m_nVertexQuantity   = 0;
     m_nTriangleQuantity = 0;
@@ -114,8 +115,10 @@ void BIImageMaterial::UpdateImageBuffers(int32_t nStartIdx, size_t nEndIdx)
     if (nStartIdx >= static_cast<int32_t>(m_apImage.size())) return;
     if (nEndIdx >= static_cast<int32_t>(m_apImage.size())) nEndIdx = m_apImage.size() - 1;
 
-    auto* pT = static_cast<uint16_t*>(m_pRS->LockIndexBuffer(m_nIBufID));
-    auto* pV = static_cast<BI_IMAGE_VERTEX*>(m_pRS->LockVertexBuffer(m_nVBufID));
+    uint16_t*        pT = nullptr;
+    BI_IMAGE_VERTEX* pV = nullptr;
+    // auto* pT = static_cast<uint16_t*>(m_pRS->LockIndexBuffer(m_nIBufID));
+    // auto* pV = static_cast<BI_IMAGE_VERTEX*>(m_pRS->LockVertexBuffer(m_nVBufID));
 
     // get before
     size_t  nV = 0;
@@ -130,8 +133,8 @@ void BIImageMaterial::UpdateImageBuffers(int32_t nStartIdx, size_t nEndIdx)
         m_apImage[n]->FillBuffers(pV, pT, nV, nT);
     }
 
-    m_pRS->UnLockVertexBuffer(m_nVBufID);
-    m_pRS->UnLockIndexBuffer(m_nIBufID);
+    // m_pRS->UnLockVertexBuffer(m_nVBufID);
+    // m_pRS->UnLockIndexBuffer(m_nIBufID);
 }
 
 void BIImageMaterial::RemakeBuffers()
@@ -146,13 +149,13 @@ void BIImageMaterial::RemakeBuffers()
     if (nVQ == 0 || nTQ == 0) return;
 
     if (m_nVertexQuantity != nVQ) {
-        m_pRS->ReleaseVertexBuffer(m_nVBufID);
-        m_nVBufID         = m_pRS->CreateVertexBuffer(BI_IMAGE_VERTEX_FORMAT, nVQ * sizeof(BI_IMAGE_VERTEX), D3DUSAGE_WRITEONLY);
+        // m_pRS->ReleaseVertexBuffer(m_nVBufID);
+        // m_nVBufID         = m_pRS->CreateVertexBuffer(BI_IMAGE_VERTEX_FORMAT, nVQ * sizeof(BI_IMAGE_VERTEX), D3DUSAGE_WRITEONLY);
         m_nVertexQuantity = nVQ;
     }
     if (m_nTriangleQuantity != nTQ) {
-        m_pRS->ReleaseIndexBuffer(m_nIBufID);
-        m_nIBufID           = m_pRS->CreateIndexBuffer(nTQ * 3 * sizeof(uint16_t));
+        // m_pRS->ReleaseIndexBuffer(m_nIBufID);
+        // m_nIBufID           = m_pRS->CreateIndexBuffer(nTQ * 3 * sizeof(uint16_t));
         m_nTriangleQuantity = nTQ;
     }
     UpdateImageBuffers(0, m_apImage.size() - 1);

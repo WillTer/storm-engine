@@ -6,8 +6,9 @@
 
 class MESSAGE_ICONS
 {
-    VDX9RENDER* rs;
-    entid_t     m_idHost;
+    // FIXME: Renderer Next
+    // VDX9RENDER* rs;
+    entid_t m_idHost;
 
 public:
     MESSAGE_ICONS();
@@ -22,7 +23,7 @@ public:
     }
 
     void StartData(ATTRIBUTES* pAData[MESSAGE_ICONS_COLUMN_QUANTITY], int32_t pLeft[MESSAGE_ICONS_COLUMN_QUANTITY]);
-    bool InitData(entid_t host_eid, VDX9RENDER* _rs, ATTRIBUTES* pARoot);
+    bool InitData(entid_t host_eid, /*VDX9RENDER**/ void* _rs, ATTRIBUTES* pARoot);
 
 protected:
     // message icons

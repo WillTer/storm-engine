@@ -2,9 +2,9 @@
 
 #include "img_render.h"
 
-BIImage::BIImage(VDX9RENDER* rs, BIImageMaterial* pMaterial) : m_BasePos(), m_BaseUV(), m_dwColor(0), m_eType()
+BIImage::BIImage(/*VDX9RENDER*/ void* rs, BIImageMaterial* pMaterial) : m_BasePos(), m_BaseUV(), m_dwColor(0), m_eType()
 {
-    m_pRS               = rs;
+    // m_pRS               = rs;
     m_pMaterial         = pMaterial;
     m_nVertexQuantity   = 4;
     m_nTriangleQuantity = 2;
@@ -73,7 +73,7 @@ void BIImage::SetPosition(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t n
 
 void BIImage::Set3DPosition(const CVECTOR& vPos, float fWidth, float fHeight) {}
 
-void BIImage::SetUV(const FRECT& uv)
+void BIImage::SetUV(storm::FRect const& uv)
 {
     m_BaseUV = uv;
     m_pMaterial->UpdateFlagOn();
@@ -99,7 +99,7 @@ void BIImage::CutSide(float fleft, float fright, float ftop, float fbottom)
 {
     if (m_eType != BIType_square) return;
     m_aRelPos.clear();
-    FPOINT fp;
+    storm::FPoint fp;
     fp.x = fleft;
     fp.y = 1.f - fbottom;
     m_aRelPos.push_back(fp);
@@ -119,7 +119,7 @@ void BIImage::CutClock(float fBegin, float fEnd, float fFactor)
 {
     if (m_eType != BIType_clocksquare) return;
     m_aRelPos.clear();
-    FPOINT fp;
+    storm::FPoint fp;
     fp.x = 0.5f;
     fp.y = 0.5f;
     m_aRelPos.push_back(fp);
@@ -140,7 +140,7 @@ void BIImage::CutClock(float fBegin, float fEnd, float fFactor)
     m_pMaterial->UpdateFlagOn();
 }
 
-FPOINT& BIImage::GetClockPoint(float fAng, FPOINT& fp)
+storm::FPoint& BIImage::GetClockPoint(float fAng, storm::FPoint& fp)
 {
     if (fAng < -1.f) {
         fp.x = 0.5f;

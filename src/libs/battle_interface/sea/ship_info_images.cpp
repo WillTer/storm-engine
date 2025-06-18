@@ -4,12 +4,12 @@
 #include <libs/ship/ship_base.h>
 
 // define the vertices
-#define SPV_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+#define SPV_FORMAT 0  // (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 #define MAX_SHIPINFO_DIST_IN_POW2 1000000.f
 
-ShipInfoImages::ShipInfoImages(VDX9RENDER* rs, ATTRIBUTES* pAttr)
+ShipInfoImages::ShipInfoImages(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pAttr)
 {
-    pRS        = rs;
+    // pRS        = rs;
     m_bVisible = true;
 
     m_idRelationTexture = -1;
@@ -40,33 +40,33 @@ void ShipInfoImages::Draw()
     if (m_nShipQ <= 0) return;
 
     CMatrix matw;
-    pRS->SetTransform(D3DTS_WORLD, matw);
+    // pRS->SetTransform(D3DTS_WORLD, matw);
 
-    if (m_idRelationTexture != -1) {
-        pRS->TextureSet(0, m_idRelationTexture);
-        pRS->DrawBuffer(m_vbRelation, sizeof(SII_VERTEX), m_ibRelation, 0, m_nShipQ * 4, 0, m_nShipQ * 2, "battle_shippointer");
-    }
+    // if (m_idRelationTexture != -1) {
+    //     pRS->TextureSet(0, m_idRelationTexture);
+    //     pRS->DrawBuffer(m_vbRelation, sizeof(SII_VERTEX), m_ibRelation, 0, m_nShipQ * 4, 0, m_nShipQ * 2, "battle_shippointer");
+    // }
 
-    if (m_idProgressTexture != -1) {
-        pRS->TextureSet(0, m_idProgressTexture);
-        pRS->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-        pRS->DrawBuffer(m_vbBackProgress, sizeof(SII_VERTEX), m_ibBackProgress, 0, m_nShipQ * 4, 0, m_nShipQ * 2, "battle_shippointer");
-        pRS->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-        pRS->DrawBuffer(m_vbProgress, sizeof(SII_VERTEX), m_ibProgress, 0, m_nShipQ * 3 * 4, 0, m_nShipQ * 3 * 2, "battle_shippointer");
-    }
+    // if (m_idProgressTexture != -1) {
+    //     pRS->TextureSet(0, m_idProgressTexture);
+    //     pRS->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+    //     pRS->DrawBuffer(m_vbBackProgress, sizeof(SII_VERTEX), m_ibBackProgress, 0, m_nShipQ * 4, 0, m_nShipQ * 2, "battle_shippointer");
+    //     pRS->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+    //     pRS->DrawBuffer(m_vbProgress, sizeof(SII_VERTEX), m_ibProgress, 0, m_nShipQ * 3 * 4, 0, m_nShipQ * 3 * 2, "battle_shippointer");
+    // }
 }
 
 void ShipInfoImages::Release()
 {
-    TEXTURE_RELEASE(pRS, m_idRelationTexture);
-    VERTEX_BUFFER_RELEASE(pRS, m_vbRelation);
-    INDEX_BUFFER_RELEASE(pRS, m_ibRelation);
+    // TEXTURE_RELEASE(pRS, m_idRelationTexture);
+    // VERTEX_BUFFER_RELEASE(pRS, m_vbRelation);
+    // INDEX_BUFFER_RELEASE(pRS, m_ibRelation);
 
-    TEXTURE_RELEASE(pRS, m_idProgressTexture);
-    VERTEX_BUFFER_RELEASE(pRS, m_vbProgress);
-    INDEX_BUFFER_RELEASE(pRS, m_ibProgress);
-    VERTEX_BUFFER_RELEASE(pRS, m_vbBackProgress);
-    INDEX_BUFFER_RELEASE(pRS, m_ibBackProgress);
+    // TEXTURE_RELEASE(pRS, m_idProgressTexture);
+    // VERTEX_BUFFER_RELEASE(pRS, m_vbProgress);
+    // INDEX_BUFFER_RELEASE(pRS, m_ibProgress);
+    // VERTEX_BUFFER_RELEASE(pRS, m_vbBackProgress);
+    // INDEX_BUFFER_RELEASE(pRS, m_ibBackProgress);
 
     m_nShipQ          = 0;
     m_nCurMaxQuantity = 0;
@@ -78,8 +78,8 @@ void ShipInfoImages::Init(ATTRIBUTES* pAttr)
     CheckAndRecreateBuffers(30);
 
     // params for relation image
-    m_idRelationTexture = BIUtils::GetTextureFromAttr(pRS, pAttr, "RelationTexture");
-    m_vRelationOffset   = CVECTOR(0.f, 10.f, 0.f);
+    // m_idRelationTexture = BIUtils::GetTextureFromAttr(pRS, pAttr, "RelationTexture");
+    m_vRelationOffset = CVECTOR(0.f, 10.f, 0.f);
     BIUtils::ReadVectorFormAttr(pAttr, "RelationOffset", m_vRelationOffset, m_vRelationOffset);
     BIUtils::ReadPosFromAttr(pAttr, "RelationSize", m_fpRelationSize.x, m_fpRelationSize.y, 1.f, 1.f);
     FULLRECT(m_uvRelation[0]);
@@ -90,7 +90,7 @@ void ShipInfoImages::Init(ATTRIBUTES* pAttr)
     BIUtils::ReadRectFromAttr(pAttr, "RelationUV3", m_uvRelation[2], m_uvRelation[2]);
 
     // params for progress background image
-    m_idProgressTexture   = BIUtils::GetTextureFromAttr(pRS, pAttr, "ProgressTexture");
+    m_idProgressTexture   = BIUtils::GetTextureFromAttr(/*pRS*/ nullptr, pAttr, "ProgressTexture");
     m_vProgressBackOffset = CVECTOR(0.f, 11.25f, 0.f);
     BIUtils::ReadVectorFormAttr(pAttr, "ProgressBackOffset", m_vProgressBackOffset, m_vProgressBackOffset);
     BIUtils::ReadPosFromAttr(pAttr, "ProgressBackSize", m_fpProgressBackSize.x, m_fpProgressBackSize.y, 2.f, 0.3f);
@@ -126,24 +126,25 @@ void ShipInfoImages::CheckAndRecreateBuffers(int32_t nShipQ)
         m_nCurMaxQuantity = nShipQ;
 
         // delete old buffers
-        VERTEX_BUFFER_RELEASE(pRS, m_vbRelation);
-        INDEX_BUFFER_RELEASE(pRS, m_ibRelation);
-        VERTEX_BUFFER_RELEASE(pRS, m_vbProgress);
-        INDEX_BUFFER_RELEASE(pRS, m_ibProgress);
-        VERTEX_BUFFER_RELEASE(pRS, m_vbBackProgress);
-        INDEX_BUFFER_RELEASE(pRS, m_ibBackProgress);
+        // VERTEX_BUFFER_RELEASE(pRS, m_vbRelation);
+        // INDEX_BUFFER_RELEASE(pRS, m_ibRelation);
+        // VERTEX_BUFFER_RELEASE(pRS, m_vbProgress);
+        // INDEX_BUFFER_RELEASE(pRS, m_ibProgress);
+        // VERTEX_BUFFER_RELEASE(pRS, m_vbBackProgress);
+        // INDEX_BUFFER_RELEASE(pRS, m_ibBackProgress);
 
         // create new buffers
-        m_vbRelation     = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
-        m_ibRelation     = pRS->CreateIndexBuffer(nShipQ * 6 * sizeof(uint16_t));
-        m_vbProgress     = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 3 * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
-        m_ibProgress     = pRS->CreateIndexBuffer(nShipQ * 3 * 6 * sizeof(uint16_t));
-        m_vbBackProgress = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
-        m_ibBackProgress = pRS->CreateIndexBuffer(nShipQ * 6 * sizeof(uint16_t));
+        // m_vbRelation     = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
+        // m_ibRelation     = pRS->CreateIndexBuffer(nShipQ * 6 * sizeof(uint16_t));
+        // m_vbProgress     = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 3 * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
+        // m_ibProgress     = pRS->CreateIndexBuffer(nShipQ * 3 * 6 * sizeof(uint16_t));
+        // m_vbBackProgress = pRS->CreateVertexBuffer(SPV_FORMAT, nShipQ * 4 * sizeof(SII_VERTEX), D3DUSAGE_WRITEONLY);
+        // m_ibBackProgress = pRS->CreateIndexBuffer(nShipQ * 6 * sizeof(uint16_t));
 
         // fill there index buffers
-        int32_t n;
-        auto*   pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibRelation));
+        int32_t   n;
+        uint16_t* pIB = nullptr;
+        // auto*   pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibRelation));
         if (pIB) {
             for (n = 0; n < nShipQ; n++) {
                 pIB[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
@@ -153,9 +154,9 @@ void ShipInfoImages::CheckAndRecreateBuffers(int32_t nShipQ)
                 pIB[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 3);
                 pIB[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
             }
-            pRS->UnLockIndexBuffer(m_ibRelation);
+            // pRS->UnLockIndexBuffer(m_ibRelation);
         }
-        pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibProgress));
+        // pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibProgress));
         if (pIB) {
             for (n = 0; n < nShipQ * 3; n++) {
                 pIB[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
@@ -165,9 +166,9 @@ void ShipInfoImages::CheckAndRecreateBuffers(int32_t nShipQ)
                 pIB[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 3);
                 pIB[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
             }
-            pRS->UnLockIndexBuffer(m_ibProgress);
+            // pRS->UnLockIndexBuffer(m_ibProgress);
         }
-        pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibBackProgress));
+        // pIB = static_cast<uint16_t*>(pRS->LockIndexBuffer(m_ibBackProgress));
         if (pIB) {
             for (n = 0; n < nShipQ; n++) {
                 pIB[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
@@ -177,7 +178,7 @@ void ShipInfoImages::CheckAndRecreateBuffers(int32_t nShipQ)
                 pIB[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 3);
                 pIB[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
             }
-            pRS->UnLockIndexBuffer(m_ibBackProgress);
+            // pRS->UnLockIndexBuffer(m_ibBackProgress);
         }
     }
 }
@@ -197,24 +198,24 @@ void ShipInfoImages::UpdateShipList()
     CheckAndRecreateBuffers(m_nShipQ);
 
     // lock buffers
-    m_pVBuffRelation = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbRelation));
-    if (!m_pVBuffRelation) {
-        m_nShipQ = 0;
-        return;
-    }
-    m_pVBuffProgress = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbProgress));
-    if (!m_pVBuffProgress) {
-        pRS->UnLockVertexBuffer(m_vbRelation);
-        m_nShipQ = 0;
-        return;
-    }
-    m_pVBuffBackProgress = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbBackProgress));
-    if (!m_pVBuffBackProgress) {
-        pRS->UnLockVertexBuffer(m_vbRelation);
-        pRS->UnLockVertexBuffer(m_vbProgress);
-        m_nShipQ = 0;
-        return;
-    }
+    // m_pVBuffRelation = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbRelation));
+    // if (!m_pVBuffRelation) {
+    //     m_nShipQ = 0;
+    //     return;
+    // }
+    // m_pVBuffProgress = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbProgress));
+    // if (!m_pVBuffProgress) {
+    //     pRS->UnLockVertexBuffer(m_vbRelation);
+    //     m_nShipQ = 0;
+    //     return;
+    // }
+    // m_pVBuffBackProgress = static_cast<SII_VERTEX*>(pRS->LockVertexBuffer(m_vbBackProgress));
+    // if (!m_pVBuffBackProgress) {
+    //     pRS->UnLockVertexBuffer(m_vbRelation);
+    //     pRS->UnLockVertexBuffer(m_vbProgress);
+    //     m_nShipQ = 0;
+    //     return;
+    // }
 
     // update for real ships
     n = 0;
@@ -225,9 +226,9 @@ void ShipInfoImages::UpdateShipList()
     }
 
     // unlock buffers
-    pRS->UnLockVertexBuffer(m_vbRelation);
-    pRS->UnLockVertexBuffer(m_vbProgress);
-    pRS->UnLockVertexBuffer(m_vbBackProgress);
+    // pRS->UnLockVertexBuffer(m_vbRelation);
+    // pRS->UnLockVertexBuffer(m_vbProgress);
+    // pRS->UnLockVertexBuffer(m_vbBackProgress);
 }
 
 void ShipInfoImages::UpdateShipData(int32_t nShipNum, SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD)
@@ -259,15 +260,15 @@ bool ShipInfoImages::IsEnableShowShipInfo(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD) c
     if (!pSD) return false;
     if (pSD->isDead) return false;
 
-    CVECTOR vpos, vang;
-    float   fpersp;
-    pRS->GetCamera(vpos, vang, fpersp);
-    if (~(pSD->pShip->GetPos() - vpos) > MAX_SHIPINFO_DIST_IN_POW2) return false;
+    // CVECTOR vpos, vang;
+    // float   fpersp;
+    // pRS->GetCamera(vpos, vang, fpersp);
+    // if (~(pSD->pShip->GetPos() - vpos) > MAX_SHIPINFO_DIST_IN_POW2) return false;
 
     return true;
 }
 
-const FRECT& ShipInfoImages::GetUVForRelation(int32_t nRelation) const
+storm::FRect const& ShipInfoImages::GetUVForRelation(int32_t nRelation) const
 {
     switch (nRelation) {
     case 1: return m_uvRelation[0]; break;  // friend
@@ -310,19 +311,19 @@ float ShipInfoImages::GetProgressCrew(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD)
 
 void ShipInfoImages::CalculateDirectingVectors(const CVECTOR& pos)
 {
-    CVECTOR campos, camang;
-    float   camper;
-    pRS->GetCamera(campos, camang, camper);
-
-    m_fImgScale = camper * .05f * sqrtf(~(campos - pos));
-    if (m_fImgScale < 1.f) m_fImgScale = 1.f;
-
-    m_vRightDir = m_fImgScale * .5f * !((campos - pos) ^ CVECTOR(0.f, 1.f, 0.f));
-    m_vUpDir    = m_fImgScale * CVECTOR(0.f, 1.f, 0.f);
+    // CVECTOR campos, camang;
+    // float   camper;
+    // pRS->GetCamera(campos, camang, camper);
+    //
+    // m_fImgScale = camper * .05f * sqrtf(~(campos - pos));
+    // if (m_fImgScale < 1.f) m_fImgScale = 1.f;
+    //
+    // m_vRightDir = m_fImgScale * .5f * !((campos - pos) ^ CVECTOR(0.f, 1.f, 0.f));
+    // m_vUpDir    = m_fImgScale * CVECTOR(0.f, 1.f, 0.f);
 }
 
 void ShipInfoImages::WriteSquareVertex(
-    SII_VERTEX* pV, const CVECTOR& center, const CVECTOR& offset, const FPOINT& size, const FRECT& uv, float fProgress) const
+    SII_VERTEX* pV, const CVECTOR& center, const CVECTOR& offset, storm::FPoint const& size, storm::FRect const& uv, float fProgress) const
 {
     const CVECTOR vVert = size.y * m_vUpDir;
 

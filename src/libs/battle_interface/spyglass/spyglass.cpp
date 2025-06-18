@@ -42,7 +42,7 @@ void ISpyglass::ImageParam::LoadFromAttr(
     Assert(pImage);
 }
 
-void ISpyglass::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, FRECT& frUV)
+void ISpyglass::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, storm::FRect& frUV)
 {
     rUV = frUV;
     if (sTextureName == pcTextureName) {
@@ -55,10 +55,10 @@ void ISpyglass::ImageParam::ChangeIcon(BIImageRender* pImgRender, char const* pc
     }
 }
 
-void ISpyglass::TextParam::LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos)
+void ISpyglass::TextParam::LoadFromAttr(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos)
 {
-    this->rs = rs;
-    nFontID  = BIUtils::GetFontIDFromAttr(pA, "font", rs, "interface_normal");
+    // this->rs = rs;
+    nFontID = BIUtils::GetFontIDFromAttr(pA, "font", rs, "interface_normal");
     BIUtils::ReadPosFromAttr(pA, "pos", pos.x, pos.y, nDefXPos, nDefYPos);
     fScale  = BIUtils::GetFloatFromAttr(pA, "scale", 1.f);
     dwColor = BIUtils::GetIntFromAttr(pA, "color", 0xFFFFFFFF);
@@ -68,12 +68,12 @@ void ISpyglass::TextParam::LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char con
 
 void ISpyglass::TextParam::Print() const
 {
-    if (rs && !sText.empty()) rs->ExtPrint(nFontID, dwColor, 0, nAlign, true, fScale, 0, 0, pos.x, pos.y, "%s", sText.c_str());
+    // if (rs && !sText.empty()) rs->ExtPrint(nFontID, dwColor, 0, nAlign, true, fScale, 0, 0, pos.x, pos.y, "%s", sText.c_str());
 }
 
 ISpyglass::ISpyglass()
 {
-    rs                    = nullptr;
+    // rs                    = nullptr;
     m_pImgRender          = nullptr;
     m_bIsOn               = false;
     m_bIsPresentShipInfo  = false;
@@ -92,11 +92,11 @@ ISpyglass::~ISpyglass()
 
 bool ISpyglass::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
 
-    m_pImgRender = new BIImageRender(rs);
+    m_pImgRender = new BIImageRender(/*rs*/ nullptr);
     Assert(m_pImgRender);
 
     // FIXME: hardcode
@@ -123,26 +123,26 @@ bool ISpyglass::Init()
     m_ImgCaptainBoarding.LoadFromAttr(m_pImgRender, GetAttr("captain.boarding"), "interfaces/skills.tga", 168, 600, 232, 664, 10000);
 
     // captain text data
-    m_TextCaptainName.LoadFromAttr(rs, GetAttr("captext.capname"), "?", 210, 640);
-    m_TextCaptainFencing.LoadFromAttr(rs, GetAttr("captext.fencing"), "", 210, 640);  // replaced "?" with empty
-    m_TextCaptainCannon.LoadFromAttr(rs, GetAttr("captext.cannon"), "", 210, 640);
-    m_TextCaptainAccuracy.LoadFromAttr(rs, GetAttr("captext.accuracy"), "", 210, 640);
-    m_TextCaptainNavigation.LoadFromAttr(rs, GetAttr("captext.navigation"), "", 210, 640);
-    m_TextCaptainBoarding.LoadFromAttr(rs, GetAttr("captext.boarding"), "", 210, 640);
+    m_TextCaptainName.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.capname"), "?", 210, 640);
+    m_TextCaptainFencing.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.fencing"), "", 210, 640);  // replaced "?" with empty
+    m_TextCaptainCannon.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.cannon"), "", 210, 640);
+    m_TextCaptainAccuracy.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.accuracy"), "", 210, 640);
+    m_TextCaptainNavigation.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.navigation"), "", 210, 640);
+    m_TextCaptainBoarding.LoadFromAttr(/*rs*/ nullptr, GetAttr("captext.boarding"), "", 210, 640);
 
-    m_txtShipType.LoadFromAttr(rs, GetAttr("text.shiptype"), "Caravella", 210, 640);
-    m_txtShipName.LoadFromAttr(rs, GetAttr("text.shipname"), "Noname", 210, 660);
-    m_txtCannons.LoadFromAttr(rs, GetAttr("text.cannons"), "14/16", 390, 610);
-    m_txtShipSpeed.LoadFromAttr(rs, GetAttr("text.speed"), "6.3", 490, 610);
-    m_txtSailTo.LoadFromAttr(rs, GetAttr("text.sailto"), "6.3", 590, 610);  // boal
-    m_txtShipCrew.LoadFromAttr(rs, GetAttr("text.crew"), "", 144, 700);
+    m_txtShipType.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.shiptype"), "Caravella", 210, 640);
+    m_txtShipName.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.shipname"), "Noname", 210, 660);
+    m_txtCannons.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.cannons"), "14/16", 390, 610);
+    m_txtShipSpeed.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.speed"), "6.3", 490, 610);
+    m_txtSailTo.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.sailto"), "6.3", 590, 610);  // boal
+    m_txtShipCrew.LoadFromAttr(/*rs*/ nullptr, GetAttr("text.crew"), "", 144, 700);
 
     FillUVArrayFromAttributes(m_aNationUV, GetAttr("nationuvarray"));
     FillUVArrayFromAttributes(m_aChargeUV, GetAttr("chargeuvarray"));
     FillUVArrayFromAttributes(m_aSailUV, GetAttr("sailuvarray"));
 
-    CVECTOR pos, ang;
-    rs->GetCamera(pos, ang, m_Camera.fOldPerspective);
+    // CVECTOR pos, ang;
+    // rs->GetCamera(pos, ang, m_Camera.fOldPerspective);
 
     return true;
 }
@@ -173,7 +173,7 @@ void ISpyglass::Execute(uint32_t delta_time)
 void ISpyglass::Realize(uint32_t delta_time) const
 {
     if (m_bIsOn) {
-        rs->MakePostProcess();
+        // rs->MakePostProcess();
         if (m_pImgRender) m_pImgRender->Render();
 
         if (m_bIsPresentShipInfo) {
@@ -264,7 +264,7 @@ uint64_t ISpyglass::ProcessMessage(MESSAGE& message)
 
     case MSG_ISG_SET_SHIPICON:  // "sffff"
     {
-        FRECT              frUV;
+        storm::FRect       frUV;
         std::string const& texturename = message.String();
         frUV.left                      = message.Float();
         frUV.top                       = message.Float();
@@ -274,7 +274,7 @@ uint64_t ISpyglass::ProcessMessage(MESSAGE& message)
     } break;
     case MSG_ISG_SET_CHARICON:  // "sffff"
     {
-        FRECT              frUV;
+        storm::FRect       frUV;
         std::string const& captexturename = message.String();
         frUV.left                         = message.Float();
         frUV.top                          = message.Float();
@@ -411,8 +411,8 @@ void ISpyglass::SetShipInfo(int32_t nCharIndex)
 void ISpyglass::FindNewTargetShip()
 {
     // get trace ray
-    CMatrix mtxv;
-    rs->GetTransform(D3DTS_VIEW, (D3DMATRIX*)&mtxv);
+    CMatrix mtxv = {};
+    // rs->GetTransform(D3DTS_VIEW, (D3DMATRIX*)&mtxv);
     CVECTOR src, dst;
     mtxv.MulToInv(CVECTOR(0.0f, 0.0f, 0.0f), src);
     mtxv.MulToInv(CVECTOR(0.0f, 0.0f, 10000.f), dst);
@@ -503,19 +503,19 @@ void ISpyglass::UpdateCamera()
         }
     }
 
-    if (m_Camera.bIsActive)
-        rs->SetPerspective(m_Camera.fSpyGlassPerspective);
-    else {
-        float fPerspect = m_Camera.fOldPerspective;
-        if (m_Camera.bIsGrow) {
-            fPerspect = m_Camera.fOldPerspective
-                + (m_Camera.fSpyGlassPerspective - m_Camera.fOldPerspective) * (m_Camera.fCurActivateTime / m_Camera.fActivateTime);
-        } else {
-            fPerspect = m_Camera.fOldPerspective
-                - (m_Camera.fSpyGlassPerspective - m_Camera.fOldPerspective) * (1.f - m_Camera.fCurActivateTime / m_Camera.fActivateTime);
-        }
-        rs->SetPerspective(fPerspect);
+    // if (m_Camera.bIsActive)
+    //     rs->SetPerspective(m_Camera.fSpyGlassPerspective);
+    // else {
+    float fPerspect = m_Camera.fOldPerspective;
+    if (m_Camera.bIsGrow) {
+        fPerspect = m_Camera.fOldPerspective
+            + (m_Camera.fSpyGlassPerspective - m_Camera.fOldPerspective) * (m_Camera.fCurActivateTime / m_Camera.fActivateTime);
+    } else {
+        fPerspect = m_Camera.fOldPerspective
+            - (m_Camera.fSpyGlassPerspective - m_Camera.fOldPerspective) * (1.f - m_Camera.fCurActivateTime / m_Camera.fActivateTime);
     }
+    //     rs->SetPerspective(fPerspect);
+    // }
 }
 
 void ISpyglass::ChangeTargetData(
@@ -630,7 +630,7 @@ void ISpyglass::ChangeTargetData(
             sprintf_s(param, sizeof(param), "battle_interface/portraits/face_%d.tga", nFace);
         else
             sprintf_s(param, sizeof(param), "%s", pcFaceTexture);
-        FRECT frUV;
+        storm::FRect frUV;
         frUV.left   = 0.f;
         frUV.right  = 1.f;
         frUV.top    = 0.f;
@@ -682,12 +682,12 @@ void ISpyglass::ChangeTargetData(
     m_TextCaptainName.sText = pcCaptainName;
 }
 
-void ISpyglass::FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES* pA) const
+void ISpyglass::FillUVArrayFromAttributes(std::vector<storm::FRect>& m_aUV, ATTRIBUTES* pA) const
 {
     m_aUV.clear();
     if (!pA) return;
     for (int32_t n = 0; n < static_cast<int32_t>(pA->GetAttributesNum()); n++) {
-        FRECT rUV;
+        storm::FRect rUV;
         rUV.left = rUV.top = 0.f;
         rUV.right = rUV.bottom = 1.f;
         BIUtils::ReadRectFromAttr(pA, pA->GetAttributeName(n), rUV, rUV);

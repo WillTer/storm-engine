@@ -8,7 +8,7 @@
 #include "ship_command.h"
 #include "ship_sign.h"
 
-WMInterface::WMInterface() : rs(nullptr)
+WMInterface::WMInterface()  // : rs(nullptr)
 {
     m_pShipIcon    = nullptr;
     m_pCommandList = nullptr;
@@ -28,8 +28,8 @@ WMInterface::~WMInterface()
 
 bool WMInterface::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(rs);
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // Assert(rs);
 
     LoadIniFile();
     return true;
@@ -38,7 +38,7 @@ bool WMInterface::Init()
 void WMInterface::Realize(uint32_t delta_time)
 {
     if (m_bVisible) {
-        rs->MakePostProcess();
+        // rs->MakePostProcess();
 
         if (m_pShipIcon) { m_pShipIcon->Draw(); }
         if (m_pCommandList) {
@@ -80,7 +80,7 @@ uint32_t WMInterface::AttributeChanged(ATTRIBUTES* pAttr)
 
 void WMInterface::LoadIniFile()
 {
-    m_pShipIcon = new WMShipIcon(GetId(), rs);
+    m_pShipIcon = new WMShipIcon(GetId(), nullptr /*rs*/);
     Assert(m_pShipIcon);
     auto* pA = AttributesPointer ? AttributesPointer->GetAttributeClass("wm_sign") : nullptr;
     m_pShipIcon->Init(AttributesPointer, pA);
@@ -88,7 +88,7 @@ void WMInterface::LoadIniFile()
 
     m_nMainCharIndex = AttributesPointer ? AttributesPointer->GetAttributeAsDword("maincharindex", -1) : -1;
 
-    m_pCommandList = new WMShipCommandList(GetId(), AttributesPointer, rs);
+    m_pCommandList = new WMShipCommandList(GetId(), AttributesPointer, nullptr /*rs*/);
     Assert(m_pCommandList);
 
     UpdateCommandList();

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
+#include <bit>
 #include <cmath>
 #include <utility>
 
@@ -27,17 +29,32 @@ struct PointBase {
         return std::sqrt((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y));
     }
 
-    constexpr PointBase operator+(PointBase const& other) const
+    constexpr PointBase& operator+=(PointBase const& other)
     {
-        return PointBase {x + other.x, y + other.y};
+        x += other.x;
+        y += other.y;
+        return *this;
     }
 
-    constexpr PointBase operator-(PointBase const& other) const
+    constexpr PointBase& operator-=(PointBase const& other)
     {
-        return PointBase {x - other.x, y - other.y};
+        x -= other.x;
+        y -= other.y;
+        return *this;
     }
 
-    constexpr bool operator==(PointBase const&) const  = default;
+    friend constexpr PointBase operator+(PointBase lhs, PointBase const& rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend constexpr PointBase operator-(PointBase lhs, PointBase const& rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
     constexpr auto operator<=>(PointBase const&) const = default;
 };
 
@@ -77,10 +94,10 @@ struct RectBase {
 
     constexpr PointBase<T> center() const
     {
-        return Point2D(left + (width() / 2), top + (height() / 2));
+        return PointBase<T>(left + (width() / 2), top + (height() / 2));
     }
 
-    constexpr bool is_inside(PointBase<T> const& point) const
+    constexpr bool contains_point(PointBase<T> const& point) const
     {
         return point.x >= left && point.y >= top && point.x <= right && point.y <= bottom;
     }
@@ -94,6 +111,8 @@ struct RectBase {
     {
         return bottom - top;
     }
+
+    constexpr auto operator<=>(RectBase const&) const = default;
 };
 
 using Rect  = RectBase<int>;

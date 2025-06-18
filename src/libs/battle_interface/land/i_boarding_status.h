@@ -4,7 +4,7 @@
 
 class IBoardingStatus: public Entity
 {
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
 public:
     IBoardingStatus();
@@ -35,12 +35,12 @@ protected:
 protected:
     // show parameters
     //-----------------------
-    int32_t  m_Width;
-    int32_t  m_Height;
-    FPOINT   m_myPos;
-    FPOINT   m_enemyPos;
-    uint32_t m_myColor;
-    uint32_t m_enemyColor;
+    int32_t       m_Width;
+    int32_t       m_Height;
+    storm::FPoint m_myPos;
+    storm::FPoint m_enemyPos;
+    uint32_t      m_myColor;
+    uint32_t      m_enemyColor;
 
     BI_COLORONLY_VERTEX m_MyChar[4];
     BI_COLORONLY_VERTEX m_EnemyChar[4];

@@ -10,7 +10,7 @@ struct SII_VERTEX {
 class ShipInfoImages
 {
 public:
-    ShipInfoImages(VDX9RENDER* rs, ATTRIBUTES* pAttr);
+    ShipInfoImages(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pAttr);
     ~ShipInfoImages();
 
     void Draw();
@@ -28,18 +28,19 @@ protected:
     void UpdateShipData(int32_t nShipNum, SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
     bool IsEnableShowShipInfo(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD) const;
 
-    const FRECT& GetUVForRelation(int32_t nRelation) const;
-    float        GetProgressHull(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
-    float        GetProgressSail(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
-    float        GetProgressCrew(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
+    storm::FRect const& GetUVForRelation(int32_t nRelation) const;
+    float               GetProgressHull(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
+    float               GetProgressSail(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
+    float               GetProgressCrew(SHIP_DESCRIBE_LIST::SHIP_DESCR* pSD);
 
     void CalculateDirectingVectors(const CVECTOR& pos);
     void WriteSquareVertex(
-        SII_VERTEX* pV, const CVECTOR& center, const CVECTOR& offset, const FPOINT& size, const FRECT& uv, float fProgress) const;
+        SII_VERTEX* pV, const CVECTOR& center, const CVECTOR& offset, storm::FPoint const& size, storm::FRect const& uv, float fProgress)
+        const;
 
 protected:
-    VDX9RENDER* pRS;
-    bool        m_bVisible;
+    // VDX9RENDER* pRS;
+    bool m_bVisible;
 
     int32_t m_idRelationTexture;
     int32_t m_vbRelation;
@@ -54,21 +55,21 @@ protected:
     int32_t m_nShipQ;
     int32_t m_nCurMaxQuantity;
 
-    CVECTOR m_vRelationOffset;
-    FPOINT  m_fpRelationSize;
-    FRECT   m_uvRelation[3];
+    CVECTOR       m_vRelationOffset;
+    storm::FPoint m_fpRelationSize;
+    storm::FRect  m_uvRelation[3];
 
-    CVECTOR m_vProgressBackOffset;
-    FPOINT  m_fpProgressBackSize;
-    FRECT   m_uvProgressBack;
+    CVECTOR       m_vProgressBackOffset;
+    storm::FPoint m_fpProgressBackSize;
+    storm::FRect  m_uvProgressBack;
 
-    CVECTOR m_vHullOffset;
-    FRECT   m_uvHull;
-    CVECTOR m_vSailOffset;
-    FRECT   m_uvSail;
-    CVECTOR m_vCrewOffset;
-    FRECT   m_uvCrew;
-    FPOINT  m_fpProgressSize;
+    CVECTOR       m_vHullOffset;
+    storm::FRect  m_uvHull;
+    CVECTOR       m_vSailOffset;
+    storm::FRect  m_uvSail;
+    CVECTOR       m_vCrewOffset;
+    storm::FRect  m_uvCrew;
+    storm::FPoint m_fpProgressSize;
 
     SII_VERTEX* m_pVBuffProgress;
     SII_VERTEX* m_pVBuffBackProgress;

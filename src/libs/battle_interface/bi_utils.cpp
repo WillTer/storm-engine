@@ -52,15 +52,16 @@ char const* BIUtils::GetStringFromAttr(ATTRIBUTES* pA, char const* name, char co
     return aVal;
 }
 
-int32_t BIUtils::GetTextureFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char const* sAttrName)
+int32_t BIUtils::GetTextureFromAttr(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA, char const* sAttrName)
 {
     if (!rs || !pA) return -1;
     char const* sname = pA->GetAttribute(sAttrName);
     if (!sname || sname[0] == 0) return -1;
-    return rs->TextureCreate(sname);
+    // return rs->TextureCreate(sname);
+    return -1;
 }
 
-bool BIUtils::ReadRectFromAttr(ATTRIBUTES* pA, char const* name, FRECT& rOut, FRECT& rDefault)
+bool BIUtils::ReadRectFromAttr(ATTRIBUTES* pA, char const* name, storm::FRect& rOut, storm::FRect& rDefault)
 {
     rOut = rDefault;
     if (pA && name) {
@@ -73,7 +74,7 @@ bool BIUtils::ReadRectFromAttr(ATTRIBUTES* pA, char const* name, FRECT& rOut, FR
     return false;
 }
 
-bool BIUtils::ReadRectFromAttr(ATTRIBUTES* pA, char const* name, RECT& rOut, RECT& rDefault)
+bool BIUtils::ReadRectFromAttr(ATTRIBUTES* pA, char const* name, storm::Rect& rOut, storm::Rect& rDefault)
 {
     rOut = rDefault;
     if (pA && name) {
@@ -127,13 +128,13 @@ int32_t BIUtils::GetAlignmentFromAttr(ATTRIBUTES* pA, char const* name, int32_t 
     return nDefAlign;
 }
 
-int32_t BIUtils::GetFontIDFromAttr(ATTRIBUTES* pA, char const* name, VDX9RENDER* rs, char const* pcDefFontName)
+int32_t BIUtils::GetFontIDFromAttr(ATTRIBUTES* pA, char const* name, /*VDX9RENDER*/ void* rs, char const* pcDefFontName)
 {
-    if (rs && pA && name) {
-        char const* pcTmp = pA->GetAttribute(name);
-        if (pcTmp) return rs->LoadFont(pcTmp);
-    }
-    if (rs && pcDefFontName) return rs->LoadFont((char*)pcDefFontName);
+    // if (rs && pA && name) {
+    //     char const* pcTmp = pA->GetAttribute(name);
+    //     if (pcTmp) return rs->LoadFont(pcTmp);
+    // }
+    // if (rs && pcDefFontName) return rs->LoadFont((char*)pcDefFontName);
     return -1;
 }
 
@@ -152,7 +153,7 @@ bool BIUtils::ReadVectorFormAttr(ATTRIBUTES* pA, char const* name, CVECTOR& vOut
     return false;
 }
 
-bool BIUtils::ComparePoint(POINT& p1, POINT& p2)
+bool BIUtils::ComparePoint(storm::Point& p1, storm::Point& p2)
 {
     return ((p1.x == p2.x) && (p1.y == p2.y));
 }
@@ -189,10 +190,10 @@ uint32_t BIUtils::GetIntervalColor(uint32_t minV, uint32_t maxV, float fpar)
     g += static_cast<int32_t>(gd * fpar);
     b += static_cast<int32_t>(bd * fpar);
 
-    return ARGB(a, r, g, b);
+    return storm::Color {static_cast<uint8_t>(a), static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)}.to_hex();
 }
 
-bool BIUtils::GetIntervalRect(float fk, const FRECT& r1, const FRECT& r2, FRECT& rOut)
+bool BIUtils::GetIntervalRect(float fk, storm::FRect const& r1, storm::FRect const& r2, storm::FRect& rOut)
 {
     rOut.left   = r1.left + fk * (r2.left - r1.left);
     rOut.top    = r1.top + fk * (r2.top - r1.top);
@@ -224,7 +225,7 @@ float BIUtils::GetFromStr_Float(char const*& pcStr, float fDefault)
     return static_cast<float>(atof(ctmp));
 }
 
-void BIUtils::FillTextInfoArray(VDX9RENDER* pRS, ATTRIBUTES* pA, std::vector<BITextInfo>& tia)
+void BIUtils::FillTextInfoArray(/*VDX9RENDER*/ void* pRS, ATTRIBUTES* pA, std::vector<BITextInfo>& tia)
 {
     if (!pA) return;
     tia.clear();
@@ -244,7 +245,7 @@ void BIUtils::PrintTextInfoArray(std::vector<BITextInfo>& tia)
 
 BITextInfo::BITextInfo(BITextInfo&& text_info) noexcept
 {
-    pRS       = text_info.pRS;
+    // pRS       = text_info.pRS;
     sText     = std::move(text_info.sText);
     pos       = std::move(text_info.pos);
     fScale    = text_info.fScale;
@@ -258,7 +259,7 @@ BITextInfo::BITextInfo(BITextInfo&& text_info) noexcept
 
 BITextInfo::BITextInfo(BITextInfo const& text_info)
 {
-    pRS       = text_info.pRS;
+    // pRS       = text_info.pRS;
     sText     = text_info.sText;
     pos       = text_info.pos;
     fScale    = text_info.fScale;
@@ -267,12 +268,12 @@ BITextInfo::BITextInfo(BITextInfo const& text_info)
     bShadow   = text_info.bShadow;
     pARefresh = text_info.pARefresh;
 
-    pRS->IncRefCounter(nFont);
+    // pRS->IncRefCounter(nFont);
 }
 
 BITextInfo::BITextInfo()
 {
-    pRS   = nullptr;
+    // pRS   = nullptr;
     nFont = -1;
 }
 
@@ -284,16 +285,16 @@ BITextInfo::~BITextInfo()
 void BITextInfo::Release()
 {
     sText = "";
-    FONT_RELEASE(pRS, nFont);
+    // FONT_RELEASE(pRS, nFont);
 }
 
-void BITextInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
+void BITextInfo::Init(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA)
 {
-    FONT_RELEASE(pRS, nFont);
-    pRS = rs;
-    if (!pRS || !pA) return;
+    // FONT_RELEASE(pRS, nFont);
+    // pRS = rs;
+    // if (!pRS || !pA) return;
 
-    nFont   = pRS->LoadFont(pA->GetAttribute("font"));
+    // nFont   = pRS->LoadFont(pA->GetAttribute("font"));
     fScale  = pA->GetAttributeAsFloat("scale", 1.f);
     dwColor = pA->GetAttributeAsDword("color", 0xFFFFFFFF);
     bShadow = pA->GetAttributeAsDword("shadow", 1) != 0;
@@ -320,20 +321,20 @@ void BITextInfo::Print()
             char const* textAttr = pARefresh->GetAttribute("text");
             sText                = textAttr ? textAttr : "";
         }
-        if (!sText.empty()) pRS->ExtPrint(nFont, dwColor, 0, PR_ALIGN_CENTER, bShadow, fScale, 0, 0, pos.x, pos.y, "%s", sText.c_str());
+        // if (!sText.empty()) pRS->ExtPrint(nFont, dwColor, 0, PR_ALIGN_CENTER, bShadow, fScale, 0, 0, pos.x, pos.y, "%s", sText.c_str());
     }
 }
 
 void BITextInfo::Print(std::string outputText)
 {
-    if (nFont != -1 && !outputText.empty()) {
-        pRS->ExtPrint(nFont, dwColor, 0, PR_ALIGN_CENTER, bShadow, fScale, 0, 0, pos.x, pos.y, "%s", outputText.c_str());
-    }
+    // if (nFont != -1 && !outputText.empty()) {
+    //     pRS->ExtPrint(nFont, dwColor, 0, PR_ALIGN_CENTER, bShadow, fScale, 0, 0, pos.x, pos.y, "%s", outputText.c_str());
+    // }
 }
 
 BILinesInfo::BILinesInfo()
 {
-    pRS = nullptr;
+    // pRS = nullptr;
 }
 
 BILinesInfo::~BILinesInfo()
@@ -343,12 +344,12 @@ BILinesInfo::~BILinesInfo()
 
 void BILinesInfo::Release()
 {
-    lines.clear();
+    // lines.clear();
 }
 
-void BILinesInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
+void BILinesInfo::Init(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA)
 {
-    pRS = rs;
+    // pRS = rs;
     if (!pA) return;
 
     size_t const q = pA->GetAttributesNum();
@@ -356,41 +357,39 @@ void BILinesInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
         ATTRIBUTES* pAttr = pA->GetAttributeClass(n);
         if (!pAttr) break;
 
-        // int32_t bi = lines.Add();
-        // int32_t ei = lines.Add();
-        lines.push_back(RS_LINE2D {});
-        auto const bi = lines.size() - 1;
-        lines.push_back(RS_LINE2D {});
-        auto const ei = lines.size() - 1;
+        // lines.push_back(RS_LINE2D {});
+        // auto const bi = lines.size() - 1;
+        // lines.push_back(RS_LINE2D {});
+        // auto const ei = lines.size() - 1;
 
-        lines[bi].rhw = lines[ei].rhw = 0.5f;
-        lines[bi].vPos.z = lines[ei].vPos.z = 1.f;
-        lines[bi].dwColor = lines[ei].dwColor = pAttr->GetAttributeAsDword("color");
-        ATTRIBUTES* pAPos                     = pAttr->GetAttributeClass("begin");
-        if (pAPos) {
-            lines[bi].vPos.x = static_cast<float>(pAPos->GetAttributeAsDword("x", 0));
-            lines[bi].vPos.y = static_cast<float>(pAPos->GetAttributeAsDword("y", 0));
-        } else {
-            lines[bi].vPos.x = lines[bi].vPos.y = 0.f;
-        }
-        pAPos = pAttr->GetAttributeClass("end");
-        if (pAPos) {
-            lines[ei].vPos.x = lines[bi].vPos.x + pAPos->GetAttributeAsDword("x", 0);
-            lines[ei].vPos.y = lines[bi].vPos.y + pAPos->GetAttributeAsDword("y", 0);
-        } else {
-            lines[ei].vPos.x = lines[ei].vPos.y = 0.f;
-        }
+        // lines[bi].rhw = lines[ei].rhw = 0.5f;
+        // lines[bi].vPos.z = lines[ei].vPos.z = 1.f;
+        // lines[bi].dwColor = lines[ei].dwColor = pAttr->GetAttributeAsDword("color");
+        // ATTRIBUTES* pAPos                     = pAttr->GetAttributeClass("begin");
+        // if (pAPos) {
+        //     lines[bi].vPos.x = static_cast<float>(pAPos->GetAttributeAsDword("x", 0));
+        //     lines[bi].vPos.y = static_cast<float>(pAPos->GetAttributeAsDword("y", 0));
+        // } else {
+        //     lines[bi].vPos.x = lines[bi].vPos.y = 0.f;
+        // }
+        // pAPos = pAttr->GetAttributeClass("end");
+        // if (pAPos) {
+        //     lines[ei].vPos.x = lines[bi].vPos.x + pAPos->GetAttributeAsDword("x", 0);
+        //     lines[ei].vPos.y = lines[bi].vPos.y + pAPos->GetAttributeAsDword("y", 0);
+        // } else {
+        //     lines[ei].vPos.x = lines[ei].vPos.y = 0.f;
+        // }
     }
 }
 
 void BILinesInfo::Draw()
 {
-    pRS->DrawLines2D(std::data(lines), lines.size() / 2, "Line");
+    // pRS->DrawLines2D(std::data(lines), lines.size() / 2, "Line");
 }
 
 BIImagesInfo::BIImagesInfo()
 {
-    pRS        = nullptr;
+    // pRS        = nullptr;
     pImgRender = nullptr;
 }
 
@@ -407,25 +406,29 @@ void BIImagesInfo::Release()
     STORM_DELETE(pImgRender);
 }
 
-void BIImagesInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
+void BIImagesInfo::Init(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA)
 {
     if (!pA || !rs) return;
 
-    pRS        = rs;
-    pImgRender = new BIImageRender(rs);
+    // pRS        = rs;
+    // pImgRender = new BIImageRender(rs);
     if (!pImgRender) return;
 
     size_t const q = pA->GetAttributesNum();
     for (int32_t n = 0; n < q; n++) {
         ATTRIBUTES* pAImg = pA->GetAttributeClass(n);
         if (!pAImg) continue;
-        FRECT rUV;
+        storm::FRect rUV;
         FULLRECT(rUV);
         BIUtils::ReadRectFromAttr(pAImg, "uv", rUV, rUV);
-        RECT rPos {};
+        storm::Rect rPos {};
         BIUtils::ReadRectFromAttr(pAImg, "pos", rPos, rPos);
         IBIImage* pCurImg = pImgRender->CreateImage(
-            BIType_square, pAImg->GetAttribute("texture"), pAImg->GetAttributeAsDword("color", ARGB(255, 128, 128, 128)), rUV, rPos);
+            BIType_square,
+            pAImg->GetAttribute("texture"),
+            pAImg->GetAttributeAsDword("color", storm::Color {255, 128, 128, 128}.to_hex()),
+            rUV,
+            rPos);
         if (pCurImg) images.push_back(pCurImg);
     }
 }
@@ -437,7 +440,7 @@ void BIImagesInfo::Draw() const
 
 BIBorderInfo::BIBorderInfo() : dwColor1(0), dwColor2(0), fCur(0), fSpeed(0)
 {
-    pRS    = nullptr;
+    // pRS    = nullptr;
     nVBuf  = -1;
     nTexID = -1;
     bUp    = true;
@@ -451,15 +454,15 @@ BIBorderInfo::~BIBorderInfo()
 
 void BIBorderInfo::Release()
 {
-    VERTEX_BUFFER_RELEASE(pRS, nVBuf);
-    TEXTURE_RELEASE(pRS, nTexID);
+    // VERTEX_BUFFER_RELEASE(pRS, nVBuf);
+    // TEXTURE_RELEASE(pRS, nTexID);
 }
 
-void BIBorderInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
+void BIBorderInfo::Init(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA)
 {
-    pRS      = rs;
-    nVBuf    = rs->CreateVertexBuffer(BI_COLOR_VERTEX_FORMAT, 2 * 5 * sizeof(BI_COLOR_VERTEX), D3DUSAGE_WRITEONLY);
-    dwColor1 = dwColor2 = ARGB(255, 255, 255, 255);
+    // pRS      = rs;
+    // nVBuf    = rs->CreateVertexBuffer(BI_COLOR_VERTEX_FORMAT, 2 * 5 * sizeof(BI_COLOR_VERTEX), D3DUSAGE_WRITEONLY);
+    dwColor1 = dwColor2 = storm::Color {255, 255, 255, 255}.to_hex();
     ext_pos.left        = 0.f;
     ext_pos.top         = 0.f;
     ext_pos.right       = 1024.f;
@@ -481,14 +484,15 @@ void BIBorderInfo::Init(VDX9RENDER* rs, ATTRIBUTES* pA)
     BIUtils::ReadRectFromAttr(pA, "intpos1", int_pos1, int_pos1);
     BIUtils::ReadRectFromAttr(pA, "intpos2", int_pos2, int_pos2);
     fSpeed = pA->GetAttributeAsFloat("speed", fSpeed * 1000.f) * 0.001f;
-    nTexID = pRS->TextureCreate(pA->GetAttribute("texture"));
-    bUsed  = pA->GetAttributeAsDword("used", 0) != 0;
+    // nTexID = pRS->TextureCreate(pA->GetAttribute("texture"));
+    bUsed = pA->GetAttributeAsDword("used", 0) != 0;
 }
 
 void BIBorderInfo::Draw()
 {
     if (!bUsed || nVBuf < 0) return;
-    auto* pV = static_cast<BI_COLOR_VERTEX*>(pRS->LockVertexBuffer(nVBuf));
+    BI_COLOR_VERTEX* pV = nullptr;
+    // auto* pV = static_cast<BI_COLOR_VERTEX*>(pRS->LockVertexBuffer(nVBuf));
     if (!pV) return;
 
     if (bUp) {
@@ -505,7 +509,7 @@ void BIBorderInfo::Draw()
         }
     }
     uint32_t const dwColor = BIUtils::GetIntervalColor(dwColor1, dwColor2, fCur);
-    FRECT          int_pos;
+    storm::FRect   int_pos;
     BIUtils::GetIntervalRect(fCur, int_pos1, int_pos2, int_pos);
 
     for (int32_t n = 0; n < 10; n++) {
@@ -539,8 +543,8 @@ void BIBorderInfo::Draw()
     pV[8].pos.y = ext_pos.top;
     pV[9].pos.x = int_pos.left;
     pV[9].pos.y = int_pos.top;
-    pRS->UnLockVertexBuffer(nVBuf);
-
-    pRS->TextureSet(0, nTexID);
-    pRS->DrawPrimitive(D3DPT_TRIANGLESTRIP, nVBuf, sizeof(BI_COLOR_VERTEX), 0, 8, "battle_msg");
+    // pRS->UnLockVertexBuffer(nVBuf);
+    //
+    // pRS->TextureSet(0, nTexID);
+    // pRS->DrawPrimitive(D3DPT_TRIANGLESTRIP, nVBuf, sizeof(BI_COLOR_VERTEX), 0, 8, "battle_msg");
 }

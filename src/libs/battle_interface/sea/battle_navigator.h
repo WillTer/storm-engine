@@ -12,8 +12,8 @@
 
 class BATTLE_NAVIGATOR
 {
-    VDX9RENDER* rs {};
-    Entity*     m_pOwnerEI {};
+    // VDX9RENDER* rs {};
+    Entity* m_pOwnerEI {};
 
 public:
     BATTLE_NAVIGATOR(BATTLE_NAVIGATOR&&)      = delete;
@@ -23,7 +23,7 @@ public:
 
     void Draw() const;
     void Update();
-    void Init(VDX9RENDER* RenderService, Entity* pOwnerEI);
+    void Init(/*VDX9RENDER*/ void* RenderService, Entity* pOwnerEI);
     void SetIsland();
 
     void DecrementScale()
@@ -47,7 +47,7 @@ public:
     void RestoreRender();
 
 protected:
-    void    CalculateTextureRect(FRECT& texRect, int32_t num, int32_t hq, int32_t vq);
+    void    CalculateTextureRect(storm::FRect& texRect, int32_t num, int32_t hq, int32_t vq);
     int32_t SetCircleVertexPos(BI_ONETEXTURE_VERTEX* v, float x, float y, float rad, float angle = 0) const;
     int32_t SetCircleVertexTex(BI_ONETEXTURE_VERTEX* v, float x = .5f, float y = .5f, float rad = .5f, float angle = 0);
     int32_t SetRectangleVertexPos(BI_ONETEXTURE_VERTEX* v, float x, float y, float width, float height, float angle = 0) const;
@@ -146,18 +146,18 @@ protected:
     float m_fCurAnglWindSpeed {};
 
     // textures
-    int32_t            m_idCompasTex {-1};      // compass
-    int32_t            m_idSpeedTex {-1};       // ship speed and wind
-    int32_t            m_idCannonTex {-1};      // cannon charge
-    int32_t            m_idEmptyTex {-1};       // empty space for speed and charge
-    int32_t            m_idIslandTexture {-1};  // Isle
-    int32_t            m_idWindTex {-1};        // wind
-    int32_t            m_idBestCourseTex {-1};  // best direction pointers
-    int32_t            m_idChargeTexture {-1};  // current cannon charge type
-    int32_t            m_idPowderTexture {-1};  // current gunpowder
-    int32_t            m_idWindTexture {-1};    // wind speed
-    int32_t            m_idSailTexture {-1};    // sail position / ship speed
-    IDirect3DTexture9* m_pIslandTexture {};
+    int32_t m_idCompasTex {-1};      // compass
+    int32_t m_idSpeedTex {-1};       // ship speed and wind
+    int32_t m_idCannonTex {-1};      // cannon charge
+    int32_t m_idEmptyTex {-1};       // empty space for speed and charge
+    int32_t m_idIslandTexture {-1};  // Isle
+    int32_t m_idWindTex {-1};        // wind
+    int32_t m_idBestCourseTex {-1};  // best direction pointers
+    int32_t m_idChargeTexture {-1};  // current cannon charge type
+    int32_t m_idPowderTexture {-1};  // current gunpowder
+    int32_t m_idWindTexture {-1};    // wind speed
+    int32_t m_idSailTexture {-1};    // sail position / ship speed
+    // IDirect3DTexture9* m_pIslandTexture {};
 
     uint32_t m_dwSeaColor {};                 // color of the sea on the minimap
     uint32_t m_dwFireZoneColor = 0x20FF0050;  // color of the fire zone on the minimap
@@ -198,26 +198,26 @@ protected:
     ATTRIBUTES*   m_pAWeather {};
 
     // icon of the current cannon charge type
-    POINT   m_ChargeGreed {};
-    POINT   m_ChargePos {};
-    POINT   m_ChargeSize {};
-    int32_t m_curCharge {-1};
+    storm::Point m_ChargeGreed {};
+    storm::Point m_ChargePos {};
+    storm::Point m_ChargeSize {};
+    int32_t      m_curCharge {-1};
     // gunpowder icon
-    POINT   m_PowderGreed {};
-    POINT   m_PowderPos {};
-    POINT   m_PowderSize {};
-    int32_t m_curPowder {};
-    bool    m_bPowderRunOut {};  // for blinking
+    storm::Point m_PowderGreed {};
+    storm::Point m_PowderPos {};
+    storm::Point m_PowderSize {};
+    int32_t      m_curPowder {};
+    bool         m_bPowderRunOut {};  // for blinking
     // wind icon
-    int32_t m_curWindPic {};
-    POINT   m_WindGreed {};
-    POINT   m_WindPos {};
-    POINT   m_WindSize {};
+    int32_t      m_curWindPic {};
+    storm::Point m_WindGreed {};
+    storm::Point m_WindPos {};
+    storm::Point m_WindSize {};
     // sail position icon
-    int32_t m_curSailState {};
-    POINT   m_SailGreed {};
-    POINT   m_SailPos {};
-    POINT   m_SailSize {};
+    int32_t      m_curSailState {};
+    storm::Point m_SailGreed {};
+    storm::Point m_SailPos {};
+    storm::Point m_SailSize {};
 
     float m_fFontScale {};
 

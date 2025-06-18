@@ -4,7 +4,8 @@
 
 class ILogAndActions: public Entity
 {
-    VDX9RENDER* rs;
+    // FIXME: Renderer Next
+    // VDX9RENDER* rs;
 
     struct STRING_DESCR {
         char*         str;

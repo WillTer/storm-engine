@@ -15,11 +15,11 @@ void BI_SeaGroup::Init()
     if (pARoot) pARoot = pARoot->GetAttributeClass("sea");
     if (!pARoot) return;
 
-    ATTRIBUTES* pA;
-    char        texture[MAX_PATH];
-    uint32_t    color;
-    FRECT       uv;
-    RECT        pos;
+    ATTRIBUTES*  pA;
+    char         texture[MAX_PATH];
+    uint32_t     color;
+    storm::FRect uv;
+    storm::Rect  pos;
 
     // back
     pA = pARoot->GetAttributeClass("back");

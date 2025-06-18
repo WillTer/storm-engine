@@ -33,16 +33,17 @@ public:
         }
     }
 
-    BI_ManagerNodeBase* CreateImageNode(char const* texture, const FRECT& uv, const RECT& pos, uint32_t color, int32_t nPrioritet) override;
+    BI_ManagerNodeBase*
+    CreateImageNode(char const* texture, storm::FRect const& uv, storm::Rect const& pos, uint32_t color, int32_t nPrioritet) override;
     BI_ManagerNodeBase* CreateStringNode(
-        char const* text,
-        char const* font,
-        uint32_t    color,
-        float       scale,
-        const RECT& pos,
-        int32_t     nHAlign,
-        int32_t     nVAlign,
-        int32_t     prioritet) override;
+        char const*        text,
+        char const*        font,
+        uint32_t           color,
+        float              scale,
+        storm::Rect const& pos,
+        int32_t            nHAlign,
+        int32_t            nVAlign,
+        int32_t            prioritet) override;
     void DeleteNode(BI_ManagerNodeBase* pNod) override;
 
 protected:

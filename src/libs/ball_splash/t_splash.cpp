@@ -2,7 +2,6 @@
 
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 
 #include "ball_splash_defines.h"
 

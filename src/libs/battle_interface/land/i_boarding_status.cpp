@@ -8,16 +8,16 @@
 
 IBoardingStatus::IBoardingStatus()
 {
-    rs = nullptr;
+    // rs = nullptr;
 }
 
 IBoardingStatus::~IBoardingStatus() {}
 
 bool IBoardingStatus::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
 
     return true;
 }
@@ -37,10 +37,11 @@ uint64_t IBoardingStatus::ProcessMessage(MESSAGE& message)
 
 void IBoardingStatus::Realize(uint32_t delta_time)
 {
-    if (rs == nullptr) return;
+    // if (rs == nullptr) return;
 
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, BI_COLORONLY_VERTEX_FORMAT, 2, m_MyChar, sizeof(BI_COLORONLY_VERTEX), "battle_only_color");
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, BI_COLORONLY_VERTEX_FORMAT, 2, m_EnemyChar, sizeof(BI_COLORONLY_VERTEX), "battle_only_color");
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, BI_COLORONLY_VERTEX_FORMAT, 2, m_MyChar, sizeof(BI_COLORONLY_VERTEX), "battle_only_color");
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, BI_COLORONLY_VERTEX_FORMAT, 2, m_EnemyChar, sizeof(BI_COLORONLY_VERTEX),
+    // "battle_only_color");
 }
 
 void IBoardingStatus::Create()
@@ -54,8 +55,8 @@ void IBoardingStatus::Create()
         m_enemyPos.y = static_cast<float>(pA->GetAttributeAsDword("enemyTop", 450));
         m_Width      = pA->GetAttributeAsDword("width", 120);
         m_Height     = pA->GetAttributeAsDword("height", 8);
-        m_myColor    = pA->GetAttributeAsDword("myColor", ARGB(255, 0, 0, 128));
-        m_enemyColor = pA->GetAttributeAsDword("enemyColor", ARGB(255, 128, 0, 0));
+        m_myColor    = pA->GetAttributeAsDword("myColor", storm::Color {255, 0, 0, 128}.to_hex());
+        m_enemyColor = pA->GetAttributeAsDword("enemyColor", storm::Color {255, 128, 0, 0}.to_hex());
     } else {
         m_myPos.x    = 10.f;
         m_myPos.y    = 460.f;
@@ -63,8 +64,8 @@ void IBoardingStatus::Create()
         m_enemyPos.y = 450.f;
         m_Width      = 120;
         m_Height     = 8;
-        m_myColor    = ARGB(255, 0, 0, 128);
-        m_enemyColor = ARGB(255, 128, 0, 0);
+        m_myColor    = storm::Color {255, 0, 0, 128}.to_hex();
+        m_enemyColor = storm::Color {255, 128, 0, 0}.to_hex();
     }
 
     //

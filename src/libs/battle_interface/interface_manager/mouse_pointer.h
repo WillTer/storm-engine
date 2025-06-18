@@ -21,23 +21,23 @@ protected:
     BI_ManagerBase* m_pManager;
     ATTRIBUTES*     m_pARoot;
 
-    IBIImage* m_pIcon;
-    FPOINT    m_mousepos;
-    FPOINT    m_mousesensivity;
-    RECT      m_cursorzone;
+    IBIImage*     m_pIcon;
+    storm::FPoint m_mousepos;
+    storm::FPoint m_mousesensivity;
+    storm::Rect   m_cursorzone;
 
     struct MouseCursorInfo {
-        IPOINT      offset;
-        std::string texture;
-        FRECT       uv;
+        storm::Point offset;
+        std::string  texture;
+        storm::FRect uv;
     };
 
     MouseCursorInfo m_aCursors[BI_CURSORS_QUANTITY];
     int32_t         m_nCurrentCursor;
-    IPOINT          m_cursorsize;
+    storm::Point    m_cursorsize;
 
-    void InitMouseCursors();
-    void MoveCursor();
-    void SetCurrentCursor();
-    RECT GetCurrentCursorIconPos() const;
+    void        InitMouseCursors();
+    void        MoveCursor();
+    void        SetCurrentCursor();
+    storm::Rect GetCurrentCursorIconPos() const;
 };
