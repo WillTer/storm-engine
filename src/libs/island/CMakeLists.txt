@@ -1,5 +1,5 @@
 storm_lib(
     NAME island
     LINK_DEPENDENCIES
-        renderer
+        renderer_next
 )

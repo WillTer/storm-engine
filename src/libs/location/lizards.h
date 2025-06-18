@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 #include "lizard.h"
 
 class Lizards: public Entity

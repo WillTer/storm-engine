@@ -25,9 +25,9 @@
 
 Island::Island()
 {
-    dynamicLightsOn  = false;  // dynamic lighting
-    bForeignModels   = false;
-    pRS              = nullptr;
+    dynamicLightsOn = false;  // dynamic lighting
+    bForeignModels  = false;
+    // pRS              = nullptr;
     pGS              = nullptr;
     pDepthMap        = nullptr;
     pShadowMap       = nullptr;
@@ -75,8 +75,8 @@ void Island::SetDevice()
 
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
+    // pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // Assert(pRS);
     pGS = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGS);
 }
@@ -94,17 +94,17 @@ void Island::Realize(uint32_t Delta_Time)
 
     uint32_t bFogEnable;
     uint32_t bLighting;
-    pRS->GetRenderState(D3DRS_FOGENABLE, &bFogEnable);
-    pRS->GetRenderState(D3DRS_AMBIENT, &dwAmbientOld);
-    pRS->GetRenderState(D3DRS_LIGHTING, &bLighting);
-
-    pRS->SetRenderState(D3DRS_LIGHTING, dynamicLightsOn);
+    // pRS->GetRenderState(D3DRS_FOGENABLE, &bFogEnable);
+    // pRS->GetRenderState(D3DRS_AMBIENT, &dwAmbientOld);
+    // pRS->GetRenderState(D3DRS_LIGHTING, &bLighting);
+    //
+    // pRS->SetRenderState(D3DRS_LIGHTING, dynamicLightsOn);
     dwAmbient = dwAmbientOld & 0xFF;
 
     CVECTOR vCamPos, vCamAng;
     float   fOldNear, fOldFar, fPerspective;
-    pRS->GetCamera(vCamPos, vCamAng, fPerspective);
-    pRS->GetNearFarPlane(fOldNear, fOldFar);
+    // pRS->GetCamera(vCamPos, vCamAng, fPerspective);
+    // pRS->GetNearFarPlane(fOldNear, fOldFar);
 
     auto fRadius      = sqrtf(Sqr(vBoxSize.x / 2.0f) + Sqr(vBoxSize.z / 2.0f));
     auto fCamDistance = sqrtf(~(vCamPos - vBoxCenter));
@@ -127,36 +127,36 @@ void Island::Realize(uint32_t Delta_Time)
         AIFortEID = core->GetEntityId("AIFort");
     }
 
-    pRS->GetRenderState(D3DRS_FOGDENSITY, (uint32_t*)&fOldFogDensity);
-    pRS->SetRenderState(D3DRS_FOGDENSITY, F2DW(fIslandFogDensity));
+    // pRS->GetRenderState(D3DRS_FOGDENSITY, (uint32_t*)&fOldFogDensity);
+    // pRS->SetRenderState(D3DRS_FOGDENSITY, F2DW(fIslandFogDensity));
     int32_t j;
     for (j = static_cast<int32_t>(fMaxDistance / fOldFar); j >= 0; j--) {
-        if (j != 0) pRS->SetRenderState(D3DRS_ZWRITEENABLE, false);
-        pRS->SetNearFarPlane((j == 0) ? fOldNear : fOldFar * static_cast<float>(j), fOldFar * static_cast<float>(j + 1));
+        // if (j != 0) pRS->SetRenderState(D3DRS_ZWRITEENABLE, false);
+        // pRS->SetNearFarPlane((j == 0) ? fOldNear : fOldFar * static_cast<float>(j), fOldFar * static_cast<float>(j + 1));
         pModel->ProcessStage(Stage::realize, Delta_Time);
-        pRS->SetRenderState(D3DRS_LIGHTING, true);
-        D3DLIGHT9 lt, ltold;
-        pRS->GetLight(0, &ltold);
-        if (!dynamicLightsOn) {
-            lt              = {};
-            lt.Type         = D3DLIGHT_POINT;
-            lt.Diffuse.a    = 0.0f;
-            lt.Diffuse.r    = 1.0f;
-            lt.Diffuse.g    = 1.0f;
-            lt.Diffuse.b    = 1.0;
-            lt.Ambient.r    = 1.0f;
-            lt.Ambient.g    = 1.0f;
-            lt.Ambient.b    = 1.0f;
-            lt.Specular.r   = 1.0f;
-            lt.Specular.g   = 1.0f;
-            lt.Specular.b   = 1.0f;
-            lt.Position.x   = 0.0f;
-            lt.Position.y   = 0.0f;
-            lt.Position.z   = 0.0f;
-            lt.Attenuation0 = 1.0f;
-            lt.Range        = 1e9f;
-            pRS->SetLight(0, &lt);
-        }
+        // pRS->SetRenderState(D3DRS_LIGHTING, true);
+        // D3DLIGHT9 lt, ltold;
+        // pRS->GetLight(0, &ltold);
+        // if (!dynamicLightsOn) {
+        //     lt              = {};
+        //     lt.Type         = D3DLIGHT_POINT;
+        //     lt.Diffuse.a    = 0.0f;
+        //     lt.Diffuse.r    = 1.0f;
+        //     lt.Diffuse.g    = 1.0f;
+        //     lt.Diffuse.b    = 1.0;
+        //     lt.Ambient.r    = 1.0f;
+        //     lt.Ambient.g    = 1.0f;
+        //     lt.Ambient.b    = 1.0f;
+        //     lt.Specular.r   = 1.0f;
+        //     lt.Specular.g   = 1.0f;
+        //     lt.Specular.b   = 1.0f;
+        //     lt.Position.x   = 0.0f;
+        //     lt.Position.y   = 0.0f;
+        //     lt.Position.z   = 0.0f;
+        //     lt.Attenuation0 = 1.0f;
+        //     lt.Range        = 1e9f;
+        //     pRS->SetLight(0, &lt);
+        // }
         for (uint32_t k = 0; k < aForts.size(); k++) {
             auto* const ent               = core->GetEntityPointer(aForts[k]);
             auto        mOld              = static_cast<MODEL*>(ent)->mtx;
@@ -168,27 +168,27 @@ void Island::Realize(uint32_t Delta_Time)
 
             static_cast<MODEL*>(ent)->mtx = mOld;
         }
-        pRS->SetLight(0, &ltold);
-        pRS->SetRenderState(D3DRS_LIGHTING, dynamicLightsOn);
-        pRS->SetRenderState(D3DRS_ZWRITEENABLE, true);
+        // pRS->SetLight(0, &ltold);
+        // pRS->SetRenderState(D3DRS_LIGHTING, dynamicLightsOn);
+        // pRS->SetRenderState(D3DRS_ZWRITEENABLE, true);
     }
-    pRS->SetRenderState(D3DRS_FOGDENSITY, F2DW(fOldFogDensity));
+    // pRS->SetRenderState(D3DRS_FOGDENSITY, F2DW(fOldFogDensity));
 
-    pRS->SetNearFarPlane(fOldNear, fOldFar / 2.0f);
+    // pRS->SetNearFarPlane(fOldNear, fOldFar / 2.0f);
     if (!bDrawReflections) {
-        pRS->SetRenderState(D3DRS_FOGENABLE, false);
+        // pRS->SetRenderState(D3DRS_FOGENABLE, false);
         // pRS->SetRenderState(D3DRS_AMBIENT, RGB(dwAmbient/4,dwAmbient/4,dwAmbient/4));
 
         auto* pSeaBed = static_cast<MODEL*>(core->GetEntityPointer(seabed_id));
         if (pSeaBed) pSeaBed->ProcessStage(Stage::realize, Delta_Time);
     }
 
-    pRS->SetNearFarPlane(fOldNear, fOldFar);
-
-    pRS->SetRenderState(D3DRS_LIGHTING, false);
-    pRS->SetRenderState(D3DRS_FOGENABLE, bFogEnable);
-    pRS->SetRenderState(D3DRS_AMBIENT, dwAmbientOld);
-    pRS->SetRenderState(D3DRS_LIGHTING, bLighting);
+    // pRS->SetNearFarPlane(fOldNear, fOldFar);
+    //
+    // pRS->SetRenderState(D3DRS_LIGHTING, false);
+    // pRS->SetRenderState(D3DRS_FOGENABLE, bFogEnable);
+    // pRS->SetRenderState(D3DRS_AMBIENT, dwAmbientOld);
+    // pRS->SetRenderState(D3DRS_LIGHTING, bLighting);
 
     uint32_t i;
     for (i = 0; i < aSpheres.size(); i++) {
@@ -199,19 +199,19 @@ void Island::Realize(uint32_t Delta_Time)
 
     if (core->Controls->GetDebugAsyncKeyState('O') < 0) bView ^= 1;
     if (bView) {
-        std::vector<RS_LINE> aLines;
+        // std::vector<RS_LINE> aLines;
         for (i = 0; i < AIPath.GetNumEdges(); i++) {
             AIFlowGraph::edge_t* pE = AIPath.GetEdge(i);
-            aLines.push_back(RS_LINE {AIPath.GetPointPos(pE->dw1), 0xFFFFFF});
-            aLines.push_back(RS_LINE {AIPath.GetPointPos(pE->dw2), 0xFFFFFF});
+            // aLines.push_back(RS_LINE {AIPath.GetPointPos(pE->dw1), 0xFFFFFF});
+            // aLines.push_back(RS_LINE {AIPath.GetPointPos(pE->dw2), 0xFFFFFF});
         }
         CMatrix m;
-        pRS->SetTransform(D3DTS_WORLD, m);
-        pRS->DrawLines(&aLines[0], aLines.size() / 2, "Line");
+        // pRS->SetTransform(D3DTS_WORLD, m);
+        // pRS->DrawLines(&aLines[0], aLines.size() / 2, "Line");
     }
 }
 
-bool Island::GetDepth(FRECT* pRect, float* fMinH, float* fMaxH)
+bool Island::GetDepth(storm::FRect* pRect, float* fMinH, float* fMaxH)
 {
     return false;
 }
@@ -518,10 +518,10 @@ bool Island::CreateHeightMap(std::string_view const& pDir, std::string_view cons
     CalcBoxParameters(vBoxCenter, vRealBoxSize);
     vBoxSize = vRealBoxSize + CVECTOR(50.0f, 0.0f, 50.0f);
 
-    rIsland.x1 = vBoxCenter.x - vBoxSize.x / 2.0f;
-    rIsland.y1 = vBoxCenter.z - vBoxSize.z / 2.0f;
-    rIsland.x2 = vBoxCenter.x + vBoxSize.x / 2.0f;
-    rIsland.y2 = vBoxCenter.z + vBoxSize.z / 2.0f;
+    rIsland.left   = vBoxCenter.x - vBoxSize.x / 2.0f;
+    rIsland.top    = vBoxCenter.z - vBoxSize.z / 2.0f;
+    rIsland.right  = vBoxCenter.x + vBoxSize.x / 2.0f;
+    rIsland.bottom = vBoxCenter.z + vBoxSize.z / 2.0f;
 
     bool bLoad = mzDepth.Load(fileName + ".zap");
 
@@ -755,8 +755,8 @@ bool Island::GetMovePoint(CVECTOR& vSrc, CVECTOR& vDst, CVECTOR& vRes)
     vRes   = vDst;
     vSrc.y = vDst.y = 0.1f;
 
-    if ((vSrc.x <= rIsland.x1 && vDst.x <= rIsland.x1) || (vSrc.x >= rIsland.x2 && vDst.x >= rIsland.x2)
-        || (vSrc.z <= rIsland.y1 && vDst.z <= rIsland.y1) || (vSrc.z >= rIsland.y2 && vDst.z >= rIsland.y2))
+    if ((vSrc.x <= rIsland.left && vDst.x <= rIsland.left) || (vSrc.x >= rIsland.right && vDst.x >= rIsland.right)
+        || (vSrc.z <= rIsland.top && vDst.z <= rIsland.top) || (vSrc.z >= rIsland.bottom && vDst.z >= rIsland.bottom))
         return false;
 
     // one simple trace vSrc - vDst
@@ -810,8 +810,8 @@ bool Island::GetMovePoint(CVECTOR& vSrc, CVECTOR& vDst, CVECTOR& vRes)
     // check for free path
 
     // check for one side
-    if ((vSrc.x <= rIsland.x1 && vDst.x <= rIsland.x1) || (vSrc.x >= rIsland.x2 && vDst.x >= rIsland.x2) ||
-        (vSrc.z <= rIsland.y1 && vDst.z <= rIsland.y1) || (vSrc.z >= rIsland.y2 && vDst.z >= rIsland.y2))
+    if ((vSrc.x <= rIsland.left && vDst.x <= rIsland.left) || (vSrc.x >= rIsland.x2 && vDst.x >= rIsland.x2) ||
+        (vSrc.z <= rIsland.top && vDst.z <= rIsland.top) || (vSrc.z >= rIsland.y2 && vDst.z >= rIsland.y2))
     {
         return null;
     }

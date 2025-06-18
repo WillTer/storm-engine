@@ -22,7 +22,6 @@
 
 Lights::Lights() : lighter_code(0), lampModels {}, buf {}
 {
-    rs        = nullptr;
     collide   = nullptr;
     numTypes  = 0;
     maxTypes  = 0;
@@ -37,21 +36,21 @@ Lights::Lights() : lighter_code(0), lampModels {}, buf {}
 
 Lights::~Lights()
 {
-    for (int32_t i = 0; i < numTypes; i++) {
-        if (types[i].corona >= 0 && rs) rs->TextureRelease(types[i].corona);
-        delete[] types[i].name;
-    }
-    if (rs)
-        for (int32_t i = 1; i < 8; i++)
-            rs->LightEnable(i, false);
+    // for (int32_t i = 0; i < numTypes; i++) {
+    //     if (types[i].corona >= 0 && rs) rs->TextureRelease(types[i].corona);
+    //     delete[] types[i].name;
+    // }
+    // if (rs)
+    //     for (int32_t i = 1; i < 8; i++)
+    //         rs->LightEnable(i, false);
 }
 
 // Initialization
 bool Lights::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
     collide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     // read the parameters
     // FIXME: hardcode
@@ -78,28 +77,28 @@ bool Lights::Init()
             types[numTypes].name = new char[len];
             memcpy(types[numTypes].name, lName, len);
             // Reading parameters
-            types[numTypes].color.b              = ini->GetFloat(lName, "b", 1.0f);
-            types[numTypes].color.g              = ini->GetFloat(lName, "g", 1.0f);
-            types[numTypes].color.r              = ini->GetFloat(lName, "r", 1.0f);
-            types[numTypes].color.a              = 1.0f;
-            types[numTypes].dxLight.Type         = D3DLIGHT_POINT;
-            types[numTypes].dxLight.Diffuse      = types[numTypes].color;
-            types[numTypes].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);
-            types[numTypes].dxLight.Attenuation0 = ini->GetFloat(lName, "att0", 0.0f);
-            types[numTypes].dxLight.Attenuation1 = ini->GetFloat(lName, "att1", 0.0f);
-            types[numTypes].dxLight.Attenuation2 = ini->GetFloat(lName, "att2", 1.0f);
-            types[numTypes].flicker              = ini->GetFloat(lName, "flicker", 0.0f);
-            types[numTypes].freq                 = ini->GetFloat(lName, "freq", 0.0f);
-            types[numTypes].flickerSlow          = ini->GetFloat(lName, "flickerSlow", 0.0f);
-            types[numTypes].freqSlow             = ini->GetFloat(lName, "freqSlow", 0.0f);
-            types[numTypes].corona               = -1;
-            types[numTypes].coronaRange          = ini->GetFloat(lName, "coronaRange", 20.0f);
-            types[numTypes].coronaSize           = ini->GetFloat(lName, "coronaSize", 1.0f);
+            types[numTypes].color.b = ini->GetFloat(lName, "b", 1.0f);
+            types[numTypes].color.g = ini->GetFloat(lName, "g", 1.0f);
+            types[numTypes].color.r = ini->GetFloat(lName, "r", 1.0f);
+            types[numTypes].color.a = 1.0f;
+            // types[numTypes].dxLight.Type         = D3DLIGHT_POINT;
+            // types[numTypes].dxLight.Diffuse      = types[numTypes].color;
+            // types[numTypes].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);
+            // types[numTypes].dxLight.Attenuation0 = ini->GetFloat(lName, "att0", 0.0f);
+            // types[numTypes].dxLight.Attenuation1 = ini->GetFloat(lName, "att1", 0.0f);
+            // types[numTypes].dxLight.Attenuation2 = ini->GetFloat(lName, "att2", 1.0f);
+            types[numTypes].flicker     = ini->GetFloat(lName, "flicker", 0.0f);
+            types[numTypes].freq        = ini->GetFloat(lName, "freq", 0.0f);
+            types[numTypes].flickerSlow = ini->GetFloat(lName, "flickerSlow", 0.0f);
+            types[numTypes].freqSlow    = ini->GetFloat(lName, "freqSlow", 0.0f);
+            types[numTypes].corona      = -1;
+            types[numTypes].coronaRange = ini->GetFloat(lName, "coronaRange", 20.0f);
+            types[numTypes].coronaSize  = ini->GetFloat(lName, "coronaSize", 1.0f);
             if (types[numTypes].coronaRange > 0.0f && types[numTypes].coronaSize > 0.0f) {
                 types[numTypes].invCoronaRange = 1.0f / types[numTypes].coronaRange;
                 char texture[256];
                 if (ini->ReadString(lName, "corona", texture, sizeof(texture), "")) {
-                    if (texture[0]) { types[numTypes].corona = rs->TextureCreate(texture); }
+                    // if (texture[0]) { types[numTypes].corona = rs->TextureCreate(texture); }
                 }
             }
             types[numTypes].coronaRange2 = types[numTypes].coronaRange * types[numTypes].coronaRange;
@@ -170,7 +169,7 @@ void Lights::Realize(uint32_t delta_time)
 {
     // Camera position
     CVECTOR pos, ang;
-    rs->GetCamera(pos, ang, ang.x);
+    // rs->GetCamera(pos, ang, ang.x);
 
     ///////////////////
     // Dynamic lighting augmentation
@@ -199,9 +198,9 @@ void Lights::Realize(uint32_t delta_time)
     ////////////////
     // Draw coronas
     CMatrix camMtx;
-    rs->GetTransform(D3DTS_VIEW, camMtx);
-    rs->SetTransform(D3DTS_VIEW, CMatrix());
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // rs->GetTransform(D3DTS_VIEW, camMtx);
+    // rs->SetTransform(D3DTS_VIEW, CMatrix());
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
     auto const camPDist = -(pos.x * camMtx.Vx().z + pos.y * camMtx.Vy().z + pos.z * camMtx.Vz().z);
     for (int32_t i = 0, n = 0; i < numLights; i++) {
         // Source
@@ -304,11 +303,11 @@ void Lights::Realize(uint32_t delta_time)
         buf[n * 6 + 5].u     = 1.0f;
         buf[n * 6 + 5].v     = 1.0f;
         n++;
-        rs->TextureSet(0, l.corona);
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buf, sizeof(Vertex), "Coronas");
+        // rs->TextureSet(0, l.corona);
+        // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buf, sizeof(Vertex), "Coronas");
         n = 0;
     }
-    rs->SetTransform(D3DTS_VIEW, camMtx);
+    // rs->SetTransform(D3DTS_VIEW, camMtx);
 
     // Debug
     if (core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core->Controls->GetDebugAsyncKeyState(VK_SPACE) < 0) { PrintDebugInfo(); }
@@ -345,23 +344,23 @@ void Lights::AddLight(int32_t index, const CVECTOR& pos)
     lights[numLights].intensity = 0;
 
     // Send a message to the lighter
-    if (auto const eid = core->GetEntityId("Lighter")) {
-        core->Send_Message(
-            eid,
-            "sffffffffffs",
-            "AddLight",
-            pos.x,
-            pos.y,
-            pos.z,
-            types[index].color.r,
-            types[index].color.g,
-            types[index].color.b,
-            types[index].dxLight.Attenuation0,
-            types[index].dxLight.Attenuation1,
-            types[index].dxLight.Attenuation2,
-            types[index].dxLight.Range,
-            types[index].name);
-    }
+    // if (auto const eid = core->GetEntityId("Lighter")) {
+    //     core->Send_Message(
+    //         eid,
+    //         "sffffffffffs",
+    //         "AddLight",
+    //         pos.x,
+    //         pos.y,
+    //         pos.z,
+    //         types[index].color.r,
+    //         types[index].color.g,
+    //         types[index].color.b,
+    //         types[index].dxLight.Attenuation0,
+    //         types[index].dxLight.Attenuation1,
+    //         types[index].dxLight.Attenuation2,
+    //         types[index].dxLight.Range,
+    //         types[index].name);
+    // }
 
     numLights++;
 }
@@ -406,7 +405,7 @@ void Lights::UpdateMovingLight(int32_t id, const CVECTOR& pos)
     for (int32_t n = 0; n < aMovingLight.size(); n++) {
         if (aMovingLight[n].id == id) {
             auto const i = aMovingLight[n].light;
-            if (i >= 0 && i < numLights) lights[i].pos = *(D3DVECTOR*)&pos;
+            // if (i >= 0 && i < numLights) lights[i].pos = *(D3DVECTOR*)&pos;
             return;
         }
     }
@@ -438,16 +437,16 @@ void Lights::SetLightsAt(const CVECTOR& pos)
     uint32_t d3d_light_index = max_d3d_lights - max_d3d_custom_lights;
     for (auto i = std::cbegin(lightsAtPos); i != std::cend(lightsAtPos) && d3d_light_index < max_d3d_lights; ++i) {
         // Setting the source
-        LightType& l        = types[lights[*i].type];
-        l.dxLight.Diffuse.r = lights[*i].color.r * static_cast<float>(lights[*i].intensity) / 255.0f;
-        l.dxLight.Diffuse.g = lights[*i].color.g * static_cast<float>(lights[*i].intensity) / 255.0f;
-        l.dxLight.Diffuse.b = lights[*i].color.b * static_cast<float>(lights[*i].intensity) / 255.0f;
-        l.dxLight.Position  = lights[*i].pos;
-
-        rs->SetLight(d3d_light_index, &l.dxLight);
-        rs->LightEnable(d3d_light_index, true);
-        lt[d3d_light_index].light = *i;
-        lt[d3d_light_index].set   = true;
+        // LightType& l        = types[lights[*i].type];
+        // l.dxLight.Diffuse.r = lights[*i].color.r * static_cast<float>(lights[*i].intensity) / 255.0f;
+        // l.dxLight.Diffuse.g = lights[*i].color.g * static_cast<float>(lights[*i].intensity) / 255.0f;
+        // l.dxLight.Diffuse.b = lights[*i].color.b * static_cast<float>(lights[*i].intensity) / 255.0f;
+        // l.dxLight.Position  = lights[*i].pos;
+        //
+        // rs->SetLight(d3d_light_index, &l.dxLight);
+        // rs->LightEnable(d3d_light_index, true);
+        // lt[d3d_light_index].light = *i;
+        // lt[d3d_light_index].set   = true;
 
         d3d_light_index++;
     }
@@ -458,7 +457,7 @@ void Lights::UnsetLights()
     for (auto i = max_d3d_lights - max_d3d_custom_lights; i < max_d3d_lights; i++) {
         if (lt[i].set) {
             lt[i].set = false;
-            rs->LightEnable(i, false);
+            // rs->LightEnable(i, false);
         }
     }
 }
@@ -472,28 +471,28 @@ void Lights::UpdateLightTypes(int32_t i)
     // Source name
     char* lName = types[i].name;
     // Reading parameters
-    types[i].color.b              = ini->GetFloat(lName, "b", 1.0f);
-    types[i].color.g              = ini->GetFloat(lName, "g", 1.0f);
-    types[i].color.r              = ini->GetFloat(lName, "r", 1.0f);
-    types[i].color.a              = 1.0f;
-    types[i].dxLight.Type         = D3DLIGHT_POINT;
-    types[i].dxLight.Diffuse      = types[i].color;
-    types[i].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);
-    types[i].dxLight.Attenuation0 = ini->GetFloat(lName, "att0", 0.0f);
-    types[i].dxLight.Attenuation1 = ini->GetFloat(lName, "att1", 0.0f);
-    types[i].dxLight.Attenuation2 = ini->GetFloat(lName, "att2", 1.0f);
-    types[i].flicker              = ini->GetFloat(lName, "flicker", 0.0f);
-    types[i].freq                 = ini->GetFloat(lName, "freq", 0.0f);
-    types[i].flickerSlow          = ini->GetFloat(lName, "flickerSlow", 0.0f);
-    types[i].freqSlow             = ini->GetFloat(lName, "freqSlow", 0.0f);
-    types[i].corona               = -1;
-    types[i].coronaRange          = ini->GetFloat(lName, "coronaRange", 20.0f);
-    types[i].coronaSize           = ini->GetFloat(lName, "coronaSize", 1.0f);
+    types[i].color.b = ini->GetFloat(lName, "b", 1.0f);
+    types[i].color.g = ini->GetFloat(lName, "g", 1.0f);
+    types[i].color.r = ini->GetFloat(lName, "r", 1.0f);
+    types[i].color.a = 1.0f;
+    // types[i].dxLight.Type         = D3DLIGHT_POINT;
+    // types[i].dxLight.Diffuse      = types[i].color;
+    // types[i].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);
+    // types[i].dxLight.Attenuation0 = ini->GetFloat(lName, "att0", 0.0f);
+    // types[i].dxLight.Attenuation1 = ini->GetFloat(lName, "att1", 0.0f);
+    // types[i].dxLight.Attenuation2 = ini->GetFloat(lName, "att2", 1.0f);
+    types[i].flicker     = ini->GetFloat(lName, "flicker", 0.0f);
+    types[i].freq        = ini->GetFloat(lName, "freq", 0.0f);
+    types[i].flickerSlow = ini->GetFloat(lName, "flickerSlow", 0.0f);
+    types[i].freqSlow    = ini->GetFloat(lName, "freqSlow", 0.0f);
+    types[i].corona      = -1;
+    types[i].coronaRange = ini->GetFloat(lName, "coronaRange", 20.0f);
+    types[i].coronaSize  = ini->GetFloat(lName, "coronaSize", 1.0f);
     if (types[i].coronaRange > 0.0f && types[i].coronaSize > 0.0f) {
         types[i].invCoronaRange = 1.0f / types[i].coronaRange;
         char texture[256];
         if (ini->ReadString(lName, "corona", texture, sizeof(texture), "")) {
-            if (texture[0]) { types[i].corona = rs->TextureCreate(texture); }
+            // if (texture[0]) { types[i].corona = rs->TextureCreate(texture); }
         }
     }
     types[i].coronaRange2 = types[i].coronaRange * types[i].coronaRange;
@@ -517,71 +516,71 @@ void Lights::PrintDebugInfo()
         auto lightPos = *(CVECTOR*)&lights[i].pos;
         auto scale    = 1.0f;
 
-        static CMatrix      mtx, view, prj;
-        static D3DVIEWPORT9 vp;
-        MTX_PRJ_VECTOR      vrt;
-        rs->GetTransform(D3DTS_VIEW, view);
-        rs->GetTransform(D3DTS_PROJECTION, prj);
-        mtx.EqMultiply(view, prj);
-        view.Transposition();
-        rs->GetViewport(&vp);
-        mtx.Projection(&lightPos, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
-        vrt.y -= rs->CharHeight(FONT_DEFAULT) / 2;
+        // static CMatrix      mtx, view, prj;
+        // static D3DVIEWPORT9 vp;
+        // MTX_PRJ_VECTOR      vrt;
+        // rs->GetTransform(D3DTS_VIEW, view);
+        // rs->GetTransform(D3DTS_PROJECTION, prj);
+        // mtx.EqMultiply(view, prj);
+        // view.Transposition();
+        // rs->GetViewport(&vp);
+        // mtx.Projection(&lightPos, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
+        // vrt.y -= rs->CharHeight(FONT_DEFAULT) / 2;
 
-        CVECTOR pos, ang;
-        rs->GetCamera(pos, ang, ang.x);
-        // visibility
-        auto const camPDist = -(pos.x * view.Vx().z + pos.y * view.Vy().z + pos.z * view.Vz().z);
-
-        auto& ls = lights[i];
-        auto& l  = types[ls.type];
-        if (l.corona < 0) continue;
-        // in the foreground
-        auto dist = ls.pos.x * view.Vx().z + ls.pos.y * view.Vy().z + ls.pos.z * view.Vz().z + camPDist;
-        if (dist < -2.0f * l.coronaSize) continue;
-        // Distance
-        auto const dx        = ls.pos.x - pos.x;
-        auto const dy        = ls.pos.y - pos.y;
-        auto const dz        = ls.pos.z - pos.z;
-        auto       d         = dx * dx + dy * dy + dz * dz;
-        auto       isVisible = d < l.coronaRange2;
-        if (!isVisible) continue;
-
-        rs->SetTransform(D3DTS_VIEW, CMatrix());
-        rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-        rs->ExtPrint(
-            FONT_DEFAULT,
-            D3DCOLOR_ARGB(255, 255, 255, 255),
-            0x00000000,
-            PR_ALIGN_CENTER,
-            false,
-            scale,
-            0,
-            0,
-            static_cast<int32_t>(vrt.x),
-            static_cast<int32_t>(vrt.y),
-            std::format("{}", d).c_str());
-
-        // print idx
-        auto color = D3DCOLOR_ARGB(255, 233, 30, 30);
-        vrt.y -= 1.5 * rs->CharHeight(FONT_DEFAULT) / 2;
-        for (auto const [_, light]: lt) {
-            if (i == light) { color = D3DCOLOR_ARGB(255, 30, 233, 30); }
-        }
-        rs->ExtPrint(
-            FONT_DEFAULT,
-            color,
-            0x00000000,
-            PR_ALIGN_CENTER,
-            false,
-            scale,
-            0,
-            0,
-            static_cast<int32_t>(vrt.x),
-            static_cast<int32_t>(vrt.y),
-            std::format("{}", i).c_str());
-
-        rs->SetTransform(D3DTS_VIEW, view);
+        // CVECTOR pos, ang;
+        // rs->GetCamera(pos, ang, ang.x);
+        // // visibility
+        // auto const camPDist = -(pos.x * view.Vx().z + pos.y * view.Vy().z + pos.z * view.Vz().z);
+        //
+        // auto& ls = lights[i];
+        // auto& l  = types[ls.type];
+        // if (l.corona < 0) continue;
+        // // in the foreground
+        // auto dist = ls.pos.x * view.Vx().z + ls.pos.y * view.Vy().z + ls.pos.z * view.Vz().z + camPDist;
+        // if (dist < -2.0f * l.coronaSize) continue;
+        // // Distance
+        // auto const dx        = ls.pos.x - pos.x;
+        // auto const dy        = ls.pos.y - pos.y;
+        // auto const dz        = ls.pos.z - pos.z;
+        // auto       d         = dx * dx + dy * dy + dz * dz;
+        // auto       isVisible = d < l.coronaRange2;
+        // if (!isVisible) continue;
+        //
+        // rs->SetTransform(D3DTS_VIEW, CMatrix());
+        // rs->SetTransform(D3DTS_WORLD, CMatrix());
+        //
+        // rs->ExtPrint(
+        //     FONT_DEFAULT,
+        //     D3DCOLOR_ARGB(255, 255, 255, 255),
+        //     0x00000000,
+        //     PR_ALIGN_CENTER,
+        //     false,
+        //     scale,
+        //     0,
+        //     0,
+        //     static_cast<int32_t>(vrt.x),
+        //     static_cast<int32_t>(vrt.y),
+        //     std::format("{}", d).c_str());
+        //
+        // // print idx
+        // auto color = D3DCOLOR_ARGB(255, 233, 30, 30);
+        // vrt.y -= 1.5 * rs->CharHeight(FONT_DEFAULT) / 2;
+        // for (auto const [_, light]: lt) {
+        //     if (i == light) { color = D3DCOLOR_ARGB(255, 30, 233, 30); }
+        // }
+        // rs->ExtPrint(
+        //     FONT_DEFAULT,
+        //     color,
+        //     0x00000000,
+        //     PR_ALIGN_CENTER,
+        //     false,
+        //     scale,
+        //     0,
+        //     0,
+        //     static_cast<int32_t>(vrt.x),
+        //     static_cast<int32_t>(vrt.y),
+        //     std::format("{}", i).c_str());
+        //
+        // rs->SetTransform(D3DTS_VIEW, view);
     }
 }

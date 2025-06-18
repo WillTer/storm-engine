@@ -3,7 +3,6 @@
 #include <libs/collide/collide.h>
 #include <libs/geometry/geometry.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea_ai/ai_flow_graph.h>
 
 #include "island_base.h"
@@ -51,14 +50,14 @@ private:
     AIFlowGraph          AIPath;
     entid_t              AIFortEID {};
 
-    FRECT    rIsland;
-    bool     bForeignModels;
-    bool     bDrawReflections;
-    float    fStepDX, fStepDZ, fStep1divDX, fStep1divDZ;
-    float    fShadowMapSize, fShadowMapStep;
-    CVECTOR  vBoxSize, vBoxCenter, vRealBoxSize;
-    uint32_t iDMapSize, iDMapSizeShift;
-    entid_t  model_id, seabed_id;
+    storm::FRect rIsland;
+    bool         bForeignModels;
+    bool         bDrawReflections;
+    float        fStepDX, fStepDZ, fStep1divDX, fStep1divDZ;
+    float        fShadowMapSize, fShadowMapStep;
+    CVECTOR      vBoxSize, vBoxCenter, vRealBoxSize;
+    uint32_t     iDMapSize, iDMapSizeShift;
+    entid_t      model_id, seabed_id;
 
     bool bFirstRealize;
     bool dynamicLightsOn;  // dynamic lighting
@@ -72,9 +71,9 @@ private:
     uint8_t* pDepthMap;
     uint8_t* pShadowMap;
 
-    VDX9RENDER* pRS;
-    VGEOMETRY*  pGS;
-    COLLIDE*    pCollide;
+    // VDX9RENDER* pRS;
+    VGEOMETRY* pGS;
+    COLLIDE*   pCollide;
 
     CMatrix mIslandOld, mSeaBedOld;
     float   fImmersionDepth, fImmersionDistance;
@@ -178,7 +177,7 @@ public:
     bool Check2DBoxDepth(CVECTOR vPos, CVECTOR vSize, float fAngY, float fMinDepth);
     bool GetDepth(float x, float z, float* fRes = nullptr);
     bool GetDepthFast(float x, float z, float* fRes = nullptr);
-    bool GetDepth(FRECT* pRect, float* fMinH, float* fMaxH);
+    bool GetDepth(storm::FRect* pRect, float* fMinH, float* fMaxH);
 
     bool GetShadow(float x, float z, float* fRes = nullptr);
 

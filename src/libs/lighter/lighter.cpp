@@ -21,7 +21,7 @@
 
 Lighter::Lighter() : autoTrace(false), autoSmooth(false)
 {
-    rs          = nullptr;
+    // rs          = nullptr;
     initCounter = 10;
     isInited    = false;
     waitChange  = 0.0f;
@@ -43,17 +43,17 @@ bool Lighter::Init()
     geometry.useColor    = ini->GetInt(nullptr, "usecolor", 0) != 0;
     if (!isLoading) return false;
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
     //
     core->SetLayerType(LIGHTER_EXECUTE, layer_type_t::execute);
     core->AddToLayer(LIGHTER_EXECUTE, GetId(), 1000);
     core->SetLayerType(LIGHTER_REALIZE, layer_type_t::realize);
     core->AddToLayer(LIGHTER_REALIZE, GetId(), 1000);
     //
-    lightProcessor.SetParams(&geometry, &window, &lights, &octTree, rs);
+    lightProcessor.SetParams(&geometry, &window, &lights, &octTree);
     // window system
-    if (!window.Init(rs)) return false;
+    if (!window.Init(/*rs*/ nullptr)) return false;
 
     return true;
 }
@@ -95,7 +95,7 @@ void Lighter::PreparingData()
     // Lighting
     // Scattered
     auto amb = 0xff404040;
-    rs->GetRenderState(D3DRS_AMBIENT, &amb);
+    // rs->GetRenderState(D3DRS_AMBIENT, &amb);
     CVECTOR clr;
     clr.x   = ((amb >> 16) & 0xff) / 255.0f;
     clr.y   = ((amb >> 8) & 0xff) / 255.0f;
@@ -108,30 +108,30 @@ void Lighter::PreparingData()
         clr = 1.0f;
     lights.AddAmbient(clr);
     // The sun
-    auto isLight = FALSE;
-    rs->GetLightEnable(0, &isLight);
-    D3DLIGHT9 lit;
-    if (isLight && rs->GetLight(0, &lit)) {
-        CVECTOR clr, dir = !CVECTOR(1.0f, 1.0f, 1.0f);
-        clr.x = lit.Diffuse.r;
-        clr.y = lit.Diffuse.g;
-        clr.z = lit.Diffuse.b;
-        if (lit.Type == D3DLIGHT_DIRECTIONAL) {
-            dir.x = -lit.Direction.x;
-            dir.y = -lit.Direction.y;
-            dir.z = -lit.Direction.z;
-        }
-        auto mx = dir.x > dir.y ? dir.x : dir.y;
-        mx      = mx > dir.z ? mx : dir.z;
-        if (mx > 0.0f)
-            dir *= 1.0f / mx;
-        else
-            dir = 1.0f;
-        lights.AddWeaterLights(clr, dir);
-    }
+    // auto isLight = FALSE;
+    // rs->GetLightEnable(0, &isLight);
+    // D3DLIGHT9 lit;
+    // if (isLight && rs->GetLight(0, &lit)) {
+    //     CVECTOR clr, dir = !CVECTOR(1.0f, 1.0f, 1.0f);
+    //     clr.x = lit.Diffuse.r;
+    //     clr.y = lit.Diffuse.g;
+    //     clr.z = lit.Diffuse.b;
+    //     if (lit.Type == D3DLIGHT_DIRECTIONAL) {
+    //         dir.x = -lit.Direction.x;
+    //         dir.y = -lit.Direction.y;
+    //         dir.z = -lit.Direction.z;
+    //     }
+    //     auto mx = dir.x > dir.y ? dir.x : dir.y;
+    //     mx      = mx > dir.z ? mx : dir.z;
+    //     if (mx > 0.0f)
+    //         dir *= 1.0f / mx;
+    //     else
+    //         dir = 1.0f;
+    //     lights.AddWeaterLights(clr, dir);
+    // }
     lights.PostInit();
     // Geometry
-    if (!geometry.Process(rs, lights.Num())) {
+    if (!geometry.Process(/*rs*/ nullptr, lights.Num())) {
         window.isFailedInit = true;
         return;
     }
@@ -148,7 +148,7 @@ void Lighter::Realize(uint32_t delta_time)
 {
     if (core->Controls->GetAsyncKeyState(VK_DECIMAL) < 0) {
         window.isNoPrepared = !isInited;
-        geometry.DrawNormals(rs);
+        // geometry.DrawNormals(rs);
     } else
         window.isNoPrepared = false;
     window.Draw(delta_time * 0.001f);

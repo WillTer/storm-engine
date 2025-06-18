@@ -14,7 +14,6 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/util/storm_assert.h>
 
 // ============================================================================================
@@ -719,7 +718,7 @@ inline float PtcData::FindHeight(int32_t trgID, float x, float z)
 }
 
 // Debug rendering
-void PtcData::DebugDraw(VDX9RENDER* rs, float dltTime)
+void PtcData::DebugDraw(/*VDX9RENDER*/ void* rs, float dltTime)
 {
     if (numTriangles <= 0) return;
     if (!dbgTriangles) {
@@ -757,7 +756,7 @@ void PtcData::DebugDraw(VDX9RENDER* rs, float dltTime)
         }
     }
     auto tech = "DbgPatchViewZ";
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, numTriangles, dbgTriangles, sizeof(DbgVertex), tech);
-    rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, numTriangles * 3, dbgEdges, sizeof(DbgVertex), tech);
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, numTriangles, dbgTriangles, sizeof(DbgVertex), tech);
+    // rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, numTriangles * 3, dbgEdges, sizeof(DbgVertex), tech);
 }

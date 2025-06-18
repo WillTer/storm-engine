@@ -194,29 +194,29 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     char const* nm   = nullptr;
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Setting the picture
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (rs) { rs->SetProgressImage(nm); }
+    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (rs) { rs->SetProgressImage(nm); }
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (rs) rs->StartProgressView();
+    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (rs) rs->StartProgressView();
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
-    auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (rs) rs->ProgressView();
+    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (rs) rs->ProgressView();
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressEnd(VS_STACK* pS)
 {
-    auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (rs) rs->EndProgressView();
+    // auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (rs) rs->EndProgressView();
     return IFUNCRESULT_OK;
 }
 
@@ -239,10 +239,10 @@ uint32_t slNativeExecuteTechnique(VS_STACK* pS)
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
     // Execute technique
     if (nm && nm[0]) {
-        auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-        rs->TechniqueExecuteStart(nm);
-        while (rs->TechniqueExecuteNext())
-            ;
+        // auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+        // rs->TechniqueExecuteStart(nm);
+        // while (rs->TechniqueExecuteNext())
+        ;
     }
     return IFUNCRESULT_OK;
 }

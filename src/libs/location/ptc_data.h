@@ -16,10 +16,7 @@
 
 #include "ptc.h"
 
-
 #define PTCDATA_MAXSTEPS 32
-
-class VDX9RENDER;
 
 class PtcData
 {
@@ -74,7 +71,7 @@ public:
     CVECTOR middle;
 
     // Debug rendering
-    void DebugDraw(VDX9RENDER* rs, float dltTime);
+    void DebugDraw(/*VDX9RENDER*/ void* rs, float dltTime);
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation

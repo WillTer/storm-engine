@@ -18,7 +18,7 @@
 // Construction, destruction
 // ============================================================================================
 
-LightProcessor::LightProcessor() : lights(nullptr), rs(nullptr), octtree(nullptr)
+LightProcessor::LightProcessor() : lights(nullptr), octtree(nullptr)
 {
     geometry       = nullptr;
     window         = nullptr;
@@ -29,13 +29,13 @@ LightProcessor::LightProcessor() : lights(nullptr), rs(nullptr), octtree(nullptr
 
 LightProcessor::~LightProcessor() {}
 
-void LightProcessor::SetParams(LGeometry* g, Window* win, LighterLights* lit, OctTree* ot, VDX9RENDER* _rs)
+void LightProcessor::SetParams(LGeometry* g, Window* win, LighterLights* lit, OctTree* ot)
 {
     geometry = g;
     window   = win;
     lights   = lit;
-    rs       = _rs;
-    octtree  = ot;
+    // rs       = _rs;
+    octtree = ot;
 }
 
 void LightProcessor::Process()
@@ -516,5 +516,5 @@ void LightProcessor::CalcLights(int32_t lit, bool isCos, bool isAtt, bool isSdw)
         }
         v.c = c;
     }
-    geometry->UpdateColors(rs);
+    // geometry->UpdateColors(rs);
 }

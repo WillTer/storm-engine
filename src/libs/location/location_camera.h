@@ -14,7 +14,6 @@
 #include <vector>
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "camera_follow.h"
 #include "path_tracks.h"
@@ -97,7 +96,6 @@ private:
     void  Clip(PLANE* p, int32_t numPlanes, CVECTOR& cnt, float rad, bool (*fnc)(const CVECTOR* vtx, int32_t num)) const;
 
 private:
-    VDX9RENDER* rs;
     // The sea
     entid_t sea;
     // Camera parameters

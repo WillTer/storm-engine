@@ -1,5 +1,5 @@
 storm_lib(
     NAME geometry
     LINK_DEPENDENCIES
-        renderer
+        renderer_next
 )

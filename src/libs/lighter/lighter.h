@@ -54,7 +54,7 @@ private:
     void PreparingData();
 
 private:
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
     LGeometry      geometry;
     OctTree        octTree;

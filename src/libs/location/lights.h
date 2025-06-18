@@ -14,39 +14,38 @@
 #include <vector>
 
 #include <libs/collide/collide.h>
-#include <libs/renderer/dx9render.h>
+#include <libs/renderer_next/types.h>
 
 class Lights: public Entity
 {
     // Light source description
     struct LightType {
-        char*         name;
-        D3DLIGHT9     dxLight;
-        D3DCOLORVALUE color;
-        float         flicker;
-        float         flickerSlow;
-        float         freq;
-        float         freqSlow;
-        float         p;
-        float         pSlow;
-        float         coronaRange;
-        float         coronaRange2;
-        float         invCoronaRange;
-        float         coronaSize;
-        int32_t       corona;
+        char*        name;
+        storm::Color color;
+        float        flicker;
+        float        flickerSlow;
+        float        freq;
+        float        freqSlow;
+        float        p;
+        float        pSlow;
+        float        coronaRange;
+        float        coronaRange2;
+        float        invCoronaRange;
+        float        coronaSize;
+        int32_t      corona;
     };
 
     // Source
     struct Light {
-        D3DCOLORVALUE color;      // Current source color
-        D3DVECTOR     pos;        // Source position
-        float         time;       // Time since last change of flickering intensity
-        float         timeSlow;   // Time since the last change in the interpolated intensity
-        float         itens;      // Shimmering intensity
-        float         itensSlow;  // Necessary interpolated intensity
-        float         itensDlt;   // Interpolated intensity difference
-        float         i;          // Resulting intensity
-        float         corona;     // Crown transparency
+        storm::Color color;      // Current source color
+        CVECTOR      pos;        // Source position
+        float        time;       // Time since last change of flickering intensity
+        float        timeSlow;   // Time since the last change in the interpolated intensity
+        float        itens;      // Shimmering intensity
+        float        itensSlow;  // Necessary interpolated intensity
+        float        itensDlt;   // Interpolated intensity difference
+        float        i;          // Resulting intensity
+        float        corona;     // Crown transparency
 
         int32_t type;  // Source type index
         uint8_t intensity;
@@ -148,8 +147,7 @@ private:
     constexpr static auto max_d3d_lights        = 8U;
     constexpr static auto max_d3d_custom_lights = max_d3d_lights - 1;
 
-    VDX9RENDER* rs;
-    COLLIDE*    collide;
+    COLLIDE* collide;
 
     // Installed light sources
     struct {

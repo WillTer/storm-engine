@@ -287,7 +287,7 @@ Character::RTuner::RTuner()
     isVisible = true;
 }
 
-void Character::RTuner::Set(MODEL* model, VDX9RENDER* rs)
+void Character::RTuner::Set(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
     auto* n = model->GetNode(0);
     if (!n) return;
@@ -300,14 +300,14 @@ void Character::RTuner::Set(MODEL* model, VDX9RENDER* rs)
     if (camAlpha > 1.0f) camAlpha = 1.0f;
     auto a = camAlpha * chrAlpha * alpha;
     if (!isVisible) a = 0.0f;
-    if (a < 0.5f) rs->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+    // if (a < 0.5f) rs->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
     if (a > 1.0f) a = 1.0f;
     if (selected < 0.0f) selected = 0.0f;
     if (selected > 1.0f) selected = 1.0f;
     auto const r = static_cast<int32_t>(0x40 * selected);
     auto const g = static_cast<int32_t>(0x10 * selected);
     auto const b = static_cast<int32_t>(0x10 * selected);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<uint32_t>(a * 255.0f) << 24) | (r << 16) | (g << 8) | b);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<uint32_t>(a * 255.0f) << 24) | (r << 16) | (g << 8) | b);
     if (selected > 0.0f) {
         if (a >= 1.0f) {
             n->SetTechnique("AnimationSelected");
@@ -327,7 +327,7 @@ void Character::RTuner::Set(MODEL* model, VDX9RENDER* rs)
     }
 }
 
-void Character::RTuner::Restore(MODEL* model, VDX9RENDER* rs)
+void Character::RTuner::Restore(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
     if (auto* const location = character->GetLocation()) {
         auto* ls = location->GetLights();
@@ -338,7 +338,7 @@ void Character::RTuner::Restore(MODEL* model, VDX9RENDER* rs)
     auto const* const chr = n->GetTechnique();
     if (*((uint32_t*)chr) != 'minA' || *((uint32_t*)(chr + 4)) != 'oita') return;
     n->SetTechnique("");
-    rs->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+    // rs->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 }
 
 float Character::RTuner::GetAlpha() const
@@ -2045,7 +2045,7 @@ void Character::Update(float dltTime)
     }
     CVECTOR camPos, camAng;
     float   perspective;
-    location->GetRS()->GetCamera(camPos, camAng, perspective);
+    // location->GetRS()->GetCamera(camPos, camAng, perspective);
     float const dxz = (curPos.x - camPos.x) * (curPos.x - camPos.x) + (curPos.z - camPos.z) * (curPos.z - camPos.z);
     if (dxz < CHARACTER_HIDE_DIST * CHARACTER_HIDE_DIST) {
         tuner.chrAlpha -= dltTime * 3.0f;
@@ -2486,14 +2486,14 @@ void Character::SetSoundPosition(int32_t id)
     CVECTOR     pos      = curPos + CVECTOR(0.0f, 1.0f, 0.0f);
     auto* const location = GetLocation();
     if (location->supervisor.player) {
-        VDX9RENDER* rs = location->GetRS();
-        if (rs) {
-            static CMatrix view, cur;
-            rs->GetTransform(D3DTS_VIEW, view);
-            cur.BuildMatrix(CVECTOR(0.0f, ay, 0.0f), location->supervisor.player->curPos);
-            cur.MulToInv(CVECTOR(pos), pos);
-            view.MulToInv(CVECTOR(pos), pos);
-        }
+        // VDX9RENDER* rs = location->GetRS();
+        // if (rs) {
+        //     static CMatrix view, cur;
+        //     rs->GetTransform(D3DTS_VIEW, view);
+        //     cur.BuildMatrix(CVECTOR(0.0f, ay, 0.0f), location->supervisor.player->curPos);
+        //     cur.MulToInv(CVECTOR(pos), pos);
+        //     view.MulToInv(CVECTOR(pos), pos);
+        // }
     }
     soundService->set_3d_param(id, SoundMessageType::Position, &pos);
 }

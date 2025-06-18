@@ -10,6 +10,8 @@
 
 #include "lighter_lights.h"
 
+#include <cstring>
+
 #include <libs/util/string_compare.hpp>
 
 // ============================================================================================
@@ -73,7 +75,7 @@ void LighterLights::AddPointLight(
     light[numLights].att2  = att2;
     light[numLights].range = range;
     if (group && group[0]) {
-        auto const len         = strlen(group) + 1;
+        auto const len         = std::strlen(group) + 1;
         light[numLights].group = new char[len];
         // strcpy_s(light[numLights].group, group);
         std::copy(group, group + len, light[numLights].group);

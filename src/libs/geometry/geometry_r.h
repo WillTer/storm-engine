@@ -1,7 +1,5 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 #include "geometry.h"
 
 //-------------------------------------------------------------------
@@ -9,7 +7,7 @@
 //-------------------------------------------------------------------
 class GeometryService final: public VGEOMETRY
 {
-    VDX9RENDER* RenderService;
+    // VDX9RENDER* RenderService;
 
 public:
     GeometryService();
@@ -30,16 +28,16 @@ public:
 
 class GEOM_SERVICE_R final: public GEOM_SERVICE
 {
-    static IDirect3DVertexDeclaration9* vertexDecl_;
-
-    VDX9RENDER* RenderService;
-    GEOS::ID    CurentIndexBuffer;
-    GEOS::ID    CurentVertexBuffer;
-    uint32_t    CurentVertexBufferSize;
-    bool        bCaustic;
+    // static IDirect3DVertexDeclaration9* vertexDecl_;
+    //
+    // VDX9RENDER* RenderService;
+    GEOS::ID CurentIndexBuffer;
+    GEOS::ID CurentVertexBuffer;
+    uint32_t CurentVertexBufferSize;
+    bool     bCaustic;
 
 public:
-    void SetRenderService(VDX9RENDER* render_service);
+    // void SetRenderService(VDX9RENDER* render_service);
 
     std::ifstream OpenFile(char const* fname) override;
     int           FileSize(char const* fname) override;

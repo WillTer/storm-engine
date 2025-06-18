@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <libs/collide/collide.h>
-#include <libs/renderer/dx9render.h>
 
 #define MAX_BLOOD_TRIANGLES 10000
 #define ON_LIVETIME_BLOOD_TRIANGLES (MAX_BLOOD_TRIANGLES * 3 / 4)
@@ -64,9 +63,9 @@ public:
     static bool AddClipPoligon(const CVECTOR* v, int32_t nv);
 
 protected:
-    VDX9RENDER* pRS;
-    COLLIDE*    pCol;
-    int32_t     texID;
+    // VDX9RENDER* pRS;
+    COLLIDE* pCol;
+    int32_t  texID;
 
     BloodTriangle pvBloodT[MAX_BLOOD_TRIANGLES];
     int32_t       nStartT;

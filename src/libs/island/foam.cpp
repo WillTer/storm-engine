@@ -5,7 +5,6 @@
 #include <libs/math/math3d.h>
 #include <libs/math/math3d/plane.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 
 CoastFoam::CoastFoam()
 {
@@ -31,23 +30,23 @@ CoastFoam::~CoastFoam()
     Save();
     clear();
 
-    if (iVBuffer >= 0) rs->ReleaseVertexBuffer(iVBuffer);
+    // if (iVBuffer >= 0) rs->ReleaseVertexBuffer(iVBuffer);
     iVBuffer = -1;
-    if (iIBuffer >= 0) rs->ReleaseIndexBuffer(iIBuffer);
+    // if (iIBuffer >= 0) rs->ReleaseIndexBuffer(iIBuffer);
     iIBuffer = -1;
 }
 
 bool CoastFoam::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
-    iVBuffer = rs->CreateVertexBuffer(
-        D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2,
-        sizeof(FoamVertex) * 5000,
-        D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
-    iIBuffer = rs->CreateIndexBuffer(10000 * 2 * 3, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
+    // iVBuffer = rs->CreateVertexBuffer(
+    //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2,
+    //     sizeof(FoamVertex) * 5000,
+    //     D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
+    // iIBuffer = rs->CreateIndexBuffer(10000 * 2 * 3, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
 
-    iCursorTex = rs->TextureCreate("cursor.tga");
+    // iCursorTex = rs->TextureCreate("cursor.tga");
 
     Load();
 
@@ -61,23 +60,23 @@ void CoastFoam::Execute(uint32_t Delta_Time)
     auto fDeltaTime = static_cast<float>(Delta_Time) * 0.001f;
 }
 
-void CoastFoam::ExtractRay(const D3DVIEWPORT9& viewport, float fCursorX, float fCursorY, CVECTOR& raystart, CVECTOR& rayend)
+void CoastFoam::ExtractRay(float fCursorX, float fCursorY, CVECTOR& raystart, CVECTOR& rayend)
 {
-    auto    matProj = rs->GetProjection();
+    // auto    matProj = rs->GetProjection();
     CVECTOR v;
-    v.x = (((2.0f * fCursorX) / viewport.Width) - 1) / matProj.m[0][0];
-    v.y = -(((2.0f * fCursorY) / viewport.Height) - 1) / matProj.m[1][1];
+    // v.x = (((2.0f * fCursorX) / viewport.Width) - 1) / matProj.m[0][0];
+    // v.y = -(((2.0f * fCursorY) / viewport.Height) - 1) / matProj.m[1][1];
     v.z = 1.0f;
 
     CMatrix mView3x3;
-    auto    mView = rs->GetView();
-    mView.Transposition();
-    mView.Get3X3(&mView3x3);
+    // auto    mView = rs->GetView();
+    // mView.Transposition();
+    // mView.Get3X3(&mView3x3);
 
     CVECTOR raydir;
     CVECTOR rayorig;
-    raydir  = mView3x3 * v;
-    rayorig = mView.Pos();
+    raydir = mView3x3 * v;
+    // rayorig = mView.Pos();
 
     raystart = rayorig;
     rayend   = (rayorig + (raydir * 5000.f));
@@ -85,25 +84,25 @@ void CoastFoam::ExtractRay(const D3DVIEWPORT9& viewport, float fCursorX, float f
 
 void CoastFoam::Realize(uint32_t Delta_Time)
 {
-    pFrustumPlanes = rs->GetPlanes();
+    // pFrustumPlanes = rs->GetPlanes();
 
     if (pSea == nullptr) {
         pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
         if (pSea == nullptr) return;
     }
 
-    auto         fDeltaTime = static_cast<float>(Delta_Time) * 0.001f;
-    D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
+    auto fDeltaTime = static_cast<float>(Delta_Time) * 0.001f;
+    // D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
 
     CMatrix mWorld;
     mWorld.SetIdentity();  // rs->GetWorld();
-    auto mView       = rs->GetView();
-    auto mProjection = rs->GetProjection();
+    // auto mView       = rs->GetView();
+    // auto mProjection = rs->GetProjection();
 
     CMatrix mWV, mWVP;
-    mWV.EqMultiply(mWorld, mView);
-    mWVP.EqMultiply(mWV, mProjection);
+    // mWV.EqMultiply(mWorld, mView);
+    // mWVP.EqMultiply(mWV, mProjection);
 
     uint64_t dw1;
     dwNumPenasExecuted = 0;
@@ -122,78 +121,78 @@ void CoastFoam::Realize(uint32_t Delta_Time)
 
     if (!bCanEdit) return;
 
-    std::vector<RS_LINE> aLines;
-    std::vector<RS_RECT> aRects;
+    // std::vector<RS_LINE> aLines;
+    // std::vector<RS_RECT> aRects;
 
     if (bEditMode)
         for (int32_t i = 0; i < aFoams.size(); i++) {
-            aLines.clear();
-            aRects.clear();
+            // aLines.clear();
+            // aRects.clear();
 
             auto pF = aFoams[i];
             for (int32_t j = 0; j < pF->aFoamParts.size(); j++) {
-                RS_LINE rl, r2;
-                rl.dwColor = 0xFFFFFFFF;
-                r2.dwColor = 0xFFFFFFFF;
+                // RS_LINE rl, r2;
+                // rl.dwColor = 0xFFFFFFFF;
+                // r2.dwColor = 0xFFFFFFFF;
 
-                rl.vPos = pF->aFoamParts[j].v[0];
-                r2.vPos = pF->aFoamParts[j].v[1];
-                aLines.push_back(rl);
-                aLines.push_back(r2);
+                // rl.vPos = pF->aFoamParts[j].v[0];
+                // r2.vPos = pF->aFoamParts[j].v[1];
+                // aLines.push_back(rl);
+                // aLines.push_back(r2);
 
-                if (j != pF->aFoamParts.size() - 1) {
-                    rl.vPos = pF->aFoamParts[j].v[0];
-                    r2.vPos = pF->aFoamParts[j + 1].v[0];
-                    aLines.push_back(rl);
-                    aLines.push_back(r2);
+                // if (j != pF->aFoamParts.size() - 1) {
+                // rl.vPos = pF->aFoamParts[j].v[0];
+                // r2.vPos = pF->aFoamParts[j + 1].v[0];
+                // aLines.push_back(rl);
+                // aLines.push_back(r2);
 
-                    rl.vPos = pF->aFoamParts[j].v[1];
-                    r2.vPos = pF->aFoamParts[j + 1].v[1];
-                    aLines.push_back(rl);
-                    aLines.push_back(r2);
-                }
+                // rl.vPos = pF->aFoamParts[j].v[1];
+                // r2.vPos = pF->aFoamParts[j + 1].v[1];
+                // aLines.push_back(rl);
+                // aLines.push_back(r2);
+                // }
 
-                rl.vPos = pF->aFoamParts[j].v[0];
-                r2.vPos = pF->aFoamParts[j].v[1];
-                aLines.push_back(rl);
-                aLines.push_back(r2);
+                // rl.vPos = pF->aFoamParts[j].v[0];
+                // r2.vPos = pF->aFoamParts[j].v[1];
+                // aLines.push_back(rl);
+                // aLines.push_back(r2);
 
                 if (bEditMode) {
                     auto           v1 = pF->aFoamParts[j].v[0];
                     auto           v2 = pF->aFoamParts[j].v[1];
                     MTX_PRJ_VECTOR vP1, vP2;
-                    mWVP.Projection(
-                        &v1,
-                        &vP1,
-                        1,
-                        static_cast<float>(vp.Width) * 0.5f,
-                        static_cast<float>(vp.Height) * 0.5f,
-                        sizeof(CVECTOR),
-                        sizeof(MTX_PRJ_VECTOR));
-                    mWVP.Projection(
-                        &v2,
-                        &vP2,
-                        1,
-                        static_cast<float>(vp.Width) * 0.5f,
-                        static_cast<float>(vp.Height) * 0.5f,
-                        sizeof(CVECTOR),
-                        sizeof(MTX_PRJ_VECTOR));
+                    // mWVP.Projection(
+                    //     &v1,
+                    //     &vP1,
+                    //     1,
+                    //     static_cast<float>(vp.Width) * 0.5f,
+                    //     static_cast<float>(vp.Height) * 0.5f,
+                    //     sizeof(CVECTOR),
+                    //     sizeof(MTX_PRJ_VECTOR));
+                    // mWVP.Projection(
+                    //     &v2,
+                    //     &vP2,
+                    //     1,
+                    //     static_cast<float>(vp.Width) * 0.5f,
+                    //     static_cast<float>(vp.Height) * 0.5f,
+                    //     sizeof(CVECTOR),
+                    //     sizeof(MTX_PRJ_VECTOR));
                     auto fR1 = 0.15f;
                     auto fR2 = 0.15f;
                     if (SQR(vP1.x - fCursorPosX) + SQR(vP1.y - fCursorPosY) < 100.0f) fR1 = 0.3f;
                     if (SQR(vP2.x - fCursorPosX) + SQR(vP2.y - fCursorPosY) < 100.0f) fR2 = 0.3f;
 
-                    RS_RECT r1, r2;
-                    r1.vPos    = v1;
-                    r1.dwColor = 0xFFFFFF00;
-                    r1.fAngle  = 0.0f;
-                    r1.fSize   = fR1;
-                    r2.vPos    = v2;
-                    r2.dwColor = 0xFF00FF00;
-                    r2.fAngle  = 0.0f;
-                    r2.fSize   = fR2;
-                    aRects.push_back(r1);
-                    aRects.push_back(r2);
+                    // RS_RECT r1, r2;
+                    // r1.vPos    = v1;
+                    // r1.dwColor = 0xFFFFFF00;
+                    // r1.fAngle  = 0.0f;
+                    // r1.fSize   = fR1;
+                    // r2.vPos    = v2;
+                    // r2.dwColor = 0xFF00FF00;
+                    // r2.fAngle  = 0.0f;
+                    // r2.fSize   = fR2;
+                    // aRects.push_back(r1);
+                    // aRects.push_back(r2);
                     // RS_RECT & r1 = aRects[aRects.Add()];
                     // r1.vPos = v1; r1.dwColor = 0xFFFFFF00; r1.fAngle = 0.0f; r1.fSize = fR1;
                     // RS_RECT & r2 = aRects[aRects.Add()];
@@ -203,10 +202,10 @@ void CoastFoam::Realize(uint32_t Delta_Time)
 
             CMatrix mI;
             mI.SetIdentity();
-            rs->SetWorld(mI);
-            if (bEditMode) rs->DrawLines(aLines.data(), aLines.size() / 2, "Line");
+            // rs->SetWorld(mI);
+            // if (bEditMode) rs->DrawLines(aLines.data(), aLines.size() / 2, "Line");
 
-            rs->DrawRects(aRects.data(), aRects.size(), "FoamPoints");
+            // rs->DrawRects(aRects.data(), aRects.size(), "FoamPoints");
         }
 
     auto bShift = core->Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0;
@@ -215,7 +214,7 @@ void CoastFoam::Realize(uint32_t Delta_Time)
     if (bShift && core->Controls->GetDebugAsyncKeyState('S') < 0) Save();
 
     if (bEditMode) {
-        RS_SPRITE spr[4];
+        // RS_SPRITE spr[4];
 
         auto fMinDistance = 1e10f;
         if (!bMoved) {
@@ -229,14 +228,14 @@ void CoastFoam::Realize(uint32_t Delta_Time)
                         MTX_PRJ_VECTOR vP;
                         auto           v = pF->aFoamParts[j].v[k];
 
-                        mWVP.Projection(
-                            &v,
-                            &vP,
-                            1,
-                            static_cast<float>(vp.Width) * 0.5f,
-                            static_cast<float>(vp.Height) * 0.5f,
-                            sizeof(CVECTOR),
-                            sizeof(MTX_PRJ_VECTOR));
+                        // mWVP.Projection(
+                        //     &v,
+                        //     &vP,
+                        //     1,
+                        //     static_cast<float>(vp.Width) * 0.5f,
+                        //     static_cast<float>(vp.Height) * 0.5f,
+                        //     sizeof(CVECTOR),
+                        //     sizeof(MTX_PRJ_VECTOR));
                         auto fD = SQR(vP.x - fCursorPosX) + SQR(vP.y - fCursorPosY);
                         if (fD < 100.0f && fD < fMinDistance) {
                             fMinDistance = fD;
@@ -251,13 +250,13 @@ void CoastFoam::Realize(uint32_t Delta_Time)
         }
         auto x = fCursorPosX, dx = 32.0f;
         auto y = fCursorPosY, dy = 32.0f;
-        FillSpriteVertex(spr[0], x, y, 0.1f, 0xFFFFFFFF, 0.0f, 0.0f);
-        FillSpriteVertex(spr[1], x, y + dy, 0.1f, 0xFFFFFFFF, 0.0f, 1.0f);
-        FillSpriteVertex(spr[2], x + dx, y + dy, 0.1f, 0xFFFFFFFF, 1.0f, 1.0f);
-        FillSpriteVertex(spr[3], x + dx, y, 0.1f, 0xFFFFFFFF, 1.0f, 0.0f);
+        // FillSpriteVertex(spr[0], x, y, 0.1f, 0xFFFFFFFF, 0.0f, 0.0f);
+        // FillSpriteVertex(spr[1], x, y + dy, 0.1f, 0xFFFFFFFF, 0.0f, 1.0f);
+        // FillSpriteVertex(spr[2], x + dx, y + dy, 0.1f, 0xFFFFFFFF, 1.0f, 1.0f);
+        // FillSpriteVertex(spr[3], x + dx, y, 0.1f, 0xFFFFFFFF, 1.0f, 0.0f);
 
-        rs->TextureSet(0, iCursorTex);
-        rs->DrawSprites(spr, 1, "Sprite");
+        // rs->TextureSet(0, iCursorTex);
+        // rs->DrawSprites(spr, 1, "Sprite");
 
         auto bSelected = iEditFoam >= 0 && iEditFoamPart >= 0 && iEditFoamVertex >= 0;
 
@@ -268,8 +267,8 @@ void CoastFoam::Realize(uint32_t Delta_Time)
         core->Controls->GetControlState("Turn V", csV);
         fCursorPosY += csV.lValue;
 
-        fCursorPosX = Max(0.0f, Min(fCursorPosX, static_cast<float>(vp.Width)));
-        fCursorPosY = Max(0.0f, Min(fCursorPosY, static_cast<float>(vp.Height)));
+        // fCursorPosX = Max(0.0f, Min(fCursorPosX, static_cast<float>(vp.Width)));
+        // fCursorPosY = Max(0.0f, Min(fCursorPosY, static_cast<float>(vp.Height)));
 
         core->Controls->GetControlState("CoastFoamLB", cs);
 
@@ -277,7 +276,7 @@ void CoastFoam::Realize(uint32_t Delta_Time)
 
         if (cs.state == CST_INACTIVE && bMoved) { bMoved = false; }
         CVECTOR vStart, vEnd;
-        ExtractRay(vp, fCursorPosX, fCursorPosY, vStart, vEnd);
+        // ExtractRay(vp, fCursorPosX, fCursorPosY, vStart, vEnd);
 
         if (bMoved && (csH.lValue || csV.lValue)) {
             if (bSelected && (vStart.y > 0.0f && vStart.y > vEnd.y)) {
@@ -328,29 +327,29 @@ void CoastFoam::Realize(uint32_t Delta_Time)
         if (csIns.state == CST_ACTIVATED) {
             if (bShift) {
                 // insert new foam
-                auto mIView = rs->GetView();
-                mIView.Transposition();
+                // auto mIView = rs->GetView();
+                // mIView.Transposition();
                 auto* pF = new Foam();
 
                 InitNewFoam(pF);
 
-                auto vPos = mIView.Pos();
-                vPos.y    = 0.0f;
-                auto vZ   = mIView.Vz();
-                vZ.y      = 0.0;
-                vZ        = !vZ;
-                auto vX   = mIView.Vx();
-                vX.y      = 0.0;
-                vX        = !vX;
+                // auto vPos = mIView.Pos();
+                // vPos.y    = 0.0f;
+                // auto vZ   = mIView.Vz();
+                // vZ.y      = 0.0;
+                // vZ        = !vZ;
+                // auto vX   = mIView.Vx();
+                // vX.y      = 0.0;
+                // vX        = !vX;
 
-                FoamPart foam1, foam2;
-                foam1.v[0] = vPos;
-                foam1.v[1] = vPos + vZ * 6.0f;
-                foam2.v[0] = vPos + vX * 3.0f;
-                foam2.v[1] = vPos + vX * 3.0f + vZ * 6.0f;
-
-                pF->aFoamParts.emplace_back(foam1);
-                pF->aFoamParts.emplace_back(foam2);
+                // FoamPart foam1, foam2;
+                // foam1.v[0] = vPos;
+                // foam1.v[1] = vPos + vZ * 6.0f;
+                // foam2.v[0] = vPos + vX * 3.0f;
+                // foam2.v[1] = vPos + vX * 3.0f + vZ * 6.0f;
+                //
+                // pF->aFoamParts.emplace_back(foam1);
+                // pF->aFoamParts.emplace_back(foam2);
 
                 // RecalculateFoam( aFoams.Add(pF) );
                 aFoams.push_back(pF);
@@ -364,12 +363,6 @@ void CoastFoam::Realize(uint32_t Delta_Time)
                     foam.v[0] = 2.0f * foam2->v[0] - foam1->v[0];
                     foam.v[1] = 2.0f * foam2->v[1] - foam1->v[1];
                     pF->aFoamParts.push_back(foam);
-
-                    // FoamPart * pFP = &pF->aFoamParts[pF->aFoamParts.Add()];
-                    // FoamPart * pFP1 = &pF->aFoamParts[pF->aFoamParts.Last() - 2];
-                    // FoamPart * pFP2 = &pF->aFoamParts[pF->aFoamParts.Last() - 1];
-                    // pFP->v[0] = 2.0f * pFP2->v[0] - pFP1->v[0];
-                    // pFP->v[1] = 2.0f * pFP2->v[1] - pFP1->v[1];
                 } else {
                     pF->aFoamParts.insert(pF->aFoamParts.begin() + iEditFoamPart, FoamPart {});
                     pF->aFoamParts[iEditFoamPart] = pF->aFoamParts[iEditFoamPart + 1];
@@ -409,7 +402,7 @@ void CoastFoam::InitNewFoam(Foam* pF)
     pF->sTexture   = "foam.tga";
     pF->iNumFoams  = 2;
 
-    pF->iTexture = rs->TextureCreate(("weather/coastfoam/" + pF->sTexture).c_str());
+    // pF->iTexture = rs->TextureCreate(("weather/coastfoam/" + pF->sTexture).c_str());
 }
 
 void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
@@ -419,7 +412,7 @@ void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
 
     CVECTOR vCamPos, vCamAng;
     float   fPerspective;
-    rs->GetCamera(vCamPos, vCamAng, fPerspective);
+    // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 
     auto const fDistance = sqrtf(~(pF->aWorkParts[0].v[0] - vCamPos));
     if (fDistance > fMaxFoamDistance) return;
@@ -473,8 +466,8 @@ void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
 
         pF->fMove[k] += pF->fSpeed[k] * fDeltaTime;
 
-        auto* pFV = static_cast<FoamVertex*>(rs->LockVertexBuffer(iVBuffer, D3DLOCK_DISCARD));
-        auto* pI  = static_cast<uint16_t*>(rs->LockIndexBuffer(iIBuffer, D3DLOCK_DISCARD));
+        // auto* pFV = static_cast<FoamVertex*>(rs->LockVertexBuffer(iVBuffer, D3DLOCK_DISCARD));
+        // auto* pI  = static_cast<uint16_t*>(rs->LockIndexBuffer(iIBuffer, D3DLOCK_DISCARD));
 
         int32_t iNumVertices = 0;
 
@@ -487,40 +480,40 @@ void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
                 auto fAlpha1 = 1.0f;
                 if (x <= 4) fAlpha1 = static_cast<float>(x) / 4.0f;
                 if (x >= iLen - 5) fAlpha1 = static_cast<float>((iLen - 1) - x) / 4.0f;
-                auto const dwColor = ARGB(static_cast<uint32_t>(pF->fAlphaColor[k] * fAlpha * fAlpha1 * 255.0f), 255, 255, 255);
+                auto const dwColor =
+                    storm::Color {static_cast<uint8_t>(pF->fAlphaColor[k] * fAlpha * fAlpha1 * 255.0f), 255, 255, 255}.to_hex();
 
                 auto vPos = pWP->v[0] + (pF->fMove[k] * static_cast<float>(y) / 7.0f) * (pWP->v[1] - pWP->v[0]);
                 vPos.y    = fFoamDeltaY + pSea->WaveXZ(vPos.x, vPos.z);
-                // vPos.y += 3.0f * fAmp * sinf(float(y) / 7.0f * PI);
-                pFV[x + y * iLen].vPos    = vPos;
-                pFV[x + y * iLen].dwColor = dwColor;
-                pFV[x + y * iLen].tu      = pF->fSX[k] + pWP->tu;
-                pFV[x + y * iLen].tv      = 1.0f - dy;
+                // pFV[x + y * iLen].vPos    = vPos;
+                // pFV[x + y * iLen].dwColor = dwColor;
+                // pFV[x + y * iLen].tu      = pF->fSX[k] + pWP->tu;
+                // pFV[x + y * iLen].tv      = 1.0f - dy;
                 iNumVertices++;
             }
         }
 
         // setup ibuffer
-        for (int32_t y = 0; y < 7; y++) {
-            for (int32_t x = 0; x < iLen - 1; x++) {
-                *pI++ = static_cast<uint16_t>((y + 0) * iLen + x);
-                *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
-                *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+        // for (int32_t y = 0; y < 7; y++) {
+        //     for (int32_t x = 0; x < iLen - 1; x++) {
+        //         *pI++ = static_cast<uint16_t>((y + 0) * iLen + x);
+        //         *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
+        //         *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+        //
+        //         *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
+        //         *pI++ = static_cast<uint16_t>((y + 1) * iLen + x + 1);
+        //         *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+        //     }
+        // }
 
-                *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
-                *pI++ = static_cast<uint16_t>((y + 1) * iLen + x + 1);
-                *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
-            }
-        }
-
-        rs->UnLockIndexBuffer(iIBuffer);
-        rs->UnLockVertexBuffer(iVBuffer);
+        // rs->UnLockIndexBuffer(iIBuffer);
+        // rs->UnLockVertexBuffer(iVBuffer);
 
         CMatrix mI;
         mI.SetIdentity();
-        rs->SetWorld(mI);
-        rs->TextureSet(0, pF->iTexture);
-        rs->DrawBuffer(iVBuffer, sizeof(FoamVertex), iIBuffer, 0, iNumVertices, 0, 7 * 2 * (iLen - 1), "CoastFoam");
+        // rs->SetWorld(mI);
+        // rs->TextureSet(0, pF->iTexture);
+        // rs->DrawBuffer(iVBuffer, sizeof(FoamVertex), iIBuffer, 0, iNumVertices, 0, 7 * 2 * (iLen - 1), "CoastFoam");
     }
 }
 
@@ -528,9 +521,9 @@ bool CoastFoam::IsClipped(Foam* pF)
 {
     if (!pF) return true;
 
-    float   fPerspective;
-    CVECTOR vCamPos, vCamAng;
-    rs->GetCamera(vCamPos, vCamAng, fPerspective);
+    // float   fPerspective;
+    // CVECTOR vCamPos, vCamAng;
+    // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 
     CVECTOR        vP[4];
     uint32_t       dwPlanesPoints[4];
@@ -567,15 +560,15 @@ void CoastFoam::ExecuteFoamType1(Foam* pF, float fDeltaTime)
 
     CVECTOR vCamPos, vCamAng;
     float   fPerspective;
-    rs->GetCamera(vCamPos, vCamAng, fPerspective);
+    // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 
     auto const fDistance = sqrtf(~(pF->aWorkParts[0].v[0] - vCamPos));
     if (fDistance > fMaxFoamDistance) return;
 
     if (IsClipped(pF)) return;
 
-    auto* pFV = static_cast<FoamVertex*>(rs->LockVertexBuffer(iVBuffer, D3DLOCK_DISCARD));
-    auto* pI  = static_cast<uint16_t*>(rs->LockIndexBuffer(iIBuffer, D3DLOCK_DISCARD));
+    // auto* pFV = static_cast<FoamVertex*>(rs->LockVertexBuffer(iVBuffer, D3DLOCK_DISCARD));
+    // auto* pI  = static_cast<uint16_t*>(rs->LockIndexBuffer(iIBuffer, D3DLOCK_DISCARD));
 
     int32_t iNumVertices = 0;
 
@@ -584,7 +577,7 @@ void CoastFoam::ExecuteFoamType1(Foam* pF, float fDeltaTime)
     for (int32_t y = 0; y < 8; y++) {
         auto const dy      = y / 7.0f;
         auto const fAlpha  = Clampf(2.5f * (1.0f - dy) * dy);
-        auto       dwColor = ARGB(static_cast<uint32_t>(fAlpha * 255.0f), 255, 255, 255);
+        auto       dwColor = storm::Color {static_cast<uint8_t>(fAlpha * 255.0f), 255, 255, 255}.to_hex();
         for (int32_t x = 0; x < iLen; x++) {
             auto* pWP = &pF->aWorkParts[x];
 
@@ -596,7 +589,7 @@ void CoastFoam::ExecuteFoamType1(Foam* pF, float fDeltaTime)
 
             if (x >= iLen - 4) fAlpha1 *= static_cast<float>((iLen - 1) - x) / 4.0f;
 
-            auto const dwColor = ARGB(static_cast<uint32_t>(fAlpha1 * 255.0f), 255, 255, 255);
+            auto const dwColor = storm::Color {static_cast<uint8_t>(fAlpha1 * 255.0f), 255, 255, 255}.to_hex();
 
             auto fAmp = (1.0f - pWP->p[y].fPos) / 4.0f;
             if (y == 0 && pWP->p[y].fPos >= 0.6f) {
@@ -608,35 +601,35 @@ void CoastFoam::ExecuteFoamType1(Foam* pF, float fDeltaTime)
             auto vPos = pWP->v[0] + pWP->p[y].fPos * (pWP->v[1] - pWP->v[0]);
             vPos.y    = fFoamDeltaY + pSea->WaveXZ(vPos.x, vPos.z);
             // vPos.y += 3.0f * fAmp * sinf(float(y) / 7.0f * PI);
-            pFV[x + y * iLen].vPos    = vPos;
-            pFV[x + y * iLen].dwColor = dwColor;
-            pFV[x + y * iLen].tu      = pWP->tu;
-            pFV[x + y * iLen].tv      = dy * 2.0f;
+            // pFV[x + y * iLen].vPos    = vPos;
+            // pFV[x + y * iLen].dwColor = dwColor;
+            // pFV[x + y * iLen].tu      = pWP->tu;
+            // pFV[x + y * iLen].tv      = dy * 2.0f;
             iNumVertices++;
         }
     }
 
     // setup ibuffer
-    for (int32_t y = 0; y < 7; y++) {
-        for (int32_t x = 0; x < iLen - 1; x++) {
-            *pI++ = static_cast<uint16_t>((y + 0) * iLen + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
-            *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+    // for (int32_t y = 0; y < 7; y++) {
+    //     for (int32_t x = 0; x < iLen - 1; x++) {
+    // *pI++ = static_cast<uint16_t>((y + 0) * iLen + x);
+    // *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
+    // *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+    //
+    // *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
+    // *pI++ = static_cast<uint16_t>((y + 1) * iLen + x + 1);
+    // *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
+    //     }
+    // }
 
-            *pI++ = static_cast<uint16_t>((y + 1) * iLen + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * iLen + x + 1);
-            *pI++ = static_cast<uint16_t>((y + 0) * iLen + x + 1);
-        }
-    }
-
-    rs->UnLockIndexBuffer(iIBuffer);
-    rs->UnLockVertexBuffer(iVBuffer);
+    // rs->UnLockIndexBuffer(iIBuffer);
+    // rs->UnLockVertexBuffer(iVBuffer);
 
     CMatrix mI;
     mI.SetIdentity();
-    rs->SetWorld(mI);
-    rs->TextureSet(0, pF->iTexture);
-    rs->DrawBuffer(iVBuffer, sizeof(FoamVertex), iIBuffer, 0, iNumVertices, 0, 7 * 2 * (iLen - 1), "CoastFoam");
+    // rs->SetWorld(mI);
+    // rs->TextureSet(0, pF->iTexture);
+    // rs->DrawBuffer(iVBuffer, sizeof(FoamVertex), iIBuffer, 0, iNumVertices, 0, 7 * 2 * (iLen - 1), "CoastFoam");
 }
 
 void CoastFoam::RecalculateFoam(int32_t iFoam)
@@ -754,7 +747,7 @@ void CoastFoam::Save()
 void CoastFoam::clear()
 {
     for (auto& foam: aFoams) {
-        if (foam->iTexture >= 0) rs->TextureRelease(foam->iTexture);
+        // if (foam->iTexture >= 0) rs->TextureRelease(foam->iTexture);
         delete foam;
     }
 }
@@ -801,8 +794,8 @@ void CoastFoam::Load()
 
         pI->ReadString(cSection, "Texture", cTemp, sizeof(cTemp), "foam.tga");
         pF->sTexture = cTemp;
-        pF->iTexture = rs->TextureCreate((std::string("weather/coastfoam/") + cTemp).c_str());
-        pF->Type     = static_cast<FOAMTYPE>(pI->GetInt(cSection, "Type", FOAM_TYPE_2));
+        // pF->iTexture = rs->TextureCreate((std::string("weather/coastfoam/") + cTemp).c_str());
+        pF->Type = static_cast<FOAMTYPE>(pI->GetInt(cSection, "Type", FOAM_TYPE_2));
 
         for (int32_t j = 0; j < ((iNumParts) ? iNumParts : 100000); j++) {
             sprintf_s(cKey, "key_%d", j);

@@ -14,7 +14,7 @@ Blood::ClipTriangle Blood::clipT[MAX_CLIPPING_TRIANGLES];
 int32_t             Blood::nClipTQ;
 CVECTOR             Blood::normal;
 
-Blood::Blood() : pRS(nullptr), pCol(nullptr), pvBloodT {}
+Blood::Blood() : pCol(nullptr), pvBloodT {}
 {
     texID   = -1;
     nStartT = 0;
@@ -23,20 +23,16 @@ Blood::Blood() : pRS(nullptr), pCol(nullptr), pvBloodT {}
 
 Blood::~Blood()
 {
-    if (texID != -1) pRS->TextureRelease(texID);
     texID = -1;
 }
 
 // Initialization
 bool Blood::Init()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
-
     pCol = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCol);
 
-    texID = pRS->TextureCreate("blood.tga");
+    // texID = pRS->TextureCreate("blood.tga");
 
     return true;
 }
@@ -81,41 +77,41 @@ void Blood::Realize(uint32_t delta_time)
     if (nUsedTQ > 0) {
         uint32_t dwOldTF, dwAmbient;
 
-        pRS->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTF);
-        pRS->GetRenderState(D3DRS_AMBIENT, &dwAmbient);
-        pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwAmbient);
+        // pRS->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTF);
+        // pRS->GetRenderState(D3DRS_AMBIENT, &dwAmbient);
+        // pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwAmbient);
 
-        pRS->TextureSet(0, texID);
-        CMatrix mtx;
-        mtx.SetIdentity();
-        pRS->SetWorld(mtx);
+        // pRS->TextureSet(0, texID);
+        // CMatrix mtx;
+        // mtx.SetIdentity();
+        // pRS->SetWorld(mtx);
 
-        if (nStartT + nUsedTQ <= MAX_BLOOD_TRIANGLES) {
-            pRS->DrawPrimitiveUP(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-                nUsedTQ,
-                static_cast<void*>(&pvBloodT[nStartT]),
-                sizeof(BloodVertex),
-                "Blood");
-        } else {
-            pRS->DrawPrimitiveUP(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-                MAX_BLOOD_TRIANGLES - nStartT,
-                static_cast<void*>(&pvBloodT[nStartT]),
-                sizeof(BloodVertex),
-                "Blood");
-            pRS->DrawPrimitiveUP(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-                nStartT + nUsedTQ - MAX_BLOOD_TRIANGLES,
-                static_cast<void*>(pvBloodT),
-                sizeof(BloodVertex),
-                "Blood");
-        }
-
-        pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTF);
+        // if (nStartT + nUsedTQ <= MAX_BLOOD_TRIANGLES) {
+        //     pRS->DrawPrimitiveUP(
+        //         D3DPT_TRIANGLELIST,
+        //         D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+        //         nUsedTQ,
+        //         static_cast<void*>(&pvBloodT[nStartT]),
+        //         sizeof(BloodVertex),
+        //         "Blood");
+        // } else {
+        //     pRS->DrawPrimitiveUP(
+        //         D3DPT_TRIANGLELIST,
+        //         D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+        //         MAX_BLOOD_TRIANGLES - nStartT,
+        //         static_cast<void*>(&pvBloodT[nStartT]),
+        //         sizeof(BloodVertex),
+        //         "Blood");
+        //     pRS->DrawPrimitiveUP(
+        //         D3DPT_TRIANGLELIST,
+        //         D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+        //         nStartT + nUsedTQ - MAX_BLOOD_TRIANGLES,
+        //         static_cast<void*>(pvBloodT),
+        //         sizeof(BloodVertex),
+        //         "Blood");
+        // }
+        //
+        // pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTF);
     }
 }
 

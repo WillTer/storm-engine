@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/entity.h>
 
 class Fader: public Entity
 {
@@ -48,9 +48,6 @@ public:
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
-    VDX9RENDER*        rs;
-    IDirect3DTexture9* tex;
-
     bool  isWork;
     bool  haveFrame;
     bool  fadeIn;

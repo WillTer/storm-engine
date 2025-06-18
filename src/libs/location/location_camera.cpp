@@ -84,8 +84,8 @@ LocationCamera::~LocationCamera()
 bool LocationCamera::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
 
     // core->LayerCreate("execute", true, false);
     core->SetLayerType(EXECUTE, layer_type_t::execute);
@@ -101,8 +101,7 @@ bool LocationCamera::Init()
     // try to get the location
     loc = core->GetEntityId("Location");
 
-    rs->SetPerspective(cameraPerspective);
-    // rs->SetPerspective(1.0f);
+    // rs->SetPerspective(cameraPerspective);
 
     StoreRestoreDynamicFov(false);
 
@@ -282,7 +281,7 @@ void LocationCamera::Realize(uint32_t delta_time)
     auto vUp = CVECTOR(0.0f, 1.0f, 0.0f);
     if (dynamic_fog.isOn) ProcessDynamicFov(core->GetDeltaTime() * .001f, realPos, lookTo, vUp);
 
-    rs->SetCamera(realPos, lookTo, vUp);
+    // rs->SetCamera(realPos, lookTo, vUp);
 
 #ifdef CAMERA_VIEW_TEST_ENABLE
     // Set the new camera position
@@ -352,7 +351,7 @@ uint64_t LocationCamera::ProcessMessage(MESSAGE& message)
     case MSG_CAMERA_SET_RADIUS: radius = message.Float(); return 1;
     case MSG_CAMERA_SET_PERSPECTIVE:
         cameraPerspective = message.Float();
-        rs->SetPerspective(cameraPerspective);
+        // rs->SetPerspective(cameraPerspective);
         return 1;
     // internal
     case -1: {
@@ -551,7 +550,7 @@ void LocationCamera::ProcessDynamicFov(float fDeltaTime, const CVECTOR& vFrom, c
 {
     if (dynamic_fog.fFogTimeMax > 0.f) dynamic_fog.fFogTimeCur += fDeltaTime;
     if (dynamic_fog.fFogTimeMax > 0.f && dynamic_fog.fFogTimeCur >= dynamic_fog.fFogTimeMax) {
-        rs->SetPerspective(cameraPerspective);
+        // rs->SetPerspective(cameraPerspective);
         dynamic_fog.isOn = false;
     } else {
         if (dynamic_fog.bFogUp) {
@@ -567,7 +566,7 @@ void LocationCamera::ProcessDynamicFov(float fDeltaTime, const CVECTOR& vFrom, c
                 dynamic_fog.bFogUp  = true;
             }
         }
-        rs->SetPerspective(dynamic_fog.fCurFov);
+        // rs->SetPerspective(dynamic_fog.fCurFov);
 
         if (dynamic_fog.bAngleUp) {
             dynamic_fog.fCurAngle += dynamic_fog.fAngleSpeed * fDeltaTime;
@@ -658,8 +657,8 @@ bool LocationCamera::LoadCameraTrack(char const* pcTrackFile, float fTrackTime)
     view.v.vz = -view.v.vz;
     view.Inverse();
     view.v.pos = view * -pos;
-    rs->SetView(*(CMatrix*)&view);
-    rs->SetPerspective(cameraPerspective);
+    // rs->SetView(*(CMatrix*)&view);
+    // rs->SetPerspective(cameraPerspective);
 
     return true;
 }
@@ -703,8 +702,8 @@ void LocationCamera::ProcessTrackCamera()
     view.v.vz = -view.v.vz;
     view.Inverse();
     view.v.pos = view * -pos;
-    rs->SetView(*(CMatrix*)&view);
-    rs->SetPerspective(cameraPerspective);
+    // rs->SetView(*(CMatrix*)&view);
+    // rs->SetPerspective(cameraPerspective);
 }
 
 float LocationCamera::TrackPauseProcess()

@@ -12,7 +12,6 @@
 
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/renderer/dx9render.h>
 
 // ============================================================================================
 // Construction, destruction
@@ -26,17 +25,16 @@ CharacterAnimationKipper::CharacterAnimationKipper()
     for (int32_t i = 0; i < sizeof(lockTextures) / sizeof(int32_t); i++)
         lockTextures[i] = -1;
     numLTextures = 0;
-    rs           = nullptr;
 }
 
 CharacterAnimationKipper::~CharacterAnimationKipper()
 {
     delete aniMan;
     delete aniWoman;
-    if (rs) {
-        for (int32_t i = 0; i < sizeof(lockTextures) / sizeof(int32_t); i++)
-            if (lockTextures[i] >= 0) rs->TextureRelease(lockTextures[i]);
-    }
+    // if (rs) {
+    //     for (int32_t i = 0; i < sizeof(lockTextures) / sizeof(int32_t); i++)
+    //         if (lockTextures[i] >= 0) rs->TextureRelease(lockTextures[i]);
+    // }
 }
 
 // Initialization
@@ -51,8 +49,8 @@ bool CharacterAnimationKipper::Init()
         return false;
     }
 
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
     auto* asr = static_cast<AnimationService*>(core->GetService("AnimationServiceImp"));
     if (!asr) throw std::runtime_error("Anumation service not created!");
     aniMan   = asr->CreateAnimation("man");
@@ -64,5 +62,5 @@ bool CharacterAnimationKipper::Init()
 void CharacterAnimationKipper::LockTexture(char const* texture)
 {
     if (numLTextures >= sizeof(lockTextures) / sizeof(int32_t)) return;
-    lockTextures[numLTextures++] = rs->TextureCreate(texture);
+    // lockTextures[numLTextures++] = rs->TextureCreate(texture);
 }
