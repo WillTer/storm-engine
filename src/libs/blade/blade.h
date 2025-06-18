@@ -10,14 +10,13 @@ model binded to an animated locator
 
 #include <libs/collide/collide.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
 #define BLADE_INFO_QUANTITY 2
 #define ITEMS_INFO_QUANTITY 10
 
 class Blade: public Entity
 {
-#define FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
+// #define FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 
     struct VERTEX {
         CVECTOR  pos;
@@ -38,7 +37,7 @@ class Blade: public Entity
 
         BLADE_INFO();
         ~BLADE_INFO();
-        void DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode);
+        void DrawBlade(/*VDX9RENDER*/ void* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode);
         bool LoadBladeModel(MESSAGE& message);
     };
 
@@ -59,11 +58,11 @@ class Blade: public Entity
         }
 
         void Release();
-        void DrawItem(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode);
+        void DrawItem(/*VDX9RENDER*/ void* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode);
         bool LoadItemModel(char const* mdlName, char const* locName);
     };
 
-    VDX9RENDER*  rs;
+    // VDX9RENDER*  rs;
     COLLIDE*     col;
     entid_t      man;
     unsigned int blendValue;

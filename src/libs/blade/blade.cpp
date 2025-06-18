@@ -45,7 +45,7 @@ Blade::BLADE_INFO::~BLADE_INFO()
     core->EraseEntity(eid);
 }
 
-void Blade::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
+void Blade::BLADE_INFO::DrawBlade(/*VDX9RENDER*/ void* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
 {
     auto* obj = static_cast<MODEL*>(core->GetEntityPointer(eid));
     if (obj != nullptr) {
@@ -91,8 +91,8 @@ void Blade::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL
         obj->ProcessStage(Stage::realize, 0);
 
         //--------------------------------------------------------------------------
-        rs->SetTexture(0, nullptr);
-        rs->SetTransform(D3DTS_WORLD, CMatrix());
+        // rs->SetTexture(0, nullptr);
+        // rs->SetTransform(D3DTS_WORLD, CMatrix());
 
         // move to the beginning
         int32_t first = 0;  // end vertex 2 draw
@@ -140,11 +140,11 @@ void Blade::BLADE_INFO::DrawBlade(VDX9RENDER* rs, unsigned int blendValue, MODEL
                 vrt[1].diffuse = color[0];
                 vrtTime[0]     = time;
 
-                auto bDraw = rs->TechniqueExecuteStart("Blade");
-                if (bDraw) {
-                    if (first > 0) rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, FVF, first * 2, &vrt[0], sizeof vrt[0]);
-                }
-                while (rs->TechniqueExecuteNext()) {}
+                // auto bDraw = rs->TechniqueExecuteStart("Blade");
+                // if (bDraw) {
+                //     if (first > 0) rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, FVF, first * 2, &vrt[0], sizeof vrt[0]);
+                // }
+                // while (rs->TechniqueExecuteNext()) {}
             } else {
                 core->Trace("BLADE::Realize -> no find locator \"%s\", model \"%s\"", bladeEnd, bladeNode->GetName());
             }
@@ -208,8 +208,8 @@ bool Blade::Init()
 
     core->AddToLayer(REALIZE, GetId(), 65550);
 
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
 
     // UNGUARD
     return true;
@@ -226,17 +226,17 @@ void Blade::Realize(uint32_t Delta_Time)
     if (!mdl) return;
 
     auto* manNode = mdl->GetNode(0);
-    rs->TextureSet(0, -1);
-    rs->TextureSet(1, -1);
-    rs->TextureSet(2, -1);
-    rs->TextureSet(3, -1);
+    // rs->TextureSet(0, -1);
+    // rs->TextureSet(1, -1);
+    // rs->TextureSet(2, -1);
+    // rs->TextureSet(3, -1);
 
     CMatrix mtx;
-    rs->GetTransform(D3DTS_VIEW, mtx);
+    // rs->GetTransform(D3DTS_VIEW, mtx);
     mtx.Transposition();
     mtx.Pos() = 0.0f;
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, blendValue);
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, blendValue);
 
     //------------------------------------------------------
     // draw gun
@@ -287,16 +287,16 @@ void Blade::Realize(uint32_t Delta_Time)
 
     //------------------------------------------------------
     // draw saber
-    blade[0].DrawBlade(rs, blendValue, mdl, manNode);
-    blade[1].DrawBlade(rs, blendValue, mdl, manNode);
+    // blade[0].DrawBlade(rs, blendValue, mdl, manNode);
+    // blade[1].DrawBlade(rs, blendValue, mdl, manNode);
 
     //------------------------------------------------------
     // draw tied items
-    for (int32_t n = 0; n < ITEMS_INFO_QUANTITY; n++)
-        if (items[n].nItemIndex != -1) items[n].DrawItem(rs, blendValue, mdl, manNode);
+    // for (int32_t n = 0; n < ITEMS_INFO_QUANTITY; n++)
+    //     if (items[n].nItemIndex != -1) items[n].DrawItem(rs, blendValue, mdl, manNode);
 
     mtx.SetIdentity();
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
 }
 
 bool Blade::LoadBladeModel(MESSAGE& message)
@@ -540,7 +540,7 @@ void Blade::TIEITEM_INFO::Release()
     }
 }
 
-void Blade::TIEITEM_INFO::DrawItem(VDX9RENDER* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
+void Blade::TIEITEM_INFO::DrawItem(/*VDX9RENDER*/ void* rs, unsigned int blendValue, MODEL* mdl, NODE* manNode)
 {
     auto* obj = static_cast<MODEL*>(core->GetEntityPointer(eid));
     if (obj != nullptr) {

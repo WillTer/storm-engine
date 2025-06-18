@@ -150,7 +150,7 @@ void ActivePerkShower::RefreshShowPlaces(ATTRIBUTES* pAPlacesRoot)
         m_nSpaceVert = pAttr->GetAttributeAsDword("vert", 4);
     }
 
-    RECT rectBound;
+    storm::Rect rectBound;
     rectBound.left   = 488;
     rectBound.top    = 192;
     rectBound.right  = 624;

@@ -67,9 +67,9 @@ public:
         maxY = minY + MAX_HEIGHT;
     }
 
-    void Draw(HDC _dc);
-    void Draw(IVBufferManager* _ivManager);
-    void Draw(VDX9RENDER* _renderer, MODEL* _model);
+    // void Draw(HDC _dc);
+    // void Draw(IVBufferManager* _ivManager);
+    // void Draw(VDX9RENDER* _renderer, MODEL* _model);
 
 private:
     CVECTOR centerPosition, centerVelocity, oldPos;

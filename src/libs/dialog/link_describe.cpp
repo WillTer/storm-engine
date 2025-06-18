@@ -20,7 +20,7 @@ constexpr float kEditCursorInvisibleTime {0.2f};
 
 DlgLinkDescribe::~DlgLinkDescribe()
 {
-    if (renderer_ && fontId_ >= 0) renderer_->UnloadFont(fontId_);
+    // if (renderer_ && fontId_ >= 0) renderer_->UnloadFont(fontId_);
 }
 
 void DlgLinkDescribe::ChangeText(ATTRIBUTES* pALinks)
@@ -44,7 +44,7 @@ void DlgLinkDescribe::ChangeText(ATTRIBUTES* pALinks)
             }
             Assert(pA->HasValue());
             AddToStringArrayLimitedByWidth(pA->GetValue(), windowWidth_, textLines_, [this](std::string_view const& text) {
-                return renderer_->StringWidth(text, fontId_, fontScale_);
+                return 0;  // renderer_->StringWidth(text, fontId_, fontScale_);
             });
             lineBreaks_.push_back(textLines_.size());
         }
@@ -80,18 +80,18 @@ void DlgLinkDescribe::Show(int32_t nY)
     } else
         nEnd = -1;
     for (i = 0; i < maxLinesPerPage_ && n < textLines_.size(); i++, n++) {
-        renderer_->ExtPrint(
-            fontId_,
-            (n >= nBeg && n < nEnd) ? selectedTextColor_ : textColor_,
-            0,
-            PR_ALIGN_LEFT,
-            true,
-            fontScale_,
-            0,
-            0,
-            offset_.x,
-            y,
-            textLines_[n].c_str());
+        // renderer_->ExtPrint(
+        //     fontId_,
+        //     (n >= nBeg && n < nEnd) ? selectedTextColor_ : textColor_,
+        //     0,
+        //     PR_ALIGN_LEFT,
+        //     true,
+        //     fontScale_,
+        //     0,
+        //     0,
+        //     offset_.x,
+        //     y,
+        //     textLines_[n].c_str());
 
         if (edit_.has_value() && (n >= nBeg && n < nEnd) && selectedLine_ == edit_->line) {
             editMode_ = true;
@@ -142,13 +142,13 @@ void DlgLinkDescribe::UpdateEditMode(int32_t nTextIdx)
                 if (pKeys[n].ucVKey.c < 0x20) continue;
 
                 std::string tmp(pKeys[n].ucVKey.b, pKeys[n].ucVKey.l);
-                if (renderer_->StringWidth(textLines_[nTextIdx], fontId_, fontScale_, 0)
-                        + renderer_->CharWidth(pKeys[n].ucVKey, fontId_, fontScale_)
-                    <= windowWidth_) {
-                    int offset = utf8::u8_offset(textLines_[nTextIdx].c_str(), edit_->charIndex);
-                    textLines_[nTextIdx].insert(offset, tmp.c_str());
-                    edit_->charIndex++;
-                }
+                // if (renderer_->StringWidth(textLines_[nTextIdx], fontId_, fontScale_, 0)
+                //         + renderer_->CharWidth(pKeys[n].ucVKey, fontId_, fontScale_)
+                //     <= windowWidth_) {
+                //     int offset = utf8::u8_offset(textLines_[nTextIdx].c_str(), edit_->charIndex);
+                //     textLines_[nTextIdx].insert(offset, tmp.c_str());
+                //     edit_->charIndex++;
+                // }
             }
         }
     }
@@ -166,11 +166,13 @@ void DlgLinkDescribe::ShowEditMode(int32_t nX, int32_t nY, int32_t nTextIdx)
             int strLength = utf8::Utf8StringLength(textLines_[nTextIdx].c_str());
             if (edit_->charIndex < strLength) {
                 int offset = utf8::u8_offset(textLines_[nTextIdx].c_str(), edit_->charIndex);
-                nW         = renderer_->StringWidth(textLines_[nTextIdx].substr(0, offset), fontId_, fontScale_, 0);
-            } else
-                nW = renderer_->StringWidth(textLines_[nTextIdx], fontId_, fontScale_, 0);
+                // nW         = renderer_->StringWidth(textLines_[nTextIdx].substr(0, offset), fontId_, fontScale_, 0);
+            }
+            // else {
+            //     nW = renderer_->StringWidth(textLines_[nTextIdx], fontId_, fontScale_, 0);
+            // }
         }
-        renderer_->ExtPrint(fontId_, selectedTextColor_, 0, PR_ALIGN_LEFT, true, fontScale_, 0, 0, nX + nW, nY, "_");
+        // renderer_->ExtPrint(fontId_, selectedTextColor_, 0, PR_ALIGN_LEFT, true, fontScale_, 0, 0, nX + nW, nY, "_");
     }
 
     if (attributes_) { attributes_->SetAttribute("value", textLines_[nTextIdx]); }
@@ -187,13 +189,13 @@ DlgLinkDescribe& DlgLinkDescribe::SetAttributes(ATTRIBUTES* attributes)
     return *this;
 }
 
-DlgLinkDescribe& DlgLinkDescribe::SetRenderer(VDX9RENDER* renderer)
+DlgLinkDescribe& DlgLinkDescribe::SetRenderer(/*VDX9RENDER*/ void* renderer)
 {
-    renderer_ = renderer;
+    // renderer_ = renderer;
     return *this;
 }
 
-DlgLinkDescribe& DlgLinkDescribe::SetOffset(const POINT& new_offset)
+DlgLinkDescribe& DlgLinkDescribe::SetOffset(storm::Point const& new_offset)
 {
     offset_ = new_offset;
     return *this;

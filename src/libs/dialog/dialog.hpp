@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <libs/core/entity.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "link_describe.hpp"
 
@@ -33,7 +33,7 @@ class VSoundService;
 
 class Dialog final: public Entity
 {
-    static VDX9RENDER* RenderService;
+    // static VDX9RENDER* RenderService;
 
 public:
     Dialog(Dialog&&)      = delete;
@@ -42,7 +42,7 @@ public:
     ~Dialog();
 
     bool     Init() override;
-    void     InitLinks(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
+    void     InitLinks(INIFILE* pIni);
     void     Realize(uint32_t Delta_Time);
     uint32_t AttributeChanged(ATTRIBUTES* pA);
     uint64_t ProcessMessage(MESSAGE& message);
@@ -74,7 +74,7 @@ private:
 
     struct DlgTextDescribe {
     private:
-        POINT                    offset;
+        storm::Point             offset;
         int32_t                  nWindowWidth;
         int32_t                  nFontID;
         uint32_t                 dwColor;
@@ -90,11 +90,11 @@ private:
 
         ~DlgTextDescribe()
         {
-            if (RenderService && nFontID >= 0) RenderService->UnloadFont(nFontID);
+            // if (RenderService && nFontID >= 0) RenderService->UnloadFont(nFontID);
         }
 
         void    ChangeText(std::string_view text);
-        void    Init(VDX9RENDER* pRS, D3DVIEWPORT9& vp, INIFILE* pIni);
+        void    Init(INIFILE* pIni);
         int32_t GetShowHeight();
         void    Show(int32_t nY);
         bool    IsLastPage();
@@ -109,29 +109,29 @@ private:
     struct BackParameters {
         int32_t m_idBackTex;
 
-        FRECT m_frLeftTopUV;
-        FRECT m_frRightTopUV;
-        FRECT m_frLeftBottomUV;
-        FRECT m_frRightBottomUV;
-        FRECT m_frLeftUV;
-        FRECT m_frRightUV;
-        FRECT m_frTopUV;
-        FRECT m_frBottomUV;
-        FRECT m_frCenterUV;
-        FRECT m_frDividerUV;
+        storm::FRect m_frLeftTopUV;
+        storm::FRect m_frRightTopUV;
+        storm::FRect m_frLeftBottomUV;
+        storm::FRect m_frRightBottomUV;
+        storm::FRect m_frLeftUV;
+        storm::FRect m_frRightUV;
+        storm::FRect m_frTopUV;
+        storm::FRect m_frBottomUV;
+        storm::FRect m_frCenterUV;
+        storm::FRect m_frDividerUV;
 
-        FRECT m_frBorderExt;
-        FRECT m_frBorderInt;
-        FRECT frBorderRect;
+        storm::FRect m_frBorderExt;
+        storm::FRect m_frBorderInt;
+        storm::FRect frBorderRect;
 
-        FRECT  frCharacterNameRectLeftUV;
-        FRECT  frCharacterNameRectRightUV;
-        FRECT  frCharacterNameRectCenterUV;
-        FPOINT fpCharacterNameOffset;
-        float  fCharacterNameRectHeight;
-        float  fCharacterNameRectLeftWidth;
-        float  fCharacterNameRectCenterWidth;
-        float  fCharacterNameRectRightWidth;
+        storm::FRect  frCharacterNameRectLeftUV;
+        storm::FRect  frCharacterNameRectRightUV;
+        storm::FRect  frCharacterNameRectCenterUV;
+        storm::FPoint fpCharacterNameOffset;
+        float         fCharacterNameRectHeight;
+        float         fCharacterNameRectLeftWidth;
+        float         fCharacterNameRectCenterWidth;
+        float         fCharacterNameRectRightWidth;
 
         bool    bShowDivider;
         float   nDividerHeight;
@@ -148,12 +148,12 @@ private:
     struct ButtonParameters {
         int32_t m_idTexture;
 
-        FRECT frUpNormalButtonUV;
-        FRECT frDownNormalButtonUV;
-        FRECT frUpLightButtonUV;
-        FRECT frDownLightButtonUV;
+        storm::FRect frUpNormalButtonUV;
+        storm::FRect frDownNormalButtonUV;
+        storm::FRect frUpLightButtonUV;
+        storm::FRect frDownLightButtonUV;
 
-        FPOINT fpButtonSize;
+        storm::FPoint fpButtonSize;
 
         float fRightOffset;
         float fTopOffset;
@@ -167,14 +167,14 @@ private:
     int32_t          m_nIQntButton;
     uint32_t         m_dwButtonState;
 
-    int32_t  m_nCharNameTextFont;
-    uint32_t m_dwCharNameTextColor;
-    float    m_fCharNameTextScale;
-    FPOINT   m_fpCharNameTextOffset;
+    int32_t       m_nCharNameTextFont;
+    uint32_t      m_dwCharNameTextColor;
+    float         m_fCharNameTextScale;
+    storm::FPoint m_fpCharNameTextOffset;
 
-    int32_t      m_nScrBaseWidth;
-    int32_t      m_nScrBaseHeight;
-    static FRECT m_frScreenData;
+    int32_t             m_nScrBaseWidth;
+    int32_t             m_nScrBaseHeight;
+    static storm::FRect m_frScreenData;
 
     static float GetScrX(float fX)
     {
@@ -207,13 +207,13 @@ private:
 
     void LoadFromIni();
 
-    static void GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FRECT& frect);
-    static void GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, FPOINT& fpoint);
+    static void GetRectFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, storm::FRect& frect);
+    static void GetPointFromIni(INIFILE* ini, char const* pcSection, char const* pcKey, storm::FPoint& fpoint);
 
     VSoundService* snd;
     entid_t        charId, persId;
     entid_t        charMdl, persMdl;
-    D3DVIEWPORT9   textViewport;
+    // D3DVIEWPORT9   textViewport;
 
     int32_t curSnd;
     char    soundName[256];

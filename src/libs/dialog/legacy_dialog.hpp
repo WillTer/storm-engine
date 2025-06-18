@@ -3,7 +3,6 @@
 #include <string>
 
 #include <libs/core/entity.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sound_service/v_sound_service.h>
 
 #include "link_describe.hpp"
@@ -18,7 +17,7 @@ struct ScreenScale {
 class LegacyDialog final: public Entity
 {
 public:
-    static VDX9RENDER* RenderService;
+    // static VDX9RENDER* RenderService;
 
     ~LegacyDialog() noexcept override;
 

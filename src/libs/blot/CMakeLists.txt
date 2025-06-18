@@ -1,5 +1,5 @@
 storm_lib(
     NAME blot
     LINK_DEPENDENCIES
-        renderer
+        renderer_next
 )
