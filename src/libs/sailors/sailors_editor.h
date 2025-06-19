@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/ship/ship_base.h>
 
 #include "sailors_menu.h"
@@ -30,10 +29,9 @@ public:
         }
     }
 
-    VDX9RENDER* rs;
-    entid_t     sailors;
-    entid_t     shipID;
-    entid_t     pointID;
+    entid_t sailors;
+    entid_t shipID;
+    entid_t pointID;
 
     MODEL* model;
 

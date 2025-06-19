@@ -6,7 +6,6 @@
 
 #include "i_ship_lights.h"
 
-class VDX9RENDER;
 class ShipLights: public IShipLights
 {
 private:
@@ -69,7 +68,6 @@ private:
         NODE*        pNode;
         bool         bDynamicLight;
         CVECTOR      vPos, vCurPos;
-        D3DLIGHT9    Light;
         float        fCoronaIntensity;
         float        fCurDistance;
         float        fCurTime, fTotalTime, fUpTime;
@@ -116,8 +114,7 @@ private:
     bool       SetLabel(ShipLight* pL, MODEL* pModel, char const* pStr);
 
 public:
-    static VDX9RENDER* pRS;
-    static COLLIDE*    pCollide;
+    static COLLIDE* pCollide;
 
     ShipLights();
     ~ShipLights() override;

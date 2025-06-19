@@ -94,22 +94,22 @@ void AISeaGoods::Realize(uint32_t dwDeltaTime)
 {
     if (!pSea) return;
 
-    AIHelper::pRS->SetRenderState(D3DRS_LIGHTING, true);
+    // AIHelper::pRS->SetRenderState(D3DRS_LIGHTING, true);
 
-    for (auto& aGood: aGoods)
-        if (aGood->pGeo)
-            for (uint32_t j = 0; j < aGood->aItems.size(); j++) {
-                auto* const pI = &aGood->aItems[j];
-
-                // set world matrix for item
-                CMatrix m;
-                m.BuildPosition(pI->vPos.x, pI->vPos.y, pI->vPos.z);
-
-                AIHelper::pRS->SetTransform(D3DTS_WORLD, m);
-                aGood->pGeo->Draw((GEOS::PLANE*)AIHelper::pRS->GetPlanes(), 0, nullptr);
-            }
-
-    AIHelper::pRS->SetRenderState(D3DRS_LIGHTING, false);
+    // for (auto& aGood: aGoods)
+    //     if (aGood->pGeo)
+    //         for (uint32_t j = 0; j < aGood->aItems.size(); j++) {
+    //             auto* const pI = &aGood->aItems[j];
+    //
+    //             // set world matrix for item
+    //             CMatrix m;
+    //             m.BuildPosition(pI->vPos.x, pI->vPos.y, pI->vPos.z);
+    //
+    //             AIHelper::pRS->SetTransform(D3DTS_WORLD, m);
+    //             aGood->pGeo->Draw((GEOS::PLANE*)AIHelper::pRS->GetPlanes(), 0, nullptr);
+    //         }
+    //
+    // AIHelper::pRS->SetRenderState(D3DRS_LIGHTING, false);
 }
 
 uint32_t AISeaGoods::AttributeChanged(ATTRIBUTES* pAttribute)

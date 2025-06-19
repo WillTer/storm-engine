@@ -63,9 +63,7 @@ private:
     uint32_t    dwFireBallFromCameraTime;
 
     std::vector<BALL_TYPE> aBallTypes;  // Balls types container
-    std::vector<RS_RECT>   aBallRects;  // Balls container for render
-
-    VDX9RENDER* rs {};
+    // std::vector<RS_RECT>   aBallRects;  // Balls container for render
 
     void AddBall(ATTRIBUTES* pABall);
 

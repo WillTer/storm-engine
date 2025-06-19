@@ -42,17 +42,16 @@
 
 #define GC_FREE 28
 
-Sea*                         Sea::pSea        = nullptr;
-IDirect3DVertexDeclaration9* Sea::vertexDecl_ = nullptr;
+Sea* Sea::pSea = nullptr;
 
 Sea::Sea()
 {
     aBlocks.reserve(128);
     aSeaTrash.reserve(512);
-    aTrashRects.reserve(512);
+    // aTrashRects.reserve(512);
     aSeaLights.reserve(512);
-    aLightsRects.reserve(512);
-    aBumpMaps.reserve(FRAMES);
+    // aLightsRects.reserve(512);
+    // aBumpMaps.reserve(FRAMES);
     aNormals.reserve(FRAMES);
 
     dwMaxDim = 65536 * 2;
@@ -116,30 +115,16 @@ Sea::Sea()
     bStop = false;
 
     vWorldOffset = 0.f;
-
-    pRenderTargetBumpMap = nullptr;
 }
 
 Sea::~Sea()
 {
-    rs->Release(pReflection);
-    rs->Release(pReflectionSunroad);
-    rs->Release(pEnvMap);
-    rs->Release(pSunRoadMap);
-    rs->Release(pZStencil);
-    rs->Release(pReflectionSurfaceDepth);
-    rs->Release(pVolumeTexture);
-    rs->Release(pRenderTargetBumpMap);
-
-    rs->TextureRelease(iSeaTrashTexture);
-    rs->TextureRelease(iSeaLightTexture);
-
-    if (iVSeaBuffer >= 0) rs->ReleaseVertexBuffer(iVSeaBuffer);
+    // if (iVSeaBuffer >= 0) rs->ReleaseVertexBuffer(iVSeaBuffer);
     iVSeaBuffer = -1;
-    if (iISeaBuffer >= 0) rs->ReleaseIndexBuffer(iISeaBuffer);
+    // if (iISeaBuffer >= 0) rs->ReleaseIndexBuffer(iISeaBuffer);
     iISeaBuffer = -1;
 
-    if (iFoamTexture >= 0) rs->TextureRelease(iFoamTexture);
+    // if (iFoamTexture >= 0) rs->TextureRelease(iFoamTexture);
     iFoamTexture = -1;
 
     delete[] pIndices;
@@ -147,9 +132,6 @@ Sea::~Sea()
 
     delete[] pVSea;
     pVSea = nullptr;
-
-    for (int32_t i = 0; i < aBumpMaps.size(); i++)
-        rs->Release(aBumpMaps[i]);
 
     for (int32_t i = 0; i < aBumps.size(); i++) {
         delete[] aBumps[i];
@@ -175,8 +157,8 @@ Sea::~Sea()
 
 void Sea::SFLB_CreateBuffers()
 {
-    iVSeaBuffer = rs->CreateVertexBuffer(0, NUM_VERTEXS * sizeof(SeaVertex), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
-    iISeaBuffer = rs->CreateIndexBuffer(NUM_INDICES * 3 * sizeof(uint16_t), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // iVSeaBuffer = rs->CreateVertexBuffer(0, NUM_VERTEXS * sizeof(SeaVertex), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // iISeaBuffer = rs->CreateIndexBuffer(NUM_INDICES * 3 * sizeof(uint16_t), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
 
     pIndices = new uint32_t[NUM_VERTEXS * 3];
     pVSea    = new SeaVertex[NUM_VERTEXS];
@@ -184,45 +166,43 @@ void Sea::SFLB_CreateBuffers()
 
 void Sea::CreateVertexDeclaration()
 {
-    if (vertexDecl_ != nullptr) return;
-
-    const D3DVERTEXELEMENT9 VertexElements[] = {
-        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-        {0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0},
-        {0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-        D3DDECL_END()};
-
-    rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
+    // if (vertexDecl_ != nullptr) return;
+    //
+    // const D3DVERTEXELEMENT9 VertexElements[] = {
+    //     {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+    //     {0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0},
+    //     {0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+    //     D3DDECL_END()};
+    //
+    // rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }
 
 bool Sea::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     CreateVertexDeclaration();
 
     auto const sea_info = storm::main_config::sea_info();
     bIniFoamEnable      = sea_info.enable_foam;
 
-    iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
+    // iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");
 
-    rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
+    // rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
 
     SFLB_CreateBuffers();
 
-    pVolumeTexture = rs->CreateVolumeTexture(XWIDTH, YWIDTH, FRAMES, 4, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED);
-    /*pAnimTexture = rs->CreateAnimationTexture(pVolumeTexture, _FL_);
-    pAnimTexture->SetAnimSpeed(20.0f);*/
+    // pVolumeTexture = rs->CreateVolumeTexture(XWIDTH, YWIDTH, FRAMES, 4, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED);
 
-    rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pEnvMap);
-    rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pSunRoadMap);
-    rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pZStencil);
+    // rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pEnvMap);
+    // rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pSunRoadMap);
+    // rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pZStencil);
 
-    rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflection);
-    rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflectionSunroad);
-    rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pReflectionSurfaceDepth);
+    // rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflection);
+    // rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflectionSunroad);
+    // rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pReflectionSurfaceDepth);
 
-    iSeaTrashTexture = rs->TextureCreate("seatrash.tga");
-    iSeaLightTexture = rs->TextureCreate("sealight.tga");
+    // iSeaTrashTexture = rs->TextureCreate("seatrash.tga");
+    // iSeaLightTexture = rs->TextureCreate("sealight.tga");
 
     uint8_t bMin = 0xFF;
     uint8_t bMax = 0;
@@ -298,15 +278,15 @@ void Sea::BuildVolumeTexture()
         delete[] normal;
     aNormals.clear();
 
-    D3DLOCKED_BOX box[4];
+    // D3DLOCKED_BOX box[4];
 
-    if (pVolumeTexture)
-        for (i = 0; i < 4; i++)
-            pVolumeTexture->LockBox(i, &box[i], nullptr, 0);
+    // if (pVolumeTexture)
+    // for (i = 0; i < 4; i++)
+    // pVolumeTexture->LockBox(i, &box[i], nullptr, 0);
 
-    for (i = 0; i < aBumpMaps.size(); i++)
-        rs->Release(aBumpMaps[i]);
-    aBumpMaps.clear();
+    // for (i = 0; i < aBumpMaps.size(); i++)
+    // rs->Release(aBumpMaps[i]);
+    // aBumpMaps.clear();
 
     uint32_t dwTexelSize = 4;
     auto*    pDst        = static_cast<char*>(new char[XWIDTH * YWIDTH * dwTexelSize]);
@@ -366,59 +346,58 @@ void Sea::BuildVolumeTexture()
                 int32_t green = fftol((vRes1.y * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
                 int32_t blue  = fftol((vRes1.z * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
 
-                if (pVolumeTexture) {
-                    if (bSimpleSea)
-                        *(uint32_t*)&(static_cast<char*>(box[0].pBits)[i * box[0].SlicePitch + y * box[0].RowPitch + x * 4]) =
-                            ARGB(0x80, blue, blue, red);
-                    else
-                        *(uint32_t*)&(static_cast<char*>(box[0].pBits)[i * box[0].SlicePitch + y * box[0].RowPitch + x * 4]) =
-                            ARGB(0x80, blue, green, red);
-                }
+                // if (pVolumeTexture) {
+                // if (bSimpleSea)
+                // *(uint32_t*)&(static_cast<char*>(box[0].pBits)[i * box[0].SlicePitch + y * box[0].RowPitch + x * 4]) =
+                // ARGB(0x80, blue, blue, red);
+                // else
+                // *(uint32_t*)&(static_cast<char*>(box[0].pBits)[i * box[0].SlicePitch + y * box[0].RowPitch + x * 4]) =
+                // ARGB(0x80, blue, green, red);
+                // }
             }
 
-        if (!pVolumeTexture) {
-            D3DSURFACE_DESC d3dsd;
-            D3DLOCKED_RECT  d3dlr;
-            HRESULT         hr;
+        // if (!pVolumeTexture) {
+        // D3DSURFACE_DESC d3dsd;
+        // D3DLOCKED_RECT  d3dlr;
+        // HRESULT         hr;
 
-            aBumpMaps.push_back(nullptr);
-            // pBumpMap = &aBumpMaps[aBumpMaps.Add()];
-            IDirect3DTexture9** pBumpMap = &aBumpMaps.back();
-            hr                           = rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, 0, D3DFMT_X8R8G8B8, D3DPOOL_MANAGED, pBumpMap);
+        // aBumpMaps.push_back(nullptr);
+        // IDirect3DTexture9** pBumpMap = &aBumpMaps.back();
+        // hr                           = rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, 0, D3DFMT_X8R8G8B8, D3DPOOL_MANAGED, pBumpMap);
 
-            // generate mip levels for random bump
-            for (uint32_t lev = 0; lev < MIPSLVLS; lev++) {
-                (*pBumpMap)->GetLevelDesc(lev, &d3dsd);
-                (*pBumpMap)->LockRect(lev, &d3dlr, nullptr, 0);
+        // generate mip levels for random bump
+        for (uint32_t lev = 0; lev < MIPSLVLS; lev++) {
+            // (*pBumpMap)->GetLevelDesc(lev, &d3dsd);
+            // (*pBumpMap)->LockRect(lev, &d3dlr, nullptr, 0);
 
-                auto* pDstT = (uint32_t*)pDst;
-                for (uint32_t y = 0; y < d3dsd.Height; y++) {
-                    for (uint32_t x = 0; x < d3dsd.Width; x++) {
-                        CVECTOR vTmp   = 0.0f;
-                        int32_t dwMult = 1 << (lev);
-                        for (uint32_t y1 = y * dwMult; y1 < (y + 1) * dwMult; y1++)
-                            for (uint32_t x1 = x * dwMult; x1 < (x + 1) * dwMult; x1++)
-                                vTmp += aVectors[i][(x1 & (XWIDTH - 1)) + (y1 & (YWIDTH - 1)) * XWIDTH];
+            auto* pDstT = (uint32_t*)pDst;
+            // for (uint32_t y = 0; y < d3dsd.Height; y++) {
+            //     for (uint32_t x = 0; x < d3dsd.Width; x++) {
+            //         CVECTOR vTmp   = 0.0f;
+            //         int32_t dwMult = 1 << (lev);
+            //         for (uint32_t y1 = y * dwMult; y1 < (y + 1) * dwMult; y1++)
+            //             for (uint32_t x1 = x * dwMult; x1 < (x + 1) * dwMult; x1++)
+            //                 vTmp += aVectors[i][(x1 & (XWIDTH - 1)) + (y1 & (YWIDTH - 1)) * XWIDTH];
+            //
+            //         vTmp *= (1.0f / static_cast<float>(dwMult * dwMult));
+            //
+            //         int red   = static_cast<int>((vTmp.x * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
+            //         int green = static_cast<int>((vTmp.y * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
+            //         int blue  = static_cast<int>((vTmp.z * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
+            //         *pDstT++  = ARGB(255, blue, green, red);
+            //     }
+            // }
 
-                        vTmp *= (1.0f / static_cast<float>(dwMult * dwMult));
-
-                        int red   = static_cast<int>((vTmp.x * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
-                        int green = static_cast<int>((vTmp.y * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
-                        int blue  = static_cast<int>((vTmp.z * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
-                        *pDstT++  = ARGB(255, blue, green, red);
-                    }
-                }
-
-                // simple copy
-                auto pDstTemp = static_cast<uint8_t*>(d3dlr.pBits);
-                for (uint32_t y = 0; y < d3dsd.Height; y++) {
-                    memcpy(pDstTemp, &pDst[y * d3dsd.Width * dwTexelSize], d3dsd.Width * dwTexelSize);
-                    pDstTemp += static_cast<uint32_t>(d3dlr.Pitch);
-                }
-
-                (*pBumpMap)->UnlockRect(lev);
-            }
+            // simple copy
+            // auto pDstTemp = static_cast<uint8_t*>(d3dlr.pBits);
+            // for (uint32_t y = 0; y < d3dsd.Height; y++) {
+            //     memcpy(pDstTemp, &pDst[y * d3dsd.Width * dwTexelSize], d3dsd.Width * dwTexelSize);
+            //     pDstTemp += static_cast<uint32_t>(d3dlr.Pitch);
+            // }
+            //
+            // (*pBumpMap)->UnlockRect(lev);
         }
+        // }
     }
 
     for (j = 1; j < 4; j++) {
@@ -442,29 +421,29 @@ void Sea::BuildVolumeTexture()
                 }
 
             //
-            if (pVolumeTexture)
-                for (uint32_t y = 0; y < (YWIDTH >> j); y++)
-                    for (uint32_t x = 0; x < (XWIDTH >> j); x++) {
-                        int32_t red   = fftol((pVectors[x + y * (XWIDTH >> j)].x * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
-                        int32_t green = fftol((pVectors[x + y * (XWIDTH >> j)].y * 0.5f + 0.5f) * 255.0f);
-                        // FIX-ME no ftol
-                        int32_t blue = fftol((pVectors[x + y * (XWIDTH >> j)].z * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
-
-                        if (bSimpleSea)
-                            *(uint32_t*)&(static_cast<char*>(box[j].pBits)[i * box[j].SlicePitch + y * box[j].RowPitch + x * 4]) =
-                                ARGB(0x80, blue, blue, red);
-                        else
-                            *(uint32_t*)&(static_cast<char*>(box[j].pBits)[i * box[j].SlicePitch + y * box[j].RowPitch + x * 4]) =
-                                ARGB(0x80, blue, green, red);
-                    }
+            // if (pVolumeTexture)
+            //     for (uint32_t y = 0; y < (YWIDTH >> j); y++)
+            //         for (uint32_t x = 0; x < (XWIDTH >> j); x++) {
+            //             int32_t red   = fftol((pVectors[x + y * (XWIDTH >> j)].x * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
+            //             int32_t green = fftol((pVectors[x + y * (XWIDTH >> j)].y * 0.5f + 0.5f) * 255.0f);
+            //             // FIX-ME no ftol
+            //             int32_t blue = fftol((pVectors[x + y * (XWIDTH >> j)].z * 0.5f + 0.5f) * 255.0f);  // FIX-ME no ftol
+            //
+            //             if (bSimpleSea)
+            //                 *(uint32_t*)&(static_cast<char*>(box[j].pBits)[i * box[j].SlicePitch + y * box[j].RowPitch + x * 4]) =
+            //                     ARGB(0x80, blue, blue, red);
+            //             else
+            //                 *(uint32_t*)&(static_cast<char*>(box[j].pBits)[i * box[j].SlicePitch + y * box[j].RowPitch + x * 4]) =
+            //                     ARGB(0x80, blue, green, red);
+            //         }
         }
         delete[] pVectors;
         pVectors = nullptr;
     }
 
-    if (pVolumeTexture)
-        for (i = 0; i < 4; i++)
-            pVolumeTexture->UnlockBox(i);
+    // if (pVolumeTexture)
+    //     for (i = 0; i < 4; i++)
+    //         pVolumeTexture->UnlockBox(i);
 
     for (auto const& vector: aVectors)
         delete[] vector;
@@ -512,22 +491,6 @@ int32_t Sea::VisCode(const CVECTOR& vP)
 {
     int32_t vc = 0;
 
-    /*
-    CVECTOR v = vP - vCamPos;
-
-    CVECTOR vp1 = CVECTOR(pFrustumPlanes[0].Nx, pFrustumPlanes[0].Ny, pFrustumPlanes[0].Nz);
-    CVECTOR vp2 = CVECTOR(pFrustumPlanes[1].Nx, pFrustumPlanes[1].Ny, pFrustumPlanes[1].Nz);
-    CVECTOR vp3 = CVECTOR(pFrustumPlanes[2].Nx, pFrustumPlanes[2].Ny, pFrustumPlanes[2].Nz);
-    CVECTOR vp4 = CVECTOR(pFrustumPlanes[3].Nx, pFrustumPlanes[3].Ny, pFrustumPlanes[3].Nz);
-
-    //if((v | pFrustumPlanes[0].n) < 0 ) vc |= 0x10;
-    if ((v | vp1) < 0 ) vc |= 0x01;
-    if ((v | vp2) < 0 ) vc |= 0x02;
-    if ((v | vp3) < 0 ) vc |= 0x04;
-    if ((v | vp4) < 0 ) vc |= 0x08;
-
-    */
-
     // Max - so the accuracy is much higher, blocks should not disappear sometimes in the distance
     PLANE* p = &pFrustumPlanes[0];
     if (p->Nx * vP.x + p->Ny * vP.y + p->Nz * vP.z < p->D) vc |= 0x01;
@@ -543,15 +506,6 @@ int32_t Sea::VisCode(const CVECTOR& vP)
 
 bool Sea::isVisibleBBox(const CVECTOR& vCenter, const CVECTOR& v1, const CVECTOR& v2)
 {
-    /*CVECTOR vc = vCenter - vCamPos;
-    CVECTOR vp1 = v1 - vCamPos;
-    CVECTOR vp2 = v2 - vCamPos;
-    float fR2 = sqrtf(Sqr((vp1.x - vp2.x) * 0.5f) + Sqr((vp1.z - vp2.z)) * 0.5f);*/
-
-    // if sphere not visible - return
-    //    for (uint32_t i=0; i<dwNumFrustumPlanes; i++)
-    //        if ((pFrustumPlanes[i].n | vc) - pFrustumPlanes[i].d < -fR2) return false;
-
     // check box visible
     int32_t vc = 0xFF;
     vc &= VisCode(CVECTOR(v1.x, v1.y, v1.z));
@@ -1202,7 +1156,7 @@ void Sea::Realize(uint32_t dwDeltaTime)
     RDTSC_B(dwTotalRDTSC);
 
     CMatrix mView, mIView;
-    rs->GetTransform(D3DTS_VIEW, mView);
+    // rs->GetTransform(D3DTS_VIEW, mView);
     mIView = mView;
     mIView.Transposition();
 
@@ -1230,7 +1184,7 @@ void Sea::Realize(uint32_t dwDeltaTime)
         SunRoad_Render();
     }
 
-    pFrustumPlanes = rs->GetPlanes();
+    // pFrustumPlanes = rs->GetPlanes();
 
     float   fBlockSize = 256.0f * fGridStep;
     int32_t iNumBlocks = static_cast<int32_t>(dwMaxDim) / (256 * 2);
@@ -1243,45 +1197,45 @@ void Sea::Realize(uint32_t dwDeltaTime)
     iTStart = 0;
     iIStart = 0;
 
-    if (!pVolumeTexture && aBumpMaps.size()) {
-        IDirect3DSurface9* pFace;
-
-        static float fBumpMapFrame = 0.0f;
-        fBumpMapFrame += static_cast<float>(fDeltaTime) * fBumpSpeed * 48.0f;
-
-        uint32_t dw1 = static_cast<int32_t>(fBumpMapFrame) % aBumpMaps.size();
-        uint32_t dw2 = static_cast<int32_t>(fBumpMapFrame + 1.0f) % aBumpMaps.size();
-
-        float fAlpha = 255.0f * (fBumpMapFrame - static_cast<float>(static_cast<int32_t>(fBumpMapFrame)));
-        rs->SetRenderState(D3DRS_TEXTUREFACTOR, ARGB(fAlpha, 0, 0, 0));
-
-        rs->SetTexture(0, aBumpMaps[dw1]);
-        rs->SetTexture(1, aBumpMaps[dw2]);
-
-        rs->EndScene();
-        rs->PushRenderTarget();
-        for (uint32_t i = 0; i < MIPSLVLS; i++) {
-            HRESULT hr = pRenderTargetBumpMap->GetSurfaceLevel(i, &pFace);
-            rs->SetRenderTarget(pFace, nullptr);
-            pFace->Release();
-            float w, h;
-            w = h = static_cast<float>(XWIDTH >> i);
-
-            rs->BeginScene();
-
-            RS_SPRITE spr[4];
-            FillSpriteVertex(spr[0], 0, 0, 0.1f, 0xFFFFFFFF, 0.0f, 0.0f);
-            FillSpriteVertex(spr[1], 0, h, 0.1f, 0xFFFFFFFF, 0.0f, 1.0f);
-            FillSpriteVertex(spr[2], w, h, 0.1f, 0xFFFFFFFF, 1.0f, 1.0f);
-            FillSpriteVertex(spr[3], w, 0, 0.1f, 0xFFFFFFFF, 1.0f, 0.0f);
-
-            rs->DrawSprites(spr, 1, "bump_interpolate");
-
-            rs->EndScene();
-        }
-        rs->PopRenderTarget();
-        rs->BeginScene();
-    }
+    // if (!pVolumeTexture && aBumpMaps.size()) {
+    //     IDirect3DSurface9* pFace;
+    //
+    //     static float fBumpMapFrame = 0.0f;
+    //     fBumpMapFrame += static_cast<float>(fDeltaTime) * fBumpSpeed * 48.0f;
+    //
+    //     uint32_t dw1 = static_cast<int32_t>(fBumpMapFrame) % aBumpMaps.size();
+    //     uint32_t dw2 = static_cast<int32_t>(fBumpMapFrame + 1.0f) % aBumpMaps.size();
+    //
+    //     float fAlpha = 255.0f * (fBumpMapFrame - static_cast<float>(static_cast<int32_t>(fBumpMapFrame)));
+    //     rs->SetRenderState(D3DRS_TEXTUREFACTOR, ARGB(fAlpha, 0, 0, 0));
+    //
+    //     rs->SetTexture(0, aBumpMaps[dw1]);
+    //     rs->SetTexture(1, aBumpMaps[dw2]);
+    //
+    //     rs->EndScene();
+    //     rs->PushRenderTarget();
+    //     for (uint32_t i = 0; i < MIPSLVLS; i++) {
+    //         HRESULT hr = pRenderTargetBumpMap->GetSurfaceLevel(i, &pFace);
+    //         rs->SetRenderTarget(pFace, nullptr);
+    //         pFace->Release();
+    //         float w, h;
+    //         w = h = static_cast<float>(XWIDTH >> i);
+    //
+    //         rs->BeginScene();
+    //
+    //         RS_SPRITE spr[4];
+    //         FillSpriteVertex(spr[0], 0, 0, 0.1f, 0xFFFFFFFF, 0.0f, 0.0f);
+    //         FillSpriteVertex(spr[1], 0, h, 0.1f, 0xFFFFFFFF, 0.0f, 1.0f);
+    //         FillSpriteVertex(spr[2], w, h, 0.1f, 0xFFFFFFFF, 1.0f, 1.0f);
+    //         FillSpriteVertex(spr[3], w, 0, 0.1f, 0xFFFFFFFF, 1.0f, 0.0f);
+    //
+    //         rs->DrawSprites(spr, 1, "bump_interpolate");
+    //
+    //         rs->EndScene();
+    //     }
+    //     rs->PopRenderTarget();
+    //     rs->BeginScene();
+    // }
 
     memset(pIndices, 0xFF, NUM_VERTEXS * sizeof(pIndices[0]) * 3);
 
@@ -1311,8 +1265,8 @@ void Sea::Realize(uint32_t dwDeltaTime)
         }
     }
 
-    auto pVSea2 = static_cast<SeaVertex*>(rs->LockVertexBuffer(iVSeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
-    pTriangles  = static_cast<uint16_t*>(rs->LockIndexBuffer(iISeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
+    // auto pVSea2 = static_cast<SeaVertex*>(rs->LockVertexBuffer(iVSeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
+    // pTriangles  = static_cast<uint16_t*>(rs->LockIndexBuffer(iISeaBuffer, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK));
 
     for (i = 0; i < aBlocks.size(); i++) {
         PrepareIndicesForBlock(i);
@@ -1320,25 +1274,25 @@ void Sea::Realize(uint32_t dwDeltaTime)
 
     std::for_each(std::execution::par_unseq, std::begin(aBlocks), std::end(aBlocks), [this](auto& i) { SSE_WaveXZBlock(i); });
 
-    if (iVStart && iTStart) memcpy(pVSea2, pVSea, iVStart * sizeof(SeaVertex));
-
-    rs->UnLockVertexBuffer(iVSeaBuffer);
-    rs->UnLockIndexBuffer(iISeaBuffer);
+    // if (iVStart && iTStart) memcpy(pVSea2, pVSea, iVStart * sizeof(SeaVertex));
+    //
+    // rs->UnLockVertexBuffer(iVSeaBuffer);
+    // rs->UnLockIndexBuffer(iISeaBuffer);
 
     if (iVStart && iTStart) {
         CMatrix mWorldView, mWorldViewProj;
 
-        CMatrix mView = rs->GetView();
+        // CMatrix mView = rs->GetView();
         CMatrix mWorld;
         mWorld.SetIdentity();  // = rs->GetWorld();
-        CMatrix mProjection = rs->GetProjection();
+                               // CMatrix mProjection = rs->GetProjection();
 
 #ifndef OLD_WORLD_POS
         mView.MoveInversePosition(-vWorldOffset.x, 0.f, -vWorldOffset.z);
 #endif
 
         mWorldView.EqMultiply(mWorld, mView);
-        mWorldViewProj.EqMultiply(mWorldView, mProjection);
+        // mWorldViewProj.EqMultiply(mWorldView, mProjection);
 
         mWorldViewProj.Transposition4x4();
 
@@ -1346,7 +1300,7 @@ void Sea::Realize(uint32_t dwDeltaTime)
         while (fTmp >= 1.0f)
             fTmp -= 1.0f;
 
-        rs->SetVertexDeclaration(vertexDecl_);
+        // rs->SetVertexDeclaration(vertexDecl_);
 
         auto const vec1 = CVECTOR4(0.0f, 1.0f, 0.5f, -0.04f);
         auto const vec2 = CVECTOR4(2.0f, -1.0f, 0.00036621652552071f, (bFogEnable) ? fFogSeaDensity : 0.0f);
@@ -1358,109 +1312,88 @@ void Sea::Realize(uint32_t dwDeltaTime)
         auto const vec8 = CVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
         CVECTOR    vTmp = !CVECTOR(0.0f, 1.0f, 0.0f);
         auto const vec9 = CVECTOR4(vTmp.x, vTmp.y, vTmp.z, 1.0f);
-        rs->SetVertexShaderConstantF(GC_CONSTANT, (float const*)&vec1, 1);
-        rs->SetVertexShaderConstantF(GC_CONSTANT2, (float const*)&vec2, 1);
-        rs->SetVertexShaderConstantF(GC_SHADOW_CONST1, (float const*)&vec3, 1);
-        rs->SetVertexShaderConstantF(GC_ANIMATION, (float const*)&vec4, 1);
-        rs->SetVertexShaderConstantF(GC_CAMERA_POS, (float const*)&vec5, 1);
-        rs->SetVertexShaderConstantF(GC_MTX_WVP, (float const*)&mWorldViewProj, 4);
-
-        rs->SetVertexShaderConstantF(GC_FREE, (float const*)&v4SeaParameters, 1);
-        rs->SetVertexShaderConstantF(GC_FREE + 1, (float const*)&v4SeaColor, 1);
-        rs->SetVertexShaderConstantF(GC_FREE + 2, (float const*)&v4SkyColor, 1);
-
-        rs->SetVertexShaderConstantF(GC_FREE + 5, (float const*)&vec6, 1);
-        rs->SetVertexShaderConstantF(GC_FREE + 6, (float const*)&vec7, 1);
-        // Frenel K, Frenel Max
-        rs->SetVertexShaderConstantF(GC_FREE + 7, (float const*)&vec8, 1);
-        rs->SetVertexShaderConstantF(GC_FREE + 30, (float const*)&vec9, 1);
-
-        if (bSimpleSea) {
-            rs->SetVertexShaderConstantF(GC_FREE + 8, (float const*)&mTexProjection, 4);  // Matrix!!
-
-            // rs->SetTexture(0, pVolumeTexture);
-            rs->SetTexture(
-                0,
-                (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
-                                 : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
-            rs->SetTexture(1, pReflection);
-            // rs->SetTexture(2, pVolumeTexture);
-            rs->SetTexture(
-                2,
-                (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
-                                 : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
-            rs->SetTexture(3, pReflectionSunroad);
-
-            rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT00, F2DW(0.08f));
-            rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT10, F2DW(0.0f));
-            rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT01, F2DW(0.0f));
-            rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT11, F2DW(0.08f));
-
-            rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT00, F2DW(0.05f));
-            rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT10, F2DW(0.0f));
-            rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT01, F2DW(0.0f));
-            rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT11, F2DW(0.05f));
-
-            rs->DrawIndexedPrimitiveNoVShader(
-                D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea3");
-        } else {
-            auto const vec1 = CMatrix(0.0f, 0.0f, PId2);
-            rs->SetVertexShaderConstantF(GC_FREE + 8, (float const*)&vec1, 4);  // Matrix!!
-
-            rs->SetTexture(
-                0,
-                (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
-                                 : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
-            rs->SetTexture(3, pEnvMap);
-            rs->DrawIndexedPrimitiveNoVShader(
-                D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2");
-
-            if (fFoamK > 0.0f && bFoamEnable && bIniFoamEnable) {
-                // Render sea foam
-                auto const vec2 = CVECTOR4(fFoamTextureDisturb, 0.0f, 0.0f, 0.0f);
-                rs->SetPixelShaderConstantF(0, (float const*)&vec2, 1);
-
-                rs->TextureSet(0, iFoamTexture);
-                rs->SetTexture(
-                    4,
-                    (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
-                                     : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
-                rs->DrawIndexedPrimitiveNoVShader(
-                    D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2_Foam");
-            }
-
-            rs->SetTexture(
-                0,
-                (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
-                                 : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
-            rs->SetTexture(3, pSunRoadMap);
-            rs->DrawIndexedPrimitiveNoVShader(
-                D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2_SunRoad");
-        }
+        // rs->SetVertexShaderConstantF(GC_CONSTANT, (float const*)&vec1, 1);
+        // rs->SetVertexShaderConstantF(GC_CONSTANT2, (float const*)&vec2, 1);
+        // rs->SetVertexShaderConstantF(GC_SHADOW_CONST1, (float const*)&vec3, 1);
+        // rs->SetVertexShaderConstantF(GC_ANIMATION, (float const*)&vec4, 1);
+        // rs->SetVertexShaderConstantF(GC_CAMERA_POS, (float const*)&vec5, 1);
+        // rs->SetVertexShaderConstantF(GC_MTX_WVP, (float const*)&mWorldViewProj, 4);
+        //
+        // rs->SetVertexShaderConstantF(GC_FREE, (float const*)&v4SeaParameters, 1);
+        // rs->SetVertexShaderConstantF(GC_FREE + 1, (float const*)&v4SeaColor, 1);
+        // rs->SetVertexShaderConstantF(GC_FREE + 2, (float const*)&v4SkyColor, 1);
+        //
+        // rs->SetVertexShaderConstantF(GC_FREE + 5, (float const*)&vec6, 1);
+        // rs->SetVertexShaderConstantF(GC_FREE + 6, (float const*)&vec7, 1);
+        // // Frenel K, Frenel Max
+        // rs->SetVertexShaderConstantF(GC_FREE + 7, (float const*)&vec8, 1);
+        // rs->SetVertexShaderConstantF(GC_FREE + 30, (float const*)&vec9, 1);
+        //
+        // if (bSimpleSea) {
+        //     rs->SetVertexShaderConstantF(GC_FREE + 8, (float const*)&mTexProjection, 4);  // Matrix!!
+        //
+        //     // rs->SetTexture(0, pVolumeTexture);
+        //     rs->SetTexture(
+        //         0,
+        //         (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
+        //                          : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
+        //     rs->SetTexture(1, pReflection);
+        //     // rs->SetTexture(2, pVolumeTexture);
+        //     rs->SetTexture(
+        //         2,
+        //         (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
+        //                          : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
+        //     rs->SetTexture(3, pReflectionSunroad);
+        //
+        //     rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT00, F2DW(0.08f));
+        //     rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT10, F2DW(0.0f));
+        //     rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT01, F2DW(0.0f));
+        //     rs->SetTextureStageState(1, D3DTSS_BUMPENVMAT11, F2DW(0.08f));
+        //
+        //     rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT00, F2DW(0.05f));
+        //     rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT10, F2DW(0.0f));
+        //     rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT01, F2DW(0.0f));
+        //     rs->SetTextureStageState(3, D3DTSS_BUMPENVMAT11, F2DW(0.05f));
+        //
+        //     rs->DrawIndexedPrimitiveNoVShader(
+        //         D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea3");
+        // } else {
+        //     auto const vec1 = CMatrix(0.0f, 0.0f, PId2);
+        //     rs->SetVertexShaderConstantF(GC_FREE + 8, (float const*)&vec1, 4);  // Matrix!!
+        //
+        //     rs->SetTexture(
+        //         0,
+        //         (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
+        //                          : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
+        //     rs->SetTexture(3, pEnvMap);
+        //     rs->DrawIndexedPrimitiveNoVShader(
+        //         D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2");
+        //
+        //     if (fFoamK > 0.0f && bFoamEnable && bIniFoamEnable) {
+        //         // Render sea foam
+        //         auto const vec2 = CVECTOR4(fFoamTextureDisturb, 0.0f, 0.0f, 0.0f);
+        //         rs->SetPixelShaderConstantF(0, (float const*)&vec2, 1);
+        //
+        //         rs->TextureSet(0, iFoamTexture);
+        //         rs->SetTexture(
+        //             4,
+        //             (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
+        //                              : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
+        //         rs->DrawIndexedPrimitiveNoVShader(
+        //             D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2_Foam");
+        //     }
+        //
+        //     rs->SetTexture(
+        //         0,
+        //         (pVolumeTexture) ? static_cast<IDirect3DBaseTexture9*>(pVolumeTexture)
+        //                          : static_cast<IDirect3DBaseTexture9*>(pRenderTargetBumpMap));
+        //     rs->SetTexture(3, pSunRoadMap);
+        //     rs->DrawIndexedPrimitiveNoVShader(
+        //         D3DPT_TRIANGLELIST, iVSeaBuffer, sizeof(SeaVertex), iISeaBuffer, 0, iVStart, 0, iTStart, "Sea2_SunRoad");
+        // }
     }
 
     RDTSC_E(dwTotalRDTSC);
-    // rs->Print(50, 300, "Total ticks with rendering %d", /*iVStart, iTStart, */dwTotalRDTSC);
-    /*rs->Print(50, 320, "calc blk%s: %d", (bHT) ? " (HT)" : "", dwBlockRDTSC);
-    rs->Print(50, 340, "Blocks in 1st thread: %d", iB1);
-    for (int32_t i=0; i<aThreadsTest; i++)
-      rs->Print(50, 360 + 20 * i, "Blocks in thread %d: %d", i + 1, aThreadsTest[i]);
-    */
-    // rs->Print(30, 140, "rdtsc = %d", dwBlockRDTSC);
-    // rs->Print(30, 160, "Intel CPU: %s, SSE: %s, HyperThreading: %s", (bIntel) ? "Yes" : "No", (bSSE) ? "On" : "Off",
-    // (bHyperThreading) ? "On" : "Off");
-
-    /*D3DVIEWPORT9 vp; rs->GetViewport(&vp);
-    float w = 256;
-    float h = 256;
-    RS_SPRITE spr[4];
-    FillSpriteVertex(spr[0], 0, 0, 0.1f, 0xFFFFFFFF, 0.0f, 0.0f);
-    FillSpriteVertex(spr[1], 0, h, 0.1f, 0xFFFFFFFF, 0.0f, 1.0f);
-    FillSpriteVertex(spr[2], w, h, 0.1f, 0xFFFFFFFF, 1.0f, 1.0f);
-    FillSpriteVertex(spr[3], w, 0, 0.1f, 0xFFFFFFFF, 1.0f, 0.0f);
-    //rs->SetTexture(0, pReflection);
-    rs->SetTexture(0, pReflectionSunroad);
-    rs->DrawSprites(spr, 1, "Telescope");*/
 
     if (bUnderSea && bUnderSeaEnable) {
         CVECTOR d(20.0f, 5.0f, 20.0f);
@@ -1520,27 +1453,27 @@ void Sea::Realize(uint32_t dwDeltaTime)
             aSeaTrash[i].vPos += aSeaTrash[i].vSpeed * fDeltaTime;
         }
         // Render sea trash
-        aTrashRects.clear();
-        for (int32_t i = 0; i < aSeaTrash.size(); i++) {
-            //    RS_RECT & r = aTrashRects[aTrashRects.Add()];
-            aTrashRects.push_back(RS_RECT {});
-            RS_RECT& r = aTrashRects.back();
-
-            float fAlpha = 1.0f;
-            if (aSeaTrash[i].fTime >= 45.0f) fAlpha = 1.0f - (aSeaTrash[i].fTime - 45.0f) / 5.0f;
-            if (aSeaTrash[i].fTime <= 5.0f) fAlpha = 1.0f - (5.0f - aSeaTrash[i].fTime) / 5.0f;
-
-            r.vPos         = aSeaTrash[i].vPos;
-            r.fSize        = aSeaTrash[i].fSize;
-            r.fAngle       = 0.0f;
-            r.dwColor      = ARGB(fAlpha * 255.0f, 255, 255, 255);
-            r.dwSubTexture = aSeaTrash[i].dwSubTexture;
-        }
-
-        if (aTrashRects.size()) {
-            rs->TextureSet(0, iSeaTrashTexture);
-            rs->DrawRects(&aTrashRects[0], aTrashRects.size(), "seatrash", 2, 2);
-        }
+        // aTrashRects.clear();
+        // for (int32_t i = 0; i < aSeaTrash.size(); i++) {
+        //     //    RS_RECT & r = aTrashRects[aTrashRects.Add()];
+        //     aTrashRects.push_back(RS_RECT {});
+        //     RS_RECT& r = aTrashRects.back();
+        //
+        //     float fAlpha = 1.0f;
+        //     if (aSeaTrash[i].fTime >= 45.0f) fAlpha = 1.0f - (aSeaTrash[i].fTime - 45.0f) / 5.0f;
+        //     if (aSeaTrash[i].fTime <= 5.0f) fAlpha = 1.0f - (5.0f - aSeaTrash[i].fTime) / 5.0f;
+        //
+        //     r.vPos         = aSeaTrash[i].vPos;
+        //     r.fSize        = aSeaTrash[i].fSize;
+        //     r.fAngle       = 0.0f;
+        //     r.dwColor      = ARGB(fAlpha * 255.0f, 255, 255, 255);
+        //     r.dwSubTexture = aSeaTrash[i].dwSubTexture;
+        // }
+        //
+        // if (aTrashRects.size()) {
+        //     rs->TextureSet(0, iSeaTrashTexture);
+        //     rs->DrawRects(&aTrashRects[0], aTrashRects.size(), "seatrash", 2, 2);
+        // }
 
         // Render schools of fish
 
@@ -1574,27 +1507,27 @@ void Sea::Realize(uint32_t dwDeltaTime)
         float fAlphaK = (vCamPos.y < 0.0f) ? Max(0.0f, 1.0f + vCamPos.y / 30.0f) : 1.0f;
 
         // draw light poles
-        aLightsRects.clear();
-        for (int32_t i = 0; i < aSeaLights.size(); i++) {
-            aLightsRects.push_back(RS_RECT {});
-            // RS_RECT & r = aLightsRects[aLightsRects.Add()];
-            RS_RECT& r      = aLightsRects.back();
-            float    fAlpha = 1.0f;
-            if (aSeaLights[i].fTime >= 45.0f) fAlpha = 1.0f - (aSeaLights[i].fTime - 45.0f) / 5.0f;
-            if (aSeaLights[i].fTime <= 5.0f) fAlpha = 1.0f - (5.0f - aSeaLights[i].fTime) / 5.0f;
-
-            CVECTOR v      = aSeaLights[i].vPos;
-            r.vPos         = CVECTOR(v.x, WaveXZ(v.x, v.z) - 5.0f, v.z);
-            r.fSize        = 20.0f;
-            r.fAngle       = 0.0f;
-            r.dwColor      = ARGB(0.07f * fAlphaK * fAlpha * 255.0f, 227, 245, 153);
-            r.dwSubTexture = aSeaLights[i].dwSubTexture;
-        }
-
-        if (aLightsRects.size()) {
-            rs->TextureSet(0, iSeaLightTexture);
-            rs->DrawRects(&aLightsRects[0], aLightsRects.size(), "seatrash", 2, 2, 0.5f);
-        }
+        // aLightsRects.clear();
+        // for (int32_t i = 0; i < aSeaLights.size(); i++) {
+        //     aLightsRects.push_back(RS_RECT {});
+        //     // RS_RECT & r = aLightsRects[aLightsRects.Add()];
+        //     RS_RECT& r      = aLightsRects.back();
+        //     float    fAlpha = 1.0f;
+        //     if (aSeaLights[i].fTime >= 45.0f) fAlpha = 1.0f - (aSeaLights[i].fTime - 45.0f) / 5.0f;
+        //     if (aSeaLights[i].fTime <= 5.0f) fAlpha = 1.0f - (5.0f - aSeaLights[i].fTime) / 5.0f;
+        //
+        //     CVECTOR v      = aSeaLights[i].vPos;
+        //     r.vPos         = CVECTOR(v.x, WaveXZ(v.x, v.z) - 5.0f, v.z);
+        //     r.fSize        = 20.0f;
+        //     r.fAngle       = 0.0f;
+        //     r.dwColor      = ARGB(0.07f * fAlphaK * fAlpha * 255.0f, 227, 245, 153);
+        //     r.dwSubTexture = aSeaLights[i].dwSubTexture;
+        // }
+        //
+        // if (aLightsRects.size()) {
+        //     rs->TextureSet(0, iSeaLightTexture);
+        //     rs->DrawRects(&aLightsRects[0], aLightsRects.size(), "seatrash", 2, 2, 0.5f);
+        // }
 
         bUnderSeaStarted = true;
     }
@@ -1642,11 +1575,11 @@ uint32_t Sea::AttributeChanged(ATTRIBUTES* pAttribute)
 
     if (*pParent == "Sea2") {
         if (*pAttribute == "WaterColor") {
-            v4SeaColor = COLOR2VECTOR4(pAttribute->GetAttributeAsDword());
+            // v4SeaColor = COLOR2VECTOR4(pAttribute->GetAttributeAsDword());
             return 0;
         }
         if (*pAttribute == "SkyColor") {
-            v4SkyColor = COLOR2VECTOR4(pAttribute->GetAttributeAsDword());
+            // v4SkyColor = COLOR2VECTOR4(pAttribute->GetAttributeAsDword());
             return 0;
         }
 
@@ -1763,7 +1696,7 @@ uint32_t Sea::AttributeChanged(ATTRIBUTES* pAttribute)
             return 0;
         }
         if (*pAttribute == "Color") {
-            vFogColor = (1.0f / 255.0f) * COLOR2VECTOR(pAttribute->GetAttributeAsDword());
+            // vFogColor = (1.0f / 255.0f) * COLOR2VECTOR(pAttribute->GetAttributeAsDword());
             return 0;
         }
         if (*pAttribute == "SeaDensity") {
@@ -1802,25 +1735,25 @@ uint32_t Sea::AttributeChanged(ATTRIBUTES* pAttribute)
 
 void Sea::LostRender()
 {
-    rs->Release(pReflection);
-    rs->Release(pReflectionSunroad);
-    rs->Release(pEnvMap);
-    rs->Release(pSunRoadMap);
-    rs->Release(pRenderTargetBumpMap);
-
-    rs->Release(pZStencil);
-    rs->Release(pReflectionSurfaceDepth);
+    // rs->Release(pReflection);
+    // rs->Release(pReflectionSunroad);
+    // rs->Release(pEnvMap);
+    // rs->Release(pSunRoadMap);
+    // rs->Release(pRenderTargetBumpMap);
+    //
+    // rs->Release(pZStencil);
+    // rs->Release(pReflectionSurfaceDepth);
 }
 
 void Sea::RestoreRender()
 {
-    rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
-
-    rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pEnvMap);
-    rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pSunRoadMap);
-    rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pZStencil);
-
-    rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflection);
-    rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflectionSunroad);
-    rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pReflectionSurfaceDepth);
+    // rs->CreateTexture(XWIDTH, YWIDTH, MIPSLVLS, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRenderTargetBumpMap);
+    //
+    // rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pEnvMap);
+    // rs->CreateCubeTexture(128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pSunRoadMap);
+    // rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pZStencil);
+    //
+    // rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflection);
+    // rs->CreateTexture(128, 128, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &pReflectionSunroad);
+    // rs->CreateDepthStencilSurface(128, 128, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, &pReflectionSurfaceDepth);
 }

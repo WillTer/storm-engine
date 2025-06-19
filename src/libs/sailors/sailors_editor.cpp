@@ -4,7 +4,7 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/shared_headers/sea_ai/script_defines.h>
 
-SailorsEditor::SailorsEditor() : rs(nullptr), sailors(0), shipID(0), pointID(0), model(nullptr)
+SailorsEditor::SailorsEditor() : sailors(0), shipID(0), pointID(0), model(nullptr)
 {
     cameraAng = 0.0f;
 
@@ -23,8 +23,6 @@ SailorsEditor::~SailorsEditor()
 
 bool SailorsEditor::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-
     sailors = core->CreateEntity("Sailors");
 
     core->SetLayerType(EXECUTE, layer_type_t::execute);
@@ -74,14 +72,12 @@ void SailorsEditor::Execute(uint32_t dltTime)
 
 void SailorsEditor::Realize(uint32_t dltTime)
 {
-    menu.Draw(rs, menu.sailrs->shipWalk[0].sailorsPoints);
+    menu.Draw(/*rs*/ nullptr, menu.sailrs->shipWalk[0].sailorsPoints);
 
-    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(100,100,100) ,700, 10,"%f" , 1000.0f/float(dltTime));
+    if (menu.blocked == 1 || menu.blocked == 2)
+        menu.sailrs->shipWalk[0].sailorsPoints.Draw(/*rs*/ nullptr, (menu.selected == 1 && menu.blocked == 1));
 
-    if (menu.blocked == 1 || menu.blocked == 2) menu.sailrs->shipWalk[0].sailorsPoints.Draw(rs, (menu.selected == 1 && menu.blocked == 1));
-
-    if (menu.blocked < 1) menu.sailrs->shipWalk[0].sailorsPoints.Draw_(rs, false);
-    // menu.sailrs->shipWalk[0].sailorsPoints.Draw_(rs, (menu.selected== 1 && menu.blocked== 1));
+    if (menu.blocked < 1) menu.sailrs->shipWalk[0].sailorsPoints.Draw_(/*rs*/ nullptr, false);
 };
 
 void SailorsEditor::SetCamera(uint32_t& dltTime)
@@ -105,7 +101,7 @@ void SailorsEditor::SetCamera(uint32_t& dltTime)
     if (core->Controls->GetAsyncKeyState(VK_RBUTTON) < 0) speed = 0.1f;
 
     cameraPos.y += speed * (dltTime / 10.0f);
-    rs->SetCamera(cameraTo + pos, cameraTo, CVECTOR(0.0f, 1.0f, 0.0f));
+    // rs->SetCamera(cameraTo + pos, cameraTo, CVECTOR(0.0f, 1.0f, 0.0f));
 
     if (core->Controls->GetAsyncKeyState(0x57) < 0) {
         cameraTo.x -= sin(cameraAng.y) * dltTime / 50.0f;

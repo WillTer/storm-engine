@@ -13,14 +13,14 @@ AIShipCameraController::AIShipCameraController(AIShip* _pAIShip)
 
 AIShipCameraController::~AIShipCameraController()
 {
-    if (iCrosshairTex >= 0) AIHelper::pRS->TextureRelease(iCrosshairTex);
+    // if (iCrosshairTex >= 0) AIHelper::pRS->TextureRelease(iCrosshairTex);
 }
 
 bool AIShipCameraController::Init()
 {
     pACrosshair = AIHelper::pASeaCameras->GetAttributeClass("Crosshair");
     Assert(pACrosshair);
-    iCrosshairTex  = AIHelper::pRS->TextureCreate(pACrosshair->GetAttribute("Texture"));
+    // iCrosshairTex  = AIHelper::pRS->TextureCreate(pACrosshair->GetAttribute("Texture"));
     dwSubTexturesX = pACrosshair->GetAttributeAsDword("SubTexX");
     dwSubTexturesY = pACrosshair->GetAttributeAsDword("SubTexY");
     auto* pAColors = pACrosshair->GetAttributeClass("colors");
@@ -48,7 +48,7 @@ void AIShipCameraController::Execute(float fDeltaTime)
         uint32_t i, j, iMax;
         CMatrix  m;
 
-        AIHelper::pRS->GetTransform(D3DTS_VIEW, m);
+        // AIHelper::pRS->GetTransform(D3DTS_VIEW, m);
         m.Transposition();
         auto const vZ = m.Vz();
 
@@ -65,7 +65,7 @@ void AIShipCameraController::Execute(float fDeltaTime)
                 if (GetAIShip() != AIShip::AIShips[i]) {
                     auto vFakeShipPos = AIShip::AIShips[i]->GetPos()
                         + (!(AIShip::AIShips[i]->GetPos() - vOurPos)) * AIShip::AIShips[i]->GetBoxsize().z * 0.8f;
-                    AIHelper::pRS->DrawSphere(vFakeShipPos, 2.0f, 0xFF00FF00);
+                    // AIHelper::pRS->DrawSphere(vFakeShipPos, 2.0f, 0xFF00FF00);
                     auto const fDistance = (vFakeShipPos - vFirePos).GetLength2D();
                     // AIShip::AIShips[i]->GetDistance(vFirePos);
                     if (fDistance <= 0.8f * AIShip::AIShips[i]->GetBoxsize().z) {
@@ -115,7 +115,7 @@ bool AIShipCameraController::Fire()
 {
     CMatrix m;
 
-    AIHelper::pRS->GetTransform(D3DTS_VIEW, m);
+    // AIHelper::pRS->GetTransform(D3DTS_VIEW, m);
     m.Transposition();
     auto const vZ = m.Vz();
     // CVECTOR vZ = m * CVECTOR(0.0f, 0.0f, 1.0f);
@@ -136,39 +136,30 @@ void AIShipCameraController::Realize(float fDeltaTime)
     if (isCameraOutside()) return;
 
     CMatrix m;
-    RS_RECT rCam;
+    // RS_RECT rCam;
 
-    // AIHelper::pRS->GetTransform(D3DTS_VIEW, m); m.Transposition();    CVECTOR vZ = m.Vz();
     auto const mOldView = m;
-    AIHelper::pRS->GetTransform(D3DTS_VIEW, mOldView);
+    // AIHelper::pRS->GetTransform(D3DTS_VIEW, mOldView);
     m = mOldView;
     m.Transposition();
     auto const vZ = m.Vz();
-    /*CVECTOR campos,camang;
-    float campersp;
-    AIHelper::pRS->GetCamera(campos,camang,campersp);
-    m.BuildMatrix(camang);
-    CVECTOR vZ = m.Vz();*/
     if (!GetAIShip()->GetCannonController()->isCanFire(vZ)) return;
 
     m.SetIdentity();
-    AIHelper::pRS->SetTransform(D3DTS_VIEW, m);
+    // AIHelper::pRS->SetTransform(D3DTS_VIEW, m);
 
-    rCam.dwColor = Colors[dwTarget];
+    // rCam.dwColor = Colors[dwTarget];
 
-    // AIHelper::pRS->Print(0,0,"%d",rCam.dwColor);
-
-    rCam.fAngle              = 0.0f;
+    // rCam.fAngle              = 0.0f;
     auto const fSizeMultiply = 0.9f + (0.2f * ((fDelta > 1.0f) ? fDelta : (2.0f - fDelta)));
-    rCam.fSize               = fSizeMultiply * pACrosshair->GetAttributeAsFloat("Size");
-    // rCam.vPos = campos + m * CVECTOR(0.0f,0.0f,1.0f);
-    rCam.vPos         = m * CVECTOR(0.0f, 0.0f, 1.0f);
-    rCam.dwSubTexture = 0;
+    // rCam.fSize               = fSizeMultiply * pACrosshair->GetAttributeAsFloat("Size");
+    // rCam.vPos         = m * CVECTOR(0.0f, 0.0f, 1.0f);
+    // rCam.dwSubTexture = 0;
 
-    AIHelper::pRS->TextureSet(0, iCrosshairTex);
-    AIHelper::pRS->DrawRects(&rCam, 1, pACrosshair->GetAttribute("Technique"), dwSubTexturesX, dwSubTexturesY);
-
-    AIHelper::pRS->SetTransform(D3DTS_VIEW, mOldView);
+    // AIHelper::pRS->TextureSet(0, iCrosshairTex);
+    // AIHelper::pRS->DrawRects(&rCam, 1, pACrosshair->GetAttribute("Technique"), dwSubTexturesX, dwSubTexturesY);
+    //
+    // AIHelper::pRS->SetTransform(D3DTS_VIEW, mOldView);
 }
 
 void AIShipCameraController::Save(CSaveLoad* pSL) const

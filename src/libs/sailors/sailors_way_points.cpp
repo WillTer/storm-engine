@@ -69,167 +69,163 @@ void Points::Delete(int Index)
 
 //--------------------------------------------------------------------------------------------------------------
 
-void SailorsPoints::Draw(VDX9RENDER* rs, bool pointmode)
+void SailorsPoints::Draw(/*VDX9RENDER*/ void* rs, bool pointmode)
 {
-    // D3DXVec3TransformCoord(0,0,0);
-
     if (!points.count) return;
 
-    RS_RECT pRSR;
-    pRSR.fSize  = 1;
-    pRSR.fAngle = PI * 2.0f * rand() / RAND_MAX;
-
-    for (auto i = 0; i < points.count; i++) {
-        pRSR.vPos = CVECTOR(points.point[i].x, points.point[i].y, points.point[i].z);
-
-        pRSR.fSize = 0.15f;
-        if (pointmode) {
-            pRSR.dwColor = COLOR_SHADOW;
-        } else
-            pRSR.dwColor = COLOR_SHADOW_SELECTED;
-
-        rs->DrawRects(&pRSR, 1, "EditorBack");
-
-        pRSR.fSize   = 0.15f;
-        pRSR.dwColor = COLOR_POINT;
-
-        if (pointmode) rs->DrawRects(&pRSR, 1, "EditorFront");
-    }
-
-    if (points.selected >= 0 && pointmode) {
-        pRSR.vPos = CVECTOR(points.point[points.selected].x, points.point[points.selected].y, points.point[points.selected].z);
-
-        pRSR.fSize   = 0.25f;
-        pRSR.dwColor = COLOR_SHADOW;
-        rs->DrawRects(&pRSR, 1, "EditorBack");
-
-        pRSR.fSize   = 0.20f;
-        pRSR.dwColor = COLOR_SHADOW_SELECTED;
-        rs->DrawRects(&pRSR, 1, "EditorBack");
-
-        pRSR.fSize   = 0.20f;
-        pRSR.dwColor = COLOR_SELECTED;
-
-        rs->DrawRects(&pRSR, 1, "EditorFront");
-
-        //        rs->DrawSphere(CVECTOR(points.point[points.selected].x,points.point[points.selected].y,points.point[points.selected].z),0.5f,0xFFFFFFFF);
-    }
+    // RS_RECT pRSR;
+    // pRSR.fSize  = 1;
+    // pRSR.fAngle = PI * 2.0f * rand() / RAND_MAX;
+    //
+    // for (auto i = 0; i < points.count; i++) {
+    //     pRSR.vPos = CVECTOR(points.point[i].x, points.point[i].y, points.point[i].z);
+    //
+    //     pRSR.fSize = 0.15f;
+    //     if (pointmode) {
+    //         pRSR.dwColor = COLOR_SHADOW;
+    //     } else
+    //         pRSR.dwColor = COLOR_SHADOW_SELECTED;
+    //
+    //     rs->DrawRects(&pRSR, 1, "EditorBack");
+    //
+    //     pRSR.fSize   = 0.15f;
+    //     pRSR.dwColor = COLOR_POINT;
+    //
+    //     if (pointmode) rs->DrawRects(&pRSR, 1, "EditorFront");
+    // }
+    //
+    // if (points.selected >= 0 && pointmode) {
+    //     pRSR.vPos = CVECTOR(points.point[points.selected].x, points.point[points.selected].y, points.point[points.selected].z);
+    //
+    //     pRSR.fSize   = 0.25f;
+    //     pRSR.dwColor = COLOR_SHADOW;
+    //     rs->DrawRects(&pRSR, 1, "EditorBack");
+    //
+    //     pRSR.fSize   = 0.20f;
+    //     pRSR.dwColor = COLOR_SHADOW_SELECTED;
+    //     rs->DrawRects(&pRSR, 1, "EditorBack");
+    //
+    //     pRSR.fSize   = 0.20f;
+    //     pRSR.dwColor = COLOR_SELECTED;
+    //
+    //     rs->DrawRects(&pRSR, 1, "EditorFront");
+    // }
 
     if (!pointmode) return;
 
-    CVECTOR _v2, _v1;
-    RS_LINE pRSL[2];
-
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-    for (auto m = 0; m < links.count; m++) {
-        _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
-        _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
-
-        pRSL[0].vPos = _v1;
-        pRSL[1].vPos = _v2;
-
-        pRSL[0].dwColor = COLOR_SHADOW;
-        pRSL[1].dwColor = COLOR_SHADOW;
-
-        rs->DrawLines(&pRSL[0], 1, "EditorBack");
-
-        pRSL[0].dwColor = COLOR_GRAY;
-        pRSL[1].dwColor = COLOR_GRAY;
-
-        rs->DrawLines(&pRSL[0], 1, "EditorFront");
-    }
-};
+    // CVECTOR _v2, _v1;
+    // RS_LINE pRSL[2];
+    //
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //
+    // for (auto m = 0; m < links.count; m++) {
+    //     _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
+    //     _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
+    //
+    //     pRSL[0].vPos = _v1;
+    //     pRSL[1].vPos = _v2;
+    //
+    //     pRSL[0].dwColor = COLOR_SHADOW;
+    //     pRSL[1].dwColor = COLOR_SHADOW;
+    //
+    //     rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //
+    //     pRSL[0].dwColor = COLOR_GRAY;
+    //     pRSL[1].dwColor = COLOR_GRAY;
+    //
+    //     rs->DrawLines(&pRSL[0], 1, "EditorFront");
+    // }
+}
 
 //--------------------------------------------------------------------------------------------------------------
-void SailorsPoints::Draw_(VDX9RENDER* rs, bool pointmode)
+void SailorsPoints::Draw_(/*VDX9RENDER*/ void* rs, bool pointmode)
 {
     if (!points.count || !links.count) return;
 
-    RS_RECT pRSR;
-    pRSR.fSize  = 1;
-    pRSR.fAngle = 0;  // PI*2.0f*rand()/RAND_MAX;
-
-    for (auto i = 0; i < points.count; i++) {
-        pRSR.vPos = CVECTOR(points.point[i].x, points.point[i].y, points.point[i].z);
-
-        pRSR.fSize   = 0.15f;
-        pRSR.dwColor = COLOR_SHADOW;
-
-        rs->DrawRects(&pRSR, 1, "EditorBack");
-
-        pRSR.fSize   = 0.15f;
-        pRSR.dwColor = COLOR_GRAY;
-
-        rs->DrawRects(&pRSR, 1, "EditorFront");
-    }
-
-    CVECTOR _v2, _v1;
-    RS_LINE pRSL[2];
-
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-    for (auto m = 0; m < links.count; m++) {
-        _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
-        _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
-
-        pRSL[0].vPos = _v1;
-        pRSL[1].vPos = _v2;
-
-        pRSL[0].dwColor = COLOR_SHADOW;
-        pRSL[1].dwColor = COLOR_SHADOW;
-
-        rs->DrawLines(&pRSL[0], 1, "EditorBack");
-
-        pRSL[0].dwColor = COLOR_GRAY;
-        pRSL[1].dwColor = COLOR_GRAY;
-
-        rs->DrawLines(&pRSL[0], 1, "EditorFront");
-    }
+    // RS_RECT pRSR;
+    // pRSR.fSize  = 1;
+    // pRSR.fAngle = 0;  // PI*2.0f*rand()/RAND_MAX;
+    //
+    // for (auto i = 0; i < points.count; i++) {
+    //     pRSR.vPos = CVECTOR(points.point[i].x, points.point[i].y, points.point[i].z);
+    //
+    //     pRSR.fSize   = 0.15f;
+    //     pRSR.dwColor = COLOR_SHADOW;
+    //
+    //     rs->DrawRects(&pRSR, 1, "EditorBack");
+    //
+    //     pRSR.fSize   = 0.15f;
+    //     pRSR.dwColor = COLOR_GRAY;
+    //
+    //     rs->DrawRects(&pRSR, 1, "EditorFront");
+    // }
+    //
+    // CVECTOR _v2, _v1;
+    // RS_LINE pRSL[2];
+    //
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //
+    // for (auto m = 0; m < links.count; m++) {
+    //     _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
+    //     _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
+    //
+    //     pRSL[0].vPos = _v1;
+    //     pRSL[1].vPos = _v2;
+    //
+    //     pRSL[0].dwColor = COLOR_SHADOW;
+    //     pRSL[1].dwColor = COLOR_SHADOW;
+    //
+    //     rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //
+    //     pRSL[0].dwColor = COLOR_GRAY;
+    //     pRSL[1].dwColor = COLOR_GRAY;
+    //
+    //     rs->DrawLines(&pRSL[0], 1, "EditorFront");
+    // }
 };
 
 //--------------------------------------------------------------------------------------------------------------
-void SailorsPoints::DrawLinks(VDX9RENDER* rs)
+void SailorsPoints::DrawLinks(/*VDX9RENDER*/ void* rs)
 {
-    CVECTOR _v2, _v1;
-    RS_LINE pRSL[2];
-
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-    for (auto m = 0; m < links.count; m++) {
-        _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
-        _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
-
-        pRSL[0].vPos = _v1;
-        pRSL[1].vPos = _v2;
-
-        pRSL[0].dwColor = COLOR_SHADOW;
-        pRSL[1].dwColor = COLOR_SHADOW;
-
-        rs->DrawLines(&pRSL[0], 1, "EditorBack");
-
-        if (links.selected == m) {
-            pRSL[0].dwColor = COLOR_SELECTED;
-            pRSL[1].dwColor = COLOR_SELECTED;
-            rs->DrawLines(&pRSL[0], 1, "EditorBack");
-
-            pRSL[0].vPos.x += 0.1f;
-            pRSL[1].vPos.x += 0.1f;
-            pRSL[0].vPos.z += 0.1f;
-            pRSL[1].vPos.z += 0.1f;
-
-            rs->DrawLines(&pRSL[0], 1, "EditorBack");
-
-            pRSL[0].vPos.y += 0.1f;
-            pRSL[1].vPos.y += 0.1f;
-            rs->DrawLines(&pRSL[0], 1, "EditorBack");
-        } else {
-            pRSL[0].dwColor = COLOR_POINT;
-            pRSL[1].dwColor = COLOR_POINT;
-            rs->DrawLines(&pRSL[0], 1, "EditorFront");
-        }
-    }
-};
+    // CVECTOR _v2, _v1;
+    // RS_LINE pRSL[2];
+    //
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //
+    // for (auto m = 0; m < links.count; m++) {
+    //     _v1 = CVECTOR(points.point[links.link[m].first].x, points.point[links.link[m].first].y, points.point[links.link[m].first].z);
+    //     _v2 = CVECTOR(points.point[links.link[m].next].x, points.point[links.link[m].next].y, points.point[links.link[m].next].z);
+    //
+    //     pRSL[0].vPos = _v1;
+    //     pRSL[1].vPos = _v2;
+    //
+    //     pRSL[0].dwColor = COLOR_SHADOW;
+    //     pRSL[1].dwColor = COLOR_SHADOW;
+    //
+    //     rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //
+    //     if (links.selected == m) {
+    //         pRSL[0].dwColor = COLOR_SELECTED;
+    //         pRSL[1].dwColor = COLOR_SELECTED;
+    //         rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //
+    //         pRSL[0].vPos.x += 0.1f;
+    //         pRSL[1].vPos.x += 0.1f;
+    //         pRSL[0].vPos.z += 0.1f;
+    //         pRSL[1].vPos.z += 0.1f;
+    //
+    //         rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //
+    //         pRSL[0].vPos.y += 0.1f;
+    //         pRSL[1].vPos.y += 0.1f;
+    //         rs->DrawLines(&pRSL[0], 1, "EditorBack");
+    //     } else {
+    //         pRSL[0].dwColor = COLOR_POINT;
+    //         pRSL[1].dwColor = COLOR_POINT;
+    //         rs->DrawLines(&pRSL[0], 1, "EditorFront");
+    //     }
+    // }
+}
 
 //--------------------------------------------------------------------------------------------------------------
 

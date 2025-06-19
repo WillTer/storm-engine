@@ -2,7 +2,6 @@
 
 #include <libs/collide/collide.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/shared_headers/sea_ai/sea_people.h>
 #include <libs/ship/ship_base.h>
@@ -143,7 +142,6 @@ public:
         }
     }
 
-    VDX9RENDER*           rs;
     std::vector<ShipWalk> shipWalk;
     bool                  editorMode;
     bool                  disabled;

@@ -2,98 +2,98 @@
 
 #include <libs/core/core.h>
 
-void Menu::Draw(VDX9RENDER* rs, SailorsPoints& sailorsPoints) const
+void Menu::Draw(/*VDX9RENDER*/ void* rs, SailorsPoints& sailorsPoints) const
 {
-    for (auto i = 0; i < count; i++)
-        if (i != selected && i != blocked)
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(100, 100, 100), 10, 20 + 20 * i, "%s", line[i].c_str());
-
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(255, 200, 100), 10, 20 + 20 * selected, "%s", line[selected].c_str());
-
-    if (blocked >= 0) rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(255, 255, 255), 10, 20 + 20 * blocked, "%s", line[blocked].c_str());
-
-    if (selected == 1 && blocked == 1) {
-        rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 100, "%s", "'ins', 'del', arrow keys to edit");
-        rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 120, "%s", "'SPACE' or 'SPACE+ SHIFT' to select");
-
-        if (sailorsPoints.points.selected >= 0 && sailorsPoints.points.selected < sailorsPoints.points.count) {
-            switch (sailorsPoints.points.point[sailorsPoints.points.selected].pointType) {
-            case (PT_TYPE_NORMAL):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_NORMAL('F9')");
-                break;
-
-            case (PT_TYPE_CANNON_L):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_L('F9')");
-                break;
-            case (PT_TYPE_CANNON_R):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_R('F9')");
-                break;
-            case (PT_TYPE_CANNON_F):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_F('F9')");
-                break;
-            case (PT_TYPE_CANNON_B):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_B('F9')");
-                break;
-
-            case (PT_TYPE_MAST_1):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_1('F9')");
-                break;
-
-            case (PT_TYPE_MAST_2):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_2('F9')");
-                break;
-
-            case (PT_TYPE_MAST_3):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_3('F9')");
-                break;
-
-            case (PT_TYPE_MAST_4):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_4('F9')");
-                break;
-
-            case (PT_TYPE_MAST_5):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_5('F9')");
-                break;
-
-            case (PT_TYPE_NOT_TARGETPOINT):
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_NOT_TARGETPOINT('F9')");
-                break;
-            }
-        } else
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: ('F9')");
-
-        if (sailrs->shipWalk[0].sailorsPoints.points.count
-            && sailrs->shipWalk[0].sailorsPoints.points.count > sailorsPoints.points.selected)
-            if (sailrs->shipWalk[0].sailorsPoints.points.point[sailorsPoints.points.selected].buisy)
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 180, "%s", "buisy= true");
-            else
-                rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 180, "%s", "buisy= false");
-    }
-
-    if (selected == 2 && blocked == 2) {
-        rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 100, "%s", "'ins', 'del' to edit");
-        rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 120, "%s", "'SPACE' or 'SPACE+ SHIFT' to select");
-
-        if (sailorsPoints.links.selected >= 0 && sailorsPoints.links.selected < sailorsPoints.links.count) {
-            std::string s1 = "point 1= ";
-            s1 += sailorsPoints.links.link[sailorsPoints.links.selected].first;
-            s1 += "('F2')";
-
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 140, "%s", s1.c_str());
-
-            s1 = "point 2= ";
-            s1 += sailorsPoints.links.link[sailorsPoints.links.selected].next;
-            s1 += "('F3')";
-
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", s1.c_str());
-
-            sailorsPoints.DrawLinks(rs);
-        } else {
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 140, "%s", "point 1=-1 ('F2')");
-            rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "point 2=-1 ('F3')");
-            sailorsPoints.DrawLinks(rs);
-        }
-    }
+    // for (auto i = 0; i < count; i++)
+    //     if (i != selected && i != blocked)
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(100, 100, 100), 10, 20 + 20 * i, "%s", line[i].c_str());
+    //
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(255, 200, 100), 10, 20 + 20 * selected, "%s", line[selected].c_str());
+    //
+    // if (blocked >= 0) rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(255, 255, 255), 10, 20 + 20 * blocked, "%s", line[blocked].c_str());
+    //
+    // if (selected == 1 && blocked == 1) {
+    //     rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 100, "%s", "'ins', 'del', arrow keys to edit");
+    //     rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 120, "%s", "'SPACE' or 'SPACE+ SHIFT' to select");
+    //
+    //     if (sailorsPoints.points.selected >= 0 && sailorsPoints.points.selected < sailorsPoints.points.count) {
+    //         switch (sailorsPoints.points.point[sailorsPoints.points.selected].pointType) {
+    //         case (PT_TYPE_NORMAL):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_NORMAL('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_CANNON_L):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_L('F9')");
+    //             break;
+    //         case (PT_TYPE_CANNON_R):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_R('F9')");
+    //             break;
+    //         case (PT_TYPE_CANNON_F):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_F('F9')");
+    //             break;
+    //         case (PT_TYPE_CANNON_B):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_CANNON_B('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_MAST_1):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_1('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_MAST_2):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_2('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_MAST_3):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_3('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_MAST_4):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_4('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_MAST_5):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_MAST_5('F9')");
+    //             break;
+    //
+    //         case (PT_TYPE_NOT_TARGETPOINT):
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: PT_TYPE_NOT_TARGETPOINT('F9')");
+    //             break;
+    //         }
+    //     } else
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "type: ('F9')");
+    //
+    //     if (sailrs->shipWalk[0].sailorsPoints.points.count
+    //         && sailrs->shipWalk[0].sailorsPoints.points.count > sailorsPoints.points.selected)
+    //         if (sailrs->shipWalk[0].sailorsPoints.points.point[sailorsPoints.points.selected].buisy)
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 180, "%s", "buisy= true");
+    //         else
+    //             rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 180, "%s", "buisy= false");
+    // }
+    //
+    // if (selected == 2 && blocked == 2) {
+    //     rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 100, "%s", "'ins', 'del' to edit");
+    //     rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 120, "%s", "'SPACE' or 'SPACE+ SHIFT' to select");
+    //
+    //     if (sailorsPoints.links.selected >= 0 && sailorsPoints.links.selected < sailorsPoints.links.count) {
+    //         std::string s1 = "point 1= ";
+    //         s1 += sailorsPoints.links.link[sailorsPoints.links.selected].first;
+    //         s1 += "('F2')";
+    //
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 140, "%s", s1.c_str());
+    //
+    //         s1 = "point 2= ";
+    //         s1 += sailorsPoints.links.link[sailorsPoints.links.selected].next;
+    //         s1 += "('F3')";
+    //
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", s1.c_str());
+    //
+    //         sailorsPoints.DrawLinks(rs);
+    //     } else {
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 140, "%s", "point 1=-1 ('F2')");
+    //         rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 160, "%s", "point 2=-1 ('F3')");
+    //         sailorsPoints.DrawLinks(rs);
+    //     }
+    // }
 
     auto count    = 0;
     auto reloaded = 0;
@@ -114,15 +114,14 @@ void Menu::Draw(VDX9RENDER* rs, SailorsPoints& sailorsPoints) const
     s1 += count;
     s1 += ")";
 
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 470, "%s", s1.c_str());
-
-    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200,200,200) ,10, 500,"%s" , "F1 - Send points to Sailors");
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 520, "%s", "F5 - Save to file");
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 540, "%s", "F6 - load from file");
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 560, "%s", "F4 - sail/war/storm mode");
-
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 540 + 100, "%s", "'a','s','w','d'");
-    rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 560 + 100, "%s", "move camera");
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 470, "%s", s1.c_str());
+    //
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 520, "%s", "F5 - Save to file");
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 540, "%s", "F6 - load from file");
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 560, "%s", "F4 - sail/war/storm mode");
+    //
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 540 + 100, "%s", "'a','s','w','d'");
+    // rs->Print(rs->GetCurFont(), D3DCOLOR_XRGB(200, 200, 200), 10, 560 + 100, "%s", "move camera");
 };
 
 //--------------------------------------------------------------------------------------------------------------

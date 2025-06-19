@@ -3,5 +3,5 @@ storm_lib(
     LINK_DEPENDENCIES
         EnTT::EnTT
     HEADER_DEPENDENCIES
-        renderer # FIXME
+        renderer_next # FIXME
 )

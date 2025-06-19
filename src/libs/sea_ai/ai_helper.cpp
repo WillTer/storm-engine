@@ -6,7 +6,6 @@
 
 AIHelper Helper;
 
-VDX9RENDER*  AIHelper::pRS          = nullptr;
 ISLAND_BASE* AIHelper::pIsland      = nullptr;
 COLLIDE*     AIHelper::pCollide     = nullptr;
 ATTRIBUTES*  AIHelper::pASeaCameras = nullptr;
@@ -38,8 +37,6 @@ bool AIHelper::Uninit()
 
 bool AIHelper::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
@@ -55,22 +52,12 @@ bool AIHelper::Init() const
 
 ATTRIBUTES* AIHelper::GetMainCharacter(ATTRIBUTES* pACharacter)
 {
-    /*uint32_t dwIdx = aCharacters.Find(pACharacter);
-    if (dwIdx != INVALID_ARRAY_INDEX)
-      return aMainCharacters[dwIdx];
-    return null;*/
     auto const it = std::find(aCharacters.begin(), aCharacters.end(), pACharacter);  //~!~
     return it != aCharacters.end() ? aMainCharacters[it - aCharacters.begin()] : nullptr;
 }
 
 void AIHelper::AddCharacter(ATTRIBUTES* pACharacter, ATTRIBUTES* pAMainCharacter)
 {
-    // uint32_t dwIdx = aCharacters.Find(pACharacter);
-    // if (dwIdx != INVALID_ARRAY_INDEX)
-    //{
-    //    aMainCharacters[dwIdx] = pAMainCharacter;
-    //    return;
-    //}
     auto const it = std::find(aCharacters.begin(), aCharacters.end(), pACharacter);  //~!~
     if (it != aCharacters.end()) {
         aMainCharacters[it - aCharacters.begin()] = pAMainCharacter;
@@ -163,37 +150,37 @@ void AIHelper::Print(float x, float y, float fScale, char const* pFormat, ...)
     vsnprintf(cBuffer, sizeof(cBuffer), pFormat, args);
     va_end(args);
 
-    pRS->ExtPrint(
-        FONT_DEFAULT,
-        0xFFFFFFFF,
-        0x00000000,
-        PR_ALIGN_CENTER,
-        false,
-        fScale,
-        0,
-        0,
-        static_cast<int32_t>(x),
-        static_cast<int32_t>(y),
-        cBuffer);
+    // pRS->ExtPrint(
+    //     FONT_DEFAULT,
+    //     0xFFFFFFFF,
+    //     0x00000000,
+    //     PR_ALIGN_CENTER,
+    //     false,
+    //     fScale,
+    //     0,
+    //     0,
+    //     static_cast<int32_t>(x),
+    //     static_cast<int32_t>(y),
+    //     cBuffer);
 }
 
 void AIHelper::Print3D(CVECTOR vPos, float dy, float fScale, char const* pFormat, ...)
 {
-    CMatrix        mtx, view, prj;
-    char           Buff_4k[2048];
-    D3DVIEWPORT9   vp;
+    CMatrix mtx, view, prj;
+    char    Buff_4k[2048];
+    // D3DVIEWPORT9   vp;
     MTX_PRJ_VECTOR vrt;
 
-    pRS->GetTransform(D3DTS_VIEW, view);
-    pRS->GetTransform(D3DTS_PROJECTION, prj);
+    // pRS->GetTransform(D3DTS_VIEW, view);
+    // pRS->GetTransform(D3DTS_PROJECTION, prj);
     mtx.EqMultiply(view, prj);
     view.Transposition();
 
-    pRS->GetViewport(&vp);
-    auto fWidth  = vp.Width * 0.5f;
-    auto fHeight = vp.Height * 0.5f;
+    // pRS->GetViewport(&vp);
+    // auto fWidth  = vp.Width * 0.5f;
+    // auto fHeight = vp.Height * 0.5f;
 
-    mtx.Projection(&vPos, &vrt, 1, fWidth, fHeight, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
+    // mtx.Projection(&vPos, &vrt, 1, fWidth, fHeight, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
     vPos = CVECTOR(vrt.x, vrt.y, vrt.z);
 
     va_list args;
@@ -201,18 +188,18 @@ void AIHelper::Print3D(CVECTOR vPos, float dy, float fScale, char const* pFormat
     vsnprintf(Buff_4k, sizeof(Buff_4k), pFormat, args);
     va_end(args);
 
-    pRS->ExtPrint(
-        FONT_DEFAULT,
-        0xFFFFFFFF,
-        0x00000000,
-        PR_ALIGN_CENTER,
-        false,
-        fScale,
-        0,
-        0,
-        static_cast<int32_t>(vPos.x),
-        static_cast<int32_t>(vPos.y + dy),
-        Buff_4k);
+    // pRS->ExtPrint(
+    //     FONT_DEFAULT,
+    //     0xFFFFFFFF,
+    //     0x00000000,
+    //     PR_ALIGN_CENTER,
+    //     false,
+    //     fScale,
+    //     0,
+    //     0,
+    //     static_cast<int32_t>(vPos.x),
+    //     static_cast<int32_t>(vPos.y + dy),
+    //     Buff_4k);
 }
 
 void AIHelper::Save(CSaveLoad* pSL)
