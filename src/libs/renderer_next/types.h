@@ -14,10 +14,6 @@ struct PointBase {
     T x;
     T y;
 
-    constexpr PointBase() : x(0), y(0) {}
-    constexpr PointBase(T x, T y) : x(x), y(y) {}
-    constexpr PointBase(std::pair<T, T> const& p) : x(p.first), y(p.second) {}
-
     constexpr std::pair<int, int> as_pair() const
     {
         return std::make_pair(x, y);
@@ -67,25 +63,6 @@ struct RectBase {
     T top;
     T right;
     T bottom;
-
-    constexpr RectBase() : left(0), top(0), right(0), bottom(0) {}
-    constexpr RectBase(T left, T top, T right, T bottom) : left(left), top(top), right(right), bottom(bottom) {}
-
-    constexpr RectBase(PointBase<T> const& top_left, PointBase<T> const& bottom_right)
-        : left(top_left.x)
-        , top(top_left.y)
-        , right(bottom_right.x)
-        , bottom(bottom_right.y)
-    {
-    }
-
-    constexpr RectBase(PointBase<T> const& top_left, int width, int height)
-        : left(top_left.x)
-        , top(top_left.y)
-        , right(top_left.x + width)
-        , bottom(top_left.y + height)
-    {
-    }
 
     constexpr bool intersect(RectBase const& other) const
     {

@@ -3,21 +3,22 @@
 // ==================================================================== ||
 #pragma once
 
+#include <libs/core/entity_state.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
+#include <libs/renderer_next/types.h>
 
 #include "common_camera.h"
 
-#define D3DFVF_VERTEX (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
+// #define D3DFVF_VERTEX (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 #define AIM_SIZE 0.05f
 
 class DeckCamera: public COMMON_CAMERA
 {
     struct VERTEX {
-        D3DVECTOR v;
-        D3DCOLOR  color;
-        float     tu;
-        float     tv;
+        CVECTOR      v;
+        storm::Color color;
+        float        tu;
+        float        tv;
     };
 
     VERTEX tri[4];
@@ -39,10 +40,9 @@ class DeckCamera: public COMMON_CAMERA
     CVECTOR g_gv0, g_gv1, g_gv2;
 
     MODEL*      pModel;
-    VDX9RENDER* RenderService;
     CVECTOR     camera_pos, camera_ang;
     float       h_eye;
-    RECT        Screen_Rect;
+    storm::Rect Screen_Rect;
     int32_t     lock_x;
     int32_t     lock_y;
     int32_t     vb_id;

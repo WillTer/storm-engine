@@ -16,8 +16,7 @@
 //--------------------------------------------------------------------
 SeaFoam::SeaFoam() : seaID(0), sea(nullptr), shipsCount(0), carcassTexture(0), isStorm(false), soundService(nullptr)
 {
-    psIni    = nullptr;
-    renderer = nullptr;
+    psIni = nullptr;
 }
 
 //--------------------------------------------------------------------
@@ -26,25 +25,18 @@ SeaFoam::~SeaFoam()
     // GUARD(SEAFOAM::~SEAFOAM)
 
     ReleaseShipFoam();
-    if (renderer && (carcassTexture >= 0)) renderer->TextureRelease(carcassTexture);
+    // if (renderer && (carcassTexture >= 0)) renderer->TextureRelease(carcassTexture);
     // UNGUARD
 }
 
 //--------------------------------------------------------------------
 bool SeaFoam::Init()
 {
-    /*if (core->IsNetActive())
-    {
-      NetFindClass(false, &seaID, "NetSea");
-      sea = (SEA_BASE*) core->GetEntityPointer(seaID);
-    }
-    else*/
     {
         seaID = core->GetEntityId("Sea");
         sea   = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
     }
 
-    renderer     = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     soundService = static_cast<VSoundService*>(core->GetService("SoundService"));
 
     // FIXME: hardcode
@@ -52,10 +44,7 @@ bool SeaFoam::Init()
 
     InitializeShipFoam();
 
-    // core->CreateEntity(&arrowModel,"ModelR");
-    // core->Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
-
-    carcassTexture = renderer->TextureCreate("seafoam_2.tga");
+    // carcassTexture = renderer->TextureCreate("seafoam_2.tga");
     return true;
     // UNGUARD
 }
@@ -86,11 +75,11 @@ void SeaFoam::AddShip(entid_t pShipEID)
 
     CreateTracePoints(foamInfo);
     auto const wideK     = sqrtf(foamInfo->hullInfo.boxsize.y / 17.f);
-    foamInfo->carcass[0] = new TCarcass(TRACE_STEPS_Z, MEASURE_POINTS, renderer, true);
+    foamInfo->carcass[0] = new TCarcass(TRACE_STEPS_Z, MEASURE_POINTS, /*renderer*/ nullptr, true);
     foamInfo->carcass[0]->Initialize();
     foamInfo->carcass[0]->InitCircleMeasure(wideK * 1.4f, wideK * -1.f, .55f);
 
-    foamInfo->carcass[1] = new TCarcass(TRACE_STEPS_Z, MEASURE_POINTS, renderer, false);
+    foamInfo->carcass[1] = new TCarcass(TRACE_STEPS_Z, MEASURE_POINTS, /*renderer*/ nullptr, false);
     foamInfo->carcass[1]->Initialize();
     foamInfo->carcass[1]->InitCircleMeasure(wideK * 1.4f, wideK * 1.f, .55f);
 
@@ -427,11 +416,6 @@ uint64_t SeaFoam::ProcessMessage(MESSAGE& message)
                 if (attrs == shipFoamInfo[ship].ship->GetACharacter()) {
                     shipFoamInfo[ship].enabled = false;
 
-                    // shipFoamInfo[ship].carcass[0]->Uninitialize();
-                    // delete shipFoamInfo[ship].carcass[0];
-                    // shipFoamInfo[ship].carcass[1]->Uninitialize();
-                    // delete shipFoamInfo[ship].carcass[1];
-
                     return outValue;
                 }
             }
@@ -460,22 +444,20 @@ void SeaFoam::Realize(uint32_t _dTime)
     }
 
     static CMatrix wMatrix;
-    renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(wMatrix));
+    // renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(wMatrix));
 
-    renderer->TextureSet(0, carcassTexture);
-    auto const techniqueStarted = renderer->TechniqueExecuteStart("new_seafoam");
+    // renderer->TextureSet(0, carcassTexture);
+    // auto const techniqueStarted = renderer->TechniqueExecuteStart("new_seafoam");
     for (ship = 0; ship < shipsCount; ship++) {
         foamInfo = &shipFoamInfo[ship];
         if (!foamInfo->enabled) continue;
         RealizeShipFoam_Mesh(*foamInfo, _dTime);
     }
-    if (techniqueStarted)
-        while (renderer->TechniqueExecuteNext())
-            ;
+    // if (techniqueStarted)
+    //     while (renderer->TechniqueExecuteNext())
+    ;
 
     RDTSC_E(ticks)
-    // core->Trace("Seafoam realize = %d", ticks);
-    // UNGUARD
 }
 
 //--------------------------------------------------------------------

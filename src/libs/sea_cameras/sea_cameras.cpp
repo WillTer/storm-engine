@@ -17,21 +17,7 @@ SeaCameras::~SeaCameras()
     //    ShowCursor(true);
 }
 
-void SeaCameras::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam)
-{
-    /*    //GUARD(SEA_CAMERAS::ProcessMessage(uint32_t,uint32_t,uint32_t))
-      switch(iMsg)
-      {
-        case WM_ACTIVATE:
-        {
-          WORD wActive = LOWORD(wParam);
-          bActive = (wActive == WA_CLICKACTIVE || wActive == WA_ACTIVE);
-          for (uint32_t i=0;i<CamerasArray.size();i++) CamerasArray[i]->SetActive(bActive);
-        }
-        break;
-      }
-      //UNGUARD*/
-}
+void SeaCameras::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam) {}
 
 uint64_t SeaCameras::ProcessMessage(MESSAGE& message)
 {
