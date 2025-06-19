@@ -10,8 +10,6 @@
 class Weather: public WEATHER_BASE
 {
 private:
-    VDX9RENDER* pRS;
-
     float    fFloats[MAX_FLOAT_PARAMS];
     int32_t  iLongs[MAX_LONG_PARAMS];
     uint32_t dwColors[MAX_COLOR_PARAMS];
@@ -66,13 +64,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 };

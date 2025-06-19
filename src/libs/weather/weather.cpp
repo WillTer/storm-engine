@@ -15,13 +15,7 @@ Weather::~Weather()
     CleanUP();
 }
 
-void Weather::SetDevice()
-{
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
-
-    // LoadWeatherIni();
-}
+void Weather::SetDevice() {}
 
 bool Weather::Init()
 {
@@ -58,20 +52,6 @@ void Weather::Realize(uint32_t Delta_Time) {}
 
 void Weather::Execute(uint32_t Delta_Time)
 {
-    /*    if (dwFrames) SetLong(whi_weather_update,0);
-
-      WIN32_FIND_DATA    wfd;
-      HANDLE h = fio->_FindFirstFile(WHT_INI_FILE,&wfd);
-      if (INVALID_HANDLE_VALUE != h)
-      {
-        FILETIME ft_new = wfd.ftLastWriteTime;
-        fio->_FindClose(h);
-
-        if (CompareFileTime(&ft_old,&ft_new)!=0) LoadWeatherIni();
-      }
-
-      dwFrames--;
-    */
     if (fFloats[whf_time_speed] != 0.f) {
         auto const fOldTimer = fFloats[whf_time_counter];
         fFloats[whf_time_counter] += core->GetDeltaTime() * fFloats[whf_time_speed];
@@ -83,8 +63,6 @@ void Weather::Execute(uint32_t Delta_Time)
         if (static_cast<int32_t>(fFloats[whf_time_counter] * fUpdateFrequence) != static_cast<int32_t>(fOldTimer * fUpdateFrequence)) {
             core->Event("WeatherTimeUpdate", "f", fFloats[whf_time_counter]);
         }
-        // updating date in scripts
-        // if( fFloats[whf_time_counter] fOldTimer
     }
 }
 
@@ -153,168 +131,70 @@ bool Weather::LoadState(ENTITY_STATE* state)
 
 void Weather::CleanUP()
 {
-    pRS->SetRenderState(D3DRS_FOGENABLE, false);
-    pRS->LightEnable(0, false);
+    // pRS->SetRenderState(D3DRS_FOGENABLE, false);
+    // pRS->LightEnable(0, false);
 }
-
-/*void WEATHER::LoadWeatherIni()
-{
-    char    section[256],param[256],str[256];
-    int32_t    i;
-    uint32_t    r,g,b;
-
-    CleanUP();
-
-    INIFILE * ini;
-    WIN32_FIND_DATA    wfd;
-    HANDLE h = fio->_FindFirstFile(WHT_INI_FILE,&wfd);
-    if (INVALID_HANDLE_VALUE != h)
-    {
-        ft_old = wfd.ftLastWriteTime;
-        fio->_FindClose(h);
-    }
-    ini = fio->OpenIniFile(WHT_INI_FILE);
-    if(!ini) throw std::runtime_error("weather.ini file not found!");
-
-    //iHour = ini->GetInt(0,"iCurHour",0);
-    iHour = AttributesPointer->GetAttributeAsuint32_t("Hour",0);
-
-    sprintf_s(section,"%s%d:00",(iHour<10) ? "0" : "", iHour);
-
-    ZERO4(fFloats,iLongs,dwColors,vVectors);
-
-    // load float parameters
-    for (i=0;i<iNumFloatNames;i++)
-    {
-        fFloats[FloatNames[i].dwCode] = (float)ini->GetDouble(section,FloatNames[i].name,1000.0);
-    }
-
-    // load int32_t parameters
-    for (i=0;i<iNumLongNames;i++)
-    {
-        iLongs[LongNames[i].dwCode] = ini->GetInt(section,LongNames[i].name,0);
-    }
-
-    // load colors parameters
-    for (i=0;i<iNumColorNames;i++)
-    {
-        str[0] = 0;
-        ini->ReadString(section,ColorNames[i].name,str,sizeof(str)-1,"255,255,255");
-        sscanf(str,"%d,%d,%d",&r,&g,&b);
-        dwColors[ColorNames[i].dwCode] = RGB(r,g,b);
-    }
-
-    // load vectors parameters
-
-    // load harmonics
-    if (GetInt(whi_harmonics_num)>0)
-    {
-        pHarmonics = new sea_harmonic_t[GetInt(whi_harmonics_num)];
-        for (i=0;i<iLongs[whi_harmonics_num];i++)
-        {
-            str[0] = 0;
-            sprintf_s(param,"Harmonic%d",i);
-            ini->ReadString(section,param,str,sizeof(str)-1,"1,0.0,20.0,0.1202,80.87,-28.00");
-            sea_harmonic_t *pH = &pHarmonics[i];
-            pH->bUse = true;
-            sscanf(str,"%d,%f,%f,%f,%f,%f",&pH->bUse,&pH->fAng,&pH->fLen,&pH->fAmp,&pH->fPhase,&pH->fPhaseDelta);
-        }
-    }
-    // load strings
-    for (i=0;i<iNumStringNames;i++)
-    {
-        str[0] = 0;
-        ini->ReadString(section,StringNames[i].name,str,sizeof(str)-1,"");
-        pStrings[StringNames[i].dwCode] = (char*)new char[strlen(str)+1];
-        strcpy_s(pStrings[StringNames[i].dwCode],str);
-    }
-
-    SetLong(whi_weather_update,1);
-    dwFrames = 0;
-
-    delete ini;
-
-    SetCommonStates();
-
-    core->Trace("Weather: Load ini complete");
-}*/
 
 void Weather::SetCommonStates()
 {
-    pRS->SetRenderState(D3DRS_FOGENABLE, GetInt(whi_fog_enable));
+    // pRS->SetRenderState(D3DRS_FOGENABLE, GetInt(whi_fog_enable));
+    //
+    // auto fDensity = GetFloat(whf_fog_density);
+    // pRS->SetRenderState(D3DRS_FOGCOLOR, GetColor(whc_fog_color));
+    // pRS->SetRenderState(D3DRS_FOGDENSITY, *((uint32_t*)&fDensity));
+    //
+    // auto const dwAmbient = GetColor(whc_sun_ambient);
+    // pRS->SetRenderState(D3DRS_AMBIENT, dwAmbient);
+    //
+    // // setup sun light
+    // auto const fSunHeightAngle  = GetFloat(whf_sun_height_angle);
+    // auto const fSunAzimuthAngle = GetFloat(whf_sun_azimuth_angle);
+    // CVECTOR    vSun, vSunColor, vSunLight;
+    // D3DLIGHT9  sun;
 
-    auto fDensity = GetFloat(whf_fog_density);
-    pRS->SetRenderState(D3DRS_FOGCOLOR, GetColor(whc_fog_color));
-    pRS->SetRenderState(D3DRS_FOGDENSITY, *((uint32_t*)&fDensity));
-
-    auto const dwAmbient = GetColor(whc_sun_ambient);
-    pRS->SetRenderState(D3DRS_AMBIENT, dwAmbient);
-
-    // setup sun light
-    auto const fSunHeightAngle  = GetFloat(whf_sun_height_angle);
-    auto const fSunAzimuthAngle = GetFloat(whf_sun_azimuth_angle);
-    CVECTOR    vSun, vSunColor, vSunLight;
-    D3DLIGHT9  sun;
-
-    if (fFloats[whf_time_speed] == 0.f) {
-        vSun.x = 5000.0f;
-        vSun.y = 0.0f;
-        RotateAroundY(vSun.x, vSun.y, cosf(-fSunHeightAngle), sinf(-fSunHeightAngle));
-
-        vSun.z = 0.0f;
-        RotateAroundY(vSun.x, vSun.z, cosf(fSunAzimuthAngle), sinf(fSunAzimuthAngle));
-
-        vVectors[whv_sun_pos] = vSun;
-    } else {
-        UpdateSunMoonPos();
-        vSun = vVectors[whv_sun_pos];
-    }
-
-    GetColor(whc_sun_color, &vSunColor);
-
-    sun.Type       = D3DLIGHT_DIRECTIONAL;
-    sun.Diffuse.r  = vSunColor.x;
-    sun.Diffuse.g  = vSunColor.y;
-    sun.Diffuse.b  = vSunColor.z;
-    sun.Diffuse.a  = 1.0f;
-    sun.Specular.r = vSunColor.x;
-    sun.Specular.g = vSunColor.y;
-    sun.Specular.b = vSunColor.z;
-    sun.Specular.a = 1.0f;
-    sun.Ambient.r = sun.Ambient.g = sun.Ambient.b = sun.Ambient.a = 0.0f;
-    vSunLight                                                     = -(!(CVECTOR(vSun.x, vSun.y, vSun.z)));
-    sun.Direction.x                                               = vSunLight.x;
-    sun.Direction.y                                               = vSunLight.y;
-    sun.Direction.z                                               = vSunLight.z;
-    sun.Range                                                     = 100000;
-    sun.Attenuation0                                              = 1;
-    sun.Attenuation1                                              = 0;
-    sun.Attenuation2                                              = 0;
-    sun.Falloff                                                   = 0;
-    sun.Theta                                                     = 1;
-    sun.Phi                                                       = 1;
-
-    pRS->SetLight(0, &sun);
-    pRS->LightEnable(0, true);
-
-    pRS->SetRenderState(D3DRS_LIGHTING, false);
+    // if (fFloats[whf_time_speed] == 0.f) {
+    //     vSun.x = 5000.0f;
+    //     vSun.y = 0.0f;
+    //     RotateAroundY(vSun.x, vSun.y, cosf(-fSunHeightAngle), sinf(-fSunHeightAngle));
+    //
+    //     vSun.z = 0.0f;
+    //     RotateAroundY(vSun.x, vSun.z, cosf(fSunAzimuthAngle), sinf(fSunAzimuthAngle));
+    //
+    //     vVectors[whv_sun_pos] = vSun;
+    // } else {
+    //     UpdateSunMoonPos();
+    //     vSun = vVectors[whv_sun_pos];
+    // }
+    //
+    // GetColor(whc_sun_color, &vSunColor);
+    //
+    // sun.Type       = D3DLIGHT_DIRECTIONAL;
+    // sun.Diffuse.r  = vSunColor.x;
+    // sun.Diffuse.g  = vSunColor.y;
+    // sun.Diffuse.b  = vSunColor.z;
+    // sun.Diffuse.a  = 1.0f;
+    // sun.Specular.r = vSunColor.x;
+    // sun.Specular.g = vSunColor.y;
+    // sun.Specular.b = vSunColor.z;
+    // sun.Specular.a = 1.0f;
+    // sun.Ambient.r = sun.Ambient.g = sun.Ambient.b = sun.Ambient.a = 0.0f;
+    // vSunLight                                                     = -(!(CVECTOR(vSun.x, vSun.y, vSun.z)));
+    // sun.Direction.x                                               = vSunLight.x;
+    // sun.Direction.y                                               = vSunLight.y;
+    // sun.Direction.z                                               = vSunLight.z;
+    // sun.Range                                                     = 100000;
+    // sun.Attenuation0                                              = 1;
+    // sun.Attenuation1                                              = 0;
+    // sun.Attenuation2                                              = 0;
+    // sun.Falloff                                                   = 0;
+    // sun.Theta                                                     = 1;
+    // sun.Phi                                                       = 1;
+    //
+    // pRS->SetLight(0, &sun);
+    // pRS->LightEnable(0, true);
+    //
+    // pRS->SetRenderState(D3DRS_LIGHTING, false);
 }
-
-/*bool WEATHER::SetHour(int32_t hour)
-{
-    if (iHour == hour) return false;
-    iHour = hour;
-
-    INIFILE *ini = fio->OpenIniFile(WHT_INI_FILE);
-    if(!ini) throw std::runtime_error("weather.ini file not found!");
-    ini->WriteLong(0,"iCurHour",iHour);
-    delete ini;
-
-    AttributesPointer->SetAttributeUseuint32_t("Hour",iHour);
-
-    LoadWeatherIni();
-    return true;
-}*/
 
 int32_t Weather::GetInt(uint32_t dwCode)
 {

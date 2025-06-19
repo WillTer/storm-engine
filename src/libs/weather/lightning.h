@@ -41,7 +41,6 @@ class Lightning: public Entity
     int32_t iFlickerTime;
 
     WEATHER_BASE* pWeather;
-    VDX9RENDER*   pRS;
     COLLIDE*      pCollide;
 
     void Release() const;
@@ -64,13 +63,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 };

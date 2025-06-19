@@ -54,7 +54,7 @@ void WdmCamera::Init(float defAy, float defHeight)
     realHeight = pos.y;
 }
 
-void WdmCamera::Move(float dltTime, VDX9RENDER* rs)
+void WdmCamera::Move(float dltTime, /*VDX9RENDER*/ void* rs)
 {
     auto const pi = 3.14159265f;
     if (dltTime > 0.1f) dltTime = 0.1f;
@@ -151,7 +151,7 @@ void WdmCamera::Move(float dltTime, VDX9RENDER* rs)
         ps.z = bndPos.z + (pos.z - bndPos.z) * kBlendPos;
     } else
         kBlendPos = 1.0f;
-    rs->SetCamera(CVECTOR(ps.x + r * sn, realHeight, ps.z + r * cs), ang);
+    // rs->SetCamera(CVECTOR(ps.x + r * sn, realHeight, ps.z + r * cs), ang);
 }
 
 void WdmCamera::CheckRange()
@@ -164,11 +164,6 @@ void WdmCamera::CheckRange()
     auto const cx  = pos.x + sn * pos.y * csX / snX;
     auto const cz  = pos.z + cs * pos.y * csX / snX;
     auto const ccx = cx, ccz = cz;
-    // Limit the coordinates
-    // if(cx < -0.5f*WDM_WORLD_SIZE_X) cx = -0.5f*WDM_WORLD_SIZE_X;
-    // if(cx > 0.5f*WDM_WORLD_SIZE_X) cx = 0.5f*WDM_WORLD_SIZE_X;
-    // if(cz < -0.5f*WDM_WORLD_SIZE_Z) cz = -0.5f*WDM_WORLD_SIZE_Z;
-    // if(cz > 0.5f*WDM_WORLD_SIZE_Z) cz = 0.5f*WDM_WORLD_SIZE_Z;
     // Calculating the offset
     pos.x += cx - ccx;
     pos.z += cz - ccz;

@@ -32,7 +32,7 @@ public:
     void Update(float dltTime) override;
 
     // Rendering
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
 protected:
     // All move calculations together
@@ -43,7 +43,6 @@ protected:
     // --------------------------------------------------------------------------------------------
 private:
     // Particles for cannon smoke
-    RS_RECT  rect[24];
     MoveInfo move[24];
     int32_t  numRects;
     float    brnTime;

@@ -118,12 +118,12 @@ WdmStorm::WdmStorm()
     }
     // add to objects
     wdmObjects->AddStorm(this);
-    rainTexture = wdmObjects->rs->TextureCreate("worldmap/rain.tga");
+    // rainTexture = wdmObjects->rs->TextureCreate("worldmap/rain.tga");
 }
 
 WdmStorm::~WdmStorm()
 {
-    if (rainTexture >= 0) wdmObjects->rs->TextureRelease(rainTexture);
+    // if (rainTexture >= 0) wdmObjects->rs->TextureRelease(rainTexture);
     rainTexture = -1;
     for (int32_t i = 0; i < num; i++) {
         wdmObjects->wm->DeleteObject(cloud[i]);
@@ -163,10 +163,6 @@ void WdmStorm::Update(float dltTime)
         x /= r;
         z /= r;
     }
-    /*x += 0.1f*((WdmRenderModel *)wdmObjects->playerShip)->mtx.Vz().x;
-    z += 0.1f*((WdmRenderModel *)wdmObjects->playerShip)->mtx.Vz().z;
-    float k = x*x + z*z;
-    if(k > 0.0f){ k = 1.0f/sqrtf(k); x *= k; z *= k; }*/
     // Vector blending coefficient
     float k = dltTime * WDM_STORM_DIR_CHTIME;
     if (k > 1.0f) k = 1.0f;
@@ -231,7 +227,7 @@ void WdmStorm::Update(float dltTime)
     UpdateSaveData();
 }
 
-void WdmStorm::LRender(VDX9RENDER* rs)
+void WdmStorm::LRender(/*VDX9RENDER*/ void* rs)
 {
     if (wdmObjects->isDebug) {
         CMatrix mtr;
@@ -248,11 +244,11 @@ void WdmStorm::LRender(VDX9RENDER* rs)
 
     int32_t count = 0;
     for (int32_t i = 0; i < num; i++) {
-        if (cloud[i]) { count = cloud[i]->FillRain(rainRect, count); }
+        // if (cloud[i]) { count = cloud[i]->FillRain(rainRect, count); }
     }
     if (count) {
-        rs->TextureSet(0, rainTexture);
-        rs->DrawRects(rainRect, count, "WdmRain", 1, 1);
+        // rs->TextureSet(0, rainTexture);
+        // rs->DrawRects(rainRect, count, "WdmRain", 1, 1);
     }
 }
 

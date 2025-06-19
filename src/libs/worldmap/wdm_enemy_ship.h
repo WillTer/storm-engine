@@ -27,7 +27,7 @@ public:
     void Update(float dltTime) override;
 
     // Rendering debug information
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // Find the position for the ship relative to the player
     static bool GeneratePosition(float objRadius, float brnDltAng, float& x, float& z);

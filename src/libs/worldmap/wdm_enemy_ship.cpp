@@ -114,7 +114,7 @@ void WdmEnemyShip::Update(float dltTime)
     UpdateSaveData();
 }
 
-void WdmEnemyShip::LRender(VDX9RENDER* rs)
+void WdmEnemyShip::LRender(/*VDX9RENDER*/ void* rs)
 {
     if (isWMRender && wdmObjects->isDebug) {
         auto a = static_cast<int32_t>(alpha * 255.0f);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstring>
 
 #define WindFieldSize 64
 #define WindFieldSteps 64

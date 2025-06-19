@@ -55,17 +55,17 @@ public:
 
     void Update(float dltTime) override;
 
-    void PRender(VDX9RENDER* rs) override;
-    void LRender(VDX9RENDER* rs) override;
+    void PRender(/*VDX9RENDER*/ void* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
     // Draw
-    void Render(VDX9RENDER* rs, char const* tech = nullptr) const;
+    void Render(/*VDX9RENDER*/ void* rs, char const* tech = nullptr) const;
     // Adjust texture coordinate transformations
-    void PresetMain(VDX9RENDER* rs) const;
+    void PresetMain(/*VDX9RENDER*/ void* rs) const;
 
 private:
     // Geometry buffers
@@ -82,7 +82,6 @@ private:
     float   aniTiling;
     // Flares
     Flare   flare[1024];
-    RS_RECT flareRect[1024];
     int32_t flareCount;
     int32_t flareTexture;
     float   flareCerateCounter;

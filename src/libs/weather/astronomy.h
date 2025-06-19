@@ -7,8 +7,7 @@
 class Astronomy: public Entity
 {
 public:
-    static VDX9RENDER* pRS;
-    static VGEOMETRY*  pGS;
+    static VGEOMETRY* pGS;
 
     Astronomy();
     ~Astronomy() override;
@@ -21,15 +20,7 @@ public:
     void ProcessStage(Stage stage, uint32_t delta) override
     {
         switch (stage) {
-            // case Stage::execute:
-            //    Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -88,14 +79,13 @@ private:
         };
 
     private:
-        char const *                 sCatalog, *sTexture;
-        float                        fRadius, fSize, fHeightFade, fSunFade;
-        float                        fVisualMagnitude, fTelescopeMagnitude;
-        int32_t                      iTexture;
-        bool                         bEnable;
-        int32_t                      iVertexBuffer, iVertexBufferColors;
-        IDirect3DVertexDeclaration9* pDecl;
-        float                        fPrevFov;
+        char const *sCatalog, *sTexture;
+        float       fRadius, fSize, fHeightFade, fSunFade;
+        float       fVisualMagnitude, fTelescopeMagnitude;
+        int32_t     iTexture;
+        bool        bEnable;
+        int32_t     iVertexBuffer, iVertexBufferColors;
+        float       fPrevFov;
 
         struct Star {
             float    fRA;

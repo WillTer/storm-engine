@@ -11,7 +11,6 @@
 #pragma once
 
 #include <libs/core/attributes.h>
-#include <libs/renderer/dx9render.h>
 
 class WdmRenderObject
 {
@@ -25,11 +24,11 @@ public:
     // Calculations
     virtual void Update(float dltTime) {};
     // Rendering
-    virtual void PRender(VDX9RENDER* rs) {};
+    virtual void PRender(/*VDX9RENDER*/ void* rs) {};
 
-    virtual void MRender(VDX9RENDER* rs) {};
+    virtual void MRender(/*VDX9RENDER*/ void* rs) {};
 
-    virtual void LRender(VDX9RENDER* rs) {};
+    virtual void LRender(/*VDX9RENDER*/ void* rs) {};
 
     static void DeleteAllObjects();
 

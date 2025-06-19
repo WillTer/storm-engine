@@ -21,8 +21,6 @@
 #define WdmCloudsSizeMin 30.0f
 #define WdmCloudsSizeMax 50.0f
 
-IDirect3DVertexDeclaration9* WdmClouds::vertexDecl_ = nullptr;
-
 WdmClouds::Cloud::Cloud()
 {
     count = 0;
@@ -170,27 +168,27 @@ void WdmClouds::Cloud::Update(float dltTime)
     }
 }
 
-int32_t WdmClouds::Cloud::FillRects(RS_RECT* rects, int32_t cnt, float galpha)
-{
-    for (int32_t i = 0; i < count; i++) {
-        auto& c = cloud[i];
-        // Calculating the alpha
-        auto a = static_cast<float>(static_cast<uint8_t>(c.color >> 24));
-        a *= alpha;
-        a *= 0.1f + c.alpha * 0.9f;
-        auto la = static_cast<int32_t>(a * galpha);
-        if (la > 0xff) la = 0xff;
-        if (la <= 0) continue;
-        // fill in
-        auto& r        = rects[cnt++];
-        r.vPos         = c.pos;
-        r.fAngle       = c.angle;
-        r.fSize        = c.size;
-        r.dwColor      = (c.color & 0x00ffffff) | (la << 24);
-        r.dwSubTexture = c.pict;
-    }
-    return cnt;
-}
+// int32_t WdmClouds::Cloud::FillRects(RS_RECT* rects, int32_t cnt, float galpha)
+// {
+//     for (int32_t i = 0; i < count; i++) {
+//         auto& c = cloud[i];
+//         // Calculating the alpha
+//         auto a = static_cast<float>(static_cast<uint8_t>(c.color >> 24));
+//         a *= alpha;
+//         a *= 0.1f + c.alpha * 0.9f;
+//         auto la = static_cast<int32_t>(a * galpha);
+//         if (la > 0xff) la = 0xff;
+//         if (la <= 0) continue;
+//         // fill in
+//         auto& r        = rects[cnt++];
+//         r.vPos         = c.pos;
+//         r.fAngle       = c.angle;
+//         r.fSize        = c.size;
+//         r.dwColor      = (c.color & 0x00ffffff) | (la << 24);
+//         r.dwSubTexture = c.pict;
+//     }
+//     return cnt;
+// }
 
 // Get sphere center and radius
 float WdmClouds::Cloud::GetBound(CVECTOR& _center) const
@@ -225,14 +223,14 @@ WdmClouds::WdmClouds()
     for (int32_t i = 0; i < sizeof(clouds) / sizeof(Cloud); i++) {
         clouds[i].Reset(true);
     }
-    texture = wdmObjects->rs->TextureCreate("worldmap/clouds.tga");
-    light   = wdmObjects->rs->TextureCreate("worldmap/cloudslight.tga");
+    // texture = wdmObjects->rs->TextureCreate("worldmap/clouds.tga");
+    // light   = wdmObjects->rs->TextureCreate("worldmap/cloudslight.tga");
 }
 
 WdmClouds::~WdmClouds()
 {
-    if (texture >= 0) wdmObjects->rs->TextureRelease(texture);
-    if (light >= 0) wdmObjects->rs->TextureRelease(light);
+    // if (texture >= 0) wdmObjects->rs->TextureRelease(texture);
+    // if (light >= 0) wdmObjects->rs->TextureRelease(light);
 }
 
 // Calculations
@@ -255,73 +253,72 @@ void WdmClouds::Update(float dltTime)
 }
 
 // Drawing
-void WdmClouds::LRender(VDX9RENDER* rs)
+// void WdmClouds::LRender(VDX9RENDER* rs)
+// {
+//     int32_t cnt = 0;
+//     // Getting camera frustum
+//     auto* plane = rs->GetPlanes();
+//     // Determine the global alpha depending on the distance to the camera
+//     CMatrix view;
+//     rs->GetTransform(D3DTS_VIEW, view);
+//     CVECTOR camPos;
+//     view.MulToInv(CVECTOR(0.0f), camPos);
+//     auto alpha = (camPos.y - WdmCloudsCloudHeight - 10.0f) * 1.0f / 80.0f;
+//     if (alpha <= 0.0f) return;
+//     if (alpha > 1.0f) alpha = 1.0f;
+//     alpha *= alpha;
+//     // Draw visible
+//     int32_t count = 0;
+//     for (int32_t i = 0; i < sizeof(clouds) / sizeof(Cloud); i++) {
+//         // get the sphere
+//         CVECTOR c;
+//         auto    r = clouds[i].GetBound(c);
+//         // test for visibility
+//         int32_t j;
+//         for (j = 0; j < 4; j++) {
+//             auto& p    = plane[j];
+//             auto  dist = c.x * p.Nx + c.y * p.Ny + c.z * p.Nz - p.D;
+//             if (dist < -r) break;
+//         }
+//         if (j < 4) continue;
+//         // Add to buffer
+//         count = clouds[i].FillRects(rects, count, alpha);
+//
+//         cnt++;
+//     }
+//     if (count > 0) {
+//         CreateVertexDeclaration(rs);
+//         rs->SetVertexDeclaration(vertexDecl_);
+//
+//         rs->TextureSet(0, texture);
+//         rs->TextureSet(1, light);
+//
+//         CMatrix prj;
+//         rs->GetTransform(D3DTS_PROJECTION, prj);
+//         view.Transposition();
+//         rs->SetVertexShaderConstantF(0, prj, 4);
+//         prj.matrix[0] = view.matrix[1];
+//         prj.matrix[1] = view.matrix[5];
+//         prj.matrix[2] = view.matrix[9];
+//         prj.matrix[3] = view.matrix[13] - WdmCloudsCloudHeight;
+//         prj.matrix[4] = WdmCloudsSizeMin * 1.4f;
+//         prj.matrix[5] = 0.0f;
+//         prj.matrix[6] = (WdmCloudsSizeMax - WdmCloudsSizeMin) * 1.4f;
+//         prj.matrix[7] = 0.5f;
+//         rs->SetVertexShaderConstantF(4, prj, 2);
+//         rs->DrawRects(rects, count, "WdmClouds", 2, 2);
+//     }
+// }
+
+void WdmClouds::CreateVertexDeclaration(/*VDX9RENDER*/ void* rs)
 {
-    int32_t cnt = 0;
-    // Getting camera frustum
-    auto* plane = rs->GetPlanes();
-    // Determine the global alpha depending on the distance to the camera
-    CMatrix view;
-    rs->GetTransform(D3DTS_VIEW, view);
-    CVECTOR camPos;
-    view.MulToInv(CVECTOR(0.0f), camPos);
-    auto alpha = (camPos.y - WdmCloudsCloudHeight - 10.0f) * 1.0f / 80.0f;
-    if (alpha <= 0.0f) return;
-    if (alpha > 1.0f) alpha = 1.0f;
-    alpha *= alpha;
-    // Draw visible
-    int32_t count = 0;
-    for (int32_t i = 0; i < sizeof(clouds) / sizeof(Cloud); i++) {
-        // get the sphere
-        CVECTOR c;
-        auto    r = clouds[i].GetBound(c);
-        // test for visibility
-        int32_t j;
-        for (j = 0; j < 4; j++) {
-            auto& p    = plane[j];
-            auto  dist = c.x * p.Nx + c.y * p.Ny + c.z * p.Nz - p.D;
-            if (dist < -r) break;
-        }
-        if (j < 4) continue;
-        // Add to buffer
-        count = clouds[i].FillRects(rects, count, alpha);
-
-        cnt++;
-    }
-    if (count > 0) {
-        CreateVertexDeclaration(rs);
-        rs->SetVertexDeclaration(vertexDecl_);
-
-        rs->TextureSet(0, texture);
-        rs->TextureSet(1, light);
-
-        CMatrix prj;
-        rs->GetTransform(D3DTS_PROJECTION, prj);
-        view.Transposition();
-        rs->SetVertexShaderConstantF(0, prj, 4);
-        prj.matrix[0] = view.matrix[1];
-        prj.matrix[1] = view.matrix[5];
-        prj.matrix[2] = view.matrix[9];
-        prj.matrix[3] = view.matrix[13] - WdmCloudsCloudHeight;
-        prj.matrix[4] = WdmCloudsSizeMin * 1.4f;
-        prj.matrix[5] = 0.0f;
-        prj.matrix[6] = (WdmCloudsSizeMax - WdmCloudsSizeMin) * 1.4f;
-        prj.matrix[7] = 0.5f;
-        rs->SetVertexShaderConstantF(4, prj, 2);
-        rs->DrawRects(rects, count, "WdmClouds", 2, 2);
-    }
-    // rs->Print(20, 200, "Visible clouds = %i, Visible particles = %i", cnt, count);
-}
-
-void WdmClouds::CreateVertexDeclaration(VDX9RENDER* rs)
-{
-    if (vertexDecl_ != nullptr) return;
-
-    const D3DVERTEXELEMENT9 VertexElements[] = {
-        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-        {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
-        {0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-        D3DDECL_END()};
-
-    rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
+    // if (vertexDecl_ != nullptr) return;
+    //
+    // const D3DVERTEXELEMENT9 VertexElements[] = {
+    //     {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+    //     {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+    //     {0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+    //     D3DDECL_END()};
+    //
+    // rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }

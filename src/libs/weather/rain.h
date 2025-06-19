@@ -52,9 +52,9 @@ class Rain: public Entity
     };
 
 private:
-    int32_t                iRainDropsTexture;
-    float                  fDropsDeltaTime;
-    std::vector<RS_RECT>   aRects;
+    int32_t iRainDropsTexture;
+    float   fDropsDeltaTime;
+    // std::vector<RS_RECT>   aRects;
     std::vector<drop_t>    aDrops;
     std::vector<seadrop_t> aSeaDrops;
     std::vector<ship_t>    aShips;
@@ -92,8 +92,7 @@ private:
     int32_t iIBSeaDrops;
     int32_t iVBSeaDrops;
 
-    VDX9RENDER* rs;
-    COLLIDE*    cs;
+    COLLIDE* cs;
 
     void GenerateRandomDrop(CVECTOR* vPos) const;
     void GenerateRain();
@@ -118,13 +117,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 };

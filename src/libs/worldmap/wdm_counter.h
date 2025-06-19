@@ -28,17 +28,17 @@ public:
     // Calculations
     void Update(float dltTime) override;
 
-    void PRender(VDX9RENDER* rs) override {};
+    void PRender(/*VDX9RENDER*/ void* rs) override {};
 
-    void MRender(VDX9RENDER* rs) override {};
-    void LRender(VDX9RENDER* rs) override;
+    void MRender(/*VDX9RENDER*/ void* rs) override {};
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
     bool LoadModel(WdmRenderModel*& pnt, char const* name, char const* tech) const;
-    void DrawNum(VDX9RENDER* rs, WdmRenderModel* m, float u, float v);
+    void DrawNum(/*VDX9RENDER*/ void* rs, WdmRenderModel* m, float u, float v);
 
 private:
     WdmRenderModel* sky;

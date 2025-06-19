@@ -33,8 +33,8 @@ public:
 
 private:
     enum {
-        FOGVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE,
-        SKYVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2,
+        // FOGVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE,
+        // SKYVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2,
         SKY_NUM_TEXTURES = 5,
         SKY_NUM_VERTEX   = 40,
 
@@ -57,10 +57,9 @@ private:
     std::string              sTechSkyBlendAlpha = "Skyblend_alpha";
     std::string              sTechSkyFog        = "SkyFog";
 
-    VDX9RENDER* pRS;
-    int32_t     TexturesID[SKY_NUM_TEXTURES];
-    int32_t     TexturesNextID[SKY_NUM_TEXTURES];
-    float       fTimeFactor;
+    int32_t TexturesID[SKY_NUM_TEXTURES];
+    int32_t TexturesNextID[SKY_NUM_TEXTURES];
+    float   fTimeFactor;
 
     int32_t iSkyVertsID = -1;
     int32_t iSkyIndexID = -1;
@@ -82,5 +81,5 @@ private:
     void GetSkyDirStrings(std::string& sSkyDir, std::string& sSkyDirNext);
     void UpdateTimeFactor();
 
-    uint32_t GetPixelColor(IDirect3DTexture9* pTex, float fu, float fv) const;
+    uint32_t GetPixelColor(/*IDirect3DTexture9*/ void* pTex, float fu, float fv) const;
 };

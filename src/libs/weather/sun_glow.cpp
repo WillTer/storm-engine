@@ -40,16 +40,11 @@ SunGlow::SunGlow()
 SunGlow::~SunGlow()
 {
     Release();
-    if (idRectBuf != -1) {
-        pRS->ReleaseVertexBuffer(idRectBuf);
-        idRectBuf = -1;
-    }
+    if (idRectBuf != -1) { idRectBuf = -1; }
 }
 
 bool SunGlow::Init()
 {
-    pRS = nullptr;
-
     SetDevice();
 
     return true;
@@ -59,8 +54,6 @@ void SunGlow::SetDevice()
 {
     entid_t ent;
 
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
@@ -73,23 +66,23 @@ void SunGlow::SetDevice()
     else
         pSky = nullptr;
 
-    if (idRectBuf == -1) idRectBuf = pRS->CreateVertexBuffer(SUNGLOWVERTEX_FORMAT, sizeof(SUNGLOWVERTEX) * 8, D3DUSAGE_WRITEONLY);
+    // if (idRectBuf == -1) idRectBuf = pRS->CreateVertexBuffer(SUNGLOWVERTEX_FORMAT, sizeof(SUNGLOWVERTEX) * 8, D3DUSAGE_WRITEONLY);
 }
 
 void SunGlow::Release()
 {
-    if (iSunTex >= 0) pRS->TextureRelease(iSunTex);
+    // if (iSunTex >= 0) pRS->TextureRelease(iSunTex);
     iSunTex = -1;
-    if (iMoonTex >= 0) pRS->TextureRelease(iMoonTex);
+    // if (iMoonTex >= 0) pRS->TextureRelease(iMoonTex);
     iMoonTex = -1;
-    if (iSunGlowTex >= 0) pRS->TextureRelease(iSunGlowTex);
+    // if (iSunGlowTex >= 0) pRS->TextureRelease(iSunGlowTex);
     iSunGlowTex = -1;
 
-    if (iFlareTex >= 0) pRS->TextureRelease(iFlareTex);
+    // if (iFlareTex >= 0) pRS->TextureRelease(iFlareTex);
     iFlareTex = -1;
-    if (iOverflowTex >= 0) pRS->TextureRelease(iOverflowTex);
+    // if (iOverflowTex >= 0) pRS->TextureRelease(iOverflowTex);
     iOverflowTex = -1;
-    if (iReflTexture >= 0) pRS->TextureRelease(iReflTexture);
+    // if (iReflTexture >= 0) pRS->TextureRelease(iReflTexture);
     iReflTexture = -1;
 }
 
@@ -105,15 +98,15 @@ void SunGlow::GenerateSunGlow()
     iOldTex[nTex++] = iOverflowTex;
     iOldTex[nTex++] = iReflTexture;
 
-    if (Flares.sTexture.size()) iFlareTex = pRS->TextureCreate(static_cast<char const*>(Flares.sTexture.c_str()));
-    if (Glow.sSunTexture.size()) iSunTex = pRS->TextureCreate(static_cast<char const*>(Glow.sSunTexture.c_str()));
-    if (Glow.sMoonTexture.size()) iMoonTex = pRS->TextureCreate(static_cast<char const*>(Glow.sMoonTexture.c_str()));
-    if (Glow.sGlowTexture.size()) iSunGlowTex = pRS->TextureCreate(static_cast<char const*>(Glow.sGlowTexture.c_str()));
-    if (Overflow.sTexture.size()) iOverflowTex = pRS->TextureCreate(static_cast<char const*>(Overflow.sTexture.c_str()));
-    if (Reflection.sTexture.size()) iReflTexture = pRS->TextureCreate(Reflection.sTexture.c_str());
+    // if (Flares.sTexture.size()) iFlareTex = pRS->TextureCreate(static_cast<char const*>(Flares.sTexture.c_str()));
+    // if (Glow.sSunTexture.size()) iSunTex = pRS->TextureCreate(static_cast<char const*>(Glow.sSunTexture.c_str()));
+    // if (Glow.sMoonTexture.size()) iMoonTex = pRS->TextureCreate(static_cast<char const*>(Glow.sMoonTexture.c_str()));
+    // if (Glow.sGlowTexture.size()) iSunGlowTex = pRS->TextureCreate(static_cast<char const*>(Glow.sGlowTexture.c_str()));
+    // if (Overflow.sTexture.size()) iOverflowTex = pRS->TextureCreate(static_cast<char const*>(Overflow.sTexture.c_str()));
+    // if (Reflection.sTexture.size()) iReflTexture = pRS->TextureCreate(Reflection.sTexture.c_str());
 
-    for (int32_t n = 0; n < nTex; n++)
-        if (iOldTex[n] >= 0) pRS->TextureRelease(iOldTex[n]);
+    // for (int32_t n = 0; n < nTex; n++)
+    // if (iOldTex[n] >= 0) pRS->TextureRelease(iOldTex[n]);
 }
 
 void SunGlow::Execute(uint32_t Delta_Time)
@@ -150,29 +143,29 @@ float SunGlow::LayerTrace(CVECTOR& vSrc, entity_container_cref its) const
 void SunGlow::Realize(uint32_t Delta_Time)
 {
     CMatrix OldMatrix, IMatrix, View;
-    pRS->GetTransform(D3DTS_VIEW, OldMatrix);
-    pRS->GetTransform(D3DTS_VIEW, View);
+    // pRS->GetTransform(D3DTS_VIEW, OldMatrix);
+    // pRS->GetTransform(D3DTS_VIEW, View);
 
     float   fFov;
     CVECTOR vSun, vSunPos, vSunDir;
     CVECTOR vCamPos, vCamAng, vCamDir;
 
     pWeather->GetVector(whv_sun_pos, &vSunPos);
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
     vSunDir = !vSunPos;
     vSun    = vCamPos + (vSunDir * Glow.fDist);
 
-    auto  bTempVisibleFlare = true;
-    auto* pPlane            = pRS->GetPlanes();
-    if (pPlane) {
-        for (int32_t i = 0; i < 4; i++) {
-            auto vpn = CVECTOR(pPlane[i].Nx, pPlane[i].Ny, pPlane[i].Nz);
-            if ((vpn | vSunPos) < 0.0f) {
-                bTempVisibleFlare = false;
-                break;
-            }
-        }
-    }
+    auto bTempVisibleFlare = true;
+    // auto* pPlane            = pRS->GetPlanes();
+    // if (pPlane) {
+    //     for (int32_t i = 0; i < 4; i++) {
+    //         auto vpn = CVECTOR(pPlane[i].Nx, pPlane[i].Ny, pPlane[i].Nz);
+    //         if ((vpn | vSunPos) < 0.0f) {
+    //             bTempVisibleFlare = false;
+    //             break;
+    //         }
+    //     }
+    // }
     if (Delta_Time) bVisibleFlare = bTempVisibleFlare;
 
     bVisible       = true;
@@ -187,19 +180,7 @@ void SunGlow::Realize(uint32_t Delta_Time)
         fMinAlphaValue = 0.2f;
     }
 
-    /*walker_t pVW = core->LayerGetWalker("sun_trace");
-    if (pVW)
-    {
-      vSrc = vCamPos;
-      pWeather->GetVector(whv_sun_pos,&vDst);
-      vDst = vCamPos + (!vDst) * 4000.0f;
-      float fRes = pCollide->Trace(*pVW,vSrc,vDst,0,0);
-      bVisible = (fRes>1.0f);
-      delete pVW;
-    }
-    else bVisible = true;*/
-
-    RS_RECT rs_rect;
+    // RS_RECT rs_rect;
 
     // calculate angle between camera dir.y and sun dir.y
     vSunDir.y   = 0.0f;
@@ -209,30 +190,19 @@ void SunGlow::Realize(uint32_t Delta_Time)
     auto fSeaHeight = 0.f;  // pWeather->GetFloat(whf_water_attenuation);//0.f;
     fBottomClip     = fSeaHeight;
 
-    // float fGlowSize = bMoon ? Glow.fMoonSize : Glow.fSunSize;
     fFadeout = 1.f;
 
-    // if (bHaveGlow && vSun.y > fBottomClip-fGlowSize)
     if (bHaveGlow && vSun.y > fBottomClip - Glow.fGlowSize) {
         fFadeout = GetSunFadeoutFactor(vSun, Glow.fGlowSize);
 
-        // CVECTOR vSunColor = ((bMoon) ? fFadeout : (1.0f - fAlpha) * 0.5f*fFadeout) * COLOR2VECTOR(Glow.dwColor);
-        // CVECTOR vSunColor = fFadeout * COLOR2VECTOR(Glow.dwColor);
-
-        // if( bMoon ) pRS->TextureSet(0,iMoonTex);
-        // else pRS->TextureSet(0,iSunTex);
-
-        // DrawRect( RGB(vSunColor.x, vSunColor.y, vSunColor.z), vSun, fGlowSize, fAngle * Glow.fRotateSpeed,
-        // Glow.sTechniqueZ, fBottomClip );
-
         if (!bMoon) {
-            auto fGlowFadeout = fFadeout - (1.f - fFadeout) * 1.5f;
-            if (fGlowFadeout < 0.f) fGlowFadeout = 0.f;
-            pRS->TextureSet(0, iSunGlowTex);
-            CVECTOR  vGlowColor = fAlpha * fGlowFadeout * COLOR2VECTOR(Glow.dwColor);
-            uint32_t rgb =
-                makeRGB(static_cast<uint32_t>(vGlowColor.x), static_cast<uint32_t>(vGlowColor.y), static_cast<uint32_t>(vGlowColor.z));
-            DrawRect(rgb, vSun, Glow.fGlowSize, fAngle * 1.f, Glow.sTechniqueNoZ.c_str(), fSeaHeight);
+            // auto fGlowFadeout = fFadeout - (1.f - fFadeout) * 1.5f;
+            // if (fGlowFadeout < 0.f) fGlowFadeout = 0.f;
+            // pRS->TextureSet(0, iSunGlowTex);
+            // CVECTOR  vGlowColor = fAlpha * fGlowFadeout * COLOR2VECTOR(Glow.dwColor);
+            // uint32_t rgb =
+            //     makeRGB(static_cast<uint32_t>(vGlowColor.x), static_cast<uint32_t>(vGlowColor.y), static_cast<uint32_t>(vGlowColor.z));
+            // DrawRect(rgb, vSun, Glow.fGlowSize, fAngle * 1.f, Glow.sTechniqueNoZ.c_str(), fSeaHeight);
         }
     }
 
@@ -242,26 +212,25 @@ void SunGlow::Realize(uint32_t Delta_Time)
 
     fMaxOverflowAlphaValue = (fDot > Overflow.fStart) ? (fDot - Overflow.fStart) / (1.0f - Overflow.fStart) : 0.0f;
     if (bHaveOverflow) {
-        pRS->TextureSet(0, iOverflowTex);
-
-        CVECTOR vOverflowColor = fFadeout * fAlphaOverflow * COLOR2VECTOR(Overflow.dwColor);
-
-        rs_rect.dwColor = makeRGB(
-            static_cast<uint32_t>(vOverflowColor.x), static_cast<uint32_t>(vOverflowColor.y), static_cast<uint32_t>(vOverflowColor.z));
-        rs_rect.vPos   = vSun;
-        rs_rect.fSize  = Overflow.fSize;
-        rs_rect.fAngle = 0.0f;
-
-        pRS->DrawRects(&rs_rect, 1, Overflow.sTechnique.c_str());
+        // pRS->TextureSet(0, iOverflowTex);
+        //
+        // CVECTOR vOverflowColor = fFadeout * fAlphaOverflow * COLOR2VECTOR(Overflow.dwColor);
+        //
+        // rs_rect.dwColor = makeRGB(
+        //     static_cast<uint32_t>(vOverflowColor.x), static_cast<uint32_t>(vOverflowColor.y), static_cast<uint32_t>(vOverflowColor.z));
+        // rs_rect.vPos   = vSun;
+        // rs_rect.fSize  = Overflow.fSize;
+        // rs_rect.fAngle = 0.0f;
+        //
+        // pRS->DrawRects(&rs_rect, 1, Overflow.sTechnique.c_str());
     }
 
     // calculate and draw flares
-    aRSR.clear();
+    // aRSR.clear();
     if (Delta_Time && Flares.aFlares.size() && bHaveFlare) {
         auto mCam = OldMatrix;
         mCam.Transposition();
 
-        // CVECTOR vCenPos = CVECTOR(0.0f, 0.0f, Flares.fDist / 2.0f);
         auto vCenPos = mCam.Vz() * Flares.fDist / 2.0f + mCam.Pos();
         auto vDelta  = Flares.fDist * !(vCenPos - vSun);
         for (uint32_t i = 0; i < Flares.aFlares.size(); i++) {
@@ -269,18 +238,17 @@ void SunGlow::Realize(uint32_t Delta_Time)
             auto  r  = static_cast<uint32_t>(fFadeout * fAlpha * fAlphaFlare * static_cast<float>((pF->dwColor & 0xFF0000) >> 16L));
             auto  g  = static_cast<uint32_t>(fFadeout * fAlpha * fAlphaFlare * static_cast<float>((pF->dwColor & 0xFF00) >> 8L));
             auto  b  = static_cast<uint32_t>(fFadeout * fAlpha * fAlphaFlare * static_cast<float>((pF->dwColor & 0xFF) >> 0L));
-            // RS_RECT * pRSR = &aRSR[aRSR.Add()];
-            RS_RECT rect;
-            rect.dwColor      = makeRGB(r, g, b);
-            rect.fAngle       = 0.0f;
-            rect.dwSubTexture = pF->dwSubTexIndex;
-            rect.fSize        = pF->fSize * Flares.fFlareScale;
-            rect.vPos         = vSun + vDelta * (1.0f - pF->fDist);
-            aRSR.push_back(rect);
+            // RS_RECT rect;
+            // rect.dwColor      = makeRGB(r, g, b);
+            // rect.fAngle       = 0.0f;
+            // rect.dwSubTexture = pF->dwSubTexIndex;
+            // rect.fSize        = pF->fSize * Flares.fFlareScale;
+            // rect.vPos         = vSun + vDelta * (1.0f - pF->fDist);
+            // aRSR.push_back(rect);
         }
 
-        pRS->TextureSet(0, iFlareTex);
-        pRS->DrawRects(&aRSR[0], aRSR.size(), Flares.sTechnique.c_str(), Flares.dwTexSizeX, Flares.dwTexSizeY);
+        // pRS->TextureSet(0, iFlareTex);
+        // pRS->DrawRects(&aRSR[0], aRSR.size(), Flares.sTechnique.c_str(), Flares.dwTexSizeX, Flares.dwTexSizeY);
     }
 }
 
@@ -293,21 +261,21 @@ void SunGlow::DrawSunMoon()
     CVECTOR vSun, vSunPos, vSunDir;
 
     pWeather->GetVector(whv_sun_pos, &vSunPos);
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
     vSunDir = !vSunPos;
     vSun    = vCamPos + (vSunDir * Glow.fDist);
 
     if (bHaveGlow && vSun.y > fBottomClip - fGlowSize) {
-        const CVECTOR vGlowColor = COLOR2VECTOR(Glow.dwColor);
+        // const CVECTOR vGlowColor = COLOR2VECTOR(Glow.dwColor);
+        //
+        // if (bMoon)
+        //     pRS->TextureSet(0, iMoonTex);
+        // else
+        //     pRS->TextureSet(0, iSunTex);
 
-        if (bMoon)
-            pRS->TextureSet(0, iMoonTex);
-        else
-            pRS->TextureSet(0, iSunTex);
-
-        uint32_t rgb =
-            makeRGB(static_cast<uint32_t>(vGlowColor.x), static_cast<uint32_t>(vGlowColor.y), static_cast<uint32_t>(vGlowColor.z));
-        DrawRect(rgb, vSun, fGlowSize, 0.f, Glow.sTechniqueZ.c_str(), fBottomClip);
+        // uint32_t rgb =
+        // makeRGB(static_cast<uint32_t>(vGlowColor.x), static_cast<uint32_t>(vGlowColor.y), static_cast<uint32_t>(vGlowColor.z));
+        // DrawRect(rgb, vSun, fGlowSize, 0.f, Glow.sTechniqueZ.c_str(), fBottomClip);
     }
 }
 
@@ -486,23 +454,23 @@ void SunGlow::DrawReflection() const
     CVECTOR vCamPos, vCamAng;
 
     pWeather->GetVector(whv_sun_pos, &vSunPos);
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
     vSunDir = !vSunPos;
     vSun    = vCamPos + (vSunDir * Reflection.fDist);
 
-    RS_RECT r_spr;
-    r_spr.dwColor      = (0xFFFFFF & Reflection.dwColor) | (static_cast<int32_t>(fFadeout * 255.f) << 24);
-    r_spr.dwSubTexture = 0;
-    r_spr.fAngle       = 0.0f;
-    r_spr.fSize        = Reflection.fSize;
-    r_spr.vPos         = vSun;
+    // RS_RECT r_spr;
+    // r_spr.dwColor      = (0xFFFFFF & Reflection.dwColor) | (static_cast<int32_t>(fFadeout * 255.f) << 24);
+    // r_spr.dwSubTexture = 0;
+    // r_spr.fAngle       = 0.0f;
+    // r_spr.fSize        = Reflection.fSize;
+    // r_spr.vPos         = vSun;
 
     auto const fSunHeightAngle = pWeather->GetFloat(whf_sun_height_angle);
     auto const fCoeffX         = Bring2Range(1.0f, 0.6f, 0.0f, 1.0f, fSunHeightAngle);
     auto const fCoeffY         = Bring2Range(2.0f, 1.0f, 0.0f, 1.0f, fSunHeightAngle);
 
-    pRS->TextureSet(0, iReflTexture);
-    pRS->DrawRects(&r_spr, 1, Reflection.sTechnique.c_str(), 0, 0, (bSimpleSea) ? fCoeffX : 1.0f, (bSimpleSea) ? fCoeffY : 1.0f);
+    // pRS->TextureSet(0, iReflTexture);
+    // pRS->DrawRects(&r_spr, 1, Reflection.sTechnique.c_str(), 0, 0, (bSimpleSea) ? fCoeffX : 1.0f, (bSimpleSea) ? fCoeffY : 1.0f);
 }
 
 uint64_t SunGlow::ProcessMessage(MESSAGE& message)
@@ -524,7 +492,7 @@ void SunGlow::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float 
     if (idRectBuf == -1) return;
 
     static CMatrix camMtx;
-    pRS->GetTransform(D3DTS_VIEW, camMtx);
+    // pRS->GetTransform(D3DTS_VIEW, camMtx);
     CVECTOR    vx, vy, vp1, vp2, vp3, vp4;
     auto const sn = sinf(fAngle);
     auto const cs = cosf(fAngle);
@@ -536,114 +504,104 @@ void SunGlow::DrawRect(uint32_t dwColor, const CVECTOR& pos, float fSize, float 
     vp4 = pos + vx + vy;
 
     int32_t nv = 0;
-    auto*   pV = static_cast<SUNGLOWVERTEX*>(pRS->LockVertexBuffer(idRectBuf));
-    if (pV) {
-        // add the first point (upper left corner)
-        if (vp1.y >= fBClip) {
-            pV[nv].vPos = vp1;
-            pV[nv].tu   = 0.f;
-            pV[nv].tv   = 0.f;
-            nv++;
-        }
-
-        // add a point of intersection with the clipping plane between the 1st and 2nd points
-        if ((vp1.y >= fBClip) != (vp2.y >= fBClip)) {
-            auto fK = vp2.y - vp1.y;
-            if (fK != 0.f) {
-                fK = (fBClip - vp1.y) / fK;
-                if (fK >= 0.f && fK <= 1.f) {
-                    pV[nv].vPos = vp1 + (vp2 - vp1) * fK;
-                    pV[nv].tu   = 0.f;
-                    pV[nv].tv   = fK;
-                    nv++;
-                }
-            }
-        }
-
-        // second point (lower left corner)
-        if (vp2.y >= fBClip) {
-            pV[nv].vPos = vp2;
-            pV[nv].tu   = 0.f;
-            pV[nv].tv   = 1.f;
-            nv++;
-        }
-
-        // add a point of intersection with the clipping plane between the 2nd and 3rd points
-        if ((vp2.y >= fBClip) != (vp3.y >= fBClip)) {
-            auto fK = vp3.y - vp2.y;
-            if (fK != 0.f) {
-                fK = (fBClip - vp2.y) / fK;
-                if (fK >= 0.f && fK <= 1.f) {
-                    pV[nv].vPos = vp2 + (vp3 - vp2) * fK;
-                    pV[nv].tu   = fK;
-                    pV[nv].tv   = 1.f;
-                    nv++;
-                }
-            }
-        }
-
-        // third point (bottom right corner)
-        if (vp3.y >= fBClip) {
-            pV[nv].vPos = vp3;
-            pV[nv].tu   = 1.f;
-            pV[nv].tv   = 1.f;
-            nv++;
-        }
-
-        // add a point of intersection with the clipping plane between the 3rd and 4th point
-        if ((vp3.y >= fBClip) != (vp4.y >= fBClip)) {
-            auto fK = vp4.y - vp3.y;
-            if (fK != 0.f) {
-                fK = (fBClip - vp3.y) / fK;
-                if (fK >= 0.f && fK <= 1.f) {
-                    pV[nv].vPos = vp3 + (vp4 - vp3) * fK;
-                    pV[nv].tu   = 1.f;
-                    pV[nv].tv   = 1.f - fK;
-                    nv++;
-                }
-            }
-        }
-
-        // fourth point (upper right corner)
-        if (vp4.y >= fBClip) {
-            pV[nv].vPos = vp4;
-            pV[nv].tu   = 1.f;
-            pV[nv].tv   = 0.f;
-            nv++;
-        }
-
-        // add a point of intersection with the clipping plane between the 4th and 1st points
-        if ((vp3.y >= fBClip) != (vp4.y >= fBClip)) {
-            auto fK = vp1.y - vp4.y;
-            if (fK != 0.f) {
-                fK = (fBClip - vp4.y) / fK;
-                if (fK >= 0.f && fK <= 1.f) {
-                    pV[nv].vPos = vp4 + (vp1 - vp4) * fK;
-                    pV[nv].tu   = 1.f - fK;
-                    pV[nv].tv   = 0.f;
-                    nv++;
-                }
-            }
-        }
-    }
-    for (int32_t n = 0; n < nv; n++)
-        pV[n].dwColor = dwColor;
-    pRS->UnLockVertexBuffer(idRectBuf);
-
-    if (nv > 2) {
-        pRS->SetTransform(D3DTS_WORLD, CMatrix());
-        pRS->DrawPrimitive(D3DPT_TRIANGLEFAN, idRectBuf, sizeof(SUNGLOWVERTEX), 0, nv - 2, pcTechnique);
-    }
-
-    /*
-    // debug info - a rectangle of lines showing the boundaries of the output rectangle
-    RS_LINE lines[8];
-    for(n=0; n<8; n++) lines[n].dwColor = 0xFFFFFFFF;
-    lines[0].vPos = vp1;    lines[1].vPos = vp2;
-    lines[2].vPos = vp2;    lines[3].vPos = vp3;
-    lines[4].vPos = vp3;    lines[5].vPos = vp4;
-    lines[6].vPos = vp4;    lines[7].vPos = vp1;
-    pRS->DrawLines( lines, 4, "Line" );*/
+    // auto*   pV = static_cast<SUNGLOWVERTEX*>(pRS->LockVertexBuffer(idRectBuf));
+    // if (pV) {
+    //     // add the first point (upper left corner)
+    //     if (vp1.y >= fBClip) {
+    //         pV[nv].vPos = vp1;
+    //         pV[nv].tu   = 0.f;
+    //         pV[nv].tv   = 0.f;
+    //         nv++;
+    //     }
+    //
+    //     // add a point of intersection with the clipping plane between the 1st and 2nd points
+    //     if ((vp1.y >= fBClip) != (vp2.y >= fBClip)) {
+    //         auto fK = vp2.y - vp1.y;
+    //         if (fK != 0.f) {
+    //             fK = (fBClip - vp1.y) / fK;
+    //             if (fK >= 0.f && fK <= 1.f) {
+    //                 pV[nv].vPos = vp1 + (vp2 - vp1) * fK;
+    //                 pV[nv].tu   = 0.f;
+    //                 pV[nv].tv   = fK;
+    //                 nv++;
+    //             }
+    //         }
+    //     }
+    //
+    //     // second point (lower left corner)
+    //     if (vp2.y >= fBClip) {
+    //         pV[nv].vPos = vp2;
+    //         pV[nv].tu   = 0.f;
+    //         pV[nv].tv   = 1.f;
+    //         nv++;
+    //     }
+    //
+    //     // add a point of intersection with the clipping plane between the 2nd and 3rd points
+    //     if ((vp2.y >= fBClip) != (vp3.y >= fBClip)) {
+    //         auto fK = vp3.y - vp2.y;
+    //         if (fK != 0.f) {
+    //             fK = (fBClip - vp2.y) / fK;
+    //             if (fK >= 0.f && fK <= 1.f) {
+    //                 pV[nv].vPos = vp2 + (vp3 - vp2) * fK;
+    //                 pV[nv].tu   = fK;
+    //                 pV[nv].tv   = 1.f;
+    //                 nv++;
+    //             }
+    //         }
+    //     }
+    //
+    //     // third point (bottom right corner)
+    //     if (vp3.y >= fBClip) {
+    //         pV[nv].vPos = vp3;
+    //         pV[nv].tu   = 1.f;
+    //         pV[nv].tv   = 1.f;
+    //         nv++;
+    //     }
+    //
+    //     // add a point of intersection with the clipping plane between the 3rd and 4th point
+    //     if ((vp3.y >= fBClip) != (vp4.y >= fBClip)) {
+    //         auto fK = vp4.y - vp3.y;
+    //         if (fK != 0.f) {
+    //             fK = (fBClip - vp3.y) / fK;
+    //             if (fK >= 0.f && fK <= 1.f) {
+    //                 pV[nv].vPos = vp3 + (vp4 - vp3) * fK;
+    //                 pV[nv].tu   = 1.f;
+    //                 pV[nv].tv   = 1.f - fK;
+    //                 nv++;
+    //             }
+    //         }
+    //     }
+    //
+    //     // fourth point (upper right corner)
+    //     if (vp4.y >= fBClip) {
+    //         pV[nv].vPos = vp4;
+    //         pV[nv].tu   = 1.f;
+    //         pV[nv].tv   = 0.f;
+    //         nv++;
+    //     }
+    //
+    //     // add a point of intersection with the clipping plane between the 4th and 1st points
+    //     if ((vp3.y >= fBClip) != (vp4.y >= fBClip)) {
+    //         auto fK = vp1.y - vp4.y;
+    //         if (fK != 0.f) {
+    //             fK = (fBClip - vp4.y) / fK;
+    //             if (fK >= 0.f && fK <= 1.f) {
+    //                 pV[nv].vPos = vp4 + (vp1 - vp4) * fK;
+    //                 pV[nv].tu   = 1.f - fK;
+    //                 pV[nv].tv   = 0.f;
+    //                 nv++;
+    //             }
+    //         }
+    //     }
+    // }
+    // for (int32_t n = 0; n < nv; n++)
+    //     pV[n].dwColor = dwColor;
+    // pRS->UnLockVertexBuffer(idRectBuf);
+    //
+    // if (nv > 2) {
+    //     pRS->SetTransform(D3DTS_WORLD, CMatrix());
+    //     pRS->DrawPrimitive(D3DPT_TRIANGLEFAN, idRectBuf, sizeof(SUNGLOWVERTEX), 0, nv - 2, pcTechnique);
+    // }
 }
 
 float SunGlow::GetSunFadeoutFactor(const CVECTOR& vSunPos, float fSunSize)

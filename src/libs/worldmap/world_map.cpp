@@ -47,7 +47,7 @@ int32_t WorldMap::month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 // Construction, destruction
 // ============================================================================================
 
-WorldMap::WorldMap() : rs {}, aDate {}
+WorldMap::WorldMap() : aDate {}
 {
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
@@ -81,10 +81,6 @@ WorldMap::WorldMap() : rs {}, aDate {}
 
 WorldMap::~WorldMap()
 {
-    /*for(; firstObject >= 0; firstObject = object[firstObject].next)
-    {
-      delete object[firstObject].ro;
-    }*/
     delete camera;
     WdmRenderObject::DeleteAllObjects();
     wdmObjects->Clear();
@@ -99,7 +95,6 @@ WorldMap::~WorldMap()
 // Initialization
 bool WorldMap::Init()
 {
-    // GUARD(LocationCamera::Init())
     // Layers
     // core->LayerCreate("execute", true, false);
     core->SetLayerType(EXECUTE, layer_type_t::execute);
@@ -108,11 +103,8 @@ bool WorldMap::Init()
     core->AddToLayer(EXECUTE, GetId(), 10000);
     core->AddToLayer(REALIZE, GetId(), 10000);
 
-    // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-    rs->SetPerspective((1.57f + 1.0f) / 2);
-    wdmObjects->rs = rs;
+    // rs->SetPerspective((1.57f + 1.0f) / 2);
+    // wdmObjects->rs = rs;
     // GS
     wdmObjects->gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     // Create map objects
@@ -122,7 +114,7 @@ bool WorldMap::Init()
     AddObject(ro, -100000);
     AddLObject(ro, 500);
     //
-    rs->ProgressView();
+    // rs->ProgressView();
     // Create the sea
     auto* sea = new WdmSea();
     AddObject(sea);
@@ -130,7 +122,7 @@ bool WorldMap::Init()
     AddLObject(sea, -1);
     // create clouds
     AddLObject(AddObject(new WdmClouds()), 10000);
-    rs->ProgressView();
+    // rs->ProgressView();
     // Create a camera
     camera       = new WdmCameraStdCtrl();
     auto camAy   = 0.0f;
@@ -180,7 +172,7 @@ bool WorldMap::Init()
     }
     static_cast<WdmShip*>(ro)->Teleport(psX, psZ, psAy);
     static_cast<WdmPlayerShip*>(ro)->SetActionRadius(psRad);
-    rs->ProgressView();
+    // rs->ProgressView();
     // Create a location descriptor
     wdmObjects->islands->SetIslandsData(AttributesPointer, false);
     // Script interface attributes
@@ -228,7 +220,7 @@ bool WorldMap::Init()
         timeScale = aDate->GetAttributeAsFloat("hourPerSec", timeScale);
     }
     ResetScriptInterfaces();
-    rs->ProgressView();
+    // rs->ProgressView();
     // Creating interface elements
 
     // Date
@@ -236,14 +228,6 @@ bool WorldMap::Init()
     windUI->SetAttributes(AttributesPointer);
     AddLObject(AddObject(windUI, 1001), 10100);
 
-    // Compass
-    // ro = CreateModel(new WdmWindRose(), "WindRose");
-    // AddLObject(ro, 10099);
-    // The calendar
-    // WdmCounter * cnt = new WdmCounter();
-    // if(!cnt->Init()) core->Trace("Counter not created");
-
-    // AddLObject(cnt, 10099);
     // Icon
     AddLObject(AddObject(new WdmIcon(), 1000), 10099);
 
@@ -298,7 +282,7 @@ bool WorldMap::Init()
         }
     }
 
-    rs->ProgressView();
+    // rs->ProgressView();
 
     // Adjusting the player's ship
     auto* playerShip = static_cast<WdmPlayerShip*>(wdmObjects->playerShip);
@@ -393,7 +377,7 @@ void WorldMap::Realize(uint32_t delta_time)
     if (tmp) strcpy_s(wdmObjects->attrYear, tmp);
     //---------------------------------------------------------
     if (camera && !wdmObjects->isPause) {
-        camera->Move(dltTime, rs);
+        // camera->Move(dltTime, rs);
         AttributesPointer->SetAttributeUseFloat("wdmCameraY", camera->pos.y);
         AttributesPointer->SetAttributeUseFloat("wdmCameraAY", camera->ang.y);
     }
@@ -425,16 +409,16 @@ void WorldMap::Realize(uint32_t delta_time)
 #endif
         encTime = 0.0f;
     }
-    rs->SetRenderState(D3DRS_FOGENABLE, FALSE);
-    rs->SetRenderState(D3DRS_LIGHTING, FALSE);
+    // rs->SetRenderState(D3DRS_FOGENABLE, FALSE);
+    // rs->SetRenderState(D3DRS_LIGHTING, FALSE);
     for (auto i = firstPrObject; i >= 0; i = object[i].next) {
-        if (!object[i].ro->killMe) object[i].ro->PRender(rs);
+        // if (!object[i].ro->killMe) object[i].ro->PRender(rs);
     }
     for (auto i = firstMrObject; i >= 0; i = object[i].next) {
-        if (!object[i].ro->killMe) object[i].ro->MRender(rs);
+        // if (!object[i].ro->killMe) object[i].ro->MRender(rs);
     }
     for (auto i = firstLrObject; i >= 0; i = object[i].next) {
-        if (!object[i].ro->killMe) object[i].ro->LRender(rs);
+        // if (!object[i].ro->killMe) object[i].ro->LRender(rs);
     }
     // renew the wind
     wdmObjects->UpdateWind(dltTime);
