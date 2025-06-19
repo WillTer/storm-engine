@@ -2,22 +2,19 @@
 
 #include <libs/collide/collide.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
 class Shadow: public Entity
 {
-    VDX9RENDER* rs;
-    COLLIDE*    col;
-    void        FindPlanes(CMatrix const& view, CMatrix const& proj);
-    PLANE       planes[6];
-    entid_t     entity;
-    void        Smooth();
-    float       shading;
-    uint32_t    blendValue;
+    COLLIDE* col;
+    void     FindPlanes(CMatrix const& view, CMatrix const& proj);
+    PLANE    planes[6];
+    entid_t  entity;
+    void     Smooth();
+    float    shading;
+    uint32_t blendValue;
 
 public:
-#define SHADOW_FVF (D3DFVF_XYZ | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1)
-
+    // #define SHADOW_FVF (D3DFVF_XYZ | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1)
     struct SHADOW_VERTEX {
         CVECTOR pos;
         float   tu, tv;

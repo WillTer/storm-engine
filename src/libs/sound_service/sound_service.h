@@ -7,7 +7,6 @@
 
 #include <libs/config/sound_alias.h>
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/util/probability_table.hpp>
 
 #include "sound_defines.h"
@@ -143,8 +142,6 @@ private:
     bool allocate_sound(SoundID& id);
 
     std::unique_ptr<storm::audio::Device> m_device;
-
-    VDX9RENDER* m_renderer;
 
     bool m_is_initialized;
     bool m_fader_parity;

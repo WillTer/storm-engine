@@ -6,7 +6,7 @@
 #define MAST_IDENTIFY "mast"
 #define MAST_FIRST 1
 
-BOOL Ship::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
+bool Ship::BuildContour(CVECTOR* vContour, int32_t& iNumVContour)
 {
     iNumVContour = 0;
 

@@ -1,10 +1,5 @@
 #pragma once
 
-// clang-format off
-#include <windows.h>
-#include <d3d9types.h>
-// clang-format on
-
 #define SINK_SPLASH_TRACE_INFORMATION
 
 namespace sink_effect
@@ -30,7 +25,7 @@ constexpr float SPLASH_MOVE_Y            = -0.3f;
 constexpr float MAX_RHO       = 1.5f;
 constexpr float SPLASH_RADIUS = 0.4f;
 
-constexpr int SINK_FVF = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
+// constexpr int SINK_FVF = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
 
 constexpr float FLOTSAM_H_SPEED      = 0.8f;
 constexpr float FLOTSAM_V_SPEED      = 1.2f;

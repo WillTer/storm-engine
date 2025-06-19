@@ -1,5 +1,5 @@
 storm_lib(
     NAME sink_effect
     LINK_DEPENDENCIES
-        renderer
+        renderer_next
 )

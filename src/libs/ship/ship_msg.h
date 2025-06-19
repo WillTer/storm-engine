@@ -14,7 +14,5 @@ struct ship_t {
     float   fWaterLine;
 };
 
-// #define MSG_SHIP_CREATE        5000
-// #define MSG_SHIP_SEA_INFO    5001
 /// for avigrabber
 #define MSG_SHIP_SET_POS 5002

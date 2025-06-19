@@ -4,14 +4,12 @@
 #include <libs/core/entity.h>
 #include <libs/math/math3d.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 
-VDX9RENDER* ShipTracks::ShipTrack::pRS              = nullptr;
-SEA_BASE*   ShipTracks::ShipTrack::pSea             = nullptr;
-int32_t     ShipTracks::ShipTrack::iRefCount        = 0;
-uint32_t    ShipTracks::ShipTrack::dwMaxBufferSize1 = 0, ShipTracks::ShipTrack::dwMaxBufferSize2 = 0;
-int32_t     ShipTracks::ShipTrack::iVTmpBuffer1 = -1, ShipTracks::ShipTrack::iVTmpBuffer2 = -1;
-int32_t     ShipTracks::ShipTrack::iITmpBuffer1 = -1, ShipTracks::ShipTrack::iITmpBuffer2 = -1;
+SEA_BASE* ShipTracks::ShipTrack::pSea             = nullptr;
+int32_t   ShipTracks::ShipTrack::iRefCount        = 0;
+uint32_t  ShipTracks::ShipTrack::dwMaxBufferSize1 = 0, ShipTracks::ShipTrack::dwMaxBufferSize2 = 0;
+int32_t   ShipTracks::ShipTrack::iVTmpBuffer1 = -1, ShipTracks::ShipTrack::iVTmpBuffer2 = -1;
+int32_t   ShipTracks::ShipTrack::iITmpBuffer1 = -1, ShipTracks::ShipTrack::iITmpBuffer2 = -1;
 
 ShipTracks::~ShipTracks()
 {
@@ -24,8 +22,6 @@ bool ShipTracks::Init()
 {
     entid_t sea_id;
 
-    ShipTrack::pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(ShipTrack::pRS);
     if (sea_id = core->GetEntityId("Sea")) ShipTrack::pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(sea_id));
     return true;
 }
@@ -83,23 +79,23 @@ ShipTracks::ShipTrack::~ShipTrack()
     if (iRefCount <= 0) {
         iRefCount = 0;
 
-        pRS->ReleaseVertexBuffer(iVTmpBuffer1);
+        // pRS->ReleaseVertexBuffer(iVTmpBuffer1);
         iVTmpBuffer1 = -1;
-        pRS->ReleaseVertexBuffer(iVTmpBuffer2);
+        // pRS->ReleaseVertexBuffer(iVTmpBuffer2);
         iVTmpBuffer2 = -1;
 
-        pRS->ReleaseIndexBuffer(iITmpBuffer1);
+        // pRS->ReleaseIndexBuffer(iITmpBuffer1);
         iITmpBuffer1 = -1;
-        pRS->ReleaseIndexBuffer(iITmpBuffer2);
+        // pRS->ReleaseIndexBuffer(iITmpBuffer2);
         iITmpBuffer2 = -1;
 
         dwMaxBufferSize1 = 0;
         dwMaxBufferSize2 = 0;
     }
 
-    pRS->TextureRelease(iTrackTexture1);
+    // pRS->TextureRelease(iTrackTexture1);
     iTrackTexture1 = -1;
-    pRS->TextureRelease(iTrackTexture2);
+    // pRS->TextureRelease(iTrackTexture2);
     iTrackTexture2 = -1;
 }
 
@@ -135,9 +131,9 @@ bool ShipTracks::ShipTrack::Update(SHIP_BASE* pShip)
     dwTrackStep1 = static_cast<int32_t>(fTrackStep1);
     dwTrackStep2 = static_cast<int32_t>(fTrackStep2);
 
-    pRS->TextureRelease(iTrackTexture1);
+    // pRS->TextureRelease(iTrackTexture1);
     iTrackTexture1 = -1;
-    pRS->TextureRelease(iTrackTexture2);
+    // pRS->TextureRelease(iTrackTexture2);
     iTrackTexture2 = -1;
 
     this->pShip = pShip;
@@ -145,8 +141,8 @@ bool ShipTracks::ShipTrack::Update(SHIP_BASE* pShip)
     // this->fTrackDistance = fTrackDistance; //~!~
 
     if (this->pShip) {
-        iTrackTexture1 = pRS->TextureCreate(sTex1.c_str());
-        iTrackTexture2 = pRS->TextureCreate(sTex2.c_str());
+        // iTrackTexture1 = pRS->TextureCreate(sTex1.c_str());
+        // iTrackTexture2 = pRS->TextureCreate(sTex2.c_str());
 
         this->vLastPos = pShip->GetPos();
         this->vLastAng = pShip->GetAng();
@@ -167,38 +163,38 @@ bool ShipTracks::ShipTrack::Reserve1(uint32_t dwSize)
 
     dwMaxBufferSize1 = dwNewSize;
 
-    pRS->ReleaseVertexBuffer(iVTmpBuffer1);
+    // pRS->ReleaseVertexBuffer(iVTmpBuffer1);
     iVTmpBuffer1 = -1;
-    pRS->ReleaseIndexBuffer(iITmpBuffer1);
+    // pRS->ReleaseIndexBuffer(iITmpBuffer1);
     iITmpBuffer1 = -1;
 
-    iVTmpBuffer1 = pRS->CreateVertexBuffer(
-        D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-        dwMaxBufferSize1 * dwTrackStep1 * sizeof(TrackVertex),
-        D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
-    iITmpBuffer1 = pRS->CreateIndexBuffer(dwMaxBufferSize1 * dwTrackStep1 * 6 * sizeof(uint16_t), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // iVTmpBuffer1 = pRS->CreateVertexBuffer(
+    //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+    //     dwMaxBufferSize1 * dwTrackStep1 * sizeof(TrackVertex),
+    //     D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // iITmpBuffer1 = pRS->CreateIndexBuffer(dwMaxBufferSize1 * dwTrackStep1 * 6 * sizeof(uint16_t), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
 
     if (iVTmpBuffer1 == -1 || iITmpBuffer1 == -1) {
         dwMaxBufferSize1 = 0;
-        pRS->ReleaseVertexBuffer(iVTmpBuffer1);
+        // pRS->ReleaseVertexBuffer(iVTmpBuffer1);
         iVTmpBuffer1 = -1;
-        pRS->ReleaseIndexBuffer(iITmpBuffer1);
+        // pRS->ReleaseIndexBuffer(iITmpBuffer1);
         iITmpBuffer1 = -1;
         return false;
     }
 
-    auto* pI = static_cast<uint16_t*>(pRS->LockIndexBuffer(iITmpBuffer1));
-    for (uint32_t y = 0; y < dwNewSize; y++)
-        for (uint32_t x = 0; x < dwTrackStep1 - 1; x++) {
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x);
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x + 1);
-
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x + 1);
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x + 1);
-        }
-    pRS->UnLockIndexBuffer(iITmpBuffer1);
+    // auto* pI = static_cast<uint16_t*>(pRS->LockIndexBuffer(iITmpBuffer1));
+    // for (uint32_t y = 0; y < dwNewSize; y++)
+    //     for (uint32_t x = 0; x < dwTrackStep1 - 1; x++) {
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x + 1);
+    //
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep1 + x + 1);
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep1 + x + 1);
+    //     }
+    // pRS->UnLockIndexBuffer(iITmpBuffer1);
 
     return true;
 }
@@ -211,38 +207,38 @@ bool ShipTracks::ShipTrack::Reserve2(uint32_t dwSize)
 
     dwMaxBufferSize2 = dwNewSize;
 
-    pRS->ReleaseVertexBuffer(iVTmpBuffer2);
+    // pRS->ReleaseVertexBuffer(iVTmpBuffer2);
     iVTmpBuffer2 = -1;
-    pRS->ReleaseIndexBuffer(iITmpBuffer2);
+    // pRS->ReleaseIndexBuffer(iITmpBuffer2);
     iITmpBuffer2 = -1;
 
-    iVTmpBuffer2 = pRS->CreateVertexBuffer(
-        D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-        dwMaxBufferSize2 * dwTrackStep2 * sizeof(TrackVertex),
-        D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
-    iITmpBuffer2 = pRS->CreateIndexBuffer(dwMaxBufferSize2 * dwTrackStep2 * 6 * sizeof(uint16_t), D3DUSAGE_WRITEONLY);
+    // iVTmpBuffer2 = pRS->CreateVertexBuffer(
+    //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+    //     dwMaxBufferSize2 * dwTrackStep2 * sizeof(TrackVertex),
+    //     D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // iITmpBuffer2 = pRS->CreateIndexBuffer(dwMaxBufferSize2 * dwTrackStep2 * 6 * sizeof(uint16_t), D3DUSAGE_WRITEONLY);
 
     if (iVTmpBuffer2 == -1 || iITmpBuffer2 == -1) {
         dwMaxBufferSize2 = 0;
-        pRS->ReleaseVertexBuffer(iVTmpBuffer2);
+        // pRS->ReleaseVertexBuffer(iVTmpBuffer2);
         iVTmpBuffer2 = -1;
-        pRS->ReleaseIndexBuffer(iITmpBuffer2);
+        // pRS->ReleaseIndexBuffer(iITmpBuffer2);
         iITmpBuffer2 = -1;
         return false;
     }
 
-    auto* pI = static_cast<uint16_t*>(pRS->LockIndexBuffer(iITmpBuffer2));
-    for (uint32_t y = 0; y < dwNewSize; y++)
-        for (uint32_t x = 0; x < dwTrackStep2 - 1; x++) {
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x);
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x + 1);
-
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x);
-            *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x + 1);
-            *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x + 1);
-        }
-    pRS->UnLockIndexBuffer(iITmpBuffer2);
+    // auto* pI = static_cast<uint16_t*>(pRS->LockIndexBuffer(iITmpBuffer2));
+    // for (uint32_t y = 0; y < dwNewSize; y++)
+    //     for (uint32_t x = 0; x < dwTrackStep2 - 1; x++) {
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x + 1);
+    //
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x);
+    //         *pI++ = static_cast<uint16_t>((y + 1) * dwTrackStep2 + x + 1);
+    //         *pI++ = static_cast<uint16_t>((y + 0) * dwTrackStep2 + x + 1);
+    //     }
+    // pRS->UnLockIndexBuffer(iITmpBuffer2);
 
     return true;
 }
@@ -260,7 +256,7 @@ void ShipTracks::ShipTrack::Execute(float fDeltaTime)
 
     float   fFov;
     CVECTOR vCamPos, vCamAng;
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
     auto const fCamDist = Clamp(sqrtf(~vCamPos) / 10000.0f);
     auto const fWaveUP  = fUP1 + fCamDist * (fUP2 - fUP1);
 
@@ -329,26 +325,26 @@ void ShipTracks::ShipTrack::Execute(float fDeltaTime)
 
     if (Reserve1(aTrack1.size()))
         if (aTrack1.size() > 1) {
-            auto* pV = static_cast<TrackVertex*>(pRS->LockVertexBuffer(iVTmpBuffer1, D3DLOCK_DISCARD));
-            for (int32_t i = 0; i < aTrack1.size(); i++) {
-                auto&   T   = aTrack1[i];
-                int32_t xxx = 0;
-                for (float xx = 0; xx < fTrackStep1; xx++) {
-                    auto const k = xx / (fTrackStep1 - 1.0f);
-                    auto       x = T.fWidth * (k - 0.5f);
-                    auto       z = 0.0f;
-                    RotateAroundY(x, z, T.fCos, T.fSin);
-                    x += T.vPos.x;
-                    z += T.vPos.z;
-                    auto vPos                          = CVECTOR(x, fWaveUP * (1.4f - fabsf((k * 2.0f) - 1.0f)) + pSea->WaveXZ(x, z), z);
-                    pV[i * dwTrackStep1 + xxx].vPos    = vPos - vCurPos;
-                    pV[i * dwTrackStep1 + xxx].tu      = xx / (fTrackStep1 - 1.0f);
-                    pV[i * dwTrackStep1 + xxx].tv      = T.fTV;
-                    pV[i * dwTrackStep1 + xxx].dwColor = ARGB(T.fAlpha * 255.0f, 0, 0, 0);
-                    xxx++;
-                }
-            }
-            pRS->UnLockVertexBuffer(iVTmpBuffer1);
+            // auto* pV = static_cast<TrackVertex*>(pRS->LockVertexBuffer(iVTmpBuffer1, D3DLOCK_DISCARD));
+            // for (int32_t i = 0; i < aTrack1.size(); i++) {
+            //     auto&   T   = aTrack1[i];
+            //     int32_t xxx = 0;
+            //     for (float xx = 0; xx < fTrackStep1; xx++) {
+            //         auto const k = xx / (fTrackStep1 - 1.0f);
+            //         auto       x = T.fWidth * (k - 0.5f);
+            //         auto       z = 0.0f;
+            //         RotateAroundY(x, z, T.fCos, T.fSin);
+            //         x += T.vPos.x;
+            //         z += T.vPos.z;
+            //         auto vPos                          = CVECTOR(x, fWaveUP * (1.4f - fabsf((k * 2.0f) - 1.0f)) + pSea->WaveXZ(x, z), z);
+            //         pV[i * dwTrackStep1 + xxx].vPos    = vPos - vCurPos;
+            //         pV[i * dwTrackStep1 + xxx].tu      = xx / (fTrackStep1 - 1.0f);
+            //         pV[i * dwTrackStep1 + xxx].tv      = T.fTV;
+            //         pV[i * dwTrackStep1 + xxx].dwColor = ARGB(T.fAlpha * 255.0f, 0, 0, 0);
+            //         xxx++;
+            //     }
+            // }
+            // pRS->UnLockVertexBuffer(iVTmpBuffer1);
         }
 
     for (int32_t i = 0; i < aTrack2.size(); i++) {
@@ -366,26 +362,26 @@ void ShipTracks::ShipTrack::Execute(float fDeltaTime)
 
     if (Reserve2(aTrack2.size()))
         if (aTrack2.size() > 1) {
-            auto* pV = static_cast<TrackVertex*>(pRS->LockVertexBuffer(iVTmpBuffer2, D3DLOCK_DISCARD));
-            for (int32_t i = 0; i < aTrack2.size(); i++) {
-                auto&   T   = aTrack2[i];
-                int32_t xxx = 0;
-                for (float xx = 0; xx < fTrackStep2; xx++) {
-                    auto const k = xx / (fTrackStep2 - 1.0f);
-                    auto       x = T.fWidth * (k - 0.5f);
-                    auto       z = 0.0f;
-                    RotateAroundY(x, z, T.fCos, T.fSin);
-                    x += T.vPos.x;
-                    z += T.vPos.z;
-                    auto vPos                          = CVECTOR(x, fWaveUP + pSea->WaveXZ(x, z), z);
-                    pV[i * dwTrackStep2 + xxx].vPos    = vPos - vCurPos;
-                    pV[i * dwTrackStep2 + xxx].tu      = static_cast<float>(xx) / (fTrackStep2 - 1.0f);
-                    pV[i * dwTrackStep2 + xxx].tv      = T.fTV * 6.0f;
-                    pV[i * dwTrackStep2 + xxx].dwColor = ARGB(T.fAlpha * 255.0f, 0, 0, 0);
-                    xxx++;
-                }
-            }
-            pRS->UnLockVertexBuffer(iVTmpBuffer2);
+            // auto* pV = static_cast<TrackVertex*>(pRS->LockVertexBuffer(iVTmpBuffer2, D3DLOCK_DISCARD));
+            // for (int32_t i = 0; i < aTrack2.size(); i++) {
+            //     auto&   T   = aTrack2[i];
+            //     int32_t xxx = 0;
+            //     for (float xx = 0; xx < fTrackStep2; xx++) {
+            //         auto const k = xx / (fTrackStep2 - 1.0f);
+            //         auto       x = T.fWidth * (k - 0.5f);
+            //         auto       z = 0.0f;
+            //         RotateAroundY(x, z, T.fCos, T.fSin);
+            //         x += T.vPos.x;
+            //         z += T.vPos.z;
+            //         auto vPos                          = CVECTOR(x, fWaveUP + pSea->WaveXZ(x, z), z);
+            //         pV[i * dwTrackStep2 + xxx].vPos    = vPos - vCurPos;
+            //         pV[i * dwTrackStep2 + xxx].tu      = static_cast<float>(xx) / (fTrackStep2 - 1.0f);
+            //         pV[i * dwTrackStep2 + xxx].tv      = T.fTV * 6.0f;
+            //         pV[i * dwTrackStep2 + xxx].dwColor = ARGB(T.fAlpha * 255.0f, 0, 0, 0);
+            //         xxx++;
+            //     }
+            // }
+            // pRS->UnLockVertexBuffer(iVTmpBuffer2);
         }
 }
 
@@ -414,31 +410,31 @@ void ShipTracks::ShipTrack::Realize(float fDeltaTime)
     // pRS->SetTransform(D3DTS_WORLD, CMatrix());
     CMatrix const m;
     m.Pos() = pShip->GetPos();
-    pRS->SetTransform(D3DTS_WORLD, m);
+    // pRS->SetTransform(D3DTS_WORLD, m);
 
     if (aTrack1.size() > 1) {
-        pRS->TextureSet(0, iTrackTexture1);
-        pRS->DrawBuffer(
-            iVTmpBuffer1,
-            sizeof(TrackVertex),
-            iITmpBuffer1,
-            0,
-            aTrack1.size() * dwTrackStep1,
-            0,
-            (dwTrackStep1 - 1) * (aTrack1.size() - 1) * 2,
-            "ShipTrack");
+        // pRS->TextureSet(0, iTrackTexture1);
+        // pRS->DrawBuffer(
+        //     iVTmpBuffer1,
+        //     sizeof(TrackVertex),
+        //     iITmpBuffer1,
+        //     0,
+        //     aTrack1.size() * dwTrackStep1,
+        //     0,
+        //     (dwTrackStep1 - 1) * (aTrack1.size() - 1) * 2,
+        //     "ShipTrack");
     }
 
     if (aTrack2.size() > 1) {
-        pRS->TextureSet(0, iTrackTexture2);
-        pRS->DrawBuffer(
-            iVTmpBuffer2,
-            sizeof(TrackVertex),
-            iITmpBuffer2,
-            0,
-            aTrack2.size() * dwTrackStep2,
-            0,
-            (dwTrackStep2 - 1) * (aTrack2.size() - 1) * 2,
-            "ShipTrack");
+        // pRS->TextureSet(0, iTrackTexture2);
+        // pRS->DrawBuffer(
+        //     iVTmpBuffer2,
+        //     sizeof(TrackVertex),
+        //     iITmpBuffer2,
+        //     0,
+        //     aTrack2.size() * dwTrackStep2,
+        //     0,
+        //     (dwTrackStep2 - 1) * (aTrack2.size() - 1) * 2,
+        //     "ShipTrack");
     }
 }

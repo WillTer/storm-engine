@@ -3,10 +3,9 @@
 #include <vector>
 
 #include <libs/island/island_base.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/ship/ship_base.h>
 
-#define D3DTLVERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE)
+// #define D3DTLVERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE)
 
 using D3DTLVERTEX = struct {
     CVECTOR  vPos;
@@ -29,7 +28,6 @@ struct TOUCH_SHIP {
 class Touch: public Entity
 {
 protected:
-    VDX9RENDER*  pRS;
     ISLAND_BASE* pIslandBase;
 
     bool bUseTouch;
@@ -43,23 +41,23 @@ protected:
     TOUCH_SHIP* pShips[256];
     int32_t     iNumShips;
 
-    BOOL BuildContour(int32_t ship_idx);
-    BOOL IsPointInContour(CVECTOR* vP, CVECTOR* vContour, int32_t numvcontour);
+    bool BuildContour(int32_t ship_idx);
+    bool IsPointInContour(CVECTOR* vP, CVECTOR* vContour, int32_t numvcontour);
 
     bool IsSinked(int32_t iIndex);
 
     float   touch(int32_t idx, int32_t skip_idx, CVECTOR* vPos, CVECTOR* vAng, float fPower, float fSlide);
-    BOOL    FakeTouch();
-    BOOL    IsIntersectShipsRects(int32_t idx1, int32_t idx2);
-    BOOL    IsIntersectShipsReal(int32_t idx1, int32_t cidx, CVECTOR* vPos, CVECTOR* vAng, CVECTOR* vRecoil, float* fPower, float* fSlide);
+    bool    FakeTouch();
+    bool    IsIntersectShipsRects(int32_t idx1, int32_t idx2);
+    bool    IsIntersectShipsReal(int32_t idx1, int32_t cidx, CVECTOR* vPos, CVECTOR* vAng, CVECTOR* vRecoil, float* fPower, float* fSlide);
     void    GetLineABC(CVECTOR& v1, CVECTOR& v2, float& A, float& B, float& C);
     CVECTOR GetLineIntersectPoint(CVECTOR& v1, CVECTOR& v2, CVECTOR& o1, CVECTOR& o2);
     int32_t ProcessImpulse(int32_t iOurIdx, CVECTOR vPos, CVECTOR vDir, float fPowerApplied);
     int32_t GetTouchPoint(int32_t iIdx, const CVECTOR& vPos);
 
-    void    DrawLine(std::vector<RS_LINE2D>& aLines, float x1, float y1, float x2, float y2, uint32_t color);
+    // void    DrawLine(std::vector<RS_LINE2D>& aLines, float x1, float y1, float x2, float y2, uint32_t color);
     void    DrawShips();
-    CVECTOR GetPoint(float x, float y, float xx, float yy, float xscale, float yscale, float fCos, float fSin, POINT ss);
+    CVECTOR GetPoint(float x, float y, float xx, float yy, float xscale, float yscale, float fCos, float fSin, storm::Point ss);
 
     void SetDevices();
 
@@ -77,13 +75,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 };

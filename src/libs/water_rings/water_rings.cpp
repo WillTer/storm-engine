@@ -6,14 +6,10 @@
 #include <libs/util/rands.h>
 
 //------------------------------------------------------------------------------------
-WaterRings::WaterRings() : ivManager(nullptr) {}
+WaterRings::WaterRings() {}
 
 //------------------------------------------------------------------------------------
-WaterRings::~WaterRings()
-{
-    delete ivManager;
-    renderService->TextureRelease(ringTexture);
-}
+WaterRings::~WaterRings() {}
 
 //------------------------------------------------------------------------------------
 bool WaterRings::Init()
@@ -23,21 +19,10 @@ bool WaterRings::Init()
     auto const seaID = core->GetEntityId("Sea");
     sea              = static_cast<SEA_BASE*>(core->GetEntityPointer(seaID));
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!renderService) throw std::runtime_error("No service: dx9render");
-
-    ivManager = new IVBufferManager(
-        renderService,
-        waterrings::RING_FVF,
-        sizeof(RING_VERTEX),
-        waterrings::TRIANGLES_COUNT * 3,
-        waterrings::GRID_STEPS_COUNT * waterrings::GRID_STEPS_COUNT,
-        waterrings::MAX_RINGS);
-
-    ringTexture = renderService->TextureCreate("ring.tga");
+    // ringTexture = renderService->TextureCreate("ring.tga");
 
     for (auto i = 0; i < waterrings::MAX_RINGS; i++) {
-        rings[i].ivIndex     = ivManager->ReserveElement();
+        // rings[i].ivIndex     = ivManager->ReserveElement();
         rings[i].activeTime  = 0;
         rings[i].active      = false;
         rings[i].firstUpdate = true;
@@ -55,22 +40,22 @@ void WaterRings::Realize(uint32_t _dTime)
     if (!sea) return;
 
     // update buffers for rings
-    ivManager->LockBuffers();
-    uint16_t*    iPointer;
-    RING_VERTEX* vPointer;
-    int32_t      vOffset;
-    for (auto i = 0; i < waterrings::MAX_RINGS; i++) {
-        // check if ring needs to be removed
-        if (rings[i].activeTime > (waterrings::FADE_IN_TIME + waterrings::FADE_OUT_TIME)) rings[i].active = false;
-        ivManager->GetPointers(rings[i].ivIndex, static_cast<uint16_t**>(&iPointer), (void**)&vPointer, &vOffset);
-        UpdateGrid(i, iPointer, vPointer, vOffset);
-
-        if (rings[i].active) rings[i].activeTime += _dTime;
-    }
-    ivManager->UnlockBuffers();
-
-    renderService->TextureSet(0, ringTexture);
-    ivManager->DrawBuffers("waterring");
+    // ivManager->LockBuffers();
+    // uint16_t*    iPointer;
+    // RING_VERTEX* vPointer;
+    // int32_t      vOffset;
+    // for (auto i = 0; i < waterrings::MAX_RINGS; i++) {
+    //     // check if ring needs to be removed
+    //     if (rings[i].activeTime > (waterrings::FADE_IN_TIME + waterrings::FADE_OUT_TIME)) rings[i].active = false;
+    //     ivManager->GetPointers(rings[i].ivIndex, static_cast<uint16_t**>(&iPointer), (void**)&vPointer, &vOffset);
+    //     UpdateGrid(i, iPointer, vPointer, vOffset);
+    //
+    //     if (rings[i].active) rings[i].activeTime += _dTime;
+    // }
+    // ivManager->UnlockBuffers();
+    //
+    // renderService->TextureSet(0, ringTexture);
+    // ivManager->DrawBuffers("waterring");
 }
 
 //------------------------------------------------------------------------------------

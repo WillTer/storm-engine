@@ -114,19 +114,20 @@ void TornadoParticles::Update(float dltTime)
     }
 }
 
-void TornadoParticles::Draw(VDX9RENDER* rs)
+void TornadoParticles::Draw(/*VDX9RENDER*/ void* rs)
 {
-    rs->GetTransform(D3DTS_VIEW, camMtx);
-    rs->SetTransform(D3DTS_VIEW, CMatrix());
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    rs->TextureSet(0, txtPillarPrts);
-    DrawParticles(rs, pillarPrt, sizeof(pillarPrt) / sizeof(PillarParticle), sizeof(PillarParticle), -1, "TornadoPillarParticles");
-    rs->TextureSet(0, txtGroundPrts);
-    DrawParticles(rs, groundPrt, sizeof(groundPrt) / sizeof(GroundParticle), sizeof(GroundParticle), -1, "TornadoGroundParticles");
-    rs->SetTransform(D3DTS_VIEW, camMtx);
+    // rs->GetTransform(D3DTS_VIEW, camMtx);
+    // rs->SetTransform(D3DTS_VIEW, CMatrix());
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // rs->TextureSet(0, txtPillarPrts);
+    // DrawParticles(rs, pillarPrt, sizeof(pillarPrt) / sizeof(PillarParticle), sizeof(PillarParticle), -1, "TornadoPillarParticles");
+    // rs->TextureSet(0, txtGroundPrts);
+    // DrawParticles(rs, groundPrt, sizeof(groundPrt) / sizeof(GroundParticle), sizeof(GroundParticle), -1, "TornadoGroundParticles");
+    // rs->SetTransform(D3DTS_VIEW, camMtx);
 }
 
-inline void TornadoParticles::DrawParticles(VDX9RENDER* rs, void* prts, int32_t num, int32_t size, int32_t texture, char const* tech)
+inline void
+TornadoParticles::DrawParticles(/*VDX9RENDER*/ void* rs, void* prts, int32_t num, int32_t size, int32_t texture, char const* tech)
 {
     int32_t n = 0;
     for (int32_t i = 0; i < num; i++) {
@@ -163,12 +164,13 @@ inline void TornadoParticles::DrawParticles(VDX9RENDER* rs, void* prts, int32_t 
         buffer[n * 6 + 5].v     = 1.0f;
         n++;
         if (n * 2 == 256) {
-            rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
+            // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex),
+            // (char*)tech);
             n = 0;
         }
     }
     if (n > 0) {
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
+        // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
     }
 }
 

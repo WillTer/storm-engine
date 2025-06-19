@@ -2,7 +2,6 @@
 
 #include <libs/geometry/geometry.h>
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "sink_splash_defines.h"
@@ -27,13 +26,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -41,7 +34,6 @@ private:
     void   InitializeSinks();
     TSink* TryToAddSink(const CVECTOR& _pos, float _r);
 
-    TSink       sinks[sink_effect::MAX_SINKS];
-    VDX9RENDER* renderer;
-    SEA_BASE*   sea;
+    TSink     sinks[sink_effect::MAX_SINKS];
+    SEA_BASE* sea;
 };

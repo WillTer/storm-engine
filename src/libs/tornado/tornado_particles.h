@@ -11,7 +11,6 @@
 #pragma once
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "pillar.h"
@@ -55,7 +54,7 @@ public:
     void SetSea();
 
     void Update(float dltTime);
-    void Draw(VDX9RENDER* rs);
+    void Draw(/*VDX9RENDER*/ void* rs);
 
     int32_t txtPillarPrts;
     int32_t txtGroundPrts;
@@ -66,7 +65,7 @@ public:
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
-    void         DrawParticles(VDX9RENDER* rs, void* prts, int32_t num, int32_t size, int32_t texture, char const* tech);
+    void         DrawParticles(/*VDX9RENDER*/ void* rs, void* prts, int32_t num, int32_t size, int32_t texture, char const* tech);
     static float GetRand(float r, float dev = 0.5f);  // dev = 0..1, return 0..r
 
 private:

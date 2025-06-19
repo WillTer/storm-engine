@@ -17,11 +17,9 @@ SEPS_PS::SEPS_PS()
 
     bLinkEmitter = false;
 
-    RenderService = nullptr;
-    ParticlesNum  = 0;
-    TexturesNum   = 0;
-    Particle      = nullptr;
-    VBuffer       = nullptr;
+    ParticlesNum = 0;
+    TexturesNum  = 0;
+    Particle     = nullptr;
 
     Emitter.x = Emitter.y = Emitter.z = 0;
     Camera_EmitterPos.x = Camera_EmitterPos.y = Camera_EmitterPos.z = 0;
@@ -98,29 +96,18 @@ void SEPS_PS::Reset()
         Particle[n].time = 0;
         Particle[n].live = false;
         Particle[n].done = false;
-        // if(bUniformEmit) Particle[n].time = -n*(Lifetime/ParticlesNum);
-        // else Particle[n].time = -EmitterIniTime * rand()/RAND_MAX;
 
         Particle[n].spinVal = Spin + SpinDeviation * (0.5f - static_cast<float>(rand()) / RAND_MAX);
         Particle[n].spin    = Particle[n].spinVal;
     }
-
-    // EmitIndex = 0;
-    // EmitTimeDelta = 0;
-    // Delay = 0;
-
-    // DeltaTimeSLE = 0;
-    // nEmitted = 0;
-    // nSystemLifeTime = 0;
 }
 
 SEPS_PS::~SEPS_PS()
 {
     int32_t n;
-    RenderService->Release(VBuffer);
-    for (n = 0; n < TexturesNum; n++)
-        RenderService->TextureRelease(TextureID[n]);
-    // core->FreeService("RendererService");
+    // RenderService->Release(VBuffer);
+    // for (n = 0; n < TexturesNum; n++)
+    // RenderService->TextureRelease(TextureID[n]);
     delete Particle;
     Particle = nullptr;
     delete pFlowTrack;
@@ -203,10 +190,6 @@ bool SEPS_PS::Init(INIFILE* ini, char* psname)
     int32_t n;
     bool    bRes;
 
-    // load render service -----------------------------------------------------
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) throw std::runtime_error("No service: dx9render");
-
     gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     // if(!gs) return false;
 
@@ -221,7 +204,7 @@ bool SEPS_PS::Init(INIFILE* ini, char* psname)
             bRes = ini->ReadStringNext(psname, PSKEY_TEXTURE, string, sizeof(string));
 
         if (bRes) {
-            TextureID[n] = RenderService->TextureCreate(string);
+            // TextureID[n] = RenderService->TextureCreate(string);
             if (TextureID[n] >= 0) TexturesNum++;
         } else
             break;
@@ -344,13 +327,13 @@ bool SEPS_PS::Init(INIFILE* ini, char* psname)
         bTrackAngle = false;
 
     // create vertex buffer
-    RenderService->CreateVertexBuffer(
-        sizeof(sink_effect::PARTICLE_VERTEX) * VERTEXS_ON_PARTICLE * ParticlesNum,
-        D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
-        PARTICLE_FVF,
-        D3DPOOL_SYSTEMMEM,
-        &VBuffer);
-    if (VBuffer == nullptr) throw std::runtime_error("vbuffer error");
+    // RenderService->CreateVertexBuffer(
+    //     sizeof(sink_effect::PARTICLE_VERTEX) * VERTEXS_ON_PARTICLE * ParticlesNum,
+    //     D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
+    //     PARTICLE_FVF,
+    //     D3DPOOL_SYSTEMMEM,
+    //     &VBuffer);
+    // if (VBuffer == nullptr) throw std::runtime_error("vbuffer error");
 
     UpdateVertexBuffer();
 
@@ -372,7 +355,7 @@ void SEPS_PS::UpdateVertexBuffer()
 
     Camera_EmitterPosA.x = Camera_EmitterPosA.y = Camera_EmitterPosA.z = 0;
 
-    RenderService->VBLock(VBuffer, 0, sizeof(sink_effect::PARTICLE_VERTEX) * VERTEXS_ON_PARTICLE * ParticlesNum, (uint8_t**)&pVertex, 0);
+    // RenderService->VBLock(VBuffer, 0, sizeof(sink_effect::PARTICLE_VERTEX) * VERTEXS_ON_PARTICLE * ParticlesNum, (uint8_t**)&pVertex, 0);
     for (n = 0; n < ParticlesNum; n++) {
         index = n * VERTEXS_ON_PARTICLE;
 
@@ -405,11 +388,6 @@ void SEPS_PS::UpdateVertexBuffer()
         rpos[1] = RMatrix * ipos[1];
         rpos[2] = RMatrix * ipos[2];
         rpos[3] = RMatrix * ipos[3];
-
-        /*rpos[0] = ipos[0];
-        rpos[1] = ipos[1];
-        rpos[2] = ipos[2];
-        rpos[3] = ipos[3];*/
 
         // first & second left up
         pos.x                  = local_pos.x + rpos[0].x;  // - halfsize;
@@ -457,7 +435,7 @@ void SEPS_PS::UpdateVertexBuffer()
             pVertex[i].color = Particle[n].color;
         }
     }
-    RenderService->VBUnlock(VBuffer);
+    // RenderService->VBUnlock(VBuffer);
     if (ParticlesNum) {
         Camera_EmitterPosA.x = Camera_EmitterPosA.x / ParticlesNum;
         Camera_EmitterPosA.y = Camera_EmitterPosA.y / ParticlesNum;
@@ -524,36 +502,31 @@ void SEPS_PS::Realize(uint32_t DeltaTime)
     p.x = p.y = p.z = 0;
     a.x = a.y = a.z = 0;
 
-    RenderService->GetTransform(D3DTS_VIEW, Matrix);
+    // RenderService->GetTransform(D3DTS_VIEW, Matrix);
 
-    // Camera_EmitterPos = Matrix * Emitter;
-
-    RenderService->GetCamera(CameraPos, CameraAng, Perspective);
+    // RenderService->GetCamera(CameraPos, CameraAng, Perspective);
 
     CMatrix const IMatrix;
-    RenderService->SetTransform(D3DTS_VIEW, IMatrix);
-    RenderService->SetTransform(D3DTS_WORLD, IMatrix);
+    // RenderService->SetTransform(D3DTS_VIEW, IMatrix);
+    // RenderService->SetTransform(D3DTS_WORLD, IMatrix);
     ProcessParticles(DeltaTime);
     SetParticlesTracks(DeltaTime);
     UpdateVertexBuffer();
 
-    RenderService->TextureSet(0, TextureID[0]);
+    // RenderService->TextureSet(0, TextureID[0]);
 
-    RenderService->SetFVF(PARTICLE_FVF);
-    RenderService->SetStreamSource(0, VBuffer, sizeof(sink_effect::PARTICLE_VERTEX));
-    // RenderService->SetIndices(0, 0);
+    // RenderService->SetFVF(PARTICLE_FVF);
+    // RenderService->SetStreamSource(0, VBuffer, sizeof(sink_effect::PARTICLE_VERTEX));
 
     bool bDraw;
-    // if(bColorInverse)bDraw = RenderService->TechniqueExecuteStart("particles_inv");
-    // else bDraw = RenderService->TechniqueExecuteStart("particles");
 
-    bDraw = RenderService->TechniqueExecuteStart(TechniqueName);
-    if (bDraw) {
-        RenderService->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2 * ParticlesNum);
-        while (RenderService->TechniqueExecuteNext()) {}
-    }
-
-    RenderService->SetTransform(D3DTS_VIEW, Matrix);
+    // bDraw = RenderService->TechniqueExecuteStart(TechniqueName);
+    // if (bDraw) {
+    //     RenderService->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2 * ParticlesNum);
+    //     while (RenderService->TechniqueExecuteNext()) {}
+    // }
+    //
+    // RenderService->SetTransform(D3DTS_VIEW, Matrix);
 }
 
 bool SEPS_PS::EmitParticle()

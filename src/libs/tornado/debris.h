@@ -44,7 +44,7 @@ public:
     void Init();
 
     void Update(float dltTime);
-    void Draw(VDX9RENDER* rs);
+    void Draw(/*VDX9RENDER*/ void* rs);
 
     void SetGlobalAlpha(float a);
 

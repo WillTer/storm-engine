@@ -4,7 +4,6 @@
 
 #include <libs/location/character_helpers.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea_ai/ai_flow_graph.h>
 #include <libs/shared_headers/mast_msg.h>
 #include <libs/shared_headers/messages.h>
@@ -17,7 +16,6 @@
 #include "ship_lights.h"
 #include "track.h"
 
-VDX9RENDER*  Ship::pRS      = nullptr;
 SEA_BASE*    Ship::pSea     = nullptr;
 ISLAND_BASE* Ship::pIsland  = nullptr;
 COLLIDE*     Ship::pCollide = nullptr;
@@ -146,13 +144,10 @@ void Ship::LoadServices()
 {
     pIsland = nullptr;
     pSea    = nullptr;
-    pRS     = nullptr;
     pGS     = nullptr;
 
     pGS = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     Assert(pGS);
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 
@@ -247,7 +242,7 @@ CVECTOR Ship::ShipRocking(float fDeltaTime)
     return vAng + Min(fRockingAZ * fDelta, 1.0f) * (vAng2 - vAng);
 }
 
-BOOL Ship::CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate)
+bool Ship::CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate)
 {
     int32_t i;
     CVECTOR result(0.0f, 0.0f, 0.0f);
@@ -262,7 +257,7 @@ BOOL Ship::CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate)
     return true;
 }
 
-BOOL Ship::ApplyStrength(float dtime, BOOL bCollision)
+bool Ship::ApplyStrength(float dtime, bool bCollision)
 {
     float   sign, fK;
     int32_t i;
@@ -336,7 +331,7 @@ BOOL Ship::ApplyStrength(float dtime, BOOL bCollision)
     return true;
 }
 
-BOOL Ship::TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew)
+bool Ship::TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew)
 {
     if (!pTPOld && !pTPNew) return false;
     auto const old_state = State;
@@ -366,7 +361,7 @@ BOOL Ship::TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTP
     return true;
 }
 
-BOOL Ship::Move(uint32_t DeltaTime, BOOL bCollision)
+bool Ship::Move(uint32_t DeltaTime, bool bCollision)
 {
     auto const dtime = DELTA_TIME(DeltaTime);
     ApplyStrength(dtime, bCollision);
@@ -988,33 +983,33 @@ void Ship::SetLightAndFog(bool bSetLight)
 
         // ambient
         auto const fScale = Bring2Range(0.0f, 1.0f, -35.0f, 0.0f, State.vPos.y);
-        pRS->GetRenderState(D3DRS_AMBIENT, &dwSaveAmbient);
-        const CVECTOR vAmbient = fScale * COLOR2VECTOR(dwSaveAmbient);
-        pRS->SetRenderState(D3DRS_AMBIENT, ARGB((dwSaveAmbient >> 24L), vAmbient.x, vAmbient.y, vAmbient.z));
-
-        // light
-        D3DLIGHT9 newLight;
-        pRS->GetLight(0, &saveLight);
-        newLight = saveLight;
-        newLight.Diffuse.r *= fScale;
-        newLight.Diffuse.g *= fScale;
-        newLight.Diffuse.b *= fScale;
-        newLight.Diffuse.a *= fScale;
-        newLight.Specular.r *= fScale;
-        newLight.Specular.g *= fScale;
-        newLight.Specular.b *= fScale;
-        newLight.Specular.a *= fScale;
-        newLight.Ambient.r *= fScale;
-        newLight.Ambient.g *= fScale;
-        newLight.Ambient.b *= fScale;
-        newLight.Ambient.a *= fScale;
-        pRS->SetLight(0, &newLight);
+        // pRS->GetRenderState(D3DRS_AMBIENT, &dwSaveAmbient);
+        // const CVECTOR vAmbient = fScale * COLOR2VECTOR(dwSaveAmbient);
+        // pRS->SetRenderState(D3DRS_AMBIENT, ARGB((dwSaveAmbient >> 24L), vAmbient.x, vAmbient.y, vAmbient.z));
+        //
+        // // light
+        // D3DLIGHT9 newLight;
+        // pRS->GetLight(0, &saveLight);
+        // newLight = saveLight;
+        // newLight.Diffuse.r *= fScale;
+        // newLight.Diffuse.g *= fScale;
+        // newLight.Diffuse.b *= fScale;
+        // newLight.Diffuse.a *= fScale;
+        // newLight.Specular.r *= fScale;
+        // newLight.Specular.g *= fScale;
+        // newLight.Specular.b *= fScale;
+        // newLight.Specular.a *= fScale;
+        // newLight.Ambient.r *= fScale;
+        // newLight.Ambient.g *= fScale;
+        // newLight.Ambient.b *= fScale;
+        // newLight.Ambient.a *= fScale;
+        // pRS->SetLight(0, &newLight);
 
         // fog
         auto const fFogScale = Bring2Range(0.0f, 1.0f, -30.0f, 0.0f, State.vPos.y);
-        pRS->GetRenderState(D3DRS_FOGCOLOR, &dwSaveFogColor);
-        const CVECTOR vFogColor = fFogScale * COLOR2VECTOR(dwSaveFogColor);
-        pRS->SetRenderState(D3DRS_FOGCOLOR, ARGB((dwSaveFogColor >> 24L), vFogColor.x, vFogColor.y, vFogColor.z));
+        // pRS->GetRenderState(D3DRS_FOGCOLOR, &dwSaveFogColor);
+        // const CVECTOR vFogColor = fFogScale * COLOR2VECTOR(dwSaveFogColor);
+        // pRS->SetRenderState(D3DRS_FOGCOLOR, ARGB((dwSaveFogColor >> 24L), vFogColor.x, vFogColor.y, vFogColor.z));
     }
 }
 
@@ -1022,9 +1017,9 @@ void Ship::RestoreLightAndFog()
 {
     if (bSetLightAndFog) {
         bSetLightAndFog = false;
-        pRS->SetRenderState(D3DRS_AMBIENT, dwSaveAmbient);
-        pRS->SetRenderState(D3DRS_FOGCOLOR, dwSaveFogColor);
-        pRS->SetLight(0, &saveLight);
+        // pRS->SetRenderState(D3DRS_AMBIENT, dwSaveAmbient);
+        // pRS->SetRenderState(D3DRS_FOGCOLOR, dwSaveFogColor);
+        // pRS->SetLight(0, &saveLight);
     }
 }
 
@@ -1043,9 +1038,9 @@ void Ship::Realize(uint32_t dtime)
     SetLightAndFog(true);
     SetLights();
 
-    pRS->SetRenderState(D3DRS_LIGHTING, true);
+    // pRS->SetRenderState(D3DRS_LIGHTING, true);
     pM->ProcessStage(Stage::realize, dtime);
-    pRS->SetRenderState(D3DRS_LIGHTING, false);
+    // pRS->SetRenderState(D3DRS_LIGHTING, false);
 
     UnSetLights();
     RestoreLightAndFog();
@@ -1059,8 +1054,8 @@ void Ship::Realize(uint32_t dtime)
     }
 
     if (bMassaShow) {
-        pRS->Print(0, 120, "Massa: %.2f", GetAShip()->GetAttributeAsFloat("Massa"));
-        pRS->Print(0, 140, "Volume: %.2f", GetAShip()->GetAttributeAsFloat("Volume"));
+        // pRS->Print(0, 120, "Massa: %.2f", GetAShip()->GetAttributeAsFloat("Massa"));
+        // pRS->Print(0, 140, "Volume: %.2f", GetAShip()->GetAttributeAsFloat("Volume"));
     }
 }
 
@@ -1142,7 +1137,7 @@ uint64_t Ship::ProcessMessage(MESSAGE& message)
         pV->Set(GetSailState());
     } break;
     case MSG_SHIP_SET_POS:
-        pRS->GetCamera(cpos, cang, fov);
+        // pRS->GetCamera(cpos, cang, fov);
         State.vPos = cpos;
         State.vAng = cang;
         if (pSea) State.vPos.y = pSea->WaveXZ(State.vPos.x, State.vPos.z);
@@ -1572,7 +1567,7 @@ void Ship::ScanShipForFirePlaces()
     if (aFirePlaces.size() == 0) { core->Trace("Ship %s doesn't have fire places", cShipIniName); }
 }
 
-BOOL Ship::LoadShipParameters()
+bool Ship::LoadShipParameters()
 {
 #define GetADword(x) GetAShip()->GetAttributeAsDword(x)
 #define GetAFloat(x) GetAShip()->GetAttributeAsFloat(x)
@@ -1825,7 +1820,7 @@ void Ship::Save(CSaveLoad* pSL)
     pSL->SaveDword(bSetLightAndFog);
     pSL->SaveDword(dwSaveAmbient);
     pSL->SaveDword(dwSaveFogColor);
-    pSL->SaveBuffer((char const*)&saveLight, sizeof(saveLight));
+    // pSL->SaveBuffer((char const*)&saveLight, sizeof(saveLight));
     pSL->SaveBuffer((char const*)&State, sizeof(State));
 
     pSL->SaveLong(iNumMasts);
@@ -1901,7 +1896,7 @@ void Ship::Load(CSaveLoad* pSL)
     bSetLightAndFog = pSL->LoadDword() != 0;
     dwSaveAmbient   = pSL->LoadDword();
     dwSaveFogColor  = pSL->LoadDword();
-    pSL->Load2Buffer(&saveLight);
+    // pSL->Load2Buffer(&saveLight);
     pSL->Load2Buffer(&State);
 
     iNumMasts = pSL->LoadLong();

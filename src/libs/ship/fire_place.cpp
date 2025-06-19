@@ -43,18 +43,8 @@ void FirePlace::DeleteParticle()
             pParticleSmoke->Pause(true);  //>StopEmitter();
         }
         if (pParticleFire && core->Send_Message(eidParticle, "lp", PS_VALIDATE_PARTICLE, pParticleFire)) { pParticleFire->Pause(true); }
-        /*if(pParticleSmoke)
-        {
-          pParticleSmoke->Pause(true);//>StopEmitter();
-        }
-        if(pParticleFire)
-        {
-          pParticleFire->Pause(true);
-        }*/
     }
 
-    // STORM_DELETE(pParticleSmoke);
-    // STORM_DELETE(pParticleFire);
     pParticleSmoke = nullptr;
     pParticleFire  = nullptr;
 }
