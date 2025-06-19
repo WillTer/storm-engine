@@ -19,7 +19,7 @@
 // FIXME: hardcode
 constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 
-void    sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
+void    sailPrint(const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 int     traceSail       = -1;
 int32_t g_iBallOwnerIdx = -1;
 
@@ -81,23 +81,23 @@ Sail::Sail() : LastTraceGroup(0), tm()
     ROLLINGSPEED      = .0003f;
 
     // material parameters
-    mat.Diffuse.r  = 0.f;
-    mat.Diffuse.g  = 0.f;
-    mat.Diffuse.b  = 0.f;
-    mat.Diffuse.a  = 0.f;
-    mat.Ambient.r  = 0.f;
-    mat.Ambient.g  = 0.f;
-    mat.Ambient.b  = 0.f;
-    mat.Ambient.a  = 0.f;
-    mat.Specular.r = 0.f;
-    mat.Specular.g = 0.f;
-    mat.Specular.b = 0.f;
-    mat.Specular.a = 0.f;
-    mat.Emissive.r = .7f;
-    mat.Emissive.g = .7f;
-    mat.Emissive.b = .7f;
-    mat.Emissive.a = 0.f;
-    mat.Power      = 0.f;
+    // mat.Diffuse.r  = 0.f;
+    // mat.Diffuse.g  = 0.f;
+    // mat.Diffuse.b  = 0.f;
+    // mat.Diffuse.a  = 0.f;
+    // mat.Ambient.r  = 0.f;
+    // mat.Ambient.g  = 0.f;
+    // mat.Ambient.b  = 0.f;
+    // mat.Ambient.a  = 0.f;
+    // mat.Specular.r = 0.f;
+    // mat.Specular.g = 0.f;
+    // mat.Specular.b = 0.f;
+    // mat.Specular.a = 0.f;
+    // mat.Emissive.r = .7f;
+    // mat.Emissive.g = .7f;
+    // mat.Emissive.b = .7f;
+    // mat.Emissive.a = 0.f;
+    // mat.Power      = 0.f;
 
     // ROLLING SAIL form table
     // square sail form
@@ -149,10 +149,9 @@ Sail::Sail() : LastTraceGroup(0), tm()
     texl            = -1;
     m_nEmptyGerbTex = -1;
 
-    bFirstRun     = true;
-    wFirstIndx    = 0;
-    bDeleteState  = false;
-    RenderService = nullptr;
+    bFirstRun    = true;
+    wFirstIndx   = 0;
+    bDeleteState = false;
 
     bCannonTrace = false;
 
@@ -189,10 +188,6 @@ Sail::~Sail()
         gdata = nullptr;
     }
 
-    VERTEX_BUFFER_RELEASE(RenderService, sg.vertBuf);
-    INDEX_BUFFER_RELEASE(RenderService, sg.indxBuf);
-    TEXTURE_RELEASE(RenderService, texl);
-    TEXTURE_RELEASE(RenderService, m_nEmptyGerbTex);
     delete[] WindVect;
     WindVect = nullptr;
 
@@ -212,10 +207,6 @@ void Sail::SetDevice()
     int i;
 
     mtx.SetIdentity();
-
-    // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
 
     LoadSailIni();
 
@@ -360,7 +351,7 @@ void Sail::Execute(uint32_t Delta_Time)
         float    perspect;
         uint64_t rtime;
         RDTSC_B(rtime);
-        RenderService->GetCamera(pos, ang, perspect);
+        // RenderService->GetCamera(pos, ang, perspect);
         CMatrix tmpMtx;
         tmpMtx.BuildMatrix(ang);
 
@@ -380,31 +371,31 @@ void Sail::Execute(uint32_t Delta_Time)
             gdata[slist[i]->HostNum].curHole += slist[i]->GetMaxHoleCount() - slist[i]->ss.holeCount;
         }
 
-        auto* pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
-        if (pv) {
-            for (i = 0; i < sailQuantity; i++) {
-                if (gdata[slist[i]->HostNum].bDeleted) continue;
-                // make sails sway
-                slist[i]->goWave(&pv[slist[i]->ss.sVert], Delta_Time);
-                // set rolling / unrolling of sails
-                //                if( gdata[slist[i]->HostNum].bFinalSailDo )
-                //                    if(!slist[i]->ss.rollingSail)
-                //                        slist[i]->SetRolling(gdata[slist[i]->HostNum].bFinalSailUp);
-                // sail bounding box calculation
-                CVECTOR vtmp = slist[i]->ss.boundSphere.rc - slist[i]->ss.boundSphere.r;
-                int     itmp = slist[i]->HostNum;
-                if (gdata[itmp].boxCenter.x > vtmp.x) gdata[itmp].boxCenter.x = vtmp.x;
-                if (gdata[itmp].boxCenter.y > vtmp.y) gdata[itmp].boxCenter.y = vtmp.y;
-                if (gdata[itmp].boxCenter.z > vtmp.z) gdata[itmp].boxCenter.z = vtmp.z;
-
-                vtmp = slist[i]->ss.boundSphere.rc + slist[i]->ss.boundSphere.r;
-                if (gdata[itmp].boxSize.x < vtmp.x) gdata[itmp].boxSize.x = vtmp.x;
-                if (gdata[itmp].boxSize.y < vtmp.y) gdata[itmp].boxSize.y = vtmp.y;
-                if (gdata[itmp].boxSize.z < vtmp.z) gdata[itmp].boxSize.z = vtmp.z;
-            }
-
-            RenderService->UnLockVertexBuffer(sg.vertBuf);
-        }
+        // auto* pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
+        // if (pv) {
+        //     for (i = 0; i < sailQuantity; i++) {
+        //         if (gdata[slist[i]->HostNum].bDeleted) continue;
+        //         // make sails sway
+        //         slist[i]->goWave(&pv[slist[i]->ss.sVert], Delta_Time);
+        //         // set rolling / unrolling of sails
+        //         //                if( gdata[slist[i]->HostNum].bFinalSailDo )
+        //         //                    if(!slist[i]->ss.rollingSail)
+        //         //                        slist[i]->SetRolling(gdata[slist[i]->HostNum].bFinalSailUp);
+        //         // sail bounding box calculation
+        //         CVECTOR vtmp = slist[i]->ss.boundSphere.rc - slist[i]->ss.boundSphere.r;
+        //         int     itmp = slist[i]->HostNum;
+        //         if (gdata[itmp].boxCenter.x > vtmp.x) gdata[itmp].boxCenter.x = vtmp.x;
+        //         if (gdata[itmp].boxCenter.y > vtmp.y) gdata[itmp].boxCenter.y = vtmp.y;
+        //         if (gdata[itmp].boxCenter.z > vtmp.z) gdata[itmp].boxCenter.z = vtmp.z;
+        //
+        //         vtmp = slist[i]->ss.boundSphere.rc + slist[i]->ss.boundSphere.r;
+        //         if (gdata[itmp].boxSize.x < vtmp.x) gdata[itmp].boxSize.x = vtmp.x;
+        //         if (gdata[itmp].boxSize.y < vtmp.y) gdata[itmp].boxSize.y = vtmp.y;
+        //         if (gdata[itmp].boxSize.z < vtmp.z) gdata[itmp].boxSize.z = vtmp.z;
+        //     }
+        //
+        //     RenderService->UnLockVertexBuffer(sg.vertBuf);
+        // }
 
         // resetting the rolling/unrolling sails flag for all ships and calculating the speed
         for (i = 0; i < groupQuantity; i++) {
@@ -468,120 +459,120 @@ void Sail::Realize(uint32_t Delta_Time)
     uint32_t dwOldTextureFactor;
     int      i, j, idx;
     if (bUse) {
-        bool bDraw = RenderService->TechniqueExecuteStart("ShipSail");
-        if (!bDraw) return;
-        RenderService->SetMaterial(mat);
-        RenderService->TextureSet(2, texl);
-        CMatrix matv, matp, matc;
-        RenderService->GetTransform(D3DTS_VIEW, matv);
-        RenderService->GetTransform(D3DTS_PROJECTION, matp);
-        matc = matv * matp;
-        if constexpr (false)  // Delta_Time==0 )
-        {
-            for (j = 0; j < groupQuantity; j++) {
-                if (gdata[j].bDeleted) continue;
-                RenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTextureFactor);
-                RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, gdata[j].dwSailsColor);
-                for (idx = 0; idx < gdata[j].sailQuantity; idx++) {
-                    i = gdata[j].sailIdx[idx];
-                    if (slist[i]->bFreeSail) continue;
-                    // if(gdata[slist[i]->HostNum].bDeleted) continue;
-                    RenderService->SetTransform(D3DTS_WORLD, *slist[i]->pMatWorld);
-                    RenderService->TextureSet(0, slist[i]->surfaceTex);
-                    if (slist[i]->m_bIsGerald) {
-                        if (slist[i]->m_pGeraldTex)
-                            RenderService->SetTexture(1, slist[i]->m_pGeraldTex);
-                        else
-                            RenderService->TextureSet(1, slist[i]->m_nGeraldTex);
-                    } else
-                        RenderService->TextureSet(1, m_nEmptyGerbTex);
-                    // Draw hole sail
-                    if (slist[i]->ss.Nh != 0) {
-                        RenderService->DrawBuffer(
-                            sg.vertBuf,
-                            sizeof(SAILVERTEX),
-                            sg.indxBuf,
-                            slist[i]->ss.sVert,
-                            slist[i]->ss.nVert,
-                            slist[i]->ss.shi,
-                            slist[i]->ss.Nh);
-                    }
-                    // Draw normal sail
-                    if (slist[i]->ss.Nn != 0) {
-                        RenderService->DrawBuffer(
-                            sg.vertBuf,
-                            sizeof(SAILVERTEX),
-                            sg.indxBuf,
-                            slist[i]->ss.sVert,
-                            slist[i]->ss.nVert,
-                            slist[i]->ss.sni,
-                            slist[i]->ss.Nn);
-                    }
-                }
-                RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTextureFactor);
-            }
-        } else {
-            for (j = 0; j < groupQuantity; j++) {
-                if (gdata[j].bDeleted) continue;
-                RenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTextureFactor);
-                RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, gdata[j].dwSailsColor);
-                for (idx = 0; idx < gdata[j].sailQuantity; idx++) {
-                    i = gdata[j].sailIdx[idx];
-                    // if(gdata[slist[i]->HostNum].bDeleted) continue;
-                    RenderService->SetTransform(D3DTS_WORLD, *slist[i]->pMatWorld);
-                    RenderService->TextureSet(0, slist[i]->surfaceTex);
-                    if (slist[i]->m_bIsGerald) {
-                        if (slist[i]->m_pGeraldTex)
-                            RenderService->SetTexture(1, slist[i]->m_pGeraldTex);
-                        else
-                            RenderService->TextureSet(1, slist[i]->m_nGeraldTex);
-                    } else
-                        RenderService->TextureSet(1, m_nEmptyGerbTex);
-                    // Draw hole texture sail
-                    uint32_t dwOld;
-                    RenderService->GetSamplerState(2, D3DSAMP_ADDRESSU, &dwOld);
-                    RenderService->SetSamplerState(2, D3DSAMP_ADDRESSU, D3DTADDRESS_MIRROR);
-                    // slist[i]->FillIndex(pt);
-                    auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf, D3DLOCK_DISCARD));
-                    if (pt) slist[i]->FillIndex(pt);
-                    RenderService->UnLockIndexBuffer(sg.indxBuf);
-                    if (gdata[j].bYesShip) {
-                        static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->SetLightAndFog(true);
-                        static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->SetLights();
-                    }
-                    if (slist[i]->ss.nholeIndx != 0) {
-                        RenderService->DrawBuffer(
-                            sg.vertBuf,
-                            sizeof(SAILVERTEX),
-                            sg.indxBuf,
-                            slist[i]->ss.sVert,
-                            slist[i]->ss.nVert,
-                            slist[i]->ss.sholeIndx,
-                            slist[i]->ss.nholeIndx);
-                    }
-                    // Draw normal texture sail
-                    RenderService->SetSamplerState(2, D3DSAMP_ADDRESSU, dwOld);
-                    if (slist[i]->ss.nnormIndx != 0) {
-                        RenderService->DrawBuffer(
-                            sg.vertBuf,
-                            sizeof(SAILVERTEX),
-                            sg.indxBuf,
-                            slist[i]->ss.sVert,
-                            slist[i]->ss.nVert,
-                            slist[i]->ss.sIndx,
-                            slist[i]->ss.nnormIndx);
-                    }
-                    if (gdata[j].bYesShip) {
-                        static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->UnSetLights();
-                        static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->RestoreLightAndFog();
-                    }
-                }
-                RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTextureFactor);
-            }
-
-            //_asm rdtsc    _asm sub eax,tm_draw _asm mov tm_draw,eax
-        }
-        while (RenderService->TechniqueExecuteNext()) {}
+        // bool bDraw = RenderService->TechniqueExecuteStart("ShipSail");
+        // if (!bDraw) return;
+        // RenderService->SetMaterial(mat);
+        // RenderService->TextureSet(2, texl);
+        // CMatrix matv, matp, matc;
+        // RenderService->GetTransform(D3DTS_VIEW, matv);
+        // RenderService->GetTransform(D3DTS_PROJECTION, matp);
+        // matc = matv * matp;
+        // if constexpr (false)  // Delta_Time==0 )
+        // {
+        //     for (j = 0; j < groupQuantity; j++) {
+        //         if (gdata[j].bDeleted) continue;
+        //         RenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTextureFactor);
+        //         RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, gdata[j].dwSailsColor);
+        //         for (idx = 0; idx < gdata[j].sailQuantity; idx++) {
+        //             i = gdata[j].sailIdx[idx];
+        //             if (slist[i]->bFreeSail) continue;
+        //             // if(gdata[slist[i]->HostNum].bDeleted) continue;
+        //             RenderService->SetTransform(D3DTS_WORLD, *slist[i]->pMatWorld);
+        //             RenderService->TextureSet(0, slist[i]->surfaceTex);
+        //             if (slist[i]->m_bIsGerald) {
+        //                 if (slist[i]->m_pGeraldTex)
+        //                     RenderService->SetTexture(1, slist[i]->m_pGeraldTex);
+        //                 else
+        //                     RenderService->TextureSet(1, slist[i]->m_nGeraldTex);
+        //             } else
+        //                 RenderService->TextureSet(1, m_nEmptyGerbTex);
+        //             // Draw hole sail
+        //             if (slist[i]->ss.Nh != 0) {
+        //                 RenderService->DrawBuffer(
+        //                     sg.vertBuf,
+        //                     sizeof(SAILVERTEX),
+        //                     sg.indxBuf,
+        //                     slist[i]->ss.sVert,
+        //                     slist[i]->ss.nVert,
+        //                     slist[i]->ss.shi,
+        //                     slist[i]->ss.Nh);
+        //             }
+        //             // Draw normal sail
+        //             if (slist[i]->ss.Nn != 0) {
+        //                 RenderService->DrawBuffer(
+        //                     sg.vertBuf,
+        //                     sizeof(SAILVERTEX),
+        //                     sg.indxBuf,
+        //                     slist[i]->ss.sVert,
+        //                     slist[i]->ss.nVert,
+        //                     slist[i]->ss.sni,
+        //                     slist[i]->ss.Nn);
+        //             }
+        //         }
+        //         RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTextureFactor);
+        //     }
+        // } else {
+        //     for (j = 0; j < groupQuantity; j++) {
+        //         if (gdata[j].bDeleted) continue;
+        //         RenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTextureFactor);
+        //         RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, gdata[j].dwSailsColor);
+        //         for (idx = 0; idx < gdata[j].sailQuantity; idx++) {
+        //             i = gdata[j].sailIdx[idx];
+        //             // if(gdata[slist[i]->HostNum].bDeleted) continue;
+        //             RenderService->SetTransform(D3DTS_WORLD, *slist[i]->pMatWorld);
+        //             RenderService->TextureSet(0, slist[i]->surfaceTex);
+        //             if (slist[i]->m_bIsGerald) {
+        //                 if (slist[i]->m_pGeraldTex)
+        //                     RenderService->SetTexture(1, slist[i]->m_pGeraldTex);
+        //                 else
+        //                     RenderService->TextureSet(1, slist[i]->m_nGeraldTex);
+        //             } else
+        //                 RenderService->TextureSet(1, m_nEmptyGerbTex);
+        //             // Draw hole texture sail
+        //             uint32_t dwOld;
+        //             RenderService->GetSamplerState(2, D3DSAMP_ADDRESSU, &dwOld);
+        //             RenderService->SetSamplerState(2, D3DSAMP_ADDRESSU, D3DTADDRESS_MIRROR);
+        //             // slist[i]->FillIndex(pt);
+        //             auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf, D3DLOCK_DISCARD));
+        //             if (pt) slist[i]->FillIndex(pt);
+        //             RenderService->UnLockIndexBuffer(sg.indxBuf);
+        //             if (gdata[j].bYesShip) {
+        //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->SetLightAndFog(true);
+        //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->SetLights();
+        //             }
+        //             if (slist[i]->ss.nholeIndx != 0) {
+        //                 RenderService->DrawBuffer(
+        //                     sg.vertBuf,
+        //                     sizeof(SAILVERTEX),
+        //                     sg.indxBuf,
+        //                     slist[i]->ss.sVert,
+        //                     slist[i]->ss.nVert,
+        //                     slist[i]->ss.sholeIndx,
+        //                     slist[i]->ss.nholeIndx);
+        //             }
+        //             // Draw normal texture sail
+        //             RenderService->SetSamplerState(2, D3DSAMP_ADDRESSU, dwOld);
+        //             if (slist[i]->ss.nnormIndx != 0) {
+        //                 RenderService->DrawBuffer(
+        //                     sg.vertBuf,
+        //                     sizeof(SAILVERTEX),
+        //                     sg.indxBuf,
+        //                     slist[i]->ss.sVert,
+        //                     slist[i]->ss.nVert,
+        //                     slist[i]->ss.sIndx,
+        //                     slist[i]->ss.nnormIndx);
+        //             }
+        //             if (gdata[j].bYesShip) {
+        //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->UnSetLights();
+        //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[j].shipEI))->RestoreLightAndFog();
+        //             }
+        //         }
+        //         RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTextureFactor);
+        //     }
+        //
+        //     //_asm rdtsc    _asm sub eax,tm_draw _asm mov tm_draw,eax
+        // }
+        // while (RenderService->TechniqueExecuteNext()) {}
     }
 }
 
@@ -1004,7 +995,7 @@ void Sail::SetAllSails(int groupNum)
     for (int i = 0; i < sailQuantity; i++)
         if (slist[i]->HostNum == groupNum) {
             // Set sail
-            slist[i]->RenderService = RenderService;
+            // slist[i]->RenderService = RenderService;
             if (slist[i]->SetSail()) {
                 gdata[groupNum].sailQuantity++;
                 slist[i]->SetGeometry();
@@ -1103,48 +1094,48 @@ void Sail::SetAllSails()
     if (sg.nVert == 0) return;
     sg.nIndx += 1152;
 
-    if (texl == -1) texl = RenderService->TextureCreate("ships/parus_hole.tga");
-    if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships/emptygerald.tga");
-
-    sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
-    sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
-
-    SAILVERTEX* pv;
-    pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
-    if (pv) {
-        for (int i = 0; i < sailQuantity; i++) {
-            slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
-            slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
-        }
-        RenderService->UnLockVertexBuffer(sg.vertBuf);
-    }
+    // if (texl == -1) texl = RenderService->TextureCreate("ships/parus_hole.tga");
+    // if (m_nEmptyGerbTex == -1) m_nEmptyGerbTex = RenderService->TextureCreate("ships/emptygerald.tga");
+    //
+    // sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC |
+    // D3DUSAGE_WRITEONLY); sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
+    //
+    // SAILVERTEX* pv;
+    // pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
+    // if (pv) {
+    //     for (int i = 0; i < sailQuantity; i++) {
+    //         slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
+    //         slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
+    //     }
+    //     RenderService->UnLockVertexBuffer(sg.vertBuf);
+    // }
 
     // Set triangle buffer for sea mirror
-    uint16_t* pt;
-    pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf));
-    if (pt) {
-        for (int i = 0; i < sailQuantity; i++) {
-            slist[i]->FillIndex(pt);
-        }
-
-        // for triangle sail
-        pt[0] = pt[15] = pt[24] = 0;                                                                                   // 0
-        pt[1] = pt[3] = pt[6] = pt[12] = pt[16] = pt[21] = pt[25] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 1) / 2;     // 1
-        pt[2] = pt[8] = pt[9] = pt[17] = pt[18] = pt[23] = pt[26] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 3) / 2;     // 2
-        pt[4] = pt[13] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2;                                                        // 3
-        pt[5] = pt[7] = pt[10] = pt[14] = pt[19] = pt[22] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2 + SAIL_ROW_MAX / 2;  // 4
-        pt[11] = pt[20] = (SAIL_ROW_MAX - 1) * (SAIL_ROW_MAX + 2) / 2;                                                 // 5
-
-        // for square sail
-        pt[27] = pt[42] = pt[51] = 0;                                                                              // 0
-        pt[28] = pt[31] = pt[40] = pt[43] = pt[52] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX;                   // 3
-        pt[29] = pt[30] = pt[33] = pt[39] = pt[44] = pt[48] = pt[53] = SAIL_ROW_MAX / 2;                           // 1
-        pt[32] = pt[34] = pt[37] = pt[41] = pt[46] = pt[49] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX / 2 - 1;  // 4
-        pt[35] = pt[36] = pt[45] = pt[50] = SAIL_ROW_MAX - 1;                                                      // 2
-        pt[38] = pt[47] = SAIL_ROW_MAX * SAIL_COL_MAX - 1;                                                         // 5
-
-        RenderService->UnLockIndexBuffer(sg.indxBuf);
-    }
+    // uint16_t* pt;
+    // pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf));
+    // if (pt) {
+    //     for (int i = 0; i < sailQuantity; i++) {
+    //         slist[i]->FillIndex(pt);
+    //     }
+    //
+    //     // for triangle sail
+    //     pt[0] = pt[15] = pt[24] = 0;                                                                                   // 0
+    //     pt[1] = pt[3] = pt[6] = pt[12] = pt[16] = pt[21] = pt[25] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 1) / 2;     // 1
+    //     pt[2] = pt[8] = pt[9] = pt[17] = pt[18] = pt[23] = pt[26] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 3) / 2;     // 2
+    //     pt[4] = pt[13] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2;                                                        // 3
+    //     pt[5] = pt[7] = pt[10] = pt[14] = pt[19] = pt[22] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2 + SAIL_ROW_MAX / 2;  // 4
+    //     pt[11] = pt[20] = (SAIL_ROW_MAX - 1) * (SAIL_ROW_MAX + 2) / 2;                                                 // 5
+    //
+    //     // for square sail
+    //     pt[27] = pt[42] = pt[51] = 0;                                                                              // 0
+    //     pt[28] = pt[31] = pt[40] = pt[43] = pt[52] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX;                   // 3
+    //     pt[29] = pt[30] = pt[33] = pt[39] = pt[44] = pt[48] = pt[53] = SAIL_ROW_MAX / 2;                           // 1
+    //     pt[32] = pt[34] = pt[37] = pt[41] = pt[46] = pt[49] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX / 2 - 1;  // 4
+    //     pt[35] = pt[36] = pt[45] = pt[50] = SAIL_ROW_MAX - 1;                                                      // 2
+    //     pt[38] = pt[47] = SAIL_ROW_MAX * SAIL_COL_MAX - 1;                                                         // 5
+    //
+    //     RenderService->UnLockIndexBuffer(sg.indxBuf);
+    // }
 }
 
 void Sail::LoadSailIni()
@@ -1201,14 +1192,14 @@ void Sail::LoadSailIni()
 
     // load material parameters
     ini->ReadString(section, "Diffuse", param, sizeof(param) - 1, "0.0,0.0,0.0,0.0");
-    sscanf(param, "%f,%f,%f,%f", &mat.Diffuse.r, &mat.Diffuse.g, &mat.Diffuse.b, &mat.Diffuse.a);
+    // sscanf(param, "%f,%f,%f,%f", &mat.Diffuse.r, &mat.Diffuse.g, &mat.Diffuse.b, &mat.Diffuse.a);
     ini->ReadString(section, "Ambient", param, sizeof(param) - 1, "0.0,0.0,0.0,0.0");
-    sscanf(param, "%f,%f,%f,%f", &mat.Ambient.r, &mat.Ambient.g, &mat.Ambient.b, &mat.Ambient.a);
+    // sscanf(param, "%f,%f,%f,%f", &mat.Ambient.r, &mat.Ambient.g, &mat.Ambient.b, &mat.Ambient.a);
     ini->ReadString(section, "Specular", param, sizeof(param) - 1, "0.0,0.0,0.0,0.0");
-    sscanf(param, "%f,%f,%f,%f", &mat.Specular.r, &mat.Specular.g, &mat.Specular.b, &mat.Specular.a);
+    // sscanf(param, "%f,%f,%f,%f", &mat.Specular.r, &mat.Specular.g, &mat.Specular.b, &mat.Specular.a);
     ini->ReadString(section, "Emissive", param, sizeof(param) - 1, "0.7,0.7,0.7,0.7");
-    sscanf(param, "%f,%f,%f,%f", &mat.Emissive.r, &mat.Emissive.g, &mat.Emissive.b, &mat.Emissive.a);
-    mat.Power = ini->GetFloat(section, "Power", 0.f);
+    // sscanf(param, "%f,%f,%f,%f", &mat.Emissive.r, &mat.Emissive.g, &mat.Emissive.b, &mat.Emissive.a);
+    // mat.Power = ini->GetFloat(section, "Power", 0.f);
 
     // load ROLLING SAIL form table
     // load square sail form
@@ -1631,22 +1622,22 @@ void Sail::DeleteSailGroup()
     sg.nVert = vIndx;
 
     // remove old buffers
-    VERTEX_BUFFER_RELEASE(RenderService, sg.vertBuf);
-    if (sg.nVert > 0) {
-        // create new buffers
-        sg.vertBuf =
-            RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
-
-        SAILVERTEX* pv;
-        pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
-        if (pv) {
-            for (i = 0; i < sailQuantity; i++) {
-                slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
-                slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
-            }
-            RenderService->UnLockVertexBuffer(sg.vertBuf);
-        }
-    }
+    // VERTEX_BUFFER_RELEASE(RenderService, sg.vertBuf);
+    // if (sg.nVert > 0) {
+    //     // create new buffers
+    //     sg.vertBuf =
+    //         RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
+    //
+    //     SAILVERTEX* pv;
+    //     pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
+    //     if (pv) {
+    //         for (i = 0; i < sailQuantity; i++) {
+    //             slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
+    //             slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
+    //         }
+    //         RenderService->UnLockVertexBuffer(sg.vertBuf);
+    //     }
+    // }
 
     bDeleteState = false;
     wFirstIndx   = sailQuantity;
@@ -1664,21 +1655,22 @@ void Sail::SetAddSails(int firstSail)
     }
 
     // remove old buffers
-    VERTEX_BUFFER_RELEASE(RenderService, sg.vertBuf);
+    // VERTEX_BUFFER_RELEASE(RenderService, sg.vertBuf);
     // create new buffers
-    sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY);
+    // sg.vertBuf = RenderService->CreateVertexBuffer(SAILVERTEX_FORMAT, sg.nVert * sizeof(SAILVERTEX), D3DUSAGE_DYNAMIC |
+    // D3DUSAGE_WRITEONLY);
 
     // fill the vertex buffer and set the texture coordinates
-    SAILVERTEX* pv;
-    pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
-    if (pv) {
-        for (int i = 0; i < sailQuantity; i++) {
-            slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
-            slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
-        }
-        RenderService->UnLockVertexBuffer(sg.vertBuf);
-    } else
-        throw std::runtime_error("Vertex buffer error");
+    // SAILVERTEX* pv;
+    // pv = static_cast<SAILVERTEX*>(RenderService->LockVertexBuffer(sg.vertBuf));
+    // if (pv) {
+    //     for (int i = 0; i < sailQuantity; i++) {
+    //         slist[i]->FillVertex(&pv[slist[i]->ss.sVert]);
+    //         slist[i]->SetTexGrid(&pv[slist[i]->ss.sVert]);
+    //     }
+    //     RenderService->UnLockVertexBuffer(sg.vertBuf);
+    // } else
+    //     throw std::runtime_error("Vertex buffer error");
 }
 
 void Sail::DoNoRopeSailToNewHost(entid_t newModel, entid_t newHost, entid_t oldHost)
@@ -1751,7 +1743,7 @@ void Sail::DoNoRopeSailToNewHost(entid_t newModel, entid_t newHost, entid_t oldH
     }
 }
 
-void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...)
+void sailPrint(const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...)
 {
     static char buf[256];
     // print to the buffer
@@ -1761,22 +1753,22 @@ void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, ch
     va_end(args);
     buf[sizeof(buf) - 1] = 0;
     // Looking for a point position on the screen
-    static CMatrix      mtx, view, prj;
-    static D3DVIEWPORT9 vp;
-    MTX_PRJ_VECTOR      vrt;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
+    static CMatrix mtx, view, prj;
+    // static D3DVIEWPORT9 vp;
+    MTX_PRJ_VECTOR vrt;
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, prj);
     mtx.EqMultiply(view, prj);
     view.Transposition();
     float dist = ~(pos3D - view.Pos());
     if (dist >= rad * rad) return;
     float const d = view.Vz() | view.Pos();
     if ((pos3D | view.Vz()) < d) return;
-    rs->GetViewport(&vp);
-    mtx.Projection((CVECTOR*)&pos3D, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
+    // rs->GetViewport(&vp);
+    // mtx.Projection((CVECTOR*)&pos3D, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
     // Looking for a position
-    int32_t const fh = rs->CharHeight(FONT_DEFAULT) / 2;
-    vrt.y -= (line + 0.5f) * fh;
+    // int32_t const fh = rs->CharHeight(FONT_DEFAULT) / 2;
+    // vrt.y -= (line + 0.5f) * fh;
     // Transparency
     int32_t     color = 0xffffffff;
     float const kDist = 0.75f;
@@ -1784,8 +1776,9 @@ void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, ch
         dist  = 1.0f - (sqrtf(dist) - kDist * rad) / (rad - kDist * rad);
         color = (static_cast<uint32_t>(dist * 255.0f) << 24) | 0xffffff;
     }
-    rs->ExtPrint(
-        FONT_DEFAULT, color, 0x00000000, PR_ALIGN_CENTER, false, 1.0f, 0, 0, static_cast<int32_t>(vrt.x), static_cast<int32_t>(vrt.y), buf);
+    // rs->ExtPrint(
+    //     FONT_DEFAULT, color, 0x00000000, PR_ALIGN_CENTER, false, 1.0f, 0, 0, static_cast<int32_t>(vrt.x), static_cast<int32_t>(vrt.y),
+    //     buf);
 }
 
 SAILONE* Sail::FindSailFromData(int gn, char const* nodeName, char const* grName) const
@@ -1813,8 +1806,8 @@ void Sail::SetSailTextures(int32_t grNum, VDATA* pvd) const
     // main texture
     char const* pcNormalName = pA->GetAttribute("normalTex");
     // coat of arms of a texture
-    auto*       pGeraldTexture = (IDirect3DTexture9*)pA->GetAttributeAsPointer("geraldTexPointer", 0);
-    char const* pcGeraldName   = pA->GetAttribute("geraldTex");
+    // auto*       pGeraldTexture = (IDirect3DTexture9*)pA->GetAttributeAsPointer("geraldTexPointer", 0);
+    char const* pcGeraldName = pA->GetAttribute("geraldTex");
     //
     gdata[grNum].dwSailsColor = pA->GetAttributeAsDword("sailscolor", 0xFFFFFFFF);
 
@@ -1825,13 +1818,13 @@ void Sail::SetSailTextures(int32_t grNum, VDATA* pvd) const
         sprintf_s(param, "%s", so->hostNode->GetName());
         ATTRIBUTES* pAGerald = pA->GetAttributeClass(param);
         if (pAGerald) {
-            if (pAGerald->GetAttribute("Gerald")) so->m_nGeraldTex = RenderService->TextureCreate(pAGerald->GetAttribute("Gerald"));
-            if (so->m_nGeraldTex == -1 && pcGeraldName) so->m_nGeraldTex = RenderService->TextureCreate(pcGeraldName);
-            if (so->m_nGeraldTex == -1 && pGeraldTexture) {
-                pGeraldTexture->AddRef();
-                so->m_pGeraldTex = pGeraldTexture;
-            }
-            if (so->m_nGeraldTex != -1 || so->m_pGeraldTex != nullptr) {
+            // if (pAGerald->GetAttribute("Gerald")) so->m_nGeraldTex = RenderService->TextureCreate(pAGerald->GetAttribute("Gerald"));
+            // if (so->m_nGeraldTex == -1 && pcGeraldName) so->m_nGeraldTex = RenderService->TextureCreate(pcGeraldName);
+            // if (so->m_nGeraldTex == -1 && pGeraldTexture) {
+            //     pGeraldTexture->AddRef();
+            //     so->m_pGeraldTex = pGeraldTexture;
+            // }
+            if (so->m_nGeraldTex != -1 /* || so->m_pGeraldTex != nullptr*/) {
                 so->m_bIsGerald        = true;
                 so->m_fHorzGeraldScale = pAGerald->GetAttributeAsFloat("hscale", 0.5f);
                 so->m_fVertGeraldScale = pAGerald->GetAttributeAsFloat("vscale", so->m_fHorzGeraldScale);
@@ -1845,7 +1838,7 @@ void Sail::SetSailTextures(int32_t grNum, VDATA* pvd) const
                     so->m_fVertGeraldScale = 0.5f;
             }
         }
-        if (so->surfaceTex == -1) so->surfaceTex = RenderService->TextureCreate(pcNormalName);
+        // if (so->surfaceTex == -1) so->surfaceTex = RenderService->TextureCreate(pcNormalName);
     }
 }
 
@@ -1887,40 +1880,40 @@ SAILONE_BASE* Sail::FindSailForCharacter(int chrIdx, char const* nodeName, int g
 
 void Sail::LostRender()
 {
-    if (sg.indxBuf != -1) RenderService->ReleaseIndexBuffer(sg.indxBuf);
+    // if (sg.indxBuf != -1) RenderService->ReleaseIndexBuffer(sg.indxBuf);
     sg.indxBuf = -1;
 }
 
 void Sail::RestoreRender()
 {
     if (sg.nVert == 0) return;
-    sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC);
+    // sg.indxBuf = RenderService->CreateIndexBuffer(sg.nIndx * 2, D3DUSAGE_DYNAMIC);
 
     // Set triangle buffer for sea mirror
-    auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf));
-    if (pt) {
-        for (int i = 0; i < sailQuantity; i++) {
-            slist[i]->FillIndex(pt);
-        }
-
-        // for triangle sail
-        pt[0] = pt[15] = pt[24] = 0;                                                                                   // 0
-        pt[1] = pt[3] = pt[6] = pt[12] = pt[16] = pt[21] = pt[25] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 1) / 2;     // 1
-        pt[2] = pt[8] = pt[9] = pt[17] = pt[18] = pt[23] = pt[26] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 3) / 2;     // 2
-        pt[4] = pt[13] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2;                                                        // 3
-        pt[5] = pt[7] = pt[10] = pt[14] = pt[19] = pt[22] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2 + SAIL_ROW_MAX / 2;  // 4
-        pt[11] = pt[20] = (SAIL_ROW_MAX - 1) * (SAIL_ROW_MAX + 2) / 2;                                                 // 5
-
-        // for square sail
-        pt[27] = pt[42] = pt[51] = 0;                                                                              // 0
-        pt[28] = pt[31] = pt[40] = pt[43] = pt[52] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX;                   // 3
-        pt[29] = pt[30] = pt[33] = pt[39] = pt[44] = pt[48] = pt[53] = SAIL_ROW_MAX / 2;                           // 1
-        pt[32] = pt[34] = pt[37] = pt[41] = pt[46] = pt[49] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX / 2 - 1;  // 4
-        pt[35] = pt[36] = pt[45] = pt[50] = SAIL_ROW_MAX - 1;                                                      // 2
-        pt[38] = pt[47] = SAIL_ROW_MAX * SAIL_COL_MAX - 1;                                                         // 5
-
-        RenderService->UnLockIndexBuffer(sg.indxBuf);
-    }
+    // auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(sg.indxBuf));
+    // if (pt) {
+    //     for (int i = 0; i < sailQuantity; i++) {
+    //         slist[i]->FillIndex(pt);
+    //     }
+    //
+    //     // for triangle sail
+    //     pt[0] = pt[15] = pt[24] = 0;                                                                                   // 0
+    //     pt[1] = pt[3] = pt[6] = pt[12] = pt[16] = pt[21] = pt[25] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 1) / 2;     // 1
+    //     pt[2] = pt[8] = pt[9] = pt[17] = pt[18] = pt[23] = pt[26] = SAIL_ROW_MAX / 2 * (SAIL_ROW_MAX / 2 + 3) / 2;     // 2
+    //     pt[4] = pt[13] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2;                                                        // 3
+    //     pt[5] = pt[7] = pt[10] = pt[14] = pt[19] = pt[22] = (SAIL_ROW_MAX - 1) * SAIL_ROW_MAX / 2 + SAIL_ROW_MAX / 2;  // 4
+    //     pt[11] = pt[20] = (SAIL_ROW_MAX - 1) * (SAIL_ROW_MAX + 2) / 2;                                                 // 5
+    //
+    //     // for square sail
+    //     pt[27] = pt[42] = pt[51] = 0;                                                                              // 0
+    //     pt[28] = pt[31] = pt[40] = pt[43] = pt[52] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX;                   // 3
+    //     pt[29] = pt[30] = pt[33] = pt[39] = pt[44] = pt[48] = pt[53] = SAIL_ROW_MAX / 2;                           // 1
+    //     pt[32] = pt[34] = pt[37] = pt[41] = pt[46] = pt[49] = SAIL_ROW_MAX * SAIL_COL_MAX - SAIL_ROW_MAX / 2 - 1;  // 4
+    //     pt[35] = pt[36] = pt[45] = pt[50] = SAIL_ROW_MAX - 1;                                                      // 2
+    //     pt[38] = pt[47] = SAIL_ROW_MAX * SAIL_COL_MAX - 1;                                                         // 5
+    //
+    //     RenderService->UnLockIndexBuffer(sg.indxBuf);
+    // }
 }
 
 int Sail::GetSailStateForCharacter(int chrIdx) const

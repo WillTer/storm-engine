@@ -4,7 +4,6 @@
 #include <thread>
 
 #include <libs/core/core.h>
-#include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
 
 #include "../data_cache/data_cache.h"
@@ -25,8 +24,6 @@ ParticleManager::ParticleManager(ParticleService* service) : IParticleManager(se
     BB_Processor           = new BillBoardProcessor;
     GlobalDelete           = false;
     TimeFromLastStatUpdate = 100.0f;
-    pRS                    = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS != NULL);
 
     pDataCache = new DataCache(this);
     pGeomCache = new GeomCache;
@@ -38,11 +35,11 @@ ParticleManager::ParticleManager(ParticleService* service) : IParticleManager(se
 ParticleManager::~ParticleManager()
 {
     DeleteAllSystems();
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (pProjectTexture >= 0 && pRS != nullptr) { pRS->TextureRelease(pProjectTexture); }
+    // pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (pProjectTexture >= 0 && pRS != nullptr) { pRS->TextureRelease(pProjectTexture); }
     pProjectTexture = -1;
 
-    if (pProjectTextureNormalMap && pRS != nullptr) { pRS->TextureRelease(pProjectTextureNormalMap); }
+    // if (pProjectTextureNormalMap && pRS != nullptr) { pRS->TextureRelease(pProjectTextureNormalMap); }
     pProjectTextureNormalMap = -1;
 
     delete pDataCache;
@@ -58,28 +55,28 @@ bool ParticleManager::Release()
     return true;
 }
 
-VDX9RENDER* ParticleManager::Render()
+/*VDX9RENDER*/ void* ParticleManager::Render()
 {
-    return pRS;
+    return nullptr;
 }
 
 // Set project texture
 void ParticleManager::SetProjectTexture(char const* FileName)
 {
     if (pProjectTexture) {
-        pRS->TextureRelease(pProjectTexture);
+        // pRS->TextureRelease(pProjectTexture);
         pProjectTexture = -1;
     }
 
     if (pProjectTextureNormalMap) {
-        pRS->TextureRelease(pProjectTextureNormalMap);
+        // pRS->TextureRelease(pProjectTextureNormalMap);
         pProjectTextureNormalMap = -1;
     }
 
-    pProjectTexture = pRS->TextureCreate(FileName);
+    // pProjectTexture = pRS->TextureCreate(FileName);
 
     std::filesystem::path const path = FileName;
-    pProjectTextureNormalMap         = pRS->TextureCreate((path.stem().string() + "nm").c_str());
+    // pProjectTextureNormalMap         = pRS->TextureCreate((path.stem().string() + "nm").c_str());
 
     TextureName = FileName;
 }
@@ -157,9 +154,9 @@ void ParticleManager::CloseProject()
     BB_Processor->Clear();
     MDL_Processor->Clear();
     DeleteAllSystems();
-    if (pProjectTexture) { pRS->TextureRelease(pProjectTexture); }
+    // if (pProjectTexture) { pRS->TextureRelease(pProjectTexture); }
 
-    if (pProjectTextureNormalMap) { pRS->TextureRelease(pProjectTextureNormalMap); }
+    // if (pProjectTextureNormalMap) { pRS->TextureRelease(pProjectTextureNormalMap); }
     pProjectTextureNormalMap = -1;
 
     pProjectTexture = -1;
@@ -190,8 +187,6 @@ void ParticleManager::Execute(float DeltaTime)
     ActiveBillboardParticles = 0;
     ActiveModelParticles     = 0;
 
-    // pRS->Clear(0, NULL, D3DCLEAR_STENCIL | D3DCLEAR_TARGET |D3DCLEAR_ZBUFFER, 0xFF404080, 1.0f, 0);
-
     uint64_t TicksTime, ProcessTime;
     RDTSC_B(TicksTime);
     ProcessTime = TicksTime;
@@ -206,11 +201,9 @@ void ParticleManager::Execute(float DeltaTime)
 
     ActiveBillboardParticles = BB_Processor->GetCount();
     ActiveModelParticles     = MDL_Processor->GetCount();
-    pRS->TextureSet(0, pProjectTexture);
-    pRS->TextureSet(1, pProjectTexture);
-    pRS->TextureSet(3, pProjectTextureNormalMap);
-    //    pRS->SetTexture(0, pProjectTexture);
-    //    pRS->SetTexture(1, pProjectTexture);
+    // pRS->TextureSet(0, pProjectTexture);
+    // pRS->TextureSet(1, pProjectTexture);
+    // pRS->TextureSet(3, pProjectTextureNormalMap);
     BB_Processor->Draw();
     MDL_Processor->Draw();
 
@@ -224,39 +217,20 @@ void ParticleManager::Execute(float DeltaTime)
     }
 
     if (ShowStat) {
-        /*
-        IFont* pSysFont = pRS->GetSystemFont ();
-        float Width = pSysFont->GetLength("Graph read count - %d", GraphRead);
-        pSysFont->Release();
-        */
+        // D3DVIEWPORT9 ViewPort;
+        // pRS->GetViewport(&ViewPort);
+        // RS_SPRITE   spr[4];
+        // auto const  x1 = -1.0f;
+        // float const x2 = ((220.0f / static_cast<float>(ViewPort.Width)) * 2) - 1.0f;
+        // float const y1 = 1.0f - ((16.0f / static_cast<float>(ViewPort.Height)) * 2.0f);
+        // float const y2 = 1.0f - ((150.0f / static_cast<float>(ViewPort.Height)) * 2.0f);
+        // spr[0].vPos    = CVECTOR(x1, y1, 0.2f);
+        // spr[1].vPos    = CVECTOR(x2, y1, 0.2f);
+        // spr[2].vPos    = CVECTOR(x2, y2, 0.2f);
+        // spr[3].vPos    = CVECTOR(x1, y2, 0.2f);
+        // pRS->DrawSprites(spr, 1, "dbgInfoSprite");
 
-        D3DVIEWPORT9 ViewPort;
-        pRS->GetViewport(&ViewPort);
-        RS_SPRITE   spr[4];
-        auto const  x1 = -1.0f;
-        float const x2 = ((220.0f / static_cast<float>(ViewPort.Width)) * 2) - 1.0f;
-        float const y1 = 1.0f - ((16.0f / static_cast<float>(ViewPort.Height)) * 2.0f);
-        float const y2 = 1.0f - ((150.0f / static_cast<float>(ViewPort.Height)) * 2.0f);
-        spr[0].vPos    = CVECTOR(x1, y1, 0.2f);
-        spr[1].vPos    = CVECTOR(x2, y1, 0.2f);
-        spr[2].vPos    = CVECTOR(x2, y2, 0.2f);
-        spr[3].vPos    = CVECTOR(x1, y2, 0.2f);
-        pRS->DrawSprites(spr, 1, "dbgInfoSprite");
-
-        /*
-            pRS->Print(0, 16, 0xFFFFFFFF, "Systems - %d", ActiveSystems);
-            pRS->Print(0, 32, 0xFFFFFFFF, "Emitters - %d", ActiveEmitters);
-            pRS->Print(0, 48, 0xFFFFFFFF, "Billboards - %d", ActiveBillboardParticles);
-            pRS->Print(0, 64, 0xFFFFFFFF, "Models - %d", ActiveModelParticles);
-            pRS->Print(0, 80, 0xFFFFFFFF, "Total time - %d", nowTickTime);
-            pRS->Print(0, 96, 0xFFFFFFFF, "Update time - %d", nowUpdateTime);
-            pRS->Print(0, 112, 0xFFFFFFFF, "Graph read count - %d", GraphRead);
-        */
-
-        if (GraphRead != 0) {
-            float AverageReadTime = static_cast<float>(nowUpdateTime) / static_cast<float>(GraphRead);
-            //            pRS->Print(0, 128, 0xFFFFFFFF, "Average read time - %3.2f", AverageReadTime);
-        }
+        if (GraphRead != 0) { float AverageReadTime = static_cast<float>(nowUpdateTime) / static_cast<float>(GraphRead); }
     }
 
     if (core->Controls->GetDebugAsyncKeyState(VK_F3) < 0 && core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0) {

@@ -18,8 +18,6 @@ extern int32_t g_iBallOwnerIdx;
 //////////////////////////////////////////////////////////////////////
 SAILONE::SAILONE() : rollType(0), m_vMastTrace {}, m_fMaxAngle(0), m_fMinAngle(0)
 {
-    RenderService = nullptr;
-
     WindUp      = false;
     wind_incr   = 1;  // increment in the array after each sail calculation
     wind_add    = 1;  // winds by 1
@@ -51,7 +49,6 @@ SAILONE::SAILONE() : rollType(0), m_vMastTrace {}, m_fMaxAngle(0), m_fMinAngle(0
 
     m_bIsGerald  = false;
     m_nGeraldTex = -1;
-    m_pGeraldTex = nullptr;
 
     m_fHorzGeraldScale = 1.f;
     m_fVertGeraldScale = 1.f;
@@ -68,9 +65,6 @@ SAILONE::~SAILONE()
     STORM_DELETE(sroll);
     STORM_DELETE(sailtrope.rrs[0]);
     STORM_DELETE(sailtrope.rrs[1]);
-    TEXTURE_RELEASE(pp->RenderService, surfaceTex);
-    TEXTURE_RELEASE(pp->RenderService, m_nGeraldTex);
-    RELEASE(m_pGeraldTex);
 }
 
 void SAILONE::goWave(SAILVERTEX* pv, uint32_t Delta_Time)

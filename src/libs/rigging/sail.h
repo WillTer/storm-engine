@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
+#include <libs/core/entity_state.h>
 #include <libs/geometry/geos.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
 #include "sail_base.h"
 #include "sailone.h"
@@ -76,8 +76,6 @@ class Sail: public SAIL_BASE
 
     friend SAILONE;
     bool                            bUse;
-    VDX9RENDER*                     RenderService;
-    D3DMATERIAL9                    mat;
     std::filesystem::file_time_type ft_old;
     int32_t                         texl;
     int32_t                         m_nEmptyGerbTex;

@@ -7,14 +7,8 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 class ParticleService;
 class IParticleSystem;
-
-#ifndef NULL
-#define NULL 0L
-#endif
 
 #define CreateParticleSystem(name) CreateParticleSystemEx(name, __FILE__, __LINE__)
 
@@ -29,8 +23,8 @@ public:
     IParticleManager(ParticleService* service) {};
     virtual bool Release() = 0;
 
-    // Get a pointer to Render / FileService
-    virtual VDX9RENDER* Render() = 0;
+    // Get a pointer to Render / FileService    --- WHAT?
+    virtual /*VDX9RENDER*/ void* Render() = 0;
 
     // Open project
     virtual bool OpenProject(char const* FileName) = 0;

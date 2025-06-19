@@ -9,7 +9,6 @@
 #include "modelr.h"
 
 VGEOMETRY*                    NODER::gs    = nullptr;
-VDX9RENDER*                   NODER::rs    = nullptr;
 int32_t                       NODER::depth = -1;
 int32_t                       NODER::node;
 extern int32_t                clip_nps;
@@ -306,7 +305,7 @@ void NODER::Draw()
     if (max_view_dist > 0.f) {
         CVECTOR cpos, cang;
         float   cpersp;
-        rs->GetCamera(cpos, cang, cpersp);
+        // rs->GetCamera(cpos, cang, cpersp);
         float const fdist    = ~(cpos - cnt);
         float const fmindist = (max_view_dist + radius) * (max_view_dist + radius);
         float const fmaxdist = (max_view_dist * 1.3f + radius) * (max_view_dist * 1.3f + radius);
@@ -341,14 +340,14 @@ void NODER::Draw()
             if (dist > geo_radius) break;
         }
         if (p == 4) {
-            rs->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&glob_mtx);
-            gs->SetTechnique(&technique[0]);
-            if (max_view_dist > 0.f && distance_blend > 0.f) {
-                gs->SetTechnique("geomdistanceblend");
-                uint32_t dwTFColor;
-                dwTFColor = (static_cast<uint32_t>(255.f - 255.f * distance_blend) << 24) | 0xFFFFFF;
-                rs->SetRenderState(D3DRS_TEXTUREFACTOR, dwTFColor);
-            }
+            // rs->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&glob_mtx);
+            // gs->SetTechnique(&technique[0]);
+            // if (max_view_dist > 0.f && distance_blend > 0.f) {
+            //     gs->SetTechnique("geomdistanceblend");
+            //     uint32_t dwTFColor;
+            //     dwTFColor = (static_cast<uint32_t>(255.f - 255.f * distance_blend) << 24) | 0xFFFFFF;
+            //     rs->SetRenderState(D3DRS_TEXTUREFACTOR, dwTFColor);
+            // }
             // transform viewplanes
             for (p = 0; p < 4; p++) {
                 float const x = ViewPlane[p].d * ViewPlane[p].nrm.x - glob_mtx.m[3][0];

@@ -2,5 +2,5 @@ storm_lib(
     NAME particles
     LINK_DEPENDENCIES
         core
-        renderer
+        renderer_next
 )

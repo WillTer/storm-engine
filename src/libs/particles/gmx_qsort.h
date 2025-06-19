@@ -11,14 +11,14 @@ template <class TYPE>
 class GMXQSort
 {
 public:
-    void QSort(int (*compare_f)(TYPE, TYPE), TYPE* ArrayToSort, int uCount)
+    void QSort(bool (*compare_f)(TYPE, TYPE), TYPE* ArrayToSort, int uCount)
     {
         if (uCount <= 0) return;
         QSortRecursive(compare_f, ArrayToSort, 0, (uCount - 1));
     }
 
 protected:
-    void QSortRecursive(int (*compare_func)(TYPE, TYPE), TYPE* pArr, int d, int h)
+    void QSortRecursive(bool (*compare_func)(TYPE, TYPE), TYPE* pArr, int d, int h)
     {
         int  i, j;
         TYPE str;

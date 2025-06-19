@@ -8,7 +8,6 @@
 #pragma once
 
 #include <libs/math/math3d/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "../../gmx_qsort.h"
 #include "../../i_common/particle.h"
@@ -18,8 +17,7 @@ class ParticleSystem;
 
 class BillBoardProcessor
 {
-    static IDirect3DVertexDeclaration9* vertexDecl_;
-    void                                CreateVertexDeclaration() const;
+    void CreateVertexDeclaration() const;
 
     struct RECT_VERTEX {
         Vector   vRelativePos;
@@ -32,7 +30,6 @@ class BillBoardProcessor
         float    AddPowerK;
     };
 
-    VDX9RENDER* pRS;
     // Buffers for rendering billboards
     int32_t pVBuffer;
     int32_t pIBuffer;
@@ -57,7 +54,7 @@ class BillBoardProcessor
     uint32_t CalcDistanceToCamera();
 
     // Compare function when sorting
-    static BOOL CompareFunction(BB_ParticleData* e1, BB_ParticleData* e2);
+    static bool CompareFunction(BB_ParticleData* e1, BB_ParticleData* e2);
 
     BB_ParticleData* AllocParticle() const;
     void             FreeParticle(BB_ParticleData* pItem) const;

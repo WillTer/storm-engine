@@ -1,14 +1,14 @@
 #pragma once
 
+#include <libs/core/entity_state.h>
 #include <libs/geometry/geos.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "sail_base.h"
 
 class NODE;
 
-#define ROPEVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define ROPEVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct ROPEVERTEX {
     CVECTOR pos;
@@ -37,8 +37,6 @@ class Rope: public ROPE_BASE
     float VAR_ROTATE_ANGL;    // rope swing angle
     // -------------------------------------
 
-    D3DMATERIAL9 mat {};
-
     bool bUse;
     bool bFirstRun;
     bool bYesDeleted;
@@ -46,8 +44,6 @@ class Rope: public ROPE_BASE
 
     char*   TextureName;
     int32_t texl;
-
-    VDX9RENDER* RenderService;
 
 public:
     Rope();

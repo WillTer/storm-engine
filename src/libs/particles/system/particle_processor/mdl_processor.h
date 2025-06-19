@@ -8,7 +8,6 @@
 #pragma once
 
 #include <libs/math/math3d/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "../../i_common/particle.h"
 #include "../data_source/field_list.h"
@@ -20,7 +19,6 @@ class ParticleManager;
 
 class ModelProcessor
 {
-    VDX9RENDER*      pRS;
     ParticleManager* pMasterManager;
     GeomNameParser   Parser;
 

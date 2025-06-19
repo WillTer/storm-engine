@@ -39,10 +39,9 @@ float MIN_SIGNIFICANT = 0.1f;
 
 Mast::Mast()
 {
-    RenderService = nullptr;
-    wMoveCounter  = 0;
-    bUse          = false;
-    m_pMastNode   = nullptr;
+    wMoveCounter = 0;
+    bUse         = false;
+    m_pMastNode  = nullptr;
 
     m_mount_param.pNode = nullptr;
 }
@@ -60,11 +59,6 @@ bool Mast::Init()
 
 void Mast::SetDevice()
 {
-    // GUARD(MAST::SetDevice())
-
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) throw std::runtime_error("No service: dx9render");
-
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 
@@ -75,16 +69,12 @@ void Mast::SetDevice()
 
 bool Mast::CreateState(ENTITY_STATE_GEN* state_gen)
 {
-    // GUARD(bool MAST::CreateState(ENTITY_STATE_GEN * state_gen))
-
     return true;
     // UNGUARD
 }
 
 bool Mast::LoadState(ENTITY_STATE* state)
 {
-    // GUARD(bool MAST::LoadState(ENTITY_STATE * state))
-
     SetDevice();
 
     // UNGUARD
@@ -93,8 +83,6 @@ bool Mast::LoadState(ENTITY_STATE* state)
 
 void Mast::Execute(uint32_t Delta_Time)
 {
-    // GUARD(void MAST::Execute(uint32_t Delta_Time))
-
     if (bUse) {
         // ====================================================
         // If the ini-file has been changed, read the info from it
@@ -111,7 +99,7 @@ void Mast::Execute(uint32_t Delta_Time)
     // UNGUARD
 }
 
-#define D3DLXLINEVERTEX_FORMAT (D3DFVF_DIFFUSE | D3DFVF_XYZ | D3DFVF_TEX0)
+// #define D3DLXLINEVERTEX_FORMAT (D3DFVF_DIFFUSE | D3DFVF_XYZ | D3DFVF_TEX0)
 
 void Mast::Realize(uint32_t Delta_Time)
 {
@@ -124,30 +112,9 @@ void Mast::Realize(uint32_t Delta_Time)
 
     MODEL* mdl;
     if ((mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id))) != nullptr) {
-        RenderService->SetRenderState(D3DRS_LIGHTING, true);
+        // RenderService->SetRenderState(D3DRS_LIGHTING, true);
         mdl->ProcessStage(Stage::realize, Delta_Time);
-        RenderService->SetRenderState(D3DRS_LIGHTING, false);
-
-        /*        CVECTOR bp=mdl->mtx*mm.bp;
-                CVECTOR ep=mdl->mtx*mm.ep;
-                CVECTOR brey=mdl->mtx*mm.brey;
-                CVECTOR erey=mdl->mtx*mm.erey;
-
-                CMatrix mtx;
-                mtx.SetIdentity();
-                RenderService->SetTransform(D3DTS_WORLD, mtx);
-
-                struct LINEVERTEX
-                {
-                    CVECTOR pos;
-                    float   col;
-                };
-                LINEVERTEX pVerts[4];
-                pVerts[0].pos=bp; pVerts[0].col=0xffffff;
-                pVerts[1].pos=ep; pVerts[1].col=0xffffff;
-                pVerts[2].pos=brey; pVerts[2].col=0xffffff;
-                pVerts[3].pos=erey; pVerts[3].col=0xffffff;
-                RenderService->DrawPrimitiveUP(D3DPT_LINELIST, D3DLXLINEVERTEX_FORMAT, 2, pVerts, sizeof(LINEVERTEX));*/
+        // RenderService->SetRenderState(D3DRS_LIGHTING, false);
     }
 
     // UNGUARD
@@ -633,10 +600,9 @@ void Mast::AllRelease()
 
 Hull::Hull() : pCollide(nullptr), bModel(false), model_id(0), oldmodel_id(0), ship_id(0)
 {
-    RenderService = nullptr;
-    wMoveCounter  = 0;
-    bUse          = false;
-    m_pHullNode   = nullptr;
+    wMoveCounter = 0;
+    bUse         = false;
+    m_pHullNode  = nullptr;
 
     m_mount_param.pNode = nullptr;
 }
@@ -654,9 +620,6 @@ bool Hull::Init()
 
 void Hull::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) throw std::runtime_error("No service: dx9render");
-
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     if (!pCollide) throw std::runtime_error("No service: collide");
 }
@@ -690,9 +653,9 @@ void Hull::Realize(uint32_t Delta_Time)
 
     MODEL* mdl;
     if ((mdl = static_cast<MODEL*>(core->GetEntityPointer(model_id))) != nullptr) {
-        RenderService->SetRenderState(D3DRS_LIGHTING, true);
+        // RenderService->SetRenderState(D3DRS_LIGHTING, true);
         mdl->ProcessStage(Stage::realize, Delta_Time);
-        RenderService->SetRenderState(D3DRS_LIGHTING, false);
+        // RenderService->SetRenderState(D3DRS_LIGHTING, false);
     }
 }
 

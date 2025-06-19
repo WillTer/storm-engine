@@ -2,12 +2,12 @@
 
 #include <filesystem>
 
+#include <libs/core/entity_state.h>
 #include <libs/geometry/geos.h>
 #include <libs/math/matrix.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
-#define FLAGLXVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define FLAGLXVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct FLAGLXVERTEX {
     CVECTOR pos;
@@ -45,7 +45,6 @@ class Flag: public Entity
     bool        bUse;
     bool        bFirstRun;
     bool        verticesNeedUpdate_ = true;
-    VDX9RENDER* RenderService;
     std::string textureName_;
     int32_t     texl;
 

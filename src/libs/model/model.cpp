@@ -5,12 +5,6 @@
 
 #include "modelr.h"
 
-#ifdef _WIN32  // FIX_LINUX DirectXMath
-#include <DirectXMath.h>
-#endif
-
-IDirect3DVertexBuffer9* dest_vb;
-
 ModelR::ModelR()
 {
     bSetupFog    = false;
@@ -18,7 +12,6 @@ ModelR::ModelR()
     lmPath[0]    = 0;
     ani          = nullptr;
     memset(aniVerts, 0, sizeof(aniVerts));
-    d3dDestVB = nullptr;
     for (int32_t i = 0; i < ANI_MAX_ACTIONS; i++)
         aniPos[i] = -1.0f;
     root      = nullptr;
@@ -31,7 +24,6 @@ CMatrix* bones;
 
 ModelR::~ModelR()
 {
-    if (d3dDestVB != nullptr) d3dDestVB->Release();
     delete root;
     for (auto i = 0; i < MODEL_ANI_MAXBUFFERS; i++)
         delete aniVerts[i].v;
@@ -42,9 +34,6 @@ ModelR::~ModelR()
 
 bool ModelR::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-
     GeometyService = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!GeometyService) throw std::runtime_error("No service: geometry");
 
@@ -55,14 +44,14 @@ bool alreadyTransformed;
 
 void* VBTransform(void* vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
 {
-    if (alreadyTransformed) return dest_vb;
+    // if (alreadyTransformed) return dest_vb;
     alreadyTransformed = true;
-    if (!totVerts) return dest_vb;
+    // if (!totVerts) return dest_vb;
 
     auto* src = static_cast<GEOS::AVERTEX0*>(vb);
 
     GEOS::VERTEX0* dst;
-    dest_vb->Lock(0, 0, (void**)&dst, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
+    // dest_vb->Lock(0, 0, (void**)&dst, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
 
 #ifndef _WIN32  // FIX_LINUX DirectXMath
     CMatrix mtx;
@@ -77,63 +66,67 @@ void* VBTransform(void* vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
         // Inverse blending coefficient
         auto const wNeg = 1.0f - vrt.weight;
 
-#ifdef _WIN32  // FIX_LINUX DirectXMath
-#ifdef __AVX__
-        // apparently, _mm256_set1_ps seems to be better using msvc with lat=~7+1*2+4+1*5+5+7+1*2==24 vs
-        // ~7+1*2+4+1*5+1+3+1*2==32 for _mm256_broadcast_ss
-        // TODO: check clang listings
-        auto const ymm0 = _mm256_set1_ps(vrt.weight);
-        auto const ymm1 = _mm256_set1_ps(wNeg);
-
-        auto const ymm2 =
-            _mm256_add_ps(_mm256_mul_ps(_mm256_load_ps(&m1.matrix[0]), ymm0), _mm256_mul_ps(_mm256_load_ps(&m2.matrix[0]), ymm1));
-        auto const ymm3 =
-            _mm256_add_ps(_mm256_mul_ps(_mm256_load_ps(&m1.matrix[8]), ymm0), _mm256_mul_ps(_mm256_load_ps(&m2.matrix[8]), ymm1));
-
-        DirectX::XMMATRIX const xmmtx(
-            _mm256_castps256_ps128(ymm2), _mm256_extractf128_ps(ymm2, 1), _mm256_castps256_ps128(ymm3), _mm256_extractf128_ps(ymm3, 1));
-#else
-        // pure SSE2
-        auto const xmm0 = _mm_set1_ps(vrt.weight);
-        auto const xmm1 = _mm_set1_ps(wNeg);
-
-        auto const xmm2 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[0]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[0]), xmm1));
-        auto const xmm3 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[4]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[4]), xmm1));
-        auto const xmm4 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[8]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[8]), xmm1));
-        auto const xmm5 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[12]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[12]), xmm1));
-
-        DirectX::XMMATRIX const xmmtx(xmm2, xmm3, xmm4, xmm5);
-#endif
-
-        // Position
-        XMStoreFloat3(
-            reinterpret_cast<DirectX::XMFLOAT3*>(&dstVrt.pos),
-            XMVector3Transform(XMLoadFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&vrt.pos)), xmmtx));
-
-        // Normal
-        XMStoreFloat3(
-            reinterpret_cast<DirectX::XMFLOAT3*>(&dstVrt.nrm),
-            XMVector3Transform(XMLoadFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&vrt.nrm)), xmmtx));
-#else
-        mtx.matrix[0]  = -(m1.matrix[0] * vrt.weight + m2.matrix[0] * wNeg);
-        mtx.matrix[1]  = m1.matrix[1] * vrt.weight + m2.matrix[1] * wNeg;
-        mtx.matrix[2]  = m1.matrix[2] * vrt.weight + m2.matrix[2] * wNeg;
-        mtx.matrix[4]  = -(m1.matrix[4] * vrt.weight + m2.matrix[4] * wNeg);
-        mtx.matrix[5]  = m1.matrix[5] * vrt.weight + m2.matrix[5] * wNeg;
-        mtx.matrix[6]  = m1.matrix[6] * vrt.weight + m2.matrix[6] * wNeg;
-        mtx.matrix[8]  = -(m1.matrix[8] * vrt.weight + m2.matrix[8] * wNeg);
-        mtx.matrix[9]  = m1.matrix[9] * vrt.weight + m2.matrix[9] * wNeg;
-        mtx.matrix[10] = m1.matrix[10] * vrt.weight + m2.matrix[10] * wNeg;
-        mtx.matrix[12] = -(m1.matrix[12] * vrt.weight + m2.matrix[12] * wNeg);
-        mtx.matrix[13] = m1.matrix[13] * vrt.weight + m2.matrix[13] * wNeg;
-        mtx.matrix[14] = m1.matrix[14] * vrt.weight + m2.matrix[14] * wNeg;
-
-        // Position
-        ((CVECTOR&)dstVrt.pos) = mtx * (CVECTOR&)vrt.pos;
-
-        // Normal
-        ((CVECTOR&)dstVrt.nrm) = mtx * (CVECTOR&)vrt.nrm;
-#endif  // _WIN32 DirectXMath
+        // #ifdef _WIN32  // FIX_LINUX DirectXMath
+        // #ifdef __AVX__
+        //         // apparently, _mm256_set1_ps seems to be better using msvc with lat=~7+1*2+4+1*5+5+7+1*2==24 vs
+        //         // ~7+1*2+4+1*5+1+3+1*2==32 for _mm256_broadcast_ss
+        //         // TODO: check clang listings
+        //         auto const ymm0 = _mm256_set1_ps(vrt.weight);
+        //         auto const ymm1 = _mm256_set1_ps(wNeg);
+        //
+        //         auto const ymm2 =
+        //             _mm256_add_ps(_mm256_mul_ps(_mm256_load_ps(&m1.matrix[0]), ymm0), _mm256_mul_ps(_mm256_load_ps(&m2.matrix[0]),
+        //             ymm1));
+        //         auto const ymm3 =
+        //             _mm256_add_ps(_mm256_mul_ps(_mm256_load_ps(&m1.matrix[8]), ymm0), _mm256_mul_ps(_mm256_load_ps(&m2.matrix[8]),
+        //             ymm1));
+        //
+        //         DirectX::XMMATRIX const xmmtx(
+        //             _mm256_castps256_ps128(ymm2), _mm256_extractf128_ps(ymm2, 1), _mm256_castps256_ps128(ymm3),
+        //             _mm256_extractf128_ps(ymm3, 1));
+        // #else
+        //         // pure SSE2
+        //         auto const xmm0 = _mm_set1_ps(vrt.weight);
+        //         auto const xmm1 = _mm_set1_ps(wNeg);
+        //
+        //         auto const xmm2 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[0]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[0]), xmm1));
+        //         auto const xmm3 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[4]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[4]), xmm1));
+        //         auto const xmm4 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[8]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[8]), xmm1));
+        //         auto const xmm5 = _mm_add_ps(_mm_mul_ps(_mm_load_ps(&m1.matrix[12]), xmm0), _mm_mul_ps(_mm_load_ps(&m2.matrix[12]),
+        //         xmm1));
+        //
+        //         DirectX::XMMATRIX const xmmtx(xmm2, xmm3, xmm4, xmm5);
+        // #endif
+        //
+        //         // Position
+        //         XMStoreFloat3(
+        //             reinterpret_cast<DirectX::XMFLOAT3*>(&dstVrt.pos),
+        //             XMVector3Transform(XMLoadFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&vrt.pos)), xmmtx));
+        //
+        //         // Normal
+        //         XMStoreFloat3(
+        //             reinterpret_cast<DirectX::XMFLOAT3*>(&dstVrt.nrm),
+        //             XMVector3Transform(XMLoadFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(&vrt.nrm)), xmmtx));
+        // #else
+        //         mtx.matrix[0]  = -(m1.matrix[0] * vrt.weight + m2.matrix[0] * wNeg);
+        //         mtx.matrix[1]  = m1.matrix[1] * vrt.weight + m2.matrix[1] * wNeg;
+        //         mtx.matrix[2]  = m1.matrix[2] * vrt.weight + m2.matrix[2] * wNeg;
+        //         mtx.matrix[4]  = -(m1.matrix[4] * vrt.weight + m2.matrix[4] * wNeg);
+        //         mtx.matrix[5]  = m1.matrix[5] * vrt.weight + m2.matrix[5] * wNeg;
+        //         mtx.matrix[6]  = m1.matrix[6] * vrt.weight + m2.matrix[6] * wNeg;
+        //         mtx.matrix[8]  = -(m1.matrix[8] * vrt.weight + m2.matrix[8] * wNeg);
+        //         mtx.matrix[9]  = m1.matrix[9] * vrt.weight + m2.matrix[9] * wNeg;
+        //         mtx.matrix[10] = m1.matrix[10] * vrt.weight + m2.matrix[10] * wNeg;
+        //         mtx.matrix[12] = -(m1.matrix[12] * vrt.weight + m2.matrix[12] * wNeg);
+        //         mtx.matrix[13] = m1.matrix[13] * vrt.weight + m2.matrix[13] * wNeg;
+        //         mtx.matrix[14] = m1.matrix[14] * vrt.weight + m2.matrix[14] * wNeg;
+        //
+        //         // Position
+        //         ((CVECTOR&)dstVrt.pos) = mtx * (CVECTOR&)vrt.pos;
+        //
+        //         // Normal
+        //         ((CVECTOR&)dstVrt.nrm) = mtx * (CVECTOR&)vrt.nrm;
+        // #endif  // _WIN32 DirectXMath
 
         // Rest
         dstVrt.color = vrt.color;
@@ -141,8 +134,9 @@ void* VBTransform(void* vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
         dstVrt.tv    = vrt.tv0;
     }
 
-    dest_vb->Unlock();
-    return dest_vb;
+    return nullptr;
+    // dest_vb->Unlock();
+    // return dest_vb;
 }
 
 void SetChildrenTechnique(NODE* _root, char const* _name)
@@ -165,15 +159,15 @@ void ModelR::Realize(uint32_t Delta_Time)
 
     uint32_t dwOldFogEnable;
     float    fOldFogDensity;
-    if (bSetupFog) {
-        rs->GetRenderState(D3DRS_FOGENABLE, &dwOldFogEnable);
-        rs->GetRenderState(D3DRS_FOGDENSITY, (uint32_t*)&fOldFogDensity);
+    // if (bSetupFog) {
+    //     rs->GetRenderState(D3DRS_FOGENABLE, &dwOldFogEnable);
+    //     rs->GetRenderState(D3DRS_FOGDENSITY, (uint32_t*)&fOldFogDensity);
+    //
+    //     rs->SetRenderState(D3DRS_FOGENABLE, (bFogEnable) ? true : false);
+    //     rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fFogDensity));
+    // }
 
-        rs->SetRenderState(D3DRS_FOGENABLE, (bFogEnable) ? true : false);
-        rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fFogDensity));
-    }
-
-    if (renderTuner) renderTuner->Set(this, rs);
+    // if (renderTuner) renderTuner->Set(this, rs);
 
     if (useBlend) {
         if (!passedTime) SetChildrenTechnique(root, blendTechnique.c_str());
@@ -186,20 +180,19 @@ void ModelR::Realize(uint32_t Delta_Time)
         */
         {
             static uint32_t ambient;
-            rs->GetRenderState(D3DRS_AMBIENT, &ambient);
+            // rs->GetRenderState(D3DRS_AMBIENT, &ambient);
             ambient &= 0x00FFFFFF;
             float timeK = static_cast<float>(passedTime) / blendTime;
             if (timeK > 1.0f) timeK = 1.0f;
             float alpha = alpha1 + (alpha2 - alpha1) * timeK;
             ambient |= static_cast<unsigned char>(255.0 * alpha) << 24;
-            // ambient |= 0x05 << 24;
-            rs->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
+            // rs->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
         }
     }
 
     CMatrix view, proj;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, proj);
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, proj);
     FindPlanes(view, proj);
 
     CVECTOR tmp;
@@ -208,22 +201,22 @@ void ModelR::Realize(uint32_t Delta_Time)
     // if have animation - special render
     if (ani) {
         // create VB
-        if (d3dDestVB == nullptr) {
-            // calculate total number of vertices
-            GEOS::INFO gi;
-            root->geo->GetInfo(gi);
-            nAniVerts = 0;
-            for (int32_t vb = 0; vb < gi.nvrtbuffs; vb++) {
-                int32_t                 avb  = root->geo->GetVertexBuffer(vb);
-                VGEOMETRY::ANIMATION_VB gavb = GeometyService->GetAnimationVBDesc(avb);
-                nAniVerts += gavb.nvertices;
-            }
-
-            int32_t fvf = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1;
-            rs->CreateVertexBuffer(
-                sizeof(GEOS::VERTEX0) * nAniVerts, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, fvf, D3DPOOL_DEFAULT, &d3dDestVB);
-        }
-        dest_vb = d3dDestVB;
+        // if (d3dDestVB == nullptr) {
+        //     // calculate total number of vertices
+        //     GEOS::INFO gi;
+        //     root->geo->GetInfo(gi);
+        //     nAniVerts = 0;
+        //     for (int32_t vb = 0; vb < gi.nvrtbuffs; vb++) {
+        //         int32_t                 avb  = root->geo->GetVertexBuffer(vb);
+        //         VGEOMETRY::ANIMATION_VB gavb = GeometyService->GetAnimationVBDesc(avb);
+        //         nAniVerts += gavb.nvertices;
+        //     }
+        //
+        //     int32_t fvf = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1;
+        //     rs->CreateVertexBuffer(
+        //         sizeof(GEOS::VERTEX0) * nAniVerts, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, fvf, D3DPOOL_DEFAULT, &d3dDestVB);
+        // }
+        // dest_vb = d3dDestVB;
 
         alreadyTransformed = true;
         for (int32_t i = 0; i < 2; i++) {
@@ -249,14 +242,12 @@ void ModelR::Realize(uint32_t Delta_Time)
     } else
         root->Draw();
 
-    if (renderTuner) renderTuner->Restore(this, rs);
+    // if (renderTuner) renderTuner->Restore(this, rs);
 
-    if (bSetupFog) {
-        rs->SetRenderState(D3DRS_FOGENABLE, dwOldFogEnable);
-        rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fOldFogDensity));
-    }
-
-    // UNGUARD
+    // if (bSetupFog) {
+    //     rs->SetRenderState(D3DRS_FOGENABLE, dwOldFogEnable);
+    //     rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fOldFogDensity));
+    // }
 }
 
 Animation* ModelR::GetAnimation()
@@ -316,7 +307,6 @@ uint64_t ModelR::ProcessMessage(MESSAGE& message)
         // GUARD(MSG_MODEL_LOAD_GEO)
         str       = message.String();
         NODER::gs = GeometyService;
-        NODER::rs = rs;
         root      = new NODER();
         if (!root->Init(LightPath.c_str(), str.c_str(), "", CMatrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), mtx, nullptr, lmPath.c_str())) {
             delete root;
@@ -492,8 +482,8 @@ float ModelR::Trace(const CVECTOR& src, const CVECTOR& dst)
 
         // load indices
         if (idxBuff == nullptr) {
-            auto* idx = static_cast<unsigned short*>(rs->LockIndexBuffer(root->geo->GetIndexBuffer()));
-            if (idx == nullptr) return 0.;
+            // auto* idx = static_cast<unsigned short*>(rs->LockIndexBuffer(root->geo->GetIndexBuffer()));
+            // if (idx == nullptr) return 0.;
 
             int nt = 0;
             root->geo->GetInfo(gi);
@@ -512,29 +502,29 @@ float ModelR::Trace(const CVECTOR& src, const CVECTOR& dst)
                 }
             }
 
-            idxBuff = new unsigned short[nt * 3];
-            for (int32_t vb = 0; vb < gi.nvrtbuffs; vb++) {
-                int32_t                 avb  = root->geo->GetVertexBuffer(vb);
-                VGEOMETRY::ANIMATION_VB gavb = GeometyService->GetAnimationVBDesc(avb);
-                auto*                   gsrc = static_cast<GEOS::AVERTEX0*>(gavb.buff);
-
-                // for all objects that refers to this vertexBuffer
-                for (int32_t o = 0; o < gi.nobjects; o++) {
-                    GEOS::OBJECT go;
-                    root->geo->GetObj(o, go);
-                    if (go.vertex_buff != static_cast<uint32_t>(avb)) continue;
-
-                    // for all triangles in object
-                    for (int32_t gt = 0; gt < go.ntriangles; gt++) {
-                        int32_t t = gt * 3 + go.striangle;
-                        // Tomas Moller and Ben Trumbore algorithm
-                        idxBuff[t + 0] = idx[t + 0];
-                        idxBuff[t + 1] = idx[t + 1];
-                        idxBuff[t + 2] = idx[t + 2];
-                    }
-                }
-            }
-            rs->UnLockIndexBuffer(root->geo->GetIndexBuffer());
+            // idxBuff = new unsigned short[nt * 3];
+            // for (int32_t vb = 0; vb < gi.nvrtbuffs; vb++) {
+            //     int32_t                 avb  = root->geo->GetVertexBuffer(vb);
+            //     VGEOMETRY::ANIMATION_VB gavb = GeometyService->GetAnimationVBDesc(avb);
+            //     auto*                   gsrc = static_cast<GEOS::AVERTEX0*>(gavb.buff);
+            //
+            //     // for all objects that refers to this vertexBuffer
+            //     for (int32_t o = 0; o < gi.nobjects; o++) {
+            //         GEOS::OBJECT go;
+            //         root->geo->GetObj(o, go);
+            //         if (go.vertex_buff != static_cast<uint32_t>(avb)) continue;
+            //
+            //         // for all triangles in object
+            //         for (int32_t gt = 0; gt < go.ntriangles; gt++) {
+            //             int32_t t = gt * 3 + go.striangle;
+            //             // Tomas Moller and Ben Trumbore algorithm
+            //             idxBuff[t + 0] = idx[t + 0];
+            //             idxBuff[t + 1] = idx[t + 1];
+            //             idxBuff[t + 2] = idx[t + 2];
+            //         }
+            //     }
+            // }
+            // rs->UnLockIndexBuffer(root->geo->GetIndexBuffer());
         }
 
         root->geo->GetInfo(gi);
@@ -668,14 +658,15 @@ void ModelR::FindPlanes(CMatrix const& view, CMatrix const& proj)
 
 void ModelR::LostRender()
 {
-    root->ReleaseGeometry();
-    rs->Release(d3dDestVB);
+    // root->ReleaseGeometry();
+    // rs->Release(d3dDestVB);
 }
 
 void ModelR::RestoreRender()
 {
-    root->RestoreGeometry();
-    int32_t const fvf = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1;
-    if (nAniVerts)
-        rs->CreateVertexBuffer(sizeof(GEOS::VERTEX0) * nAniVerts, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, fvf, D3DPOOL_DEFAULT, &d3dDestVB);
+    // root->RestoreGeometry();
+    // int32_t const fvf = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2 | D3DFVF_TEX1;
+    // if (nAniVerts)
+    //     rs->CreateVertexBuffer(sizeof(GEOS::VERTEX0) * nAniVerts, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, fvf, D3DPOOL_DEFAULT,
+    //     &d3dDestVB);
 }
