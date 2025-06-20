@@ -541,6 +541,7 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
         m_stringes[l].bUsed = true;
         m_stringes[l].x     = message.Long() + GlobalRect.left;
         m_stringes[l].y     = message.Long() + GlobalRect.top;
+        message.Long();
         // switch (message.Long()) {
         // case SCRIPT_ALIGN_RIGHT: m_stringes[l].eAlignment = PR_ALIGN_RIGHT; break;
         // case SCRIPT_ALIGN_CENTER: m_stringes[l].eAlignment = PR_ALIGN_CENTER; break;

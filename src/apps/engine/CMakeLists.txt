@@ -29,7 +29,6 @@ storm_exe(
         model
         particles
         pcs_controls
-        renderer
         renderer_next
         rigging
         sailors

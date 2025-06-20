@@ -36,6 +36,8 @@ float GEOM::Trace(VERTEX& start, VERTEX& finish)
     node   = sroot.data();
     stack  = _stack - 1;
 
+    if (node == nullptr) { return 2.0F; }
+
 rec_loop:;
 
     ssrc = (src | node->norm) - node->pd;

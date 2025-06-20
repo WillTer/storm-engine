@@ -249,25 +249,26 @@ GEOM::~GEOM()
 // visible analyze and draw all objects
 void GEOM::Draw(const PLANE* pl, int32_t np, MATERIAL_FUNC mtf) const
 {
-    srv.SetIndexBuffer(idx_buff);
-    for (int32_t o = 0; o < rhead.nobjects; o++) {
-        if (!(object[o].flags & VISIBLE)) continue;
-        // clip by external planes
-        int32_t cp;
-        for (cp = 0; cp < np; cp++) {
-            auto const dist =
-                object[o].center.x * pl[cp].nrm.x + object[o].center.y * pl[cp].nrm.y + object[o].center.z * pl[cp].nrm.z - pl[cp].d;
-            if (dist > object[o].radius) break;
-            // if(dist<-object[o].radius)    break;
-        }
-        if (cp < np) continue;
-
-        auto* const vb = &vbuff[object[o].vertex_buff];
-        srv.SetVertexBuffer(vb->stride, vb->dev_buff);
-        srv.SetMaterial(material[object[o].material]);
-        if (mtf != nullptr) mtf(material[object[o].material]);
-        srv.DrawIndexedPrimitive(object[o].start_vertex, object[o].num_vertices, vb->stride, object[o].striangle * 3, object[o].ntriangles);
-    }
+    // srv.SetIndexBuffer(idx_buff);
+    // for (int32_t o = 0; o < rhead.nobjects; o++) {
+    //     if (!(object[o].flags & VISIBLE)) continue;
+    //     // clip by external planes
+    //     int32_t cp;
+    //     for (cp = 0; cp < np; cp++) {
+    //         auto const dist =
+    //             object[o].center.x * pl[cp].nrm.x + object[o].center.y * pl[cp].nrm.y + object[o].center.z * pl[cp].nrm.z - pl[cp].d;
+    //         if (dist > object[o].radius) break;
+    //         // if(dist<-object[o].radius)    break;
+    //     }
+    //     if (cp < np) continue;
+    //
+    //     auto* const vb = &vbuff[object[o].vertex_buff];
+    //     srv.SetVertexBuffer(vb->stride, vb->dev_buff);
+    //     srv.SetMaterial(material[object[o].material]);
+    //     if (mtf != nullptr) mtf(material[object[o].material]);
+    //     srv.DrawIndexedPrimitive(object[o].start_vertex, object[o].num_vertices, vb->stride, object[o].striangle * 3,
+    //     object[o].ntriangles);
+    // }
 }
 
 bool GEOM::GetCollisionDetails(TRACE_INFO& ti) const

@@ -115,6 +115,9 @@ Sea::Sea()
     bStop = false;
 
     vWorldOffset = 0.f;
+
+    pFrustumPlanes = nullptr;
+    pTriangles     = nullptr;
 }
 
 Sea::~Sea()
@@ -490,6 +493,7 @@ bool Sea::EditMode_Update()
 int32_t Sea::VisCode(const CVECTOR& vP)
 {
     int32_t vc = 0;
+    if (pFrustumPlanes == nullptr) { return vc; }
 
     // Max - so the accuracy is much higher, blocks should not disappear sometimes in the distance
     PLANE* p = &pFrustumPlanes[0];
@@ -952,6 +956,7 @@ void Sea::PrepareIndicesForBlock(uint32_t dwBlockIndex)
 
     // setup triangles
     int32_t yy, dyy = size0 + 1;
+    if (!pTriangles) { return; }
     for (y = 0, yy = 0; y < size0; y++, yy += dyy)
         for (x = 0; x < size0; x++) {
             // first triangle
