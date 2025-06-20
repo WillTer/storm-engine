@@ -3,7 +3,6 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "../xdefines.h"
 
@@ -16,19 +15,16 @@ class InterfaceBackScene: public Entity
     struct LightParam {
         bool bUse;
 
-        int32_t   indexLight;
-        D3DLIGHT9 lightSource;
-        D3DLIGHT9 lightOldSource;
+        int32_t indexLight;
 
         uint32_t dwFlareColor;
         float    fMinFlareColor;
         float    fMaxFlareColor;
 
-        D3DCOLORVALUE colorMin, colorMax;
-        float         fColorTimer;
-        float         fColorPeriod;
-        float         fAddPeriod;
-        float         fAddPeriodMax;
+        float fColorTimer;
+        float fColorPeriod;
+        float fAddPeriod;
+        float fAddPeriodMax;
 
         float fRangeMin, fRangeMax;
         float fRangeTimer;
@@ -65,19 +61,11 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
 protected:
-    VDX9RENDER* m_pRS;
-
     entid_t m_eiModel;
     MODEL*  m_pModel;
     entid_t m_eiLocators;

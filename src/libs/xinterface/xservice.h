@@ -27,7 +27,7 @@ public:
     ~XSERVICE() override;
 
     // initialization of service
-    void Init(VDX9RENDER* pRS, int32_t lWidth, int32_t lHight) override;
+    void Init(/*VDX9RENDER*/ void* pRS, int32_t lWidth, int32_t lHight) override;
 
     // get texture identificator for image group
     int32_t GetTextureID(char const* sImageListName) override;
@@ -58,8 +58,6 @@ protected:
     void LoadAllPicturesInfo();
 
 protected:
-    VDX9RENDER* m_pRS;
-
     int32_t         m_dwListQuantity;
     int32_t         m_dwImageQuantity;
     IMAGELISTDESCR* m_pList;
@@ -75,8 +73,6 @@ protected:
 
 class ComboString
 {
-    VDX9RENDER* m_pRS;
-
     struct STRING_DESCR {
         int   x, y;
         int   idFont;

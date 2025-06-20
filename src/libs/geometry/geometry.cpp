@@ -342,6 +342,7 @@ GEOS::ID GEOM_SERVICE_R::CreateIndexBuffer(int32_t size)
     // if (size == 0) return INVALID_BUFFER_ID;
     // if (RenderService) return RenderService->CreateIndexBuffer(size);
     // return INVALID_BUFFER_ID;
+    return -1;
 }
 
 void* GEOM_SERVICE_R::LockIndexBuffer(GEOS::ID ib)

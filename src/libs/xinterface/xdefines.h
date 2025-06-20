@@ -1,7 +1,7 @@
 #pragma once
 
+#include <libs/core/entity.h>
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/interface/messages.h>
 
 #include "quest_file_reader/quest_file_reader.h"
@@ -201,21 +201,21 @@ struct FXYRECT {
 };
 
 // vertex formates
-#define XI_NOTEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX0)
+// #define XI_NOTEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX0)
 
 struct XI_NOTEX_VERTEX {
     CVECTOR  pos;
     uint32_t color;
 };
 
-#define XI_ONLYONETEX_FVF (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define XI_ONLYONETEX_FVF (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct XI_ONLYONETEX_VERTEX {
     CVECTOR pos;
     float   tu, tv;
 };
 
-#define XI_ONETEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define XI_ONETEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct XI_ONETEX_VERTEX {
     CVECTOR  pos;
@@ -223,7 +223,7 @@ struct XI_ONETEX_VERTEX {
     float    tu, tv;
 };
 
-#define XI_TWOTEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2)
+// #define XI_TWOTEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXTUREFORMAT2)
 
 struct XI_TWOTEX_VERTEX {
     CVECTOR  pos;
@@ -232,7 +232,7 @@ struct XI_TWOTEX_VERTEX {
     float    tu2, tv2;
 };
 
-#define XI_THREETEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX3 | D3DFVF_TEXTUREFORMAT2)
+// #define XI_THREETEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX3 | D3DFVF_TEXTUREFORMAT2)
 
 struct XI_THREETEX_VERTEX {
     CVECTOR  pos;
@@ -250,10 +250,10 @@ inline void PICTURE_TEXTURE_RELEASE(VXSERVICE* ps, char const* gn, int32_t& tex)
     }
 }
 
-inline void VIDEOTEXTURE_RELEASE(VDX9RENDER* rs, CVideoTexture* tex)
+inline void VIDEOTEXTURE_RELEASE(/*VDX9RENDER*/ void* rs, /*CVideoTexture*/ void* tex)
 {
     if (rs != nullptr && tex != nullptr) {
-        rs->ReleaseVideoTexture(tex);
+        // rs->ReleaseVideoTexture(tex);
         tex = nullptr;
     }
 }

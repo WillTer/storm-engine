@@ -77,7 +77,6 @@ XInterface::XInterface()
     pStringService  = nullptr;
     bActive         = true;
 
-    pRenderService   = nullptr;
     m_pNodes         = nullptr;
     m_pCurNode       = nullptr;
     m_pContHelp      = nullptr;
@@ -91,8 +90,6 @@ XInterface::XInterface()
     m_imgLists        = nullptr;
 
     m_bShowPrevTexture = false;
-    m_pTexture         = nullptr;
-    m_pPrevTexture     = nullptr;
 
     m_pEvents = nullptr;
 
@@ -124,7 +121,7 @@ XInterface::XInterface()
 
     m_nInterfaceMode        = DEFAULT_IMODE;
     m_idHelpTexture         = -1;
-    m_dwContHelpColor       = ARGB(255, 128, 128, 128);
+    m_dwContHelpColor       = storm::Color {255, 128, 128, 128}.to_hex();
     m_frectDefHelpTextureUV = FXYRECT(0.0, 0.0, 1.0, 1.0);
     m_strDefHelpTextureFile = nullptr;
     DiskCheck               = true;  // false;
@@ -142,10 +139,6 @@ XInterface::XInterface()
 XInterface::~XInterface()
 {
     ReleaseOld();
-
-    if (m_pTexture) pRenderService->Release(m_pTexture);
-    if (m_pPrevTexture) pRenderService->Release(m_pPrevTexture);
-    m_pTexture = m_pPrevTexture = nullptr;
 
     if (pPictureService != nullptr) {
         pPictureService->ReleaseAll();
@@ -172,10 +165,6 @@ void XInterface::SetDevice()
     g_idInterface = GetId();
     m_UtilContainer.Init();
 
-    // get render service
-    pRenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!pRenderService) { throw std::runtime_error("No service: dx9render"); }
-
     pStringService = static_cast<VSTRSERVICE*>(core->GetService("StrService"));
     if (!pStringService) { throw std::runtime_error("No service: strservice"); }
 
@@ -185,7 +174,7 @@ void XInterface::SetDevice()
     // Create pictures and string lists service
     pPictureService = new XSERVICE;
     if (pPictureService == nullptr) { throw std::runtime_error("Not memory allocate"); }
-    pPictureService->Init(pRenderService, dwScreenWidth, dwScreenHeight);
+    // pPictureService->Init(pRenderService, dwScreenWidth, dwScreenHeight);
 
     pQuestService = new storm::QuestFileReader;
     if (pQuestService == nullptr) { throw std::runtime_error("Not memory allocate"); }
@@ -201,7 +190,6 @@ void XInterface::SetDevice()
 
     core->SetLayerType(INTERFACE_EXECUTE, layer_type_t::execute);
     core->SetLayerType(INTERFACE_REALIZE, layer_type_t::realize);
-    // core->SystemMessages(GetId(),true);
 
     if (AttributesPointer) {
         auto* pA = AttributesPointer->GetAttributeClass("GameTime");
@@ -287,25 +275,25 @@ void XInterface::Realize(uint32_t)
 {
     if (!m_bUse || !bActive) return;
 
-    pRenderService->MakePostProcess();
+    // pRenderService->MakePostProcess();
 
     auto Delta_Time = core->GetRDeltaTime();
 
     CMatrix moldv, moldp, moldw;
 
     uint32_t dwFogFlag;
-    pRenderService->GetRenderState(D3DRS_FOGENABLE, &dwFogFlag);
-    if (pRenderService->TechniqueExecuteStart("iStartTechnique"))
-        while (pRenderService->TechniqueExecuteNext())
-            ;
+    // pRenderService->GetRenderState(D3DRS_FOGENABLE, &dwFogFlag);
+    // if (pRenderService->TechniqueExecuteStart("iStartTechnique"))
+    //     while (pRenderService->TechniqueExecuteNext())
+    //         ;
 
-    // Get old transformation
-    pRenderService->GetTransform(D3DTS_VIEW, moldv);
-    pRenderService->GetTransform(D3DTS_PROJECTION, moldp);
-    // Set new transformation
-    pRenderService->SetTransform(D3DTS_WORLD, matw);
-    pRenderService->SetTransform(D3DTS_VIEW, matv);
-    pRenderService->SetTransform(D3DTS_PROJECTION, matp);
+    // // Get old transformation
+    // pRenderService->GetTransform(D3DTS_VIEW, moldv);
+    // pRenderService->GetTransform(D3DTS_PROJECTION, moldp);
+    // // Set new transformation
+    // pRenderService->SetTransform(D3DTS_WORLD, matw);
+    // pRenderService->SetTransform(D3DTS_VIEW, matv);
+    // pRenderService->SetTransform(D3DTS_PROJECTION, matp);
 
     DrawNode(m_pNodes, Delta_Time, 0, 80);
 
@@ -322,10 +310,10 @@ void XInterface::Realize(uint32_t)
         pV[i].pos.z = 1.f;
     auto*    pImg = m_imgLists;
     uint32_t oldTFactor;
-    pRenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &oldTFactor);
+    // pRenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &oldTFactor);
     while (pImg != nullptr) {
         if (pImg->idTexture != -1 && pImg->imageID != -1) {
-            pRenderService->TextureSet(0, pImg->idTexture);
+            // pRenderService->TextureSet(0, pImg->idTexture);
             FXYRECT frect;
             pPictureService->GetTexturePos(pImg->imageID, frect);
             pV[0].pos.x = pV[2].pos.x = static_cast<float>(pImg->position.left);
@@ -336,22 +324,22 @@ void XInterface::Realize(uint32_t)
             pV[0].tv = pV[1].tv = frect.top;
             pV[2].pos.y = pV[3].pos.y = static_cast<float>(pImg->position.bottom);
             pV[2].tv = pV[3].tv = frect.bottom;
-            if (pImg->doBlind) {
-                pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
-                pRenderService->DrawPrimitiveUP(
-                    D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iBlindPictures");
-            } else {
-                if (pImg->sTechniqueName == nullptr)
-                    pRenderService->DrawPrimitiveUP(
-                        D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
-                else
-                    pRenderService->DrawPrimitiveUP(
-                        D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), pImg->sTechniqueName);
-            }
+            // if (pImg->doBlind) {
+            //     pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax,
+            //     m_fBlindFactor)); pRenderService->DrawPrimitiveUP(
+            //         D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iBlindPictures");
+            // } else {
+            //     if (pImg->sTechniqueName == nullptr)
+            //         pRenderService->DrawPrimitiveUP(
+            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
+            //     else
+            //         pRenderService->DrawPrimitiveUP(
+            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), pImg->sTechniqueName);
+            // }
         }
         pImg = pImg->next;
     }
-    pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
+    // pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
 
     DrawNode(m_pNodes, Delta_Time, 81, 90);
 
@@ -362,19 +350,19 @@ void XInterface::Realize(uint32_t)
         if (tmpAttr != nullptr)
             for (auto i = 0; i < m_nStringQuantity; i++)
                 if (m_stringes[i].bUsed) {
-                    pRenderService->ExtPrint(
-                        m_stringes[i].fontNum,
-                        m_stringes[i].dwColor,
-                        0,
-                        m_stringes[i].eAlignment,
-                        true,
-                        m_stringes[i].fScale,
-                        dwScreenWidth,
-                        dwScreenHeight,
-                        m_stringes[i].x,
-                        m_stringes[i].y,
-                        "%s",
-                        static_cast<char const*>(tmpAttr->GetAttribute(m_stringes[i].sStringName)));
+                    // pRenderService->ExtPrint(
+                    //     m_stringes[i].fontNum,
+                    //     m_stringes[i].dwColor,
+                    //     0,
+                    //     m_stringes[i].eAlignment,
+                    //     true,
+                    //     m_stringes[i].fScale,
+                    //     dwScreenWidth,
+                    //     dwScreenHeight,
+                    //     m_stringes[i].x,
+                    //     m_stringes[i].y,
+                    //     "%s",
+                    //     static_cast<char const*>(tmpAttr->GetAttribute(m_stringes[i].sStringName)));
                 }
     }
 
@@ -390,21 +378,22 @@ void XInterface::Realize(uint32_t)
 
     // Mouse pointer show
     if (m_bShowMouse) {
-        pRenderService->TextureSet(0, m_idTex);
-        pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, vMouse, sizeof(XI_ONLYONETEX_VERTEX), "iMouseCurShow");
+        // pRenderService->TextureSet(0, m_idTex);
+        // pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, vMouse, sizeof(XI_ONLYONETEX_VERTEX),
+        // "iMouseCurShow");
     }
 
     // Show context help data
     ShowContextHelp();
 
-    if (pRenderService->TechniqueExecuteStart("iExitTechnique"))
-        while (pRenderService->TechniqueExecuteNext())
-            ;
-    pRenderService->SetRenderState(D3DRS_FOGENABLE, dwFogFlag);
+    // if (pRenderService->TechniqueExecuteStart("iExitTechnique"))
+    //     while (pRenderService->TechniqueExecuteNext())
+    //         ;
+    // pRenderService->SetRenderState(D3DRS_FOGENABLE, dwFogFlag);
 
-    // Restore old transformation
-    pRenderService->SetTransform(D3DTS_VIEW, moldv);
-    pRenderService->SetTransform(D3DTS_PROJECTION, moldp);
+    // // Restore old transformation
+    // pRenderService->SetTransform(D3DTS_VIEW, moldv);
+    // pRenderService->SetTransform(D3DTS_PROJECTION, moldp);
 }
 
 int32_t oldCurNum = -1L;
@@ -542,21 +531,21 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
             if (m_stringes[l].sStringName == nullptr) throw std::runtime_error("allocate memory error");
             memcpy(m_stringes[l].sStringName, param.c_str(), len);
         } else {
-            FONT_RELEASE(pRenderService, m_stringes[l].fontNum);
+            // FONT_RELEASE(pRenderService, m_stringes[l].fontNum);
         }
 
         std::string const& param2 = message.String();
-        m_stringes[l].fontNum     = pRenderService->LoadFont(param2.c_str());
-        m_stringes[l].dwColor     = static_cast<uint32_t>(message.Long());
+        // m_stringes[l].fontNum     = pRenderService->LoadFont(param2.c_str());
+        m_stringes[l].dwColor = static_cast<uint32_t>(message.Long());
 
         m_stringes[l].bUsed = true;
         m_stringes[l].x     = message.Long() + GlobalRect.left;
         m_stringes[l].y     = message.Long() + GlobalRect.top;
-        switch (message.Long()) {
-        case SCRIPT_ALIGN_RIGHT: m_stringes[l].eAlignment = PR_ALIGN_RIGHT; break;
-        case SCRIPT_ALIGN_CENTER: m_stringes[l].eAlignment = PR_ALIGN_CENTER; break;
-        case SCRIPT_ALIGN_LEFT: m_stringes[l].eAlignment = PR_ALIGN_LEFT; break;
-        }
+        // switch (message.Long()) {
+        // case SCRIPT_ALIGN_RIGHT: m_stringes[l].eAlignment = PR_ALIGN_RIGHT; break;
+        // case SCRIPT_ALIGN_CENTER: m_stringes[l].eAlignment = PR_ALIGN_CENTER; break;
+        // case SCRIPT_ALIGN_LEFT: m_stringes[l].eAlignment = PR_ALIGN_LEFT; break;
+        // }
         m_stringes[l].fScale = message.Float();
     } break;
     case MSG_INTERFACE_DELETE_STRING: {
@@ -564,7 +553,7 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
         for (int i = 0; i < m_nStringQuantity; i++) {
             if (m_stringes[i].sStringName != nullptr && storm::iEquals(m_stringes[i].sStringName, param)) {
                 STORM_DELETE(m_stringes[i].sStringName);
-                FONT_RELEASE(pRenderService, m_stringes[i].fontNum);
+                // FONT_RELEASE(pRenderService, m_stringes[i].fontNum);
                 m_nStringQuantity--;
                 m_stringes[i].sStringName = m_stringes[m_nStringQuantity].sStringName;
                 m_stringes[i].fontNum     = m_stringes[m_nStringQuantity].fontNum;
@@ -755,13 +744,13 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
         }
     } break;
     case MSG_INTERFACE_GET_STRWIDTH: {
-        std::string const& param     = message.String();
-        std::string const& param2    = message.String();
-        float              fScale    = message.Float();
-        int                tmpFontID = pRenderService->LoadFont(param2.c_str());
-        int                retVal    = pRenderService->StringWidth(param.c_str(), tmpFontID, fScale);
-        pRenderService->UnloadFont(tmpFontID);
-        return retVal;
+        std::string const& param  = message.String();
+        std::string const& param2 = message.String();
+        float              fScale = message.Float();
+        // int                tmpFontID = pRenderService->LoadFont(param2.c_str());
+        // int                retVal    = pRenderService->StringWidth(param.c_str(), tmpFontID, fScale);
+        // pRenderService->UnloadFont(tmpFontID);
+        // return retVal;
     } break;
     case MSG_INTERFACE_CLICK_STATUS: {
         std::string const& param = message.String();
@@ -944,7 +933,7 @@ void XInterface::LoadIni()
     m_nMouseLastClickTimeMax = ini->GetInt(section, "mouseDblClickInterval", 300);
 
     CMatrix oldmatp;
-    pRenderService->GetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&oldmatp);
+    // pRenderService->GetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&oldmatp);
     GlobalRect.left   = GlobalScreenRect.left;
     GlobalRect.top    = GlobalScreenRect.top;
     GlobalRect.right  = GlobalScreenRect.right;
@@ -969,7 +958,7 @@ void XInterface::LoadIni()
     ini->ReadString(section, "MousePointer", param, sizeof(param) - 1, "");
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
-    m_idTex = pRenderService->TextureCreate(param2);
+    // m_idTex = pRenderService->TextureCreate(param2);
     core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
     fYMousePos = static_cast<float>(dwScreenHeight / 2);
@@ -1148,12 +1137,6 @@ void XInterface::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char con
         core->Trace("Warning! Interface: Can`t create node with null type.");
         return;
     }
-    /*if( !pOwnerIni->TestSection( sNodeType ) &&
-      !pUserIni->TestSection( sNodeType ) )
-    {
-      core->Trace("Warning! Interface: Node type %s not present into describe.",sNodeType);
-      return;
-    }*/
 
     if (!sNodeName) sNodeName = "?";
 
@@ -1174,18 +1157,16 @@ void XInterface::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char con
         pNewNod->m_nodeName = new char[len];
         if (!pNewNod->m_nodeName) throw std::runtime_error("allocate memory error");
         memcpy(pNewNod->m_nodeName, sNodeName, len);
-        if (!pNewNod->Init(pUserIni, sNodeName, pOwnerIni, sNodeType, pRenderService, GlobalRect, xypScreenSize)) {
-            delete pNewNod;
-            pNewNod = nullptr;
-        } else {
-            AddNodeToList(pNewNod, priority);
-        }
+        // if (!pNewNod->Init(pUserIni, sNodeName, pOwnerIni, sNodeType, pRenderService, GlobalRect, xypScreenSize)) {
+        //     delete pNewNod;
+        //     pNewNod = nullptr;
+        // } else {
+        //     AddNodeToList(pNewNod, priority);
+        // }
 
         INIFILE* usedini       = pUserIni;
         pNewNod->m_bBreakPress = pNewNod->GetIniBool(pUserIni, sNodeName, pOwnerIni, sNodeType, "bBreakCommand", false);
         if (pNewNod->GetIniBool(pUserIni, sNodeName, pOwnerIni, sNodeType, "moveMouseDoSelect", false)) pNewNod->m_bMouseSelect = true;
-        // if( pNewNod->ReadIniString(pUserIni,sNodeName, pOwnerIni,sNodeType, "command", param,sizeof(param)-1, "") )
-        // do
         if (usedini && usedini->ReadString(pNewNod->m_nodeName, "command", param, sizeof(param) - 1, "")) do {
                 // get command name
                 char stmp[sizeof(param)];
@@ -2108,18 +2089,18 @@ void XInterface::ShowPrevTexture()
         m_nBlendColor      = 0;
         m_fAngle           = 0.f;
         m_bShowPrevTexture = false;
-        if (m_pPrevTexture != nullptr) pRenderService->Release(m_pPrevTexture);
-        m_pPrevTexture = nullptr;
+        // if (m_pPrevTexture != nullptr) pRenderService->Release(m_pPrevTexture);
+        // m_pPrevTexture = nullptr;
     }
 
-    pRenderService->SetTexture(0, m_pPrevTexture);
-    pRenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
-    pRenderService->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_CURRENT);
-    pRenderService->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
-    pRenderService->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
-    pRenderService->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    pRenderService->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_CURRENT);
-    pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 30, pV, sizeof(XI_ONETEX_VERTEX));
+    // pRenderService->SetTexture(0, m_pPrevTexture);
+    // pRenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+    // pRenderService->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_CURRENT);
+    // pRenderService->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
+    // pRenderService->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+    // pRenderService->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    // pRenderService->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_CURRENT);
+    // pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 30, pV, sizeof(XI_ONETEX_VERTEX));
 }
 
 void XInterface::ReleaseOld()
@@ -2134,7 +2115,7 @@ void XInterface::ReleaseOld()
         delete[] m_stringes[i].sStringName;
         m_stringes[i].sStringName = nullptr;
 
-        FONT_RELEASE(pRenderService, m_stringes[i].fontNum);
+        // FONT_RELEASE(pRenderService, m_stringes[i].fontNum);
     }
     m_nStringQuantity = 0;
 
@@ -2244,10 +2225,10 @@ bool XInterface::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
     int32_t textureId = core->Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
     if (textureId == -1) return false;
 
-    auto* pTex = static_cast<IDirect3DTexture9*>(pRenderService->GetTextureFromID(textureId));
-
-    D3DSURFACE_DESC dscr;
-    pTex->GetLevelDesc(0, &dscr);
+    // auto* pTex = static_cast<IDirect3DTexture9*>(pRenderService->GetTextureFromID(textureId));
+    //
+    // D3DSURFACE_DESC dscr;
+    // pTex->GetLevelDesc(0, &dscr);
 
     auto pdat = static_cast<char*>(malloc(sizeof(SAVE_DATA_HANDLE) + slen));
     if (pdat == nullptr) { throw std::runtime_error("allocate memory error"); }
@@ -2257,17 +2238,17 @@ bool XInterface::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
     memcpy(&pdat[sizeof(SAVE_DATA_HANDLE)], saveData, slen);
 
     int32_t ssize = 0;
-    if (dscr.Height > 0) {
-        D3DLOCKED_RECT lockRect;
-        if (pTex->LockRect(0, &lockRect, nullptr, 0) == D3D_OK) {
-            ssize                                      = lockRect.Pitch * dscr.Height;
-            pdat                                       = static_cast<char*>(realloc(pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize));
-            ((SAVE_DATA_HANDLE*)pdat)->SurfaceDataSize = ssize;
-            memcpy(&pdat[sizeof(SAVE_DATA_HANDLE) + slen], lockRect.pBits, ssize);
-            pTex->UnlockRect(0);
-        } else
-            core->Trace("Can`t lock screenshot texture");
-    }
+    // if (dscr.Height > 0) {
+    //     D3DLOCKED_RECT lockRect;
+    //     if (pTex->LockRect(0, &lockRect, nullptr, 0) == D3D_OK) {
+    //         ssize                                      = lockRect.Pitch * dscr.Height;
+    //         pdat                                       = static_cast<char*>(realloc(pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize));
+    //         ((SAVE_DATA_HANDLE*)pdat)->SurfaceDataSize = ssize;
+    //         memcpy(&pdat[sizeof(SAVE_DATA_HANDLE) + slen], lockRect.pBits, ssize);
+    //         pTex->UnlockRect(0);
+    //     } else
+    //         core->Trace("Can`t lock screenshot texture");
+    // }
 
     core->SetSaveData(saveName, pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize);
     free(pdat);
@@ -2418,7 +2399,7 @@ uint32_t XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float 
     rd         = RED(minCol) + static_cast<int32_t>(rd * fBlendFactor);
     gd         = GREEN(minCol) + static_cast<int32_t>(gd * fBlendFactor);
     bd         = BLUE(minCol) + static_cast<int32_t>(bd * fBlendFactor);
-    return ARGB(ad, rd, gd, bd);
+    return storm::Color {static_cast<uint8_t>(ad), static_cast<uint8_t>(rd), static_cast<uint8_t>(gd), static_cast<uint8_t>(bd)}.to_hex();
 }
 
 void XInterface::AddNodeToList(CINODE* nod, int32_t priority)
@@ -2478,7 +2459,7 @@ void XInterface::ReleaseDinamicPic(char const* sPicName)
         prevImg->next = findImg->next;
 }
 
-int32_t FindMaxStrForWidth(VDX9RENDER* pVR, int nW, char* str, int nFontID, float fScale)
+int32_t FindMaxStrForWidth(/*VDX9RENDER*/ void* pVR, int nW, char* str, int nFontID, float fScale)
 {
     if (!pVR || !str || str[0] == '\0') return 0;
     int nPrev = -1;
@@ -2486,12 +2467,12 @@ int32_t FindMaxStrForWidth(VDX9RENDER* pVR, int nW, char* str, int nFontID, floa
         if (str[curLen] == 32 || curLen == 0) {
             int nFirst = curLen;
             if (curLen != 0) nFirst++;
-            if (pVR->StringWidth(&str[nFirst], nFontID, fScale) < nW) {
-                nPrev = nFirst;
-            } else {
-                if (nPrev == -1) nPrev = nFirst;
-                break;
-            }
+            // if (pVR->StringWidth(&str[nFirst], nFontID, fScale) < nW) {
+            //     nPrev = nFirst;
+            // } else {
+            //     if (nPrev == -1) nPrev = nFirst;
+            //     break;
+            // }
             if (curLen == 0) break;
         }
     }
@@ -2516,75 +2497,75 @@ int32_t XInterface::PrintIntoWindow(
     int         nSplit)
 {
     if (!str) return 0;
-    int32_t strWidth = pRenderService->StringWidth(str, idFont, scale);
+    // int32_t strWidth = pRenderService->StringWidth(str, idFont, scale);
 
     // check fontScale
-    if (nWidthForScaleCorrecting > 0 && strWidth > nWidthForScaleCorrecting) {
-        if (nSplit == 0) {
-            // Do not split the line, but reduce the font scale
-            scale *= static_cast<float>(nWidthForScaleCorrecting) / strWidth;
-            strWidth = pRenderService->StringWidth(str, idFont, scale);
-        } else {
-            // Split the line with advancement by a given number
-            int       maxWidth = 0;
-            int const nPrev    = -1;
-            char      strLocTmp[1024];
-            strcpy_s(strLocTmp, str);
-            while (true)  //~!~
-            {
-                int       nStart = FindMaxStrForWidth(pRenderService, nWidthForScaleCorrecting, strLocTmp, idFont, scale);
-                int const curWidth =
-                    PrintIntoWindow(wl, wr, idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys, left, top, &strLocTmp[nStart]);
-                if (curWidth > maxWidth) maxWidth = curWidth;
-                if (nStart == 0) break;
-                while (nStart > 0 && strLocTmp[nStart - 1] == 0x20)
-                    nStart--;
-                strLocTmp[nStart] = '\0';
-                top += nSplit;
-            }
-            return maxWidth;
-        }
-    }
+    // if (nWidthForScaleCorrecting > 0 && strWidth > nWidthForScaleCorrecting) {
+    //     if (nSplit == 0) {
+    //         // Do not split the line, but reduce the font scale
+    //         scale *= static_cast<float>(nWidthForScaleCorrecting) / strWidth;
+    //         strWidth = pRenderService->StringWidth(str, idFont, scale);
+    //     } else {
+    //         // Split the line with advancement by a given number
+    //         int       maxWidth = 0;
+    //         int const nPrev    = -1;
+    //         char      strLocTmp[1024];
+    //         strcpy_s(strLocTmp, str);
+    //         while (true)  //~!~
+    //         {
+    //             int       nStart = FindMaxStrForWidth(pRenderService, nWidthForScaleCorrecting, strLocTmp, idFont, scale);
+    //             int const curWidth =
+    //                 PrintIntoWindow(wl, wr, idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys, left, top, &strLocTmp[nStart]);
+    //             if (curWidth > maxWidth) maxWidth = curWidth;
+    //             if (nStart == 0) break;
+    //             while (nStart > 0 && strLocTmp[nStart - 1] == 0x20)
+    //                 nStart--;
+    //             strLocTmp[nStart] = '\0';
+    //             top += nSplit;
+    //         }
+    //         return maxWidth;
+    //     }
+    // }
 
     int32_t strLeft = left;
-    if (align == PR_ALIGN_RIGHT) strLeft = left - strWidth;
-    if (align == PR_ALIGN_CENTER) strLeft = left - strWidth / 2;
-    int32_t strRight = strLeft + strWidth;
+    // if (align == PR_ALIGN_RIGHT) strLeft = left - strWidth;
+    // if (align == PR_ALIGN_CENTER) strLeft = left - strWidth / 2;
+    // int32_t strRight = strLeft + strWidth;
 
-    if (strLeft >= wl && strRight <= wr) {
-        return pRenderService->ExtPrint(idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys, left, top, "%s", str);
-    }
+    // if (strLeft >= wl && strRight <= wr) {
+    //     return pRenderService->ExtPrint(idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys, left, top, "%s", str);
+    // }
 
     char* newStr = const_cast<char*>(str);  // TODO: Rewrite this code so the string is not (temporarily) modified
     // cut on the left
-    while (strLeft < wl && newStr != nullptr && newStr[0] != 0) {
-        newStr += utf8::u8_inc(newStr);
-        strWidth = pRenderService->StringWidth(newStr, idFont, scale);
-        strLeft  = strRight - strWidth;
-    }
+    // while (strLeft < wl && newStr != nullptr && newStr[0] != 0) {
+    //     newStr += utf8::u8_inc(newStr);
+    //     strWidth = pRenderService->StringWidth(newStr, idFont, scale);
+    //     strLeft  = strRight - strWidth;
+    // }
     // cut on the right
-    if (newStr != nullptr) {
-        strRight     = strLeft + strWidth;
-        int32_t nEnd = strlen(newStr);
-        while (nEnd > 0 && strRight > wr) {
-            nEnd -= utf8::u8_dec(newStr + nEnd);
-            char const chOld = newStr[nEnd];
-            newStr[nEnd]     = 0;
-            strWidth         = pRenderService->StringWidth(newStr, idFont, scale);
-            newStr[nEnd]     = chOld;
-            strRight         = strLeft + strWidth;
-        }
-        if (nEnd > 0) {
-            char const chOld = newStr[nEnd];
-            newStr[nEnd]     = 0;
-            strWidth = pRenderService->ExtPrint(idFont, dwFCol, dwBCol, PR_ALIGN_LEFT, shadow, scale, sxs, sys, strLeft, top, "%s", newStr);
-            newStr[nEnd] = chOld;
-            return strWidth;
-        }
-        return 0;
-    }
+    // if (newStr != nullptr) {
+    //     strRight     = strLeft + strWidth;
+    //     int32_t nEnd = strlen(newStr);
+    //     while (nEnd > 0 && strRight > wr) {
+    //         nEnd -= utf8::u8_dec(newStr + nEnd);
+    //         char const chOld = newStr[nEnd];
+    //         newStr[nEnd]     = 0;
+    //         strWidth         = pRenderService->StringWidth(newStr, idFont, scale);
+    //         newStr[nEnd]     = chOld;
+    //         strRight         = strLeft + strWidth;
+    //     }
+    //     if (nEnd > 0) {
+    //         char const chOld = newStr[nEnd];
+    //         newStr[nEnd]     = 0;
+    //         strWidth = pRenderService->ExtPrint(idFont, dwFCol, dwBCol, PR_ALIGN_LEFT, shadow, scale, sxs, sys, strLeft, top, "%s",
+    //         newStr); newStr[nEnd] = chOld; return strWidth;
+    //     }
+    //     return 0;
+    // }
 
-    return pRenderService->ExtPrint(idFont, dwFCol, dwBCol, PR_ALIGN_LEFT, shadow, scale, sxs, sys, strLeft, top, "%s", newStr);
+    // return pRenderService->ExtPrint(idFont, dwFCol, dwBCol, PR_ALIGN_LEFT, shadow, scale, sxs, sys, strLeft, top, "%s", newStr);
+    return -1;
 }
 
 void XInterface::IncrementGameTime(uint32_t dwDeltaTime)
@@ -2728,13 +2709,13 @@ void XInterface::GetContextHelpData()
         m_frectHelpTextureUV = m_frectDefHelpTextureUV;
     }
 
-    if (texName != nullptr) m_idHelpTexture = pRenderService->TextureCreate(texName);
+    // if (texName != nullptr) m_idHelpTexture = pRenderService->TextureCreate(texName);
     if (m_idHelpTexture != -1) m_nInterfaceMode = CONTEXTHELP_IMODE;
 }
 
 void XInterface::ReleaseContextHelpData()
 {
-    TEXTURE_RELEASE(pRenderService, m_idHelpTexture);
+    // TEXTURE_RELEASE(pRenderService, m_idHelpTexture);
     m_nInterfaceMode = DEFAULT_IMODE;
 }
 
@@ -2749,9 +2730,9 @@ void XInterface::ShowContextHelp()
         pV[i].pos.z = 1.f;
 
     uint32_t oldTFactor;
-    pRenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &oldTFactor);
-
-    pRenderService->TextureSet(0, m_idHelpTexture);
+    // pRenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &oldTFactor);
+    //
+    // pRenderService->TextureSet(0, m_idHelpTexture);
 
     pV[0].pos.x = pV[2].pos.x = 0;  //(float)GlobalRect.left;
     pV[0].tu = pV[2].tu = m_frectHelpTextureUV.left;
@@ -2765,9 +2746,9 @@ void XInterface::ShowContextHelp()
     pV[2].pos.y = pV[3].pos.y = static_cast<float>(dwScreenHeight);  //(float)GlobalRect.bottom;
     pV[2].tv = pV[3].tv = m_frectHelpTextureUV.bottom;
 
-    pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwContHelpColor);
-    pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iBlindPictures");
-    pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
+    // pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwContHelpColor);
+    // pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iBlindPictures");
+    // pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
 }
 
 int XInterface::LoadIsExist()

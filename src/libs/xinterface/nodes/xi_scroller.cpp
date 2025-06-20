@@ -36,7 +36,6 @@ void SetVertexRectanglePos(XI_ONLYONETEX_VERTEX* pv, FXYRECT& posRect)
 
 CXI_SCROLLER::CXI_SCROLLER() : m_rollerHeight(0), m_fPos(0), m_fOffTexHeight(0), m_fOffHeight(0)
 {
-    m_rs        = nullptr;
     m_nNodeType = NODETYPE_SCROLLER;
 
     m_idBaseTex   = -1;
@@ -62,17 +61,17 @@ void CXI_SCROLLER::Draw(bool bSelected, uint32_t Delta_Time)
             if (m_bDragRoll) MouseMove();
         }
 
-        m_rs->TextureSet(0, m_idBaseTex);
-        m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iStatusLine");
-        m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iStatusLine");
-        m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iStatusLine");
-        m_rs->TextureSet(0, m_idRollerTex);
-        m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 12, 2, "iStatusLine");
+        // m_rs->TextureSet(0, m_idBaseTex);
+        // m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iStatusLine");
+        // m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iStatusLine");
+        // m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iStatusLine");
+        // m_rs->TextureSet(0, m_idRollerTex);
+        // m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 12, 2, "iStatusLine");
     }
 }
 
 bool CXI_SCROLLER::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     // screen position for that is host screen position
@@ -84,9 +83,9 @@ bool CXI_SCROLLER::Init(
 void CXI_SCROLLER::ReleaseAll()
 {
     m_bUse = false;
-    TEXTURE_RELEASE(m_rs, m_idBaseTex);
-    TEXTURE_RELEASE(m_rs, m_idRollerTex);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // TEXTURE_RELEASE(m_rs, m_idBaseTex);
+    // TEXTURE_RELEASE(m_rs, m_idRollerTex);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
     m_asOwnedNodes.clear();
 }
 
@@ -129,10 +128,10 @@ void CXI_SCROLLER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char
 
     // Get texture name and load that texture
     m_idBaseTex = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "baseTexture", param, sizeof(param), "")) m_idBaseTex = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "baseTexture", param, sizeof(param), "")) m_idBaseTex = m_rs->TextureCreate(param);
 
     m_idRollerTex = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "rollerTexture", param, sizeof(param), "")) m_idRollerTex = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "rollerTexture", param, sizeof(param), "")) m_idRollerTex = m_rs->TextureCreate(param);
 
     // Set buffers
     m_fOffTexHeight = GetIniFloat(ini1, name1, ini2, name2, "begEndTexSize", 0.f);
@@ -147,7 +146,7 @@ void CXI_SCROLLER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char
     m_ScrollTexRect = GetIniFloatRect(ini1, name1, ini2, name2, "scrollTexPos", FXYRECT(0.f, 0.f, 1.f, 1.f));
     m_RollTexRect   = GetIniFloatRect(ini1, name1, ini2, name2, "rollTexPos", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
-    m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 16 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 16 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
     FillVertexBuffer();
 }
 
@@ -254,11 +253,11 @@ void CXI_SCROLLER::SetRollerPos(float pos)
     m_rollerCur.top    = m_rollerPlace.top + m_fPos * (m_rollerPlace.bottom - m_rollerPlace.top - m_rollerHeight);
     m_rollerCur.bottom = m_rollerCur.top + m_rollerHeight;
 
-    auto* pV = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pV != nullptr) {
-        SetVertexRectanglePos(&pV[12], m_rollerCur);
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* pV = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pV != nullptr) {
+    //     SetVertexRectanglePos(&pV[12], m_rollerCur);
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 }
 
 void CXI_SCROLLER::LinkNodeChanged(float fPos)
@@ -270,63 +269,63 @@ void CXI_SCROLLER::LinkNodeChanged(float fPos)
 
 void CXI_SCROLLER::FillVertexBuffer()
 {
-    auto* pV = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pV != nullptr) {
-        for (auto i = 0; i < 16; i++)
-            pV[i].pos.z = 1.f;
-
-        FXYRECT texRect;
-        texRect.left   = m_ScrollTexRect.left;
-        texRect.top    = m_ScrollTexRect.top + m_fOffTexHeight;
-        texRect.right  = m_ScrollTexRect.right;
-        texRect.bottom = m_ScrollTexRect.bottom - m_fOffTexHeight;
-        SetVertexRectangleTex(&pV[0], texRect);
-
-        texRect.left   = m_ScrollTexRect.left;
-        texRect.top    = m_ScrollTexRect.top;
-        texRect.right  = m_ScrollTexRect.right;
-        texRect.bottom = m_ScrollTexRect.top + m_fOffTexHeight;
-        SetVertexRectangleTex(&pV[4], texRect);
-
-        texRect.left   = m_ScrollTexRect.left;
-        texRect.top    = m_ScrollTexRect.bottom - m_fOffTexHeight;
-        texRect.right  = m_ScrollTexRect.right;
-        texRect.bottom = m_ScrollTexRect.bottom;
-        SetVertexRectangleTex(&pV[8], texRect);
-
-        texRect.left   = m_RollTexRect.left;
-        texRect.top    = m_RollTexRect.top;
-        texRect.right  = m_RollTexRect.right;
-        texRect.bottom = m_RollTexRect.bottom;
-        SetVertexRectangleTex(&pV[12], texRect);
-
-        FXYRECT baseRect;
-        baseRect.left   = static_cast<float>(m_rect.left);
-        baseRect.top    = static_cast<float>(m_rect.top) + m_fOffHeight;
-        baseRect.right  = static_cast<float>(m_rect.right);
-        baseRect.bottom = static_cast<float>(m_rect.bottom) - m_fOffHeight;
-        SetVertexRectanglePos(&pV[0], baseRect);
-
-        m_upButtonPos.left   = static_cast<float>(m_rect.left);
-        m_upButtonPos.top    = static_cast<float>(m_rect.top);
-        m_upButtonPos.right  = static_cast<float>(m_rect.right);
-        m_upButtonPos.bottom = static_cast<float>(m_rect.top) + m_fOffHeight;
-        SetVertexRectanglePos(&pV[4], m_upButtonPos);
-
-        m_downButtonPos.left   = static_cast<float>(m_rect.left);
-        m_downButtonPos.top    = static_cast<float>(m_rect.bottom) - m_fOffHeight;
-        m_downButtonPos.right  = static_cast<float>(m_rect.right);
-        m_downButtonPos.bottom = static_cast<float>(m_rect.bottom);
-        SetVertexRectanglePos(&pV[8], m_downButtonPos);
-
-        m_rollerCur.left   = m_rollerPlace.left;
-        m_rollerCur.top    = m_rollerPlace.top;
-        m_rollerCur.right  = m_rollerPlace.right;
-        m_rollerCur.bottom = m_rollerPlace.top + m_rollerHeight;
-        SetVertexRectanglePos(&pV[12], m_rollerCur);
-
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* pV = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pV != nullptr) {
+    //     for (auto i = 0; i < 16; i++)
+    //         pV[i].pos.z = 1.f;
+    //
+    //     FXYRECT texRect;
+    //     texRect.left   = m_ScrollTexRect.left;
+    //     texRect.top    = m_ScrollTexRect.top + m_fOffTexHeight;
+    //     texRect.right  = m_ScrollTexRect.right;
+    //     texRect.bottom = m_ScrollTexRect.bottom - m_fOffTexHeight;
+    //     SetVertexRectangleTex(&pV[0], texRect);
+    //
+    //     texRect.left   = m_ScrollTexRect.left;
+    //     texRect.top    = m_ScrollTexRect.top;
+    //     texRect.right  = m_ScrollTexRect.right;
+    //     texRect.bottom = m_ScrollTexRect.top + m_fOffTexHeight;
+    //     SetVertexRectangleTex(&pV[4], texRect);
+    //
+    //     texRect.left   = m_ScrollTexRect.left;
+    //     texRect.top    = m_ScrollTexRect.bottom - m_fOffTexHeight;
+    //     texRect.right  = m_ScrollTexRect.right;
+    //     texRect.bottom = m_ScrollTexRect.bottom;
+    //     SetVertexRectangleTex(&pV[8], texRect);
+    //
+    //     texRect.left   = m_RollTexRect.left;
+    //     texRect.top    = m_RollTexRect.top;
+    //     texRect.right  = m_RollTexRect.right;
+    //     texRect.bottom = m_RollTexRect.bottom;
+    //     SetVertexRectangleTex(&pV[12], texRect);
+    //
+    //     FXYRECT baseRect;
+    //     baseRect.left   = static_cast<float>(m_rect.left);
+    //     baseRect.top    = static_cast<float>(m_rect.top) + m_fOffHeight;
+    //     baseRect.right  = static_cast<float>(m_rect.right);
+    //     baseRect.bottom = static_cast<float>(m_rect.bottom) - m_fOffHeight;
+    //     SetVertexRectanglePos(&pV[0], baseRect);
+    //
+    //     m_upButtonPos.left   = static_cast<float>(m_rect.left);
+    //     m_upButtonPos.top    = static_cast<float>(m_rect.top);
+    //     m_upButtonPos.right  = static_cast<float>(m_rect.right);
+    //     m_upButtonPos.bottom = static_cast<float>(m_rect.top) + m_fOffHeight;
+    //     SetVertexRectanglePos(&pV[4], m_upButtonPos);
+    //
+    //     m_downButtonPos.left   = static_cast<float>(m_rect.left);
+    //     m_downButtonPos.top    = static_cast<float>(m_rect.bottom) - m_fOffHeight;
+    //     m_downButtonPos.right  = static_cast<float>(m_rect.right);
+    //     m_downButtonPos.bottom = static_cast<float>(m_rect.bottom);
+    //     SetVertexRectanglePos(&pV[8], m_downButtonPos);
+    //
+    //     m_rollerCur.left   = m_rollerPlace.left;
+    //     m_rollerCur.top    = m_rollerPlace.top;
+    //     m_rollerCur.right  = m_rollerPlace.right;
+    //     m_rollerCur.bottom = m_rollerPlace.top + m_rollerHeight;
+    //     SetVertexRectanglePos(&pV[12], m_rollerCur);
+    //
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 }
 
 void CXI_SCROLLER::MouseMove()

@@ -8,8 +8,8 @@
 
 CXI_IMAGE::CXI_IMAGE()
 {
-    m_rs = XInterface::GetRenderService();
-    if (!m_rs) { throw std::runtime_error("No service: dx9render"); }
+    // m_rs = XInterface::GetRenderService();
+    // if (!m_rs) { throw std::runtime_error("No service: dx9render"); }
 
     m_bDisableDraw = false;
 
@@ -17,7 +17,7 @@ CXI_IMAGE::CXI_IMAGE()
     m_nPictureNum       = -1;
 
     m_nTextureID = -1;
-    m_pTexture   = nullptr;
+    // m_pTexture   = nullptr;
 
     m_frUV.left   = 0.f;
     m_frUV.top    = 0.f;
@@ -42,7 +42,7 @@ CXI_IMAGE::~CXI_IMAGE()
 void CXI_IMAGE::LoadFromFile(char const* sFileName)
 {
     Unload();
-    m_nTextureID = m_rs->TextureCreate(sFileName);
+    // m_nTextureID = m_rs->TextureCreate(sFileName);
     UpdateTexture();
     UpdatePosition();
 }
@@ -92,7 +92,7 @@ void CXI_IMAGE::LoadAccordingToString(char const* pcImageParam)
             break;
         case InterfaceToken_file:
             if (CXI_UTILS::StringGetTokenString(pcParam, tokenString, sizeof(tokenString))) {
-                m_nTextureID = m_rs->TextureCreate(tokenString);
+                // m_nTextureID = m_rs->TextureCreate(tokenString);
                 UpdateTexture();
             }
             break;
@@ -141,30 +141,30 @@ void CXI_IMAGE::LoadAccordingToString(char const* pcImageParam)
     if (m_bThisIsColorRectangle && !bSetColor) m_bThisIsColorRectangle = false;
 }
 
-void CXI_IMAGE::SetPointerToTexture(IDirect3DTexture9* pTex)
+void CXI_IMAGE::SetPointerToTexture(/*IDirect3DTexture9*/ void* pTex)
 {
     Unload();
     if (!pTex) return;
-    m_pTexture = pTex;
-    pTex->AddRef();
+    // m_pTexture = pTex;
+    // pTex->AddRef();
 }
 
 void CXI_IMAGE::Draw()
 {
     if (m_bDisableDraw) return;
 
-    if (m_bThisIsColorRectangle) {
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vrtx, sizeof(XI_ONETEX_VERTEX), "iRectangle");
-        return;
-    }
+    // if (m_bThisIsColorRectangle) {
+    //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vrtx, sizeof(XI_ONETEX_VERTEX), "iRectangle");
+    //     return;
+    // }
 
-    if (IsImagePresent()) {
-        if (m_pTexture)
-            m_rs->SetTexture(0, m_pTexture);
-        else
-            m_rs->TextureSet(0, m_nTextureID);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vrtx, sizeof(XI_ONETEX_VERTEX), "iVideo");
-    }
+    // if (IsImagePresent()) {
+    //     if (m_pTexture)
+    //         m_rs->SetTexture(0, m_pTexture);
+    //     else
+    //         m_rs->TextureSet(0, m_nTextureID);
+    //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vrtx, sizeof(XI_ONETEX_VERTEX), "iVideo");
+    // }
 }
 
 void CXI_IMAGE::Draw(int32_t nX, int32_t nY, ImagePointType alignment)
@@ -273,10 +273,10 @@ void CXI_IMAGE::Unload()
         if (m_pcPictureListName) {
             PICTURE_TEXTURE_RELEASE(XInterface::GetPictureService(), m_pcPictureListName, m_nTextureID);
         } else {
-            TEXTURE_RELEASE(m_rs, m_nTextureID);
+            // TEXTURE_RELEASE(m_rs, m_nTextureID);
         }
     }
-    RELEASE(m_pTexture);
+    // RELEASE(m_pTexture);
     delete[] m_pcPictureListName;
     m_pcPictureListName = nullptr;
 }

@@ -1,11 +1,9 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/entity.h>
 
 class InfoHandler: public Entity
 {
-    VDX9RENDER* m_rs;
-
 public:
     InfoHandler();
     ~InfoHandler() override;
@@ -18,13 +16,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -32,8 +24,6 @@ protected:
     void        StringToBufer(char* outStr, int sizeBuf, char const* inStr, int copySize) const;
     char const* GetCutString(char const* pstr, int nOutWidth, float fScale) const;
     bool        DoPreOut();
-
-    IDirect3DTexture9* tex;
 
     struct {
         float x, y, z, rhw;

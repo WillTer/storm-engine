@@ -41,10 +41,10 @@ void InterfaceBackScene::LightParam::UpdateParams(float fTime)
         fK = 2.f * fColorTimer / fPer;
     else
         fK = 2.f - 2.f * fColorTimer / fPer;
-    lightSource.Diffuse.a = colorMin.a + (colorMax.a - colorMin.a) * fK;  // 1.f
-    lightSource.Diffuse.r = colorMin.r + (colorMax.r - colorMin.r) * fK;  // 1.0f;
-    lightSource.Diffuse.g = colorMin.g + (colorMax.g - colorMin.g) * fK;  // 1.0f;
-    lightSource.Diffuse.b = colorMin.b + (colorMax.b - colorMin.b) * fK;  // 0.7f;
+    // lightSource.Diffuse.a = colorMin.a + (colorMax.a - colorMin.a) * fK;  // 1.f
+    // lightSource.Diffuse.r = colorMin.r + (colorMax.r - colorMin.r) * fK;  // 1.0f;
+    // lightSource.Diffuse.g = colorMin.g + (colorMax.g - colorMin.g) * fK;  // 1.0f;
+    // lightSource.Diffuse.b = colorMin.b + (colorMax.b - colorMin.b) * fK;  // 0.7f;
 
     dwFlareColor = static_cast<uint32_t>(fMinFlareColor + (fMaxFlareColor - fMinFlareColor) * fK);
     dwFlareColor = dwFlareColor | (dwFlareColor << 24) | (dwFlareColor << 16) | (dwFlareColor << 8);
@@ -52,9 +52,9 @@ void InterfaceBackScene::LightParam::UpdateParams(float fTime)
     auto vPos = vLightPos;
     if (pLightSrcNode) vPos = pLightSrcNode->glob_mtx * vLightPos;
 
-    lightSource.Position.x = vPos.x;
-    lightSource.Position.y = vPos.y;
-    lightSource.Position.z = vPos.z;
+    // lightSource.Position.x = vPos.x;
+    // lightSource.Position.y = vPos.y;
+    // lightSource.Position.z = vPos.z;
 
     fRangeTimer += fTime;
     if (fRangeTimer > fRangePeriod) fRangeTimer -= fRangePeriod;
@@ -62,7 +62,7 @@ void InterfaceBackScene::LightParam::UpdateParams(float fTime)
         fK = 2.f * fRangeTimer / fRangePeriod;
     else
         fK = 2.f - 2.f * fRangeTimer / fRangePeriod;
-    lightSource.Range = fRangeMin + (fRangeMax - fRangeMin) * fK;  // 10.f;
+    // lightSource.Range = fRangeMin + (fRangeMax - fRangeMin) * fK;  // 10.f;
 }
 
 InterfaceBackScene::MenuDescr::~MenuDescr()
@@ -119,14 +119,7 @@ void InterfaceBackScene::MenuDescr::Set(
     if (pActive) bSelectable = true;
 }
 
-InterfaceBackScene::InterfaceBackScene()
-    : m_pRS(nullptr)
-    , m_eiModel(0)
-    , m_eiLocators(0)
-    , m_nSelectMenuIndex(0)
-    , buffer {}
-    , m_vFlarePos()
-    , m_fFlareSize(0)
+InterfaceBackScene::InterfaceBackScene() : m_eiModel(0), m_eiLocators(0), m_nSelectMenuIndex(0), buffer {}, m_vFlarePos(), m_fFlareSize(0)
 {
     m_pModel    = nullptr;
     m_pLocators = nullptr;
@@ -159,19 +152,17 @@ InterfaceBackScene::~InterfaceBackScene()
         delete model;
     // m_apAniModel.DelAllWithPointers();
 
-    if (m_nFlareTexture >= 0) m_pRS->TextureRelease(m_nFlareTexture);
+    // if (m_nFlareTexture >= 0) m_pRS->TextureRelease(m_nFlareTexture);
     m_nFlareTexture = -1;
 
-    if (flyTex >= 0) m_pRS->TextureRelease(flyTex);
+    // if (flyTex >= 0) m_pRS->TextureRelease(flyTex);
     flyTex = -1;
 }
 
 bool InterfaceBackScene::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(m_pRS);
-    flyTex          = m_pRS->TextureCreate("locefx/firefly.tga");
-    m_nFlareTexture = m_pRS->TextureCreate("shipsflares/corona.tga");
+    // flyTex          = m_pRS->TextureCreate("locefx/firefly.tga");
+    // m_nFlareTexture = m_pRS->TextureCreate("shipsflares/corona.tga");
     return true;
 }
 
@@ -219,15 +210,9 @@ void InterfaceBackScene::Execute(uint32_t Delta_Time)
         if (core->Controls->GetDebugAsyncKeyState(VK_RIGHT) < 0) m_vCamAng.y += fRotateSpeed;
     }
 
-    m_pRS->SetCamera(m_vCamPos, m_vCamAng, m_fCamPerspective);
+    // m_pRS->SetCamera(m_vCamPos, m_vCamAng, m_fCamPerspective);
 
     if (nOldMenuIndex != m_nSelectMenuIndex) core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
-
-    /*    for( int32_t n=0; n<m_apAniModel; n++ )
-      {
-        if( m_apAniModel[n]->pModel )
-          m_apAniModel[n]->pModel->Execute( Delta_Time );
-      }*/
 }
 
 void InterfaceBackScene::Realize(uint32_t Delta_Time)
@@ -239,7 +224,7 @@ void InterfaceBackScene::Realize(uint32_t Delta_Time)
     // model rendering
     if (m_pModel) {
         SetLight();
-        m_pRS->SetRenderState(D3DRS_LIGHTING, true);
+        // m_pRS->SetRenderState(D3DRS_LIGHTING, true);
         m_pModel->ProcessStage(Stage::realize, Delta_Time);
         for (n = 0; n < m_aLights.size(); n++)  // show all lights
             if (m_aLights[n]->pModel) {
@@ -249,13 +234,13 @@ void InterfaceBackScene::Realize(uint32_t Delta_Time)
         for (n = 0; n < m_apAniModel.size(); n++) {
             if (m_apAniModel[n]->pModel) {
                 uint32_t dwTFactor;
-                m_pRS->GetRenderState(D3DRS_TEXTUREFACTOR, &dwTFactor);
-                if (m_apAniModel[n]->bUseTFactor) m_pRS->SetRenderState(D3DRS_TEXTUREFACTOR, m_apAniModel[n]->dwTFactor);
+                // m_pRS->GetRenderState(D3DRS_TEXTUREFACTOR, &dwTFactor);
+                // if (m_apAniModel[n]->bUseTFactor) m_pRS->SetRenderState(D3DRS_TEXTUREFACTOR, m_apAniModel[n]->dwTFactor);
                 m_apAniModel[n]->pModel->ProcessStage(Stage::realize, Delta_Time);
-                m_pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwTFactor);
+                // m_pRS->SetRenderState(D3DRS_TEXTUREFACTOR, dwTFactor);
             }
         }
-        m_pRS->SetRenderState(D3DRS_LIGHTING, false);
+        // m_pRS->SetRenderState(D3DRS_LIGHTING, false);
         RestoreLight();
     }
 
@@ -379,7 +364,6 @@ void InterfaceBackScene::LoadModel(char const* pcModelName)
 
 void InterfaceBackScene::SetCameraPosition(char const* pcLocatorName)
 {
-    // FindLocator( pcLocatorName, 0, &m_vCamPos, &m_vCamAng.y );
     Matrix mtx;
     FindLocator(pcLocatorName, (CMatrix*)&mtx, &m_vCamPos, nullptr);
     Vector vAddZ;
@@ -389,7 +373,6 @@ void InterfaceBackScene::SetCameraPosition(char const* pcLocatorName)
     m_vCamPos.x += vAddZ.x;
     m_vCamPos.y += vAddZ.y;
     m_vCamPos.z += vAddZ.z;
-    // m_vCamAng.x = -4.262f/180.f*PI;
 }
 
 void InterfaceBackScene::SetShipPosition(char const* pcLocName, ATTRIBUTES* pAChar) const
@@ -466,7 +449,6 @@ void InterfaceBackScene::SetLocatorPosition(MODEL* pModel, char const* pcLocName
 
 void InterfaceBackScene::ReleaseMenuList()
 {
-    // m_aMenuDescr.DelAllWithPointers();
     for (auto const& descr: m_aMenuDescr)
         delete descr;
     m_aMenuDescr.clear();
@@ -549,14 +531,14 @@ int32_t InterfaceBackScene::CheckMousePos(float fX, float fY)
     float fRelY = 2.f * fY / fH - 1.f;
 
     CMatrix mtxProj;
-    m_pRS->GetTransform(D3DTS_PROJECTION, mtxProj);
+    // m_pRS->GetTransform(D3DTS_PROJECTION, mtxProj);
     CVECTOR v;
     v.x = fRelX / mtxProj.m[0][0];
     v.y = -fRelY / mtxProj.m[1][1];
     v.z = 1.0f;
 
     CMatrix mtxView;
-    m_pRS->GetTransform(D3DTS_VIEW, mtxView);
+    // m_pRS->GetTransform(D3DTS_VIEW, mtxView);
     CVECTOR vDir;
     mtxView.MulToInvNorm(v, vDir);
     mtxView.Transposition();
@@ -577,24 +559,24 @@ void InterfaceBackScene::InitLight(ATTRIBUTES* pAParam)
 
     m_aLights.push_back(pLight);
 
-    pLight->lightSource              = {};
-    pLight->lightSource.Type         = D3DLIGHT_POINT;
-    pLight->lightSource.Attenuation0 = 0.0f;
-    pLight->lightSource.Attenuation1 = 0.0f;
-    pLight->lightSource.Attenuation2 = 1.0f;
-    pLight->indexLight               = -1;
+    // pLight->lightSource              = {};
+    // pLight->lightSource.Type         = D3DLIGHT_POINT;
+    // pLight->lightSource.Attenuation0 = 0.0f;
+    // pLight->lightSource.Attenuation1 = 0.0f;
+    // pLight->lightSource.Attenuation2 = 1.0f;
+    pLight->indexLight = -1;
 
-    float const fDiv      = 1.f / 255.f;
-    uint32_t    dwTmp     = pAParam->GetAttributeAsDword("lightcolormin", 0xFFFFFFFF);
-    pLight->colorMin.a    = ALPHA(dwTmp) * fDiv;
-    pLight->colorMin.r    = RED(dwTmp) * fDiv;
-    pLight->colorMin.g    = GREEN(dwTmp) * fDiv;
-    pLight->colorMin.b    = BLUE(dwTmp) * fDiv;
-    dwTmp                 = pAParam->GetAttributeAsDword("lightcolormax", 0xFFFFFFFF);
-    pLight->colorMax.a    = ALPHA(dwTmp) * fDiv;
-    pLight->colorMax.r    = RED(dwTmp) * fDiv;
-    pLight->colorMax.g    = GREEN(dwTmp) * fDiv;
-    pLight->colorMax.b    = BLUE(dwTmp) * fDiv;
+    float const fDiv  = 1.f / 255.f;
+    uint32_t    dwTmp = pAParam->GetAttributeAsDword("lightcolormin", 0xFFFFFFFF);
+    // pLight->colorMin.a    = ALPHA(dwTmp) * fDiv;
+    // pLight->colorMin.r    = RED(dwTmp) * fDiv;
+    // pLight->colorMin.g    = GREEN(dwTmp) * fDiv;
+    // pLight->colorMin.b    = BLUE(dwTmp) * fDiv;
+    dwTmp = pAParam->GetAttributeAsDword("lightcolormax", 0xFFFFFFFF);
+    // pLight->colorMax.a    = ALPHA(dwTmp) * fDiv;
+    // pLight->colorMax.r    = RED(dwTmp) * fDiv;
+    // pLight->colorMax.g    = GREEN(dwTmp) * fDiv;
+    // pLight->colorMax.b    = BLUE(dwTmp) * fDiv;
     pLight->fColorPeriod  = pAParam->GetAttributeAsFloat("colorperiod", 1.f);
     pLight->fAddPeriodMax = pAParam->GetAttributeAsFloat("addcolorperiod", 1.f);
     pLight->fColorTimer   = 0.f;
@@ -653,24 +635,24 @@ void InterfaceBackScene::InitLight(ATTRIBUTES* pAParam)
 
 void InterfaceBackScene::SetLight()
 {
-    int32_t  nFreeLightIndex = 0;
-    D3DCAPS9 d3dcaps;
-    m_pRS->GetDeviceCaps(&d3dcaps);
+    int32_t nFreeLightIndex = 0;
+    // D3DCAPS9 d3dcaps;
+    // m_pRS->GetDeviceCaps(&d3dcaps);
 
     for (int32_t n = 0; n < m_aLights.size(); n++) {
         if (m_aLights[n]->bUse) {
-            BOOL bTmp;
-            for (; nFreeLightIndex < static_cast<int32_t>(d3dcaps.MaxActiveLights); nFreeLightIndex++)
-                if (m_pRS->GetLightEnable(nFreeLightIndex, &bTmp) && bTmp == false) break;
-            if (nFreeLightIndex < static_cast<int32_t>(d3dcaps.MaxActiveLights)) {
-                // found a free source
-                m_aLights[n]->indexLight = nFreeLightIndex;
-                m_pRS->GetLight(nFreeLightIndex, &m_aLights[n]->lightOldSource);
-                m_pRS->LightEnable(nFreeLightIndex, true);
-                m_aLights[n]->UpdateParams(core->GetDeltaTime() * .001f);
-                m_pRS->SetLight(nFreeLightIndex, &m_aLights[n]->lightSource);
-            } else
-                m_aLights[n]->indexLight = -1;
+            // BOOL bTmp;
+            // for (; nFreeLightIndex < static_cast<int32_t>(d3dcaps.MaxActiveLights); nFreeLightIndex++)
+            // if (m_pRS->GetLightEnable(nFreeLightIndex, &bTmp) && bTmp == false) break;
+            // if (nFreeLightIndex < static_cast<int32_t>(d3dcaps.MaxActiveLights)) {
+            // found a free source
+            // m_aLights[n]->indexLight = nFreeLightIndex;
+            // m_pRS->GetLight(nFreeLightIndex, &m_aLights[n]->lightOldSource);
+            // m_pRS->LightEnable(nFreeLightIndex, true);
+            // m_aLights[n]->UpdateParams(core->GetDeltaTime() * .001f);
+            // m_pRS->SetLight(nFreeLightIndex, &m_aLights[n]->lightSource);
+            // } else
+            // m_aLights[n]->indexLight = -1;
         }
     }
 }
@@ -680,8 +662,8 @@ void InterfaceBackScene::RestoreLight()
     for (int32_t n = 0; n < m_aLights.size(); n++) {
         if (m_aLights[n]->bUse) {
             if (m_aLights[n]->indexLight >= 0) {
-                m_pRS->SetLight(m_aLights[n]->indexLight, &m_aLights[n]->lightOldSource);
-                m_pRS->LightEnable(m_aLights[n]->indexLight, false);
+                // m_pRS->SetLight(m_aLights[n]->indexLight, &m_aLights[n]->lightOldSource);
+                // m_pRS->LightEnable(m_aLights[n]->indexLight, false);
                 m_aLights[n]->indexLight = -1;
             }
         }
@@ -691,39 +673,14 @@ void InterfaceBackScene::RestoreLight()
 void InterfaceBackScene::FlareShow(int32_t idx)
 {
     CVECTOR pos, ang;
-    m_pRS->GetCamera(pos, ang, ang.x);
+    // m_pRS->GetCamera(pos, ang, ang.x);
     CMatrix camMtx;
-    m_pRS->GetTransform(D3DTS_VIEW, camMtx);
+    // m_pRS->GetTransform(D3DTS_VIEW, camMtx);
 
     float dx = m_vFlarePos.x - pos.x;
     float dy = m_vFlarePos.y - pos.y;
     float dz = m_vFlarePos.z - pos.z;
 
-    /*    float d = dx*dx + dy*dy + dz*dz;
-
-    // Distance
-    float dist = sqrtf(d);
-    d = dist / m_fFlareRange;
-    if(d > 1.0f) d = 1.0f;
-    float alpha = 1.0f;
-    if(d < 0.3f) alpha *= 0.2f + 0.8f*d/0.3f;
-    if(d > 0.4f){ alpha *= 1.0f - (d - 0.4f)/0.6f; alpha *= alpha; }
-    alpha * = 255.f; // ls.corona * 255.0f;
-    // Deviation coefficient
-    d = 0.f;// ls.i*0.4f;
-    if(d < -0.1f) d = -0.1f;
-    if(d > 0.1f) d = 0.1f;
-    d += 1.0f;
-    // Current size
-    float size = d*m_fFlareSize;
-    // Transparency
-    alpha * = d;
-    if(alpha < 0.0f) alpha = 0.0f;
-    if(alpha > 255.0f) alpha = 255.0f;
-    // Position
-    pos = camMtx * m_vFlarePos;
-    // Colour
-    uint32_t c = uint32_t(alpha); c |= (c << 24) | (c << 16) | (c << 8);*/
     // Angle of rotation
     float cs, sn;
     float _cs = (dx * camMtx.Vx().z + dz * camMtx.Vz().z);
@@ -769,11 +726,11 @@ void InterfaceBackScene::FlareShow(int32_t idx)
     buffer[5].color = c;
     buffer[5].u     = 1.0f;
     buffer[5].v     = 1.0f;
-    m_pRS->TextureSet(0, m_nFlareTexture);
+    // m_pRS->TextureSet(0, m_nFlareTexture);
     CMatrix mtx;
     mtx.SetIdentity();
-    m_pRS->SetWorld(mtx);
-    m_pRS->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, 2, buffer, sizeof(Vertex), "Coronas");
+    // m_pRS->SetWorld(mtx);
+    // m_pRS->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, 2, buffer, sizeof(Vertex), "Coronas");
 }
 
 void InterfaceBackScene::InitAniModel(ATTRIBUTES* pAParam)
@@ -901,7 +858,7 @@ void InterfaceBackScene::AddLampFlys(CVECTOR& pos)
 void InterfaceBackScene::ProcessedFlys(float dltTime)
 {
     CMatrix view;
-    m_pRS->GetTransform(D3DTS_VIEW, view);
+    // m_pRS->GetTransform(D3DTS_VIEW, view);
     view.Transposition();
     const CVECTOR cam = view.Pos();
     float const   dax = dltTime * 1.3f;
@@ -963,10 +920,10 @@ void InterfaceBackScene::ProcessedFlys(float dltTime)
 void InterfaceBackScene::DrawParticles(void* prts, int32_t num, int32_t size, int32_t texture, char const* tech, bool isEx, int32_t numU)
 {
     CMatrix camMtx;
-    m_pRS->GetTransform(D3DTS_VIEW, camMtx);
-    m_pRS->SetTransform(D3DTS_VIEW, CMatrix());
-    m_pRS->SetTransform(D3DTS_WORLD, CMatrix());
-    m_pRS->TextureSet(0, texture);
+    // m_pRS->GetTransform(D3DTS_VIEW, camMtx);
+    // m_pRS->SetTransform(D3DTS_VIEW, CMatrix());
+    // m_pRS->SetTransform(D3DTS_WORLD, CMatrix());
+    // m_pRS->TextureSet(0, texture);
     int32_t n = 0;
     for (int32_t i = 0; i < num; i++) {
         auto* parts       = static_cast<Particle*>(prts);
@@ -1013,13 +970,14 @@ void InterfaceBackScene::DrawParticles(void* prts, int32_t num, int32_t size, in
         buffer[n * 6 + 5].v     = 1.0f;
         n++;
         if (n * 2 == 256) {
-            m_pRS->DrawPrimitiveUP(
-                D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
+            // m_pRS->DrawPrimitiveUP(
+            //     D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
             n = 0;
         }
     }
     if (n > 0) {
-        m_pRS->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
+        // m_pRS->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex),
+        // (char*)tech);
     }
-    m_pRS->SetTransform(D3DTS_VIEW, camMtx);
+    // m_pRS->SetTransform(D3DTS_VIEW, camMtx);
 }

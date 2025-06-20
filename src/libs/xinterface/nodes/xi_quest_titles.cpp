@@ -1,13 +1,15 @@
 #include "xi_quest_titles.h"
 
-void SubRightWord(char* buf, int fontNum, int width, VDX9RENDER* rs)
+#include <libs/renderer_next/types.h>
+
+void SubRightWord(char* buf, int fontNum, int width, /*VDX9RENDER*/ void* rs)
 {
     if (buf == nullptr) return;
     int32_t const bufSize = strlen(buf);
     for (auto* pEnd = buf + bufSize; pEnd > buf; pEnd--) {
         if (*pEnd == ' ') {
             *pEnd = 0;
-            if (rs->StringWidth(buf, fontNum) <= width) return;
+            // if (rs->StringWidth(buf, fontNum) <= width) return;
         }
     }
 }
@@ -28,12 +30,12 @@ bool CXI_QUESTTITLE::GetLineNext(int fontNum, char*& pInStr, char* buf, int bufS
     if (lineSize == 0) return false;
 
     strncpy_s(buf, bufSize, pStart, lineSize);
-    buf[lineSize]        = 0;
-    auto const strWidth  = m_rs->StringWidth(buf, fontNum);
+    buf[lineSize] = 0;
+    // auto const strWidth  = m_rs->StringWidth(buf, fontNum);
     auto const needWidth = m_rect.right - m_rect.left - m_iconWidth;
-    if (strWidth <= needWidth) return true;
+    // if (strWidth <= needWidth) return true;
 
-    SubRightWord(buf, fontNum, needWidth, m_rs);
+    // SubRightWord(buf, fontNum, needWidth, m_rs);
     pInStr = pStart + strlen(buf);
 
     // remove leading spaces
@@ -48,9 +50,9 @@ CXI_QUESTTITLE::CXI_QUESTTITLE() : m_iconWidth(0), m_iconHeight(0), m_iconVOffse
     m_nNodeType = NODETYPE_QTITLE;
 
     m_idFont                 = -1;
-    m_dwNonCompleteColor     = ARGB(255, 255, 255, 255);
-    m_dwCompleteColor        = ARGB(255, 128, 128, 128);
-    m_dwSelectRectangleColor = ARGB(255, 0, 128, 128);
+    m_dwNonCompleteColor     = storm::Color {255, 255, 255, 255}.to_hex();
+    m_dwCompleteColor        = storm::Color {255, 128, 128, 128}.to_hex();
+    m_dwSelectRectangleColor = storm::Color {255, 0, 128, 128}.to_hex();
 
     m_stringQuantity = 0;
     m_allStrings     = 0;
@@ -89,7 +91,7 @@ void CXI_QUESTTITLE::Draw(bool bSelected, uint32_t Delta_Time)
             selV[2].pos.x = selV[3].pos.x = static_cast<float>(m_rect.right);
             selV[0].pos.y = selV[2].pos.y = static_cast<float>(curY);
             selV[1].pos.y = selV[3].pos.y = static_cast<float>(curY) + m_strList[i].lineQuantity * m_vertOffset;
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, selV, sizeof(XI_NOTEX_VERTEX), "iRectangle");
+            // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, selV, sizeof(XI_NOTEX_VERTEX), "iRectangle");
         }
 
         // display progress icon
@@ -110,26 +112,26 @@ void CXI_QUESTTITLE::Draw(bool bSelected, uint32_t Delta_Time)
             v[0].tv = v[2].tv = m_texNonComplete.top;
             v[1].tv = v[3].tv = m_texNonComplete.bottom;
         }
-        m_rs->TextureSet(0, m_texId);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, v, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
+        // m_rs->TextureSet(0, m_texId);
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, v, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
 
         // display lines
         auto curColor = m_strList[i].complete ? m_dwCompleteColor : m_dwNonCompleteColor;
         if (m_strList[i].dwSpecColor != 0) curColor = m_strList[i].dwSpecColor;
         for (j = 0; j < m_strList[i].lineQuantity; j++) {
-            m_rs->ExtPrint(
-                m_idFont,
-                curColor,
-                0,
-                PR_ALIGN_LEFT,
-                true,
-                1.f,
-                m_screenSize.x,
-                m_screenSize.y,
-                m_rect.left,
-                curY + m_fontOffset,
-                "%s",
-                m_strList[i].name[j]);
+            // m_rs->ExtPrint(
+            //     m_idFont,
+            //     curColor,
+            //     0,
+            //     PR_ALIGN_LEFT,
+            //     true,
+            //     1.f,
+            //     m_screenSize.x,
+            //     m_screenSize.y,
+            //     m_rect.left,
+            //     curY + m_fontOffset,
+            //     "%s",
+            //     m_strList[i].name[j]);
             curY += m_vertOffset;
             lineNum++;
             if (lineNum >= m_allStrings) break;
@@ -138,7 +140,7 @@ void CXI_QUESTTITLE::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_QUESTTITLE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetGlowCursor(false);
@@ -147,7 +149,7 @@ bool CXI_QUESTTITLE::Init(
 
 void CXI_QUESTTITLE::ReleaseAll()
 {
-    FONT_RELEASE(m_rs, m_idFont);
+    // FONT_RELEASE(m_rs, m_idFont);
     if (m_strList != nullptr)
         for (auto i = 0; i < m_stringQuantity; i++)
             for (auto j = 0; j < m_strList[i].lineQuantity; j++)
@@ -235,13 +237,13 @@ void CXI_QUESTTITLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_allStrings = (m_rect.bottom - m_rect.top) / m_vertOffset;
 
     // get golors
-    m_dwCompleteColor        = GetIniARGB(ini1, name1, ini2, name2, "completeColor", ARGB(255, 128, 128, 128));
-    m_dwNonCompleteColor     = GetIniARGB(ini1, name1, ini2, name2, "noncompleteColor", ARGB(255, 255, 255, 255));
-    m_dwSelectRectangleColor = GetIniARGB(ini1, name1, ini2, name2, "selectColor", ARGB(255, 255, 255, 255));
+    m_dwCompleteColor        = GetIniARGB(ini1, name1, ini2, name2, "completeColor", storm::Color {255, 128, 128, 128}.to_hex());
+    m_dwNonCompleteColor     = GetIniARGB(ini1, name1, ini2, name2, "noncompleteColor", storm::Color {255, 255, 255, 255}.to_hex());
+    m_dwSelectRectangleColor = GetIniARGB(ini1, name1, ini2, name2, "selectColor", storm::Color {255, 255, 255, 255}.to_hex());
 
     // get font
     m_idFont = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
     m_fontOffset = GetIniLong(ini1, name1, ini2, name2, "fontOffset", 4);
 
     // get image info

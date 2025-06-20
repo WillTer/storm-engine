@@ -4,7 +4,6 @@
 
 CXI_TABSECTION::CXI_TABSECTION()
 {
-    m_rs         = nullptr;
     m_bClickable = true;
     m_nNodeType  = NODETYPE_TABSECTION;
 
@@ -23,15 +22,15 @@ void CXI_TABSECTION::Draw(bool bSelected, uint32_t Delta_Time)
 {
     // Drawing
     if (m_idIconTexture != -1 && m_idVBuf != -1 && m_idIBuf != -1) {
-        m_rs->TextureSet(0, m_idIconTexture);
-        m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nSubQ * 4, 0, m_nSubQ * 2, "iIcon");
+        // m_rs->TextureSet(0, m_idIconTexture);
+        // m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nSubQ * 4, 0, m_nSubQ * 2, "iIcon");
     }
 
     // Output headers
 }
 
 bool CXI_TABSECTION::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -40,8 +39,8 @@ bool CXI_TABSECTION::Init(
 void CXI_TABSECTION::ReleaseAll()
 {
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sIconGroupName.c_str(), m_idIconTexture);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
     m_nSubQ = 0;
 }
 

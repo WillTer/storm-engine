@@ -1,12 +1,11 @@
 #pragma once
 
-#include "../base_video.h"
-#ifdef _WIN32  // FIX_LINUX ddraw.h and amstream.h
-#include <amstream.h>
-#include <ddraw.h>
-#endif
+#include <libs/math/c_vector.h>
+#include <libs/renderer_next/types.h>
 
-#define XI_AVIVIDEO_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+#include "../base_video.h"
+
+// #define XI_AVIVIDEO_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct XI_AVIVIDEO_VERTEX {
     CVECTOR pos;
@@ -16,8 +15,7 @@ struct XI_AVIVIDEO_VERTEX {
 
 class CAviPlayer: public xiBaseVideo
 {
-    VDX9RENDER* rs;
-    bool        m_bShowVideo;
+    bool m_bShowVideo;
 
 public:
     CAviPlayer();
@@ -31,13 +29,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -46,32 +38,18 @@ public:
         m_bShowVideo = bShowVideo;
     }
 
-    IDirect3DTexture9* GetCurrentVideoTexture() override
+    /*IDirect3DTexture9*/ void* GetCurrentVideoTexture() override
     {
-        return pTex;
+        return nullptr;
     }
 
 protected:
     bool m_bContinue;
 
-#ifdef _WIN32  // FIX_LINUX ddraw.h and amstream.h
-    IDirectDraw*        pDD;
-    IDirectDrawSurface* pPrimarySurface;
-    IDirectDrawSurface* pVideoSurface;
-
-    IAMMultiMediaStream*     pAMStream;
-    IMediaStream*            pPrimaryVidStream;
-    IDirectDrawMediaStream*  pDDStream;
-    IDirectDrawStreamSample* pSample;
-#endif
-
-    POINT dstPnt;
-    RECT  lockRect;
+    storm::Point dstPnt;
+    storm::Rect  lockRect;
 
     XI_AVIVIDEO_VERTEX v[4];
-
-    IDirect3DSurface9* pTmpRenderTarget;
-    IDirect3DTexture9* pTex;
 
     void ReleaseAll();
     bool PlayMedia(char const* fileName);

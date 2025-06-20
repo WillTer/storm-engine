@@ -1,5 +1,6 @@
 #include "xi_util.h"
 
+#include <libs/renderer_next/types.h>
 #include <libs/util/string_compare.hpp>
 #include <stdio.h>
 
@@ -138,11 +139,11 @@ int32_t CXI_UTILS::StringGetTokenCode(char const* pcTokenID)
 
 uint32_t CXI_UTILS::StringGetColor(char const* pcARGBString)
 {
-    auto const nA = StringGetInt(pcARGBString);
-    auto const nR = StringGetInt(pcARGBString);
-    auto const nG = StringGetInt(pcARGBString);
-    auto const nB = StringGetInt(pcARGBString);
-    return ARGB(nA, nR, nG, nB);
+    uint8_t const nA = StringGetInt(pcARGBString);
+    uint8_t const nR = StringGetInt(pcARGBString);
+    uint8_t const nG = StringGetInt(pcARGBString);
+    uint8_t const nB = StringGetInt(pcARGBString);
+    return storm::Color {nA, nR, nG, nB}.to_hex();
 }
 
 void CXI_UTILS::StringDoublicate(char const* pcSrc, char*& pcDst)
@@ -229,7 +230,7 @@ CXI_UTILS::SplitStringByWidth(char const* pcText, int32_t nFontID, float fFontSc
     int32_t           nMaxUsingWidth = 0;
     auto const* const pcSrcStr       = pcText;
     if (pcSrcStr == nullptr) return nMaxUsingWidth;
-    auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     asOutStr.clear();
 
     int32_t nSrc     = 0;
@@ -245,23 +246,23 @@ CXI_UTILS::SplitStringByWidth(char const* pcText, int32_t nFontID, float fFontSc
         }
 
         param[nDst] = 0;
-        auto nW     = rs->StringWidth(param, nFontID, fFontScale);
-        if (nW < nWidth && nToken == StrTokenType_Space)  // space but maybe not the last
-        {
-            nSrcPrev = nSrc;
-            nDstPrev = nDst;
-            while (pcSrcStr[nSrc] == 0x20)
-                nSrc++;
-            param[nDst++] = 0x20;
-            continue;
-        }
-
-        if (nW > nWidth && nDstPrev > 0)  // either the last space or just the end of the line
-        {
-            nSrc          = nSrcPrev;
-            nDst          = nDstPrev;
-            param[nDst++] = 0x20;
-        }
+        // auto nW     = rs->StringWidth(param, nFontID, fFontScale);
+        // if (nW < nWidth && nToken == StrTokenType_Space)  // space but maybe not the last
+        // {
+        //     nSrcPrev = nSrc;
+        //     nDstPrev = nDst;
+        //     while (pcSrcStr[nSrc] == 0x20)
+        //         nSrc++;
+        //     param[nDst++] = 0x20;
+        //     continue;
+        // }
+        //
+        // if (nW > nWidth && nDstPrev > 0)  // either the last space or just the end of the line
+        // {
+        //     nSrc          = nSrcPrev;
+        //     nDst          = nDstPrev;
+        //     param[nDst++] = 0x20;
+        // }
 
         param[nDst] = 0;
         while (pcSrcStr[nSrc] == 0x20)  // remove spaces from the string
@@ -275,9 +276,8 @@ CXI_UTILS::SplitStringByWidth(char const* pcText, int32_t nFontID, float fFontSc
 
         nDstPrev = nDst = 0;
         asOutStr.emplace_back(param);
-        // asOutStr[n] = param;
-        nW = rs->StringWidth(param, nFontID, fFontScale);
-        if (nW > nMaxUsingWidth) nMaxUsingWidth = nW;
+        // nW = rs->StringWidth(param, nFontID, fFontScale);
+        // if (nW > nMaxUsingWidth) nMaxUsingWidth = nW;
 
         if (GetCurrentTokenIntoString(&pcSrcStr[nSrc]) == StrTokenType_End) break;
     }
@@ -356,38 +356,38 @@ void CXI_UTILS::WriteSquareToVertexBuffer(
 }
 
 void CXI_UTILS::PrintTextIntoWindow(
-    VDX9RENDER* pRender,
-    int32_t     nFont,
-    uint32_t    dwColor,
-    int32_t     wAlignment,
-    bool        bShadow,
-    float       fScale,
-    int32_t     scrWidth,
-    int32_t     scrHeight,
-    int32_t     x,
-    int32_t     y,
-    char const* pcString,
-    int32_t     left,
-    int32_t     top,
-    int32_t     width,
-    int32_t     height)
+    /*VDX9RENDER*/ void* pRender,
+    int32_t              nFont,
+    uint32_t             dwColor,
+    int32_t              wAlignment,
+    bool                 bShadow,
+    float                fScale,
+    int32_t              scrWidth,
+    int32_t              scrHeight,
+    int32_t              x,
+    int32_t              y,
+    char const*          pcString,
+    int32_t              left,
+    int32_t              top,
+    int32_t              width,
+    int32_t              height)
 {
-    auto const nStrWidth = pRender->StringWidth((char*)pcString, nFont, fScale, 0);
-    if (nStrWidth == 0) return;
+    // auto const nStrWidth = pRender->StringWidth((char*)pcString, nFont, fScale, 0);
+    // if (nStrWidth == 0) return;
     auto const right = left + width;
 
     int32_t nL, nR;
-    if (wAlignment == PR_ALIGN_RIGHT)
-        nL = x - nStrWidth;
-    else if (wAlignment == PR_ALIGN_CENTER)
-        nL = x - nStrWidth / 2;
-    else
-        nL = x;
-    nR = nL + nStrWidth;
+    // if (wAlignment == PR_ALIGN_RIGHT)
+    //     nL = x - nStrWidth;
+    // else if (wAlignment == PR_ALIGN_CENTER)
+    //     nL = x - nStrWidth / 2;
+    // else
+    //     nL = x;
+    // nR = nL + nStrWidth;
 
     // fit into the window -> display as usual
     if (nL >= left && nR <= right) {
-        pRender->ExtPrint(nFont, dwColor, 0, wAlignment, bShadow, fScale, scrWidth, scrHeight, x, y, "%s", pcString);
+        // pRender->ExtPrint(nFont, dwColor, 0, wAlignment, bShadow, fScale, scrWidth, scrHeight, x, y, "%s", pcString);
         return;
     }
 
@@ -398,7 +398,7 @@ void CXI_UTILS::PrintTextIntoWindow(
     // cut the left edge
     while (pc[0] && nL < left) {
         pc += utf8::u8_inc(pc);
-        nL = nR - pRender->StringWidth(pc, nFont, fScale, 0);
+        // nL = nR - pRender->StringWidth(pc, nFont, fScale, 0);
     }
 
     // cut the right edge
@@ -407,9 +407,9 @@ void CXI_UTILS::PrintTextIntoWindow(
         while (n > 0 && nR > right) {
             n -= utf8::u8_dec(pc + n);
             pc[n] = '\0';
-            nR    = nL + pRender->StringWidth(pc, nFont, fScale, 0);
+            // nR    = nL + pRender->StringWidth(pc, nFont, fScale, 0);
         }
     }
 
-    pRender->ExtPrint(nFont, dwColor, 0, PR_ALIGN_LEFT, bShadow, fScale, scrWidth, scrHeight, nL, y, "%s", pc);
+    // pRender->ExtPrint(nFont, dwColor, 0, PR_ALIGN_LEFT, bShadow, fScale, scrWidth, scrHeight, nL, y, "%s", pc);
 }

@@ -225,17 +225,17 @@ void StrService::SetLanguage(char const* sLanguage)
     //==========================================================================
     // reread fonts
     //==========================================================================
-    auto* RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (RenderService) {
-        auto fullIniPath = std::filesystem::path();
-        if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
-            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / param;
-        } else {
-            core->Trace("Warning: Not found font record for language %s", m_sLanguage);
-            fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini";
-        }
-        RenderService->SetFontIniFileName(fullIniPath.string().c_str());
-    }
+    // auto* RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (RenderService) {
+    //     auto fullIniPath = std::filesystem::path();
+    //     if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, "")) {
+    //         fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / param;
+    //     } else {
+    //         core->Trace("Warning: Not found font record for language %s", m_sLanguage);
+    //         fullIniPath = fio->base_directory_path(BaseDirectory::Ini) / "fonts.ini";
+    //     }
+    //     RenderService->SetFontIniFileName(fullIniPath.string().c_str());
+    // }
     //==========================================================================
 
     //====================================================================
@@ -903,10 +903,10 @@ uint32_t _SetColorCorrection(VS_STACK* pS)
     float fContrast = 1.f;
     pContrast->Get(fContrast);
 
-    auto pVR = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!pVR) return IFUNCRESULT_FAILED;
+    // auto pVR = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!pVR) return IFUNCRESULT_FAILED;
 
-    pVR->SetColorParameters(fGamma, fBright, fContrast);
+    // pVR->SetColorParameters(fGamma, fBright, fContrast);
     return IFUNCRESULT_OK;
 }
 

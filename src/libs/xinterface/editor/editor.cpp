@@ -10,7 +10,6 @@
 GIEditor::GIEditor(XInterface* pInterface)
 {
     m_pGIOwner = pInterface;
-    m_pRS      = pInterface->RenderService();
 
     m_bShowMode = false;
 
@@ -178,22 +177,10 @@ bool GIEditor::ProcessControl()
             if (nHorz != 0) {
                 rectNew.right += nHorz;
                 if (bMove) rectNew.left += nHorz;
-                /*
-                        if( rectNew.right < 0 ) rectNew.right = 0;
-                        if(
-                 * rectNew.left > (int32_t)m_pGIOwner->GetScreenWidth() ) rectNew.left =
- m_pGIOwner->GetScreenWidth();
-                 * if( rectNew.right < rectNew.left ) rectNew.right = rectNew.left;*/
             }
             if (nVert != 0) {
                 rectNew.bottom += nVert;
                 if (bMove) rectNew.top += nVert;
-
-                /*                if( rectNew.bottom < 0 ) rectNew.bottom = 0;
-                        if( rectNew.top >
-                 * (int32_t)m_pGIOwner->GetScreenHeight() ) rectNew.top =
-                   m_pGIOwner->GetScreenHeight();
-                 * if( rectNew.bottom < rectNew.top ) rectNew.bottom = rectNew.top;*/
             }
             m_pEditableNode->ChangePosition(rectNew);
         }
@@ -244,55 +231,55 @@ void GIEditor::DrawSizeBox() const
     if (!m_pEditableNode) return;
     if (core->Controls->GetDebugAsyncKeyState(VK_CONTROL) < 0)  // showing
     {
-        RS_LINE rsl[8];
-        for (int32_t n = 0; n < 8; n++) {
-            rsl[n].dwColor = 0xFFFFFFFF;
-            rsl[n].vPos.z  = 1.f;
-        }
-        rsl[0].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
-        rsl[0].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
-        rsl[1].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
-        rsl[1].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
-
-        rsl[2].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
-        rsl[2].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
-        rsl[3].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
-        rsl[3].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
-
-        rsl[4].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
-        rsl[4].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
-        rsl[5].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
-        rsl[5].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
-
-        rsl[6].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
-        rsl[6].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
-        rsl[7].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
-        rsl[7].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
-        m_pRS->DrawLines(rsl, 4, "Line");
+        // RS_LINE rsl[8];
+        // for (int32_t n = 0; n < 8; n++) {
+        //     rsl[n].dwColor = 0xFFFFFFFF;
+        //     rsl[n].vPos.z  = 1.f;
+        // }
+        // rsl[0].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
+        // rsl[0].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
+        // rsl[1].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
+        // rsl[1].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
+        //
+        // rsl[2].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
+        // rsl[2].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
+        // rsl[3].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
+        // rsl[3].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
+        //
+        // rsl[4].vPos.x = static_cast<float>(m_pEditableNode->m_rect.right);
+        // rsl[4].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
+        // rsl[5].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
+        // rsl[5].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
+        //
+        // rsl[6].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
+        // rsl[6].vPos.y = static_cast<float>(m_pEditableNode->m_rect.bottom);
+        // rsl[7].vPos.x = static_cast<float>(m_pEditableNode->m_rect.left);
+        // rsl[7].vPos.y = static_cast<float>(m_pEditableNode->m_rect.top);
+        // m_pRS->DrawLines(rsl, 4, "Line");
         // boal -->
         // idFont, dwFCol, dwBCol, align, shadow, scale, sxs, sys,
         // left, top, "%s", str
         auto const& screenSize = core->GetScreenSize();
-        auto const  m_fontID   = m_pGIOwner->GetRenderService()->LoadFont("interface_normal");
-        m_pGIOwner->GetRenderService()->ExtPrint(
-            m_fontID,
-            0xFFFFFFFF,
-            0,
-            PR_ALIGN_LEFT,
-            false,
-            1.0,
-            screenSize.width,
-            screenSize.height,
-            10,
-            10,
-            "(%d, %d) - (%d, %d) W - %d H - %d",
-            static_cast<int>(m_pEditableNode->m_rect.left),
-            static_cast<int>(m_pEditableNode->m_rect.top),
-            static_cast<int>(m_pEditableNode->m_rect.right),
-            static_cast<int>(m_pEditableNode->m_rect.bottom),
-            (static_cast<int>(m_pEditableNode->m_rect.right) - static_cast<int>(m_pEditableNode->m_rect.left)),
-            (static_cast<int>(m_pEditableNode->m_rect.bottom) - static_cast<int>(m_pEditableNode->m_rect.top)));
-        m_pGIOwner->GetRenderService()->UnloadFont(m_fontID);
+        // auto const  m_fontID   = m_pGIOwner->GetRenderService()->LoadFont("interface_normal");
+        // m_pGIOwner->GetRenderService()->ExtPrint(
+        //     m_fontID,
+        //     0xFFFFFFFF,
+        //     0,
+        //     PR_ALIGN_LEFT,
+        //     false,
+        //     1.0,
+        //     screenSize.width,
+        //     screenSize.height,
+        //     10,
+        //     10,
+        //     "(%d, %d) - (%d, %d) W - %d H - %d",
+        //     static_cast<int>(m_pEditableNode->m_rect.left),
+        //     static_cast<int>(m_pEditableNode->m_rect.top),
+        //     static_cast<int>(m_pEditableNode->m_rect.right),
+        //     static_cast<int>(m_pEditableNode->m_rect.bottom),
+        //     (static_cast<int>(m_pEditableNode->m_rect.right) - static_cast<int>(m_pEditableNode->m_rect.left)),
+        //     (static_cast<int>(m_pEditableNode->m_rect.bottom) - static_cast<int>(m_pEditableNode->m_rect.top)));
+        // m_pGIOwner->GetRenderService()->UnloadFont(m_fontID);
         // boal <--
     }
 }

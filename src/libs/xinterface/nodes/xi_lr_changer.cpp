@@ -1,5 +1,7 @@
 #include "xi_lr_changer.h"
 
+#include "libs/renderer_next/types.h"
+
 void SetOneTextureCoordinate(XI_ONETEX_VERTEX v[4], const FXYRECT& tr)
 {
     v[0].tu = tr.left;
@@ -27,7 +29,6 @@ void SetRectanglePosition(XI_ONETEX_VERTEX v[4], const FXYRECT& pr)
 CXI_LRCHANGER::CXI_LRCHANGER()
 {
     m_idTex = -1;
-    m_rs    = nullptr;
 
     m_ShadowShift.x = m_ShadowShift.y = 0.f;
     m_PressShadowShift.x = m_PressShadowShift.y = 0.f;
@@ -79,7 +80,7 @@ void CXI_LRCHANGER::Draw(bool bSelected, uint32_t Delta_Time)
             vShadow[i].pos.z = 1.f;
         }
 
-        m_rs->TextureSet(0, m_idTex);
+        // m_rs->TextureSet(0, m_idTex);
 
         // show left button
         SetOneTextureCoordinate(vFace, m_tLRect);
@@ -91,8 +92,8 @@ void CXI_LRCHANGER::Draw(bool bSelected, uint32_t Delta_Time)
             SetRectanglePosition(vFace, m_posLRect);
             SetRectanglePosition(vShadow, m_posLRect + m_ShadowShift);
         }
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iIcon");
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iIcon");
         // show right button
         SetOneTextureCoordinate(vFace, m_tRRect);
         SetOneTextureCoordinate(vShadow, m_tRRect);
@@ -103,13 +104,13 @@ void CXI_LRCHANGER::Draw(bool bSelected, uint32_t Delta_Time)
             SetRectanglePosition(vFace, m_posRRect);
             SetRectanglePosition(vShadow, m_posRRect + m_ShadowShift);
         }
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iIcon");
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iIcon");
     }
 }
 
 bool CXI_LRCHANGER::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -134,15 +135,15 @@ void CXI_LRCHANGER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     m_dwFaceColor = GetIniARGB(ini1, name1, ini2, name2, "faceColor", 0xFFFFFFFF);
 
     // get shadow color
-    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", ARGB(255, 0, 0, 0));
+    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", storm::Color {255, 0, 0, 0}.to_hex());
 
     // get light select color
-    m_dwLightSelCol = GetIniARGB(ini1, name1, ini2, name2, "lightSelectColor", ARGB(255, 138, 138, 138));
+    m_dwLightSelCol = GetIniARGB(ini1, name1, ini2, name2, "lightSelectColor", storm::Color {255, 138, 138, 138}.to_hex());
 
-    // get dark select color
-    m_dwDarkSelCol = GetIniARGB(ini1, name1, ini2, name2, "darkSelectColor", ARGB(255, 108, 108, 108));
+    // get darkr select color
+    m_dwDarkSelCol = GetIniARGB(ini1, name1, ini2, name2, "darkSelectColor", storm::Color {255, 108, 108, 108}.to_hex());
 
-    // get blind delay
+    // get blinrd delay
     m_dwBlindDelay = GetIniLong(ini1, name1, ini2, name2, "blindDelay", 0);
 
     // get group name and get texture for this

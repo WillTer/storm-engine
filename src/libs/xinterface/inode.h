@@ -2,8 +2,6 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
-#include <libs/renderer/dx9render.h>
-#include <libs/renderer/video_texture.h>
 
 #include "nodes/xi_tooltips.h"
 
@@ -84,7 +82,7 @@ public:
     virtual storm::QuestFileReader* QuestFileReader() = 0;
     virtual VXSERVICE*              PictureService()  = 0;
     virtual VSTRSERVICE*            StringService()   = 0;
-    virtual VDX9RENDER*             RenderService()   = 0;
+    virtual /*VDX9RENDER*/ void*    RenderService()   = 0;
     virtual void*                   GetCurrentNode()  = 0;
     virtual FXYPOINT                GetMousePoint()   = 0;
     virtual int32_t                 PrintIntoWindow(
@@ -181,8 +179,8 @@ public:
     CINODE();
     virtual ~CINODE();
     virtual void Draw(bool bSelected, uint32_t Delta_Time) = 0;
-    virtual bool
-    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize);
+    virtual bool Init(
+        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize);
     virtual void   ReleaseAll() = 0;
     CINODE*        DoAction(int wActCode, bool& bBreakPress, bool bFirstPress);
     virtual int    CommandExecute(int wActCode) = 0;
@@ -338,10 +336,9 @@ public:
 
     XINTERFACE_BASE* ptrOwner;
 
-    VDX9RENDER* m_rs;
-    XYPOINT     m_screenSize;
-    XYRECT      m_rect;
-    XYRECT      m_hostRect;
+    XYPOINT m_screenSize;
+    XYRECT  m_rect;
+    XYRECT  m_hostRect;
 
     int32_t m_nAbsoluteRectVal;
 

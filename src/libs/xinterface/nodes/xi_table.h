@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libs/renderer_next/types.h>
+
 #include "../inode.h"
 #include "../xdefines.h"
 
@@ -11,13 +13,13 @@ class XI_TableLineDescribe;
 class XI_TableCellDescribe
 {
     struct StrDescribe {
-        std::string str;
-        FPOINT      offset;
+        std::string   str;
+        storm::FPoint offset;
     };
 
     struct ImgDescribe {
-        CXI_IMAGE* pImage;
-        POINT      offset;
+        CXI_IMAGE*   pImage;
+        storm::Point offset;
 
         ImgDescribe()
         {
@@ -49,14 +51,14 @@ protected:
     CXI_TABLE*            m_pTable;
     XI_TableLineDescribe* m_pLine;
 
-    FPOINT   m_TextOffset;
-    int32_t  m_nFontID;
-    int32_t  m_nFontIndex;
-    uint32_t m_dwColor;
-    float    m_fScale;
-    int32_t  m_nAlignment;
-    int32_t  m_nVAlignment;
-    float    line_space_modifier;
+    storm::FPoint m_TextOffset;
+    int32_t       m_nFontID;
+    int32_t       m_nFontIndex;
+    uint32_t      m_dwColor;
+    float         m_fScale;
+    int32_t       m_nAlignment;
+    int32_t       m_nVAlignment;
+    float         line_space_modifier;
 
     int32_t m_nLeftLineWidth;
     int32_t m_nTopLineHeight;
@@ -115,8 +117,9 @@ public:
     ~CXI_TABLE() override;
 
     void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
+    bool
+    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+        override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;

@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <libs/core/entity.h>
+#include <libs/renderer_next/types.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/util/utf8.h>
 
@@ -45,7 +46,7 @@ CXI_FORMATEDTEXT::CXI_FORMATEDTEXT()
     m_nNodeType = NODETYPE_FORMATEDTEXTS;
 
     m_idFont  = -1;
-    m_dwColor = ARGB(255, 255, 255, 255);
+    m_dwColor = storm::Color {255, 255, 255, 255}.to_hex();
 
     m_allStrings = 0;
 
@@ -53,7 +54,6 @@ CXI_FORMATEDTEXT::CXI_FORMATEDTEXT()
     m_listCur = m_listRoot = nullptr;
 
     m_nStringGroupQuantity = 0;
-    m_pVidTex              = nullptr;
     m_idVBuf               = -1;
     m_nCurGroupNum         = 0;
 
@@ -88,33 +88,33 @@ void CXI_FORMATEDTEXT::Draw(bool bSelected, uint32_t Delta_Time)
     if (!m_bUse) return;
 
     if (m_idVBuf != -1) {
-        if (m_bBackRectangle) {
-            m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwBackColor);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 12, 2, "iTFRectangle");
-        }
-        if (m_pVidTex != nullptr) {
-            m_rs->SetTexture(0, m_pVidTex->m_pTexture);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iDinamicPictures");
-        }
+        // if (m_bBackRectangle) {
+        //     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwBackColor);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 12, 2, "iTFRectangle");
+        // }
+        // if (m_pVidTex != nullptr) {
+        //     m_rs->SetTexture(0, m_pVidTex->m_pTexture);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iDinamicPictures");
+        // }
     }
 
     if (m_bUpEnable || m_bDownEnable) {
-        if (m_bUpEnable && m_idUpEnableTexture >= 0) {
-            m_rs->TextureSet(0, m_idUpEnableTexture);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iDinamicPictures");
-        }
-        if (!m_bUpEnable && m_idUpDisableTexture >= 0) {
-            m_rs->TextureSet(0, m_idUpDisableTexture);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iDinamicPictures");
-        }
-        if (m_bDownEnable && m_idDownEnableTexture >= 0) {
-            m_rs->TextureSet(0, m_idDownEnableTexture);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iDinamicPictures");
-        }
-        if (!m_bDownEnable && m_idDownDisableTexture >= 0) {
-            m_rs->TextureSet(0, m_idDownDisableTexture);
-            m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iDinamicPictures");
-        }
+        // if (m_bUpEnable && m_idUpEnableTexture >= 0) {
+        //     m_rs->TextureSet(0, m_idUpEnableTexture);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iDinamicPictures");
+        // }
+        // if (!m_bUpEnable && m_idUpDisableTexture >= 0) {
+        //     m_rs->TextureSet(0, m_idUpDisableTexture);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iDinamicPictures");
+        // }
+        // if (m_bDownEnable && m_idDownEnableTexture >= 0) {
+        //     m_rs->TextureSet(0, m_idDownEnableTexture);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iDinamicPictures");
+        // }
+        // if (!m_bDownEnable && m_idDownDisableTexture >= 0) {
+        //     m_rs->TextureSet(0, m_idDownDisableTexture);
+        //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 8, 2, "iDinamicPictures");
+        // }
     }
 
     auto curY = m_rect.top + m_nVAlignmentOffset;
@@ -122,70 +122,69 @@ void CXI_FORMATEDTEXT::Draw(bool bSelected, uint32_t Delta_Time)
     for (auto* sd = m_listCur; sd != nullptr && i < m_allStrings; sd = sd->next, i++) {
         // display lines
         if (sd->lineStr != nullptr && sd->lineStr[0] != 0) {
-            if (sd->m_tags.size() == 0)
-                m_rs->ExtPrint(
-                    m_idFont,
-                    sd->color,
-                    0,
-                    m_nAlignment,
-                    true,
-                    m_fFontScale,
-                    m_screenSize.x,
-                    m_screenSize.y,
-                    m_nPrintLeftOffset,
-                    curY,
-                    "%s",
-                    sd->lineStr);
-            else {
-                auto                 nX = m_nPrintLeftOffset;
-                std::vector<int32_t> anWidth;
-                int32_t              nAllWidth = 0;
-                for (int32_t n = 0; n < sd->m_tags.size(); n++) {
-                    auto nCurWidth = m_rs->StringWidth((char*)sd->m_tags[n].str.c_str(), m_idFont, m_fFontScale);
-                    anWidth.push_back(nCurWidth);
-                    nAllWidth += nCurWidth;
-                }
-                if (m_nAlignment == PR_ALIGN_CENTER) nX -= nAllWidth / 2;
-                if (m_nAlignment == PR_ALIGN_RIGHT) nX -= nAllWidth;
-                for (int32_t n = 0; n < sd->m_tags.size(); n++) {
-                    m_rs->ExtPrint(
-                        m_idFont,
-                        sd->m_tags[n].dwColor,
-                        0,
-                        PR_ALIGN_LEFT,
-                        true,
-                        m_fFontScale,
-                        m_screenSize.x,
-                        m_screenSize.y,
-                        nX,
-                        curY,
-                        "%s",
-                        sd->m_tags[n].str.c_str());
-                    nX += anWidth[n];  // m_rs->StringWidth( (char*)sd->m_tags[n].str.c_str(), m_idFont, m_fFontScale );
-                }
-            }
+            // if (sd->m_tags.size() == 0)
+            //     m_rs->ExtPrint(
+            //         m_idFont,
+            //         sd->color,
+            //         0,
+            //         m_nAlignment,
+            //         true,
+            //         m_fFontScale,
+            //         m_screenSize.x,
+            //         m_screenSize.y,
+            //         m_nPrintLeftOffset,
+            //         curY,
+            //         "%s",
+            //         sd->lineStr);
+            // else {
+            //     auto                 nX = m_nPrintLeftOffset;
+            //     std::vector<int32_t> anWidth;
+            //     int32_t              nAllWidth = 0;
+            //     for (int32_t n = 0; n < sd->m_tags.size(); n++) {
+            //         auto nCurWidth = m_rs->StringWidth((char*)sd->m_tags[n].str.c_str(), m_idFont, m_fFontScale);
+            //         anWidth.push_back(nCurWidth);
+            //         nAllWidth += nCurWidth;
+            //     }
+            //     if (m_nAlignment == PR_ALIGN_CENTER) nX -= nAllWidth / 2;
+            //     if (m_nAlignment == PR_ALIGN_RIGHT) nX -= nAllWidth;
+            //     for (int32_t n = 0; n < sd->m_tags.size(); n++) {
+            //         m_rs->ExtPrint(
+            //             m_idFont,
+            //             sd->m_tags[n].dwColor,
+            //             0,
+            //             PR_ALIGN_LEFT,
+            //             true,
+            //             m_fFontScale,
+            //             m_screenSize.x,
+            //             m_screenSize.y,
+            //             nX,
+            //             curY,
+            //             "%s",
+            //             sd->m_tags[n].str.c_str());
+            //         nX += anWidth[n];  // m_rs->StringWidth( (char*)sd->m_tags[n].str.c_str(), m_idFont, m_fFontScale );
+            //     }
+            // }
         }
         curY += m_vertOffset;
     }
 }
 
 bool CXI_FORMATEDTEXT::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
-    // SetGlowCursor(m_bSelectableCursor && m_nStringGroupQuantity>1);
     return true;
 }
 
 void CXI_FORMATEDTEXT::ReleaseAll()
 {
-    FONT_RELEASE(m_rs, m_idFont);
-    VIDEOTEXTURE_RELEASE(m_rs, m_pVidTex);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    TEXTURE_RELEASE(m_rs, m_idUpEnableTexture);
-    TEXTURE_RELEASE(m_rs, m_idUpDisableTexture);
-    TEXTURE_RELEASE(m_rs, m_idDownEnableTexture);
-    TEXTURE_RELEASE(m_rs, m_idDownDisableTexture);
+    // FONT_RELEASE(m_rs, m_idFont);
+    // VIDEOTEXTURE_RELEASE(m_rs, m_pVidTex);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // TEXTURE_RELEASE(m_rs, m_idUpEnableTexture);
+    // TEXTURE_RELEASE(m_rs, m_idUpDisableTexture);
+    // TEXTURE_RELEASE(m_rs, m_idDownEnableTexture);
+    // TEXTURE_RELEASE(m_rs, m_idDownDisableTexture);
     STORM_DELETE(m_sScrollerName);
     ReleaseStringes();
     m_asSyncNodes.clear();
@@ -279,11 +278,7 @@ bool CXI_FORMATEDTEXT::IsClick(int buttonID, int32_t xPos, int32_t yPos)
         return false;
     }
     bool retVal = false;
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom) {
-        // if(buttonID==MOUSE_RBUTTON)    return true;
-        retVal = true;
-    }
-    // if(buttonID!=MOUSE_LBUTTON)    return false;
+    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom) { retVal = true; }
 
     if (m_bUpEnable && m_idUpEnableTexture)
         if (xPos >= m_frUpPos.left && xPos <= m_frUpPos.right && yPos >= m_frUpPos.top && yPos <= m_frUpPos.bottom) retVal = true;
@@ -321,7 +316,7 @@ void CXI_FORMATEDTEXT::ChangePosition(XYRECT& rNewPos)
     m_rectCursorPosition.right = m_rect.right;
 
     XI_ONLYONETEX_VERTEX* pv = nullptr;
-    if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
     if (pv != nullptr) {
         pv[0].tu = pv[1].tu = 0.f;
         pv[2].tu = pv[3].tu = 1.f;
@@ -370,7 +365,7 @@ void CXI_FORMATEDTEXT::ChangePosition(XYRECT& rNewPos)
             pv[9].pos.y = pv[11].pos.y = static_cast<float>(m_frDownPos.bottom);
         }
 
-        m_rs->UnLockVertexBuffer(m_idVBuf);
+        // m_rs->UnLockVertexBuffer(m_idVBuf);
     }
 
     m_allStrings = static_cast<int32_t>(static_cast<float>(m_rect.bottom - m_rect.top) / m_vertOffset);
@@ -394,12 +389,12 @@ void CXI_FORMATEDTEXT::SaveParametersToIni()
 void CXI_FORMATEDTEXT::RefreshAlignment()
 {
     m_nCompareWidth = m_rect.right - m_rect.left - m_leftOffset;
-    if (m_nAlignment == PR_ALIGN_CENTER)
-        m_nPrintLeftOffset = m_leftOffset + static_cast<int32_t>((m_rect.left + m_rect.right - m_leftOffset) * .5f);
-    else if (m_nAlignment == PR_ALIGN_RIGHT)
-        m_nPrintLeftOffset = m_rect.right - m_leftOffset;
-    else
-        m_nPrintLeftOffset = m_rect.left + m_leftOffset;
+    // if (m_nAlignment == PR_ALIGN_CENTER)
+    //     m_nPrintLeftOffset = m_leftOffset + static_cast<int32_t>((m_rect.left + m_rect.right - m_leftOffset) * .5f);
+    // else if (m_nAlignment == PR_ALIGN_RIGHT)
+    //     m_nPrintLeftOffset = m_rect.right - m_leftOffset;
+    // else
+    //     m_nPrintLeftOffset = m_rect.left + m_leftOffset;
 }
 
 void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
@@ -423,12 +418,12 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     }
 
     ReadIniString(ini1, name1, ini2, name2, "alignment", param, sizeof(param), "left");
-    if (storm::iEquals(param, "center"))
-        m_nAlignment = PR_ALIGN_CENTER;
-    else if (storm::iEquals(param, "right"))
-        m_nAlignment = PR_ALIGN_RIGHT;
-    else
-        m_nAlignment = PR_ALIGN_LEFT;
+    // if (storm::iEquals(param, "center"))
+    //     m_nAlignment = PR_ALIGN_CENTER;
+    // else if (storm::iEquals(param, "right"))
+    //     m_nAlignment = PR_ALIGN_RIGHT;
+    // else
+    //     m_nAlignment = PR_ALIGN_LEFT;
 
     m_leftOffset = GetIniLong(ini1, name1, ini2, name2, "leftoffset");
     RefreshAlignment();
@@ -436,7 +431,7 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     m_nUpRectOffset = GetIniLong(ini1, name1, ini2, name2, "upOffset");
 
     // get videoTexture
-    if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pVidTex = m_rs->GetVideoTexture(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pVidTex = m_rs->GetVideoTexture(param);
 
     // get colors
     m_dwBackColor    = GetIniARGB(ini1, name1, ini2, name2, "backColor", 0);
@@ -446,16 +441,16 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
         m_rBorderOffset = GetIniLongRect(ini1, name1, ini2, name2, "backOffset", m_rBorderOffset);
     }
 
-    if (m_pVidTex || m_bBackRectangle) m_bSelectableCursor = true;
+    // if (m_pVidTex || m_bBackRectangle) m_bSelectableCursor = true;
 
     if (m_bSelectableCursor) m_bSelected = true;
-    m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 4 * 4 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 4 * 4 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
 
     m_rectCursorPosition.left  = m_rect.left;
     m_rectCursorPosition.right = m_rect.right;
 
     XI_ONLYONETEX_VERTEX* pv = nullptr;
-    if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
     if (pv != nullptr) {
         pv[0].tu = pv[1].tu = 0.f;
         pv[2].tu = pv[3].tu = 1.f;
@@ -480,10 +475,10 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
         }
 
         // get up enable rectangle position
-        if (ReadIniString(ini1, name1, ini2, name2, "UpEnableTexture", param, sizeof(param), ""))
-            m_idUpEnableTexture = m_rs->TextureCreate(param);
-        if (ReadIniString(ini1, name1, ini2, name2, "UpDisableTexture", param, sizeof(param), ""))
-            m_idUpDisableTexture = m_rs->TextureCreate(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "UpEnableTexture", param, sizeof(param), ""))
+        //     m_idUpEnableTexture = m_rs->TextureCreate(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "UpDisableTexture", param, sizeof(param), ""))
+        //     m_idUpDisableTexture = m_rs->TextureCreate(param);
         if (m_idUpEnableTexture >= 0 || m_idUpDisableTexture >= 0) {
             m_frUpPos = GetIniLongRect(ini1, name1, ini2, name2, "UpEnablePos", XYRECT(0, 0, 0, 0));
             GetAbsoluteRect(m_frUpPos, nPosMorph);
@@ -500,10 +495,10 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
             pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_frUpPos.bottom);
         }
 
-        if (ReadIniString(ini1, name1, ini2, name2, "DownEnableTexture", param, sizeof(param), ""))
-            m_idDownEnableTexture = m_rs->TextureCreate(param);
-        if (ReadIniString(ini1, name1, ini2, name2, "DownDisableTexture", param, sizeof(param), ""))
-            m_idDownDisableTexture = m_rs->TextureCreate(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "DownEnableTexture", param, sizeof(param), ""))
+        //     m_idDownEnableTexture = m_rs->TextureCreate(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "DownDisableTexture", param, sizeof(param), ""))
+        //     m_idDownDisableTexture = m_rs->TextureCreate(param);
         if (m_idDownEnableTexture >= 0 || m_idDownDisableTexture >= 0) {
             m_frDownPos = GetIniLongRect(ini1, name1, ini2, name2, "DownEnablePos", XYRECT(0, 0, 0, 0));
             GetAbsoluteRect(m_frDownPos, nPosMorph);
@@ -520,7 +515,7 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
             pv[9].pos.y = pv[11].pos.y = static_cast<float>(m_frDownPos.bottom);
         }
 
-        m_rs->UnLockVertexBuffer(m_idVBuf);
+        // m_rs->UnLockVertexBuffer(m_idVBuf);
     }
 
     // get line space
@@ -531,10 +526,10 @@ void CXI_FORMATEDTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     m_allStrings = static_cast<int32_t>(static_cast<float>(m_rect.bottom - m_rect.top) / m_vertOffset);
 
     // get golors
-    m_dwColor = GetIniARGB(ini1, name1, ini2, name2, "color", ARGB(255, 128, 128, 128));
+    m_dwColor = GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex());
 
     // get font
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
 
     // get strings
     if (ini1 && ini1->ReadString(name1, "string", param, sizeof(param) - 1, "")) do {
@@ -612,13 +607,13 @@ bool CXI_FORMATEDTEXT::GetLineNext(int fontNum, char const*& pInStr, char* buf, 
         buf[j] = 0;  // zero denotes the end of the line
 
         // if the string is large, then cut it
-        while (m_rs->StringWidth(buf, fontNum, m_fFontScale) > m_nCompareWidth) {
-            if (auto* rspace = strrchr(buf, ' '); rspace != nullptr) {
-                *rspace = '\0';
-            } else {
-                break;
-            }
-        }
+        // while (m_rs->StringWidth(buf, fontNum, m_fFontScale) > m_nCompareWidth) {
+        //     if (auto* rspace = strrchr(buf, ' '); rspace != nullptr) {
+        //         *rspace = '\0';
+        //     } else {
+        //         break;
+        //     }
+        // }
 
         int32_t const q = strlen(buf);  // this is the length of the line without tags
         for (i = 0, j = 0; j < q; i++) {
@@ -678,14 +673,14 @@ void CXI_FORMATEDTEXT::GetOneLine(int fontNum, char const* pStr, char* buf, int 
     if (lineSize > bufSize - 1) lineSize = bufSize - utf8::u8_dec(pStart + bufSize);
 
     strncpy_s(buf, bufSize, pStart, lineSize);
-    buf[lineSize]    = 0;
-    int32_t strWidth = m_rs->StringWidth(buf, fontNum, m_fFontScale);
+    buf[lineSize] = 0;
+    // int32_t strWidth = m_rs->StringWidth(buf, fontNum, m_fFontScale);
 
-    while (lineSize > 0 && strWidth > m_nCompareWidth) {
-        lineSize -= utf8::u8_dec(buf + lineSize);
-        buf[lineSize] = 0;
-        strWidth      = m_rs->StringWidth(buf, fontNum, m_fFontScale);
-    }
+    // while (lineSize > 0 && strWidth > m_nCompareWidth) {
+    //     lineSize -= utf8::u8_dec(buf + lineSize);
+    //     buf[lineSize] = 0;
+    //     strWidth      = m_rs->StringWidth(buf, fontNum, m_fFontScale);
+    // }
 }
 
 void CXI_FORMATEDTEXT::SetFormatedText(char const* str)
@@ -843,8 +838,10 @@ void CXI_FORMATEDTEXT::MakeTagChecking(bool& tagState, uint32_t& tagColor, uint3
                     tagState  = true;
                     int32_t a = 255, r = 255, g = 255, b = 255;
                     sscanf(&str[7], "%d,%d,%d,%d", &a, &r, &g, &b);
-                    tagColor = ARGB(a, r, g, b);
-                    q        = str - tagBegin;
+                    tagColor =
+                        storm::Color {static_cast<uint8_t>(a), static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)}
+                            .to_hex();
+                    q = str - tagBegin;
                     while (str && str[0] && str[0] != '>')
                         str++;
                     if (str[0] == '>') str++;
@@ -860,7 +857,6 @@ void CXI_FORMATEDTEXT::MakeTagChecking(bool& tagState, uint32_t& tagColor, uint3
                 tmp[n] = tagBegin[n];
             }
             tmp[n] = 0;
-            // n = pStrDescr->m_tags.Add();
             pStrDescr->m_tags.push_back(STRING_DESCRIBER::TagInfo {tagState ? normColor : tagColor, tmp});
 
             tagBegin = str;
@@ -876,10 +872,6 @@ void CXI_FORMATEDTEXT::MakeTagChecking(bool& tagState, uint32_t& tagColor, uint3
             tmp[n] = tagBegin[n];
         }
         tmp[n] = 0;
-        // n = pStrDescr->m_tags.Add();
-        // if( tagState ) pStrDescr->m_tags[n].dwColor = normColor;
-        // else pStrDescr->m_tags[n].dwColor = tagColor;
-        // pStrDescr->m_tags[n].str = tmp;
         pStrDescr->m_tags.push_back(STRING_DESCRIBER::TagInfo {tagState ? normColor : tagColor, tmp});
     }
 }
@@ -1023,7 +1015,7 @@ uint32_t CXI_FORMATEDTEXT::MessageProc(int32_t msgcode, MESSAGE& message)
 
     case 14: {  // set alignment from scripts
         auto const new_alignment = message.Long();
-        if (new_alignment < PR_ALIGN_LEFT || new_alignment > PR_ALIGN_CENTER) { return -1; }
+        // if (new_alignment < PR_ALIGN_LEFT || new_alignment > PR_ALIGN_CENTER) { return -1; }
         m_nAlignment = new_alignment;
         RefreshAlignment();
         break;
@@ -1112,7 +1104,7 @@ void CXI_FORMATEDTEXT::SetVertexToNewGroup(bool bUpDirect, int32_t upIdx, int32_
         m_nCurGroupNum = 0;
 
     XI_ONLYONETEX_VERTEX* pv = nullptr;
-    if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (m_idVBuf != -1) pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
     if (pv != nullptr) {
         m_rectCursorPosition.top    = m_rect.top - m_nUpRectOffset + m_vertOffset * upIdx;
         m_rectCursorPosition.bottom = m_rect.top - m_nUpRectOffset + m_vertOffset * (downIdx + 1);
@@ -1123,7 +1115,7 @@ void CXI_FORMATEDTEXT::SetVertexToNewGroup(bool bUpDirect, int32_t upIdx, int32_
             pv[13].pos.y                = pv[15].pos.y =
                 static_cast<float>(m_rect.top - m_nUpRectOffset + m_rBorderOffset.bottom + m_vertOffset * (downIdx + 1));
         }
-        m_rs->UnLockVertexBuffer(m_idVBuf);
+        // m_rs->UnLockVertexBuffer(m_idVBuf);
     }
 
     if (bChange) {
@@ -1136,21 +1128,6 @@ void CXI_FORMATEDTEXT::SetVertexToNewGroup(bool bUpDirect, int32_t upIdx, int32_
 void CXI_FORMATEDTEXT::MouseThis(float fX, float fY)
 {
     return;
-    if (!m_bSelectableCursor) return;
-    int32_t nNum = static_cast<int32_t>((fY - m_rect.top) / m_vertOffset + .1f);
-    if (nNum < 0 || nNum >= m_allStrings) return;
-
-    STRING_DESCRIBER* pdescr = m_listCur;
-    for (int i = 0; i < nNum && pdescr != nullptr; i++)
-        pdescr = pdescr->next;
-    if (pdescr != nullptr && m_nCurGroupNum != pdescr->strGroup)
-        SetVertexToNewGroup(true, FindUpGroup(pdescr->strGroup), FindDownGroup(pdescr->strGroup));
-    if (m_nStringGroupQuantity > 0)
-        core->Event("SetScrollerPos", "sf", m_nodeName, static_cast<float>(m_nCurGroupNum) / static_cast<float>(m_nStringGroupQuantity));
-    else
-        core->Event("SetScrollerPos", "sf", m_nodeName, 0.f);
-    core->Event("FTChange", "sf", m_nodeName, GetCurPos());
-    ScrollerUpdate();
 }
 
 void CXI_FORMATEDTEXT::CheckScrollButtons()
@@ -1170,42 +1147,42 @@ void CXI_FORMATEDTEXT::CheckScrollButtons()
     if (oldUp == m_bUpEnable && oldDown == m_bDownEnable) return;
     if (m_idUpEnableTexture == -1 && m_idUpDisableTexture == -1 && m_idDownEnableTexture == -1 && m_idDownDisableTexture == -1) return;
 
-    auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pv != nullptr) {
-        if (oldUp != m_bUpEnable)
-            if (m_bUpEnable) {
-                if (m_idUpEnableTexture >= 0) {
-                    pv[4].tu = pv[5].tu = m_frUpEnableUV.left;
-                    pv[6].tu = pv[7].tu = m_frUpEnableUV.right;
-                    pv[4].tv = pv[6].tv = m_frUpEnableUV.top;
-                    pv[5].tv = pv[7].tv = m_frUpEnableUV.bottom;
-                }
-            } else {
-                if (m_idUpDisableTexture >= 0) {
-                    pv[4].tu = pv[5].tu = m_frUpDisableUV.left;
-                    pv[6].tu = pv[7].tu = m_frUpDisableUV.right;
-                    pv[4].tv = pv[6].tv = m_frUpDisableUV.top;
-                    pv[5].tv = pv[7].tv = m_frUpDisableUV.bottom;
-                }
-            }
-        if (oldDown != m_bDownEnable)
-            if (m_bDownEnable) {
-                if (m_idDownEnableTexture >= 0) {
-                    pv[8].tu = pv[9].tu = m_frDownEnableUV.left;
-                    pv[10].tu = pv[11].tu = m_frDownEnableUV.right;
-                    pv[8].tv = pv[10].tv = m_frDownEnableUV.top;
-                    pv[9].tv = pv[11].tv = m_frDownEnableUV.bottom;
-                }
-            } else {
-                if (m_idDownDisableTexture >= 0) {
-                    pv[8].tu = pv[9].tu = m_frDownDisableUV.left;
-                    pv[10].tu = pv[11].tu = m_frDownDisableUV.right;
-                    pv[8].tv = pv[10].tv = m_frDownDisableUV.top;
-                    pv[9].tv = pv[11].tv = m_frDownDisableUV.bottom;
-                }
-            }
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pv != nullptr) {
+    //     if (oldUp != m_bUpEnable)
+    //         if (m_bUpEnable) {
+    //             if (m_idUpEnableTexture >= 0) {
+    //                 pv[4].tu = pv[5].tu = m_frUpEnableUV.left;
+    //                 pv[6].tu = pv[7].tu = m_frUpEnableUV.right;
+    //                 pv[4].tv = pv[6].tv = m_frUpEnableUV.top;
+    //                 pv[5].tv = pv[7].tv = m_frUpEnableUV.bottom;
+    //             }
+    //         } else {
+    //             if (m_idUpDisableTexture >= 0) {
+    //                 pv[4].tu = pv[5].tu = m_frUpDisableUV.left;
+    //                 pv[6].tu = pv[7].tu = m_frUpDisableUV.right;
+    //                 pv[4].tv = pv[6].tv = m_frUpDisableUV.top;
+    //                 pv[5].tv = pv[7].tv = m_frUpDisableUV.bottom;
+    //             }
+    //         }
+    //     if (oldDown != m_bDownEnable)
+    //         if (m_bDownEnable) {
+    //             if (m_idDownEnableTexture >= 0) {
+    //                 pv[8].tu = pv[9].tu = m_frDownEnableUV.left;
+    //                 pv[10].tu = pv[11].tu = m_frDownEnableUV.right;
+    //                 pv[8].tv = pv[10].tv = m_frDownEnableUV.top;
+    //                 pv[9].tv = pv[11].tv = m_frDownEnableUV.bottom;
+    //             }
+    //         } else {
+    //             if (m_idDownDisableTexture >= 0) {
+    //                 pv[8].tu = pv[9].tu = m_frDownDisableUV.left;
+    //                 pv[10].tu = pv[11].tu = m_frDownDisableUV.right;
+    //                 pv[8].tv = pv[10].tv = m_frDownDisableUV.top;
+    //                 pv[9].tv = pv[11].tv = m_frDownDisableUV.bottom;
+    //             }
+    //         }
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 }
 
 void CXI_FORMATEDTEXT::SetSpecialStrings(ATTRIBUTES* pARoot)

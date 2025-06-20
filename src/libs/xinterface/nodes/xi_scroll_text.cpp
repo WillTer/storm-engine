@@ -1,5 +1,7 @@
 #include "xi_scroll_text.h"
 
+#include <libs/renderer_next/types.h>
+
 #define MAX_PICE_RESERV 256
 #define MAX_PICE_STRING_SIZE 256
 
@@ -7,7 +9,7 @@ CXI_SCROLLTEXT::CXI_SCROLLTEXT() : m_idFont(0)
 {
     m_pScroller    = nullptr;
     m_nMaxStringes = 0;
-    m_dwFontColor  = ARGB(255, 255, 255, 255);
+    m_dwFontColor  = storm::Color {255, 255, 255, 255}.to_hex();
     m_pText        = nullptr;
 
     m_nPiceQuantity = 0;
@@ -34,7 +36,7 @@ void CXI_SCROLLTEXT::Draw(bool bSelected, uint32_t Delta_Time)
                 if (chQuant > MAX_PICE_STRING_SIZE - 1) chQuant = MAX_PICE_STRING_SIZE - 1;
                 strncpy_s(param, &m_pText[chStart], chQuant);
                 param[chQuant] = 0;
-                m_rs->Print(curX, curY, "%s", param);
+                // m_rs->Print(curX, curY, "%s", param);
             } break;
             }
         }
@@ -42,7 +44,7 @@ void CXI_SCROLLTEXT::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_SCROLLTEXT::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetText(
@@ -61,7 +63,7 @@ void CXI_SCROLLTEXT::ClearText()
 {
     m_pScroller    = nullptr;
     m_nMaxStringes = 0;
-    m_dwFontColor  = ARGB(255, 255, 255, 255);
+    m_dwFontColor  = storm::Color {255, 255, 255, 255}.to_hex();
     STORM_DELETE(m_pText);
 
     m_nPiceQuantity = 0;
@@ -80,9 +82,9 @@ void CXI_SCROLLTEXT::SetText(char const* newText)
         memcpy(m_pText, newText, len);
 
         // get all parts from text
-        auto* pCh          = m_pText;
-        m_idFont           = FONT_DEFAULT;
-        m_dwFontColor      = ARGB(255, 255, 255, 255);
+        auto* pCh = m_pText;
+        // m_idFont           = FONT_DEFAULT;
+        m_dwFontColor      = storm::Color {255, 255, 255, 255}.to_hex();
         int32_t idx        = 0;
         int32_t nBeg       = 0;
         int32_t nEnd       = 0;
@@ -100,7 +102,7 @@ void CXI_SCROLLTEXT::SetText(char const* newText)
                 case 'f':
                     spl[idx].type = PICE_TYPE_FONTCHANGE;
                     GetStringWord(&pCh[1], param, sizeof(param) - 1);
-                    spl[idx].data.fontID = m_idFont = m_rs->LoadFont(param);
+                    // spl[idx].data.fontID = m_idFont = m_rs->LoadFont(param);
                     break;
                 case 'c': break;
                 case 'a': break;
@@ -142,7 +144,7 @@ void CXI_SCROLLTEXT::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 {
     m_pScroller    = nullptr;
     m_nMaxStringes = 0;
-    m_dwFontColor  = ARGB(255, 255, 255, 255);
+    m_dwFontColor  = storm::Color {255, 255, 255, 255}.to_hex();
     m_pText        = nullptr;
 
     m_nPiceQuantity = 0;
@@ -172,10 +174,10 @@ int32_t CXI_SCROLLTEXT::FillPices(char* pt, size_t beg, size_t size, int32_t& id
             if (sw == 0) break;
             chQuantity += sw;
             strncpy_s(resStr, pstr, chQuantity);
-            if ((retVal = m_rs->StringWidth(resStr, m_idFont)) > showWidth) {
-                retVal = 0;
-                break;
-            }
+            // if ((retVal = m_rs->StringWidth(resStr, m_idFont)) > showWidth) {
+            //     retVal = 0;
+            //     break;
+            // }
             if (static_cast<uint32_t>(chQuantity + sw) > size) break;
         }
         if (static_cast<uint32_t>(chQuantity) == size) {

@@ -4,6 +4,8 @@
 #include <array>
 #include <bit>
 #include <cmath>
+#include <cstdint>
+#include <tuple>
 #include <utility>
 
 namespace storm

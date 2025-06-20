@@ -2,6 +2,8 @@
 
 #include <libs/util/string_compare.hpp>
 
+#include "libs/renderer_next/types.h"
+
 #define MAXIMAGEQUANTITY 100
 
 int32_t GetTexFromEvent(VDATA* vdat)
@@ -90,17 +92,29 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                     int const bl = BLUE(m_dwSelectColor[n]);
                     int       a, r, g, b;
                     if (m_bColorType) {
-                        a               = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
-                        r               = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        g               = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        b               = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        m_dwCurColor[n] = ARGB(ad + a, rd + r, gd + g, bd + b);
+                        a = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
+                        r = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        g = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        b = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        m_dwCurColor[n] =
+                            storm::Color {
+                                static_cast<uint8_t>(ad + a),
+                                static_cast<uint8_t>(rd + r),
+                                static_cast<uint8_t>(gd + g),
+                                static_cast<uint8_t>(bd + b)}
+                                .to_hex();
                     } else {
-                        a               = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
-                        r               = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        g               = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        b               = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
-                        m_dwCurColor[n] = ARGB(al - a, rl - r, gl - g, bl - b);
+                        a = (al - ad) * m_nBlindCounter / m_nMaxBlindCounter;
+                        r = (rl - rd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        g = (gl - gd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        b = (bl - bd) * m_nBlindCounter / m_nMaxBlindCounter;
+                        m_dwCurColor[n] =
+                            storm::Color {
+                                static_cast<uint8_t>(al - a),
+                                static_cast<uint8_t>(rl - r),
+                                static_cast<uint8_t>(gl - g),
+                                static_cast<uint8_t>(bl - b)}
+                                .to_hex();
                     }
                 }
             } else {
@@ -133,9 +147,9 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
         pV[3].pos.y = static_cast<float>(m_pCenter.y + m_ImageSize.y / 2);
 
         // show select border
-        if (m_bShowBorder /*&& !m_bLockStatus*/ && m_nShowOrder < 0) {
-            m_rs->TextureSet(0, m_texBorder);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
+        if (m_bShowBorder && m_nShowOrder < 0) {
+            // m_rs->TextureSet(0, m_texBorder);
+            // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
         }
 
         XI_ONETEX_VERTEX v[4];
@@ -144,7 +158,6 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
         FXYRECT       rectTex;
         SCROLLEntity* pScroll;
         auto          curShowOrder = m_nShowOrder;
-        // if(m_bLockStatus) curShowOrder = m_nSlotsQnt-1;
         if (curShowOrder >= m_nSlotsQnt) curShowOrder = m_nSlotsQnt - 1;
         bool bDoShowBorder = false;
 
@@ -154,7 +167,7 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                 FXYRECT pos;
 
                 if (m_Image[pScroll->imageNum].slots[n].ptex != -1) {
-                    m_rs->TextureSet(0, m_Image[pScroll->imageNum].slots[n].ptex);
+                    // m_rs->TextureSet(0, m_Image[pScroll->imageNum].slots[n].ptex);
                     rectTex.left   = 0.f;
                     rectTex.top    = 0.f;
                     rectTex.right  = 1.f;
@@ -162,17 +175,17 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                 } else if (m_Image[pScroll->imageNum].slots[n].img != -1) {
                     // get texture rectangle
                     pPictureService->GetTexturePos(m_Image[pScroll->imageNum].slots[n].img, rectTex);
-                    m_rs->TextureSet(0, m_nGroupTex[m_Image[pScroll->imageNum].slots[n].tex]);
+                    // m_rs->TextureSet(0, m_nGroupTex[m_Image[pScroll->imageNum].slots[n].tex]);
                 } else {
                     if (m_idBadPic[n] != -1 && m_idBadTexture[n] != -1)
                     // partial use of texture for a "bad" picture
                     {
-                        m_rs->TextureSet(0, m_nGroupTex[m_idBadTexture[n]]);
+                        // m_rs->TextureSet(0, m_nGroupTex[m_idBadTexture[n]]);
                         pPictureService->GetTexturePos(m_idBadPic[n], rectTex);
                     } else  // "bad" picture for the whole texture
                     {
                         if (m_idBadTexture[n] != -1) {
-                            m_rs->TextureSet(0, m_idBadTexture[n]);
+                            // m_rs->TextureSet(0, m_idBadTexture[n]);
                             rectTex.left   = 0.f;
                             rectTex.top    = 0.f;
                             rectTex.right  = 1.f;
@@ -217,11 +230,11 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
                     v[0].color = v[1].color = v[2].color = v[3].color = m_dwCurColor[n];
                 else
                     v[0].color = v[1].color = v[2].color = v[3].color = m_dwNormalColor[n];
-                if (m_Image[pScroll->imageNum].slots[n].useSpecTechnique) {
-                    m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwSpecTechniqueARGB);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), m_sSpecTechniqueName);
-                } else
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iScrollImages_main");
+                // if (m_Image[pScroll->imageNum].slots[n].useSpecTechnique) {
+                //     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwSpecTechniqueARGB);
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), m_sSpecTechniqueName);
+                // } else
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iScrollImages_main");
 
                 pScroll = pScroll->next;
             }
@@ -312,22 +325,23 @@ void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
 
             if (m_bShowBorder && n == curShowOrder) {
                 // show select border
-                m_rs->TextureSet(0, m_texBorder);
-                m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
+                // m_rs->TextureSet(0, m_texBorder);
+                // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX),
+                // "iScrollImages_border");
                 bDoShowBorder = true;
             }
         }
 
         if (m_bShowBorder && !bDoShowBorder) {
             // show select border
-            m_rs->TextureSet(0, m_texBorder);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
+            // m_rs->TextureSet(0, m_texBorder);
+            // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iScrollImages_border");
         }
     }
 }
 
 bool CXI_SCROLLIMAGE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -385,9 +399,9 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
     // set parameters for blind
     for (i = 0; i < m_nSlotsQnt; i++) {
         sprintf_s(param, "dwNormalColorARGB%d", i + 1);
-        m_dwCurColor[i] = m_dwNormalColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, ARGB(255, 128, 128, 128));
+        m_dwCurColor[i] = m_dwNormalColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, storm::Color {255, 128, 128, 128}.to_hex());
         sprintf_s(param, "dwSelectColorARGB%d", i + 1);
-        m_dwSelectColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, ARGB(255, 64, 64, 64));
+        m_dwSelectColor[i] = GetIniARGB(ini1, name1, ini2, name2, param, storm::Color {255, 64, 64, 64}.to_hex());
         sprintf_s(param, "PicOffset%d", i + 1);
         m_pPicOffset[i]   = GetIniLong(ini1, name1, ini2, name2, param, 0);
         m_idBadTexture[i] = -1;
@@ -399,30 +413,30 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
     m_bUseTwoString = GetIniBool(ini1, name1, ini2, name2, "UseTwoString", false);
     if (m_bUseOneString) {
         m_nOneStrScale = GetIniFloat(ini1, name1, ini2, name2, "scale1", 1.f);
-        if (ReadIniString(ini1, name1, ini2, name2, "font1", param, sizeof(param), ""))
-            if ((m_nOneStrFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "font1", param, sizeof(param), ""))
+        // if ((m_nOneStrFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
         m_lOneStrX = GetIniLong(ini1, name1, ini2, name2, "dwXOffset1", 0);
-        if (m_lOneStrX > 0)
-            m_nOneStrAlign = PR_ALIGN_RIGHT;
-        else if (m_lOneStrX < 0)
-            m_nOneStrAlign = PR_ALIGN_LEFT;
-        else
-            m_nOneStrAlign = PR_ALIGN_CENTER;
+        // if (m_lOneStrX > 0)
+        //     m_nOneStrAlign = PR_ALIGN_RIGHT;
+        // else if (m_lOneStrX < 0)
+        //     m_nOneStrAlign = PR_ALIGN_LEFT;
+        // else
+        //     m_nOneStrAlign = PR_ALIGN_CENTER;
         m_lOneStrOffset     = GetIniLong(ini1, name1, ini2, name2, "dwYOffset1", 0);
         m_dwOneStrForeColor = GetIniARGB(ini1, name1, ini2, name2, "dwForeColor1", 0xFFFFFFFF);
         m_dwOneStrBackColor = GetIniARGB(ini1, name1, ini2, name2, "dwBackColor1", 0);
     }
     if (m_bUseTwoString) {
         m_nTwoStrScale = GetIniFloat(ini1, name1, ini2, name2, "scale2", 1.f);
-        if (ReadIniString(ini1, name1, ini2, name2, "font2", param, sizeof(param), ""))
-            if ((m_nTwoStrFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "font2", param, sizeof(param), ""))
+        //     if ((m_nTwoStrFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
         m_lTwoStrX = GetIniLong(ini1, name1, ini2, name2, "dwXOffset2", 0);
-        if (m_lTwoStrX > 0)
-            m_nTwoStrAlign = PR_ALIGN_RIGHT;
-        else if (m_lTwoStrX < 0)
-            m_nTwoStrAlign = PR_ALIGN_LEFT;
-        else
-            m_nTwoStrAlign = PR_ALIGN_CENTER;
+        // if (m_lTwoStrX > 0)
+        //     m_nTwoStrAlign = PR_ALIGN_RIGHT;
+        // else if (m_lTwoStrX < 0)
+        //     m_nTwoStrAlign = PR_ALIGN_LEFT;
+        // else
+        //     m_nTwoStrAlign = PR_ALIGN_CENTER;
         m_lTwoStrOffset     = GetIniLong(ini1, name1, ini2, name2, "dwYOffset2", 0);
         m_dwTwoStrForeColor = GetIniARGB(ini1, name1, ini2, name2, "dwForeColor2", 0xFFFFFFFF);
         m_dwTwoStrBackColor = GetIniARGB(ini1, name1, ini2, name2, "dwBackColor2", 0);
@@ -473,8 +487,8 @@ void CXI_SCROLLIMAGE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
             char const* sBadPict;
             sprintf_s(param, "BadPicture%d", n + 1);
             if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr) {
-                m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
-                m_idBadPic[n]     = -1;
+                // m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
+                m_idBadPic[n] = -1;
             } else {
                 sprintf_s(param, "BadTex%d", n + 1);
                 m_idBadTexture[n] = pAttribute->GetAttributeAsDword(param, -1);
@@ -734,7 +748,7 @@ void CXI_SCROLLIMAGE::ReleaseAll()
     if (m_idBadPic && m_idBadTexture)
         for (i = 0; i < m_nSlotsQnt; i++) {
             if (m_idBadPic[i] == -1) {
-                TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
+                // TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
             } else
                 m_idBadTexture[i] = -1;
             m_idBadPic[i] = -1;
@@ -761,8 +775,8 @@ void CXI_SCROLLIMAGE::ReleaseAll()
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sBorderGroupName, m_texBorder);
     STORM_DELETE(m_sBorderGroupName);
 
-    FONT_RELEASE(m_rs, m_nOneStrFont);
-    FONT_RELEASE(m_rs, m_nTwoStrFont);
+    // FONT_RELEASE(m_rs, m_nOneStrFont);
+    // FONT_RELEASE(m_rs, m_nTwoStrFont);
 
     STORM_DELETE(m_dwCurColor);
     STORM_DELETE(m_dwNormalColor);
@@ -975,13 +989,12 @@ void CXI_SCROLLIMAGE::RefreshScroll()
 {
     int  i, n;
     char param[256];
-    // UpdateTexturesGroup();
 
     STORM_DELETE(m_sSpecTechniqueName);
 
     for (i = 0; i < m_nSlotsQnt; i++) {
         if (m_idBadPic[i] == -1) {
-            TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
+            // TEXTURE_RELEASE(m_rs, m_idBadTexture[i]);
         } else
             m_idBadTexture[i] = -1;
         m_idBadPic[i] = -1;
@@ -1051,8 +1064,8 @@ void CXI_SCROLLIMAGE::RefreshScroll()
             char const* sBadPict;
             sprintf_s(param, "BadPicture%d", n + 1);
             if ((sBadPict = pAttribute->GetAttribute(param)) != nullptr) {
-                m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
-                m_idBadPic[n]     = -1;
+                // m_idBadTexture[n] = m_rs->TextureCreate(sBadPict);
+                m_idBadPic[n] = -1;
             } else {
                 sprintf_s(param, "BadTex%d", n + 1);
                 m_idBadTexture[n] = pAttribute->GetAttributeAsDword(param, -1);
@@ -1158,8 +1171,6 @@ int CXI_SCROLLIMAGE::FindClickedImageNum() const
 
     if (pscroll == nullptr) return 10000;
     for (n = 0; n < m_nSlotsQnt; n++) {
-        /*        if( m_Image[pscroll->imageNum].img[n]!=-1 ||
-              m_Image[pscroll->imageNum].saveName!=null ) break;*/
         if (m_Image[pscroll->imageNum].slots[n].tex != -1 || m_Image[pscroll->imageNum].slots[n].ptex != -1
             || !m_Image[pscroll->imageNum].slots[n].saveName.empty())
             break;

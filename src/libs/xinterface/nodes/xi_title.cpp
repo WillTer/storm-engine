@@ -24,29 +24,29 @@ CXI_TITLE::~CXI_TITLE()
 void CXI_TITLE::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        m_rs->TextureSet(0, m_idTex);
-        m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nVert, 0, m_nIndx, "iTitle");
+        // m_rs->TextureSet(0, m_idTex);
+        // m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nVert, 0, m_nIndx, "iTitle");
 
         // show title text
-        if (m_idString != -1L)
-            m_rs->ExtPrint(
-                m_fontID,
-                m_fontColor,
-                m_backColor,
-                PR_ALIGN_CENTER,
-                true,
-                m_fontScale,
-                m_screenSize.x,
-                m_screenSize.y,
-                m_StringCenter.x,
-                m_StringCenter.y,
-                "%s",
-                pStringService->GetString(m_idString));
+        // if (m_idString != -1L)
+        // m_rs->ExtPrint(
+        //     m_fontID,
+        //     m_fontColor,
+        //     m_backColor,
+        //     PR_ALIGN_CENTER,
+        //     true,
+        //     m_fontScale,
+        //     m_screenSize.x,
+        //     m_screenSize.y,
+        //     m_StringCenter.x,
+        //     m_StringCenter.y,
+        //     "%s",
+        //     pStringService->GetString(m_idString));
     }
 }
 
 bool CXI_TITLE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetGlowCursor(false);
@@ -60,13 +60,13 @@ void CXI_TITLE::ReleaseAll()
     m_sGroupName = nullptr;
 
     m_idString = -1L;
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
 
     m_nVert = 0;
     m_nIndx = 0;
 
-    FONT_RELEASE(m_rs, m_fontID);
+    // FONT_RELEASE(m_rs, m_fontID);
 }
 
 int CXI_TITLE::CommandExecute(int wActCode)
@@ -115,8 +115,8 @@ void CXI_TITLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
     m_backColor = GetIniARGB(ini1, name1, ini2, name2, "backFontColor", 0xFFFFFFFF);
 
     // get font number
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
-        if ((m_fontID = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
+    //     if ((m_fontID = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
 
     // get font scale
     m_fontScale = GetIniFloat(ini1, name1, ini2, name2, "fontScale", 1.f);
@@ -134,10 +134,10 @@ void CXI_TITLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
     m_nStringWidth = GetIniLong(ini1, name1, ini2, name2, "stringWidth", 0);
     if (m_nStringWidth == 0) {
-        if (pChar != nullptr && pChar[0] == '#')
-            m_nStringWidth = m_rs->StringWidth(&pChar[1], m_fontID, m_fontScale, m_screenSize.x);
-        else
-            m_nStringWidth = m_rs->StringWidth(pStringService->GetString(m_idString), m_fontID, m_fontScale, m_screenSize.x);
+        // if (pChar != nullptr && pChar[0] == '#')
+        //     m_nStringWidth = m_rs->StringWidth(&pChar[1], m_fontID, m_fontScale, m_screenSize.x);
+        // else
+        //     m_nStringWidth = m_rs->StringWidth(pStringService->GetString(m_idString), m_fontID, m_fontScale, m_screenSize.x);
     }
 
     // get title image group name
@@ -182,140 +182,140 @@ void CXI_TITLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
     int const rectangleQuantity = 1 + 2 + 2 * m_nTiledQuantity;
     m_nVert                     = 4 * rectangleQuantity;
     m_nIndx                     = 6 * rectangleQuantity;
-    m_idVBuf                    = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nVert * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
-    m_idIBuf                    = m_rs->CreateIndexBuffer(m_nIndx * 2);
+    // m_idVBuf                    = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nVert * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idIBuf                    = m_rs->CreateIndexBuffer(m_nIndx * 2);
     m_nIndx /= 3;
 
     // fill index buffer
-    auto* const pIndex = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
-    if (pIndex == nullptr) throw std::runtime_error("index buffer not create");
-    for (i = 0; i < rectangleQuantity; i++) {
-        pIndex[i * 6 + 0] = i * 4;
-        pIndex[i * 6 + 1] = i * 4 + 1;
-        pIndex[i * 6 + 2] = i * 4 + 2;
-        pIndex[i * 6 + 3] = i * 4 + 2;
-        pIndex[i * 6 + 4] = i * 4 + 1;
-        pIndex[i * 6 + 5] = i * 4 + 3;
-    }
-    m_rs->UnLockIndexBuffer(m_idIBuf);
+    // auto* const pIndex = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
+    // if (pIndex == nullptr) throw std::runtime_error("index buffer not create");
+    // for (i = 0; i < rectangleQuantity; i++) {
+    //     pIndex[i * 6 + 0] = i * 4;
+    //     pIndex[i * 6 + 1] = i * 4 + 1;
+    //     pIndex[i * 6 + 2] = i * 4 + 2;
+    //     pIndex[i * 6 + 3] = i * 4 + 2;
+    //     pIndex[i * 6 + 4] = i * 4 + 1;
+    //     pIndex[i * 6 + 5] = i * 4 + 3;
+    // }
+    // m_rs->UnLockIndexBuffer(m_idIBuf);
 
     // fill vertex buffer
-    auto* const pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pVert == nullptr) throw std::runtime_error("vertex buffer not create");
-    for (i = 0; i < m_nVert; i++) {
-        pVert[i].color = imgColor;
-        pVert[i].pos.z = 1.f;
-    }
+    // auto* const pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pVert == nullptr) throw std::runtime_error("vertex buffer not create");
+    // for (i = 0; i < m_nVert; i++) {
+    //     pVert[i].color = imgColor;
+    //     pVert[i].pos.z = 1.f;
+    // }
     // fill center rectangle (were string is showing)
-    pVert[0].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
-    pVert[0].pos.y = static_cast<float>(m_rect.top);
-    pVert[1].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
-    pVert[1].pos.y = static_cast<float>(m_rect.top);
-    pVert[2].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
-    pVert[2].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[3].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
-    pVert[3].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[0].tu = pVert[2].tu = centerRect.left;
-    pVert[1].tu = pVert[3].tu = centerRect.right;
-    pVert[0].tv = pVert[1].tv = centerRect.top;
-    pVert[2].tv = pVert[3].tv = centerRect.bottom;
-    // fill two medium rectangles
-    int const tmp1 = m_nStringWidth / 2;
-    int const tmp2 = m_nStringWidth / 2 + (m_mRect.right - m_mRect.left);
-    pVert[4].pos.y = pVert[5].pos.y = pVert[8].pos.y = pVert[9].pos.y = static_cast<float>(m_rect.top);
-    pVert[6].pos.y = pVert[7].pos.y = pVert[10].pos.y = pVert[11].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[4].pos.x = pVert[6].pos.x = static_cast<float>(m_StringCenter.x - tmp2);
-    pVert[5].pos.x = pVert[7].pos.x = static_cast<float>(m_StringCenter.x - tmp1);
-    pVert[8].pos.x = pVert[10].pos.x = static_cast<float>(m_StringCenter.x + tmp2);
-    pVert[9].pos.x = pVert[11].pos.x = static_cast<float>(m_StringCenter.x + tmp1);
-    pVert[4].tu = pVert[6].tu = pVert[8].tu = pVert[10].tu = mediumRect.left;
-    pVert[5].tu = pVert[7].tu = pVert[9].tu = pVert[11].tu = mediumRect.right;
-    pVert[4].tv = pVert[5].tv = pVert[8].tv = pVert[9].tv = mediumRect.top;
-    pVert[6].tv = pVert[7].tv = pVert[10].tv = pVert[11].tv = mediumRect.bottom;
-    int idx                                                 = 12;
-    // fill left tiled rectangles
-    auto  xpos      = static_cast<float>(m_StringCenter.x - tmp2);
-    float xposDelta = (xpos - static_cast<float>(m_rect.left)) / m_nTiledQuantity;
-    for (i = 0; i < m_nTiledQuantity; i++) {
-        pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos - xposDelta;
-        pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
-        pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-        pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-        pVert[idx + 0].tu = pVert[idx + 2].tu = tiledRect.left;
-        pVert[idx + 1].tu = pVert[idx + 3].tu = tiledRect.right;
-        pVert[idx + 0].tv = pVert[idx + 1].tv = tiledRect.top;
-        pVert[idx + 2].tv = pVert[idx + 3].tv = tiledRect.bottom;
-        idx += 4;
-        xpos -= xposDelta;
-    }
-    // fill right tiled rectangles
-    xpos      = static_cast<float>(m_StringCenter.x + tmp2);
-    xposDelta = (static_cast<float>(m_rect.right) - xpos) / m_nTiledQuantity;
-    for (i = 0; i < m_nTiledQuantity; i++) {
-        pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos + xposDelta;
-        pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
-        pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-        pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-        pVert[idx + 0].tu = pVert[idx + 2].tu = tiledRect.left;
-        pVert[idx + 1].tu = pVert[idx + 3].tu = tiledRect.right;
-        pVert[idx + 0].tv = pVert[idx + 1].tv = tiledRect.top;
-        pVert[idx + 2].tv = pVert[idx + 3].tv = tiledRect.bottom;
-        idx += 4;
-        xpos += xposDelta;
-    }
-    m_rs->UnLockVertexBuffer(m_idVBuf);
+    // pVert[0].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
+    // pVert[0].pos.y = static_cast<float>(m_rect.top);
+    // pVert[1].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
+    // pVert[1].pos.y = static_cast<float>(m_rect.top);
+    // pVert[2].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
+    // pVert[2].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[3].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
+    // pVert[3].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[0].tu = pVert[2].tu = centerRect.left;
+    // pVert[1].tu = pVert[3].tu = centerRect.right;
+    // pVert[0].tv = pVert[1].tv = centerRect.top;
+    // pVert[2].tv = pVert[3].tv = centerRect.bottom;
+    // // fill two medium rectangles
+    // int const tmp1 = m_nStringWidth / 2;
+    // int const tmp2 = m_nStringWidth / 2 + (m_mRect.right - m_mRect.left);
+    // pVert[4].pos.y = pVert[5].pos.y = pVert[8].pos.y = pVert[9].pos.y = static_cast<float>(m_rect.top);
+    // pVert[6].pos.y = pVert[7].pos.y = pVert[10].pos.y = pVert[11].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[4].pos.x = pVert[6].pos.x = static_cast<float>(m_StringCenter.x - tmp2);
+    // pVert[5].pos.x = pVert[7].pos.x = static_cast<float>(m_StringCenter.x - tmp1);
+    // pVert[8].pos.x = pVert[10].pos.x = static_cast<float>(m_StringCenter.x + tmp2);
+    // pVert[9].pos.x = pVert[11].pos.x = static_cast<float>(m_StringCenter.x + tmp1);
+    // pVert[4].tu = pVert[6].tu = pVert[8].tu = pVert[10].tu = mediumRect.left;
+    // pVert[5].tu = pVert[7].tu = pVert[9].tu = pVert[11].tu = mediumRect.right;
+    // pVert[4].tv = pVert[5].tv = pVert[8].tv = pVert[9].tv = mediumRect.top;
+    // pVert[6].tv = pVert[7].tv = pVert[10].tv = pVert[11].tv = mediumRect.bottom;
+    // int idx                                                 = 12;
+    // // fill left tiled rectangles
+    // auto  xpos      = static_cast<float>(m_StringCenter.x - tmp2);
+    // float xposDelta = (xpos - static_cast<float>(m_rect.left)) / m_nTiledQuantity;
+    // for (i = 0; i < m_nTiledQuantity; i++) {
+    //     pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos - xposDelta;
+    //     pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
+    //     pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    //     pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    //     pVert[idx + 0].tu = pVert[idx + 2].tu = tiledRect.left;
+    //     pVert[idx + 1].tu = pVert[idx + 3].tu = tiledRect.right;
+    //     pVert[idx + 0].tv = pVert[idx + 1].tv = tiledRect.top;
+    //     pVert[idx + 2].tv = pVert[idx + 3].tv = tiledRect.bottom;
+    //     idx += 4;
+    //     xpos -= xposDelta;
+    // }
+    // // fill right tiled rectangles
+    // xpos      = static_cast<float>(m_StringCenter.x + tmp2);
+    // xposDelta = (static_cast<float>(m_rect.right) - xpos) / m_nTiledQuantity;
+    // for (i = 0; i < m_nTiledQuantity; i++) {
+    //     pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos + xposDelta;
+    //     pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
+    //     pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    //     pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    //     pVert[idx + 0].tu = pVert[idx + 2].tu = tiledRect.left;
+    //     pVert[idx + 1].tu = pVert[idx + 3].tu = tiledRect.right;
+    //     pVert[idx + 0].tv = pVert[idx + 1].tv = tiledRect.top;
+    //     pVert[idx + 2].tv = pVert[idx + 3].tv = tiledRect.bottom;
+    //     idx += 4;
+    //     xpos += xposDelta;
+    // }
+    // m_rs->UnLockVertexBuffer(m_idVBuf);
 }
 
 void CXI_TITLE::FillVertexBuffer() const
 {
     int32_t i;
-    auto*   pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pVert != nullptr) {
-        // fill center rectangle (were string is showing)
-        pVert[0].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
-        pVert[0].pos.y = static_cast<float>(m_rect.top);
-        pVert[1].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
-        pVert[1].pos.y = static_cast<float>(m_rect.top);
-        pVert[2].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
-        pVert[2].pos.y = static_cast<float>(m_rect.bottom);
-        pVert[3].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
-        pVert[3].pos.y = static_cast<float>(m_rect.bottom);
-
-        // fill two medium rectangles
-        int const tmp1 = m_nStringWidth / 2;
-        int const tmp2 = m_nStringWidth / 2 + (m_mRect.right - m_mRect.left);
-        pVert[4].pos.y = pVert[5].pos.y = pVert[8].pos.y = pVert[9].pos.y = static_cast<float>(m_rect.top);
-        pVert[6].pos.y = pVert[7].pos.y = pVert[10].pos.y = pVert[11].pos.y = static_cast<float>(m_rect.bottom);
-        pVert[4].pos.x = pVert[6].pos.x = static_cast<float>(m_StringCenter.x - tmp2);
-        pVert[5].pos.x = pVert[7].pos.x = static_cast<float>(m_StringCenter.x - tmp1);
-        pVert[8].pos.x = pVert[10].pos.x = static_cast<float>(m_StringCenter.x + tmp2);
-        pVert[9].pos.x = pVert[11].pos.x = static_cast<float>(m_StringCenter.x + tmp1);
-
-        int idx = 12;
-        // fill left tiled rectangles
-        auto  xpos      = static_cast<float>(m_StringCenter.x - tmp2);
-        float xposDelta = (xpos - static_cast<float>(m_rect.left)) / m_nTiledQuantity;
-        for (i = 0; i < m_nTiledQuantity; i++) {
-            pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos - xposDelta;
-            pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
-            pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-            pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-            idx += 4;
-            xpos -= xposDelta;
-        }
-
-        // fill right tiled rectangles
-        xpos      = static_cast<float>(m_StringCenter.x + tmp2);
-        xposDelta = (static_cast<float>(m_rect.right) - xpos) / m_nTiledQuantity;
-        for (i = 0; i < m_nTiledQuantity; i++) {
-            pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos + xposDelta;
-            pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
-            pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-            pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-            idx += 4;
-            xpos += xposDelta;
-        }
-
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto*   pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pVert != nullptr) {
+    //     // fill center rectangle (were string is showing)
+    //     pVert[0].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
+    //     pVert[0].pos.y = static_cast<float>(m_rect.top);
+    //     pVert[1].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
+    //     pVert[1].pos.y = static_cast<float>(m_rect.top);
+    //     pVert[2].pos.x = static_cast<float>(m_StringCenter.x - m_nStringWidth / 2);
+    //     pVert[2].pos.y = static_cast<float>(m_rect.bottom);
+    //     pVert[3].pos.x = static_cast<float>(m_StringCenter.x + m_nStringWidth / 2);
+    //     pVert[3].pos.y = static_cast<float>(m_rect.bottom);
+    //
+    //     // fill two medium rectangles
+    //     int const tmp1 = m_nStringWidth / 2;
+    //     int const tmp2 = m_nStringWidth / 2 + (m_mRect.right - m_mRect.left);
+    //     pVert[4].pos.y = pVert[5].pos.y = pVert[8].pos.y = pVert[9].pos.y = static_cast<float>(m_rect.top);
+    //     pVert[6].pos.y = pVert[7].pos.y = pVert[10].pos.y = pVert[11].pos.y = static_cast<float>(m_rect.bottom);
+    //     pVert[4].pos.x = pVert[6].pos.x = static_cast<float>(m_StringCenter.x - tmp2);
+    //     pVert[5].pos.x = pVert[7].pos.x = static_cast<float>(m_StringCenter.x - tmp1);
+    //     pVert[8].pos.x = pVert[10].pos.x = static_cast<float>(m_StringCenter.x + tmp2);
+    //     pVert[9].pos.x = pVert[11].pos.x = static_cast<float>(m_StringCenter.x + tmp1);
+    //
+    //     int idx = 12;
+    //     // fill left tiled rectangles
+    //     auto  xpos      = static_cast<float>(m_StringCenter.x - tmp2);
+    //     float xposDelta = (xpos - static_cast<float>(m_rect.left)) / m_nTiledQuantity;
+    //     for (i = 0; i < m_nTiledQuantity; i++) {
+    //         pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos - xposDelta;
+    //         pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
+    //         pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    //         pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    //         idx += 4;
+    //         xpos -= xposDelta;
+    //     }
+    //
+    //     // fill right tiled rectangles
+    //     xpos      = static_cast<float>(m_StringCenter.x + tmp2);
+    //     xposDelta = (static_cast<float>(m_rect.right) - xpos) / m_nTiledQuantity;
+    //     for (i = 0; i < m_nTiledQuantity; i++) {
+    //         pVert[idx + 0].pos.x = pVert[idx + 2].pos.x = xpos + xposDelta;
+    //         pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = xpos;
+    //         pVert[idx + 0].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    //         pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    //         idx += 4;
+    //         xpos += xposDelta;
+    //     }
+    //
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 }

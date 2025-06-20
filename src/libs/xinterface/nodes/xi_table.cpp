@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "../str_utils.h"
+#include "libs/renderer_next/types.h"
 
 #include "xi_scroller.h"
 #include "xi_util.h"
@@ -58,7 +59,7 @@ void XI_TableLineDescribe::DrawSpecColor(float fTop) const
         v[2].pos.y                                        = fTop;
         v[3].pos.x                                        = fRight;
         v[3].pos.y                                        = fBottom;
-        m_pTable->m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, v, sizeof(XI_NOTEX_VERTEX), "iRectangle");
+        // m_pTable->m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, v, sizeof(XI_NOTEX_VERTEX), "iRectangle");
     }
 }
 
@@ -141,27 +142,27 @@ void XI_TableCellDescribe::Draw(float fLeft, float fTop)
     auto fY = 0.f;
     for (n = 0; n < m_aStrings.size(); n++) {
         if (m_aStrings[n].offset.y != NOTUSE_OFFSET) fY = m_aStrings[n].offset.y;
-        auto const fNewY = fY + m_pTable->m_rs->CharHeight(m_nFontID) * m_fScale * line_space_modifier;
-        if (fNewY >= m_pLine->GetLineHeight()) break;  // no longer fits into the table
+        // auto const fNewY = fY + m_pTable->m_rs->CharHeight(m_nFontID) * m_fScale * line_space_modifier;
+        // if (fNewY >= m_pLine->GetLineHeight()) break;  // no longer fits into the table
 
-        CXI_UTILS::PrintTextIntoWindow(
-            m_pTable->m_rs,
-            m_nFontIndex < 0 ? m_nFontID : m_pTable->m_anFontList[m_nFontIndex],
-            m_dwColor,
-            PR_ALIGN_LEFT,
-            true,
-            m_fScale,
-            m_pTable->m_screenSize.x,
-            m_pTable->m_screenSize.y,
-            static_cast<int32_t>(fLeft + m_aStrings[n].offset.x),
-            static_cast<int32_t>(fTop + fY),
-            m_aStrings[n].str.c_str(),
-            static_cast<int32_t>(fLeft),
-            static_cast<int32_t>(fTop),
-            m_pTable->m_anColsWidth[m_nColIndex],
-            20);
+        // CXI_UTILS::PrintTextIntoWindow(
+        //     m_pTable->m_rs,
+        //     m_nFontIndex < 0 ? m_nFontID : m_pTable->m_anFontList[m_nFontIndex],
+        //     m_dwColor,
+        //     PR_ALIGN_LEFT,
+        //     true,
+        //     m_fScale,
+        //     m_pTable->m_screenSize.x,
+        //     m_pTable->m_screenSize.y,
+        //     static_cast<int32_t>(fLeft + m_aStrings[n].offset.x),
+        //     static_cast<int32_t>(fTop + fY),
+        //     m_aStrings[n].str.c_str(),
+        //     static_cast<int32_t>(fLeft),
+        //     static_cast<int32_t>(fTop),
+        //     m_pTable->m_anColsWidth[m_nColIndex],
+        //     20);
 
-        fY = fNewY;
+        // fY = fNewY;
     }
 }
 
@@ -212,18 +213,18 @@ void XI_TableCellDescribe::SetData(int32_t nColIndex, ATTRIBUTES* pAttr, bool bH
     if (m_nFontIndex < 0 || m_nFontIndex >= m_pTable->m_anFontList.size()) m_nFontIndex = -1;
     m_nAlignment  = bHeader ? m_pTable->m_nFontTitleAlignment : m_pTable->m_nFontCellAlignment;
     m_nVAlignment = bHeader ? m_pTable->m_nFontTitleVAlignment : m_pTable->m_nFontCellVAlignment;
-    pcTmpStr      = pAttr->GetAttribute("align");
-    if (pcTmpStr) {
-        if (storm::iEquals(pcTmpStr, "left")) m_nAlignment = PR_ALIGN_LEFT;
-        if (storm::iEquals(pcTmpStr, "center")) m_nAlignment = PR_ALIGN_CENTER;
-        if (storm::iEquals(pcTmpStr, "right")) m_nAlignment = PR_ALIGN_RIGHT;
-    }
-    pcTmpStr = pAttr->GetAttribute("valign");
-    if (pcTmpStr) {
-        if (storm::iEquals(pcTmpStr, "top")) m_nVAlignment = ALIGN_TOP;
-        if (storm::iEquals(pcTmpStr, "center")) m_nVAlignment = PR_ALIGN_CENTER;
-        if (storm::iEquals(pcTmpStr, "bottom")) m_nVAlignment = ALIGN_BOTTOM;
-    }
+    // pcTmpStr      = pAttr->GetAttribute("align");
+    // if (pcTmpStr) {
+    //     if (storm::iEquals(pcTmpStr, "left")) m_nAlignment = PR_ALIGN_LEFT;
+    //     if (storm::iEquals(pcTmpStr, "center")) m_nAlignment = PR_ALIGN_CENTER;
+    //     if (storm::iEquals(pcTmpStr, "right")) m_nAlignment = PR_ALIGN_RIGHT;
+    // }
+    // pcTmpStr = pAttr->GetAttribute("valign");
+    // if (pcTmpStr) {
+    //     if (storm::iEquals(pcTmpStr, "top")) m_nVAlignment = ALIGN_TOP;
+    //     if (storm::iEquals(pcTmpStr, "center")) m_nVAlignment = PR_ALIGN_CENTER;
+    //     if (storm::iEquals(pcTmpStr, "bottom")) m_nVAlignment = ALIGN_BOTTOM;
+    // }
 
     m_TextOffset.x = m_TextOffset.y = 0;
     if (pAttr->GetAttribute("textoffset")) sscanf(pAttr->GetAttribute("textoffset"), "%f,%f", &m_TextOffset.x, &m_TextOffset.y);
@@ -238,17 +239,15 @@ void XI_TableCellDescribe::SetData(int32_t nColIndex, ATTRIBUTES* pAttr, bool bH
     CXI_UTILS::SplitStringByWidth(pcStr, m_nFontID, m_fScale, nWidth, asStr);
 
     if (m_nVAlignment != ALIGN_TOP) {
-        auto fVOffset = static_cast<float>(m_pLine->GetLineHeight() - 2 * m_pTable->m_pntSpaceSize.y - m_nTopLineHeight)
-            - m_fScale * m_pTable->m_rs->CharHeight(m_nFontID) * asStr.size();
-        if (m_nVAlignment == PR_ALIGN_CENTER) fVOffset *= .5f;
-        m_TextOffset.y += fVOffset;
+        // auto fVOffset = static_cast<float>(m_pLine->GetLineHeight() - 2 * m_pTable->m_pntSpaceSize.y - m_nTopLineHeight)
+        //     - m_fScale * m_pTable->m_rs->CharHeight(m_nFontID) * asStr.size();
+        // if (m_nVAlignment == PR_ALIGN_CENTER) fVOffset *= .5f;
+        // m_TextOffset.y += fVOffset;
     }
 
     m_aStrings.clear();
     pA = pAttr->GetAttributeClass("textoffsets");
     for (int32_t n = 0; n < asStr.size(); n++) {
-        // m_aStrings.Add();
-        // asStr[n].TrimRight();
         m_aStrings.push_back(StrDescribe {});
         TOREMOVE::rtrim(asStr[n]);
 
@@ -256,12 +255,12 @@ void XI_TableCellDescribe::SetData(int32_t nColIndex, ATTRIBUTES* pAttr, bool bH
 
         m_aStrings[n].offset.y = CXI_UTILS::GetByStrNumFromAttribute_Float(pA, "s", n + 1, NOTUSE_OFFSET);
         m_aStrings[n].offset.x = static_cast<float>(m_nLeftLineWidth);
-        if (m_nAlignment == PR_ALIGN_CENTER)
-            m_aStrings[n].offset.x +=
-                static_cast<float>((nWidth - m_pTable->m_rs->StringWidth((char*)asStr[n].c_str(), m_nFontID, m_fScale)) / 2);
-        else if (m_nAlignment == PR_ALIGN_RIGHT)
-            m_aStrings[n].offset.x +=
-                static_cast<float>(nWidth - m_pTable->m_rs->StringWidth((char*)asStr[n].c_str(), m_nFontID, m_fScale));
+        // if (m_nAlignment == PR_ALIGN_CENTER)
+        //     m_aStrings[n].offset.x +=
+        //         static_cast<float>((nWidth - m_pTable->m_rs->StringWidth((char*)asStr[n].c_str(), m_nFontID, m_fScale)) / 2);
+        // else if (m_nAlignment == PR_ALIGN_RIGHT)
+        //     m_aStrings[n].offset.x +=
+        //         static_cast<float>(nWidth - m_pTable->m_rs->StringWidth((char*)asStr[n].c_str(), m_nFontID, m_fScale));
     }
 }
 
@@ -280,9 +279,9 @@ void XI_TableCellDescribe::LoadImageParam(ImgDescribe* pImg, ATTRIBUTES* pA) con
         pImg->pImage->LoadFromBase(pA->GetAttribute("group"), pA->GetAttribute("image"), true);
     } else {
         if (pA->GetAttribute("texture")) pImg->pImage->LoadFromFile(pA->GetAttribute("texture"));
-
-        if (pA->GetAttribute("texturepointer"))
-            pImg->pImage->SetPointerToTexture((IDirect3DTexture9*)pA->GetAttributeAsPointer("texturepointer"));
+        //
+        // if (pA->GetAttribute("texturepointer"))
+        //     pImg->pImage->SetPointerToTexture((IDirect3DTexture9*)pA->GetAttributeAsPointer("texturepointer"));
 
         auto fL = 0.f, fT = 0.f, fR = 1.f, fB = 1.f;
         if (pA->GetAttribute("uv")) sscanf(pA->GetAttribute("uv"), "%f,%f,%f,%f", &fL, &fT, &fR, &fB);
@@ -299,21 +298,20 @@ void XI_TableCellDescribe::LoadImageParam(ImgDescribe* pImg, ATTRIBUTES* pA) con
     if (pA->GetAttribute("offset")) sscanf(pA->GetAttribute("offset"), "%d,%d", &pImg->offset.x, &pImg->offset.y);
     if ((pcStr = pA->GetAttribute("valign")) != nullptr) {
         nImgAlign = ALIGN_TOP;
-        if (storm::iEquals(pcStr, "center"))
-            nImgAlign = PR_ALIGN_CENTER;
-        else if (storm::iEquals(pcStr, "bottom"))
-            nImgAlign = ALIGN_BOTTOM;
-        if (nImgAlign != ALIGN_TOP) {
-            nH = m_pLine->GetLineHeight() - 2 * m_pTable->m_pntSpaceSize.y - m_nTopLineHeight - pImg->pImage->GetHeight();
-            if (nImgAlign == PR_ALIGN_CENTER) nH /= 2;
-            pImg->offset.y += nH;
-        }
+        // if (storm::iEquals(pcStr, "center"))
+        //     nImgAlign = PR_ALIGN_CENTER;
+        // else if (storm::iEquals(pcStr, "bottom"))
+        //     nImgAlign = ALIGN_BOTTOM;
+        // if (nImgAlign != ALIGN_TOP) {
+        //     nH = m_pLine->GetLineHeight() - 2 * m_pTable->m_pntSpaceSize.y - m_nTopLineHeight - pImg->pImage->GetHeight();
+        //     if (nImgAlign == PR_ALIGN_CENTER) nH /= 2;
+        //     pImg->offset.y += nH;
+        // }
     }
 }
 
 CXI_TABLE::CXI_TABLE()
 {
-    m_rs         = nullptr;
     m_bClickable = true;
     m_nNodeType  = NODETYPE_TABLE;
 
@@ -370,8 +368,8 @@ void CXI_TABLE::Draw(bool bSelected, uint32_t Delta_Time)
 
     // Drawing the frame
     if (m_idBorderTexture != -1 && m_idBorderVBuf != -1 && m_idBorderIBuf != -1) {
-        m_rs->TextureSet(0, m_idBorderTexture);
-        m_rs->DrawBuffer(m_idBorderVBuf, sizeof(XI_ONETEX_VERTEX), m_idBorderIBuf, 0, m_nBorderSubQ * 4, 0, m_nBorderSubQ * 2, "iIcon");
+        // m_rs->TextureSet(0, m_idBorderTexture);
+        // m_rs->DrawBuffer(m_idBorderVBuf, sizeof(XI_ONETEX_VERTEX), m_idBorderIBuf, 0, m_nBorderSubQ * 4, 0, m_nBorderSubQ * 2, "iIcon");
     }
 
     // Line output
@@ -387,7 +385,7 @@ void CXI_TABLE::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_TABLE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -408,15 +406,15 @@ void CXI_TABLE::ReleaseAll()
 
     // release border data
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sBorderIconGroupName.c_str(), m_idBorderTexture);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idBorderVBuf);
-    INDEX_BUFFER_RELEASE(m_rs, m_idBorderIBuf);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idBorderVBuf);
+    // INDEX_BUFFER_RELEASE(m_rs, m_idBorderIBuf);
 
     // release fonts from list
-    FONT_RELEASE(m_rs, m_nFontCellID);
-    FONT_RELEASE(m_rs, m_nFontTitleID);
-    for (int32_t n = 0; n < m_anFontList.size(); n++) {
-        FONT_RELEASE(m_rs, m_anFontList[n]);
-    }
+    // FONT_RELEASE(m_rs, m_nFontCellID);
+    // FONT_RELEASE(m_rs, m_nFontTitleID);
+    // for (int32_t n = 0; n < m_anFontList.size(); n++) {
+    //     FONT_RELEASE(m_rs, m_anFontList[n]);
+    // }
     m_anFontList.clear();
 
     m_nBorderSubQ = 0;
@@ -675,40 +673,40 @@ void CXI_TABLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
         for (n = 0; n < 100; n++) {
             sprintf_s(pctmp, sizeof(pctmp), "fontlist%d", n + 1);
             if (!ini1->ReadString(name1, pctmp, param, sizeof(param), "")) break;
-            m_anFontList.push_back(m_rs->LoadFont(param));
+            // m_anFontList.push_back(m_rs->LoadFont(param));
         }
     }
 
-    if (ReadIniString(ini1, name1, ini2, name2, "fontcell", param, sizeof(param), "")) m_nFontCellID = m_rs->LoadFont(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "fontcell", param, sizeof(param), "")) m_nFontCellID = m_rs->LoadFont(param);
 
     // cell font
-    if (ReadIniString(ini1, name1, ini2, name2, "fontcell", param, sizeof(param), "")) m_nFontCellID = m_rs->LoadFont(param);
-    m_dwFontCellColor     = GetIniARGB(ini1, name1, ini2, name2, "fontcellcolor", ARGB(255, 255, 255, 255));
-    m_fFontCellScale      = GetIniFloat(ini1, name1, ini2, name2, "fontcellscale", 1.f);
-    m_nFontCellAlignment  = PR_ALIGN_LEFT;
+    // if (ReadIniString(ini1, name1, ini2, name2, "fontcell", param, sizeof(param), "")) m_nFontCellID = m_rs->LoadFont(param);
+    m_dwFontCellColor = GetIniARGB(ini1, name1, ini2, name2, "fontcellcolor", storm::Color {255, 255, 255, 255}.to_hex());
+    m_fFontCellScale  = GetIniFloat(ini1, name1, ini2, name2, "fontcellscale", 1.f);
+    // m_nFontCellAlignment  = PR_ALIGN_LEFT;
     m_nFontCellVAlignment = ALIGN_TOP;
     if (ReadIniString(ini1, name1, ini2, name2, "fontcellalignment", param, sizeof(param), "")) {
-        if (storm::iEquals(param, "center")) m_nFontCellAlignment = PR_ALIGN_CENTER;
-        if (storm::iEquals(param, "right")) m_nFontCellAlignment = PR_ALIGN_RIGHT;
+        // if (storm::iEquals(param, "center")) m_nFontCellAlignment = PR_ALIGN_CENTER;
+        // if (storm::iEquals(param, "right")) m_nFontCellAlignment = PR_ALIGN_RIGHT;
     }
     if (ReadIniString(ini1, name1, ini2, name2, "fontcellvalignment", param, sizeof(param), "")) {
-        if (storm::iEquals(param, "center")) m_nFontCellVAlignment = PR_ALIGN_CENTER;
+        // if (storm::iEquals(param, "center")) m_nFontCellVAlignment = PR_ALIGN_CENTER;
         if (storm::iEquals(param, "bottom")) m_nFontCellVAlignment = ALIGN_BOTTOM;
     }
 
     // title font
-    if (ReadIniString(ini1, name1, ini2, name2, "fonttitle", param, sizeof(param), "")) m_nFontTitleID = m_rs->LoadFont(param);
-    m_dwFontTitleColor     = GetIniARGB(ini1, name1, ini2, name2, "fonttitlecolor", ARGB(255, 255, 255, 255));
-    m_fFontTitleScale      = GetIniFloat(ini1, name1, ini2, name2, "fonttitlescale", 1.f);
-    m_nFontTitleAlignment  = PR_ALIGN_LEFT;
+    // if (ReadIniString(ini1, name1, ini2, name2, "fonttitle", param, sizeof(param), "")) m_nFontTitleID = m_rs->LoadFont(param);
+    m_dwFontTitleColor = GetIniARGB(ini1, name1, ini2, name2, "fonttitlecolor", storm::Color {255, 255, 255, 255}.to_hex());
+    m_fFontTitleScale  = GetIniFloat(ini1, name1, ini2, name2, "fonttitlescale", 1.f);
+    // m_nFontTitleAlignment  = PR_ALIGN_LEFT;
     m_nFontTitleVAlignment = ALIGN_TOP;
     if (ReadIniString(ini1, name1, ini2, name2, "fonttitlealignment", param, sizeof(param), "")) {
-        if (storm::iEquals(param, "center")) m_nFontTitleAlignment = PR_ALIGN_CENTER;
-        if (storm::iEquals(param, "right")) m_nFontTitleAlignment = PR_ALIGN_RIGHT;
+        // if (storm::iEquals(param, "center")) m_nFontTitleAlignment = PR_ALIGN_CENTER;
+        // if (storm::iEquals(param, "right")) m_nFontTitleAlignment = PR_ALIGN_RIGHT;
     }
     if (ReadIniString(ini1, name1, ini2, name2, "fonttitlevalignment", param, sizeof(param), "")) {
-        if (storm::iEquals(param, "center")) m_nFontTitleVAlignment = PR_ALIGN_CENTER;
-        if (storm::iEquals(param, "bottom")) m_nFontTitleVAlignment = ALIGN_BOTTOM;
+        // if (storm::iEquals(param, "center")) m_nFontTitleVAlignment = PR_ALIGN_CENTER;
+        // if (storm::iEquals(param, "bottom")) m_nFontTitleVAlignment = ALIGN_BOTTOM;
     }
 
     // select image
@@ -762,7 +760,7 @@ void CXI_TABLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
     if (ReadIniString(ini1, name1, ini2, name2, "borderhline", param, sizeof(param), ""))
         m_nBorderIcon_HLine = pPictureService->GetImageNum(m_sBorderIconGroupName.c_str(), param);
 
-    m_dwBorderColor         = GetIniARGB(ini1, name1, ini2, name2, "bordercolor", ARGB(255, 128, 128, 128));
+    m_dwBorderColor         = GetIniARGB(ini1, name1, ini2, name2, "bordercolor", storm::Color {255, 128, 128, 128}.to_hex());
     m_nBorderWidth          = GetIniLong(ini1, name1, ini2, name2, "borderwidth", 0);
     m_nVLineWidth           = GetIniLong(ini1, name1, ini2, name2, "vlinewidth", 0);
     m_nHLineHeight          = GetIniLong(ini1, name1, ini2, name2, "hlineheight", 0);
@@ -877,31 +875,31 @@ void CXI_TABLE::UpdateBorders()
     if (m_nBorderSubQ != q)  // rearranging buffers
     {
         m_nBorderSubQ = q;
-        VERTEX_BUFFER_RELEASE(m_rs, m_idBorderVBuf);
-        INDEX_BUFFER_RELEASE(m_rs, m_idBorderIBuf);
+        // VERTEX_BUFFER_RELEASE(m_rs, m_idBorderVBuf);
+        // INDEX_BUFFER_RELEASE(m_rs, m_idBorderIBuf);
 
         // index buffer
-        m_idBorderIBuf = m_rs->CreateIndexBuffer(q * 6 * sizeof(uint16_t));
+        // m_idBorderIBuf = m_rs->CreateIndexBuffer(q * 6 * sizeof(uint16_t));
         Assert(m_idBorderIBuf != -1);
         // fill in
-        auto* pT = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idBorderIBuf));
-        for (n = 0; n < q; n++) {
-            pT[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
-            pT[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 1);
-            pT[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 2);
-            pT[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 3);
-            pT[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 1);
-            pT[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
-        }
-        m_rs->UnLockIndexBuffer(m_idBorderIBuf);
+        // auto* pT = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idBorderIBuf));
+        // for (n = 0; n < q; n++) {
+        //     pT[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
+        //     pT[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 1);
+        //     pT[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 2);
+        //     pT[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 3);
+        //     pT[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 1);
+        //     pT[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
+        // }
+        // m_rs->UnLockIndexBuffer(m_idBorderIBuf);
 
         // vertex buffer
-        m_idBorderVBuf = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, q * 4 * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
-        Assert(m_idBorderVBuf != -1);
+        // m_idBorderVBuf = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, q * 4 * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+        // Assert(m_idBorderVBuf != -1);
     }
 
     // fill the vertex buffer
-    auto* pV = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idBorderVBuf));
+    // auto* pV = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idBorderVBuf));
     // horizontal lines
     nTop = m_rect.top;
     for (r = 0, n = 0; r < m_nRowQuantity - 1; r++) {
@@ -912,20 +910,20 @@ void CXI_TABLE::UpdateBorders()
             if (m_bHLineIsBreakable) {
                 // separate lines for each column
                 for (c = 0; c < m_nColQuantity; c++) {
-                    WriteSquare(&pV[n], m_nBorderIcon_HLine, m_dwBorderColor, nLeft, nTop, m_anColsWidth[c], q);
+                    // WriteSquare(&pV[n], m_nBorderIcon_HLine, m_dwBorderColor, nLeft, nTop, m_anColsWidth[c], q);
                     nLeft += m_anColsWidth[c];
                     n += 4;
                 }
             }  // one line for all columns
             else {
-                WriteSquare(
-                    &pV[n],
-                    m_nBorderIcon_HLine,
-                    m_dwBorderColor,
-                    m_rect.left + m_nBorderWidth,
-                    nTop,
-                    m_rect.right - m_rect.left - 2 * m_nBorderWidth,
-                    q);
+                // WriteSquare(
+                //     &pV[n],
+                //     m_nBorderIcon_HLine,
+                //     m_dwBorderColor,
+                //     m_rect.left + m_nBorderWidth,
+                //     nTop,
+                //     m_rect.right - m_rect.left - 2 * m_nBorderWidth,
+                //     q);
                 n += 4;
             }
         }
@@ -935,85 +933,86 @@ void CXI_TABLE::UpdateBorders()
         nLeft = m_rect.left;
         for (c = 0; c < m_nColQuantity - 1; c++) {
             nLeft += m_anColsWidth[c];
-            WriteSquare(
-                &pV[n],
-                m_nBorderIcon_VLine,
-                m_dwBorderColor,
-                nLeft,
-                m_rect.top + m_nBorderWidth,
-                m_nVLineWidth,
-                m_rect.bottom - m_rect.top - 2 * m_nBorderWidth);
+            // WriteSquare(
+            //     &pV[n],
+            //     m_nBorderIcon_VLine,
+            //     m_dwBorderColor,
+            //     nLeft,
+            //     m_rect.top + m_nBorderWidth,
+            //     m_nVLineWidth,
+            //     m_rect.bottom - m_rect.top - 2 * m_nBorderWidth);
             n += 4;
         }
     }
     // main border
-    WriteSquare(&pV[n], m_nBorderIcon_LeftTop, m_dwBorderColor, m_rect.left, m_rect.top, m_pntBorderCornerSize.x, m_pntBorderCornerSize.y);
+    // WriteSquare(&pV[n], m_nBorderIcon_LeftTop, m_dwBorderColor, m_rect.left, m_rect.top, m_pntBorderCornerSize.x,
+    // m_pntBorderCornerSize.y);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_RightTop,
-        m_dwBorderColor,
-        m_rect.right - m_pntBorderCornerSize.x,
-        m_rect.top,
-        m_pntBorderCornerSize.x,
-        m_pntBorderCornerSize.y);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_RightTop,
+    //     m_dwBorderColor,
+    //     m_rect.right - m_pntBorderCornerSize.x,
+    //     m_rect.top,
+    //     m_pntBorderCornerSize.x,
+    //     m_pntBorderCornerSize.y);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_LeftBottom,
-        m_dwBorderColor,
-        m_rect.left,
-        m_rect.bottom - m_pntBorderCornerSize.y,
-        m_pntBorderCornerSize.x,
-        m_pntBorderCornerSize.y);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_LeftBottom,
+    //     m_dwBorderColor,
+    //     m_rect.left,
+    //     m_rect.bottom - m_pntBorderCornerSize.y,
+    //     m_pntBorderCornerSize.x,
+    //     m_pntBorderCornerSize.y);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_RightBottom,
-        m_dwBorderColor,
-        m_rect.right - m_pntBorderCornerSize.x,
-        m_rect.bottom - m_pntBorderCornerSize.y,
-        m_pntBorderCornerSize.x,
-        m_pntBorderCornerSize.y);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_RightBottom,
+    //     m_dwBorderColor,
+    //     m_rect.right - m_pntBorderCornerSize.x,
+    //     m_rect.bottom - m_pntBorderCornerSize.y,
+    //     m_pntBorderCornerSize.x,
+    //     m_pntBorderCornerSize.y);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_Top,
-        m_dwBorderColor,
-        m_rect.left + m_pntBorderCornerSize.x,
-        m_rect.top,
-        m_rect.right - m_rect.left - 2 * m_pntBorderCornerSize.x,
-        m_nBorderWidth);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_Top,
+    //     m_dwBorderColor,
+    //     m_rect.left + m_pntBorderCornerSize.x,
+    //     m_rect.top,
+    //     m_rect.right - m_rect.left - 2 * m_pntBorderCornerSize.x,
+    //     m_nBorderWidth);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_Bottom,
-        m_dwBorderColor,
-        m_rect.left + m_pntBorderCornerSize.x,
-        m_rect.bottom - m_nBorderWidth,
-        m_rect.right - m_rect.left - 2 * m_pntBorderCornerSize.x,
-        m_nBorderWidth);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_Bottom,
+    //     m_dwBorderColor,
+    //     m_rect.left + m_pntBorderCornerSize.x,
+    //     m_rect.bottom - m_nBorderWidth,
+    //     m_rect.right - m_rect.left - 2 * m_pntBorderCornerSize.x,
+    //     m_nBorderWidth);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_Left,
-        m_dwBorderColor,
-        m_rect.left,
-        m_rect.top + m_pntBorderCornerSize.y,
-        m_nBorderWidth,
-        m_rect.bottom - m_rect.top - 2 * m_pntBorderCornerSize.y);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_Left,
+    //     m_dwBorderColor,
+    //     m_rect.left,
+    //     m_rect.top + m_pntBorderCornerSize.y,
+    //     m_nBorderWidth,
+    //     m_rect.bottom - m_rect.top - 2 * m_pntBorderCornerSize.y);
     n += 4;
-    WriteSquare(
-        &pV[n],
-        m_nBorderIcon_Right,
-        m_dwBorderColor,
-        m_rect.right - m_nBorderWidth,
-        m_rect.top + m_pntBorderCornerSize.y,
-        m_nBorderWidth,
-        m_rect.bottom - m_rect.top - 2 * m_pntBorderCornerSize.y);
+    // WriteSquare(
+    //     &pV[n],
+    //     m_nBorderIcon_Right,
+    //     m_dwBorderColor,
+    //     m_rect.right - m_nBorderWidth,
+    //     m_rect.top + m_pntBorderCornerSize.y,
+    //     m_nBorderWidth,
+    //     m_rect.bottom - m_rect.top - 2 * m_pntBorderCornerSize.y);
     n += 4;
     // finish
-    m_rs->UnLockVertexBuffer(m_idBorderVBuf);
+    // m_rs->UnLockVertexBuffer(m_idBorderVBuf);
 }
 
 void CXI_TABLE::WriteSquare(XI_ONETEX_VERTEX* pV, int32_t nImgID, uint32_t dwCol, int32_t nX, int32_t nY, int32_t nW, int32_t nH) const

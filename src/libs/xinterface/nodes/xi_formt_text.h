@@ -32,8 +32,9 @@ public:
     ~CXI_FORMATEDTEXT() override;
 
     void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
+    bool
+    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+        override;
     void     ReleaseAll() override;
     int      CommandExecute(int wActCode) override;
     bool     IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
@@ -94,11 +95,10 @@ protected:
     int               m_nAllTextStrings;
     int               m_nStringGroupQuantity;
 
-    bool           m_bSelectableCursor;
-    CVideoTexture* m_pVidTex;
-    int32_t        m_idVBuf;
-    int32_t        m_nCurGroupNum;
-    float          m_fHorzScale;
+    bool    m_bSelectableCursor;
+    int32_t m_idVBuf;
+    int32_t m_nCurGroupNum;
+    float   m_fHorzScale;
 
     bool    m_bUpEnable;
     bool    m_bDownEnable;

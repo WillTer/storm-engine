@@ -2,7 +2,7 @@ storm_lib(
     NAME xinterface
     LINK_DEPENDENCIES
         core
-        renderer
+        renderer_next
         SDL3-storm
         spdlog::spdlog
 

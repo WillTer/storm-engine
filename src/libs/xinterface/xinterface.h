@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
+#include <libs/renderer_next/types.h>
 
 #include "editor/editor.h"
 #include "nodes/xi_util.h"
@@ -22,7 +22,6 @@ protected:
     storm::QuestFileReader* pQuestService;
     VXSERVICE*              pPictureService;
     VSTRSERVICE*            pStringService;
-    VDX9RENDER*             pRenderService;
 
     CXI_UTILS m_UtilContainer;
 
@@ -58,7 +57,7 @@ protected:
     int32_t              lock_x, lock_y;  // center position for mouse pointer
     float                fXMousePos, fYMousePos;
     int32_t              m_lXMouse, m_lYMouse;  // mouse pointer corrector for calculate active point
-    POINT                MouseSize;
+    storm::Point         MouseSize;
     int32_t              m_idTex;
     XI_ONLYONETEX_VERTEX vMouse[4];
     int32_t              m_lMouseSensitive;
@@ -90,13 +89,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -136,9 +129,9 @@ public:
         return pThis->pStringService;
     }
 
-    static VDX9RENDER* GetRenderService()
+    static /*VDX9RENDER*/ void* GetRenderService()
     {
-        return pThis->pRenderService;
+        return nullptr;
     }
 
     storm::QuestFileReader* QuestFileReader() override
@@ -156,9 +149,9 @@ public:
         return pStringService;
     }
 
-    VDX9RENDER* RenderService() override
+    /*VDX9RENDER*/ void* RenderService() override
     {
-        return pRenderService;
+        return nullptr;
     }
 
     void* GetCurrentNode() override
@@ -388,12 +381,10 @@ protected:
     EVENT_Entity* m_pEvents;
 
     // previouse texture & draw to texturer data
-    bool               m_bShowPrevTexture;  // exchange one interface to other
-    int32_t            m_ChangeType;        // exchange type
-    float              m_fAngle;
-    int32_t            m_nBlendColor;
-    IDirect3DTexture9* m_pTexture;
-    IDirect3DTexture9* m_pPrevTexture;
+    bool    m_bShowPrevTexture;  // exchange one interface to other
+    int32_t m_ChangeType;        // exchange type
+    float   m_fAngle;
+    int32_t m_nBlendColor;
 
     // vertex & index data
     int32_t  vBuf, iBuf;

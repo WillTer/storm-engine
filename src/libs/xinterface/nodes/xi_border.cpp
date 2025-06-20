@@ -7,8 +7,6 @@
 
 CXI_BORDER::CXI_BORDER()
 {
-    m_rs = nullptr;
-
     m_idTex = -1;
 
     m_idVBuf = -1;
@@ -37,15 +35,15 @@ void CXI_BORDER::Draw(bool bSelected, uint32_t Delta_Time)
         if (m_pCaptionImage) m_pCaptionImage->Draw();
 
         if (m_idTex >= 0) {
-            m_rs->TextureSet(0, m_idTex);
-            if (m_idVBuf >= 0 && m_idIBuf >= 0)
-                m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nSquareQ * 4, 0, m_nSquareQ * 2, "iBounder");
+            // m_rs->TextureSet(0, m_idTex);
+            // if (m_idVBuf >= 0 && m_idIBuf >= 0)
+            //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, m_nSquareQ * 4, 0, m_nSquareQ * 2, "iBounder");
         }
     }
 }
 
 bool CXI_BORDER::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -55,8 +53,8 @@ void CXI_BORDER::ReleaseAll()
 {
     m_bUse = false;
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName.c_str(), m_idTex);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
     STORM_DELETE(m_pBackImage);
     STORM_DELETE(m_pCaptionImage);
 }
@@ -131,8 +129,8 @@ void CXI_BORDER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
 
     // create index and vertex buffers
     m_nSquareQ = 4 + 4 + 1;  // 4 edge & 4 angle & 1 caption
-    m_idVBuf   = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nSquareQ * 4 * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
-    m_idIBuf   = m_rs->CreateIndexBuffer(m_nSquareQ * 6 * 2);
+    // m_idVBuf   = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nSquareQ * 4 * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idIBuf   = m_rs->CreateIndexBuffer(m_nSquareQ * 6 * 2);
     if (m_nCaptionHeight == 0 || !m_pCaptionImage) m_nSquareQ--;  // don`t show caption
 
     // get pictures
@@ -243,106 +241,107 @@ void CXI_BORDER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
 void CXI_BORDER::FillIndexBuffers() const
 {
     if (m_idIBuf < 0) return;
-    auto* pI = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
-
-    for (int32_t n = 0; n < m_nSquareQ; n++) {
-        pI[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
-        pI[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 1);
-        pI[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 2);
-
-        pI[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 1);
-        pI[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 3);
-        pI[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
-    }
-
-    m_rs->UnLockIndexBuffer(m_idIBuf);
+    // auto* pI = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
+    //
+    // for (int32_t n = 0; n < m_nSquareQ; n++) {
+    //     pI[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
+    //     pI[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 1);
+    //     pI[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 2);
+    //
+    //     pI[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 1);
+    //     pI[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 3);
+    //     pI[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 2);
+    // }
+    //
+    // m_rs->UnLockIndexBuffer(m_idIBuf);
 }
 
 void CXI_BORDER::FillVertexBuffers()
 {
     if (m_idVBuf < 0) return;
-    auto* pV = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-
-    for (int32_t n = 0; n < m_nSquareQ * 4; n++) {
-        pV[n].color = m_dwColor;
-        pV[n].pos.z = 1.f;
-    }
-
-    // top line
-    WriteVertexForSquare(
-        &pV[0],
-        m_frTopLineUV,
-        m_dwColor,
-        m_rect.left + m_pntLeftTopSize.x,
-        m_rect.top,
-        m_rect.right - m_pntRightTopSize.x,
-        m_rect.top + m_nTopLineHeight);
-    // bottom line
-    WriteVertexForSquare(
-        &pV[4],
-        m_frBottomLineUV,
-        m_dwColor,
-        m_rect.left + m_pntLeftTopSize.x,
-        m_rect.bottom - m_nBottomLineHeight,
-        m_rect.right - m_pntRightTopSize.x,
-        m_rect.bottom);
-    // left line
-    WriteVertexForSquare(
-        &pV[8],
-        m_frLeftLineUV,
-        m_dwColor,
-        m_rect.left,
-        m_rect.top + m_pntLeftTopSize.y,
-        m_rect.left + m_nLeftLineWidth,
-        m_rect.bottom - m_pntLeftBottomSize.y);
-    // right line
-    WriteVertexForSquare(
-        &pV[12],
-        m_frRightLineUV,
-        m_dwColor,
-        m_rect.right - m_nRightLineWidth,
-        m_rect.top + m_pntRightTopSize.y,
-        m_rect.right,
-        m_rect.bottom - m_pntRightBottomSize.y);
-    // left top corner
-    WriteVertexForSquare(
-        &pV[16], m_frLeftTopUV, m_dwColor, m_rect.left, m_rect.top, m_rect.left + m_pntLeftTopSize.x, m_rect.top + m_pntLeftTopSize.y);
-    // right top corner
-    WriteVertexForSquare(
-        &pV[20], m_frRightTopUV, m_dwColor, m_rect.right - m_pntRightTopSize.x, m_rect.top, m_rect.right, m_rect.top + m_pntRightTopSize.y);
-    // left bottom corner
-    WriteVertexForSquare(
-        &pV[24],
-        m_frLeftBottomUV,
-        m_dwColor,
-        m_rect.left,
-        m_rect.bottom - m_pntLeftBottomSize.y,
-        m_rect.left + m_pntLeftBottomSize.x,
-        m_rect.bottom);
-    // right bottom corner
-    WriteVertexForSquare(
-        &pV[28],
-        m_frRightBottomUV,
-        m_dwColor,
-        m_rect.right - m_pntRightBottomSize.x,
-        m_rect.bottom - m_pntRightBottomSize.y,
-        m_rect.right,
-        m_rect.bottom);
-
-    // caption
-    if (m_nCaptionHeight > 0 && m_pCaptionImage) {
-        // caption line
-        WriteVertexForSquare(
-            &pV[32],
-            m_frTopLineUV,
-            m_dwColor,
-            m_rect.left + m_nLeftLineWidth,
-            m_rect.top + m_nCaptionHeight,
-            m_rect.right - m_nRightLineWidth,
-            m_rect.top + m_nCaptionHeight + m_mCaptionDividerHeight);
-    }
-
-    m_rs->UnLockVertexBuffer(m_idVBuf);
+    // auto* pV = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    //
+    // for (int32_t n = 0; n < m_nSquareQ * 4; n++) {
+    //     pV[n].color = m_dwColor;
+    //     pV[n].pos.z = 1.f;
+    // }
+    //
+    // // top line
+    // WriteVertexForSquare(
+    //     &pV[0],
+    //     m_frTopLineUV,
+    //     m_dwColor,
+    //     m_rect.left + m_pntLeftTopSize.x,
+    //     m_rect.top,
+    //     m_rect.right - m_pntRightTopSize.x,
+    //     m_rect.top + m_nTopLineHeight);
+    // // bottom line
+    // WriteVertexForSquare(
+    //     &pV[4],
+    //     m_frBottomLineUV,
+    //     m_dwColor,
+    //     m_rect.left + m_pntLeftTopSize.x,
+    //     m_rect.bottom - m_nBottomLineHeight,
+    //     m_rect.right - m_pntRightTopSize.x,
+    //     m_rect.bottom);
+    // // left line
+    // WriteVertexForSquare(
+    //     &pV[8],
+    //     m_frLeftLineUV,
+    //     m_dwColor,
+    //     m_rect.left,
+    //     m_rect.top + m_pntLeftTopSize.y,
+    //     m_rect.left + m_nLeftLineWidth,
+    //     m_rect.bottom - m_pntLeftBottomSize.y);
+    // // right line
+    // WriteVertexForSquare(
+    //     &pV[12],
+    //     m_frRightLineUV,
+    //     m_dwColor,
+    //     m_rect.right - m_nRightLineWidth,
+    //     m_rect.top + m_pntRightTopSize.y,
+    //     m_rect.right,
+    //     m_rect.bottom - m_pntRightBottomSize.y);
+    // // left top corner
+    // WriteVertexForSquare(
+    //     &pV[16], m_frLeftTopUV, m_dwColor, m_rect.left, m_rect.top, m_rect.left + m_pntLeftTopSize.x, m_rect.top + m_pntLeftTopSize.y);
+    // // right top corner
+    // WriteVertexForSquare(
+    //     &pV[20], m_frRightTopUV, m_dwColor, m_rect.right - m_pntRightTopSize.x, m_rect.top, m_rect.right, m_rect.top +
+    //     m_pntRightTopSize.y);
+    // // left bottom corner
+    // WriteVertexForSquare(
+    //     &pV[24],
+    //     m_frLeftBottomUV,
+    //     m_dwColor,
+    //     m_rect.left,
+    //     m_rect.bottom - m_pntLeftBottomSize.y,
+    //     m_rect.left + m_pntLeftBottomSize.x,
+    //     m_rect.bottom);
+    // // right bottom corner
+    // WriteVertexForSquare(
+    //     &pV[28],
+    //     m_frRightBottomUV,
+    //     m_dwColor,
+    //     m_rect.right - m_pntRightBottomSize.x,
+    //     m_rect.bottom - m_pntRightBottomSize.y,
+    //     m_rect.right,
+    //     m_rect.bottom);
+    //
+    // // caption
+    // if (m_nCaptionHeight > 0 && m_pCaptionImage) {
+    //     // caption line
+    //     WriteVertexForSquare(
+    //         &pV[32],
+    //         m_frTopLineUV,
+    //         m_dwColor,
+    //         m_rect.left + m_nLeftLineWidth,
+    //         m_rect.top + m_nCaptionHeight,
+    //         m_rect.right - m_nRightLineWidth,
+    //         m_rect.top + m_nCaptionHeight + m_mCaptionDividerHeight);
+    // }
+    //
+    // m_rs->UnLockVertexBuffer(m_idVBuf);
 }
 
 void CXI_BORDER::WriteVertexForSquare(

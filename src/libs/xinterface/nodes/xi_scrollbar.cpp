@@ -1,5 +1,7 @@
 #include "xi_scrollbar.h"
 
+#include "libs/renderer_next/types.h"
+
 #define CLICK_TYPE_CENTER 0
 #define CLICK_TYPE_LEFT 1
 #define CLICK_TYPE_RIGHT 2
@@ -8,7 +10,6 @@ CXI_SCROLLBAR::CXI_SCROLLBAR()
 {
     m_idTex      = -1;
     m_sGroupName = nullptr;
-    m_rs         = nullptr;
 
     m_fXShadow = 0.f;
     m_fYShadow = 0.f;
@@ -57,54 +58,54 @@ void CXI_SCROLLBAR::Draw(bool bSelected, uint32_t Delta_Time)
 
     if (m_bUse) {
         if (bSelected ^ m_bPrevSelectStatus) {
-            auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-            if (pVert != nullptr) {
-                m_bPrevSelectStatus = bSelected;
-                if (bSelected)
-                    for (auto idx = 0; idx < 6 * 12; idx += 12) {
-                        pVert[idx + 4].tu = m_rectSelectCenterTex.left;
-                        pVert[idx + 4].tv = m_rectSelectCenterTex.top;
-                        pVert[idx + 5].tu = m_rectSelectCenterTex.right;
-                        pVert[idx + 5].tv = m_rectSelectCenterTex.top;
-                        pVert[idx + 6].tu = m_rectSelectCenterTex.left;
-                        pVert[idx + 6].tv = m_rectSelectCenterTex.bottom;
-                        pVert[idx + 7].tu = m_rectSelectCenterTex.right;
-                        pVert[idx + 7].tv = m_rectSelectCenterTex.bottom;
-                    }
-                else
-                    for (auto idx = 0; idx < 6 * 12; idx += 12) {
-                        pVert[idx + 4].tu = m_rectCenterTex.left;
-                        pVert[idx + 4].tv = m_rectCenterTex.top;
-                        pVert[idx + 5].tu = m_rectCenterTex.right;
-                        pVert[idx + 5].tv = m_rectCenterTex.top;
-                        pVert[idx + 6].tu = m_rectCenterTex.left;
-                        pVert[idx + 6].tv = m_rectCenterTex.bottom;
-                        pVert[idx + 7].tu = m_rectCenterTex.right;
-                        pVert[idx + 7].tv = m_rectCenterTex.bottom;
-                    }
-
-                m_rs->UnLockVertexBuffer(m_idVBuf);
-            }
+            // auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+            // if (pVert != nullptr) {
+            //     m_bPrevSelectStatus = bSelected;
+            //     if (bSelected)
+            //         for (auto idx = 0; idx < 6 * 12; idx += 12) {
+            //             pVert[idx + 4].tu = m_rectSelectCenterTex.left;
+            //             pVert[idx + 4].tv = m_rectSelectCenterTex.top;
+            //             pVert[idx + 5].tu = m_rectSelectCenterTex.right;
+            //             pVert[idx + 5].tv = m_rectSelectCenterTex.top;
+            //             pVert[idx + 6].tu = m_rectSelectCenterTex.left;
+            //             pVert[idx + 6].tv = m_rectSelectCenterTex.bottom;
+            //             pVert[idx + 7].tu = m_rectSelectCenterTex.right;
+            //             pVert[idx + 7].tv = m_rectSelectCenterTex.bottom;
+            //         }
+            //     else
+            //         for (auto idx = 0; idx < 6 * 12; idx += 12) {
+            //             pVert[idx + 4].tu = m_rectCenterTex.left;
+            //             pVert[idx + 4].tv = m_rectCenterTex.top;
+            //             pVert[idx + 5].tu = m_rectCenterTex.right;
+            //             pVert[idx + 5].tv = m_rectCenterTex.top;
+            //             pVert[idx + 6].tu = m_rectCenterTex.left;
+            //             pVert[idx + 6].tv = m_rectCenterTex.bottom;
+            //             pVert[idx + 7].tu = m_rectCenterTex.right;
+            //             pVert[idx + 7].tv = m_rectCenterTex.bottom;
+            //         }
+            //
+            //     m_rs->UnLockVertexBuffer(m_idVBuf);
+            // }
         }
 
-        m_rs->TextureSet(0, m_idTex);
+        // m_rs->TextureSet(0, m_idTex);
         // show shadow
-        if (m_nPressedDelay > 0)
-            if (m_bRightPress)
-                m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 60, 12, 0, m_nIndx, "iShadow");
-            else
-                m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 36, 12, 0, m_nIndx, "iShadow");
-        else
-            m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 12, 12, 0, m_nIndx, "iShadow");
+        // if (m_nPressedDelay > 0)
+        //     if (m_bRightPress)
+        //         m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 60, 12, 0, m_nIndx, "iShadow");
+        //     else
+        //         m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 36, 12, 0, m_nIndx, "iShadow");
+        // else
+        //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 12, 12, 0, m_nIndx, "iShadow");
 
         // show button
-        if (m_nPressedDelay > 0)
-            if (m_bRightPress)
-                m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 48, 12, 0, m_nIndx, "iButton");
-            else
-                m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 24, 12, 0, m_nIndx, "iButton");
-        else
-            m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, 12, 0, m_nIndx, "iButton");
+        // if (m_nPressedDelay > 0)
+        //     if (m_bRightPress)
+        //         m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 48, 12, 0, m_nIndx, "iButton");
+        //     else
+        //         m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 24, 12, 0, m_nIndx, "iButton");
+        // else
+        //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, 12, 0, m_nIndx, "iButton");
     }
 
     if (m_bShowString) {
@@ -114,19 +115,19 @@ void CXI_SCROLLBAR::Draw(bool bSelected, uint32_t Delta_Time)
             if (pA) {
                 char const* pcStr = pA->GetAttribute("str");
                 if (pcStr) {
-                    m_rs->ExtPrint(
-                        m_nFontID,
-                        m_dwFontColor,
-                        0,
-                        PR_ALIGN_CENTER,
-                        true,
-                        m_fFontScale,
-                        m_screenSize.x,
-                        m_screenSize.y,
-                        (m_rect.left + m_rect.right) / 2 + m_pntFontOffset.x,
-                        m_rect.top + m_pntFontOffset.y,
-                        "%s",
-                        pcStr);
+                    // m_rs->ExtPrint(
+                    //     m_nFontID,
+                    //     m_dwFontColor,
+                    //     0,
+                    //     PR_ALIGN_CENTER,
+                    //     true,
+                    //     m_fFontScale,
+                    //     m_screenSize.x,
+                    //     m_screenSize.y,
+                    //     (m_rect.left + m_rect.right) / 2 + m_pntFontOffset.x,
+                    //     m_rect.top + m_pntFontOffset.y,
+                    //     "%s",
+                    //     pcStr);
                 }
             }
         }
@@ -134,7 +135,7 @@ void CXI_SCROLLBAR::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_SCROLLBAR::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -147,8 +148,8 @@ void CXI_SCROLLBAR::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 
     // get font number
     m_nFontID = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "fontID", param, sizeof(param), ""))
-        if ((m_nFontID = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "fontID", param, sizeof(param), ""))
+    //     if ((m_nFontID = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     // get font color
     m_dwFontColor = GetIniARGB(ini1, name1, ini2, name2, "fontColor", 0xFFFFFFFF);
     // get font scale
@@ -160,7 +161,7 @@ void CXI_SCROLLBAR::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     m_dwFaceColor = GetIniARGB(ini1, name1, ini2, name2, "faceColor", 0xFFFFFFFF);
 
     // get shadow color
-    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", ARGB(255, 0, 0, 0));
+    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", storm::Color {255, 0, 0, 0}.to_hex());
 
     // get group name and get texture for this
     m_idTex      = -1;
@@ -191,46 +192,46 @@ void CXI_SCROLLBAR::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     // get press delay
     m_nMaxDelay = GetIniLong(ini1, name1, ini2, name2, "pressDelay", 20);
 
-    m_nVert  = 12 * 6;     //
-    m_nIndx  = 3 * 2 * 3;  // 3 rectangle * 2 treangle into rectangle * 3 vertex into triangle
-    m_idIBuf = m_rs->CreateIndexBuffer(m_nIndx * 2);
-    m_idVBuf = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nVert * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    m_nVert = 12 * 6;     //
+    m_nIndx = 3 * 2 * 3;  // 3 rectangle * 2 treangle into rectangle * 3 vertex into triangle
+    // m_idIBuf = m_rs->CreateIndexBuffer(m_nIndx * 2);
+    // m_idVBuf = m_rs->CreateVertexBuffer(XI_ONETEX_FVF, m_nVert * sizeof(XI_ONETEX_VERTEX), D3DUSAGE_WRITEONLY);
 
     // Lock buffers for write
-    auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    auto* pIndx = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
-    if (pVert == nullptr || pIndx == nullptr) throw std::runtime_error("can not create the index&vertex buffers");
+    // auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // auto* pIndx = static_cast<uint16_t*>(m_rs->LockIndexBuffer(m_idIBuf));
+    // if (pVert == nullptr || pIndx == nullptr) throw std::runtime_error("can not create the index&vertex buffers");
+    //
+    // // fill triangles buffer
+    // auto i = 0;
+    // for (auto tidx = 0; tidx < 3; tidx++) {
+    //     pIndx[i + 0] = tidx * 4;
+    //     pIndx[i + 1] = tidx * 4 + 1;
+    //     pIndx[i + 2] = tidx * 4 + 2;
+    //     pIndx[i + 3] = tidx * 4 + 2;
+    //     pIndx[i + 4] = tidx * 4 + 1;
+    //     pIndx[i + 5] = tidx * 4 + 3;
+    //     i += 6;
+    // }
 
-    // fill triangles buffer
-    auto i = 0;
-    for (auto tidx = 0; tidx < 3; tidx++) {
-        pIndx[i + 0] = tidx * 4;
-        pIndx[i + 1] = tidx * 4 + 1;
-        pIndx[i + 2] = tidx * 4 + 2;
-        pIndx[i + 3] = tidx * 4 + 2;
-        pIndx[i + 4] = tidx * 4 + 1;
-        pIndx[i + 5] = tidx * 4 + 3;
-        i += 6;
-    }
-
-    // fill vertex buffer
-    for (i = 0; i < m_nVert; i++)
-        pVert[i].pos.z = 1.f;
-    for (i = 0; i < 12; i++)
-        pVert[i].color = m_dwFaceColor;
-    for (; i < 12 * 2; i++)
-        pVert[i].color = m_dwShadowColor;
-    for (; i < 12 * 3; i++)
-        pVert[i].color = m_dwFaceColor;
-    for (; i < 12 * 4; i++)
-        pVert[i].color = m_dwShadowColor;
-    for (; i < 12 * 5; i++)
-        pVert[i].color = m_dwFaceColor;
-    for (; i < 12 * 6; i++)
-        pVert[i].color = m_dwShadowColor;
-
-    m_rs->UnLockVertexBuffer(m_idVBuf);
-    m_rs->UnLockIndexBuffer(m_idIBuf);
+    // // fill vertex buffer
+    // for (i = 0; i < m_nVert; i++)
+    //     pVert[i].pos.z = 1.f;
+    // for (i = 0; i < 12; i++)
+    //     pVert[i].color = m_dwFaceColor;
+    // for (; i < 12 * 2; i++)
+    //     pVert[i].color = m_dwShadowColor;
+    // for (; i < 12 * 3; i++)
+    //     pVert[i].color = m_dwFaceColor;
+    // for (; i < 12 * 4; i++)
+    //     pVert[i].color = m_dwShadowColor;
+    // for (; i < 12 * 5; i++)
+    //     pVert[i].color = m_dwFaceColor;
+    // for (; i < 12 * 6; i++)
+    //     pVert[i].color = m_dwShadowColor;
+    //
+    // m_rs->UnLockVertexBuffer(m_idVBuf);
+    // m_rs->UnLockIndexBuffer(m_idIBuf);
 
     if (ReadIniString(ini1, name1, ini2, name2, "leftPicture", param, sizeof(param), ""))
         pPictureService->GetTexturePos(m_sGroupName, param, m_frLeftTex);
@@ -266,9 +267,9 @@ void CXI_SCROLLBAR::ReleaseAll()
 {
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName, m_idTex);
     STORM_DELETE(m_sGroupName);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
-    FONT_RELEASE(m_rs, m_nFontID);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
+    // FONT_RELEASE(m_rs, m_nFontID);
 }
 
 int CXI_SCROLLBAR::CommandExecute(int wActCode)
@@ -383,7 +384,7 @@ uint32_t CXI_SCROLLBAR::MessageProc(int32_t msgcode, MESSAGE& message)
 
 void CXI_SCROLLBAR::UpdatePosition() const
 {
-    auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
 
     auto idx       = 0;
     int  sideWidth = m_nSideWidth;
@@ -391,169 +392,169 @@ void CXI_SCROLLBAR::UpdatePosition() const
     // fill normal picture
     //============================================================================
     // fill face (left,center,right)
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left);
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth);
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth);
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right);
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom);
-    idx += 12;
-    // fill shadow
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXShadow;
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXShadow;
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    idx += 12;
-
-    // fill left press picture
-    //============================================================================
-    // fill face (left,center,right)
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXDeltaPress;
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXDeltaPress;
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress;
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress;
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth);
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right);
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom);
-    idx += 12;
-    // fill shadow
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXDeltaPress + m_fXShadowPress;
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXDeltaPress + m_fXShadowPress;
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress + m_fYShadowPress;
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress + m_fYShadowPress;
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXShadow;
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    idx += 12;
-
-    // fill right press picture
-    //============================================================================
-    // fill face (left,center,right)
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left);
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth);
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXDeltaPress;
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXDeltaPress;
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress;
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress;
-    idx += 12;
-    // fill shadow
-    pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
-    pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
-    pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
-    pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
-    pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXShadow;
-    pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
-    pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
-    pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
-    pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
-    pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
-    pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
-    pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
-    pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
-    pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
-    pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
-    pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
-    pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
-    pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
-    pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXDeltaPress + m_fXShadowPress;
-    pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXDeltaPress + m_fXShadowPress;
-    pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress + m_fYShadowPress;
-    pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress + m_fYShadowPress;
-    idx += 12;
-
-    m_rs->UnLockVertexBuffer(m_idVBuf);
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left);
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth);
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth);
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right);
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom);
+    // idx += 12;
+    // // fill shadow
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXShadow;
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXShadow;
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // idx += 12;
+    //
+    // // fill left press picture
+    // //============================================================================
+    // // fill face (left,center,right)
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXDeltaPress;
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXDeltaPress;
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress;
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress;
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth);
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right);
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom);
+    // idx += 12;
+    // // fill shadow
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXDeltaPress + m_fXShadowPress;
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXDeltaPress + m_fXShadowPress;
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress + m_fYShadowPress;
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress + m_fYShadowPress;
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXShadow;
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // idx += 12;
+    //
+    // // fill right press picture
+    // //============================================================================
+    // // fill face (left,center,right)
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left);
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth);
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth);
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth);
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top);
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom);
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXDeltaPress;
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXDeltaPress;
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress;
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress;
+    // idx += 12;
+    // // fill shadow
+    // pVert[idx].tu = pVert[idx + 2].tu = m_frLeftTex.left;
+    // pVert[idx + 1].tu = pVert[idx + 3].tu = m_frLeftTex.right;
+    // pVert[idx].tv = pVert[idx + 1].tv = m_frLeftTex.top;
+    // pVert[idx + 2].tv = pVert[idx + 3].tv = m_frLeftTex.bottom;
+    // pVert[idx].pos.x = pVert[idx + 2].pos.x = static_cast<float>(m_rect.left) + m_fXShadow;
+    // pVert[idx + 1].pos.x = pVert[idx + 3].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
+    // pVert[idx].pos.y = pVert[idx + 1].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 2].pos.y = pVert[idx + 3].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // pVert[idx + 4].tu = pVert[idx + 6].tu = m_rectCenterTex.left;
+    // pVert[idx + 5].tu = pVert[idx + 7].tu = m_rectCenterTex.right;
+    // pVert[idx + 4].tv = pVert[idx + 5].tv = m_rectCenterTex.top;
+    // pVert[idx + 6].tv = pVert[idx + 7].tv = m_rectCenterTex.bottom;
+    // pVert[idx + 4].pos.x = pVert[idx + 6].pos.x = static_cast<float>(m_rect.left + sideWidth) + m_fXShadow;
+    // pVert[idx + 5].pos.x = pVert[idx + 7].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXShadow;
+    // pVert[idx + 4].pos.y = pVert[idx + 5].pos.y = static_cast<float>(m_rect.top) + m_fYShadow;
+    // pVert[idx + 6].pos.y = pVert[idx + 7].pos.y = static_cast<float>(m_rect.bottom) + m_fYShadow;
+    // pVert[idx + 8].tu = pVert[idx + 10].tu = m_frRightTex.left;
+    // pVert[idx + 9].tu = pVert[idx + 11].tu = m_frRightTex.right;
+    // pVert[idx + 8].tv = pVert[idx + 9].tv = m_frRightTex.top;
+    // pVert[idx + 10].tv = pVert[idx + 11].tv = m_frRightTex.bottom;
+    // pVert[idx + 8].pos.x = pVert[idx + 10].pos.x = static_cast<float>(m_rect.right - sideWidth) + m_fXDeltaPress + m_fXShadowPress;
+    // pVert[idx + 9].pos.x = pVert[idx + 11].pos.x = static_cast<float>(m_rect.right) + m_fXDeltaPress + m_fXShadowPress;
+    // pVert[idx + 8].pos.y = pVert[idx + 9].pos.y = static_cast<float>(m_rect.top) + m_fYDeltaPress + m_fYShadowPress;
+    // pVert[idx + 10].pos.y = pVert[idx + 11].pos.y = static_cast<float>(m_rect.bottom) + m_fYDeltaPress + m_fYShadowPress;
+    // idx += 12;
+    //
+    // m_rs->UnLockVertexBuffer(m_idVBuf);
 }
 
 void CXI_SCROLLBAR::WriteDataToAttribute() const

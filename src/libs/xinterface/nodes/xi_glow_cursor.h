@@ -10,8 +10,9 @@ public:
     ~CXI_GLOWCURSOR() override;
 
     void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
+    bool
+    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+        override;
     void ReleaseAll() override;
 
     int CommandExecute(int wActCode) override
@@ -48,8 +49,7 @@ protected:
 
     float m_xOffset, m_yOffset;
 
-    int32_t        m_idBackTex;
-    CVideoTexture* m_pBackTex;
+    int32_t m_idBackTex;
 
     XI_ONETEX_VERTEX m_pTexVert[14];
 

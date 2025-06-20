@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/entity.h>
 
 class ScrShoter: public Entity
 {
@@ -23,13 +23,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -41,8 +35,6 @@ private:
     void    DelSaveTexture(char const* fileName);
     int32_t GetTexFromSave(char* fileName, char** pDatStr) const;
 
-    VDX9RENDER*        rs            = nullptr;
-    IDirect3DTexture9* texture_      = nullptr;
-    int32_t            textureIndex_ = -1;
-    SAVETEXTURES*      m_list        = nullptr;
+    int32_t       textureIndex_ = -1;
+    SAVETEXTURES* m_list        = nullptr;
 };
