@@ -11,7 +11,7 @@
 
 uint32_t GetA8R8G8B8_FromFMT(void* p, uint32_t fmt)
 {
-    uint32_t retVal;
+    uint32_t retVal = 0;
 
     // if (fmt == D3DFMT_R5G6B5) {
     //     retVal = 0xFF000000 | (static_cast<uint32_t>(*static_cast<uint16_t*>(p) & 0xF800) << 8)
@@ -27,10 +27,9 @@ uint32_t GetA8R8G8B8_FromFMT(void* p, uint32_t fmt)
 ScrShoter::~ScrShoter()
 {
     // if (textureIndex_ != -1 && rs != nullptr) rs->TextureRelease(textureIndex_);
-    SAVETEXTURES* pst;
     while (m_list) {
-        pst    = m_list;
-        m_list = pst->next;
+        SAVETEXTURES* pst = m_list;
+        m_list            = pst->next;
         delete pst->fileName;
         // if (pst->textureId != -1 && rs != nullptr) rs->TextureRelease(pst->textureId);
         delete pst;

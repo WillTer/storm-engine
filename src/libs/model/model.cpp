@@ -57,14 +57,14 @@ void* VBTransform(void* vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
     CMatrix mtx;
 #endif
     for (int32_t v = 0; v < totVerts; v++) {
-        // Vertex
-        auto& vrt    = src[v];
-        auto& dstVrt = dst[v];
-        // Matrices
-        auto& m1 = bones[vrt.boneid & 0xff];
-        auto& m2 = bones[(vrt.boneid >> 8) & 0xff];
-        // Inverse blending coefficient
-        auto const wNeg = 1.0f - vrt.weight;
+        // // Vertex
+        // auto& vrt    = src[v];
+        // auto& dstVrt = dst[v];
+        // // Matrices
+        // auto& m1 = bones[vrt.boneid & 0xff];
+        // auto& m2 = bones[(vrt.boneid >> 8) & 0xff];
+        // // Inverse blending coefficient
+        // auto const wNeg = 1.0f - vrt.weight;
 
         // #ifdef _WIN32  // FIX_LINUX DirectXMath
         // #ifdef __AVX__
@@ -128,10 +128,10 @@ void* VBTransform(void* vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
         //         ((CVECTOR&)dstVrt.nrm) = mtx * (CVECTOR&)vrt.nrm;
         // #endif  // _WIN32 DirectXMath
 
-        // Rest
-        dstVrt.color = vrt.color;
-        dstVrt.tu    = vrt.tu0;
-        dstVrt.tv    = vrt.tv0;
+        // // Rest
+        // dstVrt.color = vrt.color;
+        // dstVrt.tu    = vrt.tu0;
+        // dstVrt.tv    = vrt.tv0;
     }
 
     return nullptr;

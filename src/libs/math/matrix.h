@@ -168,10 +168,10 @@ public:
     void BuildMirrorMatrix(float Nx, float Ny, float Nz, float D);
 
     // D3D extends (return (D3DXMATRIX *)pointer)
-#ifdef _WIN32  // for Effects (see libs/location/src/grass.cpp)
-    operator D3DXMATRIX*() const;
-#endif
-    operator D3DMATRIX*() const;
+    // #ifdef _WIN32  // for Effects (see libs/location/src/grass.cpp)
+    //     operator D3DXMATRIX*() const;
+    // #endif
+    //     operator D3DMATRIX*() const;
     operator float const*() const;
 };
 
@@ -884,19 +884,19 @@ inline void CMatrix::BuildMirrorMatrix(float Nx, float Ny, float Nz, float D)
     m[3][3] = 1.0f;
 }
 
-#ifdef _WIN32  // for Effects (see libs/location/src/grass.cpp)
-// D3D extends (return (D3DXMATRIX *)pointer)
-inline CMatrix::operator D3DXMATRIX*() const
-{
-    return ((D3DXMATRIX*)matrix);
-};
-#endif
-
-// D3D extends (return (D3DMATRIX *)pointer)
-inline CMatrix::operator D3DMATRIX*() const
-{
-    return ((D3DMATRIX*)matrix);
-};
+// #ifdef _WIN32  // for Effects (see libs/location/src/grass.cpp)
+// // D3D extends (return (D3DXMATRIX *)pointer)
+// inline CMatrix::operator D3DXMATRIX*() const
+// {
+//     return ((D3DXMATRIX*)matrix);
+// };
+// #endif
+//
+// // D3D extends (return (D3DMATRIX *)pointer)
+// inline CMatrix::operator D3DMATRIX*() const
+// {
+//     return ((D3DMATRIX*)matrix);
+// };
 
 inline CMatrix::operator float const*() const
 {

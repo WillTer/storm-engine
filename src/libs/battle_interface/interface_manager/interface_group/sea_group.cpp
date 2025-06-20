@@ -16,7 +16,7 @@ void BI_SeaGroup::Init()
     if (!pARoot) return;
 
     ATTRIBUTES*  pA;
-    char         texture[MAX_PATH];
+    char         texture[260];
     uint32_t     color;
     storm::FRect uv;
     storm::Rect  pos;

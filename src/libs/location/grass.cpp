@@ -130,10 +130,10 @@ bool Grass::Init()
 #ifdef _WIN32  // Effects
     for (size_t i = 0; i < 16; i++) {
         // Angle table
-        aAngles[i] = {sinf(i * pi2 / 16.0f), cosf(i * pi2 / 16.0f), 0.0f};
+        // aAngles[i] = {sinf(i * pi2 / 16.0f), cosf(i * pi2 / 16.0f), 0.0f};
 
         // Uv table
-        aUV[i] = {static_cast<float>(i & 3) * (1.0f / 4.0f), static_cast<float>((i >> 2) & 3) * (1.0f / 4.0f)};
+        // aUV[i] = {static_cast<float>(i & 3) * (1.0f / 4.0f), static_cast<float>((i >> 2) & 3) * (1.0f / 4.0f)};
     }
 #else
     for (size_t i = 0; i < 16; i++) {

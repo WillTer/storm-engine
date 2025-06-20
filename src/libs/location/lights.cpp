@@ -77,10 +77,10 @@ bool Lights::Init()
             types[numTypes].name = new char[len];
             memcpy(types[numTypes].name, lName, len);
             // Reading parameters
-            types[numTypes].color.b = ini->GetFloat(lName, "b", 1.0f);
-            types[numTypes].color.g = ini->GetFloat(lName, "g", 1.0f);
-            types[numTypes].color.r = ini->GetFloat(lName, "r", 1.0f);
-            types[numTypes].color.a = 1.0f;
+            // types[numTypes].color.b = ini->GetFloat(lName, "b", 1.0f);
+            // types[numTypes].color.g = ini->GetFloat(lName, "g", 1.0f);
+            // types[numTypes].color.r = ini->GetFloat(lName, "r", 1.0f);
+            // types[numTypes].color.a = 1.0f;
             // types[numTypes].dxLight.Type         = D3DLIGHT_POINT;
             // types[numTypes].dxLight.Diffuse      = types[numTypes].color;
             // types[numTypes].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);
@@ -159,9 +159,9 @@ void Lights::Execute(uint32_t delta_time)
         ls.i = ls.itensSlow - ls.itensDlt + k * ls.itensDlt + ls.itens;
         k    = 1.0f + ls.i;
         if (k < 0.0f) k = 0.0f;
-        lights[i].color.b = k * l.color.b;
-        lights[i].color.g = k * l.color.g;
-        lights[i].color.r = k * l.color.r;
+        // lights[i].color.b = k * l.color.b;
+        // lights[i].color.g = k * l.color.g;
+        // lights[i].color.r = k * l.color.r;
     }
 }
 
@@ -471,10 +471,10 @@ void Lights::UpdateLightTypes(int32_t i)
     // Source name
     char* lName = types[i].name;
     // Reading parameters
-    types[i].color.b = ini->GetFloat(lName, "b", 1.0f);
-    types[i].color.g = ini->GetFloat(lName, "g", 1.0f);
-    types[i].color.r = ini->GetFloat(lName, "r", 1.0f);
-    types[i].color.a = 1.0f;
+    // types[i].color.b = ini->GetFloat(lName, "b", 1.0f);
+    // types[i].color.g = ini->GetFloat(lName, "g", 1.0f);
+    // types[i].color.r = ini->GetFloat(lName, "r", 1.0f);
+    // types[i].color.a = 1.0f;
     // types[i].dxLight.Type         = D3DLIGHT_POINT;
     // types[i].dxLight.Diffuse      = types[i].color;
     // types[i].dxLight.Range        = ini->GetFloat(lName, "range", 10.0f);

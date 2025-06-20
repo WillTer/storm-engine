@@ -137,6 +137,7 @@ void CXI_EDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
                 //     static_cast<int32_t>(top),
                 //     "%c",
                 //     m_alpha[m_bUpChrRegistrOffset + idx]);
+                break;
             }
             left += m_fHAdd;
             idx++;
@@ -375,7 +376,9 @@ void CXI_EDITBOX::SaveParametersToIni()
 
 void CXI_EDITBOX::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
-    int  i, j, idx;
+    int  i   = 0;
+    int  j   = 0;
+    int  idx = 0;
     char param[512];
 
     m_frNormTex = GetIniFloatRect(ini1, name1, ini2, name2, "normTexRect", FXYRECT(0.f, 0.f, 1.f, 1.f));

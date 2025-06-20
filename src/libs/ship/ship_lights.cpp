@@ -183,7 +183,7 @@ void ShipLights::AddFlare(VAI_OBJBASE* pObject, bool bLight, MODEL* pModel, cons
 
     aLights.push_back(ShipLight {});
     ShipLight* pL = &aLights.back();
-    memcpy(m, label.m, sizeof(m));
+    memcpy(&m, label.m, sizeof(m));
 
     pL->pNode = nullptr;
     pL->vPos  = m.Pos();

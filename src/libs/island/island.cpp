@@ -85,7 +85,8 @@ bool bView = false;
 
 void Island::Realize(uint32_t Delta_Time)
 {
-    uint32_t dwAmbient, dwAmbientOld;
+    uint32_t dwAmbient    = 0;
+    uint32_t dwAmbientOld = 0;
 
     if (bForeignModels) return;
 
@@ -102,7 +103,7 @@ void Island::Realize(uint32_t Delta_Time)
     dwAmbient = dwAmbientOld & 0xFF;
 
     CVECTOR vCamPos, vCamAng;
-    float   fOldNear, fOldFar, fPerspective;
+    float   fOldNear, fOldFar = 0.0F, fPerspective;
     // pRS->GetCamera(vCamPos, vCamAng, fPerspective);
     // pRS->GetNearFarPlane(fOldNear, fOldFar);
 

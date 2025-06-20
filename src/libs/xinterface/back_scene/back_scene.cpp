@@ -672,9 +672,10 @@ void InterfaceBackScene::RestoreLight()
 
 void InterfaceBackScene::FlareShow(int32_t idx)
 {
-    CVECTOR pos, ang;
+    CVECTOR pos = {};
+    CVECTOR ang = {};
     // m_pRS->GetCamera(pos, ang, ang.x);
-    CMatrix camMtx;
+    CMatrix camMtx = {};
     // m_pRS->GetTransform(D3DTS_VIEW, camMtx);
 
     float dx = m_vFlarePos.x - pos.x;

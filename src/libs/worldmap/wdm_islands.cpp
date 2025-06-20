@@ -571,7 +571,7 @@ void WdmIslands::LRender(/*VDX9RENDER*/ void* rs)
     float const dAlpha       = core->GetDeltaTime() * (0.001f * 1.5f * 255.0f);
     // Projecting to the screen
     labelSort.clear();
-    MTX_PRJ_VECTOR prjVertex;
+    MTX_PRJ_VECTOR prjVertex = {};
     for (int32_t i = 0; i < labels.size(); i++) {
         // Label
         Label& label = labels[i];

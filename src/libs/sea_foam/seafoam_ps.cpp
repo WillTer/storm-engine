@@ -466,7 +466,7 @@ void SEAFOAM_PS::Realize(uint32_t DeltaTime)
     // RenderService->SetFVF(PARTICLE_FVF);
     // RenderService->SetStreamSource(0, VBuffer, sizeof(PARTICLE_VERTEX));
 
-    bool bDraw;
+    bool bDraw = false;
 
     // bDraw = RenderService->TechniqueExecuteStart(TechniqueName);
     if (bDraw) {

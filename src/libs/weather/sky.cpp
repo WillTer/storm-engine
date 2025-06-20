@@ -294,7 +294,8 @@ void Sky::Realize(uint32_t Delta_Time)
     fAngleY += static_cast<float>(Delta_Time) * 0.001f * fSkySpeedRotate;
 
     float   fFov;
-    CVECTOR vPos, vAng;
+    CVECTOR vPos = {};
+    CVECTOR vAng = {};
     CMatrix pMatWorld, pMatTranslate, pMatRotate;
 
     // pRS->GetCamera(vPos, vAng, fFov);
@@ -513,7 +514,8 @@ float Sky::CalculateAlphaForSun(const CVECTOR& vSunPos, float fSunSize)
 {
     // get Sky
     float   fFov;
-    CVECTOR vPos, vAng;
+    CVECTOR vPos = {};
+    CVECTOR vAng = {};
     // pRS->GetCamera(vPos, vAng, fFov);
 
     CMatrix mtxWorld;

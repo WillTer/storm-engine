@@ -99,8 +99,8 @@ bool InfoHandler::DoPreOut()
     char const* inStrStart;
     char        outStr[1048];
     // D3DSURFACE_DESC desc;
-    float fScale;
-    int   nOutOffset, nOutWidth, nBorderWidth, nInsideRectWidth, nInsideRectHeight;
+    float fScale = 0.0F;
+    int   nOutOffset, nOutWidth = 0, nBorderWidth, nInsideRectWidth, nInsideRectHeight;
     int   nRowQ;
 
     inStrStart = AttributesPointer->GetAttribute("infoStr");

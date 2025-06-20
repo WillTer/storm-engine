@@ -67,20 +67,20 @@ void TSink::Process(uint32_t _dTime)
     uint16_t*    indexes;
     SINK_VERTEX* vertices;
 
-    if (time > (sink_effect::SINK_TIME + sink_effect::MAX_SPLASH_TIME)) {
-        enabled = false;
-        // ivManager->LockBuffers();
-        for (auto i = 0; i < sink_effect::MAX_SPLASHES; i++) {
-            if (splashes[i].Enabled()) {
-                // ivManager->GetPointers(ivIndexes[i], &indexes, (void**)&vertices);
-                splashes[i].Reset(indexes, vertices);
-            }
-            ivIndexes[i] = -1;
-        }
-        // ivManager->UnlockBuffers();
-        // ivManager->FreeAll();
-        return;
-    }
+    // if (time > (sink_effect::SINK_TIME + sink_effect::MAX_SPLASH_TIME)) {
+    // enabled = false;
+    // ivManager->LockBuffers();
+    // for (auto i = 0; i < sink_effect::MAX_SPLASHES; i++) {
+    // if (splashes[i].Enabled()) {
+    // ivManager->GetPointers(ivIndexes[i], &indexes, (void**)&vertices);
+    // splashes[i].Reset(indexes, vertices);
+    // }
+    // ivIndexes[i] = -1;
+    // }
+    // ivManager->UnlockBuffers();
+    // ivManager->FreeAll();
+    // return;
+    // }
 
     // ivManager->LockBuffers();
     for (auto i = 0; i < sink_effect::MAX_SPLASHES; i++) {
@@ -100,12 +100,12 @@ void TSink::Process(uint32_t _dTime)
                     if (ivIndexes[i] != -1) {
                         int32_t vOffset;
                         // ivManager->GetPointers(ivIndexes[i], &indexes, (void**)&vertices, &vOffset);
-                        splashes[i].Start(splashCenter, indexes, vertices, vOffset);
+                        // splashes[i].Start(splashCenter, indexes, vertices, vOffset);
                     }
                 }
             } else {
                 // ivManager->GetPointers(ivIndexes[i], &indexes, (void**)&vertices);
-                splashes[i].Process(_dTime, indexes, vertices);
+                // splashes[i].Process(_dTime, indexes, vertices);
             }
         }
     }

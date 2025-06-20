@@ -8,9 +8,7 @@
 
 #define Y_REDEFINE_TIME 250
 
-class VDX9RENDER;
 class COLLIDE;
-class IVBufferManager;
 
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION

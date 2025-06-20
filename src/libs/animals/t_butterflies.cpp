@@ -3,7 +3,6 @@
 #include <libs/collide/collide.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
-#include <libs/renderer/iv_buffer_manager.h>
 #include <libs/shared_headers/messages.h>
 
 #ifdef _MSC_VER

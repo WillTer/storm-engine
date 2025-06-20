@@ -1116,7 +1116,8 @@ int32_t Ship::AddStrength(STRENGTH* strength)
 uint64_t Ship::ProcessMessage(MESSAGE& message)
 {
     entid_t    entity;
-    CVECTOR    cpos, cang;
+    CVECTOR    cpos = {};
+    CVECTOR    cang = {};
     float      fov;
     auto const code = message.Long();
 
@@ -1272,7 +1273,7 @@ void Ship::FakeFire(char const* sBort, float fRandTime)
                 CMatrix m;
                 CMatrix mNode = pNode->glob_mtx;
                 CMatrix mRot;
-                memcpy(m, label.m, sizeof(m));
+                memcpy(&m, label.m, sizeof(m));
 
                 vPos    = m.Pos();
                 vCurPos = mNode * vPos;

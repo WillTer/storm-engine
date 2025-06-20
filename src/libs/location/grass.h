@@ -182,8 +182,6 @@ private:
     int32_t initForce;
 
 #ifdef _WIN32  // Effects
-    D3DXVECTOR3 aAngles[16];
-    D3DXVECTOR2 aUV[16];
 #else
     VSConstant consts[42];
 #endif

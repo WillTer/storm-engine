@@ -668,9 +668,9 @@ bool AIShipCannonController::ScanShipForCannons()
                 //       if (aShipBorts[j] == label.group_name) {
                 if (storm::iEquals(bort.sName, label.group_name)) {
                     bort.aCannons.emplace_back();
-                    AICannon*     pCannon = &bort.aCannons.back();
-                    CMatrix const m;
-                    memcpy(m, label.m, sizeof(m));
+                    AICannon* pCannon = &bort.aCannons.back();
+                    CMatrix   m;
+                    memcpy(&m, label.m, sizeof(m));
                     bort.fOurBortFireHeight += m.Pos().y;
                     pCannon->Init(GetAIShip(), GetAIShip()->GetShipEID(), label);
 

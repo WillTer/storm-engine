@@ -147,13 +147,15 @@ void SunGlow::Realize(uint32_t Delta_Time)
     // pRS->GetTransform(D3DTS_VIEW, View);
 
     float   fFov;
-    CVECTOR vSun, vSunPos, vSunDir;
-    CVECTOR vCamPos, vCamAng, vCamDir;
+    CVECTOR vSunPos = {};
+    CVECTOR vCamPos = {};
+    CVECTOR vCamAng = {};
+    CVECTOR vCamDir = {};
 
     pWeather->GetVector(whv_sun_pos, &vSunPos);
     // pRS->GetCamera(vCamPos, vCamAng, fFov);
-    vSunDir = !vSunPos;
-    vSun    = vCamPos + (vSunDir * Glow.fDist);
+    CVECTOR vSunDir = !vSunPos;
+    CVECTOR vSun    = vCamPos + (vSunDir * Glow.fDist);
 
     auto bTempVisibleFlare = true;
     // auto* pPlane            = pRS->GetPlanes();

@@ -1,7 +1,5 @@
 #pragma once
 #include <libs/math/c_vector.h>
-// #include <libs/renderer/dx9render.h>
-// #include <libs/renderer/iv_buffer_manager.h>
 #include <libs/sea/sea_base.h>
 
 #include "t_flotsam.h"

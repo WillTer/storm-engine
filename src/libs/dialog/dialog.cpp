@@ -85,8 +85,6 @@ void Dialog::DlgTextDescribe::ChangeText(std::string_view const text)
 
 void Dialog::DlgTextDescribe::Init(INIFILE* pIni)
 {
-    Assert(pRS);
-
     offset.x = 20;
     offset.y = 0;
     // nWindowWidth = vp.Width - 2 * offset.x;

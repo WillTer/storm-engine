@@ -376,7 +376,8 @@ void CXI_UTILS::PrintTextIntoWindow(
     // if (nStrWidth == 0) return;
     auto const right = left + width;
 
-    int32_t nL, nR;
+    int32_t nL = 0;
+    int32_t nR = 0;
     // if (wAlignment == PR_ALIGN_RIGHT)
     //     nL = x - nStrWidth;
     // else if (wAlignment == PR_ALIGN_CENTER)

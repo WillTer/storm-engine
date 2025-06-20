@@ -73,9 +73,9 @@ void CoastFoam::ExtractRay(float fCursorX, float fCursorY, CVECTOR& raystart, CV
     // mView.Transposition();
     // mView.Get3X3(&mView3x3);
 
-    CVECTOR raydir;
-    CVECTOR rayorig;
-    raydir = mView3x3 * v;
+    CVECTOR raydir  = {};
+    CVECTOR rayorig = {};
+    raydir          = mView3x3 * v;
     // rayorig = mView.Pos();
 
     raystart = rayorig;
@@ -158,9 +158,9 @@ void CoastFoam::Realize(uint32_t Delta_Time)
                 // aLines.push_back(r2);
 
                 if (bEditMode) {
-                    auto           v1 = pF->aFoamParts[j].v[0];
-                    auto           v2 = pF->aFoamParts[j].v[1];
-                    MTX_PRJ_VECTOR vP1, vP2;
+                    auto           v1  = pF->aFoamParts[j].v[0];
+                    auto           v2  = pF->aFoamParts[j].v[1];
+                    MTX_PRJ_VECTOR vP1 = {}, vP2 = {};
                     // mWVP.Projection(
                     //     &v1,
                     //     &vP1,
@@ -225,8 +225,8 @@ void CoastFoam::Realize(uint32_t Delta_Time)
                 auto* pF = aFoams[i];
                 for (int32_t j = 0; j < pF->aFoamParts.size(); j++) {
                     for (int32_t k = 0; k < 2; k++) {
-                        MTX_PRJ_VECTOR vP;
-                        auto           v = pF->aFoamParts[j].v[k];
+                        MTX_PRJ_VECTOR vP = {};
+                        auto           v  = pF->aFoamParts[j].v[k];
 
                         // mWVP.Projection(
                         //     &v,
@@ -275,7 +275,8 @@ void CoastFoam::Realize(uint32_t Delta_Time)
         if (cs.state == CST_ACTIVE && !bMoved) { bMoved = true; }
 
         if (cs.state == CST_INACTIVE && bMoved) { bMoved = false; }
-        CVECTOR vStart, vEnd;
+        CVECTOR vStart = {};
+        CVECTOR vEnd   = {};
         // ExtractRay(vp, fCursorPosX, fCursorPosY, vStart, vEnd);
 
         if (bMoved && (csH.lValue || csV.lValue)) {

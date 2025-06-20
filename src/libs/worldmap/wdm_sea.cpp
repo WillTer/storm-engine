@@ -233,7 +233,7 @@ void WdmSea::Update(float dltTime)
                 if (flare[i].index < 0) break;
             }
             if (i >= sizeof(flare) / sizeof(flare[0])) break;
-            Assert(flareCount < sizeof(flareRect) / sizeof(flareRect[0]));
+            // Assert(flareCount < sizeof(flareRect) / sizeof(flareRect[0]));
             // Fill in with new parameters
             auto& f = flare[i];
             f.index = flareCount++;

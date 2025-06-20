@@ -347,8 +347,9 @@ void Sail::Execute(uint32_t Delta_Time)
                 gdata[i].fRollingSpeed = pvdat->GetFloat() * ROLLINGSPEED;
         }
 
-        CVECTOR  pos, ang;
-        float    perspect;
+        CVECTOR  pos      = {};
+        CVECTOR  ang      = {};
+        float    perspect = 0.0F;
         uint64_t rtime;
         RDTSC_B(rtime);
         // RenderService->GetCamera(pos, ang, perspect);

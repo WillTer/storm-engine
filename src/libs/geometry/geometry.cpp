@@ -308,6 +308,7 @@ GEOS::ID GEOM_SERVICE_R::CreateVertexBuffer(int32_t type, int32_t size)
 
     vrtSize += size;
     // return RenderService->CreateVertexBuffer(FVF, size, D3DUSAGE_WRITEONLY);
+    return -1;
 }
 
 void* GEOM_SERVICE_R::LockVertexBuffer(GEOS::ID vb)
@@ -431,6 +432,7 @@ GEOS::ID GEOM_SERVICE_R::CreateLight(const GEOS::LIGHT)
 {
     // if (!RenderService) return INVALID_LIGHT_ID;
     // return INVALID_LIGHT_ID;
+    return -1;
 }
 
 void GEOM_SERVICE_R::ActivateLight(GEOS::ID n) {}

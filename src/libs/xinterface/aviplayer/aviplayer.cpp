@@ -258,6 +258,7 @@ bool CAviPlayer::PlayMedia(char const* fileName)
 #else
     return false;
 #endif
+    return false;
 }
 
 bool CAviPlayer::GetInterfaces()

@@ -36,7 +36,6 @@ WdmCounter::WdmCounter()
     m[0] = m[1] = nullptr;
     y[0] = y[1] = y[2] = y[3] = nullptr;
 
-    Assert(wdmObjects->rs);
     // auto const kDef = wdmObjects->rs->GetHeightDeformator();
     // mtx.BuildMatrix(-0.1f, 0.0f, 0.0f, 1.4f, 0.9f * kDef, 40.0f);
     mtx.Vx() *= -0.25f;

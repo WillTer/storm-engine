@@ -23,6 +23,10 @@
 #include "characters_groups.h"
 #include "lights.h"
 
+#ifdef PlaySound
+#undef PlaySound
+#endif
+
 //============================================================================================
 
 #define CHARACTER_WAIT_AFTER_DEAD 6.0f  //
@@ -2043,7 +2047,8 @@ void Character::Update(float dltTime)
             }
         }
     }
-    CVECTOR camPos, camAng;
+    CVECTOR camPos = {};
+    CVECTOR camAng = {};
     float   perspective;
     // location->GetRS()->GetCamera(camPos, camAng, perspective);
     float const dxz = (curPos.x - camPos.x) * (curPos.x - camPos.x) + (curPos.z - camPos.z) * (curPos.z - camPos.z);
@@ -2239,153 +2244,102 @@ void Character::ActionEvent(Animation* animation, int32_t playerIndex, char cons
         PlaySound("swiming");
     } else if ((alliace = GetValueByPrefix(eventName, "SndAlliace_")) != nullptr) {
         PlaySound(alliace);
-    } else
-        /*
-        if(storm::iEquals(eventName, "Sound_wind_fast"))
-        {
-          PlaySound("sword_wind_fast");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_force"))
-        {
-          PlaySound("sword_wind_force");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_round"))
-        {
-          PlaySound("sword_wind_round");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_break"))
-        {
-          PlaySound("sword_wind_break");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_feint"))
-        {
-          PlaySound("sword_wind_feint");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_feintc"))
-        {
-          PlaySound("sword_wind_feintc");
-        }else
-        if(storm::iEquals(eventName, "Sound_wind_feintend"))
-        {
-          PlaySound("sword_wind_feintend");
-        }else*/
-        if (storm::iEquals(eventName, "Resact")) {
-            fgtSetType  = fgt_none;
-            fgtSetIndex = -1;
-        } else if (storm::iEquals(eventName, "Attack")) {
-            CheckAttackHit(false);
-        } else if (storm::iEquals(eventName, "GBAttack")) {
-            CheckAttackHit(true);
-        } else if (storm::iEquals(eventName, "Parry start")) {
-            isParryState  = true;
-            isFeintState  = false;
-            isRecoilState = false;
-        } else if (storm::iEquals(eventName, "Parry end")) {
-            isParryState  = false;
-            isFeintState  = false;
-            isRecoilState = false;
-        } else if (storm::iEquals(eventName, "Feint start")) {
-            isParryState  = false;
-            isFeintState  = true;
-            isRecoilState = false;
-        } else if (storm::iEquals(eventName, "Feint end")) {
-            isParryState  = false;
-            isFeintState  = false;
-            isRecoilState = false;
-        } else if (storm::iEquals(eventName, "Recoil start")) {
-            isParryState  = false;
-            isFeintState  = false;
-            isRecoilState = true;
-        } else if (storm::iEquals(eventName, "Recoil end")) {
-            isParryState  = false;
-            isFeintState  = false;
-            isRecoilState = false;
-        } else /*
-      if(storm::iEquals(eventName, "sound_pistol"))
-      {
-          PlaySound("pistol_out");
-      }else
-      if(storm::iEquals(eventName, "Blade to hand"))
-      {
-          if(!isFightWOWps)
-          {
-              float pos = animation->Player(0).GetPosition();
-              if(pos < 0.99f) PlaySound("sword_sh");
-          }
-      }else
-      if(storm::iEquals(eventName, "Blade to belt"))
-      {
-          if(!isFightWOWps)
-          {
-              float pos = animation->Player(0).GetPosition();
-              if(pos < 0.99f) PlaySound("sword_out");
-          }
-      }else */
-            if (storm::iEquals(eventName, "Death sound")) {
-                core->Event("Event_ChrSnd_Body", "i", GetId());
-            } else if ((alliace = GetValueByPrefix(eventName, "itemaction_")) != nullptr) {
-                char const* pcActionName = nullptr;
-                int32_t     nIdx         = -1;
-                if (storm::iEquals(alliace, "set", 3)) {
-                    pcActionName = "set";
-                    if (alliace[3] >= '0' && alliace[3] <= '9') nIdx = atoi(&alliace[3]);
-                } else if (storm::iEquals(alliace, "reset", 5)) {
-                    pcActionName = "reset";
-                    if (alliace[5] >= '0' && alliace[5] <= '9') nIdx = atoi(&alliace[5]);
-                }
-                if (pcActionName) core->Event("Location_CharacterItemAction", "isl", GetId(), pcActionName, nIdx);
-            } else if (priorityAction.name && storm::iEquals(actionName, priorityAction.name)) {
-                if (storm::iEquals(priorityAction.name, CHARACTER_NORM_TO_FIGHT)) {
-                    core->Send_Message(blade, "ll", MSG_BLADE_HAND, 0);
-                    core->Send_Message(blade, "ll", MSG_BLADE_HAND, 1);
-                } else if (storm::iEquals(priorityAction.name, CHARACTER_FIGHT_TO_NORM)) {
-                    core->Send_Message(blade, "ll", MSG_BLADE_BELT, 0);
-                    core->Send_Message(blade, "ll", MSG_BLADE_BELT, 1);
-                } else if (shot.name && storm::iEquals(priorityAction.name, shot.name)) {
-                    if (eventName) {
-                        if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNBELT)) {
-                            core->Send_Message(blade, "l", MSG_BLADE_GUNBELT);
-                        } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNHAND)) {
-                            core->Send_Message(blade, "l", MSG_BLADE_GUNHAND);
-                            isFireState = true;
-                        } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNFIRE)) {
-                            isFireState = false;
-                            core->Send_Message(blade, "l", MSG_BLADE_GUNFIRE);
-                            // PlaySound("pistol_shot");
-                            isFired = true;
-                            float      kDist;
-                            Character* chr = FindGunTarget(kDist, CheckShotOnlyEnemyTest());
-                            entid_t    enemy {};
-                            int32_t    isEnemyHitByGunfire = 1;
-                            if (chr) {
-                                enemy     = chr->GetId();
-                                VDATA* vd = core->Event(
-                                    "Check_ChrHitFire", "iilf", GetId(), enemy, static_cast<int32_t>(chr->isRecoilState), kDist);
-                                if (vd) { vd->Get(isEnemyHitByGunfire); }
-                                if (isEnemyHitByGunfire) { chr->Hit(fgt_hit_fire); }
-                            }
-                            core->Event("Location_CharacterFire", "iifl", GetId(), enemy, kDist, chr != nullptr && isEnemyHitByGunfire);
-                        }
+    } else if (storm::iEquals(eventName, "Resact")) {
+        fgtSetType  = fgt_none;
+        fgtSetIndex = -1;
+    } else if (storm::iEquals(eventName, "Attack")) {
+        CheckAttackHit(false);
+    } else if (storm::iEquals(eventName, "GBAttack")) {
+        CheckAttackHit(true);
+    } else if (storm::iEquals(eventName, "Parry start")) {
+        isParryState  = true;
+        isFeintState  = false;
+        isRecoilState = false;
+    } else if (storm::iEquals(eventName, "Parry end")) {
+        isParryState  = false;
+        isFeintState  = false;
+        isRecoilState = false;
+    } else if (storm::iEquals(eventName, "Feint start")) {
+        isParryState  = false;
+        isFeintState  = true;
+        isRecoilState = false;
+    } else if (storm::iEquals(eventName, "Feint end")) {
+        isParryState  = false;
+        isFeintState  = false;
+        isRecoilState = false;
+    } else if (storm::iEquals(eventName, "Recoil start")) {
+        isParryState  = false;
+        isFeintState  = false;
+        isRecoilState = true;
+    } else if (storm::iEquals(eventName, "Recoil end")) {
+        isParryState  = false;
+        isFeintState  = false;
+        isRecoilState = false;
+    } else if (storm::iEquals(eventName, "Death sound")) {
+        core->Event("Event_ChrSnd_Body", "i", GetId());
+    } else if ((alliace = GetValueByPrefix(eventName, "itemaction_")) != nullptr) {
+        char const* pcActionName = nullptr;
+        int32_t     nIdx         = -1;
+        if (storm::iEquals(alliace, "set", 3)) {
+            pcActionName = "set";
+            if (alliace[3] >= '0' && alliace[3] <= '9') nIdx = atoi(&alliace[3]);
+        } else if (storm::iEquals(alliace, "reset", 5)) {
+            pcActionName = "reset";
+            if (alliace[5] >= '0' && alliace[5] <= '9') nIdx = atoi(&alliace[5]);
+        }
+        if (pcActionName) core->Event("Location_CharacterItemAction", "isl", GetId(), pcActionName, nIdx);
+    } else if (priorityAction.name && storm::iEquals(actionName, priorityAction.name)) {
+        if (storm::iEquals(priorityAction.name, CHARACTER_NORM_TO_FIGHT)) {
+            core->Send_Message(blade, "ll", MSG_BLADE_HAND, 0);
+            core->Send_Message(blade, "ll", MSG_BLADE_HAND, 1);
+        } else if (storm::iEquals(priorityAction.name, CHARACTER_FIGHT_TO_NORM)) {
+            core->Send_Message(blade, "ll", MSG_BLADE_BELT, 0);
+            core->Send_Message(blade, "ll", MSG_BLADE_BELT, 1);
+        } else if (shot.name && storm::iEquals(priorityAction.name, shot.name)) {
+            if (eventName) {
+                if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNBELT)) {
+                    core->Send_Message(blade, "l", MSG_BLADE_GUNBELT);
+                } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNHAND)) {
+                    core->Send_Message(blade, "l", MSG_BLADE_GUNHAND);
+                    isFireState = true;
+                } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNFIRE)) {
+                    isFireState = false;
+                    core->Send_Message(blade, "l", MSG_BLADE_GUNFIRE);
+                    // PlaySound("pistol_shot");
+                    isFired = true;
+                    float      kDist;
+                    Character* chr = FindGunTarget(kDist, CheckShotOnlyEnemyTest());
+                    entid_t    enemy {};
+                    int32_t    isEnemyHitByGunfire = 1;
+                    if (chr) {
+                        enemy = chr->GetId();
+                        VDATA* vd =
+                            core->Event("Check_ChrHitFire", "iilf", GetId(), enemy, static_cast<int32_t>(chr->isRecoilState), kDist);
+                        if (vd) { vd->Get(isEnemyHitByGunfire); }
+                        if (isEnemyHitByGunfire) { chr->Hit(fgt_hit_fire); }
                     }
-                } else if (isJump && PriorityActionIsJump()) {
-                    if (eventName && storm::iEquals("Jump pause", eventName)) { animation->Player(playerIndex).Pause(); }
+                    core->Event("Location_CharacterFire", "iifl", GetId(), enemy, kDist, chr != nullptr && isEnemyHitByGunfire);
                 }
-            } else if (userIdle.name) {
-                if (storm::iEquals(actionName, userIdle.name)) {
-                    if (shot.name && storm::iEquals(actionName, shot.name)) {
-                        if (eventName) {
-                            if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNBELT)) {
-                                core->Send_Message(blade, "l", MSG_BLADE_GUNBELT);
-                            } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNHAND)) {
-                                core->Send_Message(blade, "l", MSG_BLADE_GUNHAND);
-                            } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNFIRE)) {
-                                core->Send_Message(blade, "l", MSG_BLADE_GUNFIRE);
-                                core->Event("ActorMakeShot", "i", GetId());
-                            }
-                        }
+            }
+        } else if (isJump && PriorityActionIsJump()) {
+            if (eventName && storm::iEquals("Jump pause", eventName)) { animation->Player(playerIndex).Pause(); }
+        }
+    } else if (userIdle.name) {
+        if (storm::iEquals(actionName, userIdle.name)) {
+            if (shot.name && storm::iEquals(actionName, shot.name)) {
+                if (eventName) {
+                    if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNBELT)) {
+                        core->Send_Message(blade, "l", MSG_BLADE_GUNBELT);
+                    } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNHAND)) {
+                        core->Send_Message(blade, "l", MSG_BLADE_GUNHAND);
+                    } else if (storm::iEquals(eventName, CHARACTER_FIGHT_GUNFIRE)) {
+                        core->Send_Message(blade, "l", MSG_BLADE_GUNFIRE);
+                        core->Event("ActorMakeShot", "i", GetId());
                     }
                 }
             }
+        }
+    }
 }
 
 int32_t Character::PlaySound(char const* soundName, bool isLoop, bool isCached)

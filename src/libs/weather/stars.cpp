@@ -181,8 +181,9 @@ void Astronomy::STARS::Realize(double dDeltaTime, double dHour)
     if (!IsEnable()) return;
     if (iVertexBufferColors == -1) return;
 
-    CVECTOR vCamPos, vCamAng;
-    float   fFov;
+    CVECTOR vCamPos = {};
+    CVECTOR vCamAng = {};
+    float   fFov    = 0.0F;
     CMatrix mView, IMatrix;
 
     // pRS->GetCamera(vCamPos, vCamAng, fFov);
