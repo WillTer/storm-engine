@@ -4,6 +4,7 @@
 
 #include <libs/filesystem/v_file_service.h>
 #include <libs/shared_headers/layers.h>
+#include <libs/util/container.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/window/os_window.hpp>
 
@@ -43,7 +44,12 @@ uint64_t get_performance_counter();
     }
 //
 
-class Core
+namespace storm
+{
+class IRendererNext;
+}
+
+class Core: virtual public storm::Container<storm::IRendererNext>
 {
 public:
     virtual ~Core() = default;

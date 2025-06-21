@@ -4,7 +4,6 @@
 #include <libs/geometry/geometry_r.h>
 #include <libs/particles/service/particle_service.h>
 #include <libs/pcs_controls/pcs_controls.h>
-#include <libs/renderer_next/renderer_service_next.h>
 #include <libs/sound_service/sound_service.h>
 #include <libs/xinterface/string_service/str_service.h>
 
@@ -15,8 +14,3 @@ CREATE_SERVICE(ParticleService)
 CREATE_SERVICE(PcsControls)
 CREATE_SERVICE(SoundService)
 CREATE_SERVICE(StrService)
-
-namespace storm
-{
-CREATE_SERVICE(RendererServiceNext)
-}

@@ -11,6 +11,7 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
+#include <libs/renderer_next/renderer_next.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -89,10 +90,25 @@ void handle_window_event(storm::OSWindow::Event const& event)
     }
 }
 
+void release()
+{
+    if (core_internal) {
+        core_internal->Event("ExitApplication");
+        core_internal->CleanUp();
+        core_internal->ReleaseBase();
+    }
+
+#ifdef _WIN32  // FIX_LINUX Cursor
+    ClipCursor(nullptr);
+#endif
+
+    SDL_Quit();
+}
+
 }  // namespace
 
 int main()
-{
+try {
     // Prevent multiple instances
 #ifdef _WIN32  // CreateEventA
     if (!CreateEventA(nullptr, false, false, "Global\\FBBD2286-A9F1-4303-B60C-743C3D7AA7BE") || GetLastError() == ERROR_ALREADY_EXISTS) {
@@ -103,15 +119,17 @@ int main()
 
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
+    SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+
+    auto renderer = std::make_shared<storm::RendererNext>();
+
     fio           = std::make_unique<FileService>();
-    core_internal = std::make_shared<CoreImpl>();
+    core_internal = std::make_shared<CoreImpl>(std::move(renderer));
     core          = core_internal;
     config_loader = std::make_unique<storm::ConfigLoader>();
 
     // Load parameters of file service
     fio->init_from_main_config();
-
-    SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
     // Init diagnostics
     auto const lifecycle_diagnostics_guard =
@@ -147,12 +165,7 @@ int main()
 
     is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
-    try {
-        steamapi::SteamApi::getInstance(!general_info.use_steam);
-    } catch (std::exception const& e) {
-        spdlog::critical(e.what());
-        return EXIT_FAILURE;
-    }
+    steamapi::SteamApi::getInstance(!general_info.use_steam);
 
     std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
         window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
@@ -160,6 +173,7 @@ int main()
     window->Subscribe(handle_window_event);
     window->Show();
     core_internal->SetWindow(window);
+    core->get<storm::IRendererNext>()->bind_window(window);
 
     // Init core
     core_internal->InitBase();
@@ -186,14 +200,12 @@ int main()
         }
     }
 
-    // Release
-    core_internal->Event("ExitApplication");
-    core_internal->CleanUp();
-    core_internal->ReleaseBase();
-#ifdef _WIN32  // FIX_LINUX Cursor
-    ClipCursor(nullptr);
-#endif
-    SDL_Quit();
-
+    release();
     return EXIT_SUCCESS;
+} catch (std::runtime_error const& e) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Engine error", e.what(), nullptr);
+    spdlog::critical(e.what());
+
+    release();
+    return EXIT_FAILURE;
 }
