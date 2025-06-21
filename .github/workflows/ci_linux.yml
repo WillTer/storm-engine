@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [ Debug ]
+        configuration: [ release ]
     name: 'linux [${{matrix.configuration}}]'
     steps:
       - uses: actions/checkout@v4

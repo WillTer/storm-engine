@@ -8,11 +8,12 @@
   "configurePresets": [
     {
       "$comment": [
-        "Base preset with cache variables required for DirectXShaderCompiler"
+        "Base preset with cache variables required for DirectXShaderCompiler",
+        "Only for inheritance - do not build it directly"
       ],
       "name": "base",
-      "displayName": "base Config",
-      "description": "base build using Ninja generator",
+      "displayName": "base",
+      "description": "base config for inheritance",
       "generator": "Ninja",
       "cacheVariables": {
          "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -40,11 +41,10 @@
     },
     {
       "$comment": [],
-      "name": "Debug",
+      "name": "debug",
       "inherits": ["base"],
       "displayName": "Debug",
-      "description": "Debug build using Ninja generator",
-      "generator": "Ninja",
+      "description": "Debug build (Ninja)",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -53,11 +53,10 @@
     },
     {
       "$comment": [],
-      "name": "Release",
+      "name": "release",
       "inherits": ["base"],
       "displayName": "Release",
-      "description": "Release build using Ninja generator",
-      "generator": "Ninja",
+      "description": "Release build (Ninja)",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -67,12 +66,12 @@
   ],
   "buildPresets": [
     {
-      "name": "Debug",
-      "configurePreset": "Debug"
+      "name": "debug",
+      "configurePreset": "debug"
     },
     {
-      "name": "Release",
-      "configurePreset": "Release"
+      "name": "release",
+      "configurePreset": "release"
     }
   ]
 }
