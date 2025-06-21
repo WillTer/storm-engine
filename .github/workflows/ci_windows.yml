@@ -31,22 +31,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [Debug, Release]
+        configuration: [ debug, release ]
     name: 'Windows [${{ matrix.configuration }}]'
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
-    - uses: ilammy/msvc-dev-cmd@v1
-    - uses: lukka/get-cmake@latest
-    - name: Configure CMake
-      run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -S . -B build/${{ matrix.configuration }}
-    - name: Build
-      run: cmake --build build/${{ matrix.configuration }}
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: storm-engine.${{ matrix.configuration }}
-        path: build/${{ matrix.configuration }}/bin
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: lukka/get-cmake@latest
+      - name: Configure CMake
+        run: cmake --preset=${{ matrix.configuration }}
+      - name: Build
+        run: cmake --build --preset=${{ matrix.configuration }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: storm-engine.${{ matrix.configuration }}
+          path: build/${{ matrix.configuration }}/bin
 
 permissions: write-all

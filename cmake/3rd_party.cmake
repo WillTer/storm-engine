@@ -22,6 +22,12 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+    SDL3_shadercross
+    GIT_REPOSITORY  https://github.com/libsdl-org/SDL_shadercross.git
+    GIT_TAG         bae133234c28a602c30811c419c494a0eb241200
+)
+
+FetchContent_Declare(
     sentry
     GIT_REPOSITORY  https://github.com/getsentry/sentry-native.git
     GIT_TAG         0.8.5
@@ -52,21 +58,21 @@ FetchContent_Declare(
 FetchContent_Declare(
     storm-audio
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
-    GIT_TAG         50d79abf8f7d28d06e56fee0ce5529c73cce39a3
+    GIT_TAG         120dcd27a60c73533760124abfa264e2fdbd8276
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog entt storm-audio)
+set(BUILD_SHARED_LIBS ON)
+set(SDLSHADERCROSS_VENDORED ON)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL3 zlib)
-
-    include(cmake/directxsdk.cmake)
 elseif(LINUX)
     # On Linux use SDL3 and zlib from package manager
     find_package(SDL3 REQUIRED)
     find_package(ZLIB REQUIRED)
-    include(cmake/linux_d3d9.cmake)
 endif()
+
+FetchContent_MakeAvailable(SDL3_shadercross Catch2 fast_float sentry spdlog entt storm-audio)
 
 add_library(SDL3-storm INTERFACE)
 target_link_libraries(SDL3-storm

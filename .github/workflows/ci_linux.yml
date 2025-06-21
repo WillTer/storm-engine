@@ -58,9 +58,6 @@ jobs:
           export CC=clang-18
           export CXX=clang++-18
           ${CXX} --version
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.configuration}} -S . -B build/${{matrix.configuration }}
-      - name: Build dependencies
-        run: ninja dependencies
-        working-directory: build/${{matrix.configuration }}
+          cmake --preset=${{ matrix.configuration }}
       - name: Build
-        run: cmake --build build/${{matrix.configuration }}
+        run: cmake --build --preset=${{ matrix.configuration }}

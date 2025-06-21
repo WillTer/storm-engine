@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "i_renderer_next.h"
 
 struct SDL_GPUDevice;
@@ -13,7 +15,8 @@ public:
     RendererNext();
     ~RendererNext() override;
 
-    void bind_window(std::shared_ptr<OSWindow> const& window) override;
+    void bind_window(InternalWindowType const& window) override;
+    void unbind_window(InternalWindowType const& window) override;
 
 private:
     std::shared_ptr<SDL_GPUDevice> m_device = nullptr;

@@ -4,6 +4,7 @@
 
 #include <libs/filesystem/default_paths.h>
 #include <libs/util/string_compare.hpp>
+#include <libs/window/os_window.hpp>
 
 #include "back_scene/back_scene.h"
 #include "help_chooser/help_chooser.h"

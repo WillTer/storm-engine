@@ -5,6 +5,7 @@
 #include <libs/filesystem/v_file_service.h>
 #include <libs/input/input.hpp>
 #include <libs/util/string_compare.hpp>
+#include <libs/window/os_window.hpp>
 
 using namespace storm;
 

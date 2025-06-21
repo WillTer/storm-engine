@@ -30,12 +30,20 @@ RendererNext::RendererNext()
 
 RendererNext::~RendererNext() = default;
 
-void RendererNext::bind_window(std::shared_ptr<OSWindow> const& window)
+void RendererNext::bind_window(InternalWindowType const& window)
 {
-    auto* sdl_window = dynamic_cast<SDLWindow*>(window.get());
-    if (sdl_window == nullptr) { throw std::runtime_error("Only SDL window is supported for SDL GPU"); }
+    if (!std::holds_alternative<SDL_Window*>(window)) { throw std::runtime_error("Only SDL window is supported for SDL_GPU API"); }
 
-    if (!SDL_ClaimWindowForGPUDevice(m_device.get(), sdl_window->SDLHandle())) {
+    auto* sdl_window = std::get<SDL_Window*>(window);
+    if (!SDL_ClaimWindowForGPUDevice(m_device.get(), sdl_window)) {
         throw std::runtime_error(std::format("Can't claim window for device: {}", SDL_GetError()));
     }
+}
+
+void RendererNext::unbind_window(InternalWindowType const& window)
+{
+    if (!std::holds_alternative<SDL_Window*>(window)) { throw std::runtime_error("Only SDL window is supported for SDL_GPU API"); }
+
+    auto* sdl_window = std::get<SDL_Window*>(window);
+    SDL_ReleaseWindowFromGPUDevice(m_device.get(), sdl_window);
 }

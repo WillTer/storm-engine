@@ -64,12 +64,12 @@ bool run_frame_with_overflow_check()
 }
 #endif
 
-void handle_window_event(storm::OSWindow::Event const& event)
+void handle_window_event(storm::IWindow::Event const& event)
 {
-    if (event == storm::OSWindow::Closed) {
+    if (event == storm::IWindow::Closed) {
         should_close = true;
         if (core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
-    } else if (event == storm::OSWindow::FocusGained) {
+    } else if (event == storm::IWindow::FocusGained) {
         is_active = true;
         if (core_internal->initialized()) {
             core_internal->AppState(is_active);
@@ -78,7 +78,7 @@ void handle_window_event(storm::OSWindow::Event const& event)
                 sound_service->set_active_with_fade(true);
             }
         }
-    } else if (event == storm::OSWindow::FocusLost) {
+    } else if (event == storm::IWindow::FocusLost) {
         is_active = false;
         if (core_internal->initialized()) {
             core_internal->AppState(is_active);
@@ -167,13 +167,17 @@ try {
     // initialize SteamApi through evaluating its singleton
     steamapi::SteamApi::getInstance(!general_info.use_steam);
 
-    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
-        window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
+    std::shared_ptr<storm::IWindow> window = storm::IWindow::Create(
+        core->get<storm::IRendererNext>(),
+        window_info.width,
+        window_info.height,
+        window_info.preferred_display,
+        window_info.full_screen,
+        window_info.show_borders);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
     core_internal->SetWindow(window);
-    core->get<storm::IRendererNext>()->bind_window(window);
 
     // Init core
     core_internal->InitBase();

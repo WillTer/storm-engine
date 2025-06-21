@@ -6,7 +6,6 @@
 #include <libs/shared_headers/layers.h>
 #include <libs/util/container.h>
 #include <libs/util/platform/platform.hpp>
-#include <libs/window/os_window.hpp>
 
 // common includes
 #include "controls.h"
@@ -47,7 +46,8 @@ uint64_t get_performance_counter();
 namespace storm
 {
 class IRendererNext;
-}
+class IWindow;
+}  // namespace storm
 
 class Core: virtual public storm::Container<storm::IRendererNext>
 {
@@ -55,7 +55,7 @@ public:
     virtual ~Core() = default;
 
     // return application window
-    virtual storm::OSWindow* GetWindow() = 0;
+    virtual storm::IWindow* GetWindow() = 0;
     // set time scale; affect on std entity functions DeltaTime parameter
     virtual void SetTimeScale(float _scale) = 0;
     // write message to system log file

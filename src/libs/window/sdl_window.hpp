@@ -8,10 +8,10 @@
 
 namespace storm
 {
-class SDLWindow: public OSWindow
+class SDLWindow: public IWindow
 {
 public:
-    SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    SDLWindow(std::shared_ptr<IRendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
     ~SDLWindow() override;
 
     void Show() override;
@@ -41,9 +41,11 @@ public:
 private:
     static bool SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
 
-    std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window_ = nullptr;
-    uint32_t                                                      sdlID_;
-    bool                                                          fullscreen_ = false;
-    std::map<int, EventHandler>                                   handlers_;
+    std::shared_ptr<SDL_Window>    window_    = nullptr;
+    std::shared_ptr<IRendererNext> m_renderer = nullptr;
+
+    uint32_t                    sdlID_;
+    bool                        fullscreen_ = false;
+    std::map<int, EventHandler> handlers_;
 };
 }  // namespace storm

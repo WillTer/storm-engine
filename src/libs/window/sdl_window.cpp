@@ -1,8 +1,13 @@
 #include "sdl_window.hpp"
 
+#include <libs/renderer_next/i_renderer_next.h>
+
 namespace storm
 {
-SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered) : fullscreen_(fullscreen)
+SDLWindow::SDLWindow(
+    std::shared_ptr<IRendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+    : m_renderer(renderer)
+    , fullscreen_(fullscreen)
 {
     auto const props = SDL_CreateProperties();
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display));
@@ -28,10 +33,13 @@ SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscre
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered);
     SDL_AddEventWatch(&SDLEventHandler, this);
+
+    m_renderer->bind_window(window_.get());
 }
 
 SDLWindow::~SDLWindow()
 {
+    m_renderer->unbind_window(window_.get());
     SDL_RemoveEventWatch(&SDLEventHandler, this);
 }
 
@@ -157,9 +165,10 @@ void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
         handler.second(winEvent);
 }
 
-std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
+std::shared_ptr<IWindow> IWindow::Create(
+    std::shared_ptr<IRendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
 {
-    return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
+    return std::make_shared<SDLWindow>(renderer, width, height, preferred_display, fullscreen, bordered);
 }
 
 bool SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
