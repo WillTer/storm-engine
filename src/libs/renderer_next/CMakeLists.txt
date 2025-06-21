@@ -4,5 +4,4 @@ storm_lib(
         config
         core
         SDL3-storm
-        SDL3_shadercross::SDL3_shadercross
 )

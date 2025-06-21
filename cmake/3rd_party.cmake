@@ -1,3 +1,4 @@
+include(cmake/slang.cmake)
 include(FetchContent)
 
 FetchContent_Declare(
@@ -19,12 +20,6 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
     GIT_TAG         release-3.2.16
     GIT_SHALLOW     ON
-)
-
-FetchContent_Declare(
-    SDL3_shadercross
-    GIT_REPOSITORY  https://github.com/libsdl-org/SDL_shadercross.git
-    GIT_TAG         bae133234c28a602c30811c419c494a0eb241200
 )
 
 FetchContent_Declare(
@@ -62,7 +57,6 @@ FetchContent_Declare(
 )
 
 set(BUILD_SHARED_LIBS ON)
-set(SDLSHADERCROSS_VENDORED ON)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL3 zlib)
@@ -72,7 +66,7 @@ elseif(LINUX)
     find_package(ZLIB REQUIRED)
 endif()
 
-FetchContent_MakeAvailable(SDL3_shadercross Catch2 fast_float sentry spdlog entt storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog entt storm-audio)
 
 add_library(SDL3-storm INTERFACE)
 target_link_libraries(SDL3-storm

@@ -11,7 +11,7 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
-#include <libs/renderer_next/renderer_next.h>
+#include <libs/renderer_next/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -121,7 +121,7 @@ try {
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
-    auto renderer = std::make_shared<storm::RendererNext>();
+    auto renderer = std::make_shared<storm::RendererSDL>();
 
     fio           = std::make_unique<FileService>();
     core_internal = std::make_shared<CoreImpl>(std::move(renderer));
@@ -179,6 +179,8 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
+    core->get<storm::IRendererNext>()->init();
+
     // Init core
     core_internal->InitBase();
 
@@ -208,7 +210,6 @@ try {
     return EXIT_SUCCESS;
 } catch (std::runtime_error const& e) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Engine error", e.what(), nullptr);
-    spdlog::critical(e.what());
 
     release();
     return EXIT_FAILURE;

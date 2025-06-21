@@ -55,9 +55,10 @@ storm_exe(
         window
         worldmap
         xinterface
+    ACTION_DEPENDENCIES
+        shaders
 )
 
 add_custom_command(TARGET engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/src/libs/shared_headers" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resource/shared"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/src/techniques" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resource/techniques"
 )

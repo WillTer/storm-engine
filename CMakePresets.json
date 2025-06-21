@@ -7,42 +7,20 @@
   },
   "configurePresets": [
     {
-      "$comment": [
-        "Base preset with cache variables required for DirectXShaderCompiler",
-        "Only for inheritance - do not build it directly"
-      ],
       "name": "base",
       "displayName": "base",
       "description": "base config for inheritance",
       "generator": "Ninja",
       "cacheVariables": {
-         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-         "LLVM_APPEND_VC_REV": "ON",
-         "LLVM_DEFAULT_TARGET_TRIPLE": "dxil-ms-dx",
-         "LLVM_ENABLE_EH": "ON",
-         "LLVM_ENABLE_RTTI": "ON",
-         "LLVM_INCLUDE_DOCS": "OFF",
-         "LLVM_INCLUDE_EXAMPLES": "OFF",
-         "LLVM_OPTIMIZED_TABLEGEN": "OFF",
-         "LLVM_TARGETS_TO_BUILD": "None",
-         "LLVM_LIT_ARGS": "-v",
-         "LLVM_ENABLE_ASSERTIONS": "ON",
-         "LIBCLANG_BUILD_STATIC": "ON",
-         "CLANG_BUILD_EXAMPLES": "OFF",
-         "CLANG_CL": "OFF",
-         "CLANG_ENABLE_ARCMT": "OFF",
-         "CLANG_ENABLE_STATIC_ANALYZER": "OFF",
-         "HLSL_INCLUDE_TESTS": "ON",
-         "ENABLE_SPIRV_CODEGEN": "ON",
-         "SPIRV_BUILD_TESTS": "ON",
-         "LLVM_ENABLE_TERMINFO": "OFF"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
       "environment": {}
     },
     {
-      "$comment": [],
       "name": "debug",
-      "inherits": ["base"],
+      "inherits": [
+        "base"
+      ],
       "displayName": "Debug",
       "description": "Debug build (Ninja)",
       "binaryDir": "${sourceDir}/build/debug",
@@ -52,9 +30,10 @@
       "environment": {}
     },
     {
-      "$comment": [],
       "name": "release",
-      "inherits": ["base"],
+      "inherits": [
+        "base"
+      ],
       "displayName": "Release",
       "description": "Release build (Ninja)",
       "binaryDir": "${sourceDir}/build/release",
