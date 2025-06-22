@@ -130,7 +130,7 @@ int get_cache_mode_from_string(std::string const& mode)
 }  // namespace
 
 template <>
-struct read_to<GeneralInfo> {
+struct storm::read_to<GeneralInfo> {
     static GeneralInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -141,7 +141,7 @@ struct read_to<GeneralInfo> {
 };
 
 template <>
-struct read_to<WindowInfo> {
+struct storm::read_to<WindowInfo> {
     static WindowInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -161,7 +161,7 @@ struct read_to<WindowInfo> {
 };
 
 template <>
-struct read_to<DeviceInfo> {
+struct storm::read_to<DeviceInfo> {
     static DeviceInfo from_ini(IniFile const& ini, std::string const& section)
     {
         auto screenshot_ext = ini.find_or(section, "screenshot_ext", DEFAULT_DEVICE_INFO.screenshot_ext);
@@ -191,7 +191,7 @@ struct read_to<DeviceInfo> {
 };
 
 template <>
-struct read_to<SoundInfo> {
+struct storm::read_to<SoundInfo> {
     static SoundInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -201,7 +201,7 @@ struct read_to<SoundInfo> {
 };
 
 template <>
-struct read_to<SeaInfo> {
+struct storm::read_to<SeaInfo> {
     static SeaInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -211,7 +211,7 @@ struct read_to<SeaInfo> {
 };
 
 template <>
-struct read_to<ControlsInfo> {
+struct storm::read_to<ControlsInfo> {
     static ControlsInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -222,7 +222,7 @@ struct read_to<ControlsInfo> {
 };
 
 template <>
-struct read_to<ScriptInfo> {
+struct storm::read_to<ScriptInfo> {
     static ScriptInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -237,7 +237,7 @@ struct read_to<ScriptInfo> {
 };
 
 template <>
-struct read_to<CompatibilityInfo> {
+struct storm::read_to<CompatibilityInfo> {
     static CompatibilityInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -248,7 +248,7 @@ struct read_to<CompatibilityInfo> {
 };
 
 template <>
-struct read_to<PathsInfo> {
+struct storm::read_to<PathsInfo> {
     static PathsInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
@@ -271,7 +271,7 @@ struct read_to<PathsInfo> {
 };
 
 template <>
-struct read_to<ProgressImageInfo> {
+struct storm::read_to<ProgressImageInfo> {
     static ProgressImageInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {

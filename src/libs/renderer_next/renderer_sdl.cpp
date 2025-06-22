@@ -35,23 +35,6 @@ struct PositionColor {
     std::array<float, 3> color;
 };
 
-std::vector<uint8_t> load_shader_binary(std::filesystem::path const& path)
-{
-    if (!std::filesystem::exists(path)) { throw std::runtime_error(std::format("File \"{}\" does not exist", path.string())); }
-
-    auto file = std::ifstream(path, std::ios::binary | std::ios::in);
-
-    file.seekg(0, std::ios::end);
-    size_t const file_size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<uint8_t> shader_code;
-    shader_code.resize(file_size);
-    file.read(reinterpret_cast<char*>(shader_code.data()), file_size);
-
-    return shader_code;
-}
-
 SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
 {
     switch (stage) {

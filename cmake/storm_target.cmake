@@ -22,8 +22,11 @@ set(GNU_CXX_FLAGS_ANY)
 set(GNU_CXX_FLAGS_DEBUG -g -O0)
 set(GNU_CXX_FLAGS_RELEASE -O3)
 
-set(MSVC_CXX_FLAGS_WARNINGS /WX /W2) # TODO: /W4
-set(GNU_CXX_FLAGS_WARNINGS -Wall -Wextra -Wpedantic) # TODO: -Werror
+set(MSVC_CXX_FLAGS_WARNINGS /WX /W2)
+set(GNU_CXX_FLAGS_WARNINGS -Wall -Werror=return-type -Werror=uninitialized -Werror=address)
+
+set(MSVC_CXX_FLAGS_WARNINGS_FULL /WX /W4)
+set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror -Wno-error=unused-parameter -Wno-error=unused-variable)
 
 set(MSVC_CXX_FLAGS
     ${MSVC_CXX_FLAGS_ANY}
@@ -42,6 +45,11 @@ set(STORM_CXX_FLAGS
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:${GNU_CXX_FLAGS}>
 )
 
+set(STORM_CXX_WARNINGS_FULL
+    $<$<CXX_COMPILER_ID:MSVC>:${MSVC_CXX_FLAGS_WARNINGS_FULL}>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:${GNU_CXX_FLAGS_WARNINGS_FULL}>
+)
+
 ### Set general linker flags
 set(MSVC_LINK_FLAGS
     /debug
@@ -56,7 +64,7 @@ set(STORM_LINK_FLAGS
 )
 
 function(storm_exe)
-    set(options)
+    set(options FULL_WARNINGS)
     set(oneValueArgs NAME)
     set(multiValueArgs
         ACTION_DEPENDENCIES
@@ -91,6 +99,10 @@ function(storm_exe)
         target_link_options(${EXE_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
     endif()
 
+    if (${EXE_TARGET_FULL_WARNINGS})
+        target_compile_options(${EXE_TARGET_NAME} PRIVATE ${STORM_CXX_WARNINGS_FULL})
+    endif ()
+
     # Always add root src directory to includes
     target_include_directories(${EXE_TARGET_NAME}
         PRIVATE
@@ -100,7 +112,7 @@ function(storm_exe)
 endfunction(storm_exe)
 
 function(storm_lib)
-    set(options)
+    set(options FULL_WARNINGS)
     set(oneValueArgs NAME TYPE)
     set(multiValueArgs 
         HEADER_DEPENDENCIES
@@ -139,6 +151,10 @@ function(storm_lib)
         target_compile_options(${LIB_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
         target_link_options(${LIB_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
     endif()
+
+    if (${LIB_TARGET_FULL_WARNINGS})
+        target_compile_options(${LIB_TARGET_NAME} PRIVATE ${STORM_CXX_WARNINGS_FULL})
+    endif ()
 
     # Always add root src directory to includes
     target_include_directories(${LIB_TARGET_NAME}

@@ -80,7 +80,7 @@ public:
 
     void ResetVA(std::string_view const& format, va_list& args);
     char GetCurrentFormatType();
-    ;
+
     char const* StringPointer();
 
     [[nodiscard]] std::string_view GetFormat() const;

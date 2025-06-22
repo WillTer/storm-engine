@@ -25,4 +25,6 @@ AssetServer::~AssetServer() = default;
     case asset_loader::Error::ExtensionNotSupported:
         throw std::runtime_error(std::format("File extension is not supported for selected asset type: {}", path.string()));
     }
+
+    throw std::runtime_error(std::format("Failed to load asset: {}", path.string()));
 }

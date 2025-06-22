@@ -168,7 +168,7 @@ void Lights::Execute(uint32_t delta_time)
 void Lights::Realize(uint32_t delta_time)
 {
     // Camera position
-    CVECTOR pos, ang;
+    CVECTOR pos = {}, ang;
     // rs->GetCamera(pos, ang, ang.x);
 
     ///////////////////

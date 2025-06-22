@@ -293,38 +293,38 @@ bool Ship::ApplyStrength(float dtime, bool bCollision)
         fK = dtime * State.fMassInertia;
         if (i == 0)  // x moving
         {
-            auto const force = new_speed.v[i] - State.vSpeed.v[i];
-            if (SMALL_DELTA(new_speed.v[i]))
-                State.vSpeed.v[i] += fK * force * State.vInertiaAccel.x;
+            auto const force = new_speed[i] - State.vSpeed[i];
+            if (SMALL_DELTA(new_speed[i]))
+                State.vSpeed[i] += fK * force * State.vInertiaAccel.x;
             else
-                State.vSpeed.v[i] += fK * -(State.vSpeed.v[i]) * State.vInertiaBrake.x;
+                State.vSpeed[i] += fK * -(State.vSpeed[i]) * State.vInertiaBrake.x;
         }
         if (i == 2)  // z moving
         {
-            vSpeedAccel.z = State.vSpeed.v[i];
+            vSpeedAccel.z = State.vSpeed[i];
 
-            auto const force = new_speed.v[i] - State.vSpeed.v[i];
-            if (SMALL_DELTA(new_speed.v[i]))
-                State.vSpeed.v[i] += fK * force * State.vInertiaAccel.z;
+            auto const force = new_speed[i] - State.vSpeed[i];
+            if (SMALL_DELTA(new_speed[i]))
+                State.vSpeed[i] += fK * force * State.vInertiaAccel.z;
             else {
-                State.vSpeed.v[i] += fK * -(State.vSpeed.v[i]) * State.vInertiaBrake.z;
+                State.vSpeed[i] += fK * -(State.vSpeed[i]) * State.vInertiaBrake.z;
             }
             // apply water resistance
 
-            /*State.vSpeed.v[i] += dtime * State.fMassInertia * State.vWaterResis.x * force;*/
-            vSpeedAccel.z -= State.vSpeed.v[i];
+            /*State.vSpeed[i] += dtime * State.fMassInertia * State.vWaterResis.x * force;*/
+            vSpeedAccel.z -= State.vSpeed[i];
         }
 
-        sign = SIGNZ(new_rotate.v[i]);
+        sign = SIGNZ(new_rotate[i]);
         if (i == 1)  // y rotating
         {
-            auto       prev_rot = State.vRotate.v[i];
-            auto const force    = new_rotate.v[i] - State.vRotate.v[i];
+            auto       prev_rot = State.vRotate[i];
+            auto const force    = new_rotate[i] - State.vRotate[i];
 
-            if (SMALL_DELTA(new_rotate.v[i]))
-                State.vRotate.v[i] += fK * force * State.vInertiaAccel.y;
+            if (SMALL_DELTA(new_rotate[i]))
+                State.vRotate[i] += fK * force * State.vInertiaAccel.y;
             else
-                State.vRotate.v[i] += fK * -State.vRotate.v[i] * State.vInertiaBrake.y;
+                State.vRotate[i] += fK * -State.vRotate[i] * State.vInertiaBrake.y;
         }
     }
 

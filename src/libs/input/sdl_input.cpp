@@ -4,7 +4,6 @@
 
 #include <SDL3/SDL.h>
 #include <libs/util/platform/platform.hpp>
-#include <windows.h>
 
 namespace storm
 {

@@ -103,6 +103,9 @@ void release()
     ClipCursor(nullptr);
 #endif
 
+    core_internal.reset();
+    core.reset();
+
     SDL_Quit();
 }
 
@@ -128,10 +131,7 @@ try {
     // Load parameters of file service
     fio->init_from_main_config();
 
-    auto asset_server = std::make_shared<storm::AssetServer>(*fio);
-    auto renderer     = std::make_shared<storm::RendererSDL>();
-
-    core_internal = std::make_shared<CoreImpl>(fio, asset_server, renderer);
+    core_internal = std::make_shared<CoreImpl>(fio, std::make_shared<storm::AssetServer>(*fio), std::make_shared<storm::RendererSDL>());
     core          = core_internal;
 
     // Init diagnostics
@@ -170,7 +170,7 @@ try {
     // initialize SteamApi through evaluating its singleton
     steamapi::SteamApi::getInstance(!general_info.use_steam);
 
-    std::shared_ptr<storm::IWindow> window = storm::IWindow::Create(
+    auto window = storm::IWindow::Create(
         core->get<storm::IRendererNext>(),
         window_info.width,
         window_info.height,
@@ -209,6 +209,7 @@ try {
         }
     }
 
+    window.reset(); // Destroy window before renderer (and before call to SDL_Quit)
     release();
     return EXIT_SUCCESS;
 } catch (std::runtime_error const& e) {

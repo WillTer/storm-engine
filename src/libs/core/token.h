@@ -3,8 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <windows.h>
-
 enum S_TOKEN_TYPE {
     END_OF_PROGRAMM,
     INVALID_TOKEN,

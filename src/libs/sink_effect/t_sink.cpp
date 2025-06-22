@@ -129,7 +129,7 @@ void TSink::Realize(uint32_t _dTime)
     if (!enabled) return;
 
     CMatrix const m;
-    uint32_t      ambient;
+    uint32_t      ambient = 0;
 
     // renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(m));
     // renderer->TextureSet(0, texture);

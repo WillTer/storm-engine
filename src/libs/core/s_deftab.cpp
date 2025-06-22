@@ -1,5 +1,7 @@
 #include "s_deftab.h"
 
+#include <cstring>
+
 #include <libs/util/string_compare.hpp>
 
 #define DTMAKEHASHINDEX(x) (x & 0xff)
