@@ -10,6 +10,7 @@ using namespace storm;
 AssetServer::AssetServer(IFileService const& file_service)
 {
     m_asset_dirs[static_cast<size_t>(AssetType::Unknown)] = file_service.base_directory_path(BaseDirectory::Resource);
+    m_asset_dirs[static_cast<size_t>(AssetType::Texture)] = file_service.base_directory_path(BaseDirectory::Textures);
     // Load shaders from path relative to executable instead of working directory
     // This helps in developing engine as you do not need to copy compiled shaders to game directory
     m_asset_dirs[static_cast<size_t>(AssetType::Shader)] =

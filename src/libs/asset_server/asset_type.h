@@ -6,6 +6,7 @@ namespace storm
 enum class AssetType {
     Unknown = 0,
     Shader,
+    Texture,
 
     Last,
 };

@@ -173,10 +173,7 @@ try {
     auto old_time = SDL_GetTicks();
 
     bool is_running = true;
-    while (is_running && !should_close) {
-        SDL_PumpEvents();
-        SDL_FlushEvents(0, SDL_EVENT_LAST);
-
+    while (is_running && /*FIXME:*/ !WindowShouldClose()) {
         if (is_active || window_info.run_in_background) {
             if (window_info.max_fps != 0U) {
                 auto const ms       = 1000U / window_info.max_fps;
@@ -186,6 +183,7 @@ try {
             }
 
             is_running = run_frame_with_overflow_check();
+            core->get<storm::IRendererNext>()->draw();  // FIXME: just for testing
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
