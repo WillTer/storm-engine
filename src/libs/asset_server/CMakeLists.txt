@@ -1,8 +1,7 @@
 storm_lib(
-    NAME renderer_next
+    NAME asset_server
     LINK_DEPENDENCIES
-        asset_server
         config
         core
-        SDL3-storm
+        filesystem
 )

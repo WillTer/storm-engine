@@ -2,6 +2,7 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL3/SDL.h>
+#include <libs/asset_server/asset_server.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_impl.h>
@@ -18,11 +19,11 @@
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
 
-std::unique_ptr<IFileService>           fio              = nullptr;
+std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: move to core
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
 std::shared_ptr<CoreImpl>               core_internal    = nullptr;
 std::shared_ptr<Core>                   core             = nullptr;
-std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;
+std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;  // TODO: move to core
 
 namespace
 {
@@ -121,15 +122,17 @@ try {
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
-    auto renderer = std::make_shared<storm::RendererSDL>();
-
-    fio           = std::make_unique<FileService>();
-    core_internal = std::make_shared<CoreImpl>(std::move(renderer));
-    core          = core_internal;
+    fio           = std::make_shared<FileService>();
     config_loader = std::make_unique<storm::ConfigLoader>();
 
     // Load parameters of file service
     fio->init_from_main_config();
+
+    auto asset_server = std::make_shared<storm::AssetServer>(*fio);
+    auto renderer     = std::make_shared<storm::RendererSDL>();
+
+    core_internal = std::make_shared<CoreImpl>(fio, asset_server, renderer);
+    core          = core_internal;
 
     // Init diagnostics
     auto const lifecycle_diagnostics_guard =

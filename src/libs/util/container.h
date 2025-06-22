@@ -13,7 +13,7 @@ class Container
 {
 public:
     template <typename... Derives>
-    constexpr explicit Container(std::shared_ptr<Derives>&&... args) : m_args {std::forward<std::shared_ptr<Derives>>(args)...}
+    constexpr explicit Container(std::shared_ptr<Derives> const&... args) : m_args {args...}
     {
         assert(get<Args>() || ...);
     }

@@ -1,5 +1,6 @@
 add_subdirectory(animals)
 add_subdirectory(animation)
+add_subdirectory(asset_server)
 add_subdirectory(ball_splash)
 add_subdirectory(battle_interface)
 add_subdirectory(blade)

@@ -88,6 +88,7 @@ struct PathsInfo {
     std::filesystem::path particles;
     std::filesystem::path textures;
     std::filesystem::path sea;
+    std::filesystem::path shaders;
 };
 
 struct ProgressImageInfo {

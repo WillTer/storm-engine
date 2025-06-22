@@ -8,6 +8,8 @@
 #include <libs/util/platform/platform.hpp>
 
 // common includes
+#include "libs/asset_server/asset_server.h"
+
 #include "controls.h"
 #include "engine_version.hpp"
 #include "message.h"
@@ -45,11 +47,12 @@ uint64_t get_performance_counter();
 
 namespace storm
 {
+class AssetServer;
 class IRendererNext;
 class IWindow;
 }  // namespace storm
 
-class Core: virtual public storm::Container<storm::IRendererNext>
+class Core: virtual public storm::Container<IFileService, storm::AssetServer, storm::IRendererNext>
 {
 public:
     virtual ~Core() = default;

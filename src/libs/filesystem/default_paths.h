@@ -18,6 +18,7 @@ static inline auto const TECHNIQUES_DIR_DEFAULT = RESOURCE_DIR_DEFAULT / "techni
 static inline auto const PARTICLES_DIR_DEFAULT  = RESOURCE_DIR_DEFAULT / "particles";
 static inline auto const TEXTURES_DIR_DEFAULT   = RESOURCE_DIR_DEFAULT / "textures";
 static inline auto const SEA_DIR_DEFAULT        = RESOURCE_DIR_DEFAULT / "sea";
+static inline auto const SHADERS_DIR_DEFAULT    = RESOURCE_DIR_DEFAULT / "shaders";
 
 static inline auto const MAIN_CONFIG_PATH = std::filesystem::path() / "engine.ini";
 

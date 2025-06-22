@@ -94,6 +94,7 @@ PathsInfo const DEFAULT_PATHS_INFO = {
     .particles  = fs::PARTICLES_DIR_DEFAULT,
     .textures   = fs::TEXTURES_DIR_DEFAULT,
     .sea        = fs::SEA_DIR_DEFAULT,
+    .shaders    = fs::SHADERS_DIR_DEFAULT,
 };
 
 constexpr ProgressImageInfo DEFAULT_PROGRESS_IMAGE_INFO = {
@@ -264,6 +265,7 @@ struct read_to<PathsInfo> {
             .particles  = ini.find_or(section, "particles", DEFAULT_PATHS_INFO.particles.string()),
             .textures   = ini.find_or(section, "textures", DEFAULT_PATHS_INFO.textures.string()),
             .sea        = ini.find_or(section, "sea", DEFAULT_PATHS_INFO.sea.string()),
+            .shaders    = ini.find_or(section, "shaders", DEFAULT_PATHS_INFO.shaders.string()),
         };
     }
 };

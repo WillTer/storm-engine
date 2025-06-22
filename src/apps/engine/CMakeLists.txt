@@ -8,6 +8,7 @@ storm_exe(
         # Modules
         animals
         animation
+        asset_server
         ball_splash
         battle_interface
         blade

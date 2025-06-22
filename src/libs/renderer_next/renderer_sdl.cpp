@@ -9,6 +9,7 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
+#include <libs/core/core.h>
 #include <libs/window/sdl_window.hpp>
 
 using namespace storm;
@@ -63,29 +64,27 @@ SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
 }
 
 std::shared_ptr<SDL_GPUShader> compile_shader(
-    std::shared_ptr<SDL_GPUDevice> const& device,
-    std::filesystem::path const&          path,
-    ShaderStage const                     stage,
-    uint32_t const                        num_samplers,
-    uint32_t const                        num_storage_textures,
-    uint32_t const                        num_storage_buffers,
-    uint32_t const                        num_uniform_buffers)
+    std::shared_ptr<SDL_GPUDevice> const&                           device,
+    std::function<ShaderAsset(std::filesystem::path const&)> const& shader_load,
+    std::filesystem::path const&                                    path,
+    ShaderStage const                                               stage,
+    uint32_t const                                                  num_samplers,
+    uint32_t const                                                  num_storage_textures,
+    uint32_t const                                                  num_storage_buffers,
+    uint32_t const                                                  num_uniform_buffers)
 {
-    auto const shader_code = load_shader_binary(path);
-    if (shader_code.empty()) { throw std::runtime_error(std::format("File \"{}\" load error", path.string())); }
+    auto const shader_asset = shader_load(path);
 
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
-    if (path.extension().string() == ".spv") {
+    if (shader_asset.type == ShaderAssetType::SPIRV) {
         format = SDL_GPU_SHADERFORMAT_SPIRV;
-    } else if (path.extension().string() == ".bin") {
+    } else if (shader_asset.type == ShaderAssetType::DXIL) {
         format = SDL_GPU_SHADERFORMAT_DXIL;
-    } else {
-        throw std::runtime_error(std::format("Shader file \"{}\" has unsupported extension", path.string()));
     }
 
     auto const shader_info = SDL_GPUShaderCreateInfo {
-        .code_size    = shader_code.size(), /**< The size in bytes of the code pointed to. */
-        .code         = shader_code.data(), /**< A pointer to shader code. */
+        .code_size    = shader_asset.code.size(), /**< The size in bytes of the code pointed to. */
+        .code         = shader_asset.code.data(), /**< A pointer to shader code. */
         .entrypoint   = "main", /**< A pointer to a null-terminated UTF-8 string specifying the entry point function name for the shader. */
         .format       = format, /**< The format of the shader code. */
         .stage        = convert_shader_stage(stage),  /**< The stage the shader program corresponds to. */
@@ -138,13 +137,14 @@ void RendererSDL::unbind_window(InternalWindowType const& window)
 
 void RendererSDL::init()
 {
+    auto const& asset_server = core->get<AssetServer>();
+    auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(SHADER_EXT);
+
     // Testing
-    auto const vertex_shader =
-        compile_shader(m_device, std::format("resource/shaders/test_vs.{}", SHADER_EXT), ShaderStage::Vertex, 0, 0, 0, 0);
+    auto const vertex_shader = compile_shader(m_device, shader_load, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
 
-    auto const fragment_shader =
-        compile_shader(m_device, std::format("resource/shaders/test_ps.{}", SHADER_EXT), ShaderStage::Fragment, 0, 0, 0, 0);
+    auto const fragment_shader = compile_shader(m_device, shader_load, "test_ps", ShaderStage::Fragment, 0, 0, 0, 0);
     if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
 
     std::array const descriptions = {
