@@ -336,7 +336,8 @@ void StrService::SetLanguage(char const* sLanguage)
         pUTmp->nref    = pUSB->nref;
         if (pUTmp->nStringsQuantity != pUSB->nStringsQuantity) {
             core->Trace("Warning: user strings file %s have different size for new language %s", pUTmp->fileName, m_sLanguage);
-            int itmp1, itmp2;
+            int itmp1 = 0;
+            int itmp2 = 0;
             for (itmp1 = 0; itmp1 < pUTmp->nStringsQuantity; itmp1++) {
                 if (pUTmp->psStrName[itmp1] == nullptr) continue;
                 for (itmp2 = 0; itmp2 < pUSB->nStringsQuantity; itmp2++) {

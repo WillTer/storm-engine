@@ -1085,7 +1085,7 @@ bool COMPILER::Compile(SEGMENT_DESC& Segment, char* pInternalCode, uint32_t pInt
     LocalVarInfo   lvi;
     uint32_t       SegmentSize;
     uint32_t       Program_size;
-    uint32_t       func_code;
+    uint32_t       func_code = 0;
     uint32_t       var_code;
     uint32_t       def_code;
     uint32_t       inout;
@@ -3243,7 +3243,7 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA*& pVReturnResult, char co
 {
     // GUARD(BC_Execute)
     uint32_t       inout;
-    uint32_t       segment_index;
+    uint32_t       segment_index = 0;
     uint32_t       token_data_size;
     uint32_t       ip;
     uint32_t       n;
@@ -5242,9 +5242,9 @@ void COMPILER::WriteVDword(uint32_t v)
 
 uint32_t COMPILER::ReadVDword()
 {
-    uint8_t  nbv;
-    uint16_t nwv;
-    uint32_t v;
+    uint8_t  nbv = 0;
+    uint16_t nwv = 0;
+    uint32_t v   = 0;
     ReadData(&nbv, 1);
     if (nbv < 0xfe) { return nbv; }
     if (nbv == 0xfe) {

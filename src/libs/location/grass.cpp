@@ -706,7 +706,10 @@ inline void Grass::RenderBlock(GRSMiniMapElement& mme, float kLod)
     // Quantity drawn without LODs
     int32_t const lodNum = lod < 3 ? mme.num[lod + 1] : 0;
     // Wind addition
-    float wAddX, wAddZ, kwDirX, kwDirZ;
+    float wAddX  = 0.0F;
+    float wAddZ  = 0.0F;
+    float kwDirX = 0.0F;
+    float kwDirZ = 0.0F;
     if (quality <= rq_middle) {
         wAddX  = winDir.x * winForce * (1.0f + cosf(phase[1] + sinPh5)) * 0.25f;
         wAddZ  = winDir.z * winForce * (1.0f + cosf(phase[1] + sinPh5)) * 0.25f;

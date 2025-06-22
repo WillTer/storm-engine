@@ -457,7 +457,7 @@ void ROPE::DoMove(ROPEDATA *pr)
 void Rope::AddLabel(GEOS::LABEL& lbl, NODE* nod, bool bDontSage)
 {
     ROPEDATA* rd;
-    int       ropeNum, grNum;
+    int       ropeNum = 0, grNum;
     int       rn;
 
     if (nod == nullptr) return;

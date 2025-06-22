@@ -23,6 +23,8 @@ CoastFoam::CoastFoam()
 
     fCursorPosX = 400.0f;
     fCursorPosY = 300.0f;
+
+    pFrustumPlanes = nullptr;
 }
 
 CoastFoam::~CoastFoam()
@@ -411,7 +413,7 @@ void CoastFoam::ExecuteFoamType2(Foam* pF, float fDeltaTime)
     int32_t const iLen = pF->aWorkParts.size();
     if (!iLen) return;
 
-    CVECTOR vCamPos, vCamAng;
+    CVECTOR vCamPos = {}, vCamAng;
     float   fPerspective;
     // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 
@@ -526,6 +528,8 @@ bool CoastFoam::IsClipped(Foam* pF)
     // CVECTOR vCamPos, vCamAng;
     // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 
+    if (pFrustumPlanes == nullptr) { return false; }
+
     CVECTOR        vP[4];
     uint32_t       dwPlanesPoints[4];
     uint32_t const dwSize = pF->aFoamParts.size();
@@ -559,7 +563,7 @@ void CoastFoam::ExecuteFoamType1(Foam* pF, float fDeltaTime)
     int32_t const iLen = pF->aWorkParts.size();
     if (!iLen) return;
 
-    CVECTOR vCamPos, vCamAng;
+    CVECTOR vCamPos = {}, vCamAng;
     float   fPerspective;
     // rs->GetCamera(vCamPos, vCamAng, fPerspective);
 

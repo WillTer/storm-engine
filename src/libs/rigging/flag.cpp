@@ -393,7 +393,7 @@ void Flag::DoMove(FLAGDATA* pr, float delta_time) const
 
 void Flag::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip, int groupNumber)
 {
-    FLAGDATA* fd;
+    FLAGDATA* fd = nullptr;
 
     // for fail parameters do not set of data
     if (nod == nullptr) return;
@@ -434,13 +434,12 @@ void Flag::AddLabel(GEOS::LABEL& gl, NODE* nod, bool isSpecialFlag, bool isShip,
         flist[flagQuantity - 1] = fd;
     }
 
+    if (fd == nullptr) { return; }
+
     CVECTOR cv;
     cv.x = gl.m[3][0] + nod->loc_mtx.matrix[3];
     cv.y = gl.m[3][1] + nod->loc_mtx.matrix[7];
     cv.z = gl.m[3][2] + nod->loc_mtx.matrix[11];
-    /*cv.x = gl.m[3][0];
-    cv.y = gl.m[3][1];
-    cv.z = gl.m[3][2];*/
     // set flag point
     switch (gl.name[1]) {
     case '2':  // bottom begin of flag

@@ -64,7 +64,8 @@ void AIBalls::FireBallFromCamera()
     auto* pABall = pAMainCharacter->CreateAttribute("_err324__", "");
     if (!pABall) return;
 
-    CVECTOR vCamPos, vCamAng;
+    CVECTOR vCamPos = {};
+    CVECTOR vCamAng = {};
     float   fFov;
     // AIHelper::pRS->GetCamera(vCamPos, vCamAng, fFov);
 

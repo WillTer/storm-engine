@@ -102,7 +102,7 @@ void Island::Realize(uint32_t Delta_Time)
     // pRS->SetRenderState(D3DRS_LIGHTING, dynamicLightsOn);
     dwAmbient = dwAmbientOld & 0xFF;
 
-    CVECTOR vCamPos, vCamAng;
+    CVECTOR vCamPos = {}, vCamAng;
     float   fOldNear, fOldFar = 0.0F, fPerspective;
     // pRS->GetCamera(vCamPos, vCamAng, fPerspective);
     // pRS->GetNearFarPlane(fOldNear, fOldFar);

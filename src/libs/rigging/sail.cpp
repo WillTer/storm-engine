@@ -881,7 +881,7 @@ uint64_t Sail::ProcessMessage(MESSAGE& message)
 
 void Sail::AddSailLabel(GEOS::LABEL& lbl, NODE* nod, bool bSailUp)
 {
-    SAILONE* cs;
+    SAILONE* cs = nullptr;
     int      grNum, i;
     grNum = atoi(&lbl.group_name[5]);
     for (i = 0; i < sailQuantity; i++)
@@ -968,6 +968,8 @@ void Sail::AddSailLabel(GEOS::LABEL& lbl, NODE* nod, bool bSailUp)
         }
         cs->ss.turningSail = !strncmp(nod->GetName(), "rey_", 4);
     }
+
+    if (cs == nullptr) { return; }
 
     CVECTOR vtmp;
     vtmp.x = lbl.m[3][0];  //+nod->glob_mtx.matrix[3];
@@ -1358,8 +1360,8 @@ void Sail::FirstRun()
                         static_cast<ROPE_BASE*>(core->GetEntityPointer(ropeEI))
                             ->GetEndPoint(&endVect, slist[sn]->sailtrope.rrs[i]->ropenum, gdata[slist[sn]->HostNum].modelEI);
                         CVECTOR medVect;
-                        medVect = slist[sn]->ss.hardPoints[tieNum];
-                        CVECTOR begVect;
+                        medVect         = slist[sn]->ss.hardPoints[tieNum];
+                        CVECTOR begVect = {};
                         switch (tieNum) {
                         case 1: begVect = slist[sn]->ss.hardPoints[0]; break;
                         case 2: begVect = slist[sn]->ss.hardPoints[0]; break;

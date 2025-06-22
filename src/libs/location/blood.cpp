@@ -253,7 +253,8 @@ void Blood::BuildBloodDataByCollision(const CVECTOR& cpos)
     aBlood.push_back(curBlood);
 
     // fill the buffer
-    float fU0, fV0;
+    float fU0 = 0.0F;
+    float fV0 = 0.0F;
     switch (rand() % 8) {
     case 0:
         fU0 = 0.f;

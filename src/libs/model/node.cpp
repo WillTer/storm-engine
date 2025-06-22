@@ -303,7 +303,7 @@ void NODER::Draw()
     }
     if (p < 4) return;
     if (max_view_dist > 0.f) {
-        CVECTOR cpos, cang;
+        CVECTOR cpos = {}, cang;
         float   cpersp;
         // rs->GetCamera(cpos, cang, cpersp);
         float const fdist    = ~(cpos - cnt);

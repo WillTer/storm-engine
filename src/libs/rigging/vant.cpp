@@ -432,7 +432,7 @@ void VANT_BASE::SetVertexes() const
 
 void VANT_BASE::AddLabel(GEOS::LABEL& lbl, NODE* nod)
 {
-    VANTDATA* vd;
+    VANTDATA* vd = nullptr;
     int       vantNum;
 
     if (nod == nullptr) return;
@@ -467,6 +467,8 @@ void VANT_BASE::AddLabel(GEOS::LABEL& lbl, NODE* nod)
 
         vlist[vantQuantity - 1] = vd;
     }
+
+    if (vd == nullptr) return;
 
     switch (lbl.name[5]) {
     case 'u':  // up edge of vant

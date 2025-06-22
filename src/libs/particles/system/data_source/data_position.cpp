@@ -22,7 +22,7 @@ void DataPosition::SetValue(Vector const& val)
 
 void DataPosition::Load(MemFile* File)
 {
-    Vector vValue;
+    Vector vValue(0.0F, 0.0F, 0.0F);
     File->ReadType(vValue.x);
     File->ReadType(vValue.y);
     File->ReadType(vValue.z);

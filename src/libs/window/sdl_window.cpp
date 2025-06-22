@@ -27,7 +27,7 @@ SDLWindow::SDLWindow(
     SDL_DestroyProperties(props);
 
 #if !defined(_WIN32)
-    SDL_SetWindowRelativeMouseMode(window_.get(), true);
+    // SDL_SetWindowRelativeMouseMode(window_.get(), true);
 #endif
 
     sdlID_ = SDL_GetWindowID(window_.get());

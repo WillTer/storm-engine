@@ -2687,7 +2687,7 @@ uint32_t Character::zExMessage(MESSAGE& message)
     LocatorArray*      la;
     int32_t            i;
     VDATA*             v;
-    CVECTOR            pos;
+    CVECTOR            pos = {};
     if (storm::iEquals(msg, "TieItem")) {
         i                              = message.Long();
         std::string const& modelName   = message.String();
@@ -3362,8 +3362,8 @@ void Character::UpdateAnimation()
                           }
                         }
                  */
-                char const* pWeaponID;
-                VDATA*      pdat = core->Event("eGetWeaponID", "s", characterID);
+                char const* pWeaponID = nullptr;
+                VDATA*      pdat      = core->Event("eGetWeaponID", "s", characterID);
                 if (pdat) { pWeaponID = pdat->GetString(); }
                 VDATA* vd = nullptr;
                 float  recoilDist;
@@ -3979,8 +3979,8 @@ inline void Character::CheckAttackHit(bool isGunBlade)
 // Find a character who was hit by a pistol
 Character* Character::FindGunTarget(float& kDist, bool bOnlyEnemyTest, bool bAbortIfFriend)
 {
-    CharactersGroups* chrGroup;
-    int32_t           grp;
+    CharactersGroups* chrGroup = nullptr;
+    int32_t           grp      = 0;
     if (bOnlyEnemyTest || bAbortIfFriend) {
         chrGroup = static_cast<CharactersGroups*>(core->GetEntityPointer(core->GetEntityId("CharactersGroups")));
         grp      = chrGroup->FindGroupIndex(group);

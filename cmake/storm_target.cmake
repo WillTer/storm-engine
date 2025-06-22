@@ -13,13 +13,14 @@ set(COMPILE_DEFINITIONS
 )
 
 ### Set general compilation flags
-# Always enable debug symbols for MSVC builds
+# Always enable debug symbols
 set(MSVC_CXX_FLAGS_ANY /Zi /fp:fast /utf-8)
 set(MSVC_CXX_FLAGS_DEBUG /Od)
 set(MSVC_CXX_FLAGS_RELEASE /O2)
 
-set(GNU_CXX_FLAGS_ANY)
-set(GNU_CXX_FLAGS_DEBUG -g -O0)
+# Always enable debug symbols
+set(GNU_CXX_FLAGS_ANY -g)
+set(GNU_CXX_FLAGS_DEBUG -O0)
 set(GNU_CXX_FLAGS_RELEASE -O3)
 
 set(MSVC_CXX_FLAGS_WARNINGS /WX /W2)
@@ -87,13 +88,13 @@ function(storm_exe)
     target_link_options(${EXE_TARGET_NAME} PRIVATE ${STORM_LINK_FLAGS})
     target_link_libraries(${EXE_TARGET_NAME} PRIVATE ${EXE_TARGET_LINK_DEPENDENCIES})
 
-    if (${EXE_TARGET_ACTION_DEPENDENCIES})
+    if (DEFINED EXE_TARGET_ACTION_DEPENDENCIES)
         add_dependencies(${EXE_TARGET_NAME}
             ${EXE_TARGET_ACTION_DEPENDENCIES}
         )
     endif()
 
-    if (STORM_USE_ASAN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if (${STORM_USE_ASAN} AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         # ASAN
         target_compile_options(${EXE_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
         target_link_options(${EXE_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
@@ -146,7 +147,7 @@ function(storm_lib)
         ${LIB_TARGET_HEADER_DEPENDENCIES}
     )
 
-    if(STORM_USE_ASAN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(${STORM_USE_ASAN} AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         # ASAN
         target_compile_options(${LIB_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)
         target_link_options(${LIB_TARGET_NAME} PRIVATE -fno-omit-frame-pointer -fsanitize=address)

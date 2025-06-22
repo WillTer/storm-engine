@@ -48,7 +48,7 @@ WdmIslands::WdmIslands()
     GEOS::LABEL label;
     baseModel->geo->GetInfo(ginfo);
     // Finding the size of the world and iterating over the locators
-    CVECTOR vmin, vmax, center = 0.0f, vmn, vmx;
+    CVECTOR vmin, vmax, center = 0.0f, vmn = {}, vmx = {};
     auto    isMin = false, isMax = false;
     for (int32_t i = 0; i < ginfo.nlabels; i++) {
         baseModel->geo->GetLabel(i, label);

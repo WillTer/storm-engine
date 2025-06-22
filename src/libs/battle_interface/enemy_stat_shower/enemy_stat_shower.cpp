@@ -46,7 +46,7 @@ void EnemyStatShower::Release() {}
 
 entid_t EnemyStatShower::GetModelEIDFromCharacterEID(entid_t chrEID)
 {
-    entid_t eid;
+    entid_t eid   = {};
     auto*   pvdat = static_cast<VDATA*>(core->GetScriptVariable("g_TmpModelVariable"));
     if (pvdat) {
         core->Send_Message(chrEID, "le", MSG_CHARACTER_GETMODEL, pvdat);

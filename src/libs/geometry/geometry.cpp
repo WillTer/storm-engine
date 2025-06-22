@@ -88,7 +88,7 @@ GEOS* GeometryService::CreateGeometry(char const* file_name, char const* light_f
     }
 
     static auto first = 0;
-    FILE*       fl;
+    FILE*       fl    = nullptr;
     if (geoLog) {
         vrtSize = 0;
         if (first == 0)

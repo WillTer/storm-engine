@@ -2,6 +2,8 @@ set(SYSTEM_DEPS_LINUX ffi)
 
 storm_exe(
     NAME engine
+    ACTION_DEPENDENCIES
+        shaders
     LINK_DEPENDENCIES
         SDL3-storm
 
@@ -56,8 +58,6 @@ storm_exe(
         window
         worldmap
         xinterface
-    ACTION_DEPENDENCIES
-        shaders
 )
 
 add_custom_command(TARGET engine POST_BUILD

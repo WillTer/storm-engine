@@ -243,8 +243,8 @@ void Mast::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
             0.f,
             MIN_Z_DANG + VAR_Z_DANG * static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
         // find the nearest ship
-        float      minDist = 10000.f;
-        SHIP_BASE* minDstShip;
+        float      minDist    = 10000.f;
+        SHIP_BASE* minDstShip = nullptr;
 
         auto const& ships = core->GetEntityIds("Ship");
         for (auto ship: ships) {
@@ -257,7 +257,8 @@ void Mast::Mount(entid_t modelEI, entid_t shipEI, NODE* mastNodePointer)
                 minDstShip = sb;
             }
         }
-        if (minDist < 4000.f)  // if the nearest ship is close to us, then bring down the mast in the opposite direction
+        if (minDist < 4000.f
+            && minDstShip != nullptr)  // if the nearest ship is close to us, then bring down the mast in the opposite direction
         {
             CVECTOR vect;
             mastNodePointer->glob_mtx.MulToInvNorm(minDstShip->State.vPos - mm.mov, vect);

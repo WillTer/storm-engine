@@ -56,8 +56,8 @@ void MapZipper::DoZip(uint8_t* pSrc, uint32_t _dwSizeX)
         x                  = i - y * dwDX;
         auto const dwStart = (y << dwBlockShift) * dwSizeX + (x << dwBlockShift);
 
-        auto    bTest = true;
-        uint8_t byTest;
+        auto    bTest  = true;
+        uint8_t byTest = 0;
         for (j = 0; j < dwBlockSize * dwBlockSize; j++) {
             yy               = j >> dwBlockShift;
             xx               = j - (yy << dwBlockShift);

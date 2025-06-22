@@ -95,7 +95,7 @@ SERVICE_NODE* SERVICES_LIST::FindNode(SERVICE* sp)
 
 uint32_t SERVICES_LIST::Release(uint32_t module_code, uint32_t class_code)
 {
-    uint32_t ref;
+    uint32_t ref = 0;
 
     SERVICE_NODE* node_PTR = List;
     while (node_PTR) {

@@ -146,7 +146,7 @@ void SAILONE::goWave(SAILVERTEX* pv, uint32_t Delta_Time)
 // fill in indices
 void SAILONE::FillIndex(uint16_t* pt)
 {
-    int      xIdxNum, yIdxNum;
+    int      xIdxNum = 0, yIdxNum = 0;
     int      idx, iy, ix, jx, jy, cix, ciy, dix;
     int      holeI;
     int      holeStart, noholeStart;
@@ -1063,8 +1063,8 @@ void SAILONE::TurnSail(float fTurnStep)
                     static_cast<ROPE_BASE*>(core->GetEntityPointer(ropeEI))
                         ->GetEndPoint(&endVect, sailtrope.rrs[i]->ropenum, pp->gdata[HostNum].modelEI);
                     CVECTOR medVect;
-                    medVect = ss.hardPoints[tieNum];
-                    CVECTOR begVect;
+                    medVect         = ss.hardPoints[tieNum];
+                    CVECTOR begVect = {};
                     switch (tieNum) {
                     case 1: begVect = ss.hardPoints[0]; break;
                     case 2: begVect = ss.hardPoints[0]; break;
