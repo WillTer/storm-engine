@@ -126,7 +126,8 @@ try {
 
     // Init logging
     storm::logging::init_logger_for_sdl();
-    spdlog::set_default_logger(storm::logging::get_logger(DEFAULT_LOGGER_NAME));
+    spdlog::set_default_logger(storm::logging::get_logger_with_stdout(DEFAULT_LOGGER_NAME));
+    spdlog::flush_every(std::chrono::seconds(3));
 
     auto const general_info = storm::main_config::general_info();
     if (general_info.enable_logs) {

@@ -3,6 +3,7 @@
 #include <SDL3/SDL_log.h>
 #include <libs/util/fs.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 namespace
@@ -85,6 +86,27 @@ void init_logger_for_sdl(spdlog::level::level_enum const level)
     auto const logger = get_logger("sdl");
     SDL_SetLogOutputFunction(log_output, logger.get());
     SDL_SetLogPriorities(get_priority_from_level(level));
+}
+
+logger_ptr get_logger_with_stdout(std::string const& name, spdlog::level::level_enum const level, bool truncate)
+{
+    auto logger = spdlog::get(name);
+    if (logger) { return logger; }
+
+    auto path = fs::GetLogsPath() / name;
+    path.replace_extension(LOG_EXTENSION);
+
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    console_sink->set_level(level);
+
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path.string(), truncate);
+    console_sink->set_level(level);
+
+    logger = std::make_shared<spdlog::logger>(name, spdlog::sinks_init_list {console_sink, file_sink});
+    spdlog::register_logger(logger);
+    logger->set_level(level);
+
+    return logger;
 }
 
 logger_ptr get_logger(std::string const& name, spdlog::level::level_enum const level, bool const truncate)
