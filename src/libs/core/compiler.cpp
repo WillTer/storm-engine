@@ -150,10 +150,10 @@ COMPILER::COMPILER()
 
     // bScriptTrace = false;
 
-    using storm::logging::getOrCreateLogger;
-    logTrace_ = getOrCreateLogger("compile");
-    logError_ = getOrCreateLogger("error");
-    logStack_ = getOrCreateLogger("script_stack");
+    using storm::logging::get_logger;
+    logTrace_ = get_logger("compile");
+    logError_ = get_logger("error");
+    logStack_ = get_logger("script_stack");
     logStack_->set_pattern("%v");
 }
 

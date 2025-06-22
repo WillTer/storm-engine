@@ -86,8 +86,6 @@ std::shared_ptr<SDL_GPUShader> compile_shader(
 
 RendererSDL::RendererSDL()
 {
-    SDL_SetLogPriority(SDL_LOG_CATEGORY_GPU, SDL_LOG_PRIORITY_VERBOSE);
-
     m_device = std::shared_ptr<SDL_GPUDevice>(
         SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, BACKEND), &SDL_DestroyGPUDevice);
 

@@ -8,8 +8,6 @@
 #include <libs/util/platform/platform.hpp>
 
 // common includes
-#include "libs/asset_server/asset_server.h"
-
 #include "controls.h"
 #include "engine_version.hpp"
 #include "message.h"
