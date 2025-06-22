@@ -103,7 +103,7 @@ void* RaylibWindow::OSHandle()
     return GetWindowHandle();
 }
 
-std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
+std::shared_ptr<IWindow> IWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
 {
     return std::make_shared<RaylibWindow>(width, height, preferred_display, fullscreen, bordered);
 }

@@ -13,8 +13,8 @@ class CoreImpl final: public CorePrivate
 {
 public:
     template <typename... Args>
-    explicit CoreImpl(std::shared_ptr<Args>&&... args)
-        : Container(std::forward<std::shared_ptr<Args>>(args)...)
+    explicit CoreImpl(std::shared_ptr<Args> const&... args)
+        : Container(args...)
         , Exit_flag {false}
         , Memory_Leak_flag {false}
         , Root_flag {false}
@@ -33,7 +33,7 @@ public:
 
     void CleanUp();
 
-    void SetWindow(std::shared_ptr<storm::OSWindow> window) override;
+    void SetWindow(std::shared_ptr<storm::IWindow> window) override;
     bool Initialize();
     void ResetCore();
     bool Run();
@@ -67,7 +67,7 @@ public:
     // shutdown core, delete all objects and close programm
     void Exit();
     // return application handle
-    storm::OSWindow* GetWindow() override;
+    storm::IWindow* GetWindow() override;
 #ifdef _WIN32  // HINSTANCE
     HINSTANCE GetAppInstance();
 #endif
@@ -163,15 +163,15 @@ private:
 
     bool stopFrameProcessing_ = false;
 
-    bool                             bAppActive {};
-    bool                             Memory_Leak_flag;  // true if core detected memory leak
-    bool                             Root_flag;
-    bool                             Initialized;  // initialized flag (false at startup or after Reset())
-    bool                             bEngineIniProcessed;
-    std::shared_ptr<storm::OSWindow> window_;               // application handle
-    char                             gstring[MAX_PATH] {};  // general purpose string
-    bool                             State_loading;
-    bool                             bEnableTimeScale {};
+    bool                            bAppActive {};
+    bool                            Memory_Leak_flag;  // true if core detected memory leak
+    bool                            Root_flag;
+    bool                            Initialized;  // initialized flag (false at startup or after Reset())
+    bool                            bEngineIniProcessed;
+    std::shared_ptr<storm::IWindow> window_;               // application handle
+    char                            gstring[MAX_PATH] {};  // general purpose string
+    bool                            State_loading;
+    bool                            bEnableTimeScale {};
 
     SERVICES_LIST Services_List;  // list for subsequent calls RunStart/RunEnd service functions
 

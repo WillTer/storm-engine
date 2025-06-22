@@ -113,9 +113,9 @@ public:
         bool                         only_files = true,
         bool                         recursive  = false) override;
     std::time_t to_time_t(std::filesystem::file_time_type tp) override;
-    std::string executable_directory() override;
+    std::string executable_directory() const override;
 
-    std::filesystem::path current_path() override;
+    std::filesystem::path current_path() const override;
     void                  current_path(std::filesystem::path const& path) override;
     bool                  create_directories(std::filesystem::path const& path) override;
     void                  remove(std::filesystem::path const& path) override;
@@ -127,7 +127,7 @@ public:
     std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) override;
 
     uint64_t              path_fingerprint(std::filesystem::path const& path) override;
-    std::filesystem::path base_directory_path(BaseDirectory dir) override;
+    std::filesystem::path base_directory_path(BaseDirectory dir) const override;
 
     void init_from_main_config() override;
 

@@ -2,11 +2,11 @@
 
 #include <map>
 
-#include "os_window.hpp"
+#include "i_window.h"
 
 namespace storm
 {
-class RaylibWindow: public OSWindow
+class RaylibWindow: public IWindow
 {
 public:
     RaylibWindow(int width, int height, int preferred_display, bool fullscreen, bool bordered);

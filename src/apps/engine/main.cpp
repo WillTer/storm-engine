@@ -2,6 +2,7 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL3/SDL.h>
+#include <libs/asset_server/asset_server.h>
 #include <libs/config/config_loader.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core_impl.h>
@@ -10,18 +11,18 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
-#include <libs/renderer_next/renderer_next.h>
+#include <libs/renderer_next/renderer_rlgl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
-#include <libs/window/os_window.hpp>
+#include <libs/window/i_window.h>
 #include <spdlog/spdlog.h>
 
-std::unique_ptr<IFileService>           fio              = nullptr;
+std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: move to core
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
 std::shared_ptr<CoreImpl>               core_internal    = nullptr;
 std::shared_ptr<Core>                   core             = nullptr;
-std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;
+std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;  // TODO: move to core
 
 namespace
 {
@@ -60,12 +61,12 @@ bool run_frame_with_overflow_check()
 }
 #endif
 
-void handle_window_event(storm::OSWindow::Event const& event)
+void handle_window_event(storm::IWindow::Event const& event)
 {
-    if (event == storm::OSWindow::Closed) {
+    if (event == storm::IWindow::Closed) {
         should_close = true;
         if (core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
-    } else if (event == storm::OSWindow::FocusGained) {
+    } else if (event == storm::IWindow::FocusGained) {
         is_active = true;
         if (core_internal->initialized()) {
             core_internal->AppState(is_active);
@@ -74,7 +75,7 @@ void handle_window_event(storm::OSWindow::Event const& event)
                 sound_service->set_active_with_fade(true);
             }
         }
-    } else if (event == storm::OSWindow::FocusLost) {
+    } else if (event == storm::IWindow::FocusLost) {
         is_active = false;
         if (core_internal->initialized()) {
             core_internal->AppState(is_active);
@@ -117,11 +118,7 @@ try {
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
-    auto renderer = std::make_shared<storm::RendererNext>();
-
-    fio           = std::make_unique<FileService>();
-    core_internal = std::make_shared<CoreImpl>(std::move(renderer));
-    core          = core_internal;
+    fio           = std::make_shared<FileService>();
     config_loader = std::make_unique<storm::ConfigLoader>();
 
     // Init logging
@@ -140,6 +137,12 @@ try {
     // Load parameters of file service
     fio->init_from_main_config();
 
+    auto asset_server = std::make_shared<storm::AssetServer>(*fio);
+    auto renderer     = std::make_shared<storm::RendererRlgl>();
+
+    core_internal = std::make_shared<CoreImpl>(fio, asset_server, renderer);
+    core          = core_internal;
+
     // Init stash
     create_directories(fs::GetSaveDataPath());
 
@@ -153,12 +156,15 @@ try {
     // initialize SteamApi through evaluating its singleton
     steamapi::SteamApi::getInstance(!general_info.use_steam);
 
-    std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(
+    std::shared_ptr<storm::IWindow> window = storm::IWindow::Create(
         window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
     core_internal->SetWindow(window);
+
+    // Init renderer
+    core->get<storm::IRendererNext>()->init();
 
     // Init core
     core_internal->InitBase();

@@ -23,6 +23,7 @@ enum class BaseDirectory {
     Particles,
     Textures,
     Sea,
+    Shaders,
 };
 
 class IFileService
@@ -53,8 +54,8 @@ public:
         bool                         only_files = true,
         bool                         recursive  = false)                                                                                           = 0;
     virtual std::time_t           to_time_t(std::filesystem::file_time_type tp)                                           = 0;
-    virtual std::string           executable_directory()                                                                  = 0;
-    virtual std::filesystem::path current_path()                                                                          = 0;
+    virtual std::string           executable_directory() const                                                            = 0;
+    virtual std::filesystem::path current_path() const                                                                    = 0;
     virtual void                  current_path(std::filesystem::path const& path)                                         = 0;
     virtual bool                  create_directories(std::filesystem::path const& path)                                   = 0;
     virtual void                  remove(std::filesystem::path const& path)                                               = 0;
@@ -76,7 +77,7 @@ public:
 
     virtual uint64_t path_fingerprint(std::filesystem::path const& path) = 0;
 
-    virtual std::filesystem::path base_directory_path(BaseDirectory dir) = 0;
+    virtual std::filesystem::path base_directory_path(BaseDirectory dir) const = 0;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -160,4 +161,4 @@ public:
 };
 
 //
-extern std::unique_ptr<IFileService> fio;
+extern std::shared_ptr<IFileService> fio;

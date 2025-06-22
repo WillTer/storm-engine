@@ -1,4 +1,4 @@
-#include "renderer_next.h"
+#include "renderer_rlgl.h"
 
 #include <format>
 #include <memory>
@@ -15,6 +15,8 @@ constexpr bool IS_DEBUG_MODE = false;
 #endif
 }  // namespace
 
-RendererNext::RendererNext() {}
+RendererRlgl::RendererRlgl() {}
 
-RendererNext::~RendererNext() = default;
+RendererRlgl::~RendererRlgl() = default;
+
+void RendererRlgl::init() {}

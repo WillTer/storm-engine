@@ -12,7 +12,7 @@ struct WindowSize {
 };
 
 //! Abstract window
-class OSWindow
+class IWindow
 {
 public:
     // TODO: More events?
@@ -29,7 +29,7 @@ public:
 
     using EventHandler = std::function<void(Event const&)>;
 
-    virtual ~OSWindow() {};
+    virtual ~IWindow() {};
 
     //! Show window
     virtual void Show() = 0;
@@ -72,6 +72,6 @@ public:
     virtual void* OSHandle() = 0;
 
     //! Create new window
-    static std::shared_ptr<OSWindow> Create(int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    static std::shared_ptr<IWindow> Create(int width, int height, int preferred_display, bool fullscreen, bool bordered);
 };
 }  // namespace storm

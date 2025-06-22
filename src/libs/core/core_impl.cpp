@@ -48,7 +48,7 @@ void CoreImpl::CleanUp()
     delete[] State_file_name;
 }
 
-void CoreImpl::SetWindow(std::shared_ptr<storm::OSWindow> window)
+void CoreImpl::SetWindow(std::shared_ptr<storm::IWindow> window)
 {
     window_ = std::move(window);
 }
@@ -251,7 +251,7 @@ void CoreImpl::Exit()
     Exit_flag = true;
 }
 
-storm::OSWindow* CoreImpl::GetWindow()
+storm::IWindow* CoreImpl::GetWindow()
 {
     return window_.get();
 }

@@ -84,6 +84,7 @@ FileService::FileService()
     m_paths.particles  = storm::fs::PARTICLES_DIR_DEFAULT;
     m_paths.textures   = storm::fs::TEXTURES_DIR_DEFAULT;
     m_paths.sea        = storm::fs::SEA_DIR_DEFAULT;
+    m_paths.shaders    = storm::fs::SHADERS_DIR_DEFAULT;
     m_use_lowercase    = false;
 }
 
@@ -145,7 +146,7 @@ std::time_t FileService::to_time_t(std::filesystem::file_time_type tp)
     return system_clock::to_time_t(sctp);
 }
 
-std::string FileService::executable_directory()
+std::string FileService::executable_directory() const
 {
     char const* path = SDL_GetBasePath();
     if (path == nullptr) { return {}; }
@@ -153,7 +154,7 @@ std::string FileService::executable_directory()
     return path;
 }
 
-std::filesystem::path FileService::current_path()
+std::filesystem::path FileService::current_path() const
 {
     return std::filesystem::current_path();
 }
@@ -312,7 +313,7 @@ uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
     return timestamp;
 }
 
-std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
+std::filesystem::path FileService::base_directory_path(BaseDirectory dir) const
 {
     switch (dir) {
     case BaseDirectory::Resource: return m_paths.resource;
@@ -328,6 +329,7 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir)
     case BaseDirectory::Particles: return m_paths.particles;
     case BaseDirectory::Textures: return m_paths.textures;
     case BaseDirectory::Sea: return m_paths.sea;
+    case BaseDirectory::Shaders: return m_paths.shaders;
     case BaseDirectory::None: return std::filesystem::path();
     }
 
