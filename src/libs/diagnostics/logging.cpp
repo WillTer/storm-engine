@@ -117,7 +117,7 @@ logger_ptr get_logger(std::string const& name, spdlog::level::level_enum const l
     auto path = fs::GetLogsPath() / name;
     path.replace_extension(LOG_EXTENSION);
 
-    logger = spdlog::basic_logger_mt(name, path, truncate);
+    logger = spdlog::basic_logger_mt(name, path.string(), truncate);
     logger->set_level(level);
 
     return logger;
