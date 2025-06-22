@@ -11,6 +11,7 @@
 #include <SDL3/SDL_log.h>
 #include <libs/asset_server/asset_server.h>
 #include <libs/asset_server/shader_asset.h>
+#include <libs/asset_server/texture_asset.h>
 #include <libs/core/core.h>
 #include <libs/window/sdl_window.hpp>
 
@@ -37,6 +38,7 @@ struct PositionColor {
     std::array<float, 3> color;
 };
 
+// TODO: move to another file
 SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
 {
     switch (stage) {
@@ -46,6 +48,7 @@ SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
     }
 }
 
+// TODO: move to another file
 std::shared_ptr<SDL_GPUShader> compile_shader(
     std::shared_ptr<SDL_GPUDevice> const&                           device,
     std::function<ShaderAsset(std::filesystem::path const&)> const& shader_load,
@@ -80,6 +83,29 @@ std::shared_ptr<SDL_GPUShader> compile_shader(
 
     return std::shared_ptr<SDL_GPUShader>(
         SDL_CreateGPUShader(device.get(), &shader_info), [device](SDL_GPUShader* p) { SDL_ReleaseGPUShader(device.get(), p); });
+}
+
+// TODO: move to another file
+SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
+{
+    switch (format) {
+    case TxFormat::A8R8G8B8: return SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+    case TxFormat::X8R8G8B8: return SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+    case TxFormat::R5G6B5: return SDL_GPU_TEXTUREFORMAT_B5G6R5_UNORM;
+    case TxFormat::A1R5G5B5: return SDL_GPU_TEXTUREFORMAT_B5G5R5A1_UNORM;
+    case TxFormat::A4R4G4B4: return SDL_GPU_TEXTUREFORMAT_B4G4R4A4_UNORM;
+    case TxFormat::L8: return SDL_GPU_TEXTUREFORMAT_R8_UNORM;
+    case TxFormat::V8U8: return SDL_GPU_TEXTUREFORMAT_R8G8_SNORM;
+
+    case TxFormat::DXT1: return SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM;
+    case TxFormat::DXT2: return SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM;
+    case TxFormat::DXT3: return SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM;
+    case TxFormat::DXT4: return SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM;
+    case TxFormat::DXT5: return SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM;
+    default: break;
+    }
+
+    return SDL_GPU_TEXTUREFORMAT_INVALID;
 }
 
 }  // namespace
@@ -120,6 +146,7 @@ void RendererSDL::init()
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(SHADER_EXT);
+    auto const  tex_load     = asset_server->get_loader<TextureAsset const&>();
 
     // Testing
     auto const vertex_shader = compile_shader(m_device, shader_load, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
@@ -183,4 +210,38 @@ void RendererSDL::init()
         [device = m_device](SDL_GPUGraphicsPipeline* p) { SDL_ReleaseGPUGraphicsPipeline(device.get(), p); });
 
     if (!m_pipeline) { throw std::runtime_error(std::format("Failed to create GPU GraphicsPipeline: {}", SDL_GetError())); }
+
+    auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
+    sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
+    sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
+    sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    sampler_create_info.enable_anisotropy = true;
+    sampler_create_info.max_anisotropy    = 16.0F;
+
+    m_sampler =
+        std::shared_ptr<SDL_GPUSampler>(SDL_CreateGPUSampler(m_device.get(), &sampler_create_info), [device = m_device](SDL_GPUSampler* p) {
+            SDL_ReleaseGPUSampler(device.get(), p);
+        });
+
+    if (!m_sampler) { throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError())); }
+
+    auto const& texture = tex_load("loading/storm.tga.tx");
+
+    auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
+    texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
+    texture_create_info.format               = convert_tx_format(texture.header.format);
+    texture_create_info.width                = texture.header.width;
+    texture_create_info.height               = texture.header.height;
+    texture_create_info.layer_count_or_depth = 1;
+    texture_create_info.num_levels           = texture.header.mip_levels;
+    texture_create_info.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+
+    m_texture =
+        std::shared_ptr<SDL_GPUTexture>(SDL_CreateGPUTexture(m_device.get(), &texture_create_info), [device = m_device](SDL_GPUTexture* p) {
+            SDL_ReleaseGPUTexture(device.get(), p);
+        });
+    if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
 }

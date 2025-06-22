@@ -2,10 +2,13 @@
 
 #include <memory>
 
+#include <SDL3/SDL_gpu.h>
+
 #include "i_renderer_next.h"
 
 struct SDL_GPUDevice;
 struct SDL_GPUGraphicsPipeline;
+struct SDL_GPUSampler;
 
 namespace storm
 {
@@ -26,6 +29,8 @@ private:
 
     std::shared_ptr<SDL_GPUDevice>           m_device   = nullptr;
     std::shared_ptr<SDL_GPUGraphicsPipeline> m_pipeline = nullptr;
+    std::shared_ptr<SDL_GPUSampler>          m_sampler  = nullptr;
+    std::shared_ptr<SDL_GPUTexture>          m_texture  = nullptr;
 };
 
 }  // namespace storm
