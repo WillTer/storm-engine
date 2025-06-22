@@ -26,7 +26,7 @@ set(MSVC_CXX_FLAGS_WARNINGS /WX /W2)
 set(GNU_CXX_FLAGS_WARNINGS -Wall -Werror=return-type -Werror=uninitialized -Werror=address)
 
 set(MSVC_CXX_FLAGS_WARNINGS_FULL /WX /W4)
-set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror -Wno-error=unused-parameter -Wno-error=unused-variable)
+set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror)
 
 set(MSVC_CXX_FLAGS
     ${MSVC_CXX_FLAGS_ANY}

@@ -50,7 +50,7 @@ public:
 
     virtual void ProcessStage(Stage stage, uint32_t delta = 0) = 0;
 
-    virtual uint64_t ProcessMessage(MESSAGE& msg)
+    virtual uint64_t ProcessMessage(MESSAGE& /*msg*/)
     {
         return {};
     }

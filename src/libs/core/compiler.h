@@ -24,6 +24,7 @@
 
 #define BCODE_BUFFER_BLOCKSIZE 4096
 #define IOBUFFER_SIZE 65535
+#define MAX_PATH 260  // FIXME: remove MAX_PATH usage entirely
 
 struct SEGMENT_DESC {
     std::string name;

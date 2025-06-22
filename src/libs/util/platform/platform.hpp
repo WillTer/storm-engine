@@ -1,5 +1,9 @@
 #pragma once
+
 #ifdef _WIN32
+
+// FIXME: remove
+#include <Windows.h>
 
 #define PATH_SEP '/'
 #define WRONG_PATH_SEP '\\'

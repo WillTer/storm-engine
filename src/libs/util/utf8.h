@@ -49,35 +49,35 @@ inline int CodepointToUtf8(char* out, uint32_t codepoint)
 {
     if (codepoint <= 0x7F) {
         // Plain ASCII
-        out[0] = (char)codepoint;
+        out[0] = static_cast<char>(codepoint);
         out[1] = 0;
         return 1;
     } else if (codepoint <= 0x07FF) {
         // 2-byte unicode
-        out[0] = (char)(((codepoint >> 6) & 0x1F) | 0xC0);
-        out[1] = (char)(((codepoint >> 0) & 0x3F) | 0x80);
+        out[0] = static_cast<char>(((codepoint >> 6) & 0x1F) | 0xC0);
+        out[1] = static_cast<char>(((codepoint >> 0) & 0x3F) | 0x80);
         out[2] = 0;
         return 2;
     } else if (codepoint <= 0xFFFF) {
         // 3-byte unicode
-        out[0] = (char)(((codepoint >> 12) & 0x0F) | 0xE0);
-        out[1] = (char)(((codepoint >> 6) & 0x3F) | 0x80);
-        out[2] = (char)(((codepoint >> 0) & 0x3F) | 0x80);
+        out[0] = static_cast<char>(((codepoint >> 12) & 0x0F) | 0xE0);
+        out[1] = static_cast<char>(((codepoint >> 6) & 0x3F) | 0x80);
+        out[2] = static_cast<char>(((codepoint >> 0) & 0x3F) | 0x80);
         out[3] = 0;
         return 3;
     } else if (codepoint <= 0x10FFFF) {
         // 4-byte unicode
-        out[0] = (char)(((codepoint >> 18) & 0x07) | 0xF0);
-        out[1] = (char)(((codepoint >> 12) & 0x3F) | 0x80);
-        out[2] = (char)(((codepoint >> 6) & 0x3F) | 0x80);
-        out[3] = (char)(((codepoint >> 0) & 0x3F) | 0x80);
+        out[0] = static_cast<char>(((codepoint >> 18) & 0x07) | 0xF0);
+        out[1] = static_cast<char>(((codepoint >> 12) & 0x3F) | 0x80);
+        out[2] = static_cast<char>(((codepoint >> 6) & 0x3F) | 0x80);
+        out[3] = static_cast<char>(((codepoint >> 0) & 0x3F) | 0x80);
         out[4] = 0;
         return 4;
     } else {
         // error - use replacement character
-        out[0] = (char)0xEF;
-        out[1] = (char)0xBF;
-        out[2] = (char)0xBD;
+        out[0] = static_cast<char>(0xEF);
+        out[1] = static_cast<char>(0xBF);
+        out[2] = static_cast<char>(0xBD);
         out[3] = 0;
         return 0;
     }
@@ -158,15 +158,14 @@ inline int u8_offset(char const* str, int charnum)
 // taken from http://www.zedwood.com/article/cpp-is-valid-utf8-string-function
 inline bool IsValidUtf8(std::string const& str)
 {
-    int c, i, ix, n, j;
-    for (i = 0, ix = str.length(); i < ix; i++) {
-        c = (unsigned char)str[i];
-        // if (c==0x09 || c=='\n' || c=='\r' || (0x20 <= c && c <= 0x7e) ) n = 0; // is_printable_ascii
+    for (size_t i = 0, ix = str.length(); i < ix; i++) {
+        auto const c = static_cast<unsigned char>(str[i]);
+        size_t     n = 0;
         if (c <= 0x7f)
             n = 0;  // 0bbbbbbb
         else if ((c & 0xE0) == 0xC0)
             n = 1;  // 110bbbbb
-        else if (c == 0xed && i < (ix - 1) && ((unsigned char)str[i + 1] & 0xa0) == 0xa0)
+        else if (c == 0xed && i < (ix - 1) && (static_cast<unsigned char>(str[i + 1]) & 0xa0) == 0xa0)
             return false;  // U+d800 to U+dfff
         else if ((c & 0xF0) == 0xE0)
             n = 2;  // 1110bbbb
@@ -176,9 +175,9 @@ inline bool IsValidUtf8(std::string const& str)
         // else if (($c & 0xFE) == 0xFC) n=5; // 1111110b //byte 6, unnecessary in 4 byte UTF-8
         else
             return false;
-        for (j = 0; j < n && i < ix; j++) {
+        for (size_t j = 0; j < n && i < ix; j++) {
             // n bytes matching 10bbbbbb follow ?
-            if ((++i == ix) || (((unsigned char)str[i] & 0xC0) != 0x80)) return false;
+            if ((++i == ix) || ((static_cast<unsigned char>(str[i]) & 0xC0) != 0x80)) return false;
         }
     }
     return true;
@@ -186,12 +185,13 @@ inline bool IsValidUtf8(std::string const& str)
 
 inline void FixInvalidUtf8(char* str)
 {
-    int  len         = strlen(str) + 1;
-    char replacement = '?';
-    for (int i = 0; i < len; i++) {
+    size_t const len = strlen(str) + 1;
+    for (size_t i = 0; i < len; i++) {
+        constexpr char replacement = '?';
         if (0x00 <= str[i]) { continue; }
 
         str[i] = replacement;
     }
 }
+
 }  // namespace utf8

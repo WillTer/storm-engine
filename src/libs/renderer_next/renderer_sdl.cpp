@@ -9,6 +9,8 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
+#include <libs/asset_server/asset_server.h>
+#include <libs/asset_server/shader_asset.h>
 #include <libs/core/core.h>
 #include <libs/window/sdl_window.hpp>
 
@@ -42,8 +44,6 @@ SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
     case ShaderStage::Fragment: return SDL_GPU_SHADERSTAGE_FRAGMENT;
     default: throw std::runtime_error("Invalid shader stage");
     }
-
-    return SDL_GPU_SHADERSTAGE_VERTEX;
 }
 
 std::shared_ptr<SDL_GPUShader> compile_shader(
