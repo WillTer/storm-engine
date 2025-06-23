@@ -1,6 +1,6 @@
 struct VSInput {
     float3 Position: TEXCOORD0;
-    float3 Color: TEXCOORD1;
+    float2 UV: TEXCOORD1;
 };
 
 struct VSOutput {
@@ -12,7 +12,7 @@ struct VSOutput {
 VSOutput main_vs(VSInput input, uint VertexIndex: SV_VertexID)
 {
     VSOutput output;
-    output.Color    = float4(input.Color, 1.0);
+    output.Color    = float4(input.UV, 1.0, 1.0); // TODO
     output.Position = float4(input.Position, 1.0);
     return output;
 }

@@ -33,9 +33,9 @@ constexpr char BACKEND[]    = "vulkan";
 constexpr char SHADER_EXT[] = "spv";
 #endif
 
-struct PositionColor {
+struct PositionTexture {
     std::array<float, 3> position;
-    std::array<float, 3> color;
+    std::array<float, 2> uv;
 };
 
 // TODO: move to another file
@@ -169,7 +169,7 @@ void RendererSDL::init()
     constexpr std::array buffer_descriptions = {
         SDL_GPUVertexBufferDescription {
             .slot               = 0,
-            .pitch              = sizeof(PositionColor),
+            .pitch              = sizeof(PositionTexture),
             .input_rate         = SDL_GPU_VERTEXINPUTRATE_VERTEX,
             .instance_step_rate = 0,
         },
@@ -185,8 +185,8 @@ void RendererSDL::init()
         SDL_GPUVertexAttribute {
             .location    = 1,
             .buffer_slot = 0,
-            .format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-            .offset      = sizeof(PositionColor::position),
+            .format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+            .offset      = sizeof(PositionTexture::position),
         },
     };
 
@@ -244,4 +244,120 @@ void RendererSDL::init()
             SDL_ReleaseGPUTexture(device.get(), p);
         });
     if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
+
+    auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
+    texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    texture_transfer_buffer_create_info.size  = static_cast<Uint32>(texture.data.size());
+
+    auto* texture_transfer_buffer = SDL_CreateGPUTransferBuffer(m_device.get(), &texture_transfer_buffer_create_info);
+    if (texture_transfer_buffer == nullptr) {
+        throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError()));
+    }
+
+    {
+        char* const vertex_transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), texture_transfer_buffer, false));
+        std::memcpy(vertex_transfer_data, texture.data.data(), texture.data.size());
+        SDL_UnmapGPUTransferBuffer(m_device.get(), texture_transfer_buffer);
+    }
+
+    auto vertex_buffer_create_info  = SDL_GPUBufferCreateInfo {};
+    vertex_buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+    vertex_buffer_create_info.size  = sizeof(PositionTexture) * 4;
+
+    auto index_buffer_create_info  = SDL_GPUBufferCreateInfo {};
+    index_buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+    index_buffer_create_info.size  = sizeof(Uint16) * 6;
+
+    m_vertex_buffer = std::shared_ptr<SDL_GPUBuffer>(
+        SDL_CreateGPUBuffer(m_device.get(), &vertex_buffer_create_info),
+        [device = m_device](SDL_GPUBuffer* p) { SDL_ReleaseGPUBuffer(device.get(), p); });
+    if (!m_vertex_buffer) { throw std::runtime_error(std::format("Failed to create vertex buffer: {}", SDL_GetError())); }
+
+    m_index_buffer = std::shared_ptr<SDL_GPUBuffer>(
+        SDL_CreateGPUBuffer(m_device.get(), &index_buffer_create_info),
+        [device = m_device](SDL_GPUBuffer* p) { SDL_ReleaseGPUBuffer(device.get(), p); });
+    if (!m_index_buffer) { throw std::runtime_error(std::format("Failed to create index buffer: {}", SDL_GetError())); }
+
+    auto vertex_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
+    vertex_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    vertex_transfer_buffer_create_info.size  = sizeof(PositionTexture) * 4 + sizeof(Uint16) * 6;
+
+    auto* vertex_transfer_buffer = SDL_CreateGPUTransferBuffer(m_device.get(), &vertex_transfer_buffer_create_info);
+    if (vertex_transfer_buffer == nullptr) {
+        throw std::runtime_error(std::format("Failed to create transfer buffer: {}", SDL_GetError()));
+    }
+
+    constexpr std::array vertex_data = {
+        PositionTexture {-1.0F, 1.0F, 0.0F, 0.0F, 0.0F},
+        PositionTexture {1.0F, 1.0F, 0.0F, 1.0F, 0.0F},
+        PositionTexture {1.0F, -1.0F, 0.0F, 1.0F, 1.0F},
+        PositionTexture {-1.0F, -1.0F, 0.0F, 0.0F, 1.0F},
+    };
+
+    constexpr std::array<Uint16, 6> index_data = {0, 1, 2, 0, 2, 3};
+
+    {
+        char* const vertex_transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer, false));
+        std::memcpy(vertex_transfer_data, vertex_data.data(), sizeof(vertex_data));
+        std::memcpy(vertex_transfer_data + sizeof(vertex_data), index_data.data(), sizeof(index_data));
+        SDL_UnmapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer);
+    }
+
+    auto* upload_cmd_buffer = SDL_AcquireGPUCommandBuffer(m_device.get());
+    auto* copy_pass         = SDL_BeginGPUCopyPass(upload_cmd_buffer);
+
+    {
+        auto const transfer_location = SDL_GPUTransferBufferLocation {
+            .transfer_buffer = vertex_transfer_buffer,
+            .offset          = 0,
+        };
+        auto const buffer_region = SDL_GPUBufferRegion {
+            .buffer = m_vertex_buffer.get(),
+            .offset = 0,
+            .size   = sizeof(PositionTexture) * 4,
+        };
+
+        SDL_UploadToGPUBuffer(copy_pass, &transfer_location, &buffer_region, false);
+    }
+
+    {
+        auto const transfer_location = SDL_GPUTransferBufferLocation {
+            .transfer_buffer = vertex_transfer_buffer,
+            .offset          = sizeof(PositionTexture) * 4,
+        };
+        auto const buffer_region = SDL_GPUBufferRegion {
+            .buffer = m_vertex_buffer.get(),
+            .offset = 0,
+            .size   = sizeof(Uint16) * 6,
+        };
+
+        SDL_UploadToGPUBuffer(copy_pass, &transfer_location, &buffer_region, false);
+    }
+
+    {
+        auto const transfer_location = SDL_GPUTextureTransferInfo {
+            .transfer_buffer = vertex_transfer_buffer,
+            .offset          = 0,
+            .pixels_per_row  = 0,
+            .rows_per_layer  = 0,
+        };
+        auto const buffer_region = SDL_GPUTextureRegion {
+            .texture   = m_texture.get(),
+            .mip_level = 0,
+            .layer     = 0,
+            .x         = 0,
+            .y         = 0,
+            .z         = 0,
+            .w         = texture.header.width,
+            .h         = texture.header.height,
+            .d         = 1,
+        };
+
+        SDL_UploadToGPUTexture(copy_pass, &transfer_location, &buffer_region, false);
+    }
+
+    SDL_EndGPUCopyPass(copy_pass);
+    SDL_SubmitGPUCommandBuffer(upload_cmd_buffer);
+    SDL_ReleaseGPUTransferBuffer(m_device.get(), texture_transfer_buffer);
+    SDL_ReleaseGPUTransferBuffer(m_device.get(), vertex_transfer_buffer);
 }

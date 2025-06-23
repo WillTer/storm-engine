@@ -31,6 +31,9 @@ private:
     std::shared_ptr<SDL_GPUGraphicsPipeline> m_pipeline = nullptr;
     std::shared_ptr<SDL_GPUSampler>          m_sampler  = nullptr;
     std::shared_ptr<SDL_GPUTexture>          m_texture  = nullptr;
+
+    std::shared_ptr<SDL_GPUBuffer> m_vertex_buffer = nullptr;
+    std::shared_ptr<SDL_GPUBuffer> m_index_buffer  = nullptr;
 };
 
 }  // namespace storm
