@@ -28,23 +28,18 @@ struct WindowInfo {
 };
 
 struct DeviceInfo {
+    std::string backend;
     int         adapter;
     int         msaa_level;
     float       fov_multiplier;
     float       near_clip_plane;
     float       far_clip_plane;
     bool        post_process;
-    std::string screen_bpp;
     std::string screenshot_ext;
-    bool        show_exinfo;
-    bool        lockable_back_buffer;
-    bool        use_large_back_buffer;
-    int         texture_degradation_level;
     bool        show_fps;
     bool        safe_rendering;
     bool        texture_log;
     bool        geometry_log;
-    bool        drop_video_conveyor;
 };
 
 struct SoundInfo {

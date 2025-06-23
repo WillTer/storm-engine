@@ -20,6 +20,7 @@ public:
     virtual void unbind_window(InternalWindowType const& window) = 0;
 
     virtual void init() = 0;
+    virtual void draw() = 0;
 };
 
 }  // namespace storm

@@ -34,23 +34,18 @@ WindowInfo const DEFAULT_WINDOW_INFO = {
 };
 
 DeviceInfo const DEFAULT_DEVICE_INFO = {
-    .adapter                   = std::numeric_limits<int32_t>::max(),
-    .msaa_level                = 0,
-    .fov_multiplier            = 1.0F,
-    .near_clip_plane           = 0.1F,
-    .far_clip_plane            = 4000.0F,
-    .post_process              = false,
-    .screen_bpp                = "",
-    .screenshot_ext            = "jpg",
-    .show_exinfo               = false,
-    .lockable_back_buffer      = false,
-    .use_large_back_buffer     = false,
-    .texture_degradation_level = 0,
-    .show_fps                  = false,
-    .safe_rendering            = false,
-    .texture_log               = false,
-    .geometry_log              = false,
-    .drop_video_conveyor       = false,
+    .backend         = "",
+    .adapter         = std::numeric_limits<int32_t>::max(),
+    .msaa_level      = 0,
+    .fov_multiplier  = 1.0F,
+    .near_clip_plane = 0.1F,
+    .far_clip_plane  = 4000.0F,
+    .post_process    = false,
+    .screenshot_ext  = "jpg",
+    .show_fps        = false,
+    .safe_rendering  = false,
+    .texture_log     = false,
+    .geometry_log    = false,
 };
 
 constexpr SoundInfo DEFAULT_SOUND_INFO = {
@@ -169,23 +164,18 @@ struct storm::read_to<DeviceInfo> {
             screenshot_ext.begin(), screenshot_ext.end(), screenshot_ext.begin(), [](unsigned char const c) { return std::tolower(c); });
 
         return {
-            .adapter                   = ini.find_or(section, "adapter", DEFAULT_DEVICE_INFO.adapter),
-            .msaa_level                = ini.find_or(section, "msaa_level", DEFAULT_DEVICE_INFO.msaa_level),
-            .fov_multiplier            = ini.find_or(section, "fov_multiplier", DEFAULT_DEVICE_INFO.fov_multiplier),
-            .near_clip_plane           = ini.find_or(section, "near_clip_plane", DEFAULT_DEVICE_INFO.near_clip_plane),
-            .far_clip_plane            = ini.find_or(section, "far_clip_plane", DEFAULT_DEVICE_INFO.far_clip_plane),
-            .post_process              = ini.find_or(section, "post_process", DEFAULT_DEVICE_INFO.post_process),
-            .screen_bpp                = ini.find_or(section, "screen_bpp", DEFAULT_DEVICE_INFO.screen_bpp),
-            .screenshot_ext            = ini.find_or(section, "screenshot_ext", DEFAULT_DEVICE_INFO.screenshot_ext),
-            .show_exinfo               = ini.find_or(section, "show_exinfo", DEFAULT_DEVICE_INFO.show_exinfo),
-            .lockable_back_buffer      = ini.find_or(section, "lockable_back_buffer", DEFAULT_DEVICE_INFO.lockable_back_buffer),
-            .use_large_back_buffer     = ini.find_or(section, "use_large_back_buffer", DEFAULT_DEVICE_INFO.use_large_back_buffer),
-            .texture_degradation_level = ini.find_or(section, "texture_degradation_level", DEFAULT_DEVICE_INFO.texture_degradation_level),
-            .show_fps                  = ini.find_or(section, "show_fps", DEFAULT_DEVICE_INFO.show_fps),
-            .safe_rendering            = ini.find_or(section, "safe_rendering", DEFAULT_DEVICE_INFO.safe_rendering),
-            .texture_log               = ini.find_or(section, "texture_log", DEFAULT_DEVICE_INFO.texture_log),
-            .geometry_log              = ini.find_or(section, "geometry_log", DEFAULT_DEVICE_INFO.geometry_log),
-            .drop_video_conveyor       = ini.find_or(section, "drop_video_conveyor", DEFAULT_DEVICE_INFO.drop_video_conveyor),
+            .backend         = ini.find_or(section, "backend", DEFAULT_DEVICE_INFO.backend),
+            .adapter         = ini.find_or(section, "adapter", DEFAULT_DEVICE_INFO.adapter),
+            .msaa_level      = ini.find_or(section, "msaa_level", DEFAULT_DEVICE_INFO.msaa_level),
+            .fov_multiplier  = ini.find_or(section, "fov_multiplier", DEFAULT_DEVICE_INFO.fov_multiplier),
+            .near_clip_plane = ini.find_or(section, "near_clip_plane", DEFAULT_DEVICE_INFO.near_clip_plane),
+            .far_clip_plane  = ini.find_or(section, "far_clip_plane", DEFAULT_DEVICE_INFO.far_clip_plane),
+            .post_process    = ini.find_or(section, "post_process", DEFAULT_DEVICE_INFO.post_process),
+            .screenshot_ext  = ini.find_or(section, "screenshot_ext", DEFAULT_DEVICE_INFO.screenshot_ext),
+            .show_fps        = ini.find_or(section, "show_fps", DEFAULT_DEVICE_INFO.show_fps),
+            .safe_rendering  = ini.find_or(section, "safe_rendering", DEFAULT_DEVICE_INFO.safe_rendering),
+            .texture_log     = ini.find_or(section, "texture_log", DEFAULT_DEVICE_INFO.texture_log),
+            .geometry_log    = ini.find_or(section, "geometry_log", DEFAULT_DEVICE_INFO.geometry_log),
         };
     }
 };

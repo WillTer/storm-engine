@@ -3,7 +3,6 @@
 #include <array>
 #include <filesystem>
 #include <format>
-#include <fstream>
 #include <memory>
 #include <stdexcept>
 
@@ -12,8 +11,10 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/asset_server/shader_asset.h>
 #include <libs/asset_server/texture_asset.h>
+#include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/window/sdl_window.hpp>
+#include <spdlog/spdlog.h>
 
 using namespace storm;
 
@@ -26,11 +27,16 @@ constexpr bool IS_DEBUG_MODE = false;
 #endif
 
 #ifdef _WIN32
-constexpr char BACKEND[]    = "direct3d12";
-constexpr char SHADER_EXT[] = "bin";
+constexpr std::string_view DEFAULT_BACKEND    = "direct3d12";
+auto const                 BACKEND_SHADER_EXT = std::unordered_map<std::string, std::string> {
+    {"direct3d12", "bin"},
+    {"vulkan", "spv"},
+};
 #else
-constexpr char BACKEND[]    = "vulkan";
-constexpr char SHADER_EXT[] = "spv";
+constexpr std::string_view DEFAULT_BACKEND    = "vulkan";
+auto const                 BACKEND_SHADER_EXT = std::unordered_map<std::string, std::string> {
+    {"vulkan", "spv"},
+};
 #endif
 
 struct PositionTexture {
@@ -112,8 +118,17 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 
 RendererSDL::RendererSDL()
 {
+    auto const device_info = storm::main_config::device_info();
+
+    m_backend = device_info.backend;
+    if (!BACKEND_SHADER_EXT.contains(m_backend)) {
+        spdlog::info("Unknown backend value in [device] settings: \"{}\", fallback to \"{}\"", m_backend, DEFAULT_BACKEND);
+        m_backend = DEFAULT_BACKEND;
+    }
+
     m_device = std::shared_ptr<SDL_GPUDevice>(
-        SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, BACKEND), &SDL_DestroyGPUDevice);
+        SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, m_backend.c_str()),
+        &SDL_DestroyGPUDevice);
 
     if (!m_device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
 }
@@ -145,14 +160,14 @@ void RendererSDL::unbind_window(InternalWindowType const& window)
 void RendererSDL::init()
 {
     auto const& asset_server = core->get<AssetServer>();
-    auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(SHADER_EXT);
+    auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(BACKEND_SHADER_EXT.at(m_backend));
     auto const  tex_load     = asset_server->get_loader<TextureAsset const&>();
 
     // Testing
     auto const vertex_shader = compile_shader(m_device, shader_load, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
 
-    auto const fragment_shader = compile_shader(m_device, shader_load, "test_ps", ShaderStage::Fragment, 0, 0, 0, 0);
+    auto const fragment_shader = compile_shader(m_device, shader_load, "test_fs", ShaderStage::Fragment, 1, 0, 0, 0);
     if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
 
     std::array const descriptions = {
@@ -233,11 +248,11 @@ void RendererSDL::init()
     auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
     texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
     texture_create_info.format               = convert_tx_format(texture.header.format);
+    texture_create_info.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
     texture_create_info.width                = texture.header.width;
     texture_create_info.height               = texture.header.height;
     texture_create_info.layer_count_or_depth = 1;
     texture_create_info.num_levels           = texture.header.mip_levels;
-    texture_create_info.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
 
     m_texture =
         std::shared_ptr<SDL_GPUTexture>(SDL_CreateGPUTexture(m_device.get(), &texture_create_info), [device = m_device](SDL_GPUTexture* p) {
@@ -249,16 +264,16 @@ void RendererSDL::init()
     texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
     texture_transfer_buffer_create_info.size  = static_cast<Uint32>(texture.data.size());
 
-    auto* texture_transfer_buffer = SDL_CreateGPUTransferBuffer(m_device.get(), &texture_transfer_buffer_create_info);
-    if (texture_transfer_buffer == nullptr) {
+    auto const texture_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
+        SDL_CreateGPUTransferBuffer(m_device.get(), &texture_transfer_buffer_create_info),
+        [device = m_device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
+    if (!texture_transfer_buffer) {
         throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError()));
     }
 
-    {
-        char* const vertex_transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), texture_transfer_buffer, false));
-        std::memcpy(vertex_transfer_data, texture.data.data(), texture.data.size());
-        SDL_UnmapGPUTransferBuffer(m_device.get(), texture_transfer_buffer);
-    }
+    char* const transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), texture_transfer_buffer.get(), false));
+    std::memcpy(transfer_data, texture.data.data(), texture.data.size());
+    SDL_UnmapGPUTransferBuffer(m_device.get(), texture_transfer_buffer.get());
 
     auto vertex_buffer_create_info  = SDL_GPUBufferCreateInfo {};
     vertex_buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
@@ -282,66 +297,59 @@ void RendererSDL::init()
     vertex_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
     vertex_transfer_buffer_create_info.size  = sizeof(PositionTexture) * 4 + sizeof(Uint16) * 6;
 
-    auto* vertex_transfer_buffer = SDL_CreateGPUTransferBuffer(m_device.get(), &vertex_transfer_buffer_create_info);
-    if (vertex_transfer_buffer == nullptr) {
-        throw std::runtime_error(std::format("Failed to create transfer buffer: {}", SDL_GetError()));
-    }
+    auto const vertex_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
+        SDL_CreateGPUTransferBuffer(m_device.get(), &vertex_transfer_buffer_create_info),
+        [device = m_device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
+    if (!vertex_transfer_buffer) { throw std::runtime_error(std::format("Failed to create vertex transfer buffer: {}", SDL_GetError())); }
 
     constexpr std::array vertex_data = {
-        PositionTexture {-1.0F, 1.0F, 0.0F, 0.0F, 0.0F},
-        PositionTexture {1.0F, 1.0F, 0.0F, 1.0F, 0.0F},
-        PositionTexture {1.0F, -1.0F, 0.0F, 1.0F, 1.0F},
-        PositionTexture {-1.0F, -1.0F, 0.0F, 0.0F, 1.0F},
+        PositionTexture {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
+        PositionTexture {{1.0F, 1.0F, 0.0F}, {1.0F, 0.0F}},
+        PositionTexture {{1.0F, -1.0F, 0.0F}, {1.0F, 1.0F}},
+        PositionTexture {{-1.0F, -1.0F, 0.0F}, {0.0F, 1.0F}},
     };
 
     constexpr std::array<Uint16, 6> index_data = {0, 1, 2, 0, 2, 3};
 
-    {
-        char* const vertex_transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer, false));
-        std::memcpy(vertex_transfer_data, vertex_data.data(), sizeof(vertex_data));
-        std::memcpy(vertex_transfer_data + sizeof(vertex_data), index_data.data(), sizeof(index_data));
-        SDL_UnmapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer);
-    }
-
-    auto* upload_cmd_buffer = SDL_AcquireGPUCommandBuffer(m_device.get());
-    auto* copy_pass         = SDL_BeginGPUCopyPass(upload_cmd_buffer);
+    char* const vertex_transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer.get(), false));
+    std::memcpy(vertex_transfer_data, vertex_data.data(), sizeof(vertex_data));
+    std::memcpy(vertex_transfer_data + sizeof(vertex_data), index_data.data(), sizeof(index_data));
+    SDL_UnmapGPUTransferBuffer(m_device.get(), vertex_transfer_buffer.get());
 
     {
-        auto const transfer_location = SDL_GPUTransferBufferLocation {
-            .transfer_buffer = vertex_transfer_buffer,
+        auto const upload_cmd_buffer =
+            std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
+        auto const copy_pass = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(upload_cmd_buffer.get()), &SDL_EndGPUCopyPass);
+
+        auto const vertex_transfer_location = SDL_GPUTransferBufferLocation {
+            .transfer_buffer = vertex_transfer_buffer.get(),
             .offset          = 0,
         };
-        auto const buffer_region = SDL_GPUBufferRegion {
+        auto const vertex_buffer_region = SDL_GPUBufferRegion {
             .buffer = m_vertex_buffer.get(),
             .offset = 0,
-            .size   = sizeof(PositionTexture) * 4,
+            .size   = sizeof(vertex_data),
         };
+        SDL_UploadToGPUBuffer(copy_pass.get(), &vertex_transfer_location, &vertex_buffer_region, false);
 
-        SDL_UploadToGPUBuffer(copy_pass, &transfer_location, &buffer_region, false);
-    }
-
-    {
-        auto const transfer_location = SDL_GPUTransferBufferLocation {
-            .transfer_buffer = vertex_transfer_buffer,
-            .offset          = sizeof(PositionTexture) * 4,
+        auto const index_transfer_location = SDL_GPUTransferBufferLocation {
+            .transfer_buffer = vertex_transfer_buffer.get(),
+            .offset          = sizeof(vertex_data),
         };
-        auto const buffer_region = SDL_GPUBufferRegion {
-            .buffer = m_vertex_buffer.get(),
+        auto const index_buffer_region = SDL_GPUBufferRegion {
+            .buffer = m_index_buffer.get(),
             .offset = 0,
-            .size   = sizeof(Uint16) * 6,
+            .size   = sizeof(index_data),
         };
+        SDL_UploadToGPUBuffer(copy_pass.get(), &index_transfer_location, &index_buffer_region, false);
 
-        SDL_UploadToGPUBuffer(copy_pass, &transfer_location, &buffer_region, false);
-    }
-
-    {
-        auto const transfer_location = SDL_GPUTextureTransferInfo {
-            .transfer_buffer = vertex_transfer_buffer,
+        auto const tex_transfer_location = SDL_GPUTextureTransferInfo {
+            .transfer_buffer = texture_transfer_buffer.get(),
             .offset          = 0,
             .pixels_per_row  = 0,
             .rows_per_layer  = 0,
         };
-        auto const buffer_region = SDL_GPUTextureRegion {
+        auto const tex_buffer_region = SDL_GPUTextureRegion {
             .texture   = m_texture.get(),
             .mip_level = 0,
             .layer     = 0,
@@ -352,12 +360,54 @@ void RendererSDL::init()
             .h         = texture.header.height,
             .d         = 1,
         };
+        SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
+    }
+}
 
-        SDL_UploadToGPUTexture(copy_pass, &transfer_location, &buffer_region, false);
+void RendererSDL::draw()
+{
+    auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
+    if (!cmd_buffer) {
+        spdlog::error("Acquire GPU command buffer failed: {}", SDL_GetError());
+        return;
     }
 
-    SDL_EndGPUCopyPass(copy_pass);
-    SDL_SubmitGPUCommandBuffer(upload_cmd_buffer);
-    SDL_ReleaseGPUTransferBuffer(m_device.get(), texture_transfer_buffer);
-    SDL_ReleaseGPUTransferBuffer(m_device.get(), vertex_transfer_buffer);
+    SDL_GPUTexture* swapchain_texture = nullptr;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd_buffer.get(), m_window, &swapchain_texture, nullptr, nullptr)
+        || swapchain_texture == nullptr) {
+        spdlog::error("Acquire GPU swapchain texture failed: {}", SDL_GetError());
+        return;
+    }
+
+    auto color_target_info        = SDL_GPUColorTargetInfo {};
+    color_target_info.texture     = swapchain_texture;
+    color_target_info.clear_color = {0.0F, 0.0F, 0.0F, 1.0F};  // Black
+    color_target_info.load_op     = SDL_GPU_LOADOP_CLEAR;
+    color_target_info.store_op    = SDL_GPU_STOREOP_STORE;
+
+    auto const render_pass =
+        std::shared_ptr<SDL_GPURenderPass>(SDL_BeginGPURenderPass(cmd_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
+    if (!render_pass) {
+        spdlog::error("Begin GPU render pass failed: {}", SDL_GetError());
+        return;
+    }
+
+    SDL_BindGPUGraphicsPipeline(render_pass.get(), m_pipeline.get());
+
+    auto vertex_binding   = SDL_GPUBufferBinding {};
+    vertex_binding.buffer = m_vertex_buffer.get();
+    vertex_binding.offset = 0;
+    SDL_BindGPUVertexBuffers(render_pass.get(), 0, &vertex_binding, 1);
+
+    auto index_binding   = SDL_GPUBufferBinding {};
+    index_binding.buffer = m_index_buffer.get();
+    index_binding.offset = 0;
+    SDL_BindGPUIndexBuffer(render_pass.get(), &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+    auto texture_binding    = SDL_GPUTextureSamplerBinding {};
+    texture_binding.sampler = m_sampler.get();
+    texture_binding.texture = m_texture.get();
+    SDL_BindGPUFragmentSamplers(render_pass.get(), 0, &texture_binding, 1);
+
+    SDL_DrawGPUIndexedPrimitives(render_pass.get(), 6, 1, 0, 0, 0);
 }

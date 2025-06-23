@@ -6,4 +6,5 @@ storm_lib(
         config
         core
         SDL3-storm
+        spdlog::spdlog
 )

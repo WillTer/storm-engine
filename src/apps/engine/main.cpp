@@ -22,7 +22,7 @@ std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: mo
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
 std::shared_ptr<CoreImpl>               core_internal    = nullptr;
 std::shared_ptr<Core>                   core             = nullptr;
-std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;  // TODO: move to core
+std::shared_ptr<storm::IConfigLoader>   config_loader    = nullptr;  // TODO: move to core
 
 namespace
 {
@@ -122,7 +122,7 @@ try {
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
     fio           = std::make_shared<FileService>();
-    config_loader = std::make_unique<storm::ConfigLoader>();
+    config_loader = std::make_shared<storm::ConfigLoader>();
 
     // Init logging
     storm::logging::init_logger_for_sdl();
@@ -190,6 +190,7 @@ try {
             }
 
             is_running = run_frame_with_overflow_check();
+            core->get<storm::IRendererNext>()->draw();  // FIXME: just for testing
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <SDL3/SDL_gpu.h>
 
@@ -23,8 +24,10 @@ public:
     void unbind_window(InternalWindowType const& window) override;
 
     void init() override;
+    void draw() override;
 
 private:
+    std::string m_backend;
     SDL_Window* m_window = nullptr;
 
     std::shared_ptr<SDL_GPUDevice>           m_device   = nullptr;

@@ -83,7 +83,7 @@ namespace storm::logging
 
 void init_logger_for_sdl(spdlog::level::level_enum const level)
 {
-    auto const logger = get_logger("sdl");
+    auto const logger = get_logger_with_stdout("sdl");
     SDL_SetLogOutputFunction(log_output, logger.get());
     SDL_SetLogPriorities(get_priority_from_level(level));
 }
