@@ -1,7 +1,7 @@
 storm_lib(
     NAME asset_server
     FULL_WARNINGS
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         core
         filesystem

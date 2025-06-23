@@ -68,8 +68,8 @@ function(storm_exe)
     set(options FULL_WARNINGS)
     set(oneValueArgs NAME)
     set(multiValueArgs
-        ACTION_DEPENDENCIES
-        LINK_DEPENDENCIES
+        CUSTOM_DEPS
+        SOURCES_DEPS
         ADDITIONAL_INCLUDE_DIRS
     )
     cmake_parse_arguments(EXE_TARGET "${options}" "${oneValueArgs}"
@@ -77,20 +77,25 @@ function(storm_exe)
 
     file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_LIST_DIR}/*.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/*.h
-        ${CMAKE_CURRENT_LIST_DIR}/*.hpp
         ${CMAKE_CURRENT_LIST_DIR}/*.rc
     )
+
+    storm_headers(NAME ${EXE_TARGET_NAME}_headers)
 
     add_executable(${EXE_TARGET_NAME} ${SOURCES})
     target_compile_options(${EXE_TARGET_NAME} PRIVATE ${STORM_CXX_FLAGS})
     target_compile_definitions(${EXE_TARGET_NAME} PRIVATE ${COMPILE_DEFINITIONS})
     target_link_options(${EXE_TARGET_NAME} PRIVATE ${STORM_LINK_FLAGS})
-    target_link_libraries(${EXE_TARGET_NAME} PRIVATE ${EXE_TARGET_LINK_DEPENDENCIES})
+    target_link_libraries(${EXE_TARGET_NAME}
+        PUBLIC
+            ${EXE_TARGET_NAME}_headers
+        PRIVATE
+            ${EXE_TARGET_SOURCES_DEPS}
+    )
 
-    if (DEFINED EXE_TARGET_ACTION_DEPENDENCIES)
+    if (DEFINED EXE_TARGET_CUSTOM_DEPS)
         add_dependencies(${EXE_TARGET_NAME}
-            ${EXE_TARGET_ACTION_DEPENDENCIES}
+            ${EXE_TARGET_CUSTOM_DEPS}
         )
     endif()
 
@@ -116,8 +121,8 @@ function(storm_lib)
     set(options FULL_WARNINGS)
     set(oneValueArgs NAME TYPE)
     set(multiValueArgs 
-        HEADER_DEPENDENCIES
-        LINK_DEPENDENCIES
+        HEADERS_DEPS
+        SOURCES_DEPS
         ADDITIONAL_INCLUDE_DIRS
     )
     cmake_parse_arguments(LIB_TARGET "${options}" "${oneValueArgs}"
@@ -125,10 +130,10 @@ function(storm_lib)
 
     file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_LIST_DIR}/*.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/*.h
-        ${CMAKE_CURRENT_LIST_DIR}/*.hpp
         ${CMAKE_CURRENT_LIST_DIR}/*.rc
     )
+
+    storm_headers(NAME ${LIB_TARGET_NAME}_headers)
 
     if (NOT DEFINED LIB_TARGET_TYPE)
         set(LIB_TARGET_TYPE STATIC)
@@ -142,9 +147,10 @@ function(storm_lib)
 
     target_link_libraries(${LIB_TARGET_NAME}
     PRIVATE
-        ${LIB_TARGET_LINK_DEPENDENCIES}
+        ${LIB_TARGET_SOURCES_DEPS}
     PUBLIC
-        ${LIB_TARGET_HEADER_DEPENDENCIES}
+        ${LIB_TARGET_NAME}_headers
+        ${LIB_TARGET_HEADERS_DEPS}
     )
 
     if(${STORM_USE_ASAN} AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -168,7 +174,7 @@ endfunction(storm_lib)
 function(storm_headers)
     set(options)
     set(oneValueArgs NAME)
-    set(multiValueArgs HEADER_DEPENDENCIES ADDITIONAL_INCLUDE_DIRS)
+    set(multiValueArgs HEADERS_DEPS ADDITIONAL_INCLUDE_DIRS)
     cmake_parse_arguments(HEADER_TARGET "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN} )
 
@@ -181,7 +187,7 @@ function(storm_headers)
     target_sources(${HEADER_TARGET_NAME} PUBLIC ${HEADERS})
     target_compile_definitions(${HEADER_TARGET_NAME} INTERFACE ${COMPILE_DEFINITIONS})
 
-    target_link_libraries(${HEADER_TARGET_NAME} INTERFACE ${HEADER_TARGET_HEADER_DEPENDENCIES})
+    target_link_libraries(${HEADER_TARGET_NAME} INTERFACE ${HEADER_TARGET_HEADERS_DEPS})
     set_target_properties(${HEADER_TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
     # Always add root src directory to includes

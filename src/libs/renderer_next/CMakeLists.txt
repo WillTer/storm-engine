@@ -1,7 +1,7 @@
 storm_lib(
     NAME renderer_next
     FULL_WARNINGS
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         asset_server
         config
         core

@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <filesystem>
+#include <stdexcept>
 
 namespace storm::asset_loader
 {

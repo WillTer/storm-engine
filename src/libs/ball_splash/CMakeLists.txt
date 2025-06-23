@@ -1,6 +1,6 @@
 storm_lib(
     NAME ball_splash
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         core
         renderer_next
 )

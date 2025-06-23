@@ -1,6 +1,6 @@
 storm_lib(
     NAME xinterface
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         core
         renderer_next
         SDL3-storm

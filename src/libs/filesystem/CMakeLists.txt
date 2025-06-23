@@ -1,6 +1,6 @@
 storm_lib(
     NAME filesystem
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         spdlog::spdlog
         SDL3-storm

@@ -1,6 +1,6 @@
 storm_lib(
     NAME animals
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         core
         renderer_next

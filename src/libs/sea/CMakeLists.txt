@@ -1,7 +1,7 @@
 storm_lib(
     NAME sea
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         EnTT::EnTT
-    HEADER_DEPENDENCIES
+    HEADERS_DEPS
         renderer_next # FIXME
 )

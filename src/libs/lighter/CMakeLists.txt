@@ -1,5 +1,5 @@
 storm_lib(
     NAME lighter
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer_next
 )

@@ -2,9 +2,9 @@ set(SYSTEM_DEPS_LINUX ffi)
 
 storm_exe(
     NAME engine
-    ACTION_DEPENDENCIES
+    CUSTOM_DEPS
         shaders
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         SDL3-storm
 
         # Modules

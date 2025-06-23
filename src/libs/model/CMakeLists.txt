@@ -1,6 +1,6 @@
 storm_lib(
     NAME model
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer_next
         spdlog::spdlog
 )
