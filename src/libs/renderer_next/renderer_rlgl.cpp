@@ -51,10 +51,9 @@ void RendererRlgl::init()
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>("glsl");
-    auto const  tex_load     = asset_server->get_loader<TextureAsset const&>();
 
     // Testing
-    auto  texture = tex_load("loading/storm.tga.tx");
+    auto  texture = asset_server->get_texture("loading/storm.tga.tx");
     Image image   = {
           .data    = reinterpret_cast<void*>(texture.data.data()),
           .width   = static_cast<int>(texture.header.width),

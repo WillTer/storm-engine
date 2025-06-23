@@ -1,7 +1,8 @@
 storm_lib(
     NAME asset_server
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         core
         filesystem
+        util
 )
