@@ -348,7 +348,7 @@ void FileService::init_from_main_config()
 
 INIFILE_T::~INIFILE_T()
 {
-    if (auto* file_service = dynamic_cast<FileService*>(fio.get()); file_service) {
+    if (auto* file_service = static_cast<FileService*>(fio.get()); file_service) {
         try {
             file_service->ref_decrement(ifs_PTR);
         } catch (std::exception const& e) {

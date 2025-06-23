@@ -8,7 +8,7 @@
 #include <string_view>
 #include <unordered_map>
 
-#include <entt/core/hashed_string.hpp>
+#include <libs/util/hashed_string_map.h>
 
 /* TODO: REMOVE THIS.... */
 constexpr uint32_t case_insensitive_hash(std::string_view const& str)
@@ -26,13 +26,6 @@ namespace storm
 class ClassesRegistry
 {
 public:
-    struct Hasher {
-        constexpr std::size_t operator()(entt::id_type const& key) const
-        {
-            return key;
-        }
-    };
-
     auto begin()
     {
         return m_registry.begin();
@@ -69,7 +62,7 @@ public:
     }
 
 private:
-    std::unordered_map<entt::id_type, VMA*, Hasher> m_registry;
+    id_type_map<VMA*> m_registry;
 };
 
 }  // namespace storm

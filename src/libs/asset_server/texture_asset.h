@@ -2,8 +2,9 @@
 
 #include <vector>
 
+#include <entt/core/hashed_string.hpp>
+
 #include "asset_loader.h"
-#include "asset_type.h"
 
 namespace storm
 {
@@ -14,10 +15,10 @@ enum class TxFormat {
     R5G6B5   = 23,
     A1R5G5B5 = 25,
     A4R4G4B4 = 26,
-    P8       = 41,
+    P8       = 41,  // Unsupported
     L8       = 50,
     V8U8     = 60,
-    L6V5U5   = 61,
+    L6V5U5   = 61,         // Unsupported
     DXT1     = 827611204,  // '1TXD',
     DXT2     = 844388420,  // '2TXD',
     DXT3     = 861165636,  // '3TXD',
@@ -25,12 +26,18 @@ enum class TxFormat {
     DXT5     = 894720068,  // '5TXD',
 };
 
+enum TxFlags {
+    TX_FLAGS_NONE     = 0,
+    TX_FLAGS_PALLETTE = 1,
+    TX_FLAGS_CUBEMAP  = 2,
+};
+
 // File header
 struct TxFileHeader {
-    uint32_t flags;  // info flags
+    uint32_t flags;  // TxFlags
     uint32_t width;
     uint32_t height;
-    uint32_t mip_levels;  // number mip levels
+    uint32_t mip_levels;  // number of mip levels
     TxFormat format;      // texture format
     uint32_t mip_size;    // size of mip 0 (width*height*pixel_size)
 };
@@ -38,13 +45,13 @@ struct TxFileHeader {
 struct TextureAsset {
     TxFileHeader         header;
     std::vector<uint8_t> data;
-};
 
-template <>
-constexpr AssetType asset_type_as_enum<TextureAsset>()
-{
-    return AssetType::Texture;
-}
+    constexpr static entt::hashed_string type_name()
+    {
+        constexpr static entt::hashed_string type_name = "TextureAsset";
+        return type_name;
+    }
+};
 
 namespace asset_loader
 {

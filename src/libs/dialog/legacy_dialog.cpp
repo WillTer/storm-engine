@@ -433,7 +433,7 @@ void LegacyDialog::SetAction(std::string action)
 
     std::string preparedAction = action;
 
-    auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
+    auto const model = reinterpret_cast<MODEL*>(core->GetEntityPointer(headModel_));
 
     if (mood_ != "normal") { preparedAction += "_" + mood_; };
 
@@ -469,7 +469,7 @@ void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
         core->Send_Message(headModel_, "ls", MSG_MODEL_LOAD_GEO, headModelPath_.c_str());
         core->Send_Message(headModel_, "ls", MSG_MODEL_LOAD_ANI, headModelPath_.c_str());
 
-        auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
+        auto const model = reinterpret_cast<MODEL*>(core->GetEntityPointer(headModel_));
 
         static CMatrix mtx;
         mtx.BuildPosition(0.f, 0.025f, 0.f);
@@ -545,7 +545,7 @@ void LegacyDialog::DrawHeadModel(uint32_t deltaTime)
 
         // RenderService->SetLight(0, &headLight);
         // RenderService->LightEnable(0, TRUE);
-        // auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
+        // auto const model = reinterpret_cast<MODEL*>(core->GetEntityPointer(headModel_));
         // model->ProcessStage(Entity::Stage::realize, deltaTime);
         //
         // RenderService->SetLight(0, &oldLight);

@@ -161,7 +161,6 @@ void RendererSDL::init()
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(BACKEND_SHADER_EXT.at(m_backend));
-    auto const  tex_load     = asset_server->get_loader<TextureAsset const&>();
 
     // Testing
     auto const vertex_shader = compile_shader(m_device, shader_load, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
@@ -243,7 +242,7 @@ void RendererSDL::init()
 
     if (!m_sampler) { throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError())); }
 
-    auto const& texture = tex_load("loading/storm.tga.tx");
+    auto const& texture = asset_server->get_texture("loading/storm.tga.tx");
 
     auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
     texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;

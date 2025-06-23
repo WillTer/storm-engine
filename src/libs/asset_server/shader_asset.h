@@ -2,8 +2,9 @@
 
 #include <vector>
 
+#include <entt/core/hashed_string.hpp>
+
 #include "asset_loader.h"
-#include "asset_type.h"
 
 namespace storm
 {
@@ -17,13 +18,13 @@ enum class ShaderAssetType {
 struct ShaderAsset {
     ShaderAssetType      type;
     std::vector<uint8_t> code;
-};
 
-template <>
-constexpr AssetType asset_type_as_enum<ShaderAsset>()
-{
-    return AssetType::Shader;
-}
+    constexpr static entt::hashed_string type_name()
+    {
+        constexpr static entt::hashed_string type_name = "ShaderAsset";
+        return type_name;
+    }
+};
 
 namespace asset_loader
 {

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <any>
-#include <array>
 #include <format>
 #include <functional>
 #include <unordered_map>
 
-#include "asset_type.h"
+#include <libs/util/hashed_string_map.h>
+
 #include "shader_asset.h"
+#include "texture_asset.h"
 
 class IFileService;
 
@@ -27,9 +28,11 @@ public:
     constexpr auto get_loader(std::string_view const& add_extension = {}) -> decltype(auto)
     {
         return [this, add_extension](std::filesystem::path const& path) -> decltype(auto) {
-            constexpr auto asset_type     = static_cast<size_t>(asset_type_as_enum<std::remove_cvref_t<Asset>>());
-            auto const&    asset_dir      = m_asset_dirs.at(asset_type);
-            auto&          assets_by_type = m_assets.at(asset_type);
+            constexpr auto asset_type = std::remove_cvref_t<Asset>::type_name();
+            auto const&    asset_dir  = m_asset_dirs.contains(asset_type) ? m_asset_dirs.at(asset_type) : m_default_dir;
+
+            if (!m_assets.contains(asset_type)) { m_assets.emplace(asset_type, std::unordered_map<std::string, std::any> {}); }
+            auto& assets_by_type = m_assets.at(asset_type);
 
             if constexpr ((std::is_same_v<NoCache, Args> || ...)) {
                 return load_asset<std::remove_cvref_t<Asset>>(asset_dir / path, add_extension);
@@ -42,6 +45,14 @@ public:
             }
         };
     }
+
+    template <typename Asset>
+    void set_asset_dir(std::filesystem::path const& asset_dir)
+    {
+        m_asset_dirs.emplace(std::remove_cvref_t<Asset>::type_name(), asset_dir);
+    }
+
+    TextureAsset const& get_texture(std::filesystem::path const& path);
 
 private:
     template <typename Asset>
@@ -59,9 +70,10 @@ private:
 
     [[noreturn]] static void raise_loader_error(asset_loader::Error err, std::filesystem::path const& path);
 
-    std::array<std::filesystem::path, ASSET_TYPE_COUNT> m_asset_dirs;
+    hashed_string_map<std::filesystem::path>                     m_asset_dirs;
+    hashed_string_map<std::unordered_map<std::string, std::any>> m_assets;
 
-    std::array<std::unordered_map<std::string, std::any>, ASSET_TYPE_COUNT> m_assets;
+    std::filesystem::path m_default_dir;
 };
 
 }  // namespace storm
