@@ -11,6 +11,7 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
+#include <libs/renderer_next/i_texture.h>
 #include <libs/renderer_next/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
@@ -168,13 +169,29 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    core->get<storm::IRendererNext>()->init();
+    auto& renderer = *core->get<storm::IRendererNext>();
+    renderer.test_init();
+
+    auto& asset_server = *core->get<storm::AssetServer>();
+
+    auto const& load_texture_asset = asset_server.get_texture("loading/sea.tga.tx");
+    auto        load_texture       = renderer.load_texture(load_texture_asset);
 
     // Init core
     core_internal->InitBase();
 
     // Message loop
     auto old_time = SDL_GetTicks();
+
+    renderer.start_frame();
+    renderer.start_pass();
+    load_texture->bind_to_render_pass();
+    renderer.test_draw();
+    renderer.end_pass();
+    renderer.end_frame();
+
+    auto const& menu_texture_asset = asset_server.get_texture("loading/outsidelsc.tga.tx");
+    auto        menu_texture       = renderer.load_texture(menu_texture_asset);
 
     bool is_running = true;
     while (is_running && !should_close) {
@@ -189,8 +206,13 @@ try {
                 old_time = new_time;
             }
 
+            renderer.start_frame();
             is_running = run_frame_with_overflow_check();
-            core->get<storm::IRendererNext>()->draw();  // FIXME: just for testing
+            renderer.start_pass();
+            menu_texture->bind_to_render_pass();
+            renderer.test_draw();
+            renderer.end_pass();
+            renderer.end_frame();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

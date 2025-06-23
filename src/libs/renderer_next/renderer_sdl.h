@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -23,8 +24,19 @@ public:
     void bind_window(InternalWindowType const& window) override;
     void unbind_window(InternalWindowType const& window) override;
 
-    void init() override;
-    void draw() override;
+    std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) override;
+
+    void test_init() override;
+    void test_draw() override;
+
+    void start_frame() override;
+    void end_frame() override;
+
+    void start_pass() override;
+    void end_pass() override;
+
+    std::shared_ptr<SDL_GPUDevice> const&     get_device() const;
+    std::shared_ptr<SDL_GPURenderPass> const& get_current_render_pass() const;
 
 private:
     std::string m_backend;
@@ -32,8 +44,9 @@ private:
 
     std::shared_ptr<SDL_GPUDevice>           m_device   = nullptr;
     std::shared_ptr<SDL_GPUGraphicsPipeline> m_pipeline = nullptr;
-    std::shared_ptr<SDL_GPUSampler>          m_sampler  = nullptr;
-    std::shared_ptr<SDL_GPUTexture>          m_texture  = nullptr;
+
+    std::shared_ptr<SDL_GPUCommandBuffer> m_current_command_buffer = nullptr;
+    std::shared_ptr<SDL_GPURenderPass>    m_current_render_pass    = nullptr;
 
     std::shared_ptr<SDL_GPUBuffer> m_vertex_buffer = nullptr;
     std::shared_ptr<SDL_GPUBuffer> m_index_buffer  = nullptr;
