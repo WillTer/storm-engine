@@ -9,13 +9,17 @@
 namespace storm
 {
 
+class AssetServer;
 class ConfigLoader final: virtual public IConfigLoader
 {
 public:
-    std::unique_ptr<IniFile> open_config(std::filesystem::path const& path) override;
-    IniFile const&           open_config_cached(std::filesystem::path const& path) override;
+    explicit ConfigLoader(std::shared_ptr<AssetServer> const& asset_server);
+
+    std::unique_ptr<IniFile> open_config(std::filesystem::path const& path, bool search_in_config_dir = true) override;
+    IniFile const&           open_config_cached(std::filesystem::path const& path, bool search_in_config_dir = true) override;
 
 private:
+    std::shared_ptr<AssetServer>                                        m_asset_server;
     std::unordered_map<std::filesystem::path, std::unique_ptr<IniFile>> m_files;
 };
 

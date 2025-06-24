@@ -44,7 +44,7 @@ PcsControls::~PcsControls()
 
 bool PcsControls::Init()
 {
-    auto const controls_info = storm::main_config::controls_info();
+    auto const controls_info = main_config::controls_info(*core->get<IConfigLoader>());
     m_is_debug_keys_enabled  = controls_info.use_debug_keys;
 
     input_          = Input::Create();

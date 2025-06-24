@@ -1,9 +1,7 @@
 storm_lib(
     NAME config
     SOURCES_DEPS
+        asset_server
         core
-)
-
-storm_headers(
-    NAME config_iface
+        spdlog::spdlog
 )

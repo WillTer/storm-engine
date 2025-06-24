@@ -11,12 +11,13 @@
 namespace storm
 {
 
+struct TextFileAsset;
 class IniFile
 {
 public:
     using Section = std::unordered_multimap<std::string, std::string>;
 
-    explicit IniFile(std::filesystem::path const& file_path);
+    explicit IniFile(TextFileAsset const& asset);
 
     bool contains(std::string const& section, std::string const& key) const;
 

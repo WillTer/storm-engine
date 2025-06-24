@@ -9,6 +9,8 @@
 namespace storm
 {
 
+class IConfigLoader;
+
 struct SoundAlias {
     float min_distance;
     float max_distance;
@@ -20,7 +22,7 @@ struct SoundAlias {
 namespace sound_alias
 {
 
-std::unordered_map<std::string, SoundAlias> aliases(std::filesystem::path const& file);
+std::unordered_map<std::string, SoundAlias> aliases(IConfigLoader& config_loader, std::filesystem::path const& file);
 
 }
 

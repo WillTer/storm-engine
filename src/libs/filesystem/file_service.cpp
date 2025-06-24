@@ -93,7 +93,7 @@ FileService::~FileService()
     close_ini_files();
 }
 
-std::filesystem::path FileService::transform_path(std::filesystem::path const& path)
+std::filesystem::path FileService::transform_path(std::filesystem::path const& path) const
 {
     auto path_transformed = path.lexically_normal().string();
 
@@ -110,7 +110,7 @@ std::filesystem::path FileService::transform_path(std::filesystem::path const& p
 }
 
 std::vector<std::string> FileService::string_paths_by_mask(
-    std::filesystem::path const& path, std::string const& mask, bool get_paths, bool only_dirs, bool only_files, bool recursive)
+    std::filesystem::path const& path, std::string const& mask, bool get_paths, bool only_dirs, bool only_files, bool recursive) const
 {
     std::vector<std::string> result;
 
@@ -121,7 +121,7 @@ std::vector<std::string> FileService::string_paths_by_mask(
 }
 
 std::vector<std::filesystem::path> FileService::paths_by_mask(
-    std::filesystem::path const& path, std::string const& mask, bool get_paths, bool only_dirs, bool only_files, bool recursive)
+    std::filesystem::path const& path, std::string const& mask, bool get_paths, bool only_dirs, bool only_files, bool recursive) const
 {
     std::filesystem::path const src_path = transform_path(path);
 
@@ -139,7 +139,7 @@ std::vector<std::filesystem::path> FileService::paths_by_mask(
                      : iter(std::filesystem::directory_iterator(src_path, ec), ec);
 }
 
-std::time_t FileService::to_time_t(std::filesystem::file_time_type tp)
+std::time_t FileService::to_time_t(std::filesystem::file_time_type tp) const
 {
     using namespace std::chrono;
     auto sctp = time_point_cast<system_clock::duration>(tp - std::filesystem::file_time_type::clock::now() + system_clock::now());
@@ -159,37 +159,37 @@ std::filesystem::path FileService::current_path() const
     return std::filesystem::current_path();
 }
 
-void FileService::current_path(std::filesystem::path const& path)
+void FileService::current_path(std::filesystem::path const& path) const
 {
     std::filesystem::current_path(transform_path(path));
 }
 
-bool FileService::create_directories(std::filesystem::path const& path)
+bool FileService::create_directories(std::filesystem::path const& path) const
 {
     return std::filesystem::create_directories(transform_path(path));
 }
 
-void FileService::remove(std::filesystem::path const& path)
+void FileService::remove(std::filesystem::path const& path) const
 {
     std::filesystem::remove(transform_path(path));
 }
 
-std::uintmax_t FileService::remove_all(std::filesystem::path const& path)
+std::uintmax_t FileService::remove_all(std::filesystem::path const& path) const
 {
     return std::filesystem::remove_all(transform_path(path));
 }
 
-uintmax_t FileService::file_size(std::filesystem::path const& file_path)
+uintmax_t FileService::file_size(std::filesystem::path const& file_path) const
 {
     return std::filesystem::file_size(transform_path(file_path));
 }
 
-bool FileService::exists(std::filesystem::path const& path)
+bool FileService::exists(std::filesystem::path const& path) const
 {
     return std::filesystem::exists(transform_path(path));
 }
 
-std::filesystem::file_time_type FileService::last_write_time(std::filesystem::path const& path)
+std::filesystem::file_time_type FileService::last_write_time(std::filesystem::path const& path) const
 {
     return std::filesystem::last_write_time(transform_path(path));
 }
@@ -292,7 +292,7 @@ bool FileService::read_file_to_mem(std::filesystem::path const& file_path, std::
 // Resource paths
 //
 
-uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
+uint64_t FileService::path_fingerprint(std::filesystem::path const& path) const
 {
     if (!exists(path)) { return 0; }
 
@@ -313,7 +313,7 @@ uint64_t FileService::path_fingerprint(std::filesystem::path const& path)
     return timestamp;
 }
 
-std::filesystem::path FileService::base_directory_path(BaseDirectory dir) const
+std::filesystem::path FileService::base_directory_path(BaseDirectory const dir) const
 {
     switch (dir) {
     case BaseDirectory::Resource: return m_paths.resource;
@@ -336,12 +336,12 @@ std::filesystem::path FileService::base_directory_path(BaseDirectory dir) const
     return executable_directory();
 }
 
-void FileService::init_from_main_config()
+void FileService::init_from_main_config(storm::IConfigLoader& config_loader)
 {
-    auto const compat = storm::main_config::compatibility_info();
+    auto const compat = storm::main_config::compatibility_info(config_loader);
     m_use_lowercase   = compat.use_lowercase_paths;
 
-    m_paths = storm::main_config::paths_info();
+    m_paths = storm::main_config::paths_info(config_loader);
 }
 
 //=================================================================================================

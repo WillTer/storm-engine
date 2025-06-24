@@ -2,7 +2,7 @@
 
 #include <ranges>
 
-#include <libs/core/core.h>
+#include <spdlog/spdlog.h>
 
 #include "i_config_loader.h"
 #include "ini_file.h"
@@ -35,8 +35,8 @@ struct storm::read_to<SoundAlias> {
                 std::string const file_name   = comma == std::string::npos ? name : name.substr(0, comma);
 
                 files.emplace(probability, file_name);
-            } catch (std::invalid_argument const& e) {
-                core->Trace("IniFile::read_to<SoundAlias>() can't parse section \"%s\", name value \"%s\"", section.c_str(), name.c_str());
+            } catch (std::invalid_argument const& /*e*/) {
+                spdlog::error("IniFile::read_to<SoundAlias>() can't parse section \"{}\", name value \"{}\"", section, name);
             }
         });
 
@@ -49,9 +49,9 @@ struct storm::read_to<SoundAlias> {
     }
 };
 
-std::unordered_map<std::string, SoundAlias> sound_alias::aliases(std::filesystem::path const& file)
+std::unordered_map<std::string, SoundAlias> sound_alias::aliases(IConfigLoader& config_loader, std::filesystem::path const& file)
 {
-    auto const& config_file = config_loader->open_config_cached(file);
+    auto const& config_file = config_loader.open_config_cached(file, false);  // Use paths as is
 
     std::unordered_map<std::string, SoundAlias> aliases = {};
     for (auto const& name: config_file.get_sections() | std::views::keys) {

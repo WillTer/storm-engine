@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-#include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 
 #include "i_config_loader.h"
@@ -276,62 +275,62 @@ struct storm::read_to<ProgressImageInfo> {
     }
 };
 
-GeneralInfo main_config::general_info()
+GeneralInfo main_config::general_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<GeneralInfo>::from_ini(config_file, "");
 }
 
-WindowInfo main_config::window_info()
+WindowInfo main_config::window_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<WindowInfo>::from_ini(config_file, "window");
 }
 
-DeviceInfo main_config::device_info()
+DeviceInfo main_config::device_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<DeviceInfo>::from_ini(config_file, "device");
 }
 
-SoundInfo main_config::sound_info()
+SoundInfo main_config::sound_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<SoundInfo>::from_ini(config_file, "sound");
 }
 
-SeaInfo main_config::sea_info()
+SeaInfo main_config::sea_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<SeaInfo>::from_ini(config_file, "sea");
 }
 
-ControlsInfo main_config::controls_info()
+ControlsInfo main_config::controls_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<ControlsInfo>::from_ini(config_file, "controls");
 }
 
-ScriptInfo main_config::script_info()
+ScriptInfo main_config::script_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<ScriptInfo>::from_ini(config_file, "script");
 }
 
-CompatibilityInfo main_config::compatibility_info()
+CompatibilityInfo main_config::compatibility_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<CompatibilityInfo>::from_ini(config_file, "compatibility");
 }
 
-PathsInfo main_config::paths_info()
+PathsInfo main_config::paths_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<PathsInfo>::from_ini(config_file, "paths");
 }
 
-ProgressImageInfo main_config::progress_image_info()
+ProgressImageInfo main_config::progress_image_info(IConfigLoader& config_loader)
 {
-    auto const& config_file = config_loader->open_config_cached(fs::MAIN_CONFIG_PATH);
+    auto const& config_file = config_loader.open_config_cached(fs::MAIN_CONFIG_PATH, false);
     return read_to<ProgressImageInfo>::from_ini(config_file, "progress_image_info");
 }

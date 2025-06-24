@@ -59,7 +59,7 @@ bool GeometryService::Init()
     // if (!RenderService) { core->Trace("No service: %s", RenderServiceName); }
     // GSR.SetRenderService(RenderService);
 
-    auto const device_info = storm::main_config::device_info();
+    auto const device_info = storm::main_config::device_info(*core->get<storm::IConfigLoader>());
     geoLog                 = device_info.geometry_log;
 
     return true;

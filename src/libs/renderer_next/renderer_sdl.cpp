@@ -7,7 +7,6 @@
 #include <stdexcept>
 
 #include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_log.h>
 #include <libs/asset_server/asset_server.h>
 #include <libs/asset_server/shader_asset.h>
 #include <libs/config/main_config.h>
@@ -57,27 +56,27 @@ SDL_GPUShaderStage convert_shader_stage(ShaderStage stage)
 
 // TODO: move to another file
 std::shared_ptr<SDL_GPUShader> compile_shader(
-    std::shared_ptr<SDL_GPUDevice> const&                           device,
-    std::function<ShaderAsset(std::filesystem::path const&)> const& shader_load,
-    std::filesystem::path const&                                    path,
-    ShaderStage const                                               stage,
-    uint32_t const                                                  num_samplers,
-    uint32_t const                                                  num_storage_textures,
-    uint32_t const                                                  num_storage_buffers,
-    uint32_t const                                                  num_uniform_buffers)
+    std::shared_ptr<SDL_GPUDevice> const& device,
+    std::filesystem::path const&          path,
+    ShaderStage const                     stage,
+    uint32_t const                        num_samplers,
+    uint32_t const                        num_storage_textures,
+    uint32_t const                        num_storage_buffers,
+    uint32_t const                        num_uniform_buffers)
 {
-    auto const shader_asset = shader_load(path);
+    auto const& asset_server          = core->get<AssetServer>();
+    auto const [_, shader_type, code] = asset_server->load_shader_file(path);
 
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
-    if (shader_asset.type == ShaderAssetType::SPIRV) {
+    if (shader_type == ShaderAssetType::SPIRV) {
         format = SDL_GPU_SHADERFORMAT_SPIRV;
-    } else if (shader_asset.type == ShaderAssetType::DXIL) {
+    } else if (shader_type == ShaderAssetType::DXIL) {
         format = SDL_GPU_SHADERFORMAT_DXIL;
     }
 
     auto const shader_info = SDL_GPUShaderCreateInfo {
-        .code_size    = shader_asset.code.size(), /**< The size in bytes of the code pointed to. */
-        .code         = shader_asset.code.data(), /**< A pointer to shader code. */
+        .code_size    = code.size(), /**< The size in bytes of the code pointed to. */
+        .code         = code.data(), /**< A pointer to shader code. */
         .entrypoint   = "main", /**< A pointer to a null-terminated UTF-8 string specifying the entry point function name for the shader. */
         .format       = format, /**< The format of the shader code. */
         .stage        = convert_shader_stage(stage),  /**< The stage the shader program corresponds to. */
@@ -94,9 +93,12 @@ std::shared_ptr<SDL_GPUShader> compile_shader(
 
 }  // namespace
 
-RendererSDL::RendererSDL()
+RendererSDL::RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
 {
-    auto const device_info = main_config::device_info();
+    assert(asset_server);
+    assert(config_loader);
+
+    auto const device_info = main_config::device_info(*config_loader);
 
     m_backend = device_info.backend;
     if (!BACKEND_SHADER_EXT.contains(m_backend)) {
@@ -109,6 +111,8 @@ RendererSDL::RendererSDL()
         &SDL_DestroyGPUDevice);
 
     if (!m_device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
+
+    asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(m_backend));
 }
 
 RendererSDL::~RendererSDL() = default;
@@ -145,14 +149,11 @@ std::unique_ptr<ITexture> RendererSDL::load_texture(TextureAsset const& asset)
 
 void RendererSDL::test_init()
 {
-    auto const& asset_server = core->get<AssetServer>();
-    auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>(BACKEND_SHADER_EXT.at(m_backend));
-
     // Testing
-    auto const vertex_shader = compile_shader(m_device, shader_load, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
+    auto const vertex_shader = compile_shader(m_device, "test_vs", ShaderStage::Vertex, 0, 0, 0, 0);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
 
-    auto const fragment_shader = compile_shader(m_device, shader_load, "test_fs", ShaderStage::Fragment, 1, 0, 0, 0);
+    auto const fragment_shader = compile_shader(m_device, "test_fs", ShaderStage::Fragment, 1, 0, 0, 0);
     if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
 
     std::array const descriptions = {

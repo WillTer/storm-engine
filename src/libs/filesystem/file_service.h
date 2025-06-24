@@ -96,7 +96,7 @@ public:
     FileService();
     ~FileService() override;
 
-    std::filesystem::path transform_path(std::filesystem::path const& path) override;
+    std::filesystem::path transform_path(std::filesystem::path const& path) const override;
 
     std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& path,
@@ -104,32 +104,32 @@ public:
         bool                         get_paths,
         bool                         only_dirs  = false,
         bool                         only_files = true,
-        bool                         recursive  = false) override;
+        bool                         recursive  = false) const override;
     std::vector<std::filesystem::path> paths_by_mask(
         std::filesystem::path const& path,
         std::string const&           mask,
         bool                         get_paths,
         bool                         only_dirs  = false,
         bool                         only_files = true,
-        bool                         recursive  = false) override;
-    std::time_t to_time_t(std::filesystem::file_time_type tp) override;
+        bool                         recursive  = false) const override;
+    std::time_t to_time_t(std::filesystem::file_time_type tp) const override;
     std::string executable_directory() const override;
 
     std::filesystem::path current_path() const override;
-    void                  current_path(std::filesystem::path const& path) override;
-    bool                  create_directories(std::filesystem::path const& path) override;
-    void                  remove(std::filesystem::path const& path) override;
-    std::uintmax_t        remove_all(std::filesystem::path const& path) override;
+    void                  current_path(std::filesystem::path const& path) const override;
+    bool                  create_directories(std::filesystem::path const& path) const override;
+    void                  remove(std::filesystem::path const& path) const override;
+    std::uintmax_t        remove_all(std::filesystem::path const& path) const override;
     bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) override;
 
-    uintmax_t                       file_size(std::filesystem::path const& file_path) override;
-    bool                            exists(std::filesystem::path const& path) override;
-    std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) override;
+    uintmax_t                       file_size(std::filesystem::path const& file_path) const override;
+    bool                            exists(std::filesystem::path const& path) const override;
+    std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) const override;
 
-    uint64_t              path_fingerprint(std::filesystem::path const& path) override;
+    uint64_t              path_fingerprint(std::filesystem::path const& path) const override;
     std::filesystem::path base_directory_path(BaseDirectory dir) const override;
 
-    void init_from_main_config() override;
+    void init_from_main_config(storm::IConfigLoader& config_loader) override;
 
     // ini files section
     void                     close_ini_files();

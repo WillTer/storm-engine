@@ -8,6 +8,11 @@
 
 class INIFILE;
 
+namespace storm
+{
+class IConfigLoader;
+}
+
 enum class BaseDirectory {
     None,
     Resource,
@@ -32,12 +37,12 @@ public:
     virtual ~IFileService() = default;
 
     template <typename Stream = std::fstream>
-    Stream open_file(std::filesystem::path const& file_path, std::ios::openmode mode)
+    Stream open_file(std::filesystem::path const& file_path, std::ios::openmode mode) const
     {
         return Stream(transform_path(file_path), mode);
     }
 
-    virtual std::filesystem::path transform_path(std::filesystem::path const& path) = 0;
+    virtual std::filesystem::path transform_path(std::filesystem::path const& path) const = 0;
 
     virtual std::vector<std::string> string_paths_by_mask(
         std::filesystem::path const& source_path,
@@ -45,29 +50,30 @@ public:
         bool                         get_paths,
         bool                         only_dirs  = false,
         bool                         only_files = true,
-        bool                         recursive  = false) = 0;
+        bool                         recursive  = false) const = 0;
     virtual std::vector<std::filesystem::path> paths_by_mask(
         std::filesystem::path const& source_path,
         std::string const&           mask,
         bool                         get_paths,
         bool                         only_dirs  = false,
         bool                         only_files = true,
-        bool                         recursive  = false)                                                                                           = 0;
-    virtual std::time_t           to_time_t(std::filesystem::file_time_type tp)                                           = 0;
+        bool                         recursive  = false) const = 0;
+
+    virtual std::time_t           to_time_t(std::filesystem::file_time_type tp) const                                     = 0;
     virtual std::string           executable_directory() const                                                            = 0;
     virtual std::filesystem::path current_path() const                                                                    = 0;
-    virtual void                  current_path(std::filesystem::path const& path)                                         = 0;
-    virtual bool                  create_directories(std::filesystem::path const& path)                                   = 0;
-    virtual void                  remove(std::filesystem::path const& path)                                               = 0;
-    virtual std::uintmax_t        remove_all(std::filesystem::path const& path)                                           = 0;
+    virtual void                  current_path(std::filesystem::path const& path) const                                   = 0;
+    virtual bool                  create_directories(std::filesystem::path const& path) const                             = 0;
+    virtual void                  remove(std::filesystem::path const& path) const                                         = 0;
+    virtual std::uintmax_t        remove_all(std::filesystem::path const& path) const                                     = 0;
     virtual bool                  read_file_to_mem(std::filesystem::path const& file_path, std::vector<char>& out_buffer) = 0;
 
-    virtual uintmax_t                       file_size(std::filesystem::path const& file_path)  = 0;
-    virtual bool                            exists(std::filesystem::path const& path)          = 0;
-    virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) = 0;
+    virtual uintmax_t                       file_size(std::filesystem::path const& file_path) const  = 0;
+    virtual bool                            exists(std::filesystem::path const& path) const          = 0;
+    virtual std::filesystem::file_time_type last_write_time(std::filesystem::path const& path) const = 0;
 
     // Update IFileService internal variables according to configuration
-    virtual void init_from_main_config() = 0;
+    virtual void init_from_main_config(storm::IConfigLoader& config_loader) = 0;
 
     // ini files section
     [[deprecated("Rewrite config parsing on new parser in libs/config")]] virtual std::unique_ptr<INIFILE>
@@ -75,7 +81,7 @@ public:
     [[deprecated("Rewrite config parsing on new parser in libs/config")]] virtual std::unique_ptr<INIFILE>
     open_ini_file(std::filesystem::path const& file) = 0;
 
-    virtual uint64_t path_fingerprint(std::filesystem::path const& path) = 0;
+    virtual uint64_t path_fingerprint(std::filesystem::path const& path) const = 0;
 
     virtual std::filesystem::path base_directory_path(BaseDirectory dir) const = 0;
 };

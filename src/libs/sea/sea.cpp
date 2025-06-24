@@ -185,7 +185,7 @@ bool Sea::Init()
     // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     CreateVertexDeclaration();
 
-    auto const sea_info = storm::main_config::sea_info();
+    auto const sea_info = storm::main_config::sea_info(*core->get<storm::IConfigLoader>());
     bIniFoamEnable      = sea_info.enable_foam;
 
     // iFoamTexture = rs->TextureCreate("weather/sea/pena/pena.tga");

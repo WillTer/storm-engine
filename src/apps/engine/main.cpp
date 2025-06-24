@@ -23,7 +23,6 @@ std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: mo
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
 std::shared_ptr<CoreImpl>               core_internal    = nullptr;
 std::shared_ptr<Core>                   core             = nullptr;
-std::shared_ptr<storm::IConfigLoader>   config_loader    = nullptr;  // TODO: move to core
 
 namespace
 {
@@ -122,15 +121,19 @@ try {
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
-    fio           = std::make_shared<FileService>();
-    config_loader = std::make_shared<storm::ConfigLoader>();
+    fio                = std::make_shared<FileService>();
+    auto asset_server  = std::make_shared<storm::AssetServer>(fio);
+    auto config_loader = std::make_shared<storm::ConfigLoader>(asset_server);
+
+    // Load parameters of file service
+    fio->init_from_main_config(*config_loader);
 
     // Init logging
     storm::logging::init_logger_for_sdl();
     spdlog::set_default_logger(storm::logging::get_logger_with_stdout(DEFAULT_LOGGER_NAME));
     spdlog::flush_every(std::chrono::seconds(3));
 
-    auto const general_info = storm::main_config::general_info();
+    auto const general_info = storm::main_config::general_info(*config_loader);
     if (general_info.enable_logs) {
         spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
     } else {  // disable logging
@@ -138,10 +141,8 @@ try {
         spdlog::set_level(spdlog::level::off);
     }
 
-    // Load parameters of file service
-    fio->init_from_main_config();
-
-    core_internal = std::make_shared<CoreImpl>(fio, std::make_shared<storm::AssetServer>(*fio), std::make_shared<storm::RendererSDL>());
+    auto renderer = std::make_shared<storm::RendererSDL>(asset_server, config_loader);
+    core_internal = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer);
     core          = core_internal;
 
     // Init stash
@@ -151,7 +152,7 @@ try {
     core_internal->Init();
 
     // Read config
-    auto const window_info = storm::main_config::window_info();
+    auto const window_info = storm::main_config::window_info(*config_loader);
 
     is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
@@ -169,13 +170,10 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    auto& renderer = *core->get<storm::IRendererNext>();
-    renderer.test_init();
+    renderer->test_init();
 
-    auto& asset_server = *core->get<storm::AssetServer>();
-
-    auto const& load_texture_asset = asset_server.get_texture("loading/sea.tga.tx");
-    auto        load_texture       = renderer.load_texture(load_texture_asset);
+    auto const& load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
+    auto        load_texture       = renderer->load_texture(load_texture_asset);
 
     // Init core
     core_internal->InitBase();
@@ -183,15 +181,15 @@ try {
     // Message loop
     auto old_time = SDL_GetTicks();
 
-    renderer.start_frame();
-    renderer.start_pass();
+    renderer->start_frame();
+    renderer->start_pass();
     load_texture->bind_to_render_pass();
-    renderer.test_draw();
-    renderer.end_pass();
-    renderer.end_frame();
+    renderer->test_draw();
+    renderer->end_pass();
+    renderer->end_frame();
 
-    auto const& menu_texture_asset = asset_server.get_texture("loading/outsidelsc.tga.tx");
-    auto        menu_texture       = renderer.load_texture(menu_texture_asset);
+    auto const& menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
+    auto        menu_texture       = renderer->load_texture(menu_texture_asset);
 
     bool is_running = true;
     while (is_running && !should_close) {
@@ -206,19 +204,22 @@ try {
                 old_time = new_time;
             }
 
-            renderer.start_frame();
+            renderer->start_frame();
             is_running = run_frame_with_overflow_check();
-            renderer.start_pass();
+            renderer->start_pass();
             menu_texture->bind_to_render_pass();
-            renderer.test_draw();
-            renderer.end_pass();
-            renderer.end_frame();
+            renderer->test_draw();
+            renderer->end_pass();
+            renderer->end_frame();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 
     window.reset();  // Destroy window before renderer (and before call to SDL_Quit)
+    renderer.reset();
+    asset_server.reset();
+
     release();
     return EXIT_SUCCESS;
 } catch (std::runtime_error const& e) {

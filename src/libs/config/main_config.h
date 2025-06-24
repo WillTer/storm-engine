@@ -8,6 +8,8 @@
 namespace storm
 {
 
+class IConfigLoader;
+
 struct GeneralInfo {
     bool use_steam;
     bool enable_logs;
@@ -99,16 +101,16 @@ struct ProgressImageInfo {
 namespace main_config
 {
 
-GeneralInfo       general_info();
-WindowInfo        window_info();
-DeviceInfo        device_info();
-SoundInfo         sound_info();
-SeaInfo           sea_info();
-ControlsInfo      controls_info();
-ScriptInfo        script_info();
-CompatibilityInfo compatibility_info();
-PathsInfo         paths_info();
-ProgressImageInfo progress_image_info();
+GeneralInfo       general_info(IConfigLoader& config_loader);
+WindowInfo        window_info(IConfigLoader& config_loader);
+DeviceInfo        device_info(IConfigLoader& config_loader);
+SoundInfo         sound_info(IConfigLoader& config_loader);
+SeaInfo           sea_info(IConfigLoader& config_loader);
+ControlsInfo      controls_info(IConfigLoader& config_loader);
+ScriptInfo        script_info(IConfigLoader& config_loader);
+CompatibilityInfo compatibility_info(IConfigLoader& config_loader);
+PathsInfo         paths_info(IConfigLoader& config_loader);
+ProgressImageInfo progress_image_info(IConfigLoader& config_loader);
 
 }  // namespace main_config
 

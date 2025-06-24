@@ -2,20 +2,14 @@
 
 #include <fstream>
 
-#include <libs/core/core.h>
-
 using namespace storm;
 
 template <>
-std::expected<TextureAsset, asset_loader::Error> asset_loader::from_file<TextureAsset>(std::filesystem::path const& path)
+auto asset_loader::from_file<TextureAsset>(std::filesystem::path const& path) -> std::expected<TextureAsset, Error>
 {
-    auto const& file_service = core->get<IFileService>();
-
-    if (!file_service->exists(path)) { return std::unexpected(Error::FileNotFound); }
-
     if (path.extension().string() != ".tx") { return std::unexpected(Error::ExtensionNotSupported); }
 
-    auto         file   = file_service->open_file<std::ifstream>(path, std::ios::binary);
+    auto         file   = std::ifstream(path, std::ios::binary);
     TxFileHeader header = {};
     file.read(reinterpret_cast<char*>(&header), sizeof(header));
 
@@ -27,5 +21,5 @@ std::expected<TextureAsset, asset_loader::Error> asset_loader::from_file<Texture
     std::vector<uint8_t> data(data_size);
     file.read(reinterpret_cast<char*>(data.data()), data_size);
 
-    return TextureAsset {.header = header, .data = data};
+    return TextureAsset {.path = path, .header = header, .data = data};
 }

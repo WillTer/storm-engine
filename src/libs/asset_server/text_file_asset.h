@@ -9,20 +9,19 @@
 namespace storm
 {
 
-enum class ShaderAssetType {
+enum class TextFileAssetType {
     Unknown,
-    SPIRV,
-    DXIL,
+    Ini,
 };
 
-struct ShaderAsset {
+struct TextFileAsset {
     std::filesystem::path path;
-    ShaderAssetType       type;
-    std::vector<uint8_t>  code;
+    TextFileAssetType     type;
+    std::vector<char>     content;
 
     constexpr static entt::hashed_string type_name()
     {
-        constexpr static entt::hashed_string type_name = "ShaderAsset";
+        constexpr static entt::hashed_string type_name = "TextFileAsset";
         return type_name;
     }
 };
@@ -31,7 +30,7 @@ namespace asset_loader
 {
 
 template <>
-std::expected<ShaderAsset, Error> from_file<ShaderAsset>(std::filesystem::path const& path);
+std::expected<TextFileAsset, Error> from_file<TextFileAsset>(std::filesystem::path const& path);
 
 }  // namespace asset_loader
 

@@ -139,7 +139,7 @@ bool Fader::Init()
 
     // read the number of tips, if necessary
     if (!numberOfTips) {
-        auto const progress_image_info = storm::main_config::progress_image_info();
+        auto const progress_image_info = storm::main_config::progress_image_info(*core->get<storm::IConfigLoader>());
 
         numberOfTips = std::clamp(progress_image_info.frame, 0, 1);
     }

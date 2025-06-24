@@ -4,21 +4,24 @@
 #include <memory>
 #include <string>
 
-#include <SDL3/SDL_gpu.h>
-
 #include "i_renderer_next.h"
 
 struct SDL_GPUDevice;
 struct SDL_GPUGraphicsPipeline;
 struct SDL_GPUSampler;
+struct SDL_GPURenderPass;
+struct SDL_GPUCommandBuffer;
+struct SDL_GPUBuffer;
 
 namespace storm
 {
 
+class AssetServer;
+class IConfigLoader;
 class RendererSDL final: virtual public IRendererNext
 {
 public:
-    RendererSDL();
+    RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader);
     ~RendererSDL() override;
 
     void bind_window(InternalWindowType const& window) override;

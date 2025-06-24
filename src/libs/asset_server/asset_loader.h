@@ -2,7 +2,6 @@
 
 #include <expected>
 #include <filesystem>
-#include <stdexcept>
 
 namespace storm::asset_loader
 {
@@ -10,12 +9,13 @@ namespace storm::asset_loader
 enum class Error {
     FileNotFound,
     ExtensionNotSupported,
+    NotImplemented,
 };
 
 template <typename T>
-std::expected<T, Error> from_file(std::filesystem::path const& path)
+std::expected<T, Error> from_file(std::filesystem::path const& /*path*/)
 {
-    throw std::runtime_error("Not implemented");
+    return std::unexpected(Error::NotImplemented);
 }
 
 }  // namespace storm::asset_loader

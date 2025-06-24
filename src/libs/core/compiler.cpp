@@ -407,7 +407,7 @@ void COMPILER::SetWarning(char const* data_PTR, ...)
 
 void COMPILER::LoadPreprocess()
 {
-    auto const script_info = storm::main_config::script_info();
+    auto const script_info = storm::main_config::script_info(*core->get<storm::IConfigLoader>());
 
     bDebugInfo         = script_info.compilation_logs;
     bWriteCodeFile     = script_info.create_codefiles;

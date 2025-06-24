@@ -46,11 +46,12 @@ uint64_t get_performance_counter();
 namespace storm
 {
 class AssetServer;
+class IConfigLoader;
 class IRendererNext;
 class IWindow;
 }  // namespace storm
 
-class Core: virtual public storm::Container<IFileService, storm::AssetServer, storm::IRendererNext>
+class Core: virtual public storm::Container<IFileService, storm::AssetServer, storm::IConfigLoader, storm::IRendererNext>
 {
 public:
     virtual ~Core() = default;

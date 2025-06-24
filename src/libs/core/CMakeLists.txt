@@ -1,7 +1,7 @@
 storm_lib(
     NAME core
     SOURCES_DEPS
-        config_iface
+        config_headers
         diagnostics
         FastFloat::fast_float
         SDL3-storm

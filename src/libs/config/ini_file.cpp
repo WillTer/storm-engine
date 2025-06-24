@@ -3,8 +3,8 @@
 #include <cassert>
 #include <string_view>
 
-#include <libs/core/core.h>
-#include <libs/filesystem/v_file_service.h>
+#include <libs/asset_server/text_file_asset.h>
+#include <spdlog/spdlog.h>
 
 using namespace storm;
 
@@ -27,11 +27,11 @@ std::string get_section_name(std::string_view const& str, std::string const& ini
     assert(str.at(0) == INI_SECTION_START);
     auto const section_end = str.find_first_of(INI_SECTION_END);
     if (section_end == std::string_view::npos) {
-        core->Trace(
-            "%s:%d: syntax error: no closing bracket (']') - section name ends unexpectedly\n\t%s",
-            ini_file_name.c_str(),
+        spdlog::error(
+            "{}:{}: syntax error: no closing bracket (']') - section name ends unexpectedly\n\t{}",
+            ini_file_name,
             ini_file_line,
-            std::string(str).data());
+            std::string(str));
         return {};
     }
 
@@ -123,25 +123,14 @@ read_section(std::string_view const& str, size_t& offset, std::string const& fil
 
 }  // namespace
 
-IniFile::IniFile(std::filesystem::path const& file_path)
+IniFile::IniFile(TextFileAsset const& asset)
 {
-    if (!fio->exists(file_path)) {
-        core->Trace("IniFile::IniFile(): file not found (\"%s\")", fio->transform_path(file_path).string().c_str());
-        return;
-    }
-
-    std::vector<char> file_data = {};
-    if (!fio->read_file_to_mem(file_path, file_data)) {
-        core->Trace("IniFile::IniFile(): file read error (\"%s\")", fio->transform_path(file_path).string().c_str());
-        return;
-    }
-
-    auto const content = std::string_view(file_data.begin(), file_data.end());
+    auto const content = std::string_view(asset.content.begin(), asset.content.end());
     size_t     offset  = 0;
     size_t     line    = 1;
 
     while (offset < content.size()) {
-        auto const [section_name, section_table] = read_section(content, offset, file_path.string(), line);
+        auto const [section_name, section_table] = read_section(content, offset, asset.path.string(), line);
         m_table.emplace(section_name, section_table);
     }
 }
