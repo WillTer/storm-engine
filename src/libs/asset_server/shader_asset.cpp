@@ -16,7 +16,7 @@ std::expected<ShaderAsset, asset_loader::Error> asset_loader::from_file<ShaderAs
     auto shader_type = ShaderAssetType::Unknown;
     if (path.extension().string() == ".spv") {
         shader_type = ShaderAssetType::SPIRV;
-    } else if (path.extension().string() == ".bin") {
+    } else if (path.extension().string() == ".dxil") {
         shader_type = ShaderAssetType::DXIL;
     } else {
         return std::unexpected(Error::ExtensionNotSupported);

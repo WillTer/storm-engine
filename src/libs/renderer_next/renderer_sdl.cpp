@@ -30,7 +30,7 @@ constexpr bool IS_DEBUG_MODE = false;
 #ifdef _WIN32
 constexpr std::string_view DEFAULT_BACKEND    = "direct3d12";
 auto const                 BACKEND_SHADER_EXT = std::unordered_map<std::string, std::string> {
-    {"direct3d12", "bin"},
+    {"direct3d12", "dxil"},
     {"vulkan", "spv"},
 };
 #else
