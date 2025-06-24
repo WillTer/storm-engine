@@ -45,7 +45,7 @@ struct TxFileHeader {
 struct TextureAsset {
     std::filesystem::path path;
     TxFileHeader          header;
-    std::vector<uint8_t>  data;
+    std::vector<char>     data;
 
     constexpr static entt::hashed_string type_name()
     {

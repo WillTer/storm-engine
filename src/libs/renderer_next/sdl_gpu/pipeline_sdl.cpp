@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include <libs/asset_server/asset_server.h>
+#include <libs/asset_server/shader_asset.h>
 #include <libs/core/core.h>
 #include <spdlog/spdlog.h>
 
@@ -13,33 +13,22 @@ using namespace storm;
 namespace
 {
 
-SDL_GPUShaderStage convert_shader_stage(ShaderStage const stage)
+std::shared_ptr<SDL_GPUShader> compile_shader(
+    std::shared_ptr<SDL_GPUDevice> const& device, ShaderAsset const& asset, ShaderInfo const& info, SDL_GPUShaderStage const stage)
 {
-    switch (stage) {
-    case ShaderStage::Vertex: return SDL_GPU_SHADERSTAGE_VERTEX;
-    case ShaderStage::Fragment: return SDL_GPU_SHADERSTAGE_FRAGMENT;
-    default: throw std::runtime_error("Invalid shader stage");
-    }
-}
-
-std::shared_ptr<SDL_GPUShader> compile_shader(std::shared_ptr<SDL_GPUDevice> const& device, ShaderInfo const& info)
-{
-    auto const& asset_server          = core->get<AssetServer>();
-    auto const [_, shader_type, code] = asset_server->load_shader_file(info.file_name);
-
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
-    if (shader_type == ShaderAssetType::SPIRV) {
+    if (asset.type == ShaderAssetType::SPIRV) {
         format = SDL_GPU_SHADERFORMAT_SPIRV;
-    } else if (shader_type == ShaderAssetType::DXIL) {
+    } else if (asset.type == ShaderAssetType::DXIL) {
         format = SDL_GPU_SHADERFORMAT_DXIL;
     }
 
     auto const shader_info = SDL_GPUShaderCreateInfo {
-        .code_size    = code.size(), /**< The size in bytes of the code pointed to. */
-        .code         = code.data(), /**< A pointer to shader code. */
+        .code_size    = asset.code.size(),                                 /**< The size in bytes of the code pointed to. */
+        .code         = reinterpret_cast<Uint8 const*>(asset.code.data()), /**< A pointer to shader code. */
         .entrypoint   = "main", /**< A pointer to a null-terminated UTF-8 string specifying the entry point function name for the shader. */
         .format       = format, /**< The format of the shader code. */
-        .stage        = convert_shader_stage(info.stage),  /**< The stage the shader program corresponds to. */
+        .stage        = stage,  /**< The stage the shader program corresponds to. */
         .num_samplers = info.num_samplers,                 /**< The number of samplers defined in the shader. */
         .num_storage_textures = info.num_storage_textures, /**< The number of storage textures defined in the shader. */
         .num_storage_buffers  = info.num_storage_buffers,  /**< The number of storage buffers defined in the shader. */
@@ -119,7 +108,9 @@ auto storm::get_vertex_attributes<PositionTextureColor>() -> std::vector<SDL_GPU
 PipelineSDL::PipelineSDL(
     RendererSDL&                               renderer,
     std::shared_ptr<SDL_GPUCopyPass> const&    copy_pass,
+    ShaderAsset const&                         vertex_shader_asset,
     ShaderInfo const&                          vertex_shader_info,
+    ShaderAsset const&                         fragment_shader_asset,
     ShaderInfo const&                          fragment_shader_info,
     void const*                                vertex_data,
     uint32_t                                   vertex_count,
@@ -131,10 +122,10 @@ PipelineSDL::PipelineSDL(
 {
     auto const device = m_renderer.get_device();
 
-    auto const vertex_shader = compile_shader(device, vertex_shader_info);
+    auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_info, SDL_GPU_SHADERSTAGE_VERTEX);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
 
-    auto const fragment_shader = compile_shader(device, fragment_shader_info);
+    auto const fragment_shader = compile_shader(device, fragment_shader_asset, fragment_shader_info, SDL_GPU_SHADERSTAGE_FRAGMENT);
     if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
 
     std::array const descriptions = {

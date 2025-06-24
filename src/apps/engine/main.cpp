@@ -170,22 +170,20 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    auto const vertex_shader = storm::ShaderInfo {
-        .file_name            = "test_vs",
-        .stage                = storm::ShaderStage::Vertex,
-        .num_samplers         = 0,
-        .num_storage_textures = 0,
-        .num_storage_buffers  = 0,
-        .num_uniform_buffers  = 0,
+    auto const vertex_shader_asset = asset_server->load_shader_file("test_vs");
+    auto const vertex_shader_info  = storm::ShaderInfo {
+         .num_samplers         = 0,
+         .num_storage_textures = 0,
+         .num_storage_buffers  = 0,
+         .num_uniform_buffers  = 0,
     };
 
-    auto const fragment_shader = storm::ShaderInfo {
-        .file_name            = "test_fs",
-        .stage                = storm::ShaderStage::Fragment,
-        .num_samplers         = 1,
-        .num_storage_textures = 0,
-        .num_storage_buffers  = 0,
-        .num_uniform_buffers  = 0,
+    auto const fragment_shader_asset = asset_server->load_shader_file("test_fs");
+    auto const fragment_shader_info  = storm::ShaderInfo {
+         .num_samplers         = 1,
+         .num_storage_textures = 0,
+         .num_storage_buffers  = 0,
+         .num_uniform_buffers  = 0,
     };
 
     std::vector const square_vertices = {
@@ -204,11 +202,13 @@ try {
 
     std::vector<uint16_t> const square_indices = {0, 1, 2, 0, 2, 3};
 
-    auto const square_pipeline  = renderer->create_pipeline(vertex_shader, fragment_shader, square_vertices, square_indices);
-    auto const square_pipeline2 = renderer->create_pipeline(vertex_shader, fragment_shader, square_vertices2, square_indices);
+    auto const square_pipeline = renderer->create_pipeline(
+        vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, square_vertices, square_indices);
+    auto const square_pipeline2 = renderer->create_pipeline(
+        vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, square_vertices2, square_indices);
 
-    auto const& load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
-    auto        load_texture       = renderer->load_texture(load_texture_asset);
+    auto const load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
+    auto       load_texture       = renderer->load_texture(load_texture_asset);
 
     // Init core
     core_internal->InitBase();
@@ -223,8 +223,8 @@ try {
     renderer->end_pass();
     renderer->end_frame();
 
-    auto const& menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
-    auto        menu_texture       = renderer->load_texture(menu_texture_asset);
+    auto const menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
+    auto       menu_texture       = renderer->load_texture(menu_texture_asset);
 
     bool is_running = true;
     while (is_running && !should_close) {

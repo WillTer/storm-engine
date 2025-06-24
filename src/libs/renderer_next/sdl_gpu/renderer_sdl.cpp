@@ -98,36 +98,45 @@ std::unique_ptr<ITexture> RendererSDL::load_texture(TextureAsset const& asset)
 }
 
 std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderInfo const&            vertex_shader,
-    ShaderInfo const&            fragment_shader,
+    ShaderAsset const&           vertex_shader_asset,
+    ShaderInfo const&            vertex_shader_info,
+    ShaderAsset const&           fragment_shader_asset,
+    ShaderInfo const&            fragment_shader_info,
     std::vector<Position> const& vertices,
     std::vector<uint16_t> const& indices)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<PipelineSDL>(*this, copy_pass, vertex_shader, fragment_shader, vertices, indices);
+    return std::make_unique<PipelineSDL>(
+        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
 }
 
 std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderInfo const&                   vertex_shader,
-    ShaderInfo const&                   fragment_shader,
+    ShaderAsset const&                  vertex_shader_asset,
+    ShaderInfo const&                   vertex_shader_info,
+    ShaderAsset const&                  fragment_shader_asset,
+    ShaderInfo const&                   fragment_shader_info,
     std::vector<PositionTexture> const& vertices,
     std::vector<uint16_t> const&        indices)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<PipelineSDL>(*this, copy_pass, vertex_shader, fragment_shader, vertices, indices);
+    return std::make_unique<PipelineSDL>(
+        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
 }
 
 std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderInfo const&                        vertex_shader,
-    ShaderInfo const&                        fragment_shader,
+    ShaderAsset const&                       vertex_shader_asset,
+    ShaderInfo const&                        vertex_shader_info,
+    ShaderAsset const&                       fragment_shader_asset,
+    ShaderInfo const&                        fragment_shader_info,
     std::vector<PositionTextureColor> const& vertices,
     std::vector<uint16_t> const&             indices)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<PipelineSDL>(*this, copy_pass, vertex_shader, fragment_shader, vertices, indices);
+    return std::make_unique<PipelineSDL>(
+        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
 }
 
 void RendererSDL::start_frame()

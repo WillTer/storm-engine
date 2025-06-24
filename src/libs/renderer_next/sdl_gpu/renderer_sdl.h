@@ -24,20 +24,26 @@ public:
     [[nodiscard]] std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) override;
 
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderInfo const&            vertex_shader,
-        ShaderInfo const&            fragment_shader,
+        ShaderAsset const&           vertex_shader_asset,
+        ShaderInfo const&            vertex_shader_info,
+        ShaderAsset const&           fragment_shader_asset,
+        ShaderInfo const&            fragment_shader_info,
         std::vector<Position> const& vertices,
         std::vector<uint16_t> const& indices) override;
 
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderInfo const&                   vertex_shader,
-        ShaderInfo const&                   fragment_shader,
+        ShaderAsset const&                  vertex_shader_asset,
+        ShaderInfo const&                   vertex_shader_info,
+        ShaderAsset const&                  fragment_shader_asset,
+        ShaderInfo const&                   fragment_shader_info,
         std::vector<PositionTexture> const& vertices,
         std::vector<uint16_t> const&        indices) override;
 
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderInfo const&                        vertex_shader,
-        ShaderInfo const&                        fragment_shader,
+        ShaderAsset const&                       vertex_shader_asset,
+        ShaderInfo const&                        vertex_shader_info,
+        ShaderAsset const&                       fragment_shader_asset,
+        ShaderInfo const&                        fragment_shader_info,
         std::vector<PositionTextureColor> const& vertices,
         std::vector<uint16_t> const&             indices) override;
 

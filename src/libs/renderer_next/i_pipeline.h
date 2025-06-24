@@ -1,13 +1,9 @@
 #pragma once
 
-#include <string>
-
 #include "types.h"
 
 namespace storm
 {
-
-enum class ShaderStage { Vertex, Fragment };
 
 struct Position {
     FPoint3D position;
@@ -25,12 +21,10 @@ struct PositionTextureColor {
 };
 
 struct ShaderInfo {
-    std::string file_name;
-    ShaderStage stage;
-    uint32_t    num_samplers;
-    uint32_t    num_storage_textures;
-    uint32_t    num_storage_buffers;
-    uint32_t    num_uniform_buffers;
+    uint32_t num_samplers;
+    uint32_t num_storage_textures;
+    uint32_t num_storage_buffers;
+    uint32_t num_uniform_buffers;
 };
 
 class IPipeline

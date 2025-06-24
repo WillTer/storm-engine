@@ -18,7 +18,7 @@ enum class ShaderAssetType {
 struct ShaderAsset {
     std::filesystem::path path;
     ShaderAssetType       type;
-    std::vector<uint8_t>  code;
+    std::vector<char>     code;
 
     constexpr static entt::hashed_string type_name()
     {

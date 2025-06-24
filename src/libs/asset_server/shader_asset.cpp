@@ -1,7 +1,5 @@
 #include "shader_asset.h"
 
-#include <fstream>
-
 using namespace storm;
 
 template <>
@@ -16,15 +14,5 @@ auto asset_loader::from_file<ShaderAsset>(std::filesystem::path const& path) -> 
         return std::unexpected(Error::ExtensionNotSupported);
     }
 
-    auto file = std::ifstream(path, std::ios::binary);
-
-    file.seekg(0, std::ios::end);
-    size_t const file_size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<uint8_t> shader_code;
-    shader_code.resize(file_size);
-    file.read(reinterpret_cast<char*>(shader_code.data()), file_size);
-
-    return ShaderAsset {.path = path, .type = shader_type, .code = std::move(shader_code)};
+    return ShaderAsset {.path = path, .type = shader_type, .code = from_file<std::vector<char>>(path).value()};
 }

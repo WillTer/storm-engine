@@ -10,6 +10,7 @@
 namespace storm
 {
 
+struct ShaderAsset;
 class RendererSDL;
 
 template <typename T>
@@ -32,7 +33,9 @@ class PipelineSDL final: virtual public IPipeline
     PipelineSDL(
         RendererSDL&                               renderer,
         std::shared_ptr<SDL_GPUCopyPass> const&    copy_pass,
+        ShaderAsset const&                         vertex_shader_asset,
         ShaderInfo const&                          vertex_shader_info,
+        ShaderAsset const&                         fragment_shader_asset,
         ShaderInfo const&                          fragment_shader_info,
         void const*                                vertex_data,
         uint32_t                                   vertex_count,
@@ -45,15 +48,19 @@ public:
     PipelineSDL(
         RendererSDL&                            renderer,
         std::shared_ptr<SDL_GPUCopyPass> const& copy_pass,
-        ShaderInfo const&                       vertex_shader,
-        ShaderInfo const&                       fragment_shader,
+        ShaderAsset const&                      vertex_shader_asset,
+        ShaderInfo const&                       vertex_shader_info,
+        ShaderAsset const&                      fragment_shader_asset,
+        ShaderInfo const&                       fragment_shader_info,
         std::vector<T> const&                   vertices,
         std::vector<uint16_t> const&            indices)
         : PipelineSDL(
               renderer,
               copy_pass,
-              vertex_shader,
-              fragment_shader,
+              vertex_shader_asset,
+              vertex_shader_info,
+              fragment_shader_asset,
+              fragment_shader_info,
               vertices.data(),
               static_cast<uint32_t>(vertices.size()),
               sizeof(T),
