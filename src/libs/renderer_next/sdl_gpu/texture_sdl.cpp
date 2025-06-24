@@ -4,7 +4,6 @@
 #include <format>
 #include <stdexcept>
 
-#include <SDL3/SDL_gpu.h>
 #include <spdlog/spdlog.h>
 
 #include "renderer_sdl.h"
@@ -47,9 +46,9 @@ TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> c
     sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
     sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
     sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
     sampler_create_info.enable_anisotropy = true;   // FIXME: configurable
     sampler_create_info.max_anisotropy    = 16.0F;  // FIXME: configurable
 

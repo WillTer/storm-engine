@@ -1,31 +1,43 @@
 #pragma once
 
+#include <any>
 #include <filesystem>
-#include <variant>
 
-struct SDL_Window;
+#include "i_pipeline.h"
 
 namespace storm
 {
 
-using InternalWindowType = std::variant<SDL_Window*>;
-
-enum class ShaderStage { Vertex, Fragment };
-
 struct TextureAsset;
+
 class ITexture;
 class IRendererNext
 {
 public:
     virtual ~IRendererNext() = default;
 
-    virtual void bind_window(InternalWindowType const& window)   = 0;
-    virtual void unbind_window(InternalWindowType const& window) = 0;
+    virtual void bind_window(std::any const& window_handler_internal)   = 0;
+    virtual void unbind_window(std::any const& window_handler_internal) = 0;
 
-    virtual std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) = 0;
+    [[nodiscard]] virtual std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) = 0;
 
-    virtual void test_init() = 0;
-    virtual void test_draw() = 0;
+    [[nodiscard]] virtual std::unique_ptr<IPipeline> create_pipeline(
+        ShaderInfo const&            vertex_shader,
+        ShaderInfo const&            fragment_shader,
+        std::vector<Position> const& vertices,
+        std::vector<uint16_t> const& indices) = 0;
+
+    [[nodiscard]] virtual std::unique_ptr<IPipeline> create_pipeline(
+        ShaderInfo const&                   vertex_shader,
+        ShaderInfo const&                   fragment_shader,
+        std::vector<PositionTexture> const& vertices,
+        std::vector<uint16_t> const&        indices) = 0;
+
+    [[nodiscard]] virtual std::unique_ptr<IPipeline> create_pipeline(
+        ShaderInfo const&                        vertex_shader,
+        ShaderInfo const&                        fragment_shader,
+        std::vector<PositionTextureColor> const& vertices,
+        std::vector<uint16_t> const&             indices) = 0;
 
     virtual void start_frame() = 0;
     virtual void end_frame()   = 0;

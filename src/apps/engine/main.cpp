@@ -12,7 +12,7 @@
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
 #include <libs/renderer_next/i_texture.h>
-#include <libs/renderer_next/renderer_sdl.h>
+#include <libs/renderer_next/sdl_gpu/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -170,7 +170,42 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    renderer->test_init();
+    auto const vertex_shader = storm::ShaderInfo {
+        .file_name            = "test_vs",
+        .stage                = storm::ShaderStage::Vertex,
+        .num_samplers         = 0,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 0,
+    };
+
+    auto const fragment_shader = storm::ShaderInfo {
+        .file_name            = "test_fs",
+        .stage                = storm::ShaderStage::Fragment,
+        .num_samplers         = 1,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 0,
+    };
+
+    std::vector const square_vertices = {
+        storm::PositionTexture {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
+        storm::PositionTexture {{1.0F, 1.0F, 0.0F}, {1.0F, 0.0F}},
+        storm::PositionTexture {{1.0F, -1.0F, 0.0F}, {1.0F, 1.0F}},
+        storm::PositionTexture {{-1.0F, -1.0F, 0.0F}, {0.0F, 1.0F}},
+    };
+
+    std::vector const square_vertices2 = {
+        storm::PositionTexture {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
+        storm::PositionTexture {{1.0F, 1.0F, 0.0F}, {2.0F, 0.0F}},
+        storm::PositionTexture {{1.0F, -1.0F, 0.0F}, {2.0F, 2.0F}},
+        storm::PositionTexture {{-1.0F, -1.0F, 0.0F}, {0.0F, 2.0F}},
+    };
+
+    std::vector<uint16_t> const square_indices = {0, 1, 2, 0, 2, 3};
+
+    auto const square_pipeline  = renderer->create_pipeline(vertex_shader, fragment_shader, square_vertices, square_indices);
+    auto const square_pipeline2 = renderer->create_pipeline(vertex_shader, fragment_shader, square_vertices2, square_indices);
 
     auto const& load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
     auto        load_texture       = renderer->load_texture(load_texture_asset);
@@ -184,7 +219,7 @@ try {
     renderer->start_frame();
     renderer->start_pass();
     load_texture->bind_to_render_pass();
-    renderer->test_draw();
+    square_pipeline->present();
     renderer->end_pass();
     renderer->end_frame();
 
@@ -208,7 +243,7 @@ try {
             is_running = run_frame_with_overflow_check();
             renderer->start_pass();
             menu_texture->bind_to_render_pass();
-            renderer->test_draw();
+            square_pipeline2->present();
             renderer->end_pass();
             renderer->end_frame();
         } else {

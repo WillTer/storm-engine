@@ -3,13 +3,9 @@
 #include <filesystem>
 #include <memory>
 
+#include <SDL3/SDL_gpu.h>
 #include <libs/asset_server/texture_asset.h>
-
-#include "i_texture.h"
-
-struct SDL_GPUSampler;
-struct SDL_GPUTexture;
-struct SDL_GPUCopyPass;
+#include <libs/renderer_next/i_texture.h>
 
 namespace storm
 {

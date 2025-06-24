@@ -12,52 +12,103 @@ namespace storm
 {
 
 template <typename T>
-struct PointBase {
+struct PointBase2D {
     T x;
     T y;
 
-    constexpr std::pair<int, int> as_pair() const
+    constexpr std::pair<T, T> as_pair() const
     {
         return std::make_pair(x, y);
     }
 
     // Wait until C++26 when std::sqrt will be constexpr
-    double distance(PointBase const& other) const
+    double distance(PointBase2D const& other) const
     {
-        return std::sqrt((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y));
+        return std::sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y));
     }
 
-    constexpr PointBase& operator+=(PointBase const& other)
+    constexpr PointBase2D& operator+=(PointBase2D const& other)
     {
         x += other.x;
         y += other.y;
         return *this;
     }
 
-    constexpr PointBase& operator-=(PointBase const& other)
+    constexpr PointBase2D& operator-=(PointBase2D const& other)
     {
         x -= other.x;
         y -= other.y;
         return *this;
     }
 
-    friend constexpr PointBase operator+(PointBase lhs, PointBase const& rhs)
+    friend constexpr PointBase2D operator+(PointBase2D lhs, PointBase2D const& rhs)
     {
         lhs += rhs;
         return lhs;
     }
 
-    friend constexpr PointBase operator-(PointBase lhs, PointBase const& rhs)
+    friend constexpr PointBase2D operator-(PointBase2D lhs, PointBase2D const& rhs)
     {
         lhs -= rhs;
         return lhs;
     }
 
-    constexpr auto operator<=>(PointBase const&) const = default;
+    constexpr auto operator<=>(PointBase2D const&) const = default;
 };
 
-using Point  = PointBase<int>;
-using FPoint = PointBase<float>;
+using Point  = PointBase2D<int>;
+using FPoint = PointBase2D<float>;
+
+template <typename T>
+struct PointBase3D {
+    T x;
+    T y;
+    T z;
+
+    constexpr std::tuple<T, T, T> as_tuple() const
+    {
+        return std::make_tuple(x, y, z);
+    }
+
+    // Wait until C++26 when std::sqrt will be constexpr
+    double distance(PointBase3D const& other) const
+    {
+        return std::sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y) + (other.z - z) * (other.z - z));
+    }
+
+    constexpr PointBase3D& operator+=(PointBase3D const& other)
+    {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
+
+    constexpr PointBase3D& operator-=(PointBase3D const& other)
+    {
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+        return *this;
+    }
+
+    friend constexpr PointBase3D operator+(PointBase3D lhs, PointBase3D const& rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend constexpr PointBase3D operator-(PointBase3D lhs, PointBase3D const& rhs)
+    {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    constexpr auto operator<=>(PointBase3D const&) const = default;
+};
+
+using Point3D  = PointBase3D<int>;
+using FPoint3D = PointBase3D<float>;
 
 template <typename T>
 struct RectBase {
@@ -71,12 +122,12 @@ struct RectBase {
         return left <= other.right && right >= other.left && top <= other.bottom && bottom >= other.top;
     }
 
-    constexpr PointBase<T> center() const
+    constexpr PointBase2D<T> center() const
     {
-        return PointBase<T>(left + (width() / 2), top + (height() / 2));
+        return PointBase2D<T>(left + (width() / 2), top + (height() / 2));
     }
 
-    constexpr bool contains_point(PointBase<T> const& point) const
+    constexpr bool contains_point(PointBase2D<T> const& point) const
     {
         return point.x >= left && point.y >= top && point.x <= right && point.y <= bottom;
     }
