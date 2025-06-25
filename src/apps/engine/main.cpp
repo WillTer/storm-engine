@@ -19,6 +19,8 @@
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
 
+#include "libs/renderer_next/i_buffer.h"
+
 std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: move to core
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
 std::shared_ptr<CoreImpl>               core_internal    = nullptr;
@@ -141,9 +143,9 @@ try {
         spdlog::set_level(spdlog::level::off);
     }
 
-    auto renderer = std::make_shared<storm::RendererSDL>(asset_server, config_loader);
-    core_internal = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer);
-    core          = core_internal;
+    std::shared_ptr<storm::RendererNext> renderer = std::make_shared<storm::RendererSDL>(asset_server, config_loader);
+    core_internal                                 = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer);
+    core                                          = core_internal;
 
     // Init stash
     create_directories(fs::GetSaveDataPath());
@@ -159,12 +161,7 @@ try {
     steamapi::SteamApi::getInstance(!general_info.use_steam);
 
     auto window = storm::IWindow::Create(
-        core->get<storm::IRendererNext>(),
-        window_info.width,
-        window_info.height,
-        window_info.preferred_display,
-        window_info.full_screen,
-        window_info.show_borders);
+        renderer, window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
@@ -187,25 +184,20 @@ try {
     };
 
     std::vector const square_vertices = {
-        storm::PositionTexture {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
-        storm::PositionTexture {{1.0F, 1.0F, 0.0F}, {1.0F, 0.0F}},
-        storm::PositionTexture {{1.0F, -1.0F, 0.0F}, {1.0F, 1.0F}},
-        storm::PositionTexture {{-1.0F, -1.0F, 0.0F}, {0.0F, 1.0F}},
+        storm::VertexBase {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
+        storm::VertexBase {{1.0F, 1.0F, 0.0F}, {1.0F, 0.0F}},
+        storm::VertexBase {{1.0F, -1.0F, 0.0F}, {1.0F, 1.0F}},
+        storm::VertexBase {{-1.0F, -1.0F, 0.0F}, {0.0F, 1.0F}},
     };
 
-    std::vector const square_vertices2 = {
-        storm::PositionTexture {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
-        storm::PositionTexture {{1.0F, 1.0F, 0.0F}, {2.0F, 0.0F}},
-        storm::PositionTexture {{1.0F, -1.0F, 0.0F}, {2.0F, 2.0F}},
-        storm::PositionTexture {{-1.0F, -1.0F, 0.0F}, {0.0F, 2.0F}},
-    };
+    auto const square_vertex_buffer = renderer->load_vertex_buffer(square_vertices);
 
     std::vector<uint16_t> const square_indices = {0, 1, 2, 0, 2, 3};
 
-    auto const square_pipeline = renderer->create_pipeline(
-        vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, square_vertices, square_indices);
-    auto const square_pipeline2 = renderer->create_pipeline(
-        vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, square_vertices2, square_indices);
+    auto const square_index_buffer = renderer->load_index_buffer(square_indices);
+
+    auto const test_pipeline =
+        renderer->create_pipeline<storm::VertexBase>(vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info);
 
     auto const load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
     auto       load_texture       = renderer->load_texture(load_texture_asset);
@@ -219,7 +211,9 @@ try {
     renderer->start_frame();
     renderer->start_pass();
     load_texture->bind_to_render_pass();
-    square_pipeline->present();
+    test_pipeline->bind_to_render_pass();
+    square_vertex_buffer->bind_to_render_pass();
+    square_index_buffer->bind_to_render_pass();  // Draw occurs here
     renderer->end_pass();
     renderer->end_frame();
 
@@ -243,7 +237,9 @@ try {
             is_running = run_frame_with_overflow_check();
             renderer->start_pass();
             menu_texture->bind_to_render_pass();
-            square_pipeline2->present();
+            test_pipeline->bind_to_render_pass();
+            square_vertex_buffer->bind_to_render_pass();
+            square_index_buffer->bind_to_render_pass();  // Draw occurs here
             renderer->end_pass();
             renderer->end_frame();
         } else {

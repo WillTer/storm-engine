@@ -7,45 +7,36 @@
 #include <SDL3/SDL_gpu.h>
 #include <libs/renderer_next/i_renderer_next.h>
 
+#include "pipeline_sdl.h"
+
 namespace storm
 {
 
 class AssetServer;
 class IConfigLoader;
-class RendererSDL final: virtual public IRendererNext
+
+class RendererSDL final: virtual public RendererNext
 {
 public:
     RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader);
     ~RendererSDL() override;
 
-    void bind_window(std::any const& window_handler_internal) override;
-    void unbind_window(std::any const& window_handler_internal) override;
+    void bind_window(std::any const& window_raw);
+    void unbind_window(std::any const& window_raw);
 
     [[nodiscard]] std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) override;
 
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderAsset const&           vertex_shader_asset,
-        ShaderInfo const&            vertex_shader_info,
-        ShaderAsset const&           fragment_shader_asset,
-        ShaderInfo const&            fragment_shader_info,
-        std::vector<Position> const& vertices,
-        std::vector<uint16_t> const& indices) override;
+        std::vector<VertexAttribute> const&   vertex_attributes,
+        std::vector<VertexDescription> const& vertex_descriptions,
+        ShaderAsset const&                    vertex_shader_asset,
+        ShaderInfo const&                     vertex_shader_info,
+        ShaderAsset const&                    fragment_shader_asset,
+        ShaderInfo const&                     fragment_shader_info) override;
 
-    [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderAsset const&                  vertex_shader_asset,
-        ShaderInfo const&                   vertex_shader_info,
-        ShaderAsset const&                  fragment_shader_asset,
-        ShaderInfo const&                   fragment_shader_info,
-        std::vector<PositionTexture> const& vertices,
-        std::vector<uint16_t> const&        indices) override;
+    [[nodiscard]] std::unique_ptr<IBuffer> load_index_buffer(std::vector<uint16_t> const& buffer) override;
 
-    [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
-        ShaderAsset const&                       vertex_shader_asset,
-        ShaderInfo const&                        vertex_shader_info,
-        ShaderAsset const&                       fragment_shader_asset,
-        ShaderInfo const&                        fragment_shader_info,
-        std::vector<PositionTextureColor> const& vertices,
-        std::vector<uint16_t> const&             indices) override;
+    [[nodiscard]] std::unique_ptr<IBuffer> load_vertex_buffer(void const* data, uint32_t data_size) override;
 
     void start_frame() override;
     void end_frame() override;

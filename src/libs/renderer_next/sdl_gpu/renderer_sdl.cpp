@@ -12,8 +12,10 @@
 #include <libs/window/sdl_window.hpp>
 #include <spdlog/spdlog.h>
 
+#include "index_buffer_sdl.h"
 #include "pipeline_sdl.h"
 #include "texture_sdl.h"
+#include "vertex_buffer_sdl.h"
 
 using namespace storm;
 
@@ -64,10 +66,10 @@ RendererSDL::RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::
 
 RendererSDL::~RendererSDL() = default;
 
-void RendererSDL::bind_window(std::any const& window_handler_internal)
+void RendererSDL::bind_window(std::any const& window_raw)
 {
     try {
-        m_window = std::any_cast<SDL_Window*>(window_handler_internal);
+        m_window = std::any_cast<SDL_Window*>(window_raw);
     } catch (std::bad_any_cast const&) {
         throw std::runtime_error("Only SDL window is supported for SDL_GPU API");
     }
@@ -77,9 +79,9 @@ void RendererSDL::bind_window(std::any const& window_handler_internal)
     }
 }
 
-void RendererSDL::unbind_window(std::any const& window_handler_internal)
+void RendererSDL::unbind_window(std::any const& window_raw)
 try {
-    if (std::any_cast<SDL_Window*>(window_handler_internal) != m_window) {
+    if (std::any_cast<SDL_Window*>(window_raw) != m_window) {
         spdlog::warn("Trying to unbind wrong window from renderer");
         return;
     }
@@ -98,45 +100,35 @@ std::unique_ptr<ITexture> RendererSDL::load_texture(TextureAsset const& asset)
 }
 
 std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderAsset const&           vertex_shader_asset,
-    ShaderInfo const&            vertex_shader_info,
-    ShaderAsset const&           fragment_shader_asset,
-    ShaderInfo const&            fragment_shader_info,
-    std::vector<Position> const& vertices,
-    std::vector<uint16_t> const& indices)
+    std::vector<VertexAttribute> const&   vertex_attributes,
+    std::vector<VertexDescription> const& vertex_descriptions,
+    ShaderAsset const&                    vertex_shader_asset,
+    ShaderInfo const&                     vertex_shader_info,
+    ShaderAsset const&                    fragment_shader_asset,
+    ShaderInfo const&                     fragment_shader_info)
 {
-    auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
-    auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
     return std::make_unique<PipelineSDL>(
-        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
+        *this,
+        vertex_attributes,
+        vertex_descriptions,
+        vertex_shader_asset,
+        vertex_shader_info,
+        fragment_shader_asset,
+        fragment_shader_info);
 }
 
-std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderAsset const&                  vertex_shader_asset,
-    ShaderInfo const&                   vertex_shader_info,
-    ShaderAsset const&                  fragment_shader_asset,
-    ShaderInfo const&                   fragment_shader_info,
-    std::vector<PositionTexture> const& vertices,
-    std::vector<uint16_t> const&        indices)
+std::unique_ptr<IBuffer> RendererSDL::load_index_buffer(std::vector<uint16_t> const& buffer)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<PipelineSDL>(
-        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
+    return std::make_unique<IndexBufferSDL>(*this, copy_pass, buffer);
 }
 
-std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
-    ShaderAsset const&                       vertex_shader_asset,
-    ShaderInfo const&                        vertex_shader_info,
-    ShaderAsset const&                       fragment_shader_asset,
-    ShaderInfo const&                        fragment_shader_info,
-    std::vector<PositionTextureColor> const& vertices,
-    std::vector<uint16_t> const&             indices)
+std::unique_ptr<IBuffer> RendererSDL::load_vertex_buffer(void const* data, uint32_t const data_size)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<PipelineSDL>(
-        *this, copy_pass, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info, vertices, indices);
+    return std::make_unique<VertexBufferSDL>(*this, copy_pass, data, data_size);
 }
 
 void RendererSDL::start_frame()
@@ -173,10 +165,7 @@ void RendererSDL::start_pass()
 
     m_current_render_pass = std::shared_ptr<SDL_GPURenderPass>(
         SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
-    if (!m_current_render_pass) {
-        spdlog::error("Begin GPU render pass failed: {}", SDL_GetError());
-        return;
-    }
+    if (!m_current_render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
 }
 
 void RendererSDL::end_pass()
