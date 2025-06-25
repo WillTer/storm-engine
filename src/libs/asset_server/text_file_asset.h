@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include <entt/core/hashed_string.hpp>
-
 #include "asset_loader.h"
 
 namespace storm
@@ -18,12 +16,6 @@ struct TextFileAsset {
     std::filesystem::path path;
     TextFileAssetType     type;
     std::vector<char>     content;
-
-    constexpr static entt::hashed_string type_name()
-    {
-        constexpr static entt::hashed_string type_name = "TextFileAsset";
-        return type_name;
-    }
 };
 
 namespace asset_loader

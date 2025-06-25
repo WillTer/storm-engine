@@ -5,6 +5,7 @@
 #include <functional>
 #include <unordered_map>
 
+#include <entt/core/type_info.hpp>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/util/hashed_string_map.h>
 
@@ -28,8 +29,8 @@ public:
     constexpr auto get_loader(std::string_view const& add_extension = {}) -> decltype(auto)
     {
         return [this, add_extension](std::filesystem::path const& path, bool const use_asset_dir = true) -> decltype(auto) {
-            constexpr auto asset_type = std::remove_cvref_t<Asset>::type_name();
-            auto const     file_path  = use_asset_dir && m_asset_dirs.contains(asset_type) ? m_asset_dirs.at(asset_type) / path : path;
+            auto const asset_type = entt::type_id<Asset>().index();
+            auto const file_path  = use_asset_dir && m_asset_dirs.contains(asset_type) ? m_asset_dirs.at(asset_type) / path : path;
 
             if (!m_assets.contains(asset_type)) { m_assets.emplace(asset_type, std::unordered_map<std::string, std::any> {}); }
             auto& assets_by_type = m_assets.at(asset_type);
@@ -51,20 +52,20 @@ public:
     template <typename Asset>
     void set_asset_dir(std::filesystem::path const& asset_dir)
     {
-        m_asset_dirs.emplace(std::remove_cvref_t<Asset>::type_name(), asset_dir);
+        m_asset_dirs.emplace(entt::type_id<Asset>().index(), asset_dir);
     }
 
     template <typename Asset>
     void set_asset_dir(BaseDirectory const base_dir)
     {
         auto const asset_dir = m_file_service->base_directory_path(base_dir);
-        m_asset_dirs.emplace(std::remove_cvref_t<Asset>::type_name(), asset_dir);
+        m_asset_dirs.emplace(entt::type_id<Asset>().index(), asset_dir);
     }
 
     template <typename Asset>
     void set_asset_ext(std::string const& extension)
     {
-        m_asset_ext.emplace(std::remove_cvref_t<Asset>::type_name(), extension);
+        m_asset_ext.emplace(entt::type_id<Asset>().index(), extension);
     }
 
     TextureAsset  load_texture_file(std::filesystem::path const& path, bool use_asset_dir = true);
@@ -92,9 +93,9 @@ private:
 
     std::shared_ptr<IFileService> m_file_service;
 
-    hashed_string_map<std::filesystem::path>                     m_asset_dirs;
-    hashed_string_map<std::string>                               m_asset_ext;
-    hashed_string_map<std::unordered_map<std::string, std::any>> m_assets;
+    id_type_map<std::filesystem::path>                     m_asset_dirs;
+    id_type_map<std::string>                               m_asset_ext;
+    id_type_map<std::unordered_map<std::string, std::any>> m_assets;
 };
 
 }  // namespace storm

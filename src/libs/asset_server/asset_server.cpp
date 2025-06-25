@@ -12,11 +12,11 @@ using namespace storm;
 
 AssetServer::AssetServer(std::shared_ptr<IFileService> const& file_service) : m_file_service(file_service)
 {
-    m_asset_dirs[TextureAsset::type_name()]  = file_service->base_directory_path(BaseDirectory::Textures);
-    m_asset_dirs[TextFileAsset::type_name()] = file_service->base_directory_path(BaseDirectory::Ini);
+    m_asset_dirs[entt::type_id<TextureAsset>().index()]  = file_service->base_directory_path(BaseDirectory::Textures);
+    m_asset_dirs[entt::type_id<TextFileAsset>().index()] = file_service->base_directory_path(BaseDirectory::Ini);
     // Load shaders from path relative to executable instead of working directory
     // This helps in developing engine as you do not need to copy compiled shaders to game directory
-    m_asset_dirs[ShaderAsset::type_name()] =
+    m_asset_dirs[entt::type_id<ShaderAsset>().index()] =
         file_service->executable_directory() / file_service->base_directory_path(BaseDirectory::Shaders);
 }
 
