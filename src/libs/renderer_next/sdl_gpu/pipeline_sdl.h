@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <libs/renderer_next/i_pipeline.h>
+#include <libs/renderer_next/i_renderer_next.h>
 #include <libs/renderer_next/vertex.h>
 
 namespace storm

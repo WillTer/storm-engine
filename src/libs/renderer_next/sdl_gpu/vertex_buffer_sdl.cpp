@@ -54,10 +54,7 @@ VertexBufferSDL::~VertexBufferSDL() = default;
 void VertexBufferSDL::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
-    if (!render_pass) {
-        spdlog::error("No active render pass to bind");
-        return;
-    }
+    assert(render_pass);
 
     auto vertex_binding   = SDL_GPUBufferBinding {};
     vertex_binding.buffer = m_buffer.get();

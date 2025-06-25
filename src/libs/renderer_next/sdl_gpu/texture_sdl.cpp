@@ -111,10 +111,7 @@ TextureSDL::~TextureSDL() = default;
 void TextureSDL::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
-    if (!render_pass) {
-        spdlog::error("No active render pass to bind");
-        return;
-    }
+    assert(render_pass);
 
     auto const texture_binding = SDL_GPUTextureSamplerBinding {
         .texture = m_texture.get(),

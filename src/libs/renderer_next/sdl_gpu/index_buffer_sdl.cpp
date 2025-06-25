@@ -56,15 +56,18 @@ IndexBufferSDL::~IndexBufferSDL() = default;
 void IndexBufferSDL::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
-    if (!render_pass) {
-        spdlog::error("No active render pass to bind");
-        return;
-    }
+    assert(render_pass);
 
     auto index_binding   = SDL_GPUBufferBinding {};
     index_binding.buffer = m_buffer.get();
     index_binding.offset = 0;
     SDL_BindGPUIndexBuffer(render_pass.get(), &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+}
 
-    SDL_DrawGPUIndexedPrimitives(render_pass.get(), m_index_count, 1, 0, 0, 0);  // FIXME: should not be here
+void IndexBufferSDL::draw_indexed() const
+{
+    auto const& render_pass = m_renderer.get_current_render_pass();
+    assert(render_pass);
+
+    SDL_DrawGPUIndexedPrimitives(render_pass.get(), m_index_count, 1, 0, 0, 0);
 }

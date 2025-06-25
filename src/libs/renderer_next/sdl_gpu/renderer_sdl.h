@@ -34,7 +34,7 @@ public:
         ShaderAsset const&                    fragment_shader_asset,
         ShaderInfo const&                     fragment_shader_info) override;
 
-    [[nodiscard]] std::unique_ptr<IBuffer> load_index_buffer(std::vector<uint16_t> const& buffer) override;
+    [[nodiscard]] std::unique_ptr<IIndexBuffer> load_index_buffer(std::vector<uint16_t> const& buffer) override;
 
     [[nodiscard]] std::unique_ptr<IBuffer> load_vertex_buffer(void const* data, uint32_t data_size) override;
 
@@ -44,6 +44,10 @@ public:
     void start_pass() override;
     void end_pass() override;
 
+    FRect get_viewport() const override;
+
+    void push_vertex_unform_data(uint32_t slot, void const* data, uint32_t data_size) override;
+
     SDL_GPUTextureFormat get_spawchain_texture_format() const;
 
     std::shared_ptr<SDL_GPUDevice> const&     get_device() const;
@@ -52,6 +56,8 @@ public:
 private:
     std::string m_backend;
     SDL_Window* m_window = nullptr;
+
+    SDL_GPUViewport m_viewport = {};
 
     std::shared_ptr<SDL_GPUDevice> m_device = nullptr;
 

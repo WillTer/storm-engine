@@ -7,4 +7,6 @@ storm_lib(
         core
         SDL3-storm
         spdlog::spdlog
+    HEADERS_DEPS
+        glm::glm
 )

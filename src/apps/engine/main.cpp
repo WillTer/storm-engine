@@ -20,6 +20,7 @@
 #include <spdlog/spdlog.h>
 
 #include "libs/renderer_next/i_buffer.h"
+#include "libs/renderer_next/progress_image_view.h"
 
 std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: move to core
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
@@ -167,40 +168,11 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    auto const vertex_shader_asset = asset_server->load_shader_file("test_vs");
-    auto const vertex_shader_info  = storm::ShaderInfo {
-         .num_samplers         = 0,
-         .num_storage_textures = 0,
-         .num_storage_buffers  = 0,
-         .num_uniform_buffers  = 0,
-    };
+    auto const            load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
+    std::shared_ptr const load_texture       = renderer->load_texture(load_texture_asset);
 
-    auto const fragment_shader_asset = asset_server->load_shader_file("test_fs");
-    auto const fragment_shader_info  = storm::ShaderInfo {
-         .num_samplers         = 1,
-         .num_storage_textures = 0,
-         .num_storage_buffers  = 0,
-         .num_uniform_buffers  = 0,
-    };
-
-    std::vector const square_vertices = {
-        storm::VertexBase {{-1.0F, 1.0F, 0.0F}, {0.0F, 0.0F}},
-        storm::VertexBase {{1.0F, 1.0F, 0.0F}, {1.0F, 0.0F}},
-        storm::VertexBase {{1.0F, -1.0F, 0.0F}, {1.0F, 1.0F}},
-        storm::VertexBase {{-1.0F, -1.0F, 0.0F}, {0.0F, 1.0F}},
-    };
-
-    auto const square_vertex_buffer = renderer->load_vertex_buffer(square_vertices);
-
-    std::vector<uint16_t> const square_indices = {0, 1, 2, 0, 2, 3};
-
-    auto const square_index_buffer = renderer->load_index_buffer(square_indices);
-
-    auto const test_pipeline =
-        renderer->create_pipeline<storm::VertexBase>(vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info);
-
-    auto const load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
-    auto       load_texture       = renderer->load_texture(load_texture_asset);
+    auto const progress_image_view = std::make_shared<storm::ProgressImageView>();
+    progress_image_view->set_background(load_texture);
 
     // Init core
     core_internal->InitBase();
@@ -209,12 +181,7 @@ try {
     auto old_time = SDL_GetTicks();
 
     renderer->start_frame();
-    renderer->start_pass();
-    load_texture->bind_to_render_pass();
-    test_pipeline->bind_to_render_pass();
-    square_vertex_buffer->bind_to_render_pass();
-    square_index_buffer->bind_to_render_pass();  // Draw occurs here
-    renderer->end_pass();
+    progress_image_view->present(0);
     renderer->end_frame();
 
     auto const menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
@@ -235,12 +202,7 @@ try {
 
             renderer->start_frame();
             is_running = run_frame_with_overflow_check();
-            renderer->start_pass();
-            menu_texture->bind_to_render_pass();
-            test_pipeline->bind_to_render_pass();
-            square_vertex_buffer->bind_to_render_pass();
-            square_index_buffer->bind_to_render_pass();  // Draw occurs here
-            renderer->end_pass();
+            progress_image_view->present(0);
             renderer->end_frame();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

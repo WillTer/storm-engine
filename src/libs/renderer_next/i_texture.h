@@ -1,14 +1,14 @@
 #pragma once
 
+#include "i_render_pass_primitive.h"
+
 namespace storm
 {
 
-class ITexture
+class ITexture: virtual public IRenderPassPrimitive
 {
 public:
-    virtual ~ITexture() = default;
-
-    virtual void bind_to_render_pass() const = 0;
+    ~ITexture() override = default;
 };
 
 }  // namespace storm

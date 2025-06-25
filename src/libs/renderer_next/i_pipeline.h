@@ -1,23 +1,14 @@
 #pragma once
 
-#include <cstdint>
+#include "i_render_pass_primitive.h"
 
 namespace storm
 {
 
-struct ShaderInfo {
-    uint32_t num_samplers;
-    uint32_t num_storage_textures;
-    uint32_t num_storage_buffers;
-    uint32_t num_uniform_buffers;
-};
-
-class IPipeline
+class IPipeline: virtual public IRenderPassPrimitive
 {
 public:
-    virtual ~IPipeline() = default;
-
-    virtual void bind_to_render_pass() const = 0;
+    ~IPipeline() override = default;
 };
 
 }  // namespace storm

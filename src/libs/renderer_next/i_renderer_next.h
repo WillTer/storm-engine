@@ -1,24 +1,32 @@
 #pragma once
 
 #include <any>
-#include <filesystem>
+#include <cstdint>
 
-#include "i_pipeline.h"
 #include "vertex.h"
 
 namespace storm
 {
 
-struct TextureAsset;
 struct ShaderAsset;
+struct TextureAsset;
 
-class ITexture;
 class IBuffer;
+class IIndexBuffer;
+class IPipeline;
+class ITexture;
 
 template <typename T>
-concept is_vertex_for_pipeline = std::is_standard_layout_v<T> && requires() {
+concept has_shader_layout = std::is_standard_layout_v<T> && requires() {
     { T::attributes() } -> std::same_as<std::vector<VertexAttribute>>;
     { T::descriptions() } -> std::same_as<std::vector<VertexDescription>>;
+};
+
+struct ShaderInfo {
+    uint32_t num_samplers;
+    uint32_t num_storage_textures;
+    uint32_t num_storage_buffers;
+    uint32_t num_uniform_buffers;
 };
 
 class RendererNext
@@ -32,7 +40,7 @@ public:
     [[nodiscard]] virtual std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) = 0;
 
     template <typename VertexType>
-        requires is_vertex_for_pipeline<VertexType>
+        requires has_shader_layout<VertexType>
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
         ShaderAsset const& vertex_shader_asset,
         ShaderInfo const&  vertex_shader_info,
@@ -56,10 +64,10 @@ public:
         ShaderAsset const&                    fragment_shader_asset,
         ShaderInfo const&                     fragment_shader_info) = 0;
 
-    [[nodiscard]] virtual std::unique_ptr<IBuffer> load_index_buffer(std::vector<uint16_t> const& buffer) = 0;
+    [[nodiscard]] virtual std::unique_ptr<IIndexBuffer> load_index_buffer(std::vector<uint16_t> const& buffer) = 0;
 
     template <typename VertexType>
-        requires is_vertex_for_pipeline<VertexType>
+        requires has_shader_layout<VertexType>
     [[nodiscard]] std::unique_ptr<IBuffer> load_vertex_buffer(std::vector<VertexType> const& buffer)
     {
         return load_vertex_buffer(buffer.data(), static_cast<uint32_t>(buffer.size() * sizeof(VertexType)));
@@ -72,6 +80,10 @@ public:
 
     virtual void start_pass() = 0;
     virtual void end_pass()   = 0;
+
+    virtual FRect get_viewport() const = 0;
+
+    virtual void push_vertex_unform_data(uint32_t slot, void const* data, uint32_t data_size) = 0;
 };
 
 }  // namespace storm

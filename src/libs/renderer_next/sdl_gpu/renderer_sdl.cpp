@@ -62,6 +62,9 @@ RendererSDL::RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::
     if (!m_device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
 
     asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(m_backend));
+
+    m_viewport.min_depth = 0.0F;
+    m_viewport.max_depth = 1.0F;
 }
 
 RendererSDL::~RendererSDL() = default;
@@ -77,6 +80,13 @@ void RendererSDL::bind_window(std::any const& window_raw)
     if (!SDL_ClaimWindowForGPUDevice(m_device.get(), m_window)) {
         throw std::runtime_error(std::format("Can't claim window for device: {}", SDL_GetError()));
     }
+
+    int width  = 0;
+    int height = 0;
+    SDL_GetWindowSize(m_window, &width, &height);
+
+    m_viewport.w = static_cast<float>(width);
+    m_viewport.h = static_cast<float>(height);
 }
 
 void RendererSDL::unbind_window(std::any const& window_raw)
@@ -117,7 +127,7 @@ std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
         fragment_shader_info);
 }
 
-std::unique_ptr<IBuffer> RendererSDL::load_index_buffer(std::vector<uint16_t> const& buffer)
+std::unique_ptr<IIndexBuffer> RendererSDL::load_index_buffer(std::vector<uint16_t> const& buffer)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
@@ -166,11 +176,29 @@ void RendererSDL::start_pass()
     m_current_render_pass = std::shared_ptr<SDL_GPURenderPass>(
         SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
     if (!m_current_render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
+
+    SDL_SetGPUViewport(m_current_render_pass.get(), &m_viewport);
 }
 
 void RendererSDL::end_pass()
 {
     m_current_render_pass.reset();
+}
+
+FRect RendererSDL::get_viewport() const
+{
+    return FRect {
+        .left   = m_viewport.x,
+        .top    = m_viewport.y,
+        .right  = m_viewport.x + m_viewport.w,
+        .bottom = m_viewport.y + m_viewport.h,
+    };
+}
+
+void RendererSDL::push_vertex_unform_data(uint32_t const slot, void const* data, uint32_t const data_size)
+{
+    assert(m_current_command_buffer);
+    SDL_PushGPUVertexUniformData(m_current_command_buffer.get(), slot, data, data_size);
 }
 
 SDL_GPUTextureFormat RendererSDL::get_spawchain_texture_format() const

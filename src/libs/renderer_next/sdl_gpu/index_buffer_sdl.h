@@ -11,7 +11,7 @@ namespace storm
 
 class RendererSDL;
 
-class IndexBufferSDL final: virtual public IBuffer
+class IndexBufferSDL final: virtual public IIndexBuffer
 {
 public:
     IndexBufferSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, std::vector<uint16_t> const& indices);
@@ -19,6 +19,8 @@ public:
     ~IndexBufferSDL() override;
 
     void bind_to_render_pass() const override;
+
+    void draw_indexed() const override;
 
 private:
     RendererSDL& m_renderer;

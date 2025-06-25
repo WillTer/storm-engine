@@ -1,14 +1,22 @@
 #pragma once
 
+#include "i_render_pass_primitive.h"
+
 namespace storm
 {
 
-class IBuffer
+class IBuffer: virtual public IRenderPassPrimitive
 {
 public:
-    virtual ~IBuffer() = default;
+    ~IBuffer() override = default;
+};
 
-    virtual void bind_to_render_pass() const = 0;
+class IIndexBuffer: virtual public IBuffer
+{
+public:
+    ~IIndexBuffer() override = default;
+
+    virtual void draw_indexed() const = 0;
 };
 
 }  // namespace storm
