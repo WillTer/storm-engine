@@ -8,5 +8,5 @@ storm_lib(
         SDL3-storm
         spdlog::spdlog
     HEADERS_DEPS
-        glm::glm
+        hlslpp
 )

@@ -4,7 +4,7 @@
 
 #include <libs/config/main_config.h>
 
-#include "glm.h"
+#include "hlslpp.h"
 
 namespace storm
 {
@@ -28,8 +28,8 @@ public:
 
 private:
     struct UBO {
-        glm::mat4 m_model_matrix     = glm::mat4(1.0F);
-        glm::mat4 m_view_proj_matrix = glm::mat4(1.0F);
+        hlsl::float4x4 m_model_matrix     = hlsl::float4x4::identity();
+        hlsl::float4x4 m_view_proj_matrix = hlsl::float4x4::identity();
     };
 
     std::shared_ptr<IPipeline> m_pipeline = nullptr;

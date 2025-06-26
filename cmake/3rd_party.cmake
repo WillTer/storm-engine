@@ -47,9 +47,10 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-    glm
-    GIT_REPOSITORY  https://github.com/g-truc/glm.git
-    GIT_TAG         bf71a834948186f4097caa076cd2663c69a10e1e #refs/tags/1.0.1
+    hlslpp
+    GIT_REPOSITORY  https://github.com/redorav/hlslpp.git
+    GIT_TAG         3.6
+    GIT_SHALLOW     ON
 )
 
 FetchContent_Declare(
@@ -66,7 +67,13 @@ elseif(LINUX)
     find_package(ZLIB REQUIRED)
 endif()
 
-FetchContent_MakeAvailable(Catch2 fast_float spdlog entt glm storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float spdlog entt hlslpp storm-audio)
+
+add_library(hlslpp INTERFACE)
+target_include_directories(hlslpp
+    INTERFACE
+        ${hlslpp_SOURCE_DIR}/include
+)
 
 add_library(SDL3-storm INTERFACE)
 target_link_libraries(SDL3-storm

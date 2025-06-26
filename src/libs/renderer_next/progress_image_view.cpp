@@ -11,6 +11,7 @@
 #include "i_texture.h"
 
 using namespace storm;
+using namespace hlslpp;
 
 namespace
 {
@@ -61,13 +62,13 @@ ProgressImageView::ProgressImageView()
     m_pipeline =
         renderer->create_pipeline<VertexWithDiffuse>(vertex_shader_asset, VERTEX_SHADER_INFO, fragment_shader_asset, FRAGMENT_SHADER_INFO);
 
-    auto const viewport               = renderer->get_viewport();
-    auto const proj_mat               = glm::ortho(viewport.left, viewport.right, viewport.bottom, viewport.top);
-    m_progress_ubo.m_model_matrix     = glm::mat4(1.0F);
+    auto const viewport = renderer->get_viewport();
+    auto const proj_mat =
+        float4x4::orthographic(projection(frustum(viewport.left, viewport.right, viewport.bottom, viewport.top, -1.0F, 1.0F), zclip::zero));
+    m_progress_ubo.m_model_matrix     = float4x4::identity();
     m_progress_ubo.m_view_proj_matrix = proj_mat;
 
-    m_background_ubo.m_model_matrix =
-        glm::scale(glm::mat4(1.0F), glm::vec3(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F));
+    m_background_ubo.m_model_matrix     = float4x4::scale(float3(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F));
     m_background_ubo.m_view_proj_matrix = proj_mat;
 
     m_progress_info = main_config::progress_image_info(*core->get<IConfigLoader>());
@@ -104,18 +105,17 @@ void ProgressImageView::update(uint64_t const delta_time)
         dx = (viewport.width() - 4.0F * (viewport.height() - 2.0F * dy) / 3.0F) / 2.0F;
     }
 
-    m_progress_ubo.m_model_matrix = glm::translate(
-        glm::mat4(1.0F),
-        glm::vec3(
-            (viewport.width() - dx * 2.0F) * m_progress_info.relative_x + dx,
-            (viewport.height() - dy * 2.0F) * m_progress_info.relative_y + dy,
-            0.0F));
-    m_progress_ubo.m_model_matrix = glm::scale(
-        m_progress_ubo.m_model_matrix,
-        glm::vec3(
-            (viewport.width() - dx * 2.0F) * m_progress_info.relative_width,
-            (viewport.height() - dy * 2.0F) * m_progress_info.relative_height * 4.0F / 3.0F,
-            1.0F));
+    auto const translation_mat = float4x4::translation(float3(
+        (viewport.width() - dx * 2.0F) * m_progress_info.relative_x + dx,
+        (viewport.height() - dy * 2.0F) * m_progress_info.relative_y + dy,
+        0.0F));
+
+    auto const scale_mat = float4x4::scale(float3(
+        (viewport.width() - dx * 2.0F) * m_progress_info.relative_width,
+        (viewport.height() - dy * 2.0F) * m_progress_info.relative_height * 4.0F / 3.0F,
+        1.0F));
+
+    m_progress_ubo.m_model_matrix = mul(scale_mat, translation_mat);
 
     // Position of the current frame
     int32_t const fx = m_current_frame % m_progress_info.h_frames_count;
