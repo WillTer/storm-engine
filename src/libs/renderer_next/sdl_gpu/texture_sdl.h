@@ -19,11 +19,16 @@ public:
 
     void bind_to_render_pass() const override;
 
+    std::pair<uint32_t, uint32_t> get_dimensions() const override;
+
 private:
     RendererSDL& m_renderer;
 
     std::shared_ptr<SDL_GPUSampler> m_sampler = nullptr;
     std::shared_ptr<SDL_GPUTexture> m_texture = nullptr;
+
+    uint32_t m_width  = 0;
+    uint32_t m_height = 0;
 };
 
 }  // namespace storm

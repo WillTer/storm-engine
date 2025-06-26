@@ -12,7 +12,7 @@
 
 #include <libs/core/entity.h>
 
-class Fader: public Entity
+class Fader final: public Entity
 {
     // --------------------------------------------------------------------------------------------
     // Construction, destruction
@@ -26,17 +26,12 @@ public:
     // Messages
     uint64_t ProcessMessage(MESSAGE& message) override;
 
-    void ProcessStage(Stage stage, uint32_t delta) override
+    void ProcessStage(Stage const stage, uint32_t const delta) override
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
+        default: break;
         }
     }
 
@@ -58,24 +53,9 @@ private:
     float alpha;
     float w, h;
 
-    struct {
-        float x, y, z, rhw;
-        float u, v;
-    } drawbuf_base[6];
-
-    struct {
-        float    x, y, z, rhw;
-        uint32_t color;
-        float    u, v;
-    } drawbuf_back[6], drawbuf_front[6];
-
     bool    eventStart;
     bool    eventEnd;
     int32_t deleteMe;
-
-    int32_t textureID;
-    int32_t textureBackID;
-    int32_t tipsID;
 
 public:
     static int32_t numberOfTips;

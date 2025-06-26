@@ -104,6 +104,9 @@ TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> c
         .d         = 1,
     };
     SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
+
+    m_width  = asset.header.width;
+    m_height = asset.header.height;
 }
 
 TextureSDL::~TextureSDL() = default;
@@ -119,4 +122,9 @@ void TextureSDL::bind_to_render_pass() const
     };
 
     SDL_BindGPUFragmentSamplers(render_pass.get(), 0, &texture_binding, 1);
+}
+
+std::pair<uint32_t, uint32_t> TextureSDL::get_dimensions() const
+{
+    return std::make_pair(m_width, m_height);
 }

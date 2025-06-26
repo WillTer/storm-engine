@@ -11,16 +11,13 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
-#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/progress_image_view.h>
 #include <libs/renderer_next/sdl_gpu/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
-
-#include "libs/renderer_next/i_buffer.h"
-#include "libs/renderer_next/progress_image_view.h"
 
 std::shared_ptr<IFileService>           fio              = nullptr;  // TODO: move to core
 std::unique_ptr<storm::ClassesRegistry> classes_registry = nullptr;  // Only for linking, initialized in another place (vma.hpp)
@@ -68,10 +65,10 @@ void handle_window_event(storm::IWindow::Event const& event)
 {
     if (event == storm::IWindow::Closed) {
         should_close = true;
-        if (core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
+        if (core_internal && core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
     } else if (event == storm::IWindow::FocusGained) {
         is_active = true;
-        if (core_internal->initialized()) {
+        if (core_internal && core_internal->initialized()) {
             core_internal->AppState(is_active);
             if (auto* const sound_service = static_cast<VSoundService*>(core->GetService("SoundService"));
                 (sound_service != nullptr) && !is_sound_in_background_enabled) {
@@ -80,7 +77,7 @@ void handle_window_event(storm::IWindow::Event const& event)
         }
     } else if (event == storm::IWindow::FocusLost) {
         is_active = false;
-        if (core_internal->initialized()) {
+        if (core_internal && core_internal->initialized()) {
             core_internal->AppState(is_active);
             if (auto* const sound_service = static_cast<VSoundService*>(core->GetService("SoundService"));
                 (sound_service != nullptr) && !is_sound_in_background_enabled) {
@@ -132,6 +129,8 @@ try {
     // Load parameters of file service
     fio->init_from_main_config(*config_loader);
 
+    asset_server->set_asset_ext<storm::TextureAsset>("tx");  // Always add .tx to the end of texture file names
+
     // Init logging
     storm::logging::init_logger_for_sdl();
     spdlog::set_default_logger(storm::logging::get_logger_with_stdout(DEFAULT_LOGGER_NAME));
@@ -146,8 +145,21 @@ try {
     }
 
     std::shared_ptr<storm::RendererNext> renderer = std::make_shared<storm::RendererSDL>(asset_server, config_loader);
-    core_internal                                 = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer);
-    core                                          = core_internal;
+
+    // Read config
+    auto const window_info = storm::main_config::window_info(*config_loader);
+
+    // Create window
+    auto window = storm::IWindow::Create(
+        renderer, window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
+    window->SetTitle("Sea Dogs");
+    window->Subscribe(handle_window_event);
+    window->Show();
+
+    auto progress_image_view = std::make_shared<storm::ProgressImageView>(asset_server, config_loader, renderer);
+    core_internal            = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer, progress_image_view);
+    core                     = core_internal;
+    progress_image_view.reset();
 
     // Init stash
     create_directories(fs::GetSaveDataPath());
@@ -155,34 +167,15 @@ try {
     // Init core
     core_internal->Init();
 
-    // Read config
-    auto const window_info = storm::main_config::window_info(*config_loader);
-
     is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton
     steamapi::SteamApi::getInstance(!general_info.use_steam);
-
-    auto window = storm::IWindow::Create(
-        renderer, window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
-    window->SetTitle("Sea Dogs");
-    window->Subscribe(handle_window_event);
-    window->Show();
     core_internal->SetWindow(window);
-
-    auto const load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
-
-    auto progress_image_view = std::make_shared<storm::ProgressImageView>();
-    progress_image_view->set_background(renderer->load_texture(load_texture_asset));
-
     // Init core
     core_internal->InitBase();
 
     // Message loop
     auto old_time = SDL_GetTicks();
-
-    renderer->start_frame();
-    progress_image_view->present();
-    renderer->end_frame();
 
     bool is_running = true;
     while (is_running && !should_close) {
@@ -190,8 +183,6 @@ try {
         SDL_FlushEvents(0, SDL_EVENT_LAST);
 
         if (is_active || window_info.run_in_background) {
-            progress_image_view->update(SDL_GetTicks() - old_time);
-
             if (window_info.max_fps != 0U) {
                 auto const ms       = 1000U / window_info.max_fps;
                 auto const new_time = SDL_GetTicks();
@@ -201,7 +192,6 @@ try {
 
             renderer->start_frame();
             is_running = run_frame_with_overflow_check();
-            progress_image_view->present();
             renderer->end_frame();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

@@ -1,6 +1,10 @@
 #include "info_handler.h"
 
+#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
+#include <libs/renderer_next/i_renderer_next.h>
+#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/progress_image_view.h>
 
 InfoHandler::InfoHandler() {}
 
@@ -94,7 +98,7 @@ bool InfoHandler::DoPreOut()
 {
     if (AttributesPointer == nullptr) return false;
 
-    auto        isOK = false;
+    auto        is_ok = false;
     uint32_t    dwBCol, dwFCol;
     char const* inStrStart;
     char        outStr[1048];
@@ -164,79 +168,21 @@ bool InfoHandler::DoPreOut()
     //     isOK          = (m_rs->BeginScene() == D3D_OK);
     // }
 
-    if (isOK) {
+    auto const& asset_server   = core->get<storm::AssetServer>();
+    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& progress_image = core->get<storm::ProgressImageView>();
+    is_ok                      = true;
+    if (is_ok) {
         // show picture
-        // if (picBackTexureFile != nullptr) {
-        //     int const picBackID = m_rs->TextureCreate(picBackTexureFile);
-        //     if (picBackID >= 0) {
-        //         m_rs->TextureSet(0, picBackID);
-        //         pV[0].col = pV[1].col = pV[2].col = pV[3].col = 0xFFFFFFFF;
-        //         pV[0].pos.x                                   = 0.f;
-        //         pV[0].pos.y                                   = 0.f;
-        //         pV[1].pos.x                                   = 0.f;
-        //         pV[1].pos.y                                   = static_cast<float>(desc.Height);
-        //         pV[2].pos.x                                   = static_cast<float>(desc.Width);
-        //         pV[2].pos.y                                   = 0.f;
-        //         pV[3].pos.x                                   = static_cast<float>(desc.Width);
-        //         pV[3].pos.y                                   = static_cast<float>(desc.Height);
-        //         pV[0].tu                                      = 0.f;
-        //         pV[0].tv                                      = 0.f;
-        //         pV[1].tu                                      = 0.f;
-        //         pV[1].tv                                      = 1.f;
-        //         pV[2].tu                                      = 1.f;
-        //         pV[2].tv                                      = 0.f;
-        //         pV[3].tu                                      = 1.f;
-        //         pV[3].tv                                      = 1.f;
-        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, TMP_VERTEX_FORMAT, 2, &pV, sizeof(TMP_VERTEX), "iInfoShowerPic");
-        //         m_rs->TextureRelease(picBackID);
-        //         m_rs->SetProgressBackImage(picBackTexureFile);
-        //     }
-        // }
-        //
-        // if (picTexureFile != nullptr) {
-        //     int const picID = m_rs->TextureCreate(picTexureFile);
-        //     if (picID >= 0) {
-        //         m_rs->TextureSet(0, picID);
-        //         float dy = 0.0f;
-        //         float dx = ((float(desc.Width) - (4.0f * float(desc.Height) / 3.0f)) / 2.0f);
-        //         if (dx < 10.0f)
-        //             dx = 0.0f;
-        //         else {
-        //             dy = 25.0f;
-        //             dx = ((float(desc.Width) - (4.0f * (float(desc.Height) - 2.0f * dy) / 3.0f)) / 2.0f);
-        //         }
-        //
-        //         pV[0].col = pV[1].col = pV[2].col = pV[3].col = 0xFFFFFFFF;
-        //         pV[0].pos.x                                   = 0.f + dx;
-        //         pV[0].pos.y                                   = 0.f + dy;
-        //         pV[1].pos.x                                   = 0.f + dx;
-        //         pV[1].pos.y                                   = (float)desc.Height - dy;
-        //         pV[2].pos.x                                   = (float)desc.Width - dx;
-        //         pV[2].pos.y                                   = 0.f + dy;
-        //         pV[3].pos.x                                   = (float)desc.Width - dx;
-        //         pV[3].pos.y                                   = (float)desc.Height - dy;
-        //         pV[0].tu                                      = 0.f;
-        //         pV[0].tv                                      = 0.f;
-        //         pV[1].tu                                      = 0.f;
-        //         pV[1].tv                                      = 1.f;
-        //         pV[2].tu                                      = 1.f;
-        //         pV[2].tv                                      = 0.f;
-        //         pV[3].tu                                      = 1.f;
-        //         pV[3].tv                                      = 1.f;
-        //
-        //         char _name[MAX_PATH];
-        //         sprintf(_name, "interfaces/int_border.tga");
-        //         int tipsID = m_rs->TextureCreate(_name);
-        //         if (tipsID) {
-        //             m_rs->SetTipsImage(_name);
-        //             m_rs->TextureSet(1, tipsID);
-        //         }
-        //
-        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, TMP_VERTEX_FORMAT, 2, &pV, sizeof(TMP_VERTEX), "iInfoShowerPicWithTips");
-        //         m_rs->TextureRelease(picID);
-        //         m_rs->SetProgressImage(picTexureFile);
-        //     }
-        // }
+        if (picBackTexureFile != nullptr) {
+            auto const texture = asset_server->load_texture_file(picBackTexureFile);
+            progress_image->set_background(renderer->load_texture(texture));
+        }
+
+        if (picTexureFile != nullptr) {
+            auto const texture = asset_server->load_texture_file(picTexureFile);
+            progress_image->set_picture(renderer->load_texture(texture));
+        }
 
         // if (inStrStart) {
         //     // show back
@@ -278,7 +224,7 @@ bool InfoHandler::DoPreOut()
 
     // m_rs->Release(pRenderTarget);
 
-    return isOK;
+    return is_ok;
 }
 
 char const* InfoHandler::GetCutString(char const* pstr, int nOutWidth, float fScale) const

@@ -89,7 +89,7 @@ struct PathsInfo {
 };
 
 struct ProgressImageInfo {
-    int   frame;
+    bool  frame;
     float relative_x;
     float relative_y;
     float relative_width;

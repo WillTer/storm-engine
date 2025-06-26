@@ -92,7 +92,7 @@ PathsInfo const DEFAULT_PATHS_INFO = {
 };
 
 constexpr ProgressImageInfo DEFAULT_PROGRESS_IMAGE_INFO = {
-    .frame           = 0,
+    .frame           = false,
     .relative_x      = 0.85F,
     .relative_y      = 0.8F,
     .relative_width  = 0.0625F,

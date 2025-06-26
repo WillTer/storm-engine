@@ -2,10 +2,14 @@
 
 #include <thread>
 
+#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
+#include <libs/renderer_next/i_renderer_next.h>
+#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/progress_image_view.h>
 #include <libs/util/string_compare.hpp>
 
 #include "fader.h"
@@ -193,30 +197,36 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     auto        pStr = (VDATA*)pS->Pop();
     char const* nm   = nullptr;
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
-    // Setting the picture
-    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    // if (rs) { rs->SetProgressImage(nm); }
+
+    auto const& asset_server   = core->get<storm::AssetServer>();
+    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& progress_image = core->get<storm::ProgressImageView>();
+
+    auto const texture = asset_server->load_texture_file(nm);
+    progress_image->set_picture(renderer->load_texture(texture));
+
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 {
-    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    // if (rs) rs->StartProgressView();
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
-    // auto rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    // if (rs) rs->ProgressView();
+    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& progress_image = core->get<storm::ProgressImageView>();
+    renderer->start_frame();
+    progress_image->update(core->GetDeltaTime());
+    progress_image->present();
+    renderer->end_frame();
+
     return IFUNCRESULT_OK;
 }
 
 uint32_t slNativeReloadProgressEnd(VS_STACK* pS)
 {
-    // auto* rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    // if (rs) rs->EndProgressView();
     return IFUNCRESULT_OK;
 }
 
