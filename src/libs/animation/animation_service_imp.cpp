@@ -65,14 +65,12 @@ AnimationServiceImp::AnimationServiceImp()
 AnimationServiceImp::~AnimationServiceImp()
 {
     for (auto const& animation: animations) {
-        if (animation) {
-            core->Trace("No release Animation pnt:0x%x for %s.ani", animation, animation->GetAnimationInfo()->GetName());
-            delete animation;
-        }
+        delete animation;
     }
 
-    for (auto const& info: ainfo)
+    for (auto const& info: ainfo) {
         delete info;
+    }
 }
 
 //============================================================================================

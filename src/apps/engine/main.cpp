@@ -123,6 +123,7 @@ try {
     setlocale(LC_ALL, "en_US.utf8");  // Enable UTF-8
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+    std::atexit(release);
 
     fio                = std::make_shared<FileService>();
     auto asset_server  = std::make_shared<storm::AssetServer>(fio);
@@ -168,11 +169,10 @@ try {
     window->Show();
     core_internal->SetWindow(window);
 
-    auto const            load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
-    std::shared_ptr const load_texture       = renderer->load_texture(load_texture_asset);
+    auto const load_texture_asset = asset_server->load_texture_file("loading/sea.tga.tx");
 
-    auto const progress_image_view = std::make_shared<storm::ProgressImageView>();
-    progress_image_view->set_background(load_texture);
+    auto progress_image_view = std::make_shared<storm::ProgressImageView>();
+    progress_image_view->set_background(renderer->load_texture(load_texture_asset));
 
     // Init core
     core_internal->InitBase();
@@ -183,9 +183,6 @@ try {
     renderer->start_frame();
     progress_image_view->present();
     renderer->end_frame();
-
-    auto const menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
-    auto       menu_texture       = renderer->load_texture(menu_texture_asset);
 
     bool is_running = true;
     while (is_running && !should_close) {
@@ -212,14 +209,9 @@ try {
     }
 
     window.reset();  // Destroy window before renderer (and before call to SDL_Quit)
-    renderer.reset();
-    asset_server.reset();
 
-    release();
     return EXIT_SUCCESS;
 } catch (std::runtime_error const& e) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Engine error", e.what(), nullptr);
-
-    release();
     return EXIT_FAILURE;
 }

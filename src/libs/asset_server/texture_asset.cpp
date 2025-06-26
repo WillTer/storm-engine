@@ -1,5 +1,7 @@
 #include "texture_asset.h"
 
+#include <cstring>
+
 using namespace storm;
 
 template <>
