@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 
