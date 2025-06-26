@@ -90,10 +90,19 @@ PipelineSDL::PipelineSDL(
     auto const fragment_shader = compile_shader(device, fragment_shader_asset, fragment_shader_info, SDL_GPU_SHADERSTAGE_FRAGMENT);
     if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
 
+    auto blend_state                  = SDL_GPUColorTargetBlendState {};
+    blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+    blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    blend_state.color_blend_op        = SDL_GPU_BLENDOP_ADD;
+    blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+    blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+    blend_state.alpha_blend_op        = SDL_GPU_BLENDOP_ADD;
+    blend_state.enable_blend          = true;
+
     std::array const color_descriptions = {
         SDL_GPUColorTargetDescription {
             .format      = m_renderer.get_spawchain_texture_format(),
-            .blend_state = {},
+            .blend_state = blend_state,
         },
     };
 

@@ -1,3 +1,6 @@
+set(BUILD_SHARED_LIBS ON)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 include(cmake/slang.cmake)
 include(FetchContent)
 
@@ -54,8 +57,6 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/WillTer/storm-audio.git
     GIT_TAG         120dcd27a60c73533760124abfa264e2fdbd8276
 )
-
-set(BUILD_SHARED_LIBS ON)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL3 zlib)

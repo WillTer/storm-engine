@@ -89,14 +89,14 @@ struct VertexBase {
 
 struct VertexWithDiffuse {
     VertexBase base;
-    Color      diffuse;
+    FColor     diffuse;
 
     static std::vector<VertexAttribute> attributes()
     {
         auto base_attributes = VertexBase::attributes();
         base_attributes.emplace_back(
             VertexAttribute {
-                .location = 2, .slot = 0, .format = VertexElementFormat::Byte4, .offset = offsetof(VertexWithDiffuse, diffuse)});
+                .location = 2, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexWithDiffuse, diffuse)});
 
         return base_attributes;
     }

@@ -132,12 +132,12 @@ struct RectBase {
         return point.x >= left && point.y >= top && point.x <= right && point.y <= bottom;
     }
 
-    constexpr int width() const
+    constexpr T width() const
     {
         return right - left;
     }
 
-    constexpr int height() const
+    constexpr T height() const
     {
         return bottom - top;
     }
@@ -148,21 +148,36 @@ struct RectBase {
 using Rect  = RectBase<int>;
 using FRect = RectBase<float>;
 
+struct FColor {
+    float r;
+    float g;
+    float b;
+    float a;  // as we transfer this color to shaders, alpha must be the last
+
+    constexpr FColor grayscale() const
+    {
+        auto const y = 0.299F * r + 0.587F * g + 0.114F * b;
+        return FColor {y, y, y, a};
+    }
+
+    constexpr auto operator<=>(FColor const&) const = default;
+};
+
 struct Color {
     uint8_t a;
     uint8_t r;
     uint8_t g;
     uint8_t b;
 
-    constexpr std::tuple<double, double, double, double> normalize() const
+    constexpr FColor normalize() const
     {
-        constexpr double max_value = static_cast<double>(std::numeric_limits<uint8_t>::max());
-        return std::make_tuple(a / max_value, r / max_value, g / max_value, b / max_value);
+        constexpr float max_value = std::numeric_limits<uint8_t>::max();
+        return FColor(r / max_value, g / max_value, b / max_value, a / max_value);
     }
 
     constexpr Color grayscale() const
     {
-        auto const [_, rn, gn, bn] = normalize();
+        auto const [rn, gn, bn, _] = normalize();
         auto const y               = static_cast<uint8_t>((0.299 * rn + 0.587 * gn + 0.114 * bn) * 255.0);
 
         return Color {a, y, y, y};

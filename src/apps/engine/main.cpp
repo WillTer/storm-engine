@@ -181,7 +181,7 @@ try {
     auto old_time = SDL_GetTicks();
 
     renderer->start_frame();
-    progress_image_view->present(0);
+    progress_image_view->present();
     renderer->end_frame();
 
     auto const menu_texture_asset = asset_server->load_texture_file("loading/outsidelsc.tga.tx");
@@ -193,6 +193,8 @@ try {
         SDL_FlushEvents(0, SDL_EVENT_LAST);
 
         if (is_active || window_info.run_in_background) {
+            progress_image_view->update(SDL_GetTicks() - old_time);
+
             if (window_info.max_fps != 0U) {
                 auto const ms       = 1000U / window_info.max_fps;
                 auto const new_time = SDL_GetTicks();
@@ -202,7 +204,7 @@ try {
 
             renderer->start_frame();
             is_running = run_frame_with_overflow_check();
-            progress_image_view->present(0);
+            progress_image_view->present();
             renderer->end_frame();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

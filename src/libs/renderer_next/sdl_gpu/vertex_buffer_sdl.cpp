@@ -12,6 +12,7 @@ using namespace storm;
 VertexBufferSDL::VertexBufferSDL(
     RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, void const* vertex_data, uint32_t vertex_data_size)
     : m_renderer(renderer)
+    , m_buffer(std::make_unique<BufferSDL>(renderer))
 {
     auto const device = m_renderer.get_device();
 
@@ -19,10 +20,11 @@ VertexBufferSDL::VertexBufferSDL(
     vertex_buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
     vertex_buffer_create_info.size  = vertex_data_size;
 
-    m_buffer = std::shared_ptr<SDL_GPUBuffer>(SDL_CreateGPUBuffer(device.get(), &vertex_buffer_create_info), [device](SDL_GPUBuffer* p) {
-        SDL_ReleaseGPUBuffer(device.get(), p);
-    });
-    if (!m_buffer) { throw std::runtime_error(std::format("Failed to create vertex buffer: {}", SDL_GetError())); }
+    auto const buffer =
+        std::shared_ptr<SDL_GPUBuffer>(SDL_CreateGPUBuffer(device.get(), &vertex_buffer_create_info), [device](SDL_GPUBuffer* p) {
+            SDL_ReleaseGPUBuffer(device.get(), p);
+        });
+    if (!buffer) { throw std::runtime_error(std::format("Failed to create vertex buffer: {}", SDL_GetError())); }
 
     auto vertex_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
     vertex_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -42,11 +44,13 @@ VertexBufferSDL::VertexBufferSDL(
         .offset          = 0,
     };
     auto const vertex_buffer_region = SDL_GPUBufferRegion {
-        .buffer = m_buffer.get(),
+        .buffer = buffer.get(),
         .offset = 0,
         .size   = vertex_data_size,
     };
     SDL_UploadToGPUBuffer(copy_pass.get(), &vertex_transfer_location, &vertex_buffer_region, false);
+
+    m_buffer->set_gpu_buffer(buffer);
 }
 
 VertexBufferSDL::~VertexBufferSDL() = default;
@@ -57,7 +61,12 @@ void VertexBufferSDL::bind_to_render_pass() const
     assert(render_pass);
 
     auto vertex_binding   = SDL_GPUBufferBinding {};
-    vertex_binding.buffer = m_buffer.get();
+    vertex_binding.buffer = m_buffer->get_gpu_buffer().get();
     vertex_binding.offset = 0;
     SDL_BindGPUVertexBuffers(render_pass.get(), 0, &vertex_binding, 1);
+}
+
+void VertexBufferSDL::update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t const stride)
+{
+    m_buffer->update_data(update_info, data, stride);
 }

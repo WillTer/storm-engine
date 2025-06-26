@@ -6,6 +6,8 @@
 #include <SDL3/SDL_gpu.h>
 #include <libs/renderer_next/i_buffer.h>
 
+#include "buffer_sdl.h"
+
 namespace storm
 {
 
@@ -22,10 +24,11 @@ public:
 
     void draw_indexed() const override;
 
-private:
-    RendererSDL& m_renderer;
+    void update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t stride) override;
 
-    std::shared_ptr<SDL_GPUBuffer> m_buffer = nullptr;
+private:
+    RendererSDL&               m_renderer;
+    std::unique_ptr<BufferSDL> m_buffer = nullptr;
 
     uint32_t m_index_count = 0;
 };

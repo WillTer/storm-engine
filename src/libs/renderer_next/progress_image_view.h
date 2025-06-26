@@ -9,6 +9,8 @@
 #include <glm/mat4x4.hpp>
 #pragma warning(pop)
 
+#include <libs/config/main_config.h>
+
 namespace storm
 {
 
@@ -23,7 +25,11 @@ public:
     explicit ProgressImageView();
 
     void set_background(std::shared_ptr<ITexture> const& image);
-    void present(uint64_t delta_time) const;
+
+    void update(uint64_t delta_time);
+    void present() const;
+
+    void set_fade_speed(float speed);
 
 private:
     struct UBO {
@@ -36,11 +42,19 @@ private:
     std::shared_ptr<ITexture> m_progress   = nullptr;
     std::shared_ptr<ITexture> m_background = nullptr;
 
-    std::shared_ptr<IBuffer>      m_vertex_buffer = nullptr;
-    std::shared_ptr<IIndexBuffer> m_index_buffer  = nullptr;
+    std::shared_ptr<IBuffer>      m_vertex_buffer_back     = nullptr;
+    std::shared_ptr<IBuffer>      m_vertex_buffer_progress = nullptr;
+    std::shared_ptr<IIndexBuffer> m_index_buffer           = nullptr;
 
     UBO m_progress_ubo;
     UBO m_background_ubo;
+
+    ProgressImageInfo m_progress_info;
+
+    float m_background_alpha = 0.0F;
+    float m_fade_speed       = 1.0F;
+
+    uint32_t m_current_frame = 0;
 };
 
 }  // namespace storm
