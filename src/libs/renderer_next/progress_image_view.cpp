@@ -192,13 +192,13 @@ void ProgressImageView::process_progress()
 
     std::array const progress_tex_buffer = {
         // left-top
-        FPoint {fx / x_count, fy / y_count},
+        decltype(VertexBase::uv)(fx / x_count, fy / y_count),
         // right-top
-        FPoint {(fx + 1) / x_count, fy / y_count},
+        decltype(VertexBase::uv)((fx + 1) / x_count, fy / y_count),
         // right-bottom
-        FPoint {(fx + 1) / x_count, (fy + 1) / y_count},
+        decltype(VertexBase::uv)((fx + 1) / x_count, (fy + 1) / y_count),
         // left-bottom
-        FPoint {fx / x_count, (fy + 1) / y_count},
+        decltype(VertexBase::uv)(fx / x_count, (fy + 1) / y_count),
     };
 
     auto const progress_update_info = std::vector(4, BufferUpdateInfo {.offset = offsetof(VertexBase, uv), .size = sizeof(VertexBase::uv)});

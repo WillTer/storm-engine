@@ -21,8 +21,8 @@ public:
     RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader);
     ~RendererSDL() override;
 
-    void bind_window(std::any const& window_raw);
-    void unbind_window(std::any const& window_raw);
+    void bind_window(std::any const& window_raw) override;
+    void unbind_window(std::any const& window_raw) override;
 
     [[nodiscard]] std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) override;
 

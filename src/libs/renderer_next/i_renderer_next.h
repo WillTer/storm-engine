@@ -1,7 +1,8 @@
 #pragma once
 
 #include <any>
-#include <cstdint>
+
+#include <libs/renderer_next/types.h>
 
 #include "vertex.h"
 

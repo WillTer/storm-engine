@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "types.h"
+#include "hlslpp.h"
 
 namespace storm
 {
@@ -70,8 +70,8 @@ struct VertexDescription {
 };
 
 struct VertexBase {
-    FPoint3D position;
-    FPoint   uv;
+    hlsl::float3 position;
+    hlsl::float2 uv;
 
     static std::vector<VertexAttribute> attributes()
     {
@@ -90,8 +90,8 @@ struct VertexBase {
 };
 
 struct VertexWithDiffuse {
-    VertexBase base;
-    FColor     diffuse;
+    VertexBase   base;
+    hlsl::float4 diffuse;
 
     static std::vector<VertexAttribute> attributes()
     {
