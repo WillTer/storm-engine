@@ -12,6 +12,11 @@
 
 #include <libs/core/entity.h>
 
+namespace storm
+{
+class FaderPostProcess;
+}
+
 class Fader final: public Entity
 {
     // --------------------------------------------------------------------------------------------
@@ -43,19 +48,15 @@ public:
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
-    bool  isWork;
-    bool  haveFrame;
-    bool  fadeIn;
-    bool  isStart;
-    bool  isAutodelete;
-    bool  endFade;
-    float fadeSpeed;
-    float alpha;
-    float w, h;
+    bool fadeIn;
+    bool isStart;
+    bool isAutodelete;
 
     bool    eventStart;
     bool    eventEnd;
     int32_t deleteMe;
+
+    std::shared_ptr<storm::FaderPostProcess> m_fader_render;
 
 public:
     static int32_t numberOfTips;

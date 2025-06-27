@@ -38,38 +38,15 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 }  // namespace
 
 TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, TextureAsset const& asset)
-    : m_renderer(renderer)
+    : TextureSDL(
+          renderer,
+          asset.header.width,
+          asset.header.height,
+          asset.header.mip_levels,
+          convert_tx_format(asset.header.format),
+          SDL_GPU_TEXTUREUSAGE_SAMPLER)
 {
     auto const& device = renderer.get_device();
-
-    auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
-    sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
-    sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
-    sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-    sampler_create_info.enable_anisotropy = true;   // FIXME: configurable
-    sampler_create_info.max_anisotropy    = 16.0F;  // FIXME: configurable
-
-    m_sampler = std::shared_ptr<SDL_GPUSampler>(
-        SDL_CreateGPUSampler(device.get(), &sampler_create_info), [device](SDL_GPUSampler* p) { SDL_ReleaseGPUSampler(device.get(), p); });
-
-    if (!m_sampler) { throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError())); }
-
-    // TODO: support cubemaps (array too?)
-    auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
-    texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
-    texture_create_info.format               = convert_tx_format(asset.header.format);
-    texture_create_info.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    texture_create_info.width                = asset.header.width;
-    texture_create_info.height               = asset.header.height;
-    texture_create_info.layer_count_or_depth = 1;
-    texture_create_info.num_levels           = asset.header.mip_levels;
-
-    m_texture = std::shared_ptr<SDL_GPUTexture>(
-        SDL_CreateGPUTexture(device.get(), &texture_create_info), [device](SDL_GPUTexture* p) { SDL_ReleaseGPUTexture(device.get(), p); });
-    if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
 
     auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
     texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -99,17 +76,87 @@ TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> c
         .x         = 0,
         .y         = 0,
         .z         = 0,
-        .w         = asset.header.width,
-        .h         = asset.header.height,
+        .w         = m_width,
+        .h         = m_height,
         .d         = 1,
     };
     SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
+}
 
-    m_width  = asset.header.width;
-    m_height = asset.header.height;
+TextureSDL::TextureSDL(
+    RendererSDL&                   renderer,
+    uint32_t const                 width,
+    uint32_t const                 height,
+    uint32_t const                 mip_levels,
+    SDL_GPUTextureFormat const     format,
+    SDL_GPUTextureUsageFlags const usage)
+    : m_renderer(renderer)
+    , m_width(width)
+    , m_height(height)
+{
+    auto const& device = renderer.get_device();
+
+    auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
+    sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
+    sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
+    sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
+    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+    sampler_create_info.enable_anisotropy = true;   // FIXME: configurable
+    sampler_create_info.max_anisotropy    = 16.0F;  // FIXME: configurable
+
+    m_sampler = std::shared_ptr<SDL_GPUSampler>(
+        SDL_CreateGPUSampler(device.get(), &sampler_create_info), [device](SDL_GPUSampler* p) { SDL_ReleaseGPUSampler(device.get(), p); });
+
+    if (!m_sampler) { throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError())); }
+
+    auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
+    texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
+    texture_create_info.format               = format;
+    texture_create_info.usage                = usage;
+    texture_create_info.width                = m_width;
+    texture_create_info.height               = m_height;
+    texture_create_info.layer_count_or_depth = 1;
+    texture_create_info.num_levels           = mip_levels;
+
+    m_texture = std::shared_ptr<SDL_GPUTexture>(
+        SDL_CreateGPUTexture(device.get(), &texture_create_info), [device](SDL_GPUTexture* p) { SDL_ReleaseGPUTexture(device.get(), p); });
+    if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
 }
 
 TextureSDL::~TextureSDL() = default;
+
+void TextureSDL::start_render_pass(bool const clear)
+{
+    auto const& command_buffer = m_renderer.get_current_command_buffer();
+    if (!command_buffer) {
+        spdlog::error("No active command buffer on render pass start");
+        return;
+    }
+
+    if (m_renderer.get_current_render_pass()) {
+        spdlog::error("Render pass already started");
+        return;
+    }
+
+    auto color_target_info        = SDL_GPUColorTargetInfo {};
+    color_target_info.texture     = m_texture.get();
+    color_target_info.clear_color = {0.0F, 0.0F, 0.0F, 1.0F};  // Black
+    color_target_info.load_op     = clear ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+    color_target_info.store_op    = SDL_GPU_STOREOP_STORE;
+
+    auto const render_pass = std::shared_ptr<SDL_GPURenderPass>(
+        SDL_BeginGPURenderPass(command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
+    if (!render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
+
+    m_renderer.start_render_pass(render_pass);
+}
+
+void TextureSDL::end_render_pass()
+{
+    m_renderer.end_render_pass();
+}
 
 void TextureSDL::bind_to_render_pass() const
 {

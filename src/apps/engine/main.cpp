@@ -11,7 +11,8 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
-#include <libs/renderer_next/progress_image_view.h>
+#include <libs/renderer_next/draw_texture.h>
+#include <libs/renderer_next/progress_image_scene.h>
 #include <libs/renderer_next/sdl_gpu/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
@@ -156,9 +157,10 @@ try {
     window->Subscribe(handle_window_event);
     window->Show();
 
-    auto progress_image_view = std::make_shared<storm::ProgressImageView>(asset_server, config_loader, renderer);
+    auto progress_image_view = std::make_shared<storm::ProgressImageScene>(asset_server, config_loader, renderer);
     core_internal            = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer, progress_image_view);
     core                     = core_internal;
+    progress_image_view->set_post_processor(std::make_shared<storm::DrawTexture>());  // Actual draw
     progress_image_view.reset();
 
     // Init stash

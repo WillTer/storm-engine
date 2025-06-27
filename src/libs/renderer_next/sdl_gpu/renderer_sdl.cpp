@@ -109,6 +109,24 @@ std::unique_ptr<ITexture> RendererSDL::load_texture(TextureAsset const& asset)
     return std::make_unique<TextureSDL>(*this, copy_pass, asset);
 }
 
+std::unique_ptr<ITextureTarget> RendererSDL::create_texture_target()
+{
+    return std::make_unique<TextureSDL>(
+        *this,
+        static_cast<uint32_t>(m_viewport.w),
+        static_cast<uint32_t>(m_viewport.h),
+        1,
+        SDL_GetGPUSwapchainTextureFormat(m_device.get(), m_window),
+        SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
+}
+
+ITextureTarget& RendererSDL::get_default_texture_target()
+{
+    if (!m_default_texture_target) { m_default_texture_target = create_texture_target(); }
+
+    return *m_default_texture_target;
+}
+
 std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
     std::vector<VertexAttribute> const&   vertex_attributes,
     std::vector<VertexDescription> const& vertex_descriptions,
@@ -146,32 +164,47 @@ void RendererSDL::start_frame()
     m_current_command_buffer =
         std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     if (!m_current_command_buffer) { spdlog::error("Acquire GPU command buffer failed: {}", SDL_GetError()); }
+
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(m_current_command_buffer.get(), m_window, &m_swapchain_texture, nullptr, nullptr)
+        || m_swapchain_texture == nullptr) {
+        spdlog::error("Acquire GPU swapchain texture failed: {}", SDL_GetError());
+        return;
+    }
+
+    auto color_target_info        = SDL_GPUColorTargetInfo {};
+    color_target_info.texture     = m_swapchain_texture;
+    color_target_info.clear_color = {0.0F, 0.0F, 0.0F, 1.0F};  // Black
+    color_target_info.load_op     = SDL_GPU_LOADOP_CLEAR;
+    color_target_info.store_op    = SDL_GPU_STOREOP_STORE;
+
+    // Clear screen pass
+    auto render_pass = std::shared_ptr<SDL_GPURenderPass>(
+        SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
+    if (!render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
 }
 
 void RendererSDL::end_frame()
 {
+    m_swapchain_texture = nullptr;
     m_current_command_buffer.reset();
 }
 
-void RendererSDL::start_pass()
+void RendererSDL::start_render_pass()
 {
     if (!m_current_command_buffer) {
         spdlog::error("No active command buffer on start_pass");
         return;
     }
 
-    SDL_GPUTexture* swapchain_texture = nullptr;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(m_current_command_buffer.get(), m_window, &swapchain_texture, nullptr, nullptr)
-        || swapchain_texture == nullptr) {
-        spdlog::error("Acquire GPU swapchain texture failed: {}", SDL_GetError());
+    if (m_current_render_pass) {
+        spdlog::error("Render pass already started");
         return;
     }
 
-    auto color_target_info        = SDL_GPUColorTargetInfo {};
-    color_target_info.texture     = swapchain_texture;
-    color_target_info.clear_color = {0.0F, 0.0F, 0.0F, 1.0F};  // Black
-    color_target_info.load_op     = SDL_GPU_LOADOP_CLEAR;
-    color_target_info.store_op    = SDL_GPU_STOREOP_STORE;
+    auto color_target_info     = SDL_GPUColorTargetInfo {};
+    color_target_info.texture  = m_swapchain_texture;
+    color_target_info.load_op  = SDL_GPU_LOADOP_LOAD;  // Load texture state from previous pass
+    color_target_info.store_op = SDL_GPU_STOREOP_STORE;
 
     m_current_render_pass = std::shared_ptr<SDL_GPURenderPass>(
         SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
@@ -180,7 +213,7 @@ void RendererSDL::start_pass()
     SDL_SetGPUViewport(m_current_render_pass.get(), &m_viewport);
 }
 
-void RendererSDL::end_pass()
+void RendererSDL::end_render_pass()
 {
     m_current_render_pass.reset();
 }
@@ -195,10 +228,16 @@ FRect RendererSDL::get_viewport() const
     };
 }
 
-void RendererSDL::push_vertex_unform_data(uint32_t const slot, void const* data, uint32_t const data_size)
+void RendererSDL::push_vertex_uniform_data(uint32_t const slot, void const* data, uint32_t const data_size)
 {
     assert(m_current_command_buffer);
     SDL_PushGPUVertexUniformData(m_current_command_buffer.get(), slot, data, data_size);
+}
+
+void RendererSDL::push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size)
+{
+    assert(m_current_command_buffer);
+    SDL_PushGPUFragmentUniformData(m_current_command_buffer.get(), slot, data, data_size);
 }
 
 SDL_GPUTextureFormat RendererSDL::get_spawchain_texture_format() const
@@ -216,7 +255,19 @@ std::shared_ptr<SDL_GPUDevice> const& RendererSDL::get_device() const
     return m_device;
 }
 
+std::shared_ptr<SDL_GPUCommandBuffer> const& RendererSDL::get_current_command_buffer() const
+{
+    return m_current_command_buffer;
+}
+
 std::shared_ptr<SDL_GPURenderPass> const& RendererSDL::get_current_render_pass() const
 {
     return m_current_render_pass;
+}
+
+void RendererSDL::start_render_pass(std::shared_ptr<SDL_GPURenderPass> const& texture_render_pass)
+{
+    assert(texture_render_pass);
+    m_current_render_pass = texture_render_pass;
+    SDL_SetGPUViewport(m_current_render_pass.get(), &m_viewport);
 }

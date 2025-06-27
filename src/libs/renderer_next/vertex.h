@@ -69,6 +69,24 @@ struct VertexDescription {
     uint32_t        instance_step_rate;
 };
 
+struct VertexUI {
+    hlsl::float4 position;
+
+    static std::vector<VertexAttribute> attributes()
+    {
+        return {
+            VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexUI, position)},
+        };
+    }
+
+    static std::vector<VertexDescription> descriptions()
+    {
+        return {
+            VertexDescription {.slot = 0, .stride = sizeof(VertexUI), .input_rate = VertexInputRate::Vertex, .instance_step_rate = 0},
+        };
+    }
+};
+
 struct VertexBase {
     hlsl::float3 position;
     hlsl::float2 uv;
@@ -96,9 +114,8 @@ struct VertexWithDiffuse {
     static std::vector<VertexAttribute> attributes()
     {
         auto base_attributes = VertexBase::attributes();
-        base_attributes.emplace_back(
-            VertexAttribute {
-                .location = 2, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexWithDiffuse, diffuse)});
+        base_attributes.emplace_back(VertexAttribute {
+            .location = 2, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexWithDiffuse, diffuse)});
 
         return base_attributes;
     }

@@ -12,7 +12,8 @@
       "description": "base config for inheritance",
       "generator": "Ninja",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_VERIFY_INTERFACE_HEADER_SETS": "ON"
       },
       "environment": {}
     },

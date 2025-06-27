@@ -1,4 +1,4 @@
-#include "progress_image_view.h"
+#include "progress_image_scene.h"
 
 #include <cassert>
 
@@ -7,6 +7,7 @@
 
 #include "i_buffer.h"
 #include "i_pipeline.h"
+#include "i_post_processor.h"
 #include "i_renderer_next.h"
 #include "i_texture.h"
 
@@ -62,7 +63,7 @@ std::pair<float, float> get_loading_picture_offset(FRect const& viewport, float 
 
 }  // namespace
 
-ProgressImageView::ProgressImageView(
+ProgressImageScene::ProgressImageScene(
     std::shared_ptr<AssetServer> const&   asset_server,
     std::shared_ptr<IConfigLoader> const& config_loader,
     std::shared_ptr<RendererNext> const&  renderer)
@@ -98,25 +99,12 @@ ProgressImageView::ProgressImageView(
     // Background always scaled to entire screen
     m_background_ubo.m_model_matrix     = float4x4::scale(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F);
     m_background_ubo.m_view_proj_matrix = proj_mat;
+
+    m_render_target = renderer->create_texture_target();
 }
 
-void ProgressImageView::set_picture(std::shared_ptr<ITexture> const& image)
+void ProgressImageScene::update(uint64_t const /*delta_time*/)
 {
-    assert(image);
-    m_picture = image;
-}
-
-void ProgressImageView::set_background(std::shared_ptr<ITexture> const& image)
-{
-    assert(image);
-    m_background = image;
-}
-
-void ProgressImageView::update(uint64_t const delta_time)
-{
-    // Fader
-    process_fader(delta_time);
-
     // Animated texture
     process_progress();
 
@@ -125,23 +113,23 @@ void ProgressImageView::update(uint64_t const delta_time)
     update_progress_matrices();
 }
 
-void ProgressImageView::present() const
+void ProgressImageScene::render() const
 {
     auto const& renderer = core->get<RendererNext>();
-    renderer->start_pass();
+    m_render_target->start_render_pass();  // Clear texture
 
     m_pipeline->bind_to_render_pass();
     m_index_buffer->bind_to_render_pass();
 
     if (m_background) {
-        renderer->push_vertex_unform_data(0, &m_background_ubo, sizeof(m_background_ubo));
+        renderer->push_vertex_uniform_data(0, &m_background_ubo, sizeof(m_background_ubo));
         m_vertex_buffer_back->bind_to_render_pass();
         m_background->bind_to_render_pass();
         m_index_buffer->draw_indexed();
     }
 
     if (m_picture) {
-        renderer->push_vertex_unform_data(0, &m_picture_ubo, sizeof(m_picture_ubo));
+        renderer->push_vertex_uniform_data(0, &m_picture_ubo, sizeof(m_picture_ubo));
         m_vertex_buffer_back->bind_to_render_pass();
         m_picture->bind_to_render_pass();
         m_index_buffer->draw_indexed();
@@ -151,36 +139,39 @@ void ProgressImageView::present() const
         }
     }
 
-    renderer->push_vertex_unform_data(0, &m_progress_ubo, sizeof(m_progress_ubo));
+    renderer->push_vertex_uniform_data(0, &m_progress_ubo, sizeof(m_progress_ubo));
     m_vertex_buffer_progress->bind_to_render_pass();
     m_progress->bind_to_render_pass();
     m_index_buffer->draw_indexed();
 
-    renderer->end_pass();
+    m_render_target->end_render_pass();
+
+    if (m_post_processor) { m_post_processor->render(*m_render_target); }
 }
 
-void ProgressImageView::set_fade_speed(float const speed)
+void ProgressImageScene::set_post_processor(std::shared_ptr<IPostProcessor> const& post_processor)
 {
-    m_fade_speed = speed;
+    m_post_processor = post_processor;
 }
 
-void ProgressImageView::set_fade_alpha(float const alpha)
+std::shared_ptr<IPostProcessor> ProgressImageScene::get_post_processor() const
 {
-    m_fade_alpha = std::clamp(alpha, 0.0F, 1.0F);
+    return m_post_processor;
 }
 
-void ProgressImageView::process_fader(uint64_t const delta_time)
+void ProgressImageScene::set_picture(std::shared_ptr<ITexture> const& image)
 {
-    auto const alpha_buffer = std::array {m_fade_alpha, m_fade_alpha, m_fade_alpha, m_fade_alpha};
-    auto const info =
-        std::vector(4, BufferUpdateInfo {.offset = offsetof(VertexWithDiffuse, diffuse) + sizeof(float) * 3, .size = sizeof(float)});
-
-    m_vertex_buffer_back->update_data(info, alpha_buffer.data(), sizeof(VertexWithDiffuse));
-
-    m_fade_alpha = std::clamp(m_fade_alpha + delta_time * 0.001F * m_fade_speed, 0.0F, 1.0F);
+    assert(image);
+    m_picture = image;
 }
 
-void ProgressImageView::process_progress()
+void ProgressImageScene::set_background(std::shared_ptr<ITexture> const& image)
+{
+    assert(image);
+    m_background = image;
+}
+
+void ProgressImageScene::process_progress()
 {
     // Position of the current frame
     int32_t const fx = m_current_frame % m_progress_info.h_frames_count;
@@ -205,18 +196,18 @@ void ProgressImageView::process_progress()
     m_vertex_buffer_progress->update_data(progress_update_info, progress_tex_buffer.data(), sizeof(VertexWithDiffuse));
 
     ++m_current_frame;
-    if (m_current_frame >= x_count * y_count) m_current_frame = 0;
+    if (m_current_frame >= x_count * y_count) { m_current_frame = 0; }
 }
 
-void ProgressImageView::update_picture_matrices()
+void ProgressImageScene::update_picture_matrices()
 {
     auto const& renderer = core->get<RendererNext>();
     auto const  viewport = renderer->get_viewport();
 
     auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, ASPECT_RATIO);
 
-    auto const picture_width  = viewport.width() - offset_x * 2;
-    auto const picture_height = viewport.height() - offset_y * 2;
+    auto const picture_width  = viewport.width() - (offset_x * 2);
+    auto const picture_height = viewport.height() - (offset_y * 2);
 
     // Calculate background position
     auto const translation_mat = float4x4::translation(offset_x, offset_y, 0.0F);
@@ -225,7 +216,7 @@ void ProgressImageView::update_picture_matrices()
     m_picture_ubo.m_model_matrix = mul(scale_mat, translation_mat);
 }
 
-void ProgressImageView::update_progress_matrices()
+void ProgressImageScene::update_progress_matrices()
 {
     auto const& renderer = core->get<RendererNext>();
     auto const  viewport = renderer->get_viewport();
@@ -233,12 +224,12 @@ void ProgressImageView::update_progress_matrices()
     // Loading screen textures are made for 4:3 screens
     auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, ASPECT_RATIO);
 
-    auto const picture_width  = viewport.width() - offset_x * 2;
-    auto const picture_height = viewport.height() - offset_y * 2;
+    auto const picture_width  = viewport.width() - (offset_x * 2);
+    auto const picture_height = viewport.height() - (offset_y * 2);
 
     // Calculate progress animation position
     auto const translation_mat = float4x4::translation(
-        picture_width * m_progress_info.relative_x + offset_x, picture_height * m_progress_info.relative_y + offset_y, 0.0F);
+        (picture_width * m_progress_info.relative_x) + offset_x, (picture_height * m_progress_info.relative_y) + offset_y, 0.0F);
 
     auto const scale_mat = float4x4::scale(
         picture_width * m_progress_info.relative_width, picture_height * m_progress_info.relative_height * ASPECT_RATIO, 1.0F);

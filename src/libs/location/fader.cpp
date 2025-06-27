@@ -13,9 +13,10 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
+#include <libs/renderer_next/fader_post_process.h>
 #include <libs/renderer_next/i_renderer_next.h>
 #include <libs/renderer_next/i_texture.h>
-#include <libs/renderer_next/progress_image_view.h>
+#include <libs/renderer_next/progress_image_scene.h>
 #include <libs/shared_headers/messages.h>
 
 // ============================================================================================
@@ -25,15 +26,13 @@
 int32_t Fader::numberOfTips = 0;
 int32_t Fader::currentTips  = -1;
 
-Fader::Fader() : fadeIn(false), isStart(false), isAutodelete(false), fadeSpeed(0), w(0), h(0)
+Fader::Fader() : fadeIn(false), isStart(false), isAutodelete(false)
 {
-    isWork     = false;
-    haveFrame  = false;
-    endFade    = false;
-    alpha      = 0.0f;
     eventStart = false;
     eventEnd   = false;
     deleteMe   = 0;
+
+    m_fader_render = std::make_shared<storm::FaderPostProcess>();
 }
 
 Fader::~Fader() {}
@@ -67,7 +66,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
 {
     auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererNext>();
-    auto const& progress_image = core->get<storm::ProgressImageView>();
+    auto const& progress_image = core->get<storm::ProgressImageScene>();
 
     switch (message.Long()) {
     case FADER_OUT: {
@@ -78,14 +77,12 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         } else {
             fade_speed = 0.0f;
         }
-        progress_image->set_fade_alpha(1.0F);
-        progress_image->set_fade_speed(-fade_speed);
+        m_fader_render->start_fade(1.0, -fade_speed);
+        m_fader_render->set_next(progress_image->get_post_processor());
+        progress_image->set_post_processor(m_fader_render);
 
-        isWork       = true;
-        haveFrame    = false;
         fadeIn       = false;
         isStart      = true;
-        endFade      = false;
         isAutodelete = message.Long() != 0;
         eventStart   = false;
         eventEnd     = false;
@@ -95,34 +92,30 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         float fade_speed = message.Float();
         if (fade_speed < 0.00001f) { fade_speed = 0.00001f; }
         fade_speed = 1.0f / fade_speed;
-        progress_image->set_fade_alpha(0.0F);
-        progress_image->set_fade_speed(fade_speed);
+        m_fader_render->start_fade(0.0F, fade_speed);
+        m_fader_render->set_next(progress_image->get_post_processor());
+        progress_image->set_post_processor(m_fader_render);
 
-        haveFrame    = false;
-        isWork       = true;
         fadeIn       = true;
         isStart      = true;
-        endFade      = false;
         isAutodelete = message.Long() != 0;
-        haveFrame    = false;
         eventStart   = false;
         eventEnd     = false;
     } break;
-    case FADER_STARTFRAME: haveFrame = true; break;
+    case FADER_STARTFRAME: break;
     case FADER_PICTURE: {
         std::string const& name = message.String();
 
         auto const texture = asset_server->load_texture_file(name);
         progress_image->set_picture(renderer->load_texture(texture));
-        break;
-    }
+    } break;
     case FADER_PICTURE0: {
         std::string const& name = message.String();
 
         auto const texture = asset_server->load_texture_file(name);
         progress_image->set_background(renderer->load_texture(texture));
-        break;
-    }
+    } break;
+    default: break;
     }
     return 0;
 }
@@ -155,8 +148,15 @@ void Fader::Execute(uint32_t delta_time)
 
 void Fader::Realize(uint32_t delta_time)
 {
-    if (!isWork) { return; }
     if (isStart) { eventStart = true; }
+
+    m_fader_render->update(delta_time);
+    eventEnd = m_fader_render->is_fade_finished();
+    if (eventEnd) {
+        auto const& progress_image = core->get<storm::ProgressImageScene>();
+        progress_image->set_post_processor(m_fader_render->get_next());
+        m_fader_render->set_next(nullptr);
+    }
 
     isStart = false;
 }

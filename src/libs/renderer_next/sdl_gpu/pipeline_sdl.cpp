@@ -95,7 +95,7 @@ PipelineSDL::PipelineSDL(
     blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
     blend_state.color_blend_op        = SDL_GPU_BLENDOP_ADD;
     blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-    blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+    blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
     blend_state.alpha_blend_op        = SDL_GPU_BLENDOP_ADD;
     blend_state.enable_blend          = true;
 

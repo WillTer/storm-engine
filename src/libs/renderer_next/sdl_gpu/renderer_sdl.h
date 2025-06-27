@@ -24,7 +24,9 @@ public:
     void bind_window(std::any const& window_raw) override;
     void unbind_window(std::any const& window_raw) override;
 
-    [[nodiscard]] std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) override;
+    [[nodiscard]] std::unique_ptr<ITexture>       load_texture(TextureAsset const& asset) override;
+    [[nodiscard]] std::unique_ptr<ITextureTarget> create_texture_target() override;
+    [[nodiscard]] ITextureTarget&                 get_default_texture_target() override;
 
     [[nodiscard]] std::unique_ptr<IPipeline> create_pipeline(
         std::vector<VertexAttribute> const&   vertex_attributes,
@@ -41,17 +43,21 @@ public:
     void start_frame() override;
     void end_frame() override;
 
-    void start_pass() override;
-    void end_pass() override;
+    void start_render_pass() override;
+    void end_render_pass() override;
 
     FRect get_viewport() const override;
 
-    void push_vertex_unform_data(uint32_t slot, void const* data, uint32_t data_size) override;
+    void push_vertex_uniform_data(uint32_t slot, void const* data, uint32_t data_size) override;
+    void push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size) override;
 
     SDL_GPUTextureFormat get_spawchain_texture_format() const;
 
-    std::shared_ptr<SDL_GPUDevice> const&     get_device() const;
-    std::shared_ptr<SDL_GPURenderPass> const& get_current_render_pass() const;
+    std::shared_ptr<SDL_GPUDevice> const&        get_device() const;
+    std::shared_ptr<SDL_GPUCommandBuffer> const& get_current_command_buffer() const;
+    std::shared_ptr<SDL_GPURenderPass> const&    get_current_render_pass() const;
+
+    void start_render_pass(std::shared_ptr<SDL_GPURenderPass> const& texture_render_pass);
 
 private:
     std::string m_backend;
@@ -63,6 +69,10 @@ private:
 
     std::shared_ptr<SDL_GPUCommandBuffer> m_current_command_buffer = nullptr;
     std::shared_ptr<SDL_GPURenderPass>    m_current_render_pass    = nullptr;
+
+    std::shared_ptr<ITextureTarget> m_default_texture_target = nullptr;
+
+    SDL_GPUTexture* m_swapchain_texture = nullptr;
 };
 
 }  // namespace storm

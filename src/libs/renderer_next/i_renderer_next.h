@@ -16,6 +16,7 @@ class IBuffer;
 class IIndexBuffer;
 class IPipeline;
 class ITexture;
+class ITextureTarget;
 
 template <typename T>
 concept has_shader_layout = std::is_standard_layout_v<T> && requires() {
@@ -38,7 +39,9 @@ public:
     virtual void bind_window(std::any const& window_handler_internal)   = 0;
     virtual void unbind_window(std::any const& window_handler_internal) = 0;
 
-    [[nodiscard]] virtual std::unique_ptr<ITexture> load_texture(TextureAsset const& asset) = 0;
+    [[nodiscard]] virtual std::unique_ptr<ITexture>       load_texture(TextureAsset const& asset) = 0;
+    [[nodiscard]] virtual std::unique_ptr<ITextureTarget> create_texture_target()                 = 0;
+    [[nodiscard]] virtual ITextureTarget&                 get_default_texture_target()            = 0;
 
     template <typename VertexType>
         requires has_shader_layout<VertexType>
@@ -79,12 +82,13 @@ public:
     virtual void start_frame() = 0;
     virtual void end_frame()   = 0;
 
-    virtual void start_pass() = 0;
-    virtual void end_pass()   = 0;
+    virtual void start_render_pass() = 0;
+    virtual void end_render_pass()   = 0;
 
     virtual FRect get_viewport() const = 0;
 
-    virtual void push_vertex_unform_data(uint32_t slot, void const* data, uint32_t data_size) = 0;
+    virtual void push_vertex_uniform_data(uint32_t slot, void const* data, uint32_t data_size)   = 0;
+    virtual void push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size) = 0;
 };
 
 }  // namespace storm

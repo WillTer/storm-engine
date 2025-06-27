@@ -4,7 +4,7 @@
 #include <libs/core/core.h>
 #include <libs/renderer_next/i_renderer_next.h>
 #include <libs/renderer_next/i_texture.h>
-#include <libs/renderer_next/progress_image_view.h>
+#include <libs/renderer_next/progress_image_scene.h>
 
 InfoHandler::InfoHandler() {}
 
@@ -170,7 +170,7 @@ bool InfoHandler::DoPreOut()
 
     auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererNext>();
-    auto const& progress_image = core->get<storm::ProgressImageView>();
+    auto const& progress_image = core->get<storm::ProgressImageScene>();
     is_ok                      = true;
     if (is_ok) {
         // show picture

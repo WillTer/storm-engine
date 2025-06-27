@@ -9,7 +9,7 @@
 #include <libs/core/v_s_stack.h>
 #include <libs/renderer_next/i_renderer_next.h>
 #include <libs/renderer_next/i_texture.h>
-#include <libs/renderer_next/progress_image_view.h>
+#include <libs/renderer_next/progress_image_scene.h>
 #include <libs/util/string_compare.hpp>
 
 #include "fader.h"
@@ -200,7 +200,7 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
 
     auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererNext>();
-    auto const& progress_image = core->get<storm::ProgressImageView>();
+    auto const& progress_image = core->get<storm::ProgressImageScene>();
 
     auto const texture = asset_server->load_texture_file(nm);
     progress_image->set_picture(renderer->load_texture(texture));
@@ -216,10 +216,10 @@ uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
     auto const& renderer       = core->get<storm::RendererNext>();
-    auto const& progress_image = core->get<storm::ProgressImageView>();
+    auto const& progress_image = core->get<storm::ProgressImageScene>();
     renderer->start_frame();
     progress_image->update(core->GetDeltaTime());
-    progress_image->present();
+    progress_image->render();
     renderer->end_frame();
 
     return IFUNCRESULT_OK;
