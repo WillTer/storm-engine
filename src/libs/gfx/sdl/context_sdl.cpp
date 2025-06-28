@@ -36,7 +36,8 @@ namespace storm::gfx
 {
 
 template <>
-void init_device(ContextSDL& ctx, std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
+auto create_context(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
+    -> std::unique_ptr<ContextSDL>
 {
     assert(asset_server);
     assert(config_loader);
@@ -49,15 +50,18 @@ void init_device(ContextSDL& ctx, std::shared_ptr<AssetServer> const& asset_serv
         backend = DEFAULT_BACKEND;
     }
 
-    ctx.device = std::shared_ptr<SDL_GPUDevice>(
+    auto ctx    = std::make_unique<ContextSDL>();
+    ctx->device = std::shared_ptr<SDL_GPUDevice>(
         SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, backend.c_str()), &SDL_DestroyGPUDevice);
 
-    if (!ctx.device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
+    if (!ctx->device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
 
     asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(backend));
 
-    ctx.viewport           = {};
-    ctx.viewport.max_depth = 1.0F;
+    ctx->viewport           = {};
+    ctx->viewport.max_depth = 1.0F;
+
+    return ctx;
 }
 
 template <>

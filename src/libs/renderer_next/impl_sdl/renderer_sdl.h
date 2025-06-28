@@ -59,14 +59,14 @@ public:
         requires(std::is_same_v<IndexType, uint16_t> || std::is_same_v<IndexType, uint32_t>)
     [[nodiscard]] std::unique_ptr<GPUIndexBuffer> load_index_buffer(std::vector<IndexType> const& buffer)
     {
-        return load_index_buffer(buffer.data(), buffer.size(), sizeof(IndexType));
+        return load_index_buffer(buffer.data(), static_cast<uint32_t>(buffer.size()), sizeof(IndexType));
     }
 
     template <typename VertexType>
         requires has_shader_layout<VertexType>
     [[nodiscard]] std::unique_ptr<GPUVertexBuffer> load_vertex_buffer(std::vector<VertexType> const& buffer)
     {
-        return load_vertex_buffer(buffer.data(), buffer.size());
+        return load_vertex_buffer(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
 
     template <typename DataType>

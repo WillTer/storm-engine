@@ -14,7 +14,8 @@ namespace gfx
 {
 
 template <typename C>
-void init_device(C& ctx, std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader);
+auto create_context(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
+    -> std::unique_ptr<C>;
 
 template <typename C, typename RawWindow>
 void claim_window(C& ctx, RawWindow raw_window);
@@ -22,10 +23,11 @@ void claim_window(C& ctx, RawWindow raw_window);
 template <typename C, typename RawWindow>
 void unclaim_window(C& ctx, RawWindow raw_window);
 
-class ContextSDL;
+struct ContextSDL;
 
 template <>
-void init_device(ContextSDL& ctx, std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader);
+auto create_context(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
+    -> std::unique_ptr<ContextSDL>;
 
 template <>
 void claim_window(ContextSDL& ctx, std::shared_ptr<SDL_Window> const& raw_window);
