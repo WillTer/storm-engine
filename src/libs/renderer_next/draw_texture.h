@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "hlslpp.h"
-#include "i_post_processor.h"
+#include "i_texture_drawer.h"
 
 namespace storm
 {
@@ -13,21 +13,20 @@ class IIndexBuffer;
 class IPipeline;
 class ITexture;
 
-class DrawTexture final: virtual public IPostProcessor
+class DrawTexture: virtual public ITextureDrawer
 {
 public:
     explicit DrawTexture();
+    ~DrawTexture() override;
 
     void update(uint64_t delta_time) override;
-    void render(ITexture& scene_target) const override;
-    void set_next(std::shared_ptr<IPostProcessor> const& next) override;
+    void present(ITexture& source) const override;
 
-    std::shared_ptr<IPostProcessor> get_next() const override;
-
-private:
+protected:
     hlsl::float4x4 m_view_proj_matrix = hlsl::float4x4::identity();
     hlsl::float4   m_color;
 
+private:
     std::shared_ptr<IPipeline> m_pipeline = nullptr;
 
     std::shared_ptr<IBuffer>      m_vertex_buffer = nullptr;

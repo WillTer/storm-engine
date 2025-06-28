@@ -9,6 +9,7 @@
 #include <libs/asset_server/shader_asset.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
+#include <libs/renderer_next/draw_texture.h>
 #include <libs/window/sdl_window.hpp>
 #include <spdlog/spdlog.h>
 
@@ -181,10 +182,16 @@ void RendererSDL::start_frame()
     auto render_pass = std::shared_ptr<SDL_GPURenderPass>(
         SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
     if (!render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
+
+    m_texture_drawer->update(core->GetDeltaTime());
 }
 
 void RendererSDL::end_frame()
 {
+    if (!m_current_command_buffer) { return; }
+
+    m_texture_drawer->present(*m_default_texture_target);
+
     m_swapchain_texture = nullptr;
     m_current_command_buffer.reset();
 }
@@ -238,6 +245,13 @@ void RendererSDL::push_fragment_uniform_data(uint32_t slot, void const* data, ui
 {
     assert(m_current_command_buffer);
     SDL_PushGPUFragmentUniformData(m_current_command_buffer.get(), slot, data, data_size);
+}
+
+void RendererSDL::set_drawer(std::shared_ptr<ITextureDrawer> const& drawer)
+{
+    if (!m_default_texture_drawer) { m_default_texture_drawer = std::make_shared<DrawTexture>(); }
+
+    m_texture_drawer = drawer ? drawer : m_default_texture_drawer;
 }
 
 SDL_GPUTextureFormat RendererSDL::get_spawchain_texture_format() const

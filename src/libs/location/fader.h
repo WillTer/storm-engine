@@ -14,7 +14,7 @@
 
 namespace storm
 {
-class FaderPostProcess;
+class DrawTextureWithFade;
 }
 
 class Fader final: public Entity
@@ -56,7 +56,7 @@ private:
     bool    eventEnd;
     int32_t deleteMe;
 
-    std::shared_ptr<storm::FaderPostProcess> m_fader_render;
+    std::shared_ptr<storm::DrawTextureWithFade> m_fader_render;
 
 public:
     static int32_t numberOfTips;

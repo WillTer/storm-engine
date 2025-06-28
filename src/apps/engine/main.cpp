@@ -160,8 +160,8 @@ try {
     auto progress_image_view = std::make_shared<storm::ProgressImageScene>(asset_server, config_loader, renderer);
     core_internal            = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer, progress_image_view);
     core                     = core_internal;
-    progress_image_view->set_post_processor(std::make_shared<storm::DrawTexture>());  // Actual draw
     progress_image_view.reset();
+    renderer->set_drawer(nullptr);
 
     // Init stash
     create_directories(fs::GetSaveDataPath());

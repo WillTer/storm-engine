@@ -29,10 +29,6 @@ public:
     void update(uint64_t delta_time) override;
     void render() const override;
 
-    void set_post_processor(std::shared_ptr<IPostProcessor> const& post_processor) override;
-
-    std::shared_ptr<IPostProcessor> get_post_processor() const override;
-
     void set_picture(std::shared_ptr<ITexture> const& image);
     void set_background(std::shared_ptr<ITexture> const& image);
 
@@ -54,13 +50,9 @@ private:
     std::shared_ptr<ITexture> m_frame      = nullptr;
     std::shared_ptr<ITexture> m_background = nullptr;
 
-    std::shared_ptr<ITextureTarget> m_render_target = nullptr;
-
     std::shared_ptr<IBuffer>      m_vertex_buffer_back     = nullptr;
     std::shared_ptr<IBuffer>      m_vertex_buffer_progress = nullptr;
     std::shared_ptr<IIndexBuffer> m_index_buffer           = nullptr;
-
-    std::shared_ptr<IPostProcessor> m_post_processor;
 
     UBO m_progress_ubo;
     UBO m_picture_ubo;

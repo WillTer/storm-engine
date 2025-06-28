@@ -63,9 +63,11 @@ DrawTexture::DrawTexture()
     m_color         = float4(1.0F);
 }
 
+DrawTexture::~DrawTexture() = default;
+
 void DrawTexture::update(uint64_t const /*delta_time*/) {}
 
-void DrawTexture::render(ITexture& scene_target) const
+void DrawTexture::present(ITexture& source) const
 {
     auto const& renderer = core->get<RendererNext>();
 
@@ -77,15 +79,8 @@ void DrawTexture::render(ITexture& scene_target) const
 
     renderer->push_vertex_uniform_data(0, &m_view_proj_matrix, sizeof(m_view_proj_matrix));
     renderer->push_fragment_uniform_data(0, &m_color, sizeof(m_color));
-    scene_target.bind_to_render_pass();  // Bind texture that has scene rendered on it
+    source.bind_to_render_pass();  // Bind texture that has scene rendered on it
     m_index_buffer->draw_indexed();
 
     renderer->end_render_pass();
-}
-
-void DrawTexture::set_next(std::shared_ptr<IPostProcessor> const& /*next*/) {}
-
-std::shared_ptr<IPostProcessor> DrawTexture::get_next() const
-{
-    return nullptr;
 }

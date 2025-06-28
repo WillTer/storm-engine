@@ -17,6 +17,7 @@ class IIndexBuffer;
 class IPipeline;
 class ITexture;
 class ITextureTarget;
+class ITextureDrawer;
 
 template <typename T>
 concept has_shader_layout = std::is_standard_layout_v<T> && requires() {
@@ -89,6 +90,8 @@ public:
 
     virtual void push_vertex_uniform_data(uint32_t slot, void const* data, uint32_t data_size)   = 0;
     virtual void push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size) = 0;
+
+    virtual void set_drawer(std::shared_ptr<ITextureDrawer> const& drawer) = 0;
 };
 
 }  // namespace storm

@@ -13,7 +13,7 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/renderer_next/fader_post_process.h>
+#include <libs/renderer_next/draw_texture_with_fade.h>
 #include <libs/renderer_next/i_renderer_next.h>
 #include <libs/renderer_next/i_texture.h>
 #include <libs/renderer_next/progress_image_scene.h>
@@ -32,7 +32,7 @@ Fader::Fader() : fadeIn(false), isStart(false), isAutodelete(false)
     eventEnd   = false;
     deleteMe   = 0;
 
-    m_fader_render = std::make_shared<storm::FaderPostProcess>();
+    m_fader_render = std::make_shared<storm::DrawTextureWithFade>();
 }
 
 Fader::~Fader() {}
@@ -78,8 +78,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
             fade_speed = 0.0f;
         }
         m_fader_render->start_fade(1.0, -fade_speed);
-        m_fader_render->set_next(progress_image->get_post_processor());
-        progress_image->set_post_processor(m_fader_render);
+        renderer->set_drawer(m_fader_render);
 
         fadeIn       = false;
         isStart      = true;
@@ -93,8 +92,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         if (fade_speed < 0.00001f) { fade_speed = 0.00001f; }
         fade_speed = 1.0f / fade_speed;
         m_fader_render->start_fade(0.0F, fade_speed);
-        m_fader_render->set_next(progress_image->get_post_processor());
-        progress_image->set_post_processor(m_fader_render);
+        renderer->set_drawer(m_fader_render);
 
         fadeIn       = true;
         isStart      = true;
@@ -153,9 +151,8 @@ void Fader::Realize(uint32_t delta_time)
     m_fader_render->update(delta_time);
     eventEnd = m_fader_render->is_fade_finished();
     if (eventEnd) {
-        auto const& progress_image = core->get<storm::ProgressImageScene>();
-        progress_image->set_post_processor(m_fader_render->get_next());
-        m_fader_render->set_next(nullptr);
+        auto const& renderer = core->get<storm::RendererNext>();
+        renderer->set_drawer(nullptr);
     }
 
     isStart = false;

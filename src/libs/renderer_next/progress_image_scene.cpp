@@ -7,7 +7,6 @@
 
 #include "i_buffer.h"
 #include "i_pipeline.h"
-#include "i_post_processor.h"
 #include "i_renderer_next.h"
 #include "i_texture.h"
 
@@ -99,8 +98,6 @@ ProgressImageScene::ProgressImageScene(
     // Background always scaled to entire screen
     m_background_ubo.m_model_matrix     = float4x4::scale(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F);
     m_background_ubo.m_view_proj_matrix = proj_mat;
-
-    m_render_target = renderer->create_texture_target();
 }
 
 void ProgressImageScene::update(uint64_t const /*delta_time*/)
@@ -116,7 +113,8 @@ void ProgressImageScene::update(uint64_t const /*delta_time*/)
 void ProgressImageScene::render() const
 {
     auto const& renderer = core->get<RendererNext>();
-    m_render_target->start_render_pass();  // Clear texture
+    auto&       target   = renderer->get_default_texture_target();
+    target.start_render_pass();  // Clear texture
 
     m_pipeline->bind_to_render_pass();
     m_index_buffer->bind_to_render_pass();
@@ -144,19 +142,7 @@ void ProgressImageScene::render() const
     m_progress->bind_to_render_pass();
     m_index_buffer->draw_indexed();
 
-    m_render_target->end_render_pass();
-
-    if (m_post_processor) { m_post_processor->render(*m_render_target); }
-}
-
-void ProgressImageScene::set_post_processor(std::shared_ptr<IPostProcessor> const& post_processor)
-{
-    m_post_processor = post_processor;
-}
-
-std::shared_ptr<IPostProcessor> ProgressImageScene::get_post_processor() const
-{
-    return m_post_processor;
+    target.end_render_pass();
 }
 
 void ProgressImageScene::set_picture(std::shared_ptr<ITexture> const& image)

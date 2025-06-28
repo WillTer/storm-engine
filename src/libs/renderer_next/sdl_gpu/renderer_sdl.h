@@ -51,6 +51,8 @@ public:
     void push_vertex_uniform_data(uint32_t slot, void const* data, uint32_t data_size) override;
     void push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size) override;
 
+    void set_drawer(std::shared_ptr<ITextureDrawer> const& drawer) override;
+
     SDL_GPUTextureFormat get_spawchain_texture_format() const;
 
     std::shared_ptr<SDL_GPUDevice> const&        get_device() const;
@@ -71,6 +73,8 @@ private:
     std::shared_ptr<SDL_GPURenderPass>    m_current_render_pass    = nullptr;
 
     std::shared_ptr<ITextureTarget> m_default_texture_target = nullptr;
+    std::shared_ptr<ITextureDrawer> m_default_texture_drawer = nullptr;
+    std::shared_ptr<ITextureDrawer> m_texture_drawer         = nullptr;
 
     SDL_GPUTexture* m_swapchain_texture = nullptr;
 };
