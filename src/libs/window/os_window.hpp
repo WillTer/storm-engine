@@ -11,7 +11,7 @@ struct WindowSize {
     int height {};
 };
 
-class RendererNext;
+class RendererService;
 
 //! Abstract window
 class IWindow
@@ -75,6 +75,6 @@ public:
 
     //! Create new window
     static std::shared_ptr<IWindow>
-    Create(std::shared_ptr<RendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    Create(std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
 };
 }  // namespace storm

@@ -7,8 +7,8 @@
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
-#include <libs/renderer_next/i_renderer_next.h>
-#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/impl_sdl/gpu_texture.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
 #include <libs/util/string_compare.hpp>
 
@@ -199,7 +199,7 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
 
     auto const& asset_server   = core->get<storm::AssetServer>();
-    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
     auto const texture = asset_server->load_texture_file(nm);
@@ -215,7 +215,7 @@ uint32_t slNativeReloadProgressStart(VS_STACK* pS)
 
 uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
-    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
     renderer->start_frame();
     progress_image->update(core->GetDeltaTime());

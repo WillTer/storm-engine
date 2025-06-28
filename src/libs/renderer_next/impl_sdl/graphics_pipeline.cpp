@@ -1,6 +1,4 @@
-#include "pipeline_sdl.h"
-
-#include <filesystem>
+#include "graphics_pipeline.h"
 
 #include <libs/asset_server/shader_asset.h>
 #include <libs/core/core.h>
@@ -72,8 +70,8 @@ std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<Ver
 
 }  // namespace
 
-PipelineSDL::PipelineSDL(
-    RendererSDL&                          renderer,
+GraphicsPipeline::GraphicsPipeline(
+    RendererService&                      renderer,
     std::vector<VertexAttribute> const&   vertex_attributes,
     std::vector<VertexDescription> const& vertex_descriptions,
     ShaderAsset const&                    vertex_shader_asset,
@@ -135,9 +133,9 @@ PipelineSDL::PipelineSDL(
     if (!m_pipeline) { throw std::runtime_error(std::format("Failed to create GPU GraphicsPipeline: {}", SDL_GetError())); }
 }
 
-PipelineSDL::~PipelineSDL() = default;
+GraphicsPipeline::~GraphicsPipeline() = default;
 
-void PipelineSDL::bind_to_render_pass() const
+void GraphicsPipeline::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
     if (!render_pass) {

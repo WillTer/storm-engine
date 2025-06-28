@@ -2,8 +2,8 @@
 
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
-#include <libs/renderer_next/i_renderer_next.h>
-#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/impl_sdl/gpu_texture.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
 
 InfoHandler::InfoHandler() {}
@@ -169,7 +169,7 @@ bool InfoHandler::DoPreOut()
     // }
 
     auto const& asset_server   = core->get<storm::AssetServer>();
-    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
     is_ok                      = true;
     if (is_ok) {

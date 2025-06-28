@@ -1,6 +1,5 @@
 #include "renderer_sdl.h"
 
-#include <filesystem>
 #include <format>
 #include <memory>
 #include <stdexcept>
@@ -13,10 +12,9 @@
 #include <libs/window/sdl_window.hpp>
 #include <spdlog/spdlog.h>
 
-#include "index_buffer_sdl.h"
-#include "pipeline_sdl.h"
-#include "texture_sdl.h"
-#include "vertex_buffer_sdl.h"
+#include "gpu_index_buffer.h"
+#include "gpu_texture.h"
+#include "gpu_vertex_buffer.h"
 
 using namespace storm;
 
@@ -43,40 +41,35 @@ auto const                 BACKEND_SHADER_EXT = std::unordered_map<std::string, 
 
 }  // namespace
 
-RendererSDL::RendererSDL(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
+RendererService::RendererService(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
 {
     assert(asset_server);
     assert(config_loader);
 
     auto const device_info = main_config::device_info(*config_loader);
 
-    m_backend = device_info.backend;
-    if (!BACKEND_SHADER_EXT.contains(m_backend)) {
-        spdlog::info("Unknown backend value in [device] settings: \"{}\", fallback to \"{}\"", m_backend, DEFAULT_BACKEND);
-        m_backend = DEFAULT_BACKEND;
+    auto backend = device_info.backend;
+    if (!BACKEND_SHADER_EXT.contains(backend)) {
+        spdlog::info("Unknown backend value in [device] settings: \"{}\", fallback to \"{}\"", backend, DEFAULT_BACKEND);
+        backend = DEFAULT_BACKEND;
     }
 
     m_device = std::shared_ptr<SDL_GPUDevice>(
-        SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, m_backend.c_str()),
-        &SDL_DestroyGPUDevice);
+        SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, backend.c_str()), &SDL_DestroyGPUDevice);
 
     if (!m_device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
 
-    asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(m_backend));
+    asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(backend));
 
     m_viewport.min_depth = 0.0F;
     m_viewport.max_depth = 1.0F;
 }
 
-RendererSDL::~RendererSDL() = default;
+RendererService::~RendererService() = default;
 
-void RendererSDL::bind_window(std::any const& window_raw)
+void RendererService::bind_window(SDL_Window* raw_window)
 {
-    try {
-        m_window = std::any_cast<SDL_Window*>(window_raw);
-    } catch (std::bad_any_cast const&) {
-        throw std::runtime_error("Only SDL window is supported for SDL_GPU API");
-    }
+    m_window = raw_window;
 
     if (!SDL_ClaimWindowForGPUDevice(m_device.get(), m_window)) {
         throw std::runtime_error(std::format("Can't claim window for device: {}", SDL_GetError()));
@@ -90,29 +83,27 @@ void RendererSDL::bind_window(std::any const& window_raw)
     m_viewport.h = static_cast<float>(height);
 }
 
-void RendererSDL::unbind_window(std::any const& window_raw)
-try {
-    if (std::any_cast<SDL_Window*>(window_raw) != m_window) {
+void RendererService::unbind_window(SDL_Window* raw_window)
+{
+    if (raw_window != m_window) {
         spdlog::warn("Trying to unbind wrong window from renderer");
         return;
     }
 
     SDL_ReleaseWindowFromGPUDevice(m_device.get(), m_window);
     m_window = nullptr;
-} catch (std::bad_any_cast const&) {
-    throw std::runtime_error("Only SDL window is supported for SDL_GPU API");
 }
 
-std::unique_ptr<ITexture> RendererSDL::load_texture(TextureAsset const& asset)
+std::unique_ptr<GPUTexture> RendererService::load_texture(TextureAsset const& asset)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<TextureSDL>(*this, copy_pass, asset);
+    return std::make_unique<GPUTexture>(*this, copy_pass, asset);
 }
 
-std::unique_ptr<ITextureTarget> RendererSDL::create_texture_target()
+std::unique_ptr<GPUTexture> RendererService::create_texture_target()
 {
-    return std::make_unique<TextureSDL>(
+    return std::make_unique<GPUTexture>(
         *this,
         static_cast<uint32_t>(m_viewport.w),
         static_cast<uint32_t>(m_viewport.h),
@@ -121,14 +112,14 @@ std::unique_ptr<ITextureTarget> RendererSDL::create_texture_target()
         SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
 }
 
-ITextureTarget& RendererSDL::get_default_texture_target()
+GPUTexture& RendererService::get_render_target()
 {
-    if (!m_default_texture_target) { m_default_texture_target = create_texture_target(); }
+    if (!m_render_target) { m_render_target = create_texture_target(); }
 
-    return *m_default_texture_target;
+    return *m_render_target;
 }
 
-std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
+std::unique_ptr<GraphicsPipeline> RendererService::create_pipeline(
     std::vector<VertexAttribute> const&   vertex_attributes,
     std::vector<VertexDescription> const& vertex_descriptions,
     ShaderAsset const&                    vertex_shader_asset,
@@ -136,7 +127,7 @@ std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
     ShaderAsset const&                    fragment_shader_asset,
     ShaderInfo const&                     fragment_shader_info)
 {
-    return std::make_unique<PipelineSDL>(
+    return std::make_unique<GraphicsPipeline>(
         *this,
         vertex_attributes,
         vertex_descriptions,
@@ -146,21 +137,21 @@ std::unique_ptr<IPipeline> RendererSDL::create_pipeline(
         fragment_shader_info);
 }
 
-std::unique_ptr<IIndexBuffer> RendererSDL::load_index_buffer(std::vector<uint16_t> const& buffer)
+std::unique_ptr<GPUIndexBuffer> RendererService::load_index_buffer(void const* data, uint32_t data_size, uint32_t index_size)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<IndexBufferSDL>(*this, copy_pass, buffer);
+    return std::make_unique<GPUIndexBuffer>(*this, copy_pass, data, data_size, index_size);
 }
 
-std::unique_ptr<IBuffer> RendererSDL::load_vertex_buffer(void const* data, uint32_t const data_size)
+std::unique_ptr<GPUVertexBuffer> RendererService::load_vertex_buffer(void const* data, uint32_t const data_size)
 {
     auto const cmd_buffer = std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
     auto const copy_pass  = std::shared_ptr<SDL_GPUCopyPass>(SDL_BeginGPUCopyPass(cmd_buffer.get()), &SDL_EndGPUCopyPass);
-    return std::make_unique<VertexBufferSDL>(*this, copy_pass, data, data_size);
+    return std::make_unique<GPUVertexBuffer>(*this, copy_pass, data, data_size);
 }
 
-void RendererSDL::start_frame()
+void RendererService::start_frame()
 {
     m_current_command_buffer =
         std::shared_ptr<SDL_GPUCommandBuffer>(SDL_AcquireGPUCommandBuffer(m_device.get()), &SDL_SubmitGPUCommandBuffer);
@@ -182,21 +173,17 @@ void RendererSDL::start_frame()
     auto render_pass = std::shared_ptr<SDL_GPURenderPass>(
         SDL_BeginGPURenderPass(m_current_command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
     if (!render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
-
-    m_texture_drawer->update(core->GetDeltaTime());
 }
 
-void RendererSDL::end_frame()
+void RendererService::end_frame()
 {
     if (!m_current_command_buffer) { return; }
-
-    m_texture_drawer->present(*m_default_texture_target);
 
     m_swapchain_texture = nullptr;
     m_current_command_buffer.reset();
 }
 
-void RendererSDL::start_render_pass()
+void RendererService::start_render_pass()
 {
     if (!m_current_command_buffer) {
         spdlog::error("No active command buffer on start_pass");
@@ -220,12 +207,12 @@ void RendererSDL::start_render_pass()
     SDL_SetGPUViewport(m_current_render_pass.get(), &m_viewport);
 }
 
-void RendererSDL::end_render_pass()
+void RendererService::end_render_pass()
 {
     m_current_render_pass.reset();
 }
 
-FRect RendererSDL::get_viewport() const
+FRect RendererService::get_viewport() const
 {
     return FRect {
         .left   = m_viewport.x,
@@ -235,26 +222,19 @@ FRect RendererSDL::get_viewport() const
     };
 }
 
-void RendererSDL::push_vertex_uniform_data(uint32_t const slot, void const* data, uint32_t const data_size)
+void RendererService::push_vertex_uniform_data(uint32_t const slot, void const* data, uint32_t const data_size)
 {
     assert(m_current_command_buffer);
     SDL_PushGPUVertexUniformData(m_current_command_buffer.get(), slot, data, data_size);
 }
 
-void RendererSDL::push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size)
+void RendererService::push_fragment_uniform_data(uint32_t slot, void const* data, uint32_t data_size)
 {
     assert(m_current_command_buffer);
     SDL_PushGPUFragmentUniformData(m_current_command_buffer.get(), slot, data, data_size);
 }
 
-void RendererSDL::set_drawer(std::shared_ptr<ITextureDrawer> const& drawer)
-{
-    if (!m_default_texture_drawer) { m_default_texture_drawer = std::make_shared<DrawTexture>(); }
-
-    m_texture_drawer = drawer ? drawer : m_default_texture_drawer;
-}
-
-SDL_GPUTextureFormat RendererSDL::get_spawchain_texture_format() const
+SDL_GPUTextureFormat RendererService::get_spawchain_texture_format() const
 {
     if (m_window == nullptr) {
         spdlog::error("Trying to get swapchain texture format while window is not claimed");
@@ -264,22 +244,22 @@ SDL_GPUTextureFormat RendererSDL::get_spawchain_texture_format() const
     return SDL_GetGPUSwapchainTextureFormat(m_device.get(), m_window);
 }
 
-std::shared_ptr<SDL_GPUDevice> const& RendererSDL::get_device() const
+std::shared_ptr<SDL_GPUDevice> const& RendererService::get_device() const
 {
     return m_device;
 }
 
-std::shared_ptr<SDL_GPUCommandBuffer> const& RendererSDL::get_current_command_buffer() const
+std::shared_ptr<SDL_GPUCommandBuffer> const& RendererService::get_current_command_buffer() const
 {
     return m_current_command_buffer;
 }
 
-std::shared_ptr<SDL_GPURenderPass> const& RendererSDL::get_current_render_pass() const
+std::shared_ptr<SDL_GPURenderPass> const& RendererService::get_current_render_pass() const
 {
     return m_current_render_pass;
 }
 
-void RendererSDL::start_render_pass(std::shared_ptr<SDL_GPURenderPass> const& texture_render_pass)
+void RendererService::start_render_pass(std::shared_ptr<SDL_GPURenderPass> const& texture_render_pass)
 {
     assert(texture_render_pass);
     m_current_render_pass = texture_render_pass;

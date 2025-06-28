@@ -1,6 +1,4 @@
-#include "vertex_buffer_sdl.h"
-
-#include <filesystem>
+#include "gpu_vertex_buffer.h"
 
 #include <libs/core/core.h>
 #include <spdlog/spdlog.h>
@@ -9,10 +7,10 @@
 
 using namespace storm;
 
-VertexBufferSDL::VertexBufferSDL(
-    RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, void const* vertex_data, uint32_t vertex_data_size)
+GPUVertexBuffer::GPUVertexBuffer(
+    RendererService& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, void const* vertex_data, uint32_t vertex_data_size)
     : m_renderer(renderer)
-    , m_buffer(std::make_unique<BufferSDL>(renderer))
+    , m_buffer(std::make_unique<GPUBuffer>(renderer))
 {
     auto const device = m_renderer.get_device();
 
@@ -53,9 +51,9 @@ VertexBufferSDL::VertexBufferSDL(
     m_buffer->set_gpu_buffer(buffer);
 }
 
-VertexBufferSDL::~VertexBufferSDL() = default;
+GPUVertexBuffer::~GPUVertexBuffer() = default;
 
-void VertexBufferSDL::bind_to_render_pass() const
+void GPUVertexBuffer::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
     assert(render_pass);
@@ -66,7 +64,7 @@ void VertexBufferSDL::bind_to_render_pass() const
     SDL_BindGPUVertexBuffers(render_pass.get(), 0, &vertex_binding, 1);
 }
 
-void VertexBufferSDL::update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t const stride)
+void GPUVertexBuffer::update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t const stride)
 {
     m_buffer->update_data(update_info, data, stride);
 }

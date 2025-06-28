@@ -14,8 +14,8 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/renderer_next/draw_texture_with_fade.h>
-#include <libs/renderer_next/i_renderer_next.h>
-#include <libs/renderer_next/i_texture.h>
+#include <libs/renderer_next/impl_sdl/gpu_texture.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
 #include <libs/shared_headers/messages.h>
 
@@ -65,7 +65,7 @@ bool Fader::Init()
 uint64_t Fader::ProcessMessage(MESSAGE& message)
 {
     auto const& asset_server   = core->get<storm::AssetServer>();
-    auto const& renderer       = core->get<storm::RendererNext>();
+    auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
     switch (message.Long()) {
@@ -78,7 +78,6 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
             fade_speed = 0.0f;
         }
         m_fader_render->start_fade(1.0, -fade_speed);
-        renderer->set_drawer(m_fader_render);
 
         fadeIn       = false;
         isStart      = true;
@@ -92,7 +91,6 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         if (fade_speed < 0.00001f) { fade_speed = 0.00001f; }
         fade_speed = 1.0f / fade_speed;
         m_fader_render->start_fade(0.0F, fade_speed);
-        renderer->set_drawer(m_fader_render);
 
         fadeIn       = true;
         isStart      = true;
@@ -150,10 +148,7 @@ void Fader::Realize(uint32_t delta_time)
 
     m_fader_render->update(delta_time);
     eventEnd = m_fader_render->is_fade_finished();
-    if (eventEnd) {
-        auto const& renderer = core->get<storm::RendererNext>();
-        renderer->set_drawer(nullptr);
-    }
+    if (eventEnd) {}
 
     isStart = false;
 }

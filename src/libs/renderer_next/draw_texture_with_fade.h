@@ -11,7 +11,7 @@ public:
     explicit DrawTextureWithFade();
     ~DrawTextureWithFade() override;
 
-    void update(uint64_t delta_time) override;
+    void update(uint64_t delta_time);
 
     void start_fade(float alpha, float speed);
     bool is_fade_finished() const;

@@ -47,14 +47,14 @@ namespace storm
 {
 class AssetServer;
 class IConfigLoader;
-class RendererNext;
 class IWindow;
+class RendererService;
 class ProgressImageScene;
 }  // namespace storm
 
 class Core
     : virtual public storm::
-          Container<IFileService, storm::AssetServer, storm::IConfigLoader, storm::RendererNext, storm::ProgressImageScene>
+          Container<IFileService, storm::AssetServer, storm::IConfigLoader, storm::RendererService, storm::ProgressImageScene>
 {
 public:
     virtual ~Core() = default;

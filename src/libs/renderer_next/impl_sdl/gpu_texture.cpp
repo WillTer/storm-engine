@@ -1,4 +1,4 @@
-#include "texture_sdl.h"
+#include "gpu_texture.h"
 
 #include <cassert>
 #include <format>
@@ -37,8 +37,8 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 
 }  // namespace
 
-TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, TextureAsset const& asset)
-    : TextureSDL(
+GPUTexture::GPUTexture(RendererService& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, TextureAsset const& asset)
+    : GPUTexture(
           renderer,
           asset.header.width,
           asset.header.height,
@@ -83,8 +83,8 @@ TextureSDL::TextureSDL(RendererSDL& renderer, std::shared_ptr<SDL_GPUCopyPass> c
     SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
 }
 
-TextureSDL::TextureSDL(
-    RendererSDL&                   renderer,
+GPUTexture::GPUTexture(
+    RendererService&               renderer,
     uint32_t const                 width,
     uint32_t const                 height,
     uint32_t const                 mip_levels,
@@ -125,9 +125,9 @@ TextureSDL::TextureSDL(
     if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
 }
 
-TextureSDL::~TextureSDL() = default;
+GPUTexture::~GPUTexture() = default;
 
-void TextureSDL::start_render_pass(bool const clear)
+void GPUTexture::start_render_pass(bool const clear)
 {
     auto const& command_buffer = m_renderer.get_current_command_buffer();
     if (!command_buffer) {
@@ -153,12 +153,12 @@ void TextureSDL::start_render_pass(bool const clear)
     m_renderer.start_render_pass(render_pass);
 }
 
-void TextureSDL::end_render_pass()
+void GPUTexture::end_render_pass()
 {
     m_renderer.end_render_pass();
 }
 
-void TextureSDL::bind_to_render_pass() const
+void GPUTexture::bind_to_render_pass() const
 {
     auto const& render_pass = m_renderer.get_current_render_pass();
     assert(render_pass);
@@ -171,7 +171,7 @@ void TextureSDL::bind_to_render_pass() const
     SDL_BindGPUFragmentSamplers(render_pass.get(), 0, &texture_binding, 1);
 }
 
-std::pair<uint32_t, uint32_t> TextureSDL::get_dimensions() const
+std::pair<uint32_t, uint32_t> GPUTexture::get_dimensions() const
 {
     return std::make_pair(m_width, m_height);
 }

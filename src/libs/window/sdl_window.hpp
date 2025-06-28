@@ -11,7 +11,8 @@ namespace storm
 class SDLWindow: public IWindow
 {
 public:
-    SDLWindow(std::shared_ptr<RendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    SDLWindow(
+        std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
     ~SDLWindow() override;
 
     void Show() override;
@@ -41,8 +42,8 @@ public:
 private:
     static bool SDLCALL SDLEventHandler(void* userdata, SDL_Event* evt);
 
-    std::shared_ptr<SDL_Window>   window_    = nullptr;
-    std::shared_ptr<RendererNext> m_renderer = nullptr;
+    std::shared_ptr<SDL_Window>      window_    = nullptr;
+    std::shared_ptr<RendererService> m_renderer = nullptr;
 
     uint32_t                    sdlID_;
     bool                        fullscreen_ = false;

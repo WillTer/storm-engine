@@ -1,6 +1,5 @@
-#include "buffer_sdl.h"
+#include "gpu_buffer.h"
 
-#include <filesystem>
 #include <numeric>
 
 #include <spdlog/spdlog.h>
@@ -9,12 +8,12 @@
 
 using namespace storm;
 
-BufferSDL::BufferSDL(RendererSDL& renderer) : m_renderer(renderer) {}
-BufferSDL::~BufferSDL() = default;
+GPUBuffer::GPUBuffer(RendererService& renderer) : m_renderer(renderer) {}
+GPUBuffer::~GPUBuffer() = default;
 
-void BufferSDL::bind_to_render_pass() const {}
+void GPUBuffer::bind_to_render_pass() const {}
 
-void BufferSDL::update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t stride)
+void GPUBuffer::update_data(std::vector<BufferUpdateInfo> const& update_info, void const* data, uint32_t stride)
 {
     auto const& device = m_renderer.get_device();
 
@@ -60,13 +59,13 @@ void BufferSDL::update_data(std::vector<BufferUpdateInfo> const& update_info, vo
     }
 }
 
-void BufferSDL::set_gpu_buffer(std::shared_ptr<SDL_GPUBuffer> const& buffer)
+void GPUBuffer::set_gpu_buffer(std::shared_ptr<SDL_GPUBuffer> const& buffer)
 {
     assert(buffer);
     m_buffer = buffer;
 }
 
-std::shared_ptr<SDL_GPUBuffer> BufferSDL::get_gpu_buffer() const
+std::shared_ptr<SDL_GPUBuffer> GPUBuffer::get_gpu_buffer() const
 {
     return m_buffer;
 }

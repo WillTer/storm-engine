@@ -12,8 +12,8 @@
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
 #include <libs/renderer_next/draw_texture.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
-#include <libs/renderer_next/sdl_gpu/renderer_sdl.h>
 #include <libs/sound_service/v_sound_service.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
@@ -145,7 +145,7 @@ try {
         spdlog::set_level(spdlog::level::off);
     }
 
-    std::shared_ptr<storm::RendererNext> renderer = std::make_shared<storm::RendererSDL>(asset_server, config_loader);
+    auto renderer = std::make_shared<storm::RendererService>(asset_server, config_loader);
 
     // Read config
     auto const window_info = storm::main_config::window_info(*config_loader);
@@ -161,7 +161,6 @@ try {
     core_internal            = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer, progress_image_view);
     core                     = core_internal;
     progress_image_view.reset();
-    renderer->set_drawer(nullptr);
 
     // Init stash
     create_directories(fs::GetSaveDataPath());

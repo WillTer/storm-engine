@@ -5,10 +5,10 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 
-#include "i_buffer.h"
-#include "i_pipeline.h"
-#include "i_renderer_next.h"
-#include "i_texture.h"
+#include "impl_sdl/gpu_index_buffer.h"
+#include "impl_sdl/gpu_texture.h"
+#include "impl_sdl/gpu_vertex_buffer.h"
+#include "impl_sdl/renderer_sdl.h"
 
 using namespace storm;
 using namespace hlslpp;
@@ -40,7 +40,7 @@ constexpr char FRAGMENT_SHADER[] = "draw_texture_fs";
 DrawTexture::DrawTexture()
 {
     auto const& asset_server = core->get<AssetServer>();
-    auto const& renderer     = core->get<RendererNext>();
+    auto const& renderer     = core->get<RendererService>();
 
     auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
     auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
@@ -67,9 +67,9 @@ DrawTexture::~DrawTexture() = default;
 
 void DrawTexture::update(uint64_t const /*delta_time*/) {}
 
-void DrawTexture::present(ITexture& source) const
+void DrawTexture::present(GPUTexture& source) const
 {
-    auto const& renderer = core->get<RendererNext>();
+    auto const& renderer = core->get<RendererService>();
 
     renderer->start_render_pass();
 

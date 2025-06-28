@@ -5,10 +5,10 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 
-#include "i_buffer.h"
-#include "i_pipeline.h"
-#include "i_renderer_next.h"
-#include "i_texture.h"
+#include "impl_sdl/gpu_index_buffer.h"
+#include "impl_sdl/gpu_texture.h"
+#include "impl_sdl/gpu_vertex_buffer.h"
+#include "impl_sdl/renderer_sdl.h"
 
 using namespace storm;
 using namespace hlslpp;
@@ -63,9 +63,9 @@ std::pair<float, float> get_loading_picture_offset(FRect const& viewport, float 
 }  // namespace
 
 ProgressImageScene::ProgressImageScene(
-    std::shared_ptr<AssetServer> const&   asset_server,
-    std::shared_ptr<IConfigLoader> const& config_loader,
-    std::shared_ptr<RendererNext> const&  renderer)
+    std::shared_ptr<AssetServer> const&     asset_server,
+    std::shared_ptr<IConfigLoader> const&   config_loader,
+    std::shared_ptr<RendererService> const& renderer)
 {
     m_progress_info = main_config::progress_image_info(*config_loader);
 
@@ -112,8 +112,8 @@ void ProgressImageScene::update(uint64_t const /*delta_time*/)
 
 void ProgressImageScene::render() const
 {
-    auto const& renderer = core->get<RendererNext>();
-    auto&       target   = renderer->get_default_texture_target();
+    auto const& renderer = core->get<RendererService>();
+    auto&       target   = renderer->get_render_target();
     target.start_render_pass();  // Clear texture
 
     m_pipeline->bind_to_render_pass();
@@ -145,13 +145,13 @@ void ProgressImageScene::render() const
     target.end_render_pass();
 }
 
-void ProgressImageScene::set_picture(std::shared_ptr<ITexture> const& image)
+void ProgressImageScene::set_picture(std::shared_ptr<GPUTexture> const& image)
 {
     assert(image);
     m_picture = image;
 }
 
-void ProgressImageScene::set_background(std::shared_ptr<ITexture> const& image)
+void ProgressImageScene::set_background(std::shared_ptr<GPUTexture> const& image)
 {
     assert(image);
     m_background = image;
@@ -187,7 +187,7 @@ void ProgressImageScene::process_progress()
 
 void ProgressImageScene::update_picture_matrices()
 {
-    auto const& renderer = core->get<RendererNext>();
+    auto const& renderer = core->get<RendererService>();
     auto const  viewport = renderer->get_viewport();
 
     auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, ASPECT_RATIO);
@@ -204,7 +204,7 @@ void ProgressImageScene::update_picture_matrices()
 
 void ProgressImageScene::update_progress_matrices()
 {
-    auto const& renderer = core->get<RendererNext>();
+    auto const& renderer = core->get<RendererService>();
     auto const  viewport = renderer->get_viewport();
 
     // Loading screen textures are made for 4:3 screens

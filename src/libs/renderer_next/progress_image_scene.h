@@ -1,36 +1,36 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include <libs/config/main_config.h>
 
 #include "hlslpp.h"
-#include "i_scene.h"
 
 namespace storm
 {
 
-class IBuffer;
-class IIndexBuffer;
-class IPipeline;
-class ITexture;
 class AssetServer;
-class RendererNext;
+class RendererService;
 
-class ProgressImageScene final: virtual public IScene
+class GraphicsPipeline;
+
+class GPUVertexBuffer;
+class GPUIndexBuffer;
+class GPUTexture;
+
+class ProgressImageScene final
 {
 public:
     explicit ProgressImageScene(
-        std::shared_ptr<AssetServer> const&   asset_server,
-        std::shared_ptr<IConfigLoader> const& config_loader,
-        std::shared_ptr<RendererNext> const&  renderer);
+        std::shared_ptr<AssetServer> const&     asset_server,
+        std::shared_ptr<IConfigLoader> const&   config_loader,
+        std::shared_ptr<RendererService> const& renderer);
 
-    void update(uint64_t delta_time) override;
-    void render() const override;
+    void update(uint64_t delta_time);
+    void render() const;
 
-    void set_picture(std::shared_ptr<ITexture> const& image);
-    void set_background(std::shared_ptr<ITexture> const& image);
+    void set_picture(std::shared_ptr<GPUTexture> const& image);
+    void set_background(std::shared_ptr<GPUTexture> const& image);
 
 private:
     void process_progress();
@@ -43,16 +43,16 @@ private:
         hlsl::float4x4 m_view_proj_matrix = hlsl::float4x4::identity();
     };
 
-    std::shared_ptr<IPipeline> m_pipeline = nullptr;
+    std::shared_ptr<GraphicsPipeline> m_pipeline = nullptr;
 
-    std::shared_ptr<ITexture> m_progress   = nullptr;
-    std::shared_ptr<ITexture> m_picture    = nullptr;
-    std::shared_ptr<ITexture> m_frame      = nullptr;
-    std::shared_ptr<ITexture> m_background = nullptr;
+    std::shared_ptr<GPUTexture> m_progress   = nullptr;
+    std::shared_ptr<GPUTexture> m_picture    = nullptr;
+    std::shared_ptr<GPUTexture> m_frame      = nullptr;
+    std::shared_ptr<GPUTexture> m_background = nullptr;
 
-    std::shared_ptr<IBuffer>      m_vertex_buffer_back     = nullptr;
-    std::shared_ptr<IBuffer>      m_vertex_buffer_progress = nullptr;
-    std::shared_ptr<IIndexBuffer> m_index_buffer           = nullptr;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_back     = nullptr;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_progress = nullptr;
+    std::shared_ptr<GPUIndexBuffer>  m_index_buffer           = nullptr;
 
     UBO m_progress_ubo;
     UBO m_picture_ubo;

@@ -1,11 +1,11 @@
 #include "sdl_window.hpp"
 
-#include <libs/renderer_next/i_renderer_next.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 
 namespace storm
 {
 SDLWindow::SDLWindow(
-    std::shared_ptr<RendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+    std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
     : m_renderer(renderer)
     , fullscreen_(fullscreen)
 {
@@ -161,8 +161,8 @@ void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
         handler.second(winEvent);
 }
 
-std::shared_ptr<IWindow>
-IWindow::Create(std::shared_ptr<RendererNext> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+std::shared_ptr<IWindow> IWindow::Create(
+    std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
 {
     return std::make_shared<SDLWindow>(renderer, width, height, preferred_display, fullscreen, bordered);
 }
