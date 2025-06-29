@@ -10,7 +10,7 @@ DrawTextureWithFade::DrawTextureWithFade() {}
 
 DrawTextureWithFade::~DrawTextureWithFade() = default;
 
-void DrawTextureWithFade::update(uint64_t const delta_time)
+void DrawTextureWithFade::update(GPUCopyPass const& /*copy_pass*/, uint64_t delta_time)
 {
     constexpr float ms_to_s = 0.001F;  // Multiplier to convert milliseconds to seconds
 

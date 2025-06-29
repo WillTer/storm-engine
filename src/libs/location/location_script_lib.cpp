@@ -7,6 +7,7 @@
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
@@ -202,8 +203,13 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
-    auto const texture = asset_server->load_texture_file(nm);
-    progress_image->set_picture(renderer->load_texture(texture));
+    auto const texture_asset = asset_server->load_texture_file(nm);
+    auto       texture       = renderer->create_texture(texture_asset.header);
+
+    auto cmd_buffer = renderer->acquire_command_buffer();
+    auto copy_pass  = cmd_buffer->start_copy_pass();
+    copy_pass->upload(*texture, std::span(texture_asset.data));
+    progress_image->set_picture(std::move(texture));
 
     return IFUNCRESULT_OK;
 }
@@ -217,10 +223,14 @@ uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
 {
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
-    renderer->start_frame();
-    progress_image->update(core->GetDeltaTime());
-    progress_image->render();
-    renderer->end_frame();
+    auto        cmd_buffer     = renderer->acquire_command_buffer();
+    {
+        auto copy_pass = cmd_buffer->start_copy_pass();
+        progress_image->update(*copy_pass, core->GetDeltaTime());
+    }
+
+    auto render_pass = renderer->start_render_pass(*cmd_buffer, {cmd_buffer->get_default_target()});
+    progress_image->draw(*render_pass);
 
     return IFUNCRESULT_OK;
 }

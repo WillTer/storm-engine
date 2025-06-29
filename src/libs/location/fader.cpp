@@ -14,6 +14,7 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/renderer_next/draw_texture_with_fade.h>
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
@@ -68,6 +69,9 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
+    auto cmd_buffer = renderer->acquire_command_buffer();
+    auto copy_pass  = cmd_buffer->start_copy_pass();
+
     switch (message.Long()) {
     case FADER_OUT: {
         // Start screen dimming
@@ -102,14 +106,20 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
     case FADER_PICTURE: {
         std::string const& name = message.String();
 
-        auto const texture = asset_server->load_texture_file(name);
-        progress_image->set_picture(renderer->load_texture(texture));
+        auto const texture_asset = asset_server->load_texture_file(name);
+        auto       texture       = renderer->create_texture(texture_asset.header);
+
+        copy_pass->upload(*texture, std::span(texture_asset.data));
+        progress_image->set_picture(std::move(texture));
     } break;
     case FADER_PICTURE0: {
         std::string const& name = message.String();
 
-        auto const texture = asset_server->load_texture_file(name);
-        progress_image->set_background(renderer->load_texture(texture));
+        auto const texture_asset = asset_server->load_texture_file(name);
+        auto       texture       = renderer->create_texture(texture_asset.header);
+
+        copy_pass->upload(*texture, std::span(texture_asset.data));
+        progress_image->set_background(std::move(texture));
     } break;
     default: break;
     }
@@ -146,7 +156,7 @@ void Fader::Realize(uint32_t delta_time)
 {
     if (isStart) { eventStart = true; }
 
-    m_fader_render->update(delta_time);
+    // m_fader_render->update(delta_time);
     eventEnd = m_fader_render->is_fade_finished();
     if (eventEnd) {}
 

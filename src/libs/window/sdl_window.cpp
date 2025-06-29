@@ -30,12 +30,12 @@ SDLWindow::SDLWindow(
     SDL_SetWindowBordered(window_.get(), bordered);
     SDL_AddEventWatch(&SDLEventHandler, this);
 
-    m_renderer->bind_window(window_.get());
+    m_renderer->bind_window(window_);
 }
 
 SDLWindow::~SDLWindow()
 {
-    m_renderer->unbind_window(window_.get());
+    m_renderer->unbind_window(window_);
     SDL_RemoveEventWatch(&SDLEventHandler, this);
 }
 

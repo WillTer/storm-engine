@@ -1,39 +1,40 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
-#include <SDL3/SDL_gpu.h>
-#include <libs/asset_server/texture_asset.h>
+#include "sdl_fwd.h"
 
 namespace storm
 {
 
-class RendererService;
+struct TxFileHeader;
+
 class GPUTexture final
 {
 public:
-    GPUTexture(RendererService& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, TextureAsset const& asset);
+    GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TxFileHeader const& file_header);
     GPUTexture(
-        RendererService&         renderer,
-        uint32_t                 width,
-        uint32_t                 height,
-        uint32_t                 mip_levels,
-        SDL_GPUTextureFormat     format,
-        SDL_GPUTextureUsageFlags usage);
+        std::shared_ptr<SDL_GPUDevice> const& device, uint32_t width, uint32_t height, uint32_t mip_levels, int32_t format, uint32_t usage);
     ~GPUTexture();
 
-    // IRenderPassPrimitive
-    void bind_to_render_pass() const;
+    template <typename T>
+    void
+    upload(std::shared_ptr<SDL_GPUDevice> const& device, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, std::span<T> const& data) const
+    {
+        upload(device, copy_pass, data.data(), static_cast<uint32_t>(data.size() * sizeof(T)));
+    }
 
-    // ITexture
+    void bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const;
+
     std::pair<uint32_t, uint32_t> get_dimensions() const;
 
-    // ITextureTarget
-    void start_render_pass(bool clear = true);
-    void end_render_pass();
-
 private:
-    RendererService& m_renderer;
+    void upload(
+        std::shared_ptr<SDL_GPUDevice> const&   device,
+        std::shared_ptr<SDL_GPUCopyPass> const& copy_pass,
+        void const*                             data,
+        uint32_t                                data_size) const;
 
     std::shared_ptr<SDL_GPUSampler> m_sampler = nullptr;
     std::shared_ptr<SDL_GPUTexture> m_texture = nullptr;

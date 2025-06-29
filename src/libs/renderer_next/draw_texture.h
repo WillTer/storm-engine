@@ -12,6 +12,8 @@ class GraphicsPipeline;
 class GPUVertexBuffer;
 class GPUIndexBuffer;
 class GPUTexture;
+class GPUCopyPass;
+class GPURenderPass;
 
 class DrawTexture
 {
@@ -19,8 +21,8 @@ public:
     explicit DrawTexture();
     virtual ~DrawTexture();
 
-    void update(uint64_t delta_time);
-    void present(GPUTexture& source) const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
+    void draw(GPURenderPass const& render_pass) const;
 
 protected:
     hlsl::float4x4 m_view_proj_matrix = hlsl::float4x4::identity();

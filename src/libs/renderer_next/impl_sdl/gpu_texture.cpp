@@ -4,9 +4,9 @@
 #include <format>
 #include <stdexcept>
 
+#include <SDL3/SDL_gpu.h>
+#include <libs/asset_server/texture_asset.h>
 #include <spdlog/spdlog.h>
-
-#include "renderer_sdl.h"
 
 using namespace storm;
 
@@ -37,65 +37,27 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 
 }  // namespace
 
-GPUTexture::GPUTexture(RendererService& renderer, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, TextureAsset const& asset)
+GPUTexture::GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TxFileHeader const& file_header)
     : GPUTexture(
-          renderer,
-          asset.header.width,
-          asset.header.height,
-          asset.header.mip_levels,
-          convert_tx_format(asset.header.format),
+          device,
+          file_header.width,
+          file_header.height,
+          file_header.mip_levels,
+          convert_tx_format(file_header.format),
           SDL_GPU_TEXTUREUSAGE_SAMPLER)
 {
-    auto const& device = renderer.get_device();
-
-    auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
-    texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-    texture_transfer_buffer_create_info.size  = static_cast<Uint32>(asset.data.size());
-
-    auto const texture_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
-        SDL_CreateGPUTransferBuffer(device.get(), &texture_transfer_buffer_create_info),
-        [device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
-    if (!texture_transfer_buffer) {
-        throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError()));
-    }
-
-    char* const transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(device.get(), texture_transfer_buffer.get(), false));
-    std::memcpy(transfer_data, asset.data.data(), asset.data.size());
-    SDL_UnmapGPUTransferBuffer(device.get(), texture_transfer_buffer.get());
-
-    auto const tex_transfer_location = SDL_GPUTextureTransferInfo {
-        .transfer_buffer = texture_transfer_buffer.get(),
-        .offset          = 0,
-        .pixels_per_row  = 0,
-        .rows_per_layer  = 0,
-    };
-    auto const tex_buffer_region = SDL_GPUTextureRegion {
-        .texture   = m_texture.get(),
-        .mip_level = 0,
-        .layer     = 0,
-        .x         = 0,
-        .y         = 0,
-        .z         = 0,
-        .w         = m_width,
-        .h         = m_height,
-        .d         = 1,
-    };
-    SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
 }
 
 GPUTexture::GPUTexture(
-    RendererService&               renderer,
-    uint32_t const                 width,
-    uint32_t const                 height,
-    uint32_t const                 mip_levels,
-    SDL_GPUTextureFormat const     format,
-    SDL_GPUTextureUsageFlags const usage)
-    : m_renderer(renderer)
-    , m_width(width)
+    std::shared_ptr<SDL_GPUDevice> const& device,
+    uint32_t const                        width,
+    uint32_t const                        height,
+    uint32_t const                        mip_levels,
+    int32_t const                         format,
+    uint32_t const                        usage)
+    : m_width(width)
     , m_height(height)
 {
-    auto const& device = renderer.get_device();
-
     auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
     sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
     sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
@@ -113,7 +75,7 @@ GPUTexture::GPUTexture(
 
     auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
     texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
-    texture_create_info.format               = format;
+    texture_create_info.format               = static_cast<SDL_GPUTextureFormat>(format);
     texture_create_info.usage                = usage;
     texture_create_info.width                = m_width;
     texture_create_info.height               = m_height;
@@ -127,40 +89,8 @@ GPUTexture::GPUTexture(
 
 GPUTexture::~GPUTexture() = default;
 
-void GPUTexture::start_render_pass(bool const clear)
+void GPUTexture::bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const
 {
-    auto const& command_buffer = m_renderer.get_current_command_buffer();
-    if (!command_buffer) {
-        spdlog::error("No active command buffer on render pass start");
-        return;
-    }
-
-    if (m_renderer.get_current_render_pass()) {
-        spdlog::error("Render pass already started");
-        return;
-    }
-
-    auto color_target_info        = SDL_GPUColorTargetInfo {};
-    color_target_info.texture     = m_texture.get();
-    color_target_info.clear_color = {0.0F, 0.0F, 0.0F, 1.0F};  // Black
-    color_target_info.load_op     = clear ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
-    color_target_info.store_op    = SDL_GPU_STOREOP_STORE;
-
-    auto const render_pass = std::shared_ptr<SDL_GPURenderPass>(
-        SDL_BeginGPURenderPass(command_buffer.get(), &color_target_info, 1, nullptr), &SDL_EndGPURenderPass);
-    if (!render_pass) { spdlog::error("Begin GPU render pass failed: {}", SDL_GetError()); }
-
-    m_renderer.start_render_pass(render_pass);
-}
-
-void GPUTexture::end_render_pass()
-{
-    m_renderer.end_render_pass();
-}
-
-void GPUTexture::bind_to_render_pass() const
-{
-    auto const& render_pass = m_renderer.get_current_render_pass();
     assert(render_pass);
 
     auto const texture_binding = SDL_GPUTextureSamplerBinding {
@@ -174,4 +104,47 @@ void GPUTexture::bind_to_render_pass() const
 std::pair<uint32_t, uint32_t> GPUTexture::get_dimensions() const
 {
     return std::make_pair(m_width, m_height);
+}
+
+void GPUTexture::upload(
+    std::shared_ptr<SDL_GPUDevice> const&   device,
+    std::shared_ptr<SDL_GPUCopyPass> const& copy_pass,
+    void const*                             data,
+    uint32_t                                data_size) const
+{
+    auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
+    texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    texture_transfer_buffer_create_info.size  = data_size;
+
+    auto const texture_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
+        SDL_CreateGPUTransferBuffer(device.get(), &texture_transfer_buffer_create_info),
+        [device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
+    if (!texture_transfer_buffer) {
+        throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError()));
+    }
+
+    char* const transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(device.get(), texture_transfer_buffer.get(), false));
+    std::memcpy(transfer_data, data, data_size);
+    SDL_UnmapGPUTransferBuffer(device.get(), texture_transfer_buffer.get());
+
+    auto const tex_transfer_location = SDL_GPUTextureTransferInfo {
+        .transfer_buffer = texture_transfer_buffer.get(),
+        .offset          = 0,
+        .pixels_per_row  = 0,
+        .rows_per_layer  = 0,
+    };
+
+    auto const tex_buffer_region = SDL_GPUTextureRegion {
+        .texture   = m_texture.get(),
+        .mip_level = 0,
+        .layer     = 0,
+        .x         = 0,
+        .y         = 0,
+        .z         = 0,
+        .w         = m_width,
+        .h         = m_height,
+        .d         = 1,
+    };
+
+    SDL_UploadToGPUTexture(copy_pass.get(), &tex_transfer_location, &tex_buffer_region, false);
 }

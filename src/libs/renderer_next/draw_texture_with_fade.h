@@ -5,13 +5,13 @@
 namespace storm
 {
 
-class DrawTextureWithFade final: virtual public DrawTexture
+class DrawTextureWithFade final: public DrawTexture
 {
 public:
     explicit DrawTextureWithFade();
     ~DrawTextureWithFade() override;
 
-    void update(uint64_t delta_time);
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
 
     void start_fade(float alpha, float speed);
     bool is_fade_finished() const;

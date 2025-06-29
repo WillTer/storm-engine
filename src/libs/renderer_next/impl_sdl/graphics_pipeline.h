@@ -3,8 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include <SDL3/SDL_gpu.h>
 #include <libs/renderer_next/vertex.h>
+
+#include "sdl_fwd.h"
 
 namespace storm
 {
@@ -18,13 +19,12 @@ struct ShaderInfo {
     uint32_t num_uniform_buffers;
 };
 
-class RendererService;
-
 class GraphicsPipeline final
 {
 public:
     GraphicsPipeline(
-        RendererService&                      renderer,
+        std::shared_ptr<SDL_GPUDevice> const& device,
+        std::shared_ptr<SDL_Window> const&    window,
         std::vector<VertexAttribute> const&   vertex_attributes,
         std::vector<VertexDescription> const& vertex_descriptions,
         ShaderAsset const&                    vertex_shader_asset,
@@ -34,11 +34,9 @@ public:
 
     ~GraphicsPipeline();
 
-    void bind_to_render_pass() const;
+    void bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const;
 
 private:
-    RendererService& m_renderer;
-
     std::shared_ptr<SDL_GPUGraphicsPipeline> m_pipeline = nullptr;
 };
 

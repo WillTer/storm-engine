@@ -5,6 +5,7 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 
+#include "impl_sdl/gpu_command_buffer.h"
 #include "impl_sdl/gpu_index_buffer.h"
 #include "impl_sdl/gpu_texture.h"
 #include "impl_sdl/gpu_vertex_buffer.h"
@@ -16,7 +17,7 @@ using namespace hlslpp;
 namespace
 {
 
-std::vector<uint16_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
+std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
 constexpr auto VERTEX_SHADER_INFO = ShaderInfo {
     .num_samplers         = 0,
@@ -58,29 +59,30 @@ DrawTexture::DrawTexture()
         VertexUI {{0.0F, viewport.height(), 0.0F, 1.0F}},
     };
 
-    m_vertex_buffer = renderer->load_vertex_buffer(square_vertices);
-    m_index_buffer  = renderer->load_index_buffer(SQUARE_INDICES);
-    m_color         = float4(1.0F);
+    auto command_buffer = renderer->acquire_command_buffer();
+    auto copy_pass      = command_buffer->start_copy_pass();
+
+    m_vertex_buffer = renderer->create_vertex_buffer(std::span(square_vertices));
+    copy_pass->upload(*m_vertex_buffer, std::span(square_vertices));
+
+    m_index_buffer = renderer->create_index_buffer(std::span(SQUARE_INDICES));
+    copy_pass->upload(*m_index_buffer, std::span(SQUARE_INDICES));
+
+    m_color = float4(1.0F);
 }
 
 DrawTexture::~DrawTexture() = default;
 
-void DrawTexture::update(uint64_t const /*delta_time*/) {}
+void DrawTexture::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
 
-void DrawTexture::present(GPUTexture& source) const
+void DrawTexture::draw(GPURenderPass const& render_pass) const
 {
-    auto const& renderer = core->get<RendererService>();
+    render_pass.bind(*m_pipeline);
+    render_pass.bind(*m_index_buffer);
+    render_pass.bind(*m_vertex_buffer);
 
-    renderer->start_render_pass();
-
-    m_pipeline->bind_to_render_pass();
-    m_index_buffer->bind_to_render_pass();
-    m_vertex_buffer->bind_to_render_pass();
-
-    renderer->push_vertex_uniform_data(0, &m_view_proj_matrix, sizeof(m_view_proj_matrix));
-    renderer->push_fragment_uniform_data(0, &m_color, sizeof(m_color));
-    source.bind_to_render_pass();  // Bind texture that has scene rendered on it
-    m_index_buffer->draw_indexed();
-
-    renderer->end_render_pass();
+    render_pass.push_vertex_uniform_data(0, &m_view_proj_matrix, sizeof(m_view_proj_matrix));
+    render_pass.push_fragment_uniform_data(0, &m_color, sizeof(m_color));
+    // render_pass.bind(source); // Bind texture that has scene rendered on it
+    render_pass.draw(*m_index_buffer);
 }

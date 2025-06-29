@@ -5,7 +5,9 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 
+#include "impl_sdl/gpu_command_buffer.h"
 #include "impl_sdl/gpu_index_buffer.h"
+#include "impl_sdl/gpu_render_pass.h"
 #include "impl_sdl/gpu_texture.h"
 #include "impl_sdl/gpu_vertex_buffer.h"
 #include "impl_sdl/renderer_sdl.h"
@@ -23,7 +25,7 @@ std::vector const SQUARE_VERTICES = {
     VertexWithDiffuse {VertexBase {{0.0F, 1.0F, 0.0F}, {0.0F, 1.0F}}, {1.0F, 1.0F, 1.0F, 1.0F}},
 };
 
-std::vector<uint16_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
+std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
 constexpr auto VERTEX_SHADER_INFO = ShaderInfo {
     .num_samplers         = 0,
@@ -69,17 +71,29 @@ ProgressImageScene::ProgressImageScene(
 {
     m_progress_info = main_config::progress_image_info(*config_loader);
 
-    auto const progress_texture = asset_server->load_texture_file("loading/progress.tga");  // FIXME: hardcode
-    m_progress                  = renderer->load_texture(progress_texture);
+    {
+        auto command_buffer = renderer->acquire_command_buffer();
+        auto copy_pass      = command_buffer->start_copy_pass();
 
-    if (m_progress_info.frame) {
-        auto const frame_texture = asset_server->load_texture_file("interfaces/int_border.tga");  // FIXME: hardcode
-        m_frame                  = renderer->load_texture(frame_texture);
+        auto const progress_texture = asset_server->load_texture_file("loading/progress.tga");  // FIXME: hardcode
+        m_progress                  = renderer->create_texture(progress_texture.header);
+        copy_pass->upload(*m_progress, std::span(progress_texture.data));
+
+        if (m_progress_info.frame) {
+            auto const frame_texture = asset_server->load_texture_file("interfaces/int_border.tga");  // FIXME: hardcode
+            m_frame                  = renderer->create_texture(frame_texture.header);
+            copy_pass->upload(*m_frame, std::span(frame_texture.data));
+        }
+
+        m_vertex_buffer_back = renderer->create_vertex_buffer(SQUARE_VERTICES.size(), sizeof(VertexWithDiffuse));
+        copy_pass->upload(*m_vertex_buffer_back, std::span(SQUARE_VERTICES));
+
+        m_vertex_buffer_progress = renderer->create_vertex_buffer(SQUARE_VERTICES.size(), sizeof(VertexWithDiffuse));
+        copy_pass->upload(*m_vertex_buffer_progress, std::span(SQUARE_VERTICES));
+
+        m_index_buffer = renderer->create_index_buffer(SQUARE_INDICES.size());
+        copy_pass->upload(*m_index_buffer, std::span(SQUARE_INDICES));
     }
-
-    m_vertex_buffer_back     = renderer->load_vertex_buffer(SQUARE_VERTICES);
-    m_vertex_buffer_progress = renderer->load_vertex_buffer(SQUARE_VERTICES);
-    m_index_buffer           = renderer->load_index_buffer(SQUARE_INDICES);
 
     auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
     auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
@@ -100,49 +114,44 @@ ProgressImageScene::ProgressImageScene(
     m_background_ubo.m_view_proj_matrix = proj_mat;
 }
 
-void ProgressImageScene::update(uint64_t const /*delta_time*/)
+void ProgressImageScene::update(GPUCopyPass const& copy_pass, uint64_t const /*delta_time*/)
 {
     // Animated texture
-    process_progress();
+    process_progress(copy_pass);
 
     // Recalculate texture positions
     update_picture_matrices();
     update_progress_matrices();
 }
 
-void ProgressImageScene::render() const
+void ProgressImageScene::draw(GPURenderPass const& render_pass) const
 {
-    auto const& renderer = core->get<RendererService>();
-    auto&       target   = renderer->get_render_target();
-    target.start_render_pass();  // Clear texture
-
-    m_pipeline->bind_to_render_pass();
-    m_index_buffer->bind_to_render_pass();
+    render_pass.bind(*m_pipeline);
+    render_pass.bind(*m_index_buffer);
 
     if (m_background) {
-        renderer->push_vertex_uniform_data(0, &m_background_ubo, sizeof(m_background_ubo));
-        m_vertex_buffer_back->bind_to_render_pass();
-        m_background->bind_to_render_pass();
-        m_index_buffer->draw_indexed();
+        render_pass.push_vertex_uniform_data(0, &m_background_ubo, sizeof(m_background_ubo));
+        render_pass.bind(*m_vertex_buffer_back);
+        render_pass.bind(*m_background);
+        render_pass.draw(*m_index_buffer);
     }
 
     if (m_picture) {
-        renderer->push_vertex_uniform_data(0, &m_picture_ubo, sizeof(m_picture_ubo));
-        m_vertex_buffer_back->bind_to_render_pass();
-        m_picture->bind_to_render_pass();
-        m_index_buffer->draw_indexed();
+        render_pass.push_vertex_uniform_data(0, &m_picture_ubo, sizeof(m_picture_ubo));
+        render_pass.bind(*m_vertex_buffer_back);
+        render_pass.bind(*m_picture);
+        render_pass.draw(*m_index_buffer);
+
         if (m_frame) {
-            m_frame->bind_to_render_pass();
-            m_index_buffer->draw_indexed();
+            render_pass.bind(*m_frame);
+            render_pass.draw(*m_index_buffer);
         }
     }
 
-    renderer->push_vertex_uniform_data(0, &m_progress_ubo, sizeof(m_progress_ubo));
-    m_vertex_buffer_progress->bind_to_render_pass();
-    m_progress->bind_to_render_pass();
-    m_index_buffer->draw_indexed();
-
-    target.end_render_pass();
+    render_pass.push_vertex_uniform_data(0, &m_progress_ubo, sizeof(m_progress_ubo));
+    render_pass.bind(*m_vertex_buffer_progress);
+    render_pass.bind(*m_progress);
+    render_pass.draw(*m_index_buffer);
 }
 
 void ProgressImageScene::set_picture(std::shared_ptr<GPUTexture> const& image)
@@ -157,7 +166,7 @@ void ProgressImageScene::set_background(std::shared_ptr<GPUTexture> const& image
     m_background = image;
 }
 
-void ProgressImageScene::process_progress()
+void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
 {
     // Position of the current frame
     int32_t const fx = m_current_frame % m_progress_info.h_frames_count;
@@ -167,7 +176,7 @@ void ProgressImageScene::process_progress()
     auto const x_count = static_cast<float>(m_progress_info.h_frames_count);
     auto const y_count = static_cast<float>(m_progress_info.v_frames_count);
 
-    std::array const progress_tex_buffer = {
+    std::vector const progress_tex_buffer = {
         // left-top
         decltype(VertexBase::uv)(fx / x_count, fy / y_count),
         // right-top
@@ -179,7 +188,7 @@ void ProgressImageScene::process_progress()
     };
 
     auto const progress_update_info = std::vector(4, BufferUpdateInfo {.offset = offsetof(VertexBase, uv), .size = sizeof(VertexBase::uv)});
-    m_vertex_buffer_progress->update_data(progress_update_info, progress_tex_buffer.data(), sizeof(VertexWithDiffuse));
+    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, std::span(progress_tex_buffer), sizeof(VertexWithDiffuse));
 
     ++m_current_frame;
     if (m_current_frame >= x_count * y_count) { m_current_frame = 0; }

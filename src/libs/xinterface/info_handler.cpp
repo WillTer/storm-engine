@@ -6,6 +6,8 @@
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
 
+#include "libs/renderer_next/impl_sdl/gpu_command_buffer.h"
+
 InfoHandler::InfoHandler() {}
 
 InfoHandler::~InfoHandler()
@@ -174,14 +176,23 @@ bool InfoHandler::DoPreOut()
     is_ok                      = true;
     if (is_ok) {
         // show picture
+        auto cmd_buffer = renderer->acquire_command_buffer();
+        auto copy_pass  = cmd_buffer->start_copy_pass();
+
         if (picBackTexureFile != nullptr) {
-            auto const texture = asset_server->load_texture_file(picBackTexureFile);
-            progress_image->set_background(renderer->load_texture(texture));
+            auto const texture_asset = asset_server->load_texture_file(picBackTexureFile);
+            auto       texture       = renderer->create_texture(texture_asset.header);
+
+            copy_pass->upload(*texture, std::span(texture_asset.data));
+            progress_image->set_background(std::move(texture));
         }
 
         if (picTexureFile != nullptr) {
-            auto const texture = asset_server->load_texture_file(picTexureFile);
-            progress_image->set_picture(renderer->load_texture(texture));
+            auto const texture_asset = asset_server->load_texture_file(picTexureFile);
+            auto       texture       = renderer->create_texture(texture_asset.header);
+
+            copy_pass->upload(*texture, std::span(texture_asset.data));
+            progress_image->set_picture(std::move(texture));
         }
 
         // if (inStrStart) {

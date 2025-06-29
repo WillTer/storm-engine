@@ -1,5 +1,6 @@
 #include "graphics_pipeline.h"
 
+#include <SDL3/SDL_gpu.h>
 #include <libs/asset_server/shader_asset.h>
 #include <libs/core/core.h>
 #include <spdlog/spdlog.h>
@@ -71,17 +72,15 @@ std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<Ver
 }  // namespace
 
 GraphicsPipeline::GraphicsPipeline(
-    RendererService&                      renderer,
+    std::shared_ptr<SDL_GPUDevice> const& device,
+    std::shared_ptr<SDL_Window> const&    window,
     std::vector<VertexAttribute> const&   vertex_attributes,
     std::vector<VertexDescription> const& vertex_descriptions,
     ShaderAsset const&                    vertex_shader_asset,
     ShaderInfo const&                     vertex_shader_info,
     ShaderAsset const&                    fragment_shader_asset,
     ShaderInfo const&                     fragment_shader_info)
-    : m_renderer(renderer)
 {
-    auto const device = m_renderer.get_device();
-
     auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_info, SDL_GPU_SHADERSTAGE_VERTEX);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
 
@@ -99,7 +98,7 @@ GraphicsPipeline::GraphicsPipeline(
 
     std::array const color_descriptions = {
         SDL_GPUColorTargetDescription {
-            .format      = m_renderer.get_spawchain_texture_format(),
+            .format      = SDL_GetGPUSwapchainTextureFormat(device.get(), window.get()),
             .blend_state = blend_state,
         },
     };
@@ -135,13 +134,8 @@ GraphicsPipeline::GraphicsPipeline(
 
 GraphicsPipeline::~GraphicsPipeline() = default;
 
-void GraphicsPipeline::bind_to_render_pass() const
+void GraphicsPipeline::bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const
 {
-    auto const& render_pass = m_renderer.get_current_render_pass();
-    if (!render_pass) {
-        spdlog::error("No active render pass to bind");
-        return;
-    }
-
+    assert(render_pass);
     SDL_BindGPUGraphicsPipeline(render_pass.get(), m_pipeline.get());
 }

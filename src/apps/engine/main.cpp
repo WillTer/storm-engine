@@ -12,6 +12,7 @@
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
 #include <libs/renderer_next/draw_texture.h>
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>
 #include <libs/sound_service/v_sound_service.h>
@@ -191,9 +192,9 @@ try {
                 old_time = new_time;
             }
 
-            renderer->start_frame();
             is_running = run_frame_with_overflow_check();
-            renderer->end_frame();
+            renderer->acquire_command_buffer();
+            // Do render
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

@@ -17,6 +17,8 @@ class GraphicsPipeline;
 class GPUVertexBuffer;
 class GPUIndexBuffer;
 class GPUTexture;
+class GPURenderPass;
+class GPUCopyPass;
 
 class ProgressImageScene final
 {
@@ -26,14 +28,14 @@ public:
         std::shared_ptr<IConfigLoader> const&   config_loader,
         std::shared_ptr<RendererService> const& renderer);
 
-    void update(uint64_t delta_time);
-    void render() const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
+    void draw(GPURenderPass const& render_pass) const;
 
     void set_picture(std::shared_ptr<GPUTexture> const& image);
     void set_background(std::shared_ptr<GPUTexture> const& image);
 
 private:
-    void process_progress();
+    void process_progress(GPUCopyPass const& copy_pass);
 
     void update_picture_matrices();
     void update_progress_matrices();
