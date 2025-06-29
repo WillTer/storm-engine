@@ -6,7 +6,7 @@ template <>
 auto asset_loader::from_file<TextFileAsset>(std::filesystem::path const& path) -> std::expected<TextFileAsset, Error>
 {
     auto file_type = TextFileAssetType::Unknown;
-    if (path.extension().string() == ".ini") {
+    if (path.extension().string() == ".ini" || path.extension().string() == ".lng") {
         file_type = TextFileAssetType::Ini;
     } else {
         return std::unexpected(Error::ExtensionNotSupported);
