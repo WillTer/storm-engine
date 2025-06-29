@@ -58,12 +58,10 @@ get_key_value_pair(std::string_view const& str, std::string const& ini_file_name
     auto const value_start = key_end + 1;                       // Skip '='
     auto const value_end   = str.find_first_of(KEY_VALUE_END);  // Find comment start (or npos)
 
-    auto const key = str.substr(0, key_end);  // Read the key from the start until '='
-    auto const value = str.substr(  // Read the value after '=' until the end of the line or start of the comment
+    auto const key   = str.substr(0, key_end);  // Read the key from the start until '='
+    auto const value = str.substr(              // Read the value after '=' until the end of the line or start of the comment
         value_start,
-        value_end != std::string_view::npos
-            ? value_end - value_start
-            : std::string_view::npos);
+        value_end != std::string_view::npos ? value_end - value_start : std::string_view::npos);
 
     return std::make_pair(trim(key), trim(value));
 }
@@ -113,7 +111,7 @@ read_section(std::string_view const& str, size_t& offset, std::string const& fil
         // Keep offset if section is ended as we need to read another section from that place
         if (!is_section_ended) {
             // Move to next line. This statement allows us to skip both CRLF and LF
-            offset = str.find_first_of('\n', line_end) + 1;
+            offset = line_end == std::string_view::npos ? std::string_view::npos : str.find_first_of('\n', line_end) + 1;
             ++file_line;
         }
     }
