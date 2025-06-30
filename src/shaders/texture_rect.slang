@@ -20,9 +20,6 @@ ConstantBuffer<UBO> ubo: register(b0, space1);
 [[vk::binding(0, 2)]]
 Sampler2D Texture: register(t0, space2) : register(s0, space2);
 
-[[vk::binding(0, 3)]]
-ConstantBuffer<float4> diffuse: register(b0, space3);
-
 [shader("vertex")]
 VertexOutput main_vs(VertexInput input)
 {
@@ -35,5 +32,5 @@ VertexOutput main_vs(VertexInput input)
 [shader("fragment")]
 float4 main_fs(float2 tex_coord: TEXCOORD0) : SV_Target0
 {
-    return diffuse * Texture.Sample(tex_coord);
+    return Texture.Sample(tex_coord);
 }

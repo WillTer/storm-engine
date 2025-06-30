@@ -155,7 +155,7 @@ bool CoreImpl::Run()
         ProcessExecute(*copy_pass);  // transfer control to objects via Execute() function
     }
     {
-        auto const render_pass = renderer->start_render_pass(*cmd_buffer, {cmd_buffer->get_default_target()});
+        auto const render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport_native());
         ProcessRealize(*render_pass);  // transfer control to objects via Realize() function
     }
 

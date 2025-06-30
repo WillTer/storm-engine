@@ -130,14 +130,14 @@ void ProgressImageScene::draw(GPURenderPass const& render_pass) const
     render_pass.bind(*m_index_buffer);
 
     if (m_background) {
-        render_pass.push_vertex_uniform_data(0, &m_background_ubo, sizeof(m_background_ubo));
+        render_pass.push_vertex_uniform_data(0, m_background_ubo);
         render_pass.bind(*m_vertex_buffer_back);
         render_pass.bind(*m_background);
         render_pass.draw(*m_index_buffer);
     }
 
     if (m_picture) {
-        render_pass.push_vertex_uniform_data(0, &m_picture_ubo, sizeof(m_picture_ubo));
+        render_pass.push_vertex_uniform_data(0, m_picture_ubo);
         render_pass.bind(*m_vertex_buffer_back);
         render_pass.bind(*m_picture);
         render_pass.draw(*m_index_buffer);
@@ -148,7 +148,7 @@ void ProgressImageScene::draw(GPURenderPass const& render_pass) const
         }
     }
 
-    render_pass.push_vertex_uniform_data(0, &m_progress_ubo, sizeof(m_progress_ubo));
+    render_pass.push_vertex_uniform_data(0, m_progress_ubo);
     render_pass.bind(*m_vertex_buffer_progress);
     render_pass.bind(*m_progress);
     render_pass.draw(*m_index_buffer);

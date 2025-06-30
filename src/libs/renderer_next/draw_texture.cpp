@@ -81,8 +81,8 @@ void DrawTexture::draw(GPURenderPass const& render_pass) const
     render_pass.bind(*m_index_buffer);
     render_pass.bind(*m_vertex_buffer);
 
-    render_pass.push_vertex_uniform_data(0, &m_view_proj_matrix, sizeof(m_view_proj_matrix));
-    render_pass.push_fragment_uniform_data(0, &m_color, sizeof(m_color));
+    render_pass.push_vertex_uniform_data(0, m_view_proj_matrix);
+    render_pass.push_fragment_uniform_data(0, m_color);
     // render_pass.bind(source); // Bind texture that has scene rendered on it
     render_pass.draw(*m_index_buffer);
 }

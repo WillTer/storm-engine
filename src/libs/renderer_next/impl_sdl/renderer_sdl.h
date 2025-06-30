@@ -69,10 +69,9 @@ public:
     [[nodiscard]] auto create_vertex_buffer(size_t vertex_count, size_t vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>;
 
     auto acquire_command_buffer() const -> std::unique_ptr<GPUCommandBuffer>;
-    auto start_render_pass(GPUCommandBuffer const& cmd_buffer, std::vector<ColorTargetInfo> const& color_targets)
-        -> std::unique_ptr<GPURenderPass>;
 
     auto get_viewport() const -> FRect;
+    auto get_viewport_native() const -> SDL_GPUViewport const&;
 
 private:
     [[nodiscard]] auto create_pipeline(

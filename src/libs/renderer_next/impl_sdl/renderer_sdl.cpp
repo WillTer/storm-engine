@@ -118,12 +118,6 @@ struct RendererService::Impl {
         return std::make_unique<GPUCommandBuffer>(m_device, m_window);
     }
 
-    auto start_render_pass(GPUCommandBuffer const& cmd_buffer, std::vector<ColorTargetInfo> const& color_targets)
-        -> std::unique_ptr<GPURenderPass>
-    {
-        return cmd_buffer.start_render_pass(color_targets, m_viewport);
-    }
-
     auto get_viewport() const -> FRect
     {
         return FRect {
@@ -132,6 +126,11 @@ struct RendererService::Impl {
             .right  = m_viewport.x + m_viewport.w,
             .bottom = m_viewport.y + m_viewport.h,
         };
+    }
+
+    auto get_viewport_native() const -> SDL_GPUViewport const&
+    {
+        return m_viewport;
     }
 
     [[nodiscard]] auto create_pipeline(
@@ -211,13 +210,12 @@ auto RendererService::acquire_command_buffer() const -> std::unique_ptr<GPUComma
     return m_impl->acquire_command_buffer();
 }
 
-auto RendererService::start_render_pass(GPUCommandBuffer const& cmd_buffer, std::vector<ColorTargetInfo> const& color_targets)
-    -> std::unique_ptr<GPURenderPass>
-{
-    return m_impl->start_render_pass(cmd_buffer, color_targets);
-}
-
 auto RendererService::get_viewport() const -> FRect
 {
     return m_impl->get_viewport();
+}
+
+auto RendererService::get_viewport_native() const -> SDL_GPUViewport const&
+{
+    return m_impl->get_viewport_native();
 }

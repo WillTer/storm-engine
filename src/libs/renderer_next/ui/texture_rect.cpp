@@ -1,16 +1,15 @@
-#include "textured_rect.h"
+#include "texture_rect.h"
 
 #include <cassert>
 #include <span>
 
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
-
-#include "impl_sdl/gpu_command_buffer.h"
-#include "impl_sdl/gpu_index_buffer.h"
-#include "impl_sdl/gpu_texture.h"
-#include "impl_sdl/gpu_vertex_buffer.h"
-#include "impl_sdl/renderer_sdl.h"
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
+#include <libs/renderer_next/impl_sdl/gpu_index_buffer.h>
+#include <libs/renderer_next/impl_sdl/gpu_texture.h>
+#include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 
 using namespace storm;
 using namespace hlslpp;
@@ -38,15 +37,15 @@ constexpr auto FRAGMENT_SHADER_INFO = ShaderInfo {
     .num_samplers         = 1,
     .num_storage_textures = 0,
     .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
+    .num_uniform_buffers  = 0,
 };
 
-constexpr char VERTEX_SHADER[]   = "textured_rect_vs";
-constexpr char FRAGMENT_SHADER[] = "textured_rect_fs";
+constexpr char VERTEX_SHADER[]   = "texture_rect_vs";
+constexpr char FRAGMENT_SHADER[] = "texture_rect_fs";
 
 }  // namespace
 
-TexturedRect::TexturedRect(GPUCopyPass const& copy_pass, std::filesystem::path const& texture)
+TextureRect::TextureRect(GPUCopyPass const& copy_pass, std::filesystem::path const& texture)
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const& renderer     = core->get<RendererService>();
@@ -68,46 +67,32 @@ TexturedRect::TexturedRect(GPUCopyPass const& copy_pass, std::filesystem::path c
     auto const texture_asset = asset_server->load_texture_file(texture);
     m_texture                = renderer->create_texture(texture_asset.header);
     copy_pass.upload(*m_texture, std::span(texture_asset.data));
-
-    m_color = float4(1.0F);
 }
 
-TexturedRect::~TexturedRect() = default;
+TextureRect::~TextureRect() = default;
 
-void TexturedRect::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
+void TextureRect::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
 
-void TexturedRect::draw(GPURenderPass const& render_pass) const
+void TextureRect::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
     render_pass.bind(*m_vertex_buffer);
 
-    render_pass.push_vertex_uniform_data(0, &m_ubo, sizeof(m_ubo));
-    render_pass.push_fragment_uniform_data(0, &m_color, sizeof(m_color));
+    render_pass.push_vertex_uniform_data(0, m_ubo);
     render_pass.bind(*m_texture);
     render_pass.draw(*m_index_buffer);
 }
 
-void TexturedRect::set_screen_rect(storm::FRect const& rect)
+void TextureRect::set_screen_rect(storm::FRect const& rect)
 {
     m_ubo.view_proj_mat =
         float4x4::orthographic(projection(frustum(rect.left, rect.right, rect.bottom, rect.top, -1.0F, 1.0F), zclip::zero));
 }
 
-void TexturedRect::set_position(storm::FPoint const& pos)
+void TextureRect::set_rect(storm::FRect const& rect)
 {
-    m_translation   = float4x4::translation(pos.x, pos.y, 0.0F);
-    m_ubo.model_mat = mul(m_scale, m_translation);
-}
-
-void TexturedRect::set_size(float width, float height)
-{
-    m_scale         = float4x4::scale(width, height, 1.0F);
-    m_ubo.model_mat = mul(m_scale, m_translation);
-}
-
-void TexturedRect::set_diffuse_color(storm::Color const& color)
-{
-    auto const [r, g, b, a] = color.normalize();
-    m_color                 = float4(r, g, b, a);
+    auto translation = float4x4::translation(rect.left, rect.top, 0.0F);
+    auto scale       = float4x4::scale(rect.width(), rect.height(), 1.0F);
+    m_ubo.model_mat  = mul(scale, translation);
 }

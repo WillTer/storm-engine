@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include <libs/math/matrix.h>
-#include <libs/renderer_next/textured_rect.h>
 #include <libs/renderer_next/types.h>
 
 #include "editor/editor.h"
@@ -12,12 +11,12 @@
 
 #include "inode.h"
 
+class CXI_WINDOW;
+
 namespace storm
 {
-class GPUTexture;
+class TextureRect;
 }
-
-class CXI_WINDOW;
 
 class XInterface: public XINTERFACE_BASE
 {
@@ -71,8 +70,8 @@ protected:
     CINODE*      m_pMouseNode;
     VDATA*       m_pMouseWeel;
 
-    std::filesystem::path                m_mouse_cursor_tex;
-    std::shared_ptr<storm::TexturedRect> m_mouse_cursor = nullptr;
+    std::filesystem::path               m_mouse_cursor_tex;
+    std::shared_ptr<storm::TextureRect> m_mouse_cursor = nullptr;
 
     // save render state parameters
     uint32_t m_dwStoreFlag_Fog;

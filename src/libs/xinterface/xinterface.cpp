@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <libs/filesystem/default_paths.h>
+#include <libs/renderer_next/ui/texture_rect.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/window/os_window.hpp>
 
@@ -1113,12 +1114,16 @@ void XInterface::LoadDialog(char const* sFileName)
 void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*delta_time*/ /*= 0*/)
 {
     if (!m_mouse_cursor) {
-        m_mouse_cursor = std::make_unique<storm::TexturedRect>(copy_pass, m_mouse_cursor_tex);
+        m_mouse_cursor = std::make_unique<storm::TextureRect>(copy_pass, m_mouse_cursor_tex);
         m_mouse_cursor->set_screen_rect(storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)});
     }
 
-    m_mouse_cursor->set_position({fXMousePos - (MouseSize.x / 2.0F), fYMousePos - (MouseSize.y / 2.0F)});
-    m_mouse_cursor->set_size(static_cast<float>(MouseSize.x), static_cast<float>(MouseSize.y));
+    m_mouse_cursor->set_rect({
+        .left   = fXMousePos - (MouseSize.x / 2.0F),
+        .top    = fYMousePos - (MouseSize.y / 2.0F),
+        .right  = fXMousePos + (MouseSize.x / 2.0F),
+        .bottom = fYMousePos + (MouseSize.y / 2.0F),
+    });
 }
 
 void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t /*delta_time*/ /*= 0*/)
