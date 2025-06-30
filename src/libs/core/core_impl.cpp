@@ -4,6 +4,8 @@
 
 #include <SDL3/SDL.h>
 #include <libs/config/main_config.h>
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
@@ -139,14 +141,23 @@ bool CoreImpl::Run()
 
     ProcessStateLoading();
 
+    auto const& renderer   = get<storm::RendererService>();
+    auto const  cmd_buffer = renderer->acquire_command_buffer();
+
     ProcessRunStart(SECTION_ALL);
     if (stopFrameProcessing_) {
         // service asked to skip current frame processing
         return true;
     }
 
-    ProcessExecute();  // transfer control to objects via Execute() function
-    ProcessRealize();  // transfer control to objects via Realize() function
+    {
+        auto const copy_pass = cmd_buffer->start_copy_pass();
+        ProcessExecute(*copy_pass);  // transfer control to objects via Execute() function
+    }
+    {
+        auto const render_pass = renderer->start_render_pass(*cmd_buffer, {cmd_buffer->get_default_target()});
+        ProcessRealize(*render_pass);  // transfer control to objects via Realize() function
+    }
 
     steamapi::SteamApi::getInstance().RunCallbacks();
 
@@ -436,27 +447,33 @@ void CoreImpl::Trace(char const* format, ...)
 //------------------------------------------------------------------------------------------------
 // Transfer programm control to objects via Execute() functions
 //
-void CoreImpl::ProcessExecute()
+void CoreImpl::ProcessExecute(storm::GPUCopyPass const& copy_pass)
 {
     ProcessRunStart(SECTION_EXECUTE);
 
     auto const  deltatime = Timer.GetDeltaTime();
     auto const& entIds    = core->GetEntityIds(layer_type_t::execute);
     for (auto id: entIds) {
-        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::execute, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) {
+            ptr->ProcessStage(Entity::Stage::execute, deltatime);  // TODO: remove
+            ptr->update_stage(copy_pass, deltatime);
+        }
     }
 
     ProcessRunEnd(SECTION_EXECUTE);
 }
 
-void CoreImpl::ProcessRealize()
+void CoreImpl::ProcessRealize(storm::GPURenderPass const& render_pass)
 {
     ProcessRunStart(SECTION_REALIZE);
 
     auto const  deltatime = Timer.GetDeltaTime();
     auto const& entIds    = core->GetEntityIds(layer_type_t::realize);
     for (auto id: entIds) {
-        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->ProcessStage(Entity::Stage::realize, deltatime); }
+        if (auto* ptr = core->GetEntityPointerSafe(id)) {
+            ptr->ProcessStage(Entity::Stage::realize, deltatime);  // TODO: remove
+            ptr->draw_stage(render_pass, deltatime);
+        }
     }
 
     ProcessRunEnd(SECTION_REALIZE);

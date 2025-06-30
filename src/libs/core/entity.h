@@ -18,6 +18,12 @@ enum class layer_type_t : uint8_t { common, execute, realize };
 
 constexpr entid_t invalid_entity = {};
 
+namespace storm
+{
+class GPUCopyPass;
+class GPURenderPass;
+}  // namespace storm
+
 /* Entity base class */
 class Entity
 {
@@ -49,6 +55,15 @@ public:
     }
 
     virtual void ProcessStage(Stage stage, uint32_t delta = 0) = 0;
+
+    virtual void update_stage(storm::GPUCopyPass const& /*copy_pass*/, uint32_t delta_time = 0)
+    {
+        (void)delta_time;
+    }
+    virtual void draw_stage(storm::GPURenderPass const& /*render_pass*/, uint32_t delta_time = 0)
+    {
+        (void)delta_time;
+    }
 
     virtual uint64_t ProcessMessage(MESSAGE& /*msg*/)
     {

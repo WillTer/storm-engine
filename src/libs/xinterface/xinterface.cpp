@@ -960,16 +960,12 @@ void XInterface::LoadIni()
     ini->ReadString(section, "MousePointer", param, sizeof(param) - 1, "");
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
-    // m_idTex = pRenderService->TextureCreate(param2);
+
+    m_mouse_cursor_tex = param2;
+
     core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
     fYMousePos = static_cast<float>(dwScreenHeight / 2);
-    for (int i = 0; i < 4; i++)
-        vMouse[i].pos.z = 1.f;
-    vMouse[0].tu = vMouse[1].tu = 0.f;
-    vMouse[2].tu = vMouse[3].tu = 1.f;
-    vMouse[0].tv = vMouse[2].tv = 0.f;
-    vMouse[1].tv = vMouse[3].tv = 1.f;
 #ifdef _WIN32  // FIX_LINUX Cursor
     ShowCursor(false);
 #endif
@@ -1112,6 +1108,23 @@ void XInterface::LoadDialog(char const* sFileName)
             &m_frectDefHelpTextureUV.right,
             &m_frectDefHelpTextureUV.bottom);
     }
+}
+
+void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*delta_time*/ /*= 0*/)
+{
+    if (!m_mouse_cursor) {
+        m_mouse_cursor = std::make_unique<storm::TexturedRect>(copy_pass, m_mouse_cursor_tex);
+        m_mouse_cursor->set_screen_rect(storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)});
+    }
+
+    m_mouse_cursor->set_position({fXMousePos - (MouseSize.x / 2.0F), fYMousePos - (MouseSize.y / 2.0F)});
+    m_mouse_cursor->set_size(static_cast<float>(MouseSize.x), static_cast<float>(MouseSize.y));
+}
+
+void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t /*delta_time*/ /*= 0*/)
+{
+    // Mouse pointer show
+    if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
 }
 
 void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)
@@ -1924,11 +1937,7 @@ void XInterface::MouseMove()
             fXMousePos = static_cast<float>(dwScreenWidth);
         }
 
-        m_bShowMouse    = true;
-        vMouse[0].pos.x = vMouse[1].pos.x = fXMousePos - MouseSize.x / 2;
-        vMouse[2].pos.x = vMouse[3].pos.x = fXMousePos + MouseSize.x / 2;
-        vMouse[0].pos.y = vMouse[2].pos.y = fYMousePos - MouseSize.y / 2;
-        vMouse[1].pos.y = vMouse[3].pos.y = fYMousePos + MouseSize.y / 2;
+        m_bShowMouse = true;
 
         m_pCurToolTipNode = nullptr;
         pNod              = m_pNodes ? m_pNodes->FindNode(fXMousePos + m_lXMouse, fYMousePos + m_lYMouse) : nullptr;

@@ -193,8 +193,6 @@ try {
             }
 
             is_running = run_frame_with_overflow_check();
-            renderer->acquire_command_buffer();
-            // Do render
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

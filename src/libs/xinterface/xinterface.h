@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <libs/math/matrix.h>
+#include <libs/renderer_next/textured_rect.h>
 #include <libs/renderer_next/types.h>
 
 #include "editor/editor.h"
@@ -10,6 +11,11 @@
 #include "quest_file_reader/quest_file_reader.h"
 
 #include "inode.h"
+
+namespace storm
+{
+class GPUTexture;
+}
 
 class CXI_WINDOW;
 
@@ -53,19 +59,20 @@ protected:
     //-------------------------------------
 
     // mouse data
-    bool                 m_bShowMouse;
-    int32_t              lock_x, lock_y;  // center position for mouse pointer
-    float                fXMousePos, fYMousePos;
-    int32_t              m_lXMouse, m_lYMouse;  // mouse pointer corrector for calculate active point
-    storm::Point         MouseSize;
-    int32_t              m_idTex;
-    XI_ONLYONETEX_VERTEX vMouse[4];
-    int32_t              m_lMouseSensitive;
-    bool                 m_bMouseClick;
-    bool                 m_bDblMouseClick;
-    int                  m_idButton;
-    CINODE*              m_pMouseNode;
-    VDATA*               m_pMouseWeel;
+    bool         m_bShowMouse;
+    int32_t      lock_x, lock_y;  // center position for mouse pointer
+    float        fXMousePos, fYMousePos;
+    int32_t      m_lXMouse, m_lYMouse;  // mouse pointer corrector for calculate active point
+    storm::Point MouseSize;
+    int32_t      m_lMouseSensitive;
+    bool         m_bMouseClick;
+    bool         m_bDblMouseClick;
+    int          m_idButton;
+    CINODE*      m_pMouseNode;
+    VDATA*       m_pMouseWeel;
+
+    std::filesystem::path                m_mouse_cursor_tex;
+    std::shared_ptr<storm::TexturedRect> m_mouse_cursor = nullptr;
 
     // save render state parameters
     uint32_t m_dwStoreFlag_Fog;
@@ -92,6 +99,9 @@ public:
         case Stage::realize: Realize(delta); break;
         }
     }
+
+    void update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time = 0) override;
+    void draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time = 0) override;
 
     void    CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority = 80);
     void    SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char const* sNodeType, char const* sNodeName, int32_t priority);

@@ -39,8 +39,8 @@ public:
     bool Run();
     bool LoadClassesTable();
 
-    void ProcessExecute();
-    void ProcessRealize();
+    void ProcessExecute(storm::GPUCopyPass const& copy_pass);
+    void ProcessRealize(storm::GPURenderPass const& render_pass);
     void ProcessStateLoading();
     void ProcessRunStart(uint32_t section_code);
     void ProcessRunEnd(uint32_t section_code);

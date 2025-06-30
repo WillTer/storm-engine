@@ -3,9 +3,9 @@
 #include <libs/core/controls.h>
 #include <libs/core/core.h>
 #include <libs/core/message.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/shared_headers/battle_interface/log_msg.h>
 #include <libs/util/string_compare.hpp>
-#include <stdio.h>
 
 #define BI_FAST_COMMANDS "BIFastCommand"
 
@@ -43,12 +43,9 @@ ILogAndActions::~ILogAndActions()
 
 bool ILogAndActions::Init()
 {
-    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-    //     throw std::runtime_error("Can`t create render service");
-    // }
-    // D3DVIEWPORT9 vp;
-    // rs->GetViewport(&vp);
-    // core->Event("SetWindowSize", "lll", static_cast<int32_t>(vp.Width), static_cast<int32_t>(vp.Height), false);
+    auto const& renderer = core->get<storm::RendererService>();
+    auto const  viewport = renderer->get_viewport();
+    core->Event("SetWindowSize", "lll", static_cast<int32_t>(viewport.width()), static_cast<int32_t>(viewport.height()), false);
     return true;
 }
 
