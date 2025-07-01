@@ -35,7 +35,7 @@ public:
         return -1;
     };
 
-    void Draw(bool bSelected, uint32_t Delta_Time) override {};
+    void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override {};
 
     void ReleaseAll() override {};
 

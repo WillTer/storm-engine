@@ -8,9 +8,10 @@ class CXI_TWOPICTURE: public CINODE
 public:
     CXI_TWOPICTURE();
     ~CXI_TWOPICTURE() override;
-    void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/void* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
+    void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override;
+    bool
+    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+        override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;

@@ -28,7 +28,7 @@ int CXI_BORDER::CommandExecute(int wActCode)
     return -1;
 }
 
-void CXI_BORDER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_BORDER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (m_pBackImage) m_pBackImage->Draw();

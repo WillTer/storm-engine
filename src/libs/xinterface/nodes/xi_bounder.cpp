@@ -28,7 +28,7 @@ int CXI_BOUNDER::CommandExecute(int wActCode)
     return -1;
 }
 
-void CXI_BOUNDER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_BOUNDER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // m_rs->TextureSet(0, m_idTex);

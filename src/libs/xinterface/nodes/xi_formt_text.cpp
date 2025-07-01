@@ -83,7 +83,7 @@ CXI_FORMATEDTEXT::~CXI_FORMATEDTEXT()
     ReleaseAll();
 }
 
-void CXI_FORMATEDTEXT::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_FORMATEDTEXT::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (!m_bUse) return;
 

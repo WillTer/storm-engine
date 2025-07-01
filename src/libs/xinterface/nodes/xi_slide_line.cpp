@@ -16,7 +16,7 @@ CXI_SLIDELINE::~CXI_SLIDELINE()
     ReleaseAll();
 }
 
-void CXI_SLIDELINE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SLIDELINE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (m_idVBuf >= 0) {
@@ -159,9 +159,8 @@ void CXI_SLIDELINE::DoMouseControl()
         } else if (fmp.x > m_rect.right - m_nBaseLeft) {
             SetNewValue(m_nCurValue + 1);
         } else {
-            SetNewValue(
-                static_cast<int32_t>(
-                    (fmp.x - m_rect.left - m_nBaseLeft) / (m_rect.right - m_rect.left - m_nBaseLeft - m_nBaseLeft) * m_nGrateQuantity));
+            SetNewValue(static_cast<int32_t>(
+                (fmp.x - m_rect.left - m_nBaseLeft) / (m_rect.right - m_rect.left - m_nBaseLeft - m_nBaseLeft) * m_nGrateQuantity));
         }
     }
 }

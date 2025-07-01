@@ -42,7 +42,7 @@ void CXI_PCEDITBOX::ReleaseAll()
     STORM_DELETE(m_pMiddleImage);
 }
 
-void CXI_PCEDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_PCEDITBOX::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_pLeftImage) m_pLeftImage->Draw();
     if (m_pRightImage) m_pRightImage->Draw();

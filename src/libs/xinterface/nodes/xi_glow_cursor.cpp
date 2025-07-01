@@ -16,7 +16,7 @@ CXI_GLOWCURSOR::~CXI_GLOWCURSOR()
     ReleaseAll();
 }
 
-void CXI_GLOWCURSOR::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_GLOWCURSOR::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (Delta_Time > 0) {

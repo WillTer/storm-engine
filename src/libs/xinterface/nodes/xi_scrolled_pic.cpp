@@ -12,9 +12,9 @@ CXI_SCROLLEDPICTURE::~CXI_SCROLLEDPICTURE()
     ReleaseAll();
 }
 
-void CXI_SCROLLEDPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SCROLLEDPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    CXI_PICTURE::Draw(bSelected, Delta_Time);
+    CXI_PICTURE::Draw(render_pass, bSelected, Delta_Time);
 
     for (int32_t n = 0; n < m_aImg.size(); n++) {
         if (m_aImg[n].bShow) { m_aImg[n].pImg->Draw(); }
@@ -160,16 +160,16 @@ void CXI_SCROLLEDPICTURE::MoveMouseOutScreen(float fX, float fY)
     auto fDeltaU = fX * m_fUTexPerPixel;
     auto fDeltaV = fY * m_fVTexPerPixel;
 
-    if (m_v[0].tu + fDeltaU < 0.f) fDeltaU = -m_v[0].tu;
-    if (m_v[0].tv + fDeltaV < 0.f) fDeltaV = -m_v[0].tv;
+    // if (m_v[0].tu + fDeltaU < 0.f) fDeltaU = -m_v[0].tu;
+    // if (m_v[0].tv + fDeltaV < 0.f) fDeltaV = -m_v[0].tv;
 
-    if (m_v[3].tu + fDeltaU > 1.f) fDeltaU = 1.f - m_v[3].tu;
-    if (m_v[3].tv + fDeltaV > 1.f) fDeltaV = 1.f - m_v[3].tv;
+    // if (m_v[3].tu + fDeltaU > 1.f) fDeltaU = 1.f - m_v[3].tu;
+    // if (m_v[3].tv + fDeltaV > 1.f) fDeltaV = 1.f - m_v[3].tv;
 
-    m_v[0].tu = (m_v[1].tu += fDeltaU);
-    m_v[2].tu = (m_v[3].tu += fDeltaU);
-    m_v[0].tv = (m_v[2].tv += fDeltaV);
-    m_v[1].tv = (m_v[3].tv += fDeltaV);
+    // m_v[0].tu = (m_v[1].tu += fDeltaU);
+    // m_v[2].tu = (m_v[3].tu += fDeltaU);
+    // m_v[0].tv = (m_v[2].tv += fDeltaV);
+    // m_v[1].tv = (m_v[3].tv += fDeltaV);
 
     UpdateBuildenImages();
 }
@@ -204,31 +204,31 @@ void CXI_SCROLLEDPICTURE::ChangeUV(FXYRECT& frNewUV)
 
 void CXI_SCROLLEDPICTURE::RecalculateTexPerPixel()
 {
-    if (m_rect.right - m_rect.left <= 0)
-        m_fUTexPerPixel = 0.f;
-    else
-        m_fUTexPerPixel = (m_v[3].tu - m_v[0].tu) / (m_rect.right - m_rect.left);
+    // if (m_rect.right - m_rect.left <= 0)
+    //     m_fUTexPerPixel = 0.f;
+    // else
+    //     m_fUTexPerPixel = (m_v[3].tu - m_v[0].tu) / (m_rect.right - m_rect.left);
 
-    if (m_rect.bottom - m_rect.top <= 0)
-        m_fVTexPerPixel = 0.f;
-    else
-        m_fVTexPerPixel = (m_v[3].tv - m_v[0].tv) / (m_rect.bottom - m_rect.top);
+    // if (m_rect.bottom - m_rect.top <= 0)
+    //     m_fVTexPerPixel = 0.f;
+    // else
+    //     m_fVTexPerPixel = (m_v[3].tv - m_v[0].tv) / (m_rect.bottom - m_rect.top);
 }
 
 void CXI_SCROLLEDPICTURE::UpdateBuildenImages()
 {
-    for (int32_t n = 0; n < m_aImg.size(); n++) {
-        m_aImg[n].bShow = false;
+    // for (int32_t n = 0; n < m_aImg.size(); n++) {
+    //     m_aImg[n].bShow = false;
 
-        auto fx = m_aImg[n].fpPos.x / m_fpBaseSize.x;
-        auto fy = m_aImg[n].fpPos.y / m_fpBaseSize.y;
-        if (fx < m_v[0].tu || fy < m_v[0].tv || fx > m_v[3].tu || fy > m_v[3].tv || m_fUTexPerPixel <= 0.f || m_fVTexPerPixel <= 0.f)
-            continue;
-        fx = m_v[0].pos.x + (fx - m_v[0].tu) / m_fUTexPerPixel;
-        fy = m_v[0].pos.y + (fy - m_v[0].tv) / m_fVTexPerPixel;
-        m_aImg[n].pImg->SetPosition(static_cast<int32_t>(fx), static_cast<int32_t>(fy), IPType_Center);
-        m_aImg[n].bShow = true;
-    }
+    //     auto fx = m_aImg[n].fpPos.x / m_fpBaseSize.x;
+    //     auto fy = m_aImg[n].fpPos.y / m_fpBaseSize.y;
+    //     if (fx < m_v[0].tu || fy < m_v[0].tv || fx > m_v[3].tu || fy > m_v[3].tv || m_fUTexPerPixel <= 0.f || m_fVTexPerPixel <= 0.f)
+    //         continue;
+    //     fx = m_v[0].pos.x + (fx - m_v[0].tu) / m_fUTexPerPixel;
+    //     fy = m_v[0].pos.y + (fy - m_v[0].tv) / m_fVTexPerPixel;
+    //     m_aImg[n].pImg->SetPosition(static_cast<int32_t>(fx), static_cast<int32_t>(fy), IPType_Center);
+    //     m_aImg[n].bShow = true;
+    // }
 }
 
 void CXI_SCROLLEDPICTURE::SetPosToCenter(float fX, float fY)
@@ -269,25 +269,25 @@ void CXI_SCROLLEDPICTURE::SetScale(int32_t nScaleIdx)
 
 void CXI_SCROLLEDPICTURE::SetScale(float fsx, float fsy)
 {
-    if (fsx < 0.f) fsx = 0.f;
-    if (fsx > 1.f) fsx = 1.f;
-    if (fsy < 0.f) fsy = 0.f;
-    if (fsy > 1.f) fsy = 1.f;
+    // if (fsx < 0.f) fsx = 0.f;
+    // if (fsx > 1.f) fsx = 1.f;
+    // if (fsy < 0.f) fsy = 0.f;
+    // if (fsy > 1.f) fsy = 1.f;
 
-    auto const fCenterX = (m_v[3].tu + m_v[0].tu) * .5f;
-    auto const fCenterY = (m_v[3].tv + m_v[0].tv) * .5f;
+    // auto const fCenterX = (m_v[3].tu + m_v[0].tu) * .5f;
+    // auto const fCenterY = (m_v[3].tv + m_v[0].tv) * .5f;
 
-    auto fLeft = fCenterX - fsx * .5f;
-    auto fTop  = fCenterY - fsy * .5f;
-    if (fLeft < 0.f) fLeft = 0.f;
-    if (fTop < 0.f) fTop = 0.f;
-    if (fLeft + fsx > 1.f) fLeft = 1.f - fsx;
-    if (fTop + fsy > 1.f) fTop = 1.f - fsy;
+    // auto fLeft = fCenterX - fsx * .5f;
+    // auto fTop  = fCenterY - fsy * .5f;
+    // if (fLeft < 0.f) fLeft = 0.f;
+    // if (fTop < 0.f) fTop = 0.f;
+    // if (fLeft + fsx > 1.f) fLeft = 1.f - fsx;
+    // if (fTop + fsy > 1.f) fTop = 1.f - fsy;
 
-    FXYRECT frNewUV;
-    frNewUV.left   = fLeft;
-    frNewUV.top    = fTop;
-    frNewUV.right  = fLeft + fsx;
-    frNewUV.bottom = fTop + fsy;
-    ChangeUV(frNewUV);
+    // FXYRECT frNewUV;
+    // frNewUV.left   = fLeft;
+    // frNewUV.top    = fTop;
+    // frNewUV.right  = fLeft + fsx;
+    // frNewUV.bottom = fTop + fsy;
+    // ChangeUV(frNewUV);
 }

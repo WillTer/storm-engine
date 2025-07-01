@@ -19,7 +19,7 @@ CXI_STATUSLINE::~CXI_STATUSLINE()
     ReleaseAll();
 }
 
-void CXI_STATUSLINE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_STATUSLINE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // m_rs->TextureSet(0, m_idTex);

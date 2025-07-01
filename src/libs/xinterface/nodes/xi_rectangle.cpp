@@ -12,7 +12,7 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
     ReleaseAll();
 }
 
-void CXI_RECTANGLE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_RECTANGLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // m_rs->TextureSet(0, 0);

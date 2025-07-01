@@ -39,7 +39,7 @@ CXI_TWOPICTURE::~CXI_TWOPICTURE()
     ReleaseAll();
 }
 
-void CXI_TWOPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_TWOPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // m_rs->TextureSet(0, m_idOneTex);

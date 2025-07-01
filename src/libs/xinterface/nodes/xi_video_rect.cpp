@@ -15,7 +15,7 @@ CXI_VIDEORECT::~CXI_VIDEORECT()
     ReleaseAll();
 }
 
-void CXI_VIDEORECT::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_VIDEORECT::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (auto* const ptr = core->GetEntityPointer(m_eiVideo)) {

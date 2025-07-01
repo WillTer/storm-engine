@@ -32,7 +32,7 @@ CXI_CONTEXTHELP::~CXI_CONTEXTHELP()
     ReleaseAll();
 }
 
-void CXI_CONTEXTHELP::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_CONTEXTHELP::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // outputting the context help rectangle

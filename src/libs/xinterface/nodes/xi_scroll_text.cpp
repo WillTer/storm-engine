@@ -22,7 +22,7 @@ CXI_SCROLLTEXT::~CXI_SCROLLTEXT()
     ReleaseAll();
 }
 
-void CXI_SCROLLTEXT::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SCROLLTEXT::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     char       param[MAX_PICE_STRING_SIZE];
     auto const curX = 0L;

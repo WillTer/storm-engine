@@ -14,7 +14,7 @@ CXI_VIDEO::~CXI_VIDEO()
 
 uint32_t vid_counter = 0;
 
-void CXI_VIDEO::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_VIDEO::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // Create rectangle

@@ -9,7 +9,7 @@ public:
     CXI_TITLE(const CXI_TITLE&) = delete;
     CXI_TITLE();
     ~CXI_TITLE() override;
-    void Draw(bool bSelected, uint32_t Delta_Time) override;
+    void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override;
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;

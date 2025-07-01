@@ -52,7 +52,7 @@ CXI_VIMAGESCROLL::~CXI_VIMAGESCROLL()
     ReleaseAll();
 }
 
-void CXI_VIMAGESCROLL::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_VIMAGESCROLL::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     int n, l;
     if (m_bUse && m_Image != nullptr) {

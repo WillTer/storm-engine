@@ -51,7 +51,7 @@ CXI_SCROLLER::~CXI_SCROLLER()
     ReleaseAll();
 }
 
-void CXI_SCROLLER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SCROLLER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (m_bDragRoll) {

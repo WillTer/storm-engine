@@ -256,7 +256,9 @@ protected:
     void ShowContextHelp();
 
     // draw function
-    void DrawNode(CINODE* nod, uint32_t Delta_Time, int32_t startPrior = 0, int32_t endPrior = 32000) const;
+    void DrawNode(
+        storm::GPURenderPass const& render_pass, CINODE* nod, uint32_t Delta_Time, int32_t startPrior = 0, int32_t endPrior = 32000) const;
+    void load_node_graphics(storm::GPUCopyPass const& copy_pass, CINODE* nod) const;
     void ShowPrevTexture();
     // initialisation function
     void LoadIni();

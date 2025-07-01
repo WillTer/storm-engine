@@ -15,7 +15,7 @@ CXI_GLOWER::~CXI_GLOWER()
     ReleaseAll();
 }
 
-void CXI_GLOWER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_GLOWER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     // m_rs->TextureSet(0, m_texID);
     for (int32_t i = 0; i < m_nQuantity; i++) {

@@ -36,7 +36,7 @@ CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
     ReleaseAll();
 }
 
-void CXI_TEXTBUTTON::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) m_nPressedDelay--;
 

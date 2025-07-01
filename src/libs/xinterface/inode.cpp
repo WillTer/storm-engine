@@ -414,11 +414,15 @@ bool CINODE::CheckCommandUsed(int comCode) const
 }
 
 bool CINODE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE*             ini1,
+    char const*          name1,
+    INIFILE*             ini2,
+    char const*          name2,
+    /*VDX9RENDER*/ void* rs,
+    XYRECT&              hostRect,
+    XYPOINT&             ScreenSize)
 {
     char param[512];
-    if (!rs) return false;
-    // m_rs = rs;
     memcpy(&m_screenSize, &ScreenSize, sizeof(ScreenSize));
     memcpy(&m_hostRect, &hostRect, sizeof(hostRect));
 
@@ -473,6 +477,8 @@ bool CINODE::Init(
     LoadIni(ini1, name1, ini2, name2);
     return true;
 }
+
+void CINODE::load_graphics(storm::GPUCopyPass const& /*copy_pass*/) {}
 
 float CINODE::GetIniFloat(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, char const* keyName, float fDefault)
 {

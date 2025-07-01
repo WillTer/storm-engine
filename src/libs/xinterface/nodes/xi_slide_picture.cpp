@@ -46,7 +46,7 @@ CXI_SLIDEPICTURE::~CXI_SLIDEPICTURE()
     ReleaseAll();
 }
 
-void CXI_SLIDEPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SLIDEPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         Update(Delta_Time);

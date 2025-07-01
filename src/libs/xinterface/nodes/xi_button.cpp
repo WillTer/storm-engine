@@ -28,7 +28,7 @@ CXI_BUTTON::~CXI_BUTTON()
     ReleaseAll();
 }
 
-void CXI_BUTTON::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_BUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (nPressedDelay > 0) nPressedDelay--;
 

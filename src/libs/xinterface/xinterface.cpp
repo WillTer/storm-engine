@@ -305,48 +305,48 @@ void XInterface::Realize(uint32_t)
     // pRenderService->SetTransform(D3DTS_VIEW, matv);
     // pRenderService->SetTransform(D3DTS_PROJECTION, matp);
 
-    DrawNode(m_pNodes, Delta_Time, 0, 80);
+    // DrawNode(m_pNodes, Delta_Time, 0, 80);
 
-    // Do mouse move
-    auto* pOldNode = m_pCurNode;
-    MouseMove();
-    if (pOldNode != m_pCurNode) {
-        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
-    }
+    // // Do mouse move
+    // auto* pOldNode = m_pCurNode;
+    // MouseMove();
+    // if (pOldNode != m_pCurNode) {
+    //     core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
+    // }
 
-    // show dinamic pictures
-    XI_ONLYONETEX_VERTEX pV[4];
-    for (auto i = 0; i < 4; i++)
-        pV[i].pos.z = 1.f;
-    auto*    pImg = m_imgLists;
-    uint32_t oldTFactor;
+    // // show dinamic pictures
+    // XI_ONLYONETEX_VERTEX pV[4];
+    // for (auto i = 0; i < 4; i++)
+    //     pV[i].pos.z = 1.f;
+    // auto*    pImg = m_imgLists;
+    // uint32_t oldTFactor;
 
-    DrawNode(m_pNodes, Delta_Time, 81, 90);
+    // DrawNode(m_pNodes, Delta_Time, 81, 90);
 
-    // Show dinamic stringes
-    if (m_nStringQuantity > 0) {
-        auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, "strings");
+    // // Show dinamic stringes
+    // if (m_nStringQuantity > 0) {
+    //     auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, "strings");
 
-        if (tmpAttr != nullptr)
-            for (auto i = 0; i < m_nStringQuantity; i++)
-                if (m_stringes[i].bUsed) {
-                    // pRenderService->ExtPrint(
-                    //     m_stringes[i].fontNum,
-                    //     m_stringes[i].dwColor,
-                    //     0,
-                    //     m_stringes[i].eAlignment,
-                    //     true,
-                    //     m_stringes[i].fScale,
-                    //     dwScreenWidth,
-                    //     dwScreenHeight,
-                    //     m_stringes[i].x,
-                    //     m_stringes[i].y,
-                    //     "%s",
-                    //     static_cast<char const*>(tmpAttr->GetAttribute(m_stringes[i].sStringName)));
-                }
-    }
+    //     if (tmpAttr != nullptr)
+    //         for (auto i = 0; i < m_nStringQuantity; i++)
+    //             if (m_stringes[i].bUsed) {
+    //                 // pRenderService->ExtPrint(
+    //                 //     m_stringes[i].fontNum,
+    //                 //     m_stringes[i].dwColor,
+    //                 //     0,
+    //                 //     m_stringes[i].eAlignment,
+    //                 //     true,
+    //                 //     m_stringes[i].fScale,
+    //                 //     dwScreenWidth,
+    //                 //     dwScreenHeight,
+    //                 //     m_stringes[i].x,
+    //                 //     m_stringes[i].y,
+    //                 //     "%s",
+    //                 //     static_cast<char const*>(tmpAttr->GetAttribute(m_stringes[i].sStringName)));
+    //             }
+    // }
 
-    DrawNode(m_pNodes, Delta_Time, 91, 65536);
+    // DrawNode(m_pNodes, Delta_Time, 91, 65536);
 
     if (m_pCurToolTipNode) m_pCurToolTipNode->ShowToolTip();
 
@@ -1115,11 +1115,23 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
 
         pImg = pImg->next;
     }
+
+    load_node_graphics(copy_pass, m_pNodes);
 }
 
-void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t /*delta_time*/ /*= 0*/)
+void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time /*= 0*/)
 {
     if (!m_bUse || !bActive) { return; }
+    DrawNode(render_pass, m_pNodes, delta_time, 0, 80);
+
+    // Do mouse move
+    auto* pOldNode = m_pCurNode;
+    MouseMove();
+    if (pOldNode != m_pCurNode) {
+        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
+    }
+
+    DrawNode(render_pass, m_pNodes, delta_time, 81, 90);
 
     // Draw dynamic images
     auto* pImg = m_imgLists;
@@ -1135,6 +1147,31 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t /*
         }
         pImg = pImg->next;
     }
+
+    // Show dinamic stringes
+    if (m_nStringQuantity > 0) {
+        auto* tmpAttr = core->Entity_GetAttributeClass(g_idInterface, "strings");
+
+        if (tmpAttr != nullptr)
+            for (auto i = 0; i < m_nStringQuantity; i++)
+                if (m_stringes[i].bUsed) {
+                    // pRenderService->ExtPrint(
+                    //     m_stringes[i].fontNum,
+                    //     m_stringes[i].dwColor,
+                    //     0,
+                    //     m_stringes[i].eAlignment,
+                    //     true,
+                    //     m_stringes[i].fScale,
+                    //     dwScreenWidth,
+                    //     dwScreenHeight,
+                    //     m_stringes[i].x,
+                    //     m_stringes[i].y,
+                    //     "%s",
+                    //     static_cast<char const*>(tmpAttr->GetAttribute(m_stringes[i].sStringName)));
+                }
+    }
+
+    DrawNode(render_pass, m_pNodes, delta_time, 91, 65536);
 
     // Mouse pointer show
     if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
@@ -1185,12 +1222,13 @@ void XInterface::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char con
         pNewNod->m_nodeName = new char[len];
         if (!pNewNod->m_nodeName) throw std::runtime_error("allocate memory error");
         memcpy(pNewNod->m_nodeName, sNodeName, len);
-        // if (!pNewNod->Init(pUserIni, sNodeName, pOwnerIni, sNodeType, pRenderService, GlobalRect, xypScreenSize)) {
-        //     delete pNewNod;
-        //     pNewNod = nullptr;
-        // } else {
-        //     AddNodeToList(pNewNod, priority);
-        // }
+        if (!pNewNod->Init(pUserIni, sNodeName, pOwnerIni, sNodeType, nullptr, GlobalRect, xypScreenSize)) {
+            delete pNewNod;
+            pNewNod = nullptr;
+            return;
+        } else {
+            AddNodeToList(pNewNod, priority);
+        }
 
         INIFILE* usedini       = pUserIni;
         pNewNod->m_bBreakPress = pNewNod->GetIniBool(pUserIni, sNodeName, pOwnerIni, sNodeType, "bBreakCommand", false);
@@ -1634,23 +1672,31 @@ void XInterface::RestoreNodeLocks(int32_t nStoreCode)
     m_aLocksArray.erase(m_aLocksArray.begin() + n);
 }
 
-void XInterface::DrawNode(CINODE* nod, uint32_t Delta_Time, int32_t startPrior, int32_t endPrior) const
+void XInterface::load_node_graphics(storm::GPUCopyPass const& copy_pass, CINODE* nod) const
+{
+    for (; nod != nullptr; nod = nod->m_next) {
+        nod->load_graphics(copy_pass);
+    }
+}
+
+void XInterface::DrawNode(
+    storm::GPURenderPass const& render_pass, CINODE* nod, uint32_t Delta_Time, int32_t startPrior, int32_t endPrior) const
 {
     for (; nod != nullptr; nod = nod->m_next) {
         if (nod->GetPriority() < startPrior) continue;
         if (nod->GetPriority() > endPrior) break;
         if (nod->m_bUse) {
             if (nod == m_pGlowCursorNode) {
-                nod->Draw(false, 0);
+                nod->Draw(render_pass, false, 0);
                 continue;
             }
             if (nod == m_pCurNode) {
-                if (m_pGlowCursorNode && m_pGlowCursorNode->m_bUse) m_pGlowCursorNode->Draw(false, Delta_Time);
+                if (m_pGlowCursorNode && m_pGlowCursorNode->m_bUse) m_pGlowCursorNode->Draw(render_pass, false, Delta_Time);
             }
-            nod->Draw(nod == m_pCurNode, Delta_Time);
+            nod->Draw(render_pass, nod == m_pCurNode, Delta_Time);
         } else
             nod->NotUsingTime(Delta_Time);
-        DrawNode(nod->m_list, Delta_Time);
+        DrawNode(render_pass, nod->m_list, Delta_Time);
     }
 }
 

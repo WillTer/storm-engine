@@ -24,7 +24,7 @@ CXI_CHANGER::~CXI_CHANGER()
     ReleaseAll();
 }
 
-void CXI_CHANGER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_CHANGER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (m_bUseBlind) {

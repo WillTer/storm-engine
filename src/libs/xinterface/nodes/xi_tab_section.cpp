@@ -18,7 +18,7 @@ CXI_TABSECTION::~CXI_TABSECTION()
     ReleaseAll();
 }
 
-void CXI_TABSECTION::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_TABSECTION::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     // Drawing
     if (m_idIconTexture != -1 && m_idVBuf != -1 && m_idIBuf != -1) {

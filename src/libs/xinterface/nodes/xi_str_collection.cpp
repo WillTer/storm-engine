@@ -24,7 +24,7 @@ int CXI_STRCOLLECTION::CommandExecute(int wActCode)
     return -1;
 }
 
-void CXI_STRCOLLECTION::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_STRCOLLECTION::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // for (auto i = 0; i < m_nStr; i++)

@@ -37,7 +37,7 @@ CXI_SCROLLBAR::~CXI_SCROLLBAR()
     ReleaseAll();
 }
 
-void CXI_SCROLLBAR::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SCROLLBAR::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_nPressedDelay > 0) m_nPressedDelay--;
 

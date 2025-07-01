@@ -39,7 +39,7 @@ CXI_EDITBOX::~CXI_EDITBOX()
     ReleaseAll();
 }
 
-void CXI_EDITBOX::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_EDITBOX::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (!bSelected && m_bOldSelected) {
         m_bUse = false;

@@ -68,7 +68,7 @@ int CXI_FOURIMAGE::CommandExecute(int wActCode)
     return retVal;
 }
 
-void CXI_FOURIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_FOURIMAGE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     // GUARD(void CXI_FOURIMAGE::Draw())
 

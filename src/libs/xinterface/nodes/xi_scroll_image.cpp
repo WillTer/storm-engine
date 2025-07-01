@@ -50,7 +50,7 @@ CXI_SCROLLIMAGE::~CXI_SCROLLIMAGE()
     ReleaseAll();
 }
 
-void CXI_SCROLLIMAGE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_SCROLLIMAGE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     int n;
     if (m_bUse && !m_Image.empty()) {

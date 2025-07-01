@@ -27,7 +27,7 @@ CXI_CHECKBUTTONS::~CXI_CHECKBUTTONS()
     ReleaseAll();
 }
 
-void CXI_CHECKBUTTONS::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_CHECKBUTTONS::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     auto fX = static_cast<float>(m_rect.left);
     auto fY = static_cast<float>(m_rect.top);

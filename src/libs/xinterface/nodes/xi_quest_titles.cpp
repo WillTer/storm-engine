@@ -72,7 +72,7 @@ CXI_QUESTTITLE::~CXI_QUESTTITLE()
     ReleaseAll();
 }
 
-void CXI_QUESTTITLE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_QUESTTITLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     int i, j;
     if (!m_bUse) return;

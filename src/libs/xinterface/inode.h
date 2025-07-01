@@ -77,6 +77,14 @@ class CXI_ToolTip;
 
 class CINODE;
 
+namespace storm
+{
+
+class GPUCopyPass;
+class GPURenderPass;
+
+}  // namespace storm
+
 class XINTERFACE_BASE: public Entity
 {
 public:
@@ -179,9 +187,17 @@ public:
 public:
     CINODE();
     virtual ~CINODE();
-    virtual void Draw(bool bSelected, uint32_t Delta_Time) = 0;
+    virtual void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) = 0;
     virtual bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize);
+        INIFILE*             ini1,
+        char const*          name1,
+        INIFILE*             ini2,
+        char const*          name2,
+        /*VDX9RENDER*/ void* rs,
+        XYRECT&              hostRect,
+        XYPOINT&             ScreenSize);
+    virtual void load_graphics(storm::GPUCopyPass const& copy_pass);
+
     virtual void   ReleaseAll() = 0;
     CINODE*        DoAction(int wActCode, bool& bBreakPress, bool bFirstPress);
     virtual int    CommandExecute(int wActCode) = 0;

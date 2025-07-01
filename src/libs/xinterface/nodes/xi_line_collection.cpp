@@ -17,7 +17,7 @@ int CXI_LINECOLLECTION::CommandExecute(int wActCode)
     return -1;
 }
 
-void CXI_LINECOLLECTION::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_LINECOLLECTION::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     // if (m_bUse) { m_rs->DrawLines(m_aLines.data(), m_aLines.size() / 2, "iLineCollection"); }
 }

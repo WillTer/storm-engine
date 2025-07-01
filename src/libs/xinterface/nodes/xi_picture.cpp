@@ -6,9 +6,10 @@
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
+#include "libs/renderer_next/ui/texture_rect.h"
+
 CXI_PICTURE::CXI_PICTURE()
 {
-    m_idTex           = -1;
     m_nNodeType       = NODETYPE_PICTURE;
     m_pcGroupName     = nullptr;
     m_bMakeBlind      = false;
@@ -18,6 +19,7 @@ CXI_PICTURE::CXI_PICTURE()
     m_fBlindDownSpeed = 0.001f;
     m_dwBlindMin      = storm::Color {255, 128, 128, 128}.to_hex();
     m_dwBlindMax      = storm::Color {255, 255, 255, 255}.to_hex();
+    m_picture         = nullptr;
 }
 
 CXI_PICTURE::~CXI_PICTURE()
@@ -25,7 +27,7 @@ CXI_PICTURE::~CXI_PICTURE()
     ReleaseAll();
 }
 
-void CXI_PICTURE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_PICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (m_bMakeBlind) {
@@ -42,60 +44,69 @@ void CXI_PICTURE::Draw(bool bSelected, uint32_t Delta_Time)
                     m_bBlindUp      = true;
                 }
             }
-            // ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
+            ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime).to_hex());
         }
 
-        // if (m_idTex != -1 || m_pTex) {
-        //     if (m_idTex != -1)
-        //         m_rs->TextureSet(0, m_idTex);
-        //     else
-        //         m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
-        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
-        // }
+        if (m_picture) { m_picture->draw(render_pass); }
     }
 }
 
 bool CXI_PICTURE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE*             ini1,
+    char const*          name1,
+    INIFILE*             ini2,
+    char const*          name2,
+    /*VDX9RENDER*/ void* rs,
+    XYRECT&              hostRect,
+    XYPOINT&             ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
+}
+
+void CXI_PICTURE::load_graphics(storm::GPUCopyPass const& copy_pass)
+{
+    if (!m_picture && !m_picture_path.empty()) {
+        m_picture = std::make_shared<storm::TextureRect>(copy_pass, m_picture_path, m_picture_tex_rect);
+        ChangePosition(m_rect);
+        m_picture->set_diffuse_color(m_picture_color);
+        m_picture->set_screen_rect({
+            .left   = 0.0F,
+            .top    = 0.0F,
+            .right  = static_cast<float>(m_screenSize.x),
+            .bottom = static_cast<float>(m_screenSize.y),
+        });
+    }
 }
 
 void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
     char param[255];
 
-    m_idTex = -1;
-
     auto texRect = FXYRECT(0.f, 0.f, 1.f, 1.f);
 
     if (ReadIniString(ini1, name1, ini2, name2, "groupName", param, sizeof(param), "")) {
-        m_idTex        = pPictureService->GetTextureID(param);
         auto const len = strlen(param) + 1;
         m_pcGroupName  = new char[len];
         Assert(m_pcGroupName);
         memcpy(m_pcGroupName, param, len);
 
-        if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), ""))
-            pPictureService->GetTexturePos(m_pcGroupName, param, texRect);
+        if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
+            m_picture = pPictureService->get_texture(m_pcGroupName, param);
+        }
     } else {
-        // if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
-        texRect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
+        if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) { m_picture_path = param; }
+        texRect            = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
+        m_picture_tex_rect = {.left = texRect.left, .top = texRect.top, .right = texRect.right, .bottom = texRect.bottom};
     }
 
     // m_pTex = nullptr;
     // if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
 
-    auto const color = GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex());
+    m_picture_color = storm::Color::from_hex(GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex()));
 
     // Create rectangle
     ChangePosition(m_rect);
-    ChangeUV(texRect);
-    for (auto i = 0; i < 4; i++) {
-        m_v[i].color = color;
-        m_v[i].pos.z = 1.f;
-    }
 
     m_bMakeBlind    = GetIniBool(ini1, name1, ini2, name2, "blind", false);
     m_fCurBlindTime = 0.f;
@@ -128,15 +139,15 @@ bool CXI_PICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 
 void CXI_PICTURE::ChangePosition(XYRECT& rNewPos)
 {
-    m_rect       = rNewPos;
-    m_v[0].pos.x = static_cast<float>(m_rect.left);
-    m_v[0].pos.y = static_cast<float>(m_rect.top);
-    m_v[1].pos.x = static_cast<float>(m_rect.left);
-    m_v[1].pos.y = static_cast<float>(m_rect.bottom);
-    m_v[2].pos.x = static_cast<float>(m_rect.right);
-    m_v[2].pos.y = static_cast<float>(m_rect.top);
-    m_v[3].pos.x = static_cast<float>(m_rect.right);
-    m_v[3].pos.y = static_cast<float>(m_rect.bottom);
+    m_rect = rNewPos;
+    if (m_picture) {
+        m_picture->set_rect({
+            .left   = static_cast<float>(m_rect.left),
+            .top    = static_cast<float>(m_rect.top),
+            .right  = static_cast<float>(m_rect.right),
+            .bottom = static_cast<float>(m_rect.bottom),
+        });
+    }
 }
 
 void CXI_PICTURE::SaveParametersToIni()
@@ -191,15 +202,10 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
             m_pcGroupName  = new char[strlen(groupName) + 1];
             Assert(m_pcGroupName);
             memcpy(m_pcGroupName, groupName, len);
-            m_idTex = pPictureService->GetTextureID(groupName);
         }
     }
 
-    if (m_pcGroupName && picName) {
-        FXYRECT texRect;
-        pPictureService->GetTexturePos(m_pcGroupName, picName, texRect);
-        ChangeUV(texRect);
-    }
+    m_picture = pPictureService->get_texture(m_pcGroupName, picName);
 }
 
 uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
@@ -240,8 +246,7 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
     case 4:  // Set a new color
     {
         uint32_t const color = message.Long();
-        for (auto i = 0; i < 4; i++)
-            m_v[i].color = color;
+        if (m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(color)); }
     } break;
 
     case 5:  // set / remove blinking
@@ -291,13 +296,9 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
                 m_pcGroupName            = pOtherPic->m_pcGroupName;
                 pOtherPic->m_pcGroupName = nullptr;
             }
-            if (pOtherPic->m_idTex != -1) {
-                m_idTex            = pOtherPic->m_idTex;
-                pOtherPic->m_idTex = -1;
-            }
-            for (int32_t n = 0; n < 4; n++) {
-                m_v[n].tu = pOtherPic->m_v[n].tu;
-                m_v[n].tv = pOtherPic->m_v[n].tv;
+            if (pOtherPic->m_picture != nullptr) {
+                m_picture            = pOtherPic->m_picture;
+                pOtherPic->m_picture = nullptr;
             }
             pOtherPic->ReleasePicture();
         }
@@ -307,21 +308,11 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
     return 0;
 }
 
-void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV)
-{
-    m_v[0].tu = frNewUV.left;
-    m_v[0].tv = frNewUV.top;
-    m_v[1].tu = frNewUV.left;
-    m_v[1].tv = frNewUV.bottom;
-    m_v[2].tu = frNewUV.right;
-    m_v[2].tv = frNewUV.top;
-    m_v[3].tu = frNewUV.right;
-    m_v[3].tv = frNewUV.bottom;
-}
+void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV) {}
 
 void CXI_PICTURE::ChangeColor(uint32_t dwColor)
 {
-    m_v[0].color = m_v[1].color = m_v[2].color = m_v[3].color = dwColor;
+    if (m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(dwColor)); }
 }
 
 void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)
@@ -361,25 +352,11 @@ void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)
 
 void CXI_PICTURE::SetNewPictureByPointer(int32_t textureId)
 {
-    // IDirect3DBaseTexture9* texture = m_rs->GetTextureFromID(textureId);
-    // m_rs->TextureIncReference(textureId);
-    // if (texture) texture->AddRef();
-    ReleasePicture();
-    m_idTex = textureId;
-
-    FXYRECT uv;
-    uv.left = uv.top = 0.f;
-    uv.right = uv.bottom = 1.f;
-    ChangeUV(uv);
+    // Obsolete
 }
 
 void CXI_PICTURE::ReleasePicture()
 {
-    PICTURE_TEXTURE_RELEASE(pPictureService, m_pcGroupName, m_idTex);
-
     delete[] m_pcGroupName;
     m_pcGroupName = nullptr;
-
-    // TEXTURE_RELEASE(m_rs, m_idTex);
-    // VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
 }

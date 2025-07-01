@@ -21,10 +21,9 @@ struct PointBase2D {
         return std::make_pair(x, y);
     }
 
-    // Wait until C++26 when std::sqrt will be constexpr
-    double distance(PointBase2D const& other) const
+    constexpr double distance(PointBase2D const& other) const
     {
-        return std::sqrt(((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y)));
+        return ((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y));
     }
 
     constexpr PointBase2D& operator+=(PointBase2D const& other)
@@ -70,10 +69,9 @@ struct PointBase3D {
         return std::make_tuple(x, y, z);
     }
 
-    // Wait until C++26 when std::sqrt will be constexpr
-    double distance(PointBase3D const& other) const
+    constexpr double squared_distance(PointBase3D const& other) const
     {
-        return std::sqrt(((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y)) + ((other.z - z) * (other.z - z)));
+        return ((other.x - x) * (other.x - x)) + ((other.y - y) * (other.y - y)) + ((other.z - z) * (other.z - z));
     }
 
     constexpr PointBase3D& operator+=(PointBase3D const& other)

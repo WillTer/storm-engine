@@ -345,7 +345,7 @@ CXI_TABLE::~CXI_TABLE()
     ReleaseAll();
 }
 
-void CXI_TABLE::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_TABLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     m_bFirstFrame = false;
 

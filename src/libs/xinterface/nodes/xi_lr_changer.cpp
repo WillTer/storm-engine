@@ -45,7 +45,7 @@ CXI_LRCHANGER::~CXI_LRCHANGER()
     ReleaseAll();
 }
 
-void CXI_LRCHANGER::Draw(bool bSelected, uint32_t Delta_Time)
+void CXI_LRCHANGER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         if (nPressedDelay > 0) nPressedDelay--;
