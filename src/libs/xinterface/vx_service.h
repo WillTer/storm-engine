@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <libs/renderer_next/types.h>
+
 #define TEXTURE_MODIFY_NONE 0
 #define TEXTURE_MODIFY_HORZFLIP 1
 #define TEXTURE_MODIFY_VERTFLIP 2
@@ -14,8 +16,8 @@ struct XYPOINT;
 
 namespace storm
 {
-class Picture;
 class GPUCopyPass;
+class GPUTexture;
 }  // namespace storm
 
 class VXSERVICE
@@ -28,7 +30,8 @@ public:
     virtual int32_t GetTextureID(char const* sImageListName)     = 0;
     virtual bool    ReleaseTextureID(char const* sImageListName) = 0;
 
-    virtual auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::Picture> = 0;
+    virtual auto get_texture(std::string_view const& image_list) -> std::shared_ptr<storm::GPUTexture>             = 0;
+    virtual auto get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect = 0;
 
     // get texture positon for select picture
     virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;

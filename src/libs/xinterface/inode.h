@@ -196,7 +196,7 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize);
-    virtual void load_graphics(storm::GPUCopyPass const& copy_pass);
+    virtual void update(storm::GPUCopyPass const& copy_pass);
 
     virtual void   ReleaseAll() = 0;
     CINODE*        DoAction(int wActCode, bool& bBreakPress, bool bFirstPress);
@@ -356,6 +356,8 @@ public:
     XYPOINT m_screenSize;
     XYRECT  m_rect;
     XYRECT  m_hostRect;
+
+    storm::FRect m_screen_rect;
 
     int32_t m_nAbsoluteRectVal;
 

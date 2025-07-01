@@ -21,8 +21,9 @@ public:
     TextureAtlasNamed(GPUCopyPass const& copy_pass, std::filesystem::path const& texture);
     ~TextureAtlasNamed();
 
-    void add_picture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect);
-    auto get_picture(std::string const& name) -> std::shared_ptr<Picture>;
+    void add_picture(std::string const& name, storm::FRect const& texture_pos_rect);
+    auto get_tex_coords(std::string const& name) const -> storm::FRect;
+    auto get_texture() const -> std::shared_ptr<GPUTexture>;
 
 private:
     uint32_t m_width;
@@ -30,7 +31,7 @@ private:
 
     std::shared_ptr<GPUTexture> m_texture;
 
-    std::unordered_map<std::string, std::shared_ptr<Picture>> m_pictures;
+    std::unordered_map<std::string, storm::FRect> m_pictures;
 };
 
 }  // namespace storm

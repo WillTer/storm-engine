@@ -426,6 +426,8 @@ bool CINODE::Init(
     memcpy(&m_screenSize, &ScreenSize, sizeof(ScreenSize));
     memcpy(&m_hostRect, &hostRect, sizeof(hostRect));
 
+    m_screen_rect = {0.0F, 0.0F, static_cast<float>(m_screenSize.x), static_cast<float>(m_screenSize.y)};
+
     // get position
     m_rect             = GetIniLongRect(ini1, name1, ini2, name2, "position", m_hostRect);
     m_nAbsoluteRectVal = GetIniLong(ini1, name1, ini2, name2, "bAbsoluteRectangle", 0);
@@ -478,7 +480,7 @@ bool CINODE::Init(
     return true;
 }
 
-void CINODE::load_graphics(storm::GPUCopyPass const& /*copy_pass*/) {}
+void CINODE::update(storm::GPUCopyPass const& /*copy_pass*/) {}
 
 float CINODE::GetIniFloat(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, char const* keyName, float fDefault)
 {

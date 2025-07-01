@@ -1,6 +1,8 @@
 #include "xi_text_button.h"
 
 #include <libs/renderer_next/types.h>
+#include <libs/renderer_next/ui/button.h>
+#include <libs/renderer_next/ui/picture.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
@@ -42,12 +44,13 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
 
     if (m_bUse) {
         if (bSelected ^ m_bCurrentSelected) {
+            if (bSelected) { m_button_selected->draw(render_pass); }
             // auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
             // if (pVert != nullptr) {
             //     FXYRECT texRect;
             //     m_bCurrentSelected = bSelected;
             //
-            //     if (m_idSelectMiddle != -1) {
+            // if (m_idSelectMiddle != nullptr) {
             //         if (bSelected)
             //             pPictureService->GetTexturePos(m_idSelectMiddle, texRect);
             //         else
@@ -61,9 +64,9 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             //         pVert[6].tv = pVert[18].tv = pVert[30].tv = pVert[42].tv = texRect.bottom;
             //         pVert[7].tu = pVert[19].tu = pVert[31].tu = pVert[43].tu = texRect.right;
             //         pVert[7].tv = pVert[19].tv = pVert[31].tv = pVert[43].tv = texRect.bottom;
-            //     }
+            // }
             //
-            //     if (m_idSelectLeft != -1) {
+            // if (m_idSelectLeft != nullptr) {
             //         if (bSelected)
             //             pPictureService->GetTexturePos(m_idSelectLeft, texRect);
             //         else
@@ -77,9 +80,9 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             //         pVert[2].tv = pVert[14].tv = pVert[26].tv = pVert[38].tv = texRect.bottom;
             //         pVert[3].tu = pVert[15].tu = pVert[27].tu = pVert[39].tu = texRect.right;
             //         pVert[3].tv = pVert[15].tv = pVert[27].tv = pVert[39].tv = texRect.bottom;
-            //     }
+            // }
             //
-            //     if (m_idSelectRight != -1 || m_idSelectLeft != -1) {
+            // if (m_idSelectRight != nullptr || m_idSelectLeft != nullptr) {
             //         if (bSelected) {
             //             if (m_idSelectRight != -1)
             //                 pPictureService->GetTexturePos(m_idSelectRight, texRect);
@@ -100,7 +103,7 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             //         pVert[10].tv = pVert[22].tv = pVert[34].tv = pVert[46].tv = texRect.bottom;
             //         pVert[11].tu = pVert[23].tu = pVert[35].tu = pVert[47].tu = texRect.right;
             //         pVert[11].tv = pVert[23].tv = pVert[35].tv = pVert[47].tv = texRect.bottom;
-            //     }
+            // }
             //
             //     m_rs->UnLockVertexBuffer(m_idVBuf);
             // }
@@ -139,6 +142,7 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
         }
 
         // show button
+        m_button->draw(render_pass);
         // m_rs->TextureSet(0, m_idTex);
         // if (m_nPressedDelay > 0)
         //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 4 * 3 * 2, 4 * 3, 0, m_nIndx, "iTextButton");
@@ -228,6 +232,43 @@ bool CXI_TEXTBUTTON::Init(
     return true;
 }
 
+void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
+{
+    if (!m_button) {
+        if (m_uv.right_uv.width() <= std::numeric_limits<float>::epsilon()) {
+            m_uv.right_uv = storm::FRect {
+                .left   = m_uv.left_uv.right,  // Mirror x
+                .top    = m_uv.left_uv.top,
+                .right  = m_uv.left_uv.left,
+                .bottom = m_uv.left_uv.bottom,
+            };
+        }
+
+        auto left_pic   = std::make_unique<storm::Picture>(copy_pass, m_texture, m_uv.left_uv);
+        auto middle_pic = std::make_unique<storm::Picture>(copy_pass, m_texture, m_uv.middle_uv);
+        auto right_pic  = std::make_unique<storm::Picture>(copy_pass, m_texture, m_uv.right_uv);
+
+        m_button = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
+        m_button->set_screen_rect(m_screen_rect);
+        m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+    }
+
+    if (!m_button_selected) {
+        auto left_pic = std::make_unique<storm::Picture>(
+            copy_pass, m_texture, m_uv_selected.left_uv.width() > 0 ? m_uv_selected.left_uv : m_uv.left_uv);
+        auto middle_pic = std::make_unique<storm::Picture>(
+            copy_pass, m_texture, m_uv_selected.middle_uv.width() > 0 ? m_uv_selected.middle_uv : m_uv.middle_uv);
+        auto right_pic = std::make_unique<storm::Picture>(
+            copy_pass, m_texture, m_uv_selected.right_uv.width() > 0 ? m_uv_selected.right_uv : m_uv.right_uv);
+
+        m_button_selected = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
+        m_button_selected->set_screen_rect(m_screen_rect);
+        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+    }
+
+    ChangePosition(m_rect);
+}
+
 void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
     char     param[255];
@@ -266,11 +307,11 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_sGroupName = nullptr;
     m_idTex      = -1;
     if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) {
-        m_idTex        = pPictureService->GetTextureID(param);
         auto const len = strlen(param) + 1;
         m_sGroupName   = new char[len];
         if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
         memcpy(m_sGroupName, param, len);
+        m_texture = pPictureService->get_texture(m_sGroupName);
     }
 
     m_idShadowTex = -1;
@@ -384,24 +425,15 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     // }
     //
     // FXYRECT texRect;
-    // XYRECT  natureRect;
-    // // fill left side of button
-    // m_idUnSelectLeft = m_idSelectLeft = -1;
-    // if (ReadIniString(ini1, name1, ini2, name2, "selectButtonLeft", param, sizeof(param), ""))
-    //     m_idSelectLeft = pPictureService->GetImageNum(m_sGroupName, param);
-    // if (ReadIniString(ini1, name1, ini2, name2, "buttonLeft", param, sizeof(param), ""))
-    //     m_idUnSelectLeft = pPictureService->GetImageNum(m_sGroupName, param);
-    // pPictureService->GetTexturePos(m_idUnSelectLeft, texRect);
-    // pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
-    // auto fLeftMiddle = static_cast<float>(m_rect.left + natureRect.right - natureRect.left);
-    // pVert[0].tu = pVert[12].tu = pVert[24].tu = pVert[36].tu = texRect.left;
-    // pVert[0].tv = pVert[12].tv = pVert[24].tv = pVert[36].tv = texRect.top;
-    // pVert[1].tu = pVert[13].tu = pVert[25].tu = pVert[37].tu = texRect.right;
-    // pVert[1].tv = pVert[13].tv = pVert[25].tv = pVert[37].tv = texRect.top;
-    // pVert[2].tu = pVert[14].tu = pVert[26].tu = pVert[38].tu = texRect.left;
-    // pVert[2].tv = pVert[14].tv = pVert[26].tv = pVert[38].tv = texRect.bottom;
-    // pVert[3].tu = pVert[15].tu = pVert[27].tu = pVert[39].tu = texRect.right;
-    // pVert[3].tv = pVert[15].tv = pVert[27].tv = pVert[39].tv = texRect.bottom;
+
+    // fill left side of button
+    if (ReadIniString(ini1, name1, ini2, name2, "selectButtonLeft", param, sizeof(param), "")) {
+        m_uv_selected.left_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+    if (ReadIniString(ini1, name1, ini2, name2, "buttonLeft", param, sizeof(param), "")) {
+        m_uv.left_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+
     // pVert[0].pos.x = pVert[2].pos.x = static_cast<float>(m_rect.left);
     // pVert[12].pos.x = pVert[14].pos.x = m_rect.left + m_fXShadow;
     // pVert[24].pos.x = pVert[26].pos.x = m_rect.left + m_fXDeltaPress;
@@ -420,20 +452,13 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     // pVert[38].pos.y = pVert[39].pos.y = m_rect.bottom + m_fYDeltaPress + m_fYShadowPress;
     // // fill right side of button
     // auto fRightMiddle = m_rect.right - (fLeftMiddle - m_rect.left);
-    // m_idUnSelectRight = m_idSelectRight = -1;
-    // if (ReadIniString(ini1, name1, ini2, name2, "buttonRight", param, sizeof(param), ""))
-    //     m_idUnSelectRight = pPictureService->GetImageNum(m_sGroupName, param);
-    // if (ReadIniString(ini1, name1, ini2, name2, "selectButtonRight", param, sizeof(param), ""))
-    //     m_idSelectRight = pPictureService->GetImageNum(m_sGroupName, param);
-    //
-    // if (m_idUnSelectRight != -1) {
-    //     pPictureService->GetTexturePos(m_idUnSelectRight, texRect);
-    //     pPictureService->GetTexturePos(m_idUnSelectRight, natureRect);
-    // } else {
-    //     pPictureService->GetTexturePos(TEXTURE_MODIFY_HORZFLIP, m_idUnSelectLeft, texRect);
-    //     pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
-    // }
-    // fRightMiddle = m_rect.right - static_cast<float>(natureRect.right - natureRect.left);
+    if (ReadIniString(ini1, name1, ini2, name2, "selectButtonRight", param, sizeof(param), "")) {
+        m_uv_selected.right_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+    if (ReadIniString(ini1, name1, ini2, name2, "buttonRight", param, sizeof(param), "")) {
+        m_uv.right_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+
     // pVert[8].tu = pVert[20].tu = pVert[32].tu = pVert[44].tu = texRect.left;
     // pVert[8].tv = pVert[20].tv = pVert[32].tv = pVert[44].tv = texRect.top;
     // pVert[9].tu = pVert[21].tu = pVert[33].tu = pVert[45].tu = texRect.right;
@@ -458,13 +483,16 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     // pVert[22].pos.y = pVert[23].pos.y = m_rect.bottom + m_fYShadow;
     // pVert[34].pos.y = pVert[35].pos.y = m_rect.bottom + m_fYDeltaPress;
     // pVert[46].pos.y = pVert[47].pos.y = m_rect.bottom + m_fYDeltaPress + m_fYShadowPress;
-    // // fill middle of button
-    // if (ReadIniString(ini1, name1, ini2, name2, "buttonMiddle", param, sizeof(param), ""))
-    //     m_idUnSelectMiddle = pPictureService->GetImageNum(m_sGroupName, param);
-    // if (ReadIniString(ini1, name1, ini2, name2, "selectButtonMiddle", param, sizeof(param), ""))
-    //     m_idSelectMiddle = pPictureService->GetImageNum(m_sGroupName, param);
+    // fill middle of button
+    if (ReadIniString(ini1, name1, ini2, name2, "buttonMiddle", param, sizeof(param), "")) {
+        m_uv.middle_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+    if (ReadIniString(ini1, name1, ini2, name2, "selectButtonMiddle", param, sizeof(param), "")) {
+        m_uv_selected.middle_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+    }
+
     // pPictureService->GetTexturePos(m_idUnSelectMiddle, texRect);
-    // m_bCurrentSelected = false;
+    m_bCurrentSelected = false;
     // pVert[4].tu = pVert[16].tu = pVert[28].tu = pVert[40].tu = texRect.left;
     // pVert[4].tv = pVert[16].tv = pVert[28].tv = pVert[40].tv = texRect.top;
     // pVert[5].tu = pVert[17].tu = pVert[29].tu = pVert[41].tu = texRect.right;
@@ -537,11 +565,6 @@ void CXI_TEXTBUTTON::ReleaseAll()
 
     delete[] m_sString;
     m_sString = nullptr;
-
-    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
-    // INDEX_BUFFER_RELEASE(m_rs, m_idIBuf);
-    // VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
-    // FONT_RELEASE(m_rs, m_nFontNum);
 }
 
 int CXI_TEXTBUTTON::CommandExecute(int wActCode)
@@ -571,7 +594,9 @@ bool CXI_TEXTBUTTON::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
-    FillPositionIntoVertices();
+
+    m_button->set_rect(m_rect);
+    m_button_selected->set_rect(m_rect);
 }
 
 void CXI_TEXTBUTTON::SaveParametersToIni()
@@ -670,9 +695,9 @@ void CXI_TEXTBUTTON::FillPositionIntoVertices()
     }
 
     // fill left side of button
-    pPictureService->GetTexturePos(m_idUnSelectLeft, texRect);
-    pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
-    float fLeftMiddle = static_cast<float>(m_rect.left + natureRect.right - natureRect.left);
+    // pPictureService->GetTexturePos(m_idUnSelectLeft, texRect);
+    // pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
+    // float fLeftMiddle = static_cast<float>(m_rect.left + natureRect.right - natureRect.left);
     // pVert[0].pos.x = pVert[2].pos.x = static_cast<float>(m_rect.left);
     // pVert[12].pos.x = pVert[14].pos.x = m_rect.left + m_fXShadow;
     // pVert[24].pos.x = pVert[26].pos.x = m_rect.left + m_fXDeltaPress;
@@ -691,14 +716,14 @@ void CXI_TEXTBUTTON::FillPositionIntoVertices()
     // pVert[38].pos.y = pVert[39].pos.y = m_rect.bottom + m_fYDeltaPress + m_fYShadowPress;
 
     // fill right side of button
-    if (m_idUnSelectRight != -1) {
-        pPictureService->GetTexturePos(m_idUnSelectRight, texRect);
-        pPictureService->GetTexturePos(m_idUnSelectRight, natureRect);
-    } else {
-        pPictureService->GetTexturePos(TEXTURE_MODIFY_HORZFLIP, m_idUnSelectLeft, texRect);
-        pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
-    }
-    float fRightMiddle = m_rect.right - static_cast<float>(natureRect.right - natureRect.left);
+    // if (m_idUnSelectRight != -1) {
+    //     pPictureService->GetTexturePos(m_idUnSelectRight, texRect);
+    //     pPictureService->GetTexturePos(m_idUnSelectRight, natureRect);
+    // } else {
+    //     pPictureService->GetTexturePos(TEXTURE_MODIFY_HORZFLIP, m_idUnSelectLeft, texRect);
+    //     pPictureService->GetTexturePos(m_idUnSelectLeft, natureRect);
+    // }
+    // float fRightMiddle = m_rect.right - static_cast<float>(natureRect.right - natureRect.left);
     // pVert[8].pos.x = pVert[10].pos.x = fRightMiddle;  // left top X
     // pVert[20].pos.x = pVert[22].pos.x = fRightMiddle + m_fXShadow;
     // pVert[32].pos.x = pVert[34].pos.x = fRightMiddle + m_fXDeltaPress;
@@ -717,7 +742,7 @@ void CXI_TEXTBUTTON::FillPositionIntoVertices()
     // pVert[46].pos.y = pVert[47].pos.y = m_rect.bottom + m_fYDeltaPress + m_fYShadowPress;
 
     // fill middle of button
-    pPictureService->GetTexturePos(m_idUnSelectMiddle, texRect);
+    // pPictureService->GetTexturePos(m_idUnSelectMiddle, texRect);
     // pVert[4].pos.x = pVert[6].pos.x = fLeftMiddle;  // left
     // pVert[16].pos.x = pVert[18].pos.x = fLeftMiddle + m_fXShadow;
     // pVert[28].pos.x = pVert[30].pos.x = fLeftMiddle + m_fXDeltaPress;
@@ -737,20 +762,20 @@ void CXI_TEXTBUTTON::FillPositionIntoVertices()
 
     // m_rs->UnLockVertexBuffer(m_idVBuf);
 
-    if (m_bVideoToBack) {
-        fLeftMiddle  = static_cast<float>(m_rect.left);
-        fRightMiddle = static_cast<float>(m_rect.right);
-    }
+    // if (m_bVideoToBack) {
+    //     fLeftMiddle  = static_cast<float>(m_rect.left);
+    //     fRightMiddle = static_cast<float>(m_rect.right);
+    // }
 
-    m_v[4].pos.x = (m_v[0].pos.x = fLeftMiddle) + m_fXDeltaPress;
-    m_v[4].pos.y = (m_v[0].pos.y = static_cast<float>(m_rect.top)) + m_fYDeltaPress;
+    // m_v[4].pos.x = (m_v[0].pos.x = fLeftMiddle) + m_fXDeltaPress;
+    // m_v[4].pos.y = (m_v[0].pos.y = static_cast<float>(m_rect.top)) + m_fYDeltaPress;
 
-    m_v[5].pos.x = (m_v[1].pos.x = fRightMiddle) + m_fXDeltaPress;
-    m_v[5].pos.y = (m_v[1].pos.y = static_cast<float>(m_rect.top)) + m_fYDeltaPress;
+    // m_v[5].pos.x = (m_v[1].pos.x = fRightMiddle) + m_fXDeltaPress;
+    // m_v[5].pos.y = (m_v[1].pos.y = static_cast<float>(m_rect.top)) + m_fYDeltaPress;
 
-    m_v[6].pos.x = (m_v[2].pos.x = fLeftMiddle) + m_fXDeltaPress;
-    m_v[6].pos.y = (m_v[2].pos.y = static_cast<float>(m_rect.bottom)) + m_fYDeltaPress;
+    // m_v[6].pos.x = (m_v[2].pos.x = fLeftMiddle) + m_fXDeltaPress;
+    // m_v[6].pos.y = (m_v[2].pos.y = static_cast<float>(m_rect.bottom)) + m_fYDeltaPress;
 
-    m_v[7].pos.x = (m_v[3].pos.x = fRightMiddle) + m_fXDeltaPress;
-    m_v[7].pos.y = (m_v[3].pos.y = static_cast<float>(m_rect.bottom)) + m_fYDeltaPress;
+    // m_v[7].pos.x = (m_v[3].pos.x = fRightMiddle) + m_fXDeltaPress;
+    // m_v[7].pos.y = (m_v[3].pos.y = static_cast<float>(m_rect.bottom)) + m_fYDeltaPress;
 }

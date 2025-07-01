@@ -29,7 +29,7 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize) override;
-    void load_graphics(storm::GPUCopyPass const& copy_pass) override;
+    void update(storm::GPUCopyPass const& copy_pass) override;
 
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
@@ -54,10 +54,11 @@ protected:
 
     char* m_pcGroupName;
 
-    std::filesystem::path           m_picture_path;
-    std::shared_ptr<storm::Picture> m_picture;
-    storm::FRect                    m_picture_tex_rect;
-    storm::Color                    m_picture_color;
+    std::shared_ptr<storm::GPUTexture> m_texture;
+    std::unique_ptr<storm::Picture>    m_picture;
+    std::filesystem::path              m_texture_path;
+    storm::FRect                       m_texture_uv;
+    storm::Color                       m_picture_color;
 
     bool     m_bMakeBlind;
     float    m_fCurBlindTime;

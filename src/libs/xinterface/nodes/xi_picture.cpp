@@ -64,19 +64,19 @@ bool CXI_PICTURE::Init(
     return true;
 }
 
-void CXI_PICTURE::load_graphics(storm::GPUCopyPass const& copy_pass)
+void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass)
 {
-    if (!m_picture && !m_picture_path.empty()) {
-        m_picture = std::make_shared<storm::Picture>(copy_pass, m_picture_path, m_picture_tex_rect);
-        ChangePosition(m_rect);
-        m_picture->set_diffuse_color(m_picture_color);
-        m_picture->set_screen_rect({
-            .left   = 0.0F,
-            .top    = 0.0F,
-            .right  = static_cast<float>(m_screenSize.x),
-            .bottom = static_cast<float>(m_screenSize.y),
-        });
+    if (!m_picture) {
+        if (m_texture) {
+            m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv);
+        } else {
+            m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture_path, m_texture_uv);
+        }
     }
+
+    ChangePosition(m_rect);
+    m_picture->set_diffuse_color(m_picture_color);
+    m_picture->set_screen_rect(m_screen_rect);
 }
 
 void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
@@ -90,14 +90,15 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         m_pcGroupName  = new char[len];
         Assert(m_pcGroupName);
         memcpy(m_pcGroupName, param, len);
+        m_texture = pPictureService->get_texture(m_pcGroupName);
 
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
-            m_picture = pPictureService->get_texture(m_pcGroupName, param);
+            m_texture_uv = pPictureService->get_texture_uv(m_pcGroupName, param);
         }
     } else {
-        if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) { m_picture_path = param; }
-        texRect            = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
-        m_picture_tex_rect = {.left = texRect.left, .top = texRect.top, .right = texRect.right, .bottom = texRect.bottom};
+        if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) { m_texture_path = param; }
+        texRect      = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
+        m_texture_uv = {.left = texRect.left, .top = texRect.top, .right = texRect.right, .bottom = texRect.bottom};
     }
 
     // m_pTex = nullptr;
@@ -140,14 +141,7 @@ bool CXI_PICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_PICTURE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
-    if (m_picture) {
-        m_picture->set_rect({
-            .left   = static_cast<float>(m_rect.left),
-            .top    = static_cast<float>(m_rect.top),
-            .right  = static_cast<float>(m_rect.right),
-            .bottom = static_cast<float>(m_rect.bottom),
-        });
-    }
+    if (m_picture) { m_picture->set_rect(m_rect); }
 }
 
 void CXI_PICTURE::SaveParametersToIni()
@@ -170,13 +164,9 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
     ReleasePicture();
     // if (video)
     //     m_pTex = m_rs->GetVideoTexture(sNewTexName);
-    // else
-    //     m_idTex = m_rs->TextureCreate(sNewTexName);
+    if (!video) { m_texture_path = sNewTexName; }
 
-    FXYRECT uv;
-    uv.left = uv.top = 0.f;
-    uv.right = uv.bottom = 1.f;
-    ChangeUV(uv);
+    m_texture_uv = {0.0F, 0.0F, 1.0F, 1.0F};
 }
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
@@ -205,7 +195,8 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
         }
     }
 
-    m_picture = pPictureService->get_texture(m_pcGroupName, picName);
+    m_texture    = pPictureService->get_texture(m_pcGroupName);
+    m_texture_uv = pPictureService->get_texture_uv(m_pcGroupName, picName);
 }
 
 uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
@@ -297,7 +288,7 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
                 pOtherPic->m_pcGroupName = nullptr;
             }
             if (pOtherPic->m_picture != nullptr) {
-                m_picture            = pOtherPic->m_picture;
+                m_picture            = std::move(pOtherPic->m_picture);
                 pOtherPic->m_picture = nullptr;
             }
             pOtherPic->ReleasePicture();
@@ -359,4 +350,6 @@ void CXI_PICTURE::ReleasePicture()
 {
     delete[] m_pcGroupName;
     m_pcGroupName = nullptr;
+    m_texture.reset();
+    m_picture.reset();
 }

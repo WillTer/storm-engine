@@ -103,6 +103,16 @@ void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& textu
     copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
 
     m_color = float4(1.0F);
+
+    auto const [width, height] = m_texture->get_dimensions();
+
+    m_width  = static_cast<uint32_t>(width * std::fabs(texture_rect.right - texture_rect.left));
+    m_height = static_cast<uint32_t>(height * std::fabs(texture_rect.bottom - texture_rect.top));
+}
+
+void Picture::recalculate_model_matrix()
+{
+    m_ubo.model_mat = mul(mul(m_scaling_mat, m_rotation_mat_z), m_translation_mat);
 }
 
 void Picture::set_screen_rect(storm::FRect const& rect)
@@ -113,13 +123,24 @@ void Picture::set_screen_rect(storm::FRect const& rect)
 
 void Picture::set_rect(storm::FRect const& rect)
 {
-    auto translation = float4x4::translation(rect.left, rect.top, 0.0F);
-    auto scale       = float4x4::scale(rect.width(), rect.height(), 1.0F);
-    m_ubo.model_mat  = mul(scale, translation);
+    m_translation_mat = float4x4::translation(rect.left, rect.top, 0.0F);
+    m_scaling_mat     = float4x4::scale(rect.width(), rect.height(), 1.0F);
+    recalculate_model_matrix();
+}
+
+void Picture::set_rotation(float angle)
+{
+    m_rotation_mat_z = float4x4::rotation_z(angle);
+    recalculate_model_matrix();
 }
 
 void Picture::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
     m_color                 = float4(r, g, b, a);
+}
+
+auto Picture::get_dimensions() const -> std::pair<uint32_t, uint32_t>
+{
+    return std::make_pair(m_width, m_height);
 }

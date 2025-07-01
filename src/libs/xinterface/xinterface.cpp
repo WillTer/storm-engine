@@ -713,13 +713,13 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
 
         bool const do_blind = message.Long() != 0;
         // get image position
-        if (pImg != nullptr && pImg->texture) {
+        if (pImg != nullptr && pImg->picture) {
             if (do_blind) {
                 pImg->argbBlindMin = message.Long();
                 pImg->argbBlindMax = message.Long();
-                pImg->texture->set_diffuse_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
+                pImg->picture->set_diffuse_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
             } else {
-                pImg->texture->set_diffuse_color(storm::Color::from_hex(0xFFFFFFFF));
+                pImg->picture->set_diffuse_color(storm::Color::from_hex(0xFFFFFFFF));
             }
         }
     } break;
@@ -1090,9 +1090,10 @@ void XInterface::LoadDialog(char const* sFileName)
 
 void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*delta_time*/ /*= 0*/)
 {
+    auto const screen_rect = storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)};
     if (!m_mouse_cursor) {
         m_mouse_cursor = std::make_unique<storm::Picture>(copy_pass, m_mouse_cursor_tex);
-        m_mouse_cursor->set_screen_rect(storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)});
+        m_mouse_cursor->set_screen_rect(screen_rect);
     }
 
     m_mouse_cursor->set_rect({
@@ -1104,8 +1105,10 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
 
     auto* pImg = m_imgLists;
     while (pImg != nullptr) {
-        if (pImg->texture && pImg->imageID != -1) {
-            pImg->texture->set_rect({
+        if (pImg->texture && !pImg->picture) {
+            pImg->picture = std::make_unique<storm::Picture>(copy_pass, pImg->texture, pImg->uv);
+            pImg->picture->set_screen_rect(screen_rect);
+            pImg->picture->set_rect({
                 .left   = static_cast<float>(pImg->position.left),
                 .top    = static_cast<float>(pImg->position.top),
                 .right  = static_cast<float>(pImg->position.right),
@@ -1116,7 +1119,7 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
         pImg = pImg->next;
     }
 
-    load_node_graphics(copy_pass, m_pNodes);
+    nodes_update(copy_pass, m_pNodes);
 }
 
 void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time /*= 0*/)
@@ -1136,8 +1139,8 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t de
     // Draw dynamic images
     auto* pImg = m_imgLists;
     while (pImg != nullptr) {
-        if (pImg->texture && pImg->imageID != -1) {
-            pImg->texture->draw(render_pass);
+        if (pImg->picture) {
+            pImg->picture->draw(render_pass);
             //     if (pImg->sTechniqueName == nullptr)
             //         pRenderService->DrawPrimitiveUP(
             //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
@@ -1672,10 +1675,10 @@ void XInterface::RestoreNodeLocks(int32_t nStoreCode)
     m_aLocksArray.erase(m_aLocksArray.begin() + n);
 }
 
-void XInterface::load_node_graphics(storm::GPUCopyPass const& copy_pass, CINODE* nod) const
+void XInterface::nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod) const
 {
     for (; nod != nullptr; nod = nod->m_next) {
-        nod->load_graphics(copy_pass);
+        nod->update(copy_pass);
     }
 }
 
@@ -2276,7 +2279,9 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 if ((pImList->sImageListName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->texture = pPictureService->get_texture(pImList->sImageListName, pImList->sPicture);
+            pImList->texture = pPictureService->get_texture(pImList->sImageListName);
+            pImList->uv      = pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture);
+
             pImList->imageID = pPictureService->GetImageNum(pImList->sImageListName, pImList->sPicture);
         }
     }

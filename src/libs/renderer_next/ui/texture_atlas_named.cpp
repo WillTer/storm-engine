@@ -28,7 +28,7 @@ TextureAtlasNamed::TextureAtlasNamed(GPUCopyPass const& copy_pass, std::filesyst
 
 TextureAtlasNamed::~TextureAtlasNamed() = default;
 
-void TextureAtlasNamed::add_picture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect)
+void TextureAtlasNamed::add_picture(std::string const& name, storm::FRect const& texture_pos_rect)
 {
     storm::FRect const texture_uv_rect = {
         .left   = static_cast<float>(texture_pos_rect.left) / m_width,
@@ -37,11 +37,17 @@ void TextureAtlasNamed::add_picture(GPUCopyPass const& copy_pass, std::string co
         .bottom = static_cast<float>(texture_pos_rect.bottom) / m_height,
     };
 
-    m_pictures.emplace(name, std::make_shared<Picture>(copy_pass, m_texture, texture_uv_rect));
+    m_pictures.emplace(name, texture_uv_rect);
 }
 
-auto TextureAtlasNamed::get_picture(std::string const& name) -> std::shared_ptr<Picture>
+auto TextureAtlasNamed::get_tex_coords(std::string const& name) const -> storm::FRect
 {
-    if (!m_pictures.contains(name)) { return nullptr; }
+    if (!m_pictures.contains(name)) { return {}; }
+
     return m_pictures.at(name);
+}
+
+auto TextureAtlasNamed::get_texture() const -> std::shared_ptr<GPUTexture>
+{
+    return m_texture;
 }

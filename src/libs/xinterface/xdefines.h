@@ -2,6 +2,7 @@
 
 #include <libs/core/entity.h>
 #include <libs/math/c_vector.h>
+#include <libs/renderer_next/types.h>
 #include <libs/shared_headers/interface/messages.h>
 
 #include "quest_file_reader/quest_file_reader.h"
@@ -53,12 +54,12 @@ struct XYPOINT {
 struct XYRECT {
     int32_t left, top, right, bottom;
 
-    XYRECT()
+    constexpr XYRECT()
     {
         left = top = right = bottom = 0;
     }
 
-    XYRECT(int32_t ileft, int32_t itop, int32_t iright, int32_t ibottom)
+    constexpr XYRECT(int32_t ileft, int32_t itop, int32_t iright, int32_t ibottom)
     {
         left   = ileft;
         top    = itop;
@@ -66,43 +67,55 @@ struct XYRECT {
         bottom = ibottom;
     }
 
-    void operator=(const XYRECT& ir)
+    constexpr XYRECT& operator=(const XYRECT& ir)
     {
         this->left   = ir.left;
         this->top    = ir.top;
         this->right  = ir.right;
         this->bottom = ir.bottom;
+
+        return *this;
+    }
+
+    constexpr operator storm::FRect() const
+    {
+        return {
+            .left   = static_cast<float>(left),
+            .top    = static_cast<float>(top),
+            .right  = static_cast<float>(right),
+            .bottom = static_cast<float>(bottom),
+        };
     }
 };
 
 struct FXYPOINT {
     float x, y;
 
-    FXYPOINT()
+    constexpr FXYPOINT()
     {
         x = y = 0.f;
     }
 
-    FXYPOINT(const FXYPOINT& fp)
+    constexpr FXYPOINT(const FXYPOINT& fp)
     {
         x = fp.x;
         y = fp.y;
     }
 
-    FXYPOINT(float fx, float fy)
+    constexpr FXYPOINT(float fx, float fy)
     {
         this->x = fx;
         this->y = fy;
     }
 
-    FXYPOINT& operator=(const FXYPOINT& fp)
+    constexpr FXYPOINT& operator=(const FXYPOINT& fp)
     {
         this->x = fp.x;
         this->y = fp.y;
         return (*this);
     }
 
-    FXYPOINT operator+(FXYPOINT& fp)
+    constexpr FXYPOINT operator+(FXYPOINT& fp) const
     {
         FXYPOINT np;
         np.x = this->x + fp.x;
@@ -110,7 +123,7 @@ struct FXYPOINT {
         return np;
     }
 
-    FXYPOINT operator-(FXYPOINT& fp)
+    constexpr FXYPOINT operator-(FXYPOINT& fp) const
     {
         FXYPOINT np;
         np.x = this->x - fp.x;
@@ -122,12 +135,12 @@ struct FXYPOINT {
 struct FXYRECT {
     float left, top, right, bottom;
 
-    FXYRECT()
+    constexpr FXYRECT()
     {
         left = top = right = bottom = 0.f;
     }
 
-    FXYRECT(float fleft, float ftop, float fright, float fbottom)
+    constexpr FXYRECT(float fleft, float ftop, float fright, float fbottom)
     {
         left   = fleft;
         top    = ftop;
@@ -135,15 +148,17 @@ struct FXYRECT {
         bottom = fbottom;
     }
 
-    void operator=(const FXYRECT& fr)
+    constexpr FXYRECT& operator=(const FXYRECT& fr)
     {
         this->left   = fr.left;
         this->top    = fr.top;
         this->right  = fr.right;
         this->bottom = fr.bottom;
+
+        return *this;
     }
 
-    void operator+=(const FXYRECT& fr)
+    constexpr void operator+=(const FXYRECT& fr)
     {
         this->left += fr.left;
         this->top += fr.top;
@@ -151,7 +166,7 @@ struct FXYRECT {
         this->bottom += fr.bottom;
     }
 
-    void operator-=(const FXYRECT& fr)
+    constexpr void operator-=(const FXYRECT& fr)
     {
         this->left -= fr.left;
         this->top -= fr.top;
@@ -159,7 +174,7 @@ struct FXYRECT {
         this->bottom -= fr.bottom;
     }
 
-    FXYRECT operator+(const FXYRECT& fr)
+    constexpr FXYRECT operator+(const FXYRECT& fr) const
     {
         FXYRECT tmp;
         tmp.left   = this->left + fr.left;
@@ -169,7 +184,7 @@ struct FXYRECT {
         return tmp;
     }
 
-    FXYRECT operator-(const FXYRECT& fr)
+    constexpr FXYRECT operator-(const FXYRECT& fr) const
     {
         FXYRECT tmp;
         tmp.left   = this->left - fr.left;
@@ -179,7 +194,7 @@ struct FXYRECT {
         return tmp;
     }
 
-    FXYRECT operator+(const FXYPOINT& fp)
+    constexpr FXYRECT operator+(const FXYPOINT& fp) const
     {
         FXYRECT tmp;
         tmp.left   = this->left + fp.x;
@@ -189,7 +204,7 @@ struct FXYRECT {
         return tmp;
     }
 
-    FXYRECT operator-(const FXYPOINT& fp)
+    constexpr FXYRECT operator-(const FXYPOINT& fp) const
     {
         FXYRECT tmp;
         tmp.left   = this->left - fp.x;
@@ -197,6 +212,16 @@ struct FXYRECT {
         tmp.right  = this->right - fp.x;
         tmp.bottom = this->bottom - fp.y;
         return tmp;
+    }
+
+    constexpr operator storm::FRect() const
+    {
+        return {
+            .left   = left,
+            .top    = top,
+            .right  = right,
+            .bottom = bottom,
+        };
     }
 };
 

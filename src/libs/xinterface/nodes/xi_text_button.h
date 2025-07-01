@@ -2,6 +2,12 @@
 
 #include "../inode.h"
 
+namespace storm
+{
+class Picture;
+class Button;
+}  // namespace storm
+
 // picture
 class CXI_TEXTBUTTON: public CINODE
 {
@@ -15,6 +21,7 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
+    void update(storm::GPUCopyPass const& copy_pass) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
@@ -39,15 +46,27 @@ protected:
 
 protected:
     char*   m_sGroupName;
-    int32_t m_idTex;             // texture identity
-    int32_t m_idShadowTex;       // shadow texture
-    int32_t m_idUnSelectMiddle;  // picture id for middle part of unselect button
-    int32_t m_idSelectMiddle;    // picture id for middle part of select button
-    int32_t m_idUnSelectLeft;    // picture id for left part of unselect button
-    int32_t m_idSelectLeft;      // picture id for left part of select button
-    int32_t m_idUnSelectRight;   // picture id for right part of unselect button
-    int32_t m_idSelectRight;     // picture id for right part of select button
-    bool    m_bCurrentSelected;
+    int32_t m_idTex;        // texture identity
+    int32_t m_idShadowTex;  // shadow texture
+
+    struct UV {
+        storm::FRect left_uv;
+        storm::FRect middle_uv;
+        storm::FRect right_uv;
+    };
+
+    std::shared_ptr<storm::GPUTexture> m_texture;
+
+    UV m_uv;
+    UV m_uv_selected;
+
+    std::unique_ptr<storm::Button> m_button;
+    std::unique_ptr<storm::Button> m_button_selected;
+
+    std::string m_left_picture_name;
+    std::string m_right_picture_name;
+
+    bool m_bCurrentSelected;
 
     XI_ONETEX_VERTEX m_v[8];
 

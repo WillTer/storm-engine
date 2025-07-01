@@ -2,6 +2,11 @@
 
 #include "../inode.h"
 
+namespace storm
+{
+class Picture;
+}
+
 // picture
 class CXI_BUTTON: public CINODE
 {
@@ -15,6 +20,7 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
+    void update(storm::GPUCopyPass const& copy_pass) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
@@ -36,6 +42,10 @@ protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
 protected:
+    std::unique_ptr<storm::Picture>    m_picture;
+    std::shared_ptr<storm::GPUTexture> m_texture;
+    storm::FRect                       m_texture_uv;
+
     char*   m_sGroupName;
     int32_t m_idTex;  // texture identity
 

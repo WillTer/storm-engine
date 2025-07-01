@@ -258,7 +258,7 @@ protected:
     // draw function
     void DrawNode(
         storm::GPURenderPass const& render_pass, CINODE* nod, uint32_t Delta_Time, int32_t startPrior = 0, int32_t endPrior = 32000) const;
-    void load_node_graphics(storm::GPUCopyPass const& copy_pass, CINODE* nod) const;
+    void nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod) const;
     void ShowPrevTexture();
     // initialisation function
     void LoadIni();
@@ -349,7 +349,9 @@ protected:
 
     // dynamic images data
     struct IMAGE_Entity {
-        std::shared_ptr<storm::Picture> texture;
+        std::shared_ptr<storm::GPUTexture> texture;
+        storm::FRect                       uv;
+        std::unique_ptr<storm::Picture>    picture;
 
         XYRECT        position;
         char*         sImageListName;
