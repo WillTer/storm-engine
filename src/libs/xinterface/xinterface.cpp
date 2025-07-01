@@ -3,6 +3,8 @@
 #include <cstdio>
 
 #include <libs/filesystem/default_paths.h>
+#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/ui/texture_rect.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/window/os_window.hpp>
@@ -176,7 +178,13 @@ void XInterface::SetDevice()
     // Create pictures and string lists service
     pPictureService = new XSERVICE;
     if (pPictureService == nullptr) { throw std::runtime_error("Not memory allocate"); }
-    // pPictureService->Init(pRenderService, dwScreenWidth, dwScreenHeight);
+
+    auto const& renderer = core->get<storm::RendererService>();
+    {
+        auto const cmd_buffer = renderer->acquire_command_buffer();
+        auto const copy_pass  = cmd_buffer->start_copy_pass();  // Maybe not here
+        pPictureService->Init(*copy_pass, dwScreenWidth, dwScreenHeight);
+    }
 
     pQuestService = new storm::QuestFileReader;
     if (pQuestService == nullptr) { throw std::runtime_error("Not memory allocate"); }
@@ -312,36 +320,6 @@ void XInterface::Realize(uint32_t)
         pV[i].pos.z = 1.f;
     auto*    pImg = m_imgLists;
     uint32_t oldTFactor;
-    // pRenderService->GetRenderState(D3DRS_TEXTUREFACTOR, &oldTFactor);
-    while (pImg != nullptr) {
-        if (pImg->idTexture != -1 && pImg->imageID != -1) {
-            // pRenderService->TextureSet(0, pImg->idTexture);
-            FXYRECT frect;
-            pPictureService->GetTexturePos(pImg->imageID, frect);
-            pV[0].pos.x = pV[2].pos.x = static_cast<float>(pImg->position.left);
-            pV[0].tu = pV[2].tu = frect.left;
-            pV[1].pos.x = pV[3].pos.x = static_cast<float>(pImg->position.right);
-            pV[1].tu = pV[3].tu = frect.right;
-            pV[0].pos.y = pV[1].pos.y = static_cast<float>(pImg->position.top);
-            pV[0].tv = pV[1].tv = frect.top;
-            pV[2].pos.y = pV[3].pos.y = static_cast<float>(pImg->position.bottom);
-            pV[2].tv = pV[3].tv = frect.bottom;
-            // if (pImg->doBlind) {
-            //     pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax,
-            //     m_fBlindFactor)); pRenderService->DrawPrimitiveUP(
-            //         D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iBlindPictures");
-            // } else {
-            //     if (pImg->sTechniqueName == nullptr)
-            //         pRenderService->DrawPrimitiveUP(
-            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
-            //     else
-            //         pRenderService->DrawPrimitiveUP(
-            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), pImg->sTechniqueName);
-            // }
-        }
-        pImg = pImg->next;
-    }
-    // pRenderService->SetRenderState(D3DRS_TEXTUREFACTOR, oldTFactor);
 
     DrawNode(m_pNodes, Delta_Time, 81, 90);
 
@@ -377,13 +355,6 @@ void XInterface::Realize(uint32_t)
             m_pEditor->Render();
         else
             m_pEditor->DrawSizeBox();
-
-    // Mouse pointer show
-    if (m_bShowMouse) {
-        // pRenderService->TextureSet(0, m_idTex);
-        // pRenderService->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, vMouse, sizeof(XI_ONLYONETEX_VERTEX),
-        // "iMouseCurShow");
-    }
 
     // Show context help data
     ShowContextHelp();
@@ -739,11 +710,17 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
             if (pImg->sImageName != nullptr && storm::iEquals(pImg->sImageName, param)) break;
             pImg = pImg->next;
         }
+
+        bool const do_blind = message.Long() != 0;
         // get image position
-        if (pImg != nullptr) {
-            pImg->doBlind      = message.Long() != 0;
-            pImg->argbBlindMin = message.Long();
-            pImg->argbBlindMax = message.Long();
+        if (pImg != nullptr && pImg->texture) {
+            if (do_blind) {
+                pImg->argbBlindMin = message.Long();
+                pImg->argbBlindMax = message.Long();
+                pImg->texture->set_diffuse_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
+            } else {
+                pImg->texture->set_diffuse_color(storm::Color::from_hex(0xFFFFFFFF));
+            }
         }
     } break;
     case MSG_INTERFACE_GET_STRWIDTH: {
@@ -1124,10 +1101,41 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
         .right  = fXMousePos + (MouseSize.x / 2.0F),
         .bottom = fYMousePos + (MouseSize.y / 2.0F),
     });
+
+    auto* pImg = m_imgLists;
+    while (pImg != nullptr) {
+        if (pImg->texture && pImg->imageID != -1) {
+            pImg->texture->set_rect({
+                .left   = static_cast<float>(pImg->position.left),
+                .top    = static_cast<float>(pImg->position.top),
+                .right  = static_cast<float>(pImg->position.right),
+                .bottom = static_cast<float>(pImg->position.bottom),
+            });
+        }
+
+        pImg = pImg->next;
+    }
 }
 
 void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t /*delta_time*/ /*= 0*/)
 {
+    if (!m_bUse || !bActive) { return; }
+
+    // Draw dynamic images
+    auto* pImg = m_imgLists;
+    while (pImg != nullptr) {
+        if (pImg->texture && pImg->imageID != -1) {
+            pImg->texture->draw(render_pass);
+            //     if (pImg->sTechniqueName == nullptr)
+            //         pRenderService->DrawPrimitiveUP(
+            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), "iDinamicPictures");
+            //     else
+            //         pRenderService->DrawPrimitiveUP(
+            //             D3DPT_TRIANGLESTRIP, XI_ONLYONETEX_FVF, 2, pV, sizeof(XI_ONLYONETEX_VERTEX), pImg->sTechniqueName);
+        }
+        pImg = pImg->next;
+    }
+
     // Mouse pointer show
     if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
 }
@@ -2152,7 +2160,6 @@ void XInterface::ReleaseOld()
     m_pGlowCursorNode = nullptr;
 
     while (m_imgLists != nullptr) {
-        PICTURE_TEXTURE_RELEASE(pPictureService, m_imgLists->sImageListName, m_imgLists->idTexture);
         STORM_DELETE(m_imgLists->sImageListName);
         STORM_DELETE(m_imgLists->sImageName);
         STORM_DELETE(m_imgLists->sPicture);
@@ -2223,8 +2230,8 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 if ((pImList->sImageListName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->idTexture = pPictureService->GetTextureID(pImList->sImageListName);
-            pImList->imageID   = pPictureService->GetImageNum(pImList->sImageListName, pImList->sPicture);
+            pImList->texture = pPictureService->get_texture(pImList->sImageListName, pImList->sPicture);
+            pImList->imageID = pPictureService->GetImageNum(pImList->sImageListName, pImList->sPicture);
         }
     }
     return 0;
@@ -2405,7 +2412,7 @@ void XInterface::DeleteSaveFile(std::filesystem::path const& fileName)
     }
 }
 
-uint32_t XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float fBlendFactor)
+storm::Color XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float fBlendFactor)
 {
     int32_t ad = static_cast<int32_t>(ALPHA(maxCol)) - static_cast<int32_t>(ALPHA(minCol));
     int32_t rd = static_cast<int32_t>(RED(maxCol)) - static_cast<int32_t>(RED(minCol));
@@ -2415,7 +2422,7 @@ uint32_t XINTERFACE_BASE::GetBlendColor(uint32_t minCol, uint32_t maxCol, float 
     rd         = RED(minCol) + static_cast<int32_t>(rd * fBlendFactor);
     gd         = GREEN(minCol) + static_cast<int32_t>(gd * fBlendFactor);
     bd         = BLUE(minCol) + static_cast<int32_t>(bd * fBlendFactor);
-    return storm::Color {static_cast<uint8_t>(ad), static_cast<uint8_t>(rd), static_cast<uint8_t>(gd), static_cast<uint8_t>(bd)}.to_hex();
+    return {.a = static_cast<uint8_t>(ad), .r = static_cast<uint8_t>(rd), .g = static_cast<uint8_t>(gd), .b = static_cast<uint8_t>(bd)};
 }
 
 void XInterface::AddNodeToList(CINODE* nod, int32_t priority)
@@ -2465,7 +2472,6 @@ void XInterface::ReleaseDinamicPic(char const* sPicName)
     }
     if (findImg == nullptr) return;
 
-    PICTURE_TEXTURE_RELEASE(pPictureService, findImg->sImageListName, findImg->idTexture);
     STORM_DELETE(findImg->sImageListName);
     STORM_DELETE(findImg->sImageName);
     STORM_DELETE(findImg->sPicture);

@@ -42,7 +42,7 @@ void CXI_PICTURE::Draw(bool bSelected, uint32_t Delta_Time)
                     m_bBlindUp      = true;
                 }
             }
-            ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
+            // ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
         }
 
         // if (m_idTex != -1 || m_pTex) {

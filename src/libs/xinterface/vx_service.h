@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #define TEXTURE_MODIFY_NONE 0
 #define TEXTURE_MODIFY_HORZFLIP 1
@@ -11,15 +12,23 @@ struct XYRECT;
 struct FXYPOINT;
 struct XYPOINT;
 
+namespace storm
+{
+class TextureRect;
+class GPUCopyPass;
+}  // namespace storm
+
 class VXSERVICE
 {
 public:
-    virtual ~VXSERVICE()                                                        = default;
-    virtual void Init(/*VDX9RENDER*/ void* pRS, int32_t lWidth, int32_t lHight) = 0;
+    virtual ~VXSERVICE()                                                                   = default;
+    virtual void Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHight) = 0;
 
     // get texture identificator for image group
     virtual int32_t GetTextureID(char const* sImageListName)     = 0;
     virtual bool    ReleaseTextureID(char const* sImageListName) = 0;
+
+    virtual auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect> = 0;
 
     // get texture positon for select picture
     virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;

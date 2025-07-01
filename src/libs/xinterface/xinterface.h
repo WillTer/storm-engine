@@ -347,12 +347,13 @@ protected:
 
     // dynamic images data
     struct IMAGE_Entity {
+        std::shared_ptr<storm::TextureRect> texture;
+
         XYRECT        position;
         char*         sImageListName;
         char*         sImageName;
         char*         sPicture;
         char*         sTechniqueName;
-        int32_t       idTexture;
         int32_t       imageID;
         bool          doBlind;
         uint32_t      argbBlindMin;

@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer_next/types.h>
 
 #include "nodes/xi_tooltips.h"
 
@@ -110,7 +111,7 @@ public:
     virtual void RegistryExitKey(char const* pcKeyName) = 0;
 
     // blind
-    uint32_t GetBlendColor(uint32_t minCol, uint32_t maxCol, float fFactor);
+    storm::Color GetBlendColor(uint32_t minCol, uint32_t maxCol, float fFactor);
 
     std::string m_sDialogFileName;
 };

@@ -1,9 +1,14 @@
 #include "xservice.h"
 
+#include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer_next/impl_sdl/gpu_copy_pass.h>
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
+#include <libs/renderer_next/ui/texture_atlas_named.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
+#include <spdlog/spdlog.h>
 
 #define ERROR_MUL 1.0f
 
@@ -20,12 +25,12 @@ XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 
 XSERVICE::~XSERVICE() {}
 
-void XSERVICE::Init(/*VDX9RENDER*/ void* pRS, int32_t lWidth, int32_t lHeight)
+void XSERVICE::Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHeight)
 {
     m_fWAdd = 0.5f;
     m_fHAdd = 0.5f;
 
-    LoadAllPicturesInfo();
+    LoadAllPicturesInfo(copy_pass);
 }
 
 int32_t XSERVICE::GetTextureID(char const* sImageListName)
@@ -67,6 +72,25 @@ bool XSERVICE::ReleaseTextureID(char const* sImageListName)
             }
 
     return false;
+}
+
+auto XSERVICE::get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect>
+{
+    if (!image_list.empty()) {
+        for (auto i = 0; i < m_dwListQuantity; i++) {
+            if (storm::iEquals(m_pList[i].sImageListName, image_list)) {
+                if (m_pList[i].textureQuantity <= 0) {
+                    m_pList[i].textureQuantity = 1;
+                } else {
+                    ++m_pList[i].textureQuantity;
+                }
+
+                return m_pList[i].atlas ? m_pList[i].atlas->get_texture(std::string(image)) : nullptr;
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 bool XSERVICE::GetTexturePos(int32_t pictureNum, FXYRECT& texRect)
@@ -176,7 +200,7 @@ void XSERVICE::GetTextureCutForSize(
     outUV.bottom = fH;
 }
 
-void XSERVICE::LoadAllPicturesInfo()
+void XSERVICE::LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass)
 {
     char section[255];
     char param[255];
@@ -214,6 +238,14 @@ void XSERVICE::LoadAllPicturesInfo()
             m_pList[i].sTextureName = new char[sizeof param];
             strcpy_s(m_pList[i].sTextureName, sizeof param, param);
 
+            auto const texture_path = std::filesystem::path("interfaces") / m_pList[i].sTextureName;
+            try {
+                m_pList[i].atlas = std::make_unique<storm::TextureAtlasNamed>(copy_pass, texture_path);
+            } catch (std::runtime_error const& e) {
+                spdlog::error("Texture {} not found", texture_path.string());
+                m_pList[i].atlas = nullptr;
+            }
+
             // get texture width & height
             m_pList[i].textureWidth  = ini->GetInt(section, "wTextureWidth", 1024);
             m_pList[i].textureHeight = ini->GetInt(section, "wTextureHeight", 1024);
@@ -247,6 +279,18 @@ void XSERVICE::LoadAllPicturesInfo()
                 m_pImage[j].pTextureRect.top    = nTop;
                 m_pImage[j].pTextureRect.right  = nRight;
                 m_pImage[j].pTextureRect.bottom = nBottom;
+
+                if (m_pList[i].atlas) {
+                    m_pList[i].atlas->add_texture(
+                        copy_pass,
+                        picName,
+                        {
+                            .left   = static_cast<float>(nLeft),
+                            .top    = static_cast<float>(nTop),
+                            .right  = static_cast<float>(nRight),
+                            .bottom = static_cast<float>(nBottom),
+                        });
+                }
 
                 auto const len           = strlen(picName) + 1;
                 m_pImage[j].sPictureName = new char[len];

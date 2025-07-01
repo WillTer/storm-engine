@@ -17,13 +17,6 @@ using namespace hlslpp;
 namespace
 {
 
-auto const SQUARE_VERTICES = std::vector<VertexUI> {
-    VertexUI {{0.0F, 0.0F, 0.0F, 0.0F}},
-    VertexUI {{1.0F, 0.0F, 1.0F, 0.0F}},
-    VertexUI {{1.0F, 1.0F, 1.0F, 1.0F}},
-    VertexUI {{0.0F, 1.0F, 0.0F, 1.0F}},
-};
-
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 constexpr auto VERTEX_SHADER_INFO = ShaderInfo {
@@ -37,7 +30,7 @@ constexpr auto FRAGMENT_SHADER_INFO = ShaderInfo {
     .num_samplers         = 1,
     .num_storage_textures = 0,
     .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 0,
+    .num_uniform_buffers  = 1,
 };
 
 constexpr char VERTEX_SHADER[]   = "texture_rect_vs";
@@ -45,28 +38,26 @@ constexpr char FRAGMENT_SHADER[] = "texture_rect_fs";
 
 }  // namespace
 
-TextureRect::TextureRect(GPUCopyPass const& copy_pass, std::filesystem::path const& texture)
+TextureRect::TextureRect(
+    GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const& renderer     = core->get<RendererService>();
 
-    auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
-    auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
-
-    m_pipeline = renderer->create_pipeline<VertexUI>(vertex_shader_asset, VERTEX_SHADER_INFO, fragment_shader_asset, FRAGMENT_SHADER_INFO);
-
-    auto const viewport = renderer->get_viewport();
-    set_screen_rect(viewport);  // Use viewport rect for projection matrix by default
-
-    m_vertex_buffer = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
-    copy_pass.upload(*m_vertex_buffer, std::span(SQUARE_VERTICES));
-
-    m_index_buffer = renderer->create_index_buffer(std::span(SQUARE_INDICES));
-    copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
-
     auto const texture_asset = asset_server->load_texture_file(texture);
     m_texture                = renderer->create_texture(texture_asset.header);
     copy_pass.upload(*m_texture, std::span(texture_asset.data));
+
+    initialize(copy_pass, texture_rect);
+}
+
+TextureRect::TextureRect(
+    GPUCopyPass const&                 copy_pass,
+    std::shared_ptr<GPUTexture> const& external_texture,
+    storm::FRect const&                texture_rect /*= default_texture_rect()*/)
+    : m_texture(external_texture)
+{
+    initialize(copy_pass, texture_rect);
 }
 
 TextureRect::~TextureRect() = default;
@@ -80,8 +71,38 @@ void TextureRect::draw(GPURenderPass const& render_pass) const
     render_pass.bind(*m_vertex_buffer);
 
     render_pass.push_vertex_uniform_data(0, m_ubo);
+    render_pass.push_fragment_uniform_data(0, m_color);
     render_pass.bind(*m_texture);
     render_pass.draw(*m_index_buffer);
+}
+
+void TextureRect::initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect)
+{
+    auto const& asset_server = core->get<AssetServer>();
+    auto const& renderer     = core->get<RendererService>();
+
+    auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
+    auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
+
+    m_pipeline = renderer->create_pipeline<VertexUI>(vertex_shader_asset, VERTEX_SHADER_INFO, fragment_shader_asset, FRAGMENT_SHADER_INFO);
+
+    auto const viewport = renderer->get_viewport();
+    set_screen_rect(viewport);  // Use viewport rect for projection matrix by default
+
+    auto const square_vertices = std::vector<VertexUI> {
+        VertexUI {{0.0F, 0.0F, texture_rect.left, texture_rect.top}},
+        VertexUI {{1.0F, 0.0F, texture_rect.right, texture_rect.top}},
+        VertexUI {{1.0F, 1.0F, texture_rect.right, texture_rect.bottom}},
+        VertexUI {{0.0F, 1.0F, texture_rect.left, texture_rect.bottom}},
+    };
+
+    m_vertex_buffer = renderer->create_vertex_buffer(std::span(square_vertices));
+    copy_pass.upload(*m_vertex_buffer, std::span(square_vertices));
+
+    m_index_buffer = renderer->create_index_buffer(std::span(SQUARE_INDICES));
+    copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
+
+    m_color = float4(1.0F);
 }
 
 void TextureRect::set_screen_rect(storm::FRect const& rect)
@@ -95,4 +116,10 @@ void TextureRect::set_rect(storm::FRect const& rect)
     auto translation = float4x4::translation(rect.left, rect.top, 0.0F);
     auto scale       = float4x4::scale(rect.width(), rect.height(), 1.0F);
     m_ubo.model_mat  = mul(scale, translation);
+}
+
+void TextureRect::set_diffuse_color(storm::Color const& color)
+{
+    auto const [r, g, b, a] = color.normalize();
+    m_color                 = float4(r, g, b, a);
 }

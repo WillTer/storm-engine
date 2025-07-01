@@ -3,6 +3,11 @@
 #include "vx_service.h"
 #include "xdefines.h"
 
+namespace storm
+{
+class TextureAtlasNamed;
+}
+
 class XSERVICE: public VXSERVICE
 {
     struct IMAGELISTDESCR {
@@ -15,6 +20,8 @@ class XSERVICE: public VXSERVICE
         int32_t textureHeight;
         int32_t pictureQuantity;
         int32_t pictureStart;
+
+        std::unique_ptr<storm::TextureAtlasNamed> atlas;
     };
 
     struct PICTUREDESCR {
@@ -27,12 +34,14 @@ public:
     ~XSERVICE() override;
 
     // initialization of service
-    void Init(/*VDX9RENDER*/ void* pRS, int32_t lWidth, int32_t lHight) override;
+    void Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHight) override;
 
     // get texture identificator for image group
     int32_t GetTextureID(char const* sImageListName) override;
     int32_t FindGroup(char const* sImageListName) const;
     bool    ReleaseTextureID(char const* sImageListName) override;
+
+    auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect> override;
 
     // get texture positon for select picture
     bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect) override;
@@ -55,7 +64,7 @@ public:
     void ReleaseAll() override;
 
 protected:
-    void LoadAllPicturesInfo();
+    void LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass);
 
 protected:
     int32_t         m_dwListQuantity;

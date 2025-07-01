@@ -20,7 +20,13 @@ class GPURenderPass;
 class TextureRect
 {
 public:
-    explicit TextureRect(GPUCopyPass const& copy_pass, std::filesystem::path const& texture);
+    TextureRect(
+        GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
+    TextureRect(
+        GPUCopyPass const&                 copy_pass,
+        std::shared_ptr<GPUTexture> const& external_texture,
+        storm::FRect const&                texture_rect = default_texture_rect());
+
     virtual ~TextureRect();
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
@@ -28,16 +34,31 @@ public:
 
     void set_rect(storm::FRect const& rect);
     void set_screen_rect(storm::FRect const& rect);
+    void set_diffuse_color(storm::Color const& color);
 
 private:
+    void initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect);
+
+    static constexpr storm::FRect default_texture_rect()
+    {
+        return storm::FRect {
+            .left   = 0.0F,
+            .top    = 0.0F,
+            .right  = 1.0F,
+            .bottom = 1.0F,
+        };
+    }
+
     struct UBO {
         hlsl::float4x4 model_mat     = hlsl::float4x4::identity();
         hlsl::float4x4 view_proj_mat = hlsl::float4x4::identity();
     } m_ubo;
 
+    hlsl::float4 m_color;
+
     std::unique_ptr<GraphicsPipeline> m_pipeline;
 
-    std::unique_ptr<GPUTexture>      m_texture;
+    std::shared_ptr<GPUTexture>      m_texture;
     std::unique_ptr<GPUVertexBuffer> m_vertex_buffer;
     std::unique_ptr<GPUIndexBuffer>  m_index_buffer;
 };
