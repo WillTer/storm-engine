@@ -15,7 +15,7 @@ class CXI_WINDOW;
 
 namespace storm
 {
-class TextureRect;
+class Picture;
 }
 
 class XInterface: public XINTERFACE_BASE
@@ -70,8 +70,8 @@ protected:
     CINODE*      m_pMouseNode;
     VDATA*       m_pMouseWeel;
 
-    std::filesystem::path               m_mouse_cursor_tex;
-    std::shared_ptr<storm::TextureRect> m_mouse_cursor = nullptr;
+    std::filesystem::path           m_mouse_cursor_tex;
+    std::shared_ptr<storm::Picture> m_mouse_cursor = nullptr;
 
     // save render state parameters
     uint32_t m_dwStoreFlag_Fog;
@@ -349,7 +349,7 @@ protected:
 
     // dynamic images data
     struct IMAGE_Entity {
-        std::shared_ptr<storm::TextureRect> texture;
+        std::shared_ptr<storm::Picture> texture;
 
         XYRECT        position;
         char*         sImageListName;

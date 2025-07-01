@@ -41,7 +41,7 @@ public:
     int32_t FindGroup(char const* sImageListName) const;
     bool    ReleaseTextureID(char const* sImageListName) override;
 
-    auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect> override;
+    auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::Picture> override;
 
     // get texture positon for select picture
     bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect) override;

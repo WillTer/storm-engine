@@ -6,7 +6,7 @@
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
-#include "libs/renderer_next/ui/texture_rect.h"
+#include "libs/renderer_next/ui/picture.h"
 
 CXI_PICTURE::CXI_PICTURE()
 {
@@ -67,7 +67,7 @@ bool CXI_PICTURE::Init(
 void CXI_PICTURE::load_graphics(storm::GPUCopyPass const& copy_pass)
 {
     if (!m_picture && !m_picture_path.empty()) {
-        m_picture = std::make_shared<storm::TextureRect>(copy_pass, m_picture_path, m_picture_tex_rect);
+        m_picture = std::make_shared<storm::Picture>(copy_pass, m_picture_path, m_picture_tex_rect);
         ChangePosition(m_rect);
         m_picture->set_diffuse_color(m_picture_color);
         m_picture->set_screen_rect({

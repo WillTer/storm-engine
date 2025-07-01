@@ -1,4 +1,4 @@
-#include "texture_rect.h"
+#include "picture.h"
 
 #include <cassert>
 #include <span>
@@ -33,12 +33,12 @@ constexpr auto FRAGMENT_SHADER_INFO = ShaderInfo {
     .num_uniform_buffers  = 1,
 };
 
-constexpr char VERTEX_SHADER[]   = "texture_rect_vs";
-constexpr char FRAGMENT_SHADER[] = "texture_rect_fs";
+constexpr char VERTEX_SHADER[]   = "picture_vs";
+constexpr char FRAGMENT_SHADER[] = "picture_fs";
 
 }  // namespace
 
-TextureRect::TextureRect(
+Picture::Picture(
     GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
 {
     auto const& asset_server = core->get<AssetServer>();
@@ -51,7 +51,7 @@ TextureRect::TextureRect(
     initialize(copy_pass, texture_rect);
 }
 
-TextureRect::TextureRect(
+Picture::Picture(
     GPUCopyPass const&                 copy_pass,
     std::shared_ptr<GPUTexture> const& external_texture,
     storm::FRect const&                texture_rect /*= default_texture_rect()*/)
@@ -60,11 +60,11 @@ TextureRect::TextureRect(
     initialize(copy_pass, texture_rect);
 }
 
-TextureRect::~TextureRect() = default;
+Picture::~Picture() = default;
 
-void TextureRect::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
+void Picture::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
 
-void TextureRect::draw(GPURenderPass const& render_pass) const
+void Picture::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
@@ -76,7 +76,7 @@ void TextureRect::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void TextureRect::initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect)
+void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect)
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const& renderer     = core->get<RendererService>();
@@ -105,20 +105,20 @@ void TextureRect::initialize(GPUCopyPass const& copy_pass, storm::FRect const& t
     m_color = float4(1.0F);
 }
 
-void TextureRect::set_screen_rect(storm::FRect const& rect)
+void Picture::set_screen_rect(storm::FRect const& rect)
 {
     m_ubo.view_proj_mat =
         float4x4::orthographic(projection(frustum(rect.left, rect.right, rect.bottom, rect.top, -1.0F, 1.0F), zclip::zero));
 }
 
-void TextureRect::set_rect(storm::FRect const& rect)
+void Picture::set_rect(storm::FRect const& rect)
 {
     auto translation = float4x4::translation(rect.left, rect.top, 0.0F);
     auto scale       = float4x4::scale(rect.width(), rect.height(), 1.0F);
     m_ubo.model_mat  = mul(scale, translation);
 }
 
-void TextureRect::set_diffuse_color(storm::Color const& color)
+void Picture::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
     m_color                 = float4(r, g, b, a);

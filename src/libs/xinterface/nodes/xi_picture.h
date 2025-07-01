@@ -8,7 +8,7 @@ class XInterface;
 namespace storm
 {
 
-class TextureRect;
+class Picture;
 
 }
 
@@ -54,10 +54,10 @@ protected:
 
     char* m_pcGroupName;
 
-    std::filesystem::path               m_picture_path;
-    std::shared_ptr<storm::TextureRect> m_picture;
-    storm::FRect                        m_picture_tex_rect;
-    storm::Color                        m_picture_color;
+    std::filesystem::path           m_picture_path;
+    std::shared_ptr<storm::Picture> m_picture;
+    storm::FRect                    m_picture_tex_rect;
+    storm::Color                    m_picture_color;
 
     bool     m_bMakeBlind;
     float    m_fCurBlindTime;

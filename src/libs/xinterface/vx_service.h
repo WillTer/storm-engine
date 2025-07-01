@@ -14,7 +14,7 @@ struct XYPOINT;
 
 namespace storm
 {
-class TextureRect;
+class Picture;
 class GPUCopyPass;
 }  // namespace storm
 
@@ -28,7 +28,7 @@ public:
     virtual int32_t GetTextureID(char const* sImageListName)     = 0;
     virtual bool    ReleaseTextureID(char const* sImageListName) = 0;
 
-    virtual auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect> = 0;
+    virtual auto get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::Picture> = 0;
 
     // get texture positon for select picture
     virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;

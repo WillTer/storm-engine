@@ -74,7 +74,7 @@ bool XSERVICE::ReleaseTextureID(char const* sImageListName)
     return false;
 }
 
-auto XSERVICE::get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::TextureRect>
+auto XSERVICE::get_texture(std::string_view const& image_list, std::string_view const& image) -> std::shared_ptr<storm::Picture>
 {
     if (!image_list.empty()) {
         for (auto i = 0; i < m_dwListQuantity; i++) {
@@ -85,7 +85,7 @@ auto XSERVICE::get_texture(std::string_view const& image_list, std::string_view 
                     ++m_pList[i].textureQuantity;
                 }
 
-                return m_pList[i].atlas ? m_pList[i].atlas->get_texture(std::string(image)) : nullptr;
+                return m_pList[i].atlas ? m_pList[i].atlas->get_picture(std::string(image)) : nullptr;
             }
         }
     }
@@ -281,7 +281,7 @@ void XSERVICE::LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass)
                 m_pImage[j].pTextureRect.bottom = nBottom;
 
                 if (m_pList[i].atlas) {
-                    m_pList[i].atlas->add_texture(
+                    m_pList[i].atlas->add_picture(
                         copy_pass,
                         picName,
                         {

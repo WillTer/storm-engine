@@ -5,7 +5,7 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/ui/texture_rect.h>
+#include <libs/renderer_next/ui/picture.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/window/os_window.hpp>
 
@@ -1091,7 +1091,7 @@ void XInterface::LoadDialog(char const* sFileName)
 void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*delta_time*/ /*= 0*/)
 {
     if (!m_mouse_cursor) {
-        m_mouse_cursor = std::make_unique<storm::TextureRect>(copy_pass, m_mouse_cursor_tex);
+        m_mouse_cursor = std::make_unique<storm::Picture>(copy_pass, m_mouse_cursor_tex);
         m_mouse_cursor->set_screen_rect(storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)});
     }
 

@@ -9,7 +9,7 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 
-#include "texture_rect.h"
+#include "picture.h"
 
 using namespace storm;
 
@@ -28,7 +28,7 @@ TextureAtlasNamed::TextureAtlasNamed(GPUCopyPass const& copy_pass, std::filesyst
 
 TextureAtlasNamed::~TextureAtlasNamed() = default;
 
-void TextureAtlasNamed::add_texture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect)
+void TextureAtlasNamed::add_picture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect)
 {
     storm::FRect const texture_uv_rect = {
         .left   = static_cast<float>(texture_pos_rect.left) / m_width,
@@ -37,11 +37,11 @@ void TextureAtlasNamed::add_texture(GPUCopyPass const& copy_pass, std::string co
         .bottom = static_cast<float>(texture_pos_rect.bottom) / m_height,
     };
 
-    m_textures.emplace(name, std::make_shared<TextureRect>(copy_pass, m_texture, texture_uv_rect));
+    m_pictures.emplace(name, std::make_shared<Picture>(copy_pass, m_texture, texture_uv_rect));
 }
 
-auto TextureAtlasNamed::get_texture(std::string const& name) -> std::shared_ptr<TextureRect>
+auto TextureAtlasNamed::get_picture(std::string const& name) -> std::shared_ptr<Picture>
 {
-    if (!m_textures.contains(name)) { return nullptr; }
-    return m_textures.at(name);
+    if (!m_pictures.contains(name)) { return nullptr; }
+    return m_pictures.at(name);
 }

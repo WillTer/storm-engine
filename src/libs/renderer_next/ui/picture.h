@@ -17,17 +17,16 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class TextureRect
+class Picture
 {
 public:
-    TextureRect(
-        GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
-    TextureRect(
+    Picture(GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
+    Picture(
         GPUCopyPass const&                 copy_pass,
         std::shared_ptr<GPUTexture> const& external_texture,
         storm::FRect const&                texture_rect = default_texture_rect());
 
-    virtual ~TextureRect();
+    virtual ~Picture();
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
     void draw(GPURenderPass const& render_pass) const;

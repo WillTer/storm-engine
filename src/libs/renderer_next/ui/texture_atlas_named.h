@@ -13,7 +13,7 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class TextureRect;
+class Picture;
 
 class TextureAtlasNamed final
 {
@@ -21,8 +21,8 @@ public:
     TextureAtlasNamed(GPUCopyPass const& copy_pass, std::filesystem::path const& texture);
     ~TextureAtlasNamed();
 
-    void add_texture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect);
-    auto get_texture(std::string const& name) -> std::shared_ptr<TextureRect>;
+    void add_picture(GPUCopyPass const& copy_pass, std::string const& name, storm::FRect const& texture_pos_rect);
+    auto get_picture(std::string const& name) -> std::shared_ptr<Picture>;
 
 private:
     uint32_t m_width;
@@ -30,7 +30,7 @@ private:
 
     std::shared_ptr<GPUTexture> m_texture;
 
-    std::unordered_map<std::string, std::shared_ptr<TextureRect>> m_textures;
+    std::unordered_map<std::string, std::shared_ptr<Picture>> m_pictures;
 };
 
 }  // namespace storm
