@@ -50,9 +50,9 @@ protected:
     int32_t m_idShadowTex;  // shadow texture
 
     struct UV {
-        storm::FRect left_uv;
-        storm::FRect middle_uv;
-        storm::FRect right_uv;
+        storm::FRect left_uv   = {};
+        storm::FRect middle_uv = {};
+        storm::FRect right_uv  = {};
     };
 
     std::shared_ptr<storm::GPUTexture> m_texture;
@@ -65,8 +65,6 @@ protected:
 
     std::string m_left_picture_name;
     std::string m_right_picture_name;
-
-    bool m_bCurrentSelected;
 
     XI_ONETEX_VERTEX m_v[8];
 

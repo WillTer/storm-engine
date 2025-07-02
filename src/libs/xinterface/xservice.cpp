@@ -95,15 +95,16 @@ auto XSERVICE::get_texture(std::string_view const& image_list) -> std::shared_pt
 
 auto XSERVICE::get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect
 {
+    static constexpr auto empty_rect = storm::FRect {};
     if (!image_list.empty() && !image.empty()) {
         for (auto i = 0; i < m_dwListQuantity; i++) {
             if (storm::iEquals(m_pList[i].sImageListName, image_list)) {
-                return m_pList[i].atlas ? m_pList[i].atlas->get_tex_coords(std::string(image)) : storm::FRect {};
+                return m_pList[i].atlas ? m_pList[i].atlas->get_tex_coords(std::string(image)) : empty_rect;
             }
         }
     }
 
-    return {};
+    return empty_rect;
 }
 
 bool XSERVICE::GetTexturePos(int32_t pictureNum, FXYRECT& texRect)

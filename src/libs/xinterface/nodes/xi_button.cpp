@@ -152,9 +152,12 @@ void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass)
 {
     if (!m_bClickable || !m_bSelected) { m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor)); }
 
-    if (!m_picture) { m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv); }
+    if (!m_picture) {
+        m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv);
+        m_picture->set_screen_rect(m_screen_rect);
+    }
+
     ChangePosition(m_rect);
-    m_picture->set_screen_rect(m_screen_rect);
 }
 
 void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)

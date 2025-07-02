@@ -1108,12 +1108,7 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
         if (pImg->texture && !pImg->picture) {
             pImg->picture = std::make_unique<storm::Picture>(copy_pass, pImg->texture, pImg->uv);
             pImg->picture->set_screen_rect(screen_rect);
-            pImg->picture->set_rect({
-                .left   = static_cast<float>(pImg->position.left),
-                .top    = static_cast<float>(pImg->position.top),
-                .right  = static_cast<float>(pImg->position.right),
-                .bottom = static_cast<float>(pImg->position.bottom),
-            });
+            pImg->picture->set_rect(pImg->position);
         }
 
         pImg = pImg->next;

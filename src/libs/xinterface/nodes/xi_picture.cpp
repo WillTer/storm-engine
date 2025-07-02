@@ -72,11 +72,12 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass)
         } else {
             m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture_path, m_texture_uv);
         }
+
+        m_picture->set_screen_rect(m_screen_rect);
+        m_picture->set_diffuse_color(m_picture_color);
     }
 
     ChangePosition(m_rect);
-    m_picture->set_diffuse_color(m_picture_color);
-    m_picture->set_screen_rect(m_screen_rect);
 }
 
 void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)

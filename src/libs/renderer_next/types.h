@@ -140,6 +140,11 @@ struct RectBase {
         return bottom - top;
     }
 
+    constexpr bool is_empty() const
+    {
+        return width() < std::numeric_limits<T>::epsilon() || height() < std::numeric_limits<T>::epsilon();
+    }
+
     constexpr auto operator<=>(RectBase const&) const = default;
 };
 

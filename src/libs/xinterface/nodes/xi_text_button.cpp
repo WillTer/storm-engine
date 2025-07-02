@@ -43,72 +43,6 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
     if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) m_nPressedDelay--;
 
     if (m_bUse) {
-        if (bSelected ^ m_bCurrentSelected) {
-            if (bSelected) { m_button_selected->draw(render_pass); }
-            // auto* pVert = static_cast<XI_ONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-            // if (pVert != nullptr) {
-            //     FXYRECT texRect;
-            //     m_bCurrentSelected = bSelected;
-            //
-            // if (m_idSelectMiddle != nullptr) {
-            //         if (bSelected)
-            //             pPictureService->GetTexturePos(m_idSelectMiddle, texRect);
-            //         else
-            //             pPictureService->GetTexturePos(m_idUnSelectMiddle, texRect);
-            //
-            //         pVert[4].tu = pVert[16].tu = pVert[28].tu = pVert[40].tu = texRect.left;
-            //         pVert[4].tv = pVert[16].tv = pVert[28].tv = pVert[40].tv = texRect.top;
-            //         pVert[5].tu = pVert[17].tu = pVert[29].tu = pVert[41].tu = texRect.right;
-            //         pVert[5].tv = pVert[17].tv = pVert[29].tv = pVert[41].tv = texRect.top;
-            //         pVert[6].tu = pVert[18].tu = pVert[30].tu = pVert[42].tu = texRect.left;
-            //         pVert[6].tv = pVert[18].tv = pVert[30].tv = pVert[42].tv = texRect.bottom;
-            //         pVert[7].tu = pVert[19].tu = pVert[31].tu = pVert[43].tu = texRect.right;
-            //         pVert[7].tv = pVert[19].tv = pVert[31].tv = pVert[43].tv = texRect.bottom;
-            // }
-            //
-            // if (m_idSelectLeft != nullptr) {
-            //         if (bSelected)
-            //             pPictureService->GetTexturePos(m_idSelectLeft, texRect);
-            //         else
-            //             pPictureService->GetTexturePos(m_idUnSelectLeft, texRect);
-            //
-            //         pVert[0].tu = pVert[12].tu = pVert[24].tu = pVert[36].tu = texRect.left;
-            //         pVert[0].tv = pVert[12].tv = pVert[24].tv = pVert[36].tv = texRect.top;
-            //         pVert[1].tu = pVert[13].tu = pVert[25].tu = pVert[37].tu = texRect.right;
-            //         pVert[1].tv = pVert[13].tv = pVert[25].tv = pVert[37].tv = texRect.top;
-            //         pVert[2].tu = pVert[14].tu = pVert[26].tu = pVert[38].tu = texRect.left;
-            //         pVert[2].tv = pVert[14].tv = pVert[26].tv = pVert[38].tv = texRect.bottom;
-            //         pVert[3].tu = pVert[15].tu = pVert[27].tu = pVert[39].tu = texRect.right;
-            //         pVert[3].tv = pVert[15].tv = pVert[27].tv = pVert[39].tv = texRect.bottom;
-            // }
-            //
-            // if (m_idSelectRight != nullptr || m_idSelectLeft != nullptr) {
-            //         if (bSelected) {
-            //             if (m_idSelectRight != -1)
-            //                 pPictureService->GetTexturePos(m_idSelectRight, texRect);
-            //             else
-            //                 pPictureService->GetTexturePos(TEXTURE_MODIFY_HORZFLIP, m_idSelectLeft, texRect);
-            //         } else {
-            //             if (m_idUnSelectRight != -1)
-            //                 pPictureService->GetTexturePos(m_idUnSelectRight, texRect);
-            //             else
-            //                 pPictureService->GetTexturePos(TEXTURE_MODIFY_HORZFLIP, m_idUnSelectLeft, texRect);
-            //         }
-            //
-            //         pVert[8].tu = pVert[20].tu = pVert[32].tu = pVert[44].tu = texRect.left;
-            //         pVert[8].tv = pVert[20].tv = pVert[32].tv = pVert[44].tv = texRect.top;
-            //         pVert[9].tu = pVert[21].tu = pVert[33].tu = pVert[45].tu = texRect.right;
-            //         pVert[9].tv = pVert[21].tv = pVert[33].tv = pVert[45].tv = texRect.top;
-            //         pVert[10].tu = pVert[22].tu = pVert[34].tu = pVert[46].tu = texRect.left;
-            //         pVert[10].tv = pVert[22].tv = pVert[34].tv = pVert[46].tv = texRect.bottom;
-            //         pVert[11].tu = pVert[23].tu = pVert[35].tu = pVert[47].tu = texRect.right;
-            //         pVert[11].tv = pVert[23].tv = pVert[35].tv = pVert[47].tv = texRect.bottom;
-            // }
-            //
-            //     m_rs->UnLockVertexBuffer(m_idVBuf);
-            // }
-        }
-
         // show shadow
         if (m_idShadowTex >= 0) {
             // m_rs->TextureSet(0, m_idShadowTex);
@@ -142,7 +76,11 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
         }
 
         // show button
-        m_button->draw(render_pass);
+        if (bSelected) {
+            m_button_selected->draw(render_pass);
+        } else {
+            m_button->draw(render_pass);
+        }
         // m_rs->TextureSet(0, m_idTex);
         // if (m_nPressedDelay > 0)
         //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 4 * 3 * 2, 4 * 3, 0, m_nIndx, "iTextButton");
@@ -235,7 +173,7 @@ bool CXI_TEXTBUTTON::Init(
 void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
 {
     if (!m_button) {
-        if (m_uv.right_uv.width() <= std::numeric_limits<float>::epsilon()) {
+        if (m_uv.right_uv.is_empty()) {
             m_uv.right_uv = storm::FRect {
                 .left   = m_uv.left_uv.right,  // Mirror x
                 .top    = m_uv.left_uv.top,
@@ -255,11 +193,11 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
 
     if (!m_button_selected) {
         auto left_pic = std::make_unique<storm::Picture>(
-            copy_pass, m_texture, m_uv_selected.left_uv.width() > 0 ? m_uv_selected.left_uv : m_uv.left_uv);
+            copy_pass, m_texture, !m_uv_selected.left_uv.is_empty() ? m_uv_selected.left_uv : m_uv.left_uv);
         auto middle_pic = std::make_unique<storm::Picture>(
-            copy_pass, m_texture, m_uv_selected.middle_uv.width() > 0 ? m_uv_selected.middle_uv : m_uv.middle_uv);
+            copy_pass, m_texture, !m_uv_selected.middle_uv.is_empty() ? m_uv_selected.middle_uv : m_uv.middle_uv);
         auto right_pic = std::make_unique<storm::Picture>(
-            copy_pass, m_texture, m_uv_selected.right_uv.width() > 0 ? m_uv_selected.right_uv : m_uv.right_uv);
+            copy_pass, m_texture, !m_uv_selected.right_uv.is_empty() ? m_uv_selected.right_uv : m_uv.right_uv);
 
         m_button_selected = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
         m_button_selected->set_screen_rect(m_screen_rect);
@@ -492,7 +430,6 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     }
 
     // pPictureService->GetTexturePos(m_idUnSelectMiddle, texRect);
-    m_bCurrentSelected = false;
     // pVert[4].tu = pVert[16].tu = pVert[28].tu = pVert[40].tu = texRect.left;
     // pVert[4].tv = pVert[16].tv = pVert[28].tv = pVert[40].tv = texRect.top;
     // pVert[5].tu = pVert[17].tu = pVert[29].tu = pVert[41].tu = texRect.right;
