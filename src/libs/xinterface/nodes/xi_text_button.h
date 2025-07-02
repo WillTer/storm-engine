@@ -63,6 +63,13 @@ protected:
     std::unique_ptr<storm::Button> m_button;
     std::unique_ptr<storm::Button> m_button_selected;
 
+    std::filesystem::path           m_shadow_tex_path;
+    storm::FRect                    m_shadow_uv;
+    std::unique_ptr<storm::Picture> m_shadow;
+
+    storm::FRect m_rect_pressed;
+    storm::FRect m_shadow_rect_pressed;
+
     std::string m_left_picture_name;
     std::string m_right_picture_name;
 

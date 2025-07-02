@@ -44,6 +44,7 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
 
     if (m_bUse) {
         // show shadow
+        if (m_shadow) { m_shadow->draw(render_pass); }
         if (m_idShadowTex >= 0) {
             // m_rs->TextureSet(0, m_idShadowTex);
             // if (m_nPressedDelay > 0)
@@ -73,6 +74,12 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             //     else
             //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iTFRectangle");
             // }
+        }
+
+        if (m_nPressedDelay > 0) {
+            m_button->set_rect(m_rect_pressed);
+            m_button_selected->set_rect(m_rect_pressed);
+            m_shadow->set_rect(m_shadow_rect_pressed);
         }
 
         // show button
@@ -204,6 +211,12 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
         m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
     }
 
+    if (!m_shadow && !m_shadow_tex_path.empty()) {
+        m_shadow = std::make_unique<storm::Picture>(copy_pass, m_shadow_tex_path, m_shadow_uv);
+        m_shadow->set_screen_rect(m_screen_rect);
+        m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
+    }
+
     ChangePosition(m_rect);
 }
 
@@ -253,10 +266,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     }
 
     m_idShadowTex = -1;
-    // if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) m_idShadowTex = m_rs->TextureCreate(param);
+    if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) { m_shadow_tex_path = param; }
 
-    FXYRECT frectShadowUV;
-    if (m_idShadowTex >= 0) { frectShadowUV = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.f, 0.f, 1.f, 1.f)); }
+    m_shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
     // get offset button image in case pressed button
     fPos           = GetIniFloatPoint(ini1, name1, ini2, name2, "pressPictureOffset", FXYPOINT(0.f, 0.f));
@@ -283,6 +295,8 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     m_idString = -1;
     if (ReadIniString(ini1, name1, ini2, name2, "string", param, sizeof(param), "")) m_idString = pStringService->GetStringNum(param);
+
+    m_fShadowScale = GetIniFloat(ini1, name1, ini2, name2, "shadowScale", 1.F);
 
     // get video fragment parameters
     // m_pTex = nullptr;
@@ -325,7 +339,6 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     //     pVert[i].color = m_dwShadowColor;
     //
     // if (m_idShadowTex >= 0) {
-    //     m_fShadowScale = GetIniFloat(ini1, name1, ini2, name2, "shadowScale", 1.f);
     //
     //     for (; i < m_nVert; i++)
     //         pVert[i].color = m_dwShadowColor;
@@ -534,6 +547,34 @@ void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)
 
     m_button->set_rect(m_rect);
     m_button_selected->set_rect(m_rect);
+
+    m_rect_pressed = {
+        .left   = m_rect.left + m_fXDeltaPress,
+        .top    = m_rect.top + m_fYDeltaPress,
+        .right  = m_rect.right + m_fXDeltaPress,
+        .bottom = m_rect.bottom + m_fYDeltaPress,
+    };
+
+    if (m_shadow) {
+        auto const shadow_h_offset = (m_rect.right - m_rect.left) * (m_fShadowScale - 1.F) * .5f;
+        auto const shadow_v_offset = (m_rect.bottom - m_rect.top) * (m_fShadowScale - 1.F) * .5f;
+
+        auto const shadow_rect = storm::FRect {
+            .left   = m_rect.left - shadow_h_offset + m_fXShadow,
+            .top    = m_rect.top - shadow_v_offset + m_fYShadow,
+            .right  = m_rect.right + shadow_h_offset + m_fXShadow,
+            .bottom = m_rect.bottom + shadow_v_offset + m_fYShadow,
+        };
+
+        m_shadow_rect_pressed = {
+            .left   = shadow_rect.left + m_fXDeltaPress,
+            .top    = shadow_rect.top + m_fYDeltaPress,
+            .right  = shadow_rect.right + m_fXDeltaPress,
+            .bottom = shadow_rect.bottom + m_fYDeltaPress,
+        };
+
+        m_shadow->set_rect(shadow_rect);
+    }
 }
 
 void CXI_TEXTBUTTON::SaveParametersToIni()
