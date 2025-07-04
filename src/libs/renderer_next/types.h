@@ -202,6 +202,19 @@ struct Color {
         return std::bit_cast<Color>(hex_bytes);
     }
 
+    constexpr Color operator*(float factor) const
+    {
+        constexpr float max_value = std::numeric_limits<uint8_t>::max();
+        auto [rn, gn, bn, an]     = normalize();
+
+        rn = std::clamp(rn * factor * max_value, 0.0F, max_value);
+        gn = std::clamp(gn * factor * max_value, 0.0F, max_value);
+        bn = std::clamp(bn * factor * max_value, 0.0F, max_value);
+        an = std::clamp(an * factor * max_value, 0.0F, max_value);
+
+        return {static_cast<uint8_t>(an), static_cast<uint8_t>(rn), static_cast<uint8_t>(gn), static_cast<uint8_t>(bn)};
+    }
+
     constexpr auto operator<=>(Color const&) const = default;
 };
 

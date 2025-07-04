@@ -65,7 +65,7 @@ public:
     }
 
     [[nodiscard]] auto create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>;
-    [[nodiscard]] auto create_texture_target() -> std::unique_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
     [[nodiscard]] auto create_index_buffer(size_t index_count) -> std::unique_ptr<GPUIndexBuffer>;
     [[nodiscard]] auto create_vertex_buffer(size_t vertex_count, size_t vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>;
@@ -73,7 +73,6 @@ public:
     auto acquire_command_buffer() const -> std::unique_ptr<GPUCommandBuffer>;
 
     auto get_viewport() const -> FRect;
-    auto get_viewport_native() const -> SDL_GPUViewport const&;
 
 private:
     [[nodiscard]] auto create_pipeline(

@@ -42,6 +42,7 @@ public:
     uint32_t     MessageProc(int32_t msgcode, MESSAGE& message) override;
     virtual void ChangeUV(FXYRECT& frNewUV);
     void         ChangeColor(uint32_t dwColor);
+    void         ChangeColor(storm::Color const& color);
     void         SetPictureSize(int32_t& nWidth, int32_t& nHeight);
 
 protected:

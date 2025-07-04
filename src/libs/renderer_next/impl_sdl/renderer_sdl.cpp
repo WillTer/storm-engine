@@ -103,15 +103,15 @@ struct RendererService::Impl {
         return std::make_unique<GPUTexture>(m_device, file_header);
     }
 
-    [[nodiscard]] auto create_texture_target() -> std::unique_ptr<GPUTexture>
+    [[nodiscard]] auto create_texture_target(uint32_t const width, uint32_t const height) -> std::unique_ptr<GPUTexture>
     {
-        int width  = 0;
-        int height = 0;
-        SDL_GetWindowSize(m_window.get(), &width, &height);
+        int window_width  = 0;
+        int window_height = 0;
+        SDL_GetWindowSize(m_window.get(), &window_width, &window_height);
         return std::make_unique<GPUTexture>(
             m_device,
-            width,
-            height,
+            width > 0 ? width : window_width,
+            height > 0 ? height : window_height,
             1,
             SDL_GetGPUSwapchainTextureFormat(m_device.get(), m_window.get()),
             SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
@@ -140,11 +140,6 @@ struct RendererService::Impl {
             .right  = m_viewport.x + m_viewport.w,
             .bottom = m_viewport.y + m_viewport.h,
         };
-    }
-
-    auto get_viewport_native() const -> SDL_GPUViewport const&
-    {
-        return m_viewport;
     }
 
     [[nodiscard]] auto create_pipeline(
@@ -209,9 +204,10 @@ auto RendererService::create_pipeline(
     return m_impl->create_texture(file_header);
 }
 
-[[nodiscard]] auto RendererService::create_texture_target() -> std::unique_ptr<GPUTexture>
+[[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)
+    -> std::unique_ptr<GPUTexture>
 {
-    return m_impl->create_texture_target();
+    return m_impl->create_texture_target(width, height);
 }
 
 auto RendererService::create_index_buffer(size_t const index_count) -> std::unique_ptr<GPUIndexBuffer>
@@ -232,9 +228,4 @@ auto RendererService::acquire_command_buffer() const -> std::unique_ptr<GPUComma
 auto RendererService::get_viewport() const -> FRect
 {
     return m_impl->get_viewport();
-}
-
-auto RendererService::get_viewport_native() const -> SDL_GPUViewport const&
-{
-    return m_impl->get_viewport_native();
 }

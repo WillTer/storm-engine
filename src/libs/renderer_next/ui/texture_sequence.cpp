@@ -68,7 +68,7 @@ TextureSequence::TextureSequence(GPUCopyPass const& copy_pass, std::string const
     m_texture                = renderer->create_texture(texture_asset.header);
     copy_pass.upload(*m_texture, std::span(texture_asset.data));
 
-    m_target = renderer->create_texture_target();
+    m_target = renderer->create_texture_target(info.width, info.height);
 
     {
         auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
@@ -125,10 +125,9 @@ void TextureSequence::update(GPUCopyPass const& /*copy_pass*/, uint64_t const de
 
 void TextureSequence::pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t const /*delta_time*/) const
 {
-    auto const& renderer     = core->get<RendererService>();
-    auto        color_target = cmd_buffer.get_default_target();
+    auto color_target = cmd_buffer.get_default_target();
     m_target->set_as_target(color_target);
-    auto const render_pass = cmd_buffer.start_render_pass({color_target}, renderer->get_viewport_native());
+    auto const render_pass = cmd_buffer.start_render_pass({color_target});
 
     render_pass->bind(*m_sequence_pipeline);
     render_pass->bind(*m_sequence_vertex_buffer);

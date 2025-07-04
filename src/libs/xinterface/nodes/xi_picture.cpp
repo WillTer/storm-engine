@@ -44,7 +44,7 @@ void CXI_PICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, 
                     m_bBlindUp      = true;
                 }
             }
-            ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime).to_hex());
+            ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
         }
 
         if (m_picture) { m_picture->draw(render_pass); }
@@ -74,7 +74,7 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_tim
         }
 
         m_picture->set_screen_rect(m_screen_rect);
-        m_picture->set_diffuse_color(m_picture_color);
+        ChangeColor(m_picture_color);
     }
 
     m_picture->update(copy_pass, delta_time);
@@ -240,7 +240,7 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
     case 4:  // Set a new color
     {
         uint32_t const color = message.Long();
-        if (m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(color)); }
+        ChangeColor(color);
     } break;
 
     case 5:  // set / remove blinking
@@ -248,9 +248,9 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
         bool const bBlind = message.Long() != 0;
         if (m_bMakeBlind != bBlind) {
             m_bMakeBlind = bBlind;
-            if (!m_bMakeBlind)
+            if (!m_bMakeBlind) {
                 ChangeColor(m_dwBlindMin);
-            else {
+            } else {
                 m_fCurBlindTime = 0.f;
                 m_bBlindUp      = true;
             }
@@ -306,7 +306,12 @@ void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV) {}
 
 void CXI_PICTURE::ChangeColor(uint32_t dwColor)
 {
-    if (m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(dwColor)); }
+    ChangeColor(storm::Color::from_hex(dwColor));
+}
+
+void CXI_PICTURE::ChangeColor(storm::Color const& color)
+{
+    if (m_picture) { m_picture->set_diffuse_color(color * 2); }  // Modulate color to make it brighter
 }
 
 void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)

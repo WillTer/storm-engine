@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "gpu_copy_pass.h"
 #include "gpu_render_pass.h"
@@ -15,7 +16,8 @@ public:
     GPUCommandBuffer(std::shared_ptr<SDL_GPUDevice> const& device, std::shared_ptr<SDL_Window> const& window);
     ~GPUCommandBuffer();
 
-    auto start_render_pass(std::vector<ColorTargetInfo> const& color_targets, SDL_GPUViewport const& viewport) const
+    auto
+    start_render_pass(std::vector<ColorTargetInfo> const& color_targets, std::optional<storm::FRect> const& viewport = std::nullopt) const
         -> std::unique_ptr<GPURenderPass>;
     auto start_copy_pass() const -> std::unique_ptr<GPUCopyPass>;
 

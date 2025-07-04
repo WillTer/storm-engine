@@ -69,9 +69,9 @@ VertexOutput main_vs(VertexInput input)
 [shader("fragment")]
 float4 main_fs(float2 tex_coord: TEXCOORD0, float2 tex_coord_next: TEXCOORD1) : SV_Target0
 {
-    float4 tex1  = (1 - diffuse.w) * Texture.Sample(tex_coord);
-    float4 tex2  = diffuse.w * Texture.Sample(tex_coord_next);
-    float4 color = tex1 + tex2;
+    float4 tex1  = Texture.Sample(tex_coord);
+    float4 tex2  = Texture.Sample(tex_coord_next);
+    float4 color = (1 - diffuse.w) * tex1 + diffuse.w * tex2;
     color.w      = 1.0F;
     return color;
 }

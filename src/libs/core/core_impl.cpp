@@ -156,7 +156,7 @@ bool CoreImpl::Run()
     }
     process_pre_draw(*cmd_buffer);
     {
-        auto const render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport_native());
+        auto const render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport());
         ProcessRealize(*render_pass);  // transfer control to objects via Realize() function
     }
 

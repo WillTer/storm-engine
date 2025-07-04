@@ -27,7 +27,7 @@ public:
     GPURenderPass(
         std::shared_ptr<SDL_GPUCommandBuffer> const& cmd_buffer,
         std::vector<ColorTargetInfo> const&          color_targets,
-        SDL_GPUViewport const&                       viewport);
+        std::optional<storm::FRect> const&           viewport);
 
     ~GPURenderPass();
 

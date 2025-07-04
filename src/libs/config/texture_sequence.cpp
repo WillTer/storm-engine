@@ -22,7 +22,7 @@ struct storm::read_to<storm::TextureSequenceInfo> {
         return {
             .texture_file   = ini.find_or<std::string>(section, "textureFile", ""),
             .flip_h         = ini.find_or(section, "flipH", false),
-            .flip_v         = ini.find_or(section, "flipV", false),
+            .flip_v         = ini.find_or(section, "flipV", true),
             .time_delay     = ini.find_or(section, "timeDelay", DEFAULT_DELAY),
             .width          = ini.find_or(section, "width", DEFAULT_WIDTH),
             .height         = ini.find_or(section, "height", DEFAULT_HEIGHT),
@@ -42,7 +42,7 @@ TextureSequenceInfo info(IConfigLoader& config_loader, std::string const& name)
 
     auto const& config_file = config_loader.open_config_cached(CONFIG_FILE);
     auto        sequence    = read_to<TextureSequenceInfo>::from_ini(config_file, upper_name);
-    if (sequence.texture_file.empty()) { sequence.texture_file = std::format("{}.tga", name); }
+    if (sequence.texture_file.empty()) { sequence.texture_file = std::format("texturesequence/{}.tga", name); }
 
     return sequence;
 }

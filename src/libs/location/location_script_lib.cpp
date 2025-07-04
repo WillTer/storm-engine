@@ -229,7 +229,7 @@ uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
         progress_image->update(*copy_pass, core->GetDeltaTime());
     }
 
-    auto render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport_native());
+    auto render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport());
     progress_image->draw(*render_pass);
 
     return IFUNCRESULT_OK;

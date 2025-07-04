@@ -37,7 +37,7 @@ std::vector<SDL_GPUColorTargetInfo> convert_color_target_info(std::vector<ColorT
 GPURenderPass::GPURenderPass(
     std::shared_ptr<SDL_GPUCommandBuffer> const& cmd_buffer,
     std::vector<ColorTargetInfo> const&          color_targets,
-    SDL_GPUViewport const&                       viewport)
+    std::optional<storm::FRect> const&           viewport)
     : m_cmd_buffer(cmd_buffer)
 {
     auto color_target_info = convert_color_target_info(color_targets);
@@ -50,7 +50,20 @@ GPURenderPass::GPURenderPass(
         return;
     }
 
-    SDL_SetGPUViewport(m_pass.get(), &viewport);
+    if (viewport.has_value()) {
+        auto const& vp = viewport.value();
+
+        auto const viewport_native = SDL_GPUViewport {
+            .x         = vp.left,
+            .y         = vp.top,
+            .w         = vp.width(),
+            .h         = vp.height(),
+            .min_depth = 0.0F,
+            .max_depth = 1.0F,
+        };
+
+        SDL_SetGPUViewport(m_pass.get(), &viewport_native);
+    }
 }
 
 GPURenderPass::~GPURenderPass() = default;

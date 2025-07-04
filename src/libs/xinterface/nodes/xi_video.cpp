@@ -1,10 +1,11 @@
 #include "xi_video.h"
 
-#include <stdio.h>
+#include <libs/renderer_next/ui/texture_sequence.h>
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
 {
     m_nNodeType = NODETYPE_VIDEO;
+    m_video_tex = nullptr;
 }
 
 CXI_VIDEO::~CXI_VIDEO()
@@ -14,34 +15,26 @@ CXI_VIDEO::~CXI_VIDEO()
 
 uint32_t vid_counter = 0;
 
+void CXI_VIDEO::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time)
+{
+    if (m_video_tex) { m_video_tex->pre_draw(cmd_buffer, delta_time); }
+}
+
+void CXI_VIDEO::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+{
+    if (!m_video_tex && !m_video_tex_name.empty()) {
+        m_video_tex = std::make_unique<storm::TextureSequence>(copy_pass, m_video_tex_name);
+        m_video_tex->set_rect(m_rect);
+        m_video_tex->set_screen_rect(m_screen_rect);
+        m_video_tex->set_diffuse_color(storm::Color::from_hex(m_dwColor) * 2);
+    }
+
+    if (m_video_tex) { m_video_tex->update(copy_pass, delta_time); }
+}
+
 void CXI_VIDEO::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (m_bUse) {
-        // Create rectangle
-        XI_ONETEX_VERTEX v[4];
-        v[0].pos.x = static_cast<float>(m_rect.left);
-        v[0].pos.y = static_cast<float>(m_rect.top);
-        v[0].tu    = m_rectTex.left;
-        v[0].tv    = m_rectTex.bottom;
-        v[1].pos.x = static_cast<float>(m_rect.left);
-        v[1].pos.y = static_cast<float>(m_rect.bottom);
-        v[1].tu    = m_rectTex.left;
-        v[1].tv    = m_rectTex.top;
-        v[2].pos.x = static_cast<float>(m_rect.right);
-        v[2].pos.y = static_cast<float>(m_rect.top);
-        v[2].tu    = m_rectTex.right;
-        v[2].tv    = m_rectTex.bottom;
-        v[3].pos.x = static_cast<float>(m_rect.right), v[3].pos.y = static_cast<float>(m_rect.bottom);
-        v[3].tu = m_rectTex.right;
-        v[3].tv = m_rectTex.top;
-        for (auto i = 0; i < 4; i++) {
-            v[i].color = m_dwColor;
-            v[i].pos.z = 1.f;
-        }
-
-        // m_rs->SetTexture(0, pTex ? pTex->m_pTexture : nullptr);
-        // if (vid_counter++ > 10) m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iVideo");
-    }
+    if (m_bUse && m_video_tex) { m_video_tex->draw(render_pass); }
 }
 
 bool CXI_VIDEO::Init(
@@ -56,8 +49,7 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 {
     char param[255];
 
-    // if (pTex) m_rs->ReleaseVideoTexture(pTex);
-    // if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) pTex = m_rs->GetVideoTexture(param);
+    if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) { m_video_tex_name = param; }
 
     m_rectTex = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
@@ -66,7 +58,7 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
 void CXI_VIDEO::ReleaseAll()
 {
-    // VIDEOTEXTURE_RELEASE(m_rs, pTex);
+    m_video_tex.reset();
 }
 
 int CXI_VIDEO::CommandExecute(int wActCode)
@@ -82,6 +74,7 @@ bool CXI_VIDEO::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_VIDEO::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
+    m_video_tex->set_rect(m_rect);
 }
 
 void CXI_VIDEO::SaveParametersToIni()

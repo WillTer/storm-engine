@@ -21,7 +21,8 @@ GPUCommandBuffer::GPUCommandBuffer(std::shared_ptr<SDL_GPUDevice> const& device,
 
 GPUCommandBuffer::~GPUCommandBuffer() = default;
 
-auto GPUCommandBuffer::start_render_pass(std::vector<ColorTargetInfo> const& color_targets, SDL_GPUViewport const& viewport) const
+auto GPUCommandBuffer::start_render_pass(
+    std::vector<ColorTargetInfo> const& color_targets, std::optional<storm::FRect> const& viewport /*= std::nullopt*/) const
     -> std::unique_ptr<GPURenderPass>
 {
     return std::make_unique<GPURenderPass>(m_cmd_buffer, color_targets, viewport);
