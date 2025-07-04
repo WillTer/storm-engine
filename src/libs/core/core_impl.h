@@ -41,6 +41,7 @@ public:
 
     void ProcessExecute(storm::GPUCopyPass const& copy_pass);
     void ProcessRealize(storm::GPURenderPass const& render_pass);
+    void process_pre_draw(storm::GPUCommandBuffer const& cmd_buffer);
     void ProcessStateLoading();
     void ProcessRunStart(uint32_t section_code);
     void ProcessRunEnd(uint32_t section_code);

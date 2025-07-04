@@ -6,6 +6,7 @@ namespace storm
 {
 class Picture;
 class Button;
+class TextureSequence;
 }  // namespace storm
 
 // picture
@@ -21,7 +22,8 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
-    void update(storm::GPUCopyPass const& copy_pass) override;
+    void pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) override;
+    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
@@ -55,6 +57,9 @@ protected:
         storm::FRect right_uv  = {};
     };
 
+    std::unique_ptr<storm::TextureSequence> m_video_tex;
+    std::string                             m_video_tex_name;
+
     std::shared_ptr<storm::GPUTexture> m_texture;
 
     UV m_uv;
@@ -69,11 +74,6 @@ protected:
 
     storm::FRect m_rect_pressed;
     storm::FRect m_shadow_rect_pressed;
-
-    std::string m_left_picture_name;
-    std::string m_right_picture_name;
-
-    XI_ONETEX_VERTEX m_v[8];
 
     uint32_t m_dwShadowColor;        // shadow color
     uint32_t m_dwFaceColor;          // unpressed key color

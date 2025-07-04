@@ -64,7 +64,7 @@ bool CXI_PICTURE::Init(
     return true;
 }
 
-void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass)
+void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
     if (!m_picture) {
         if (m_texture) {
@@ -76,6 +76,8 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass)
         m_picture->set_screen_rect(m_screen_rect);
         m_picture->set_diffuse_color(m_picture_color);
     }
+
+    m_picture->update(copy_pass, delta_time);
 
     ChangePosition(m_rect);
 }

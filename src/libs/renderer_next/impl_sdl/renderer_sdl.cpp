@@ -103,6 +103,20 @@ struct RendererService::Impl {
         return std::make_unique<GPUTexture>(m_device, file_header);
     }
 
+    [[nodiscard]] auto create_texture_target() -> std::unique_ptr<GPUTexture>
+    {
+        int width  = 0;
+        int height = 0;
+        SDL_GetWindowSize(m_window.get(), &width, &height);
+        return std::make_unique<GPUTexture>(
+            m_device,
+            width,
+            height,
+            1,
+            SDL_GetGPUSwapchainTextureFormat(m_device.get(), m_window.get()),
+            SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
+    }
+
     [[nodiscard]] auto create_index_buffer(size_t const index_count) -> std::unique_ptr<GPUIndexBuffer>
     {
         return std::make_unique<GPUIndexBuffer>(m_device, static_cast<uint32_t>(index_count));
@@ -193,6 +207,11 @@ auto RendererService::create_pipeline(
 [[nodiscard]] auto RendererService::create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>
 {
     return m_impl->create_texture(file_header);
+}
+
+[[nodiscard]] auto RendererService::create_texture_target() -> std::unique_ptr<GPUTexture>
+{
+    return m_impl->create_texture_target();
 }
 
 auto RendererService::create_index_buffer(size_t const index_count) -> std::unique_ptr<GPUIndexBuffer>

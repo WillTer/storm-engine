@@ -148,14 +148,16 @@ bool CXI_BUTTON::Init(
     return true;
 }
 
-void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass)
+void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if (!m_bClickable || !m_bSelected) { m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor)); }
+    if ((!m_bClickable || !m_bSelected) && m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor)); }
 
     if (!m_picture) {
         m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv);
         m_picture->set_screen_rect(m_screen_rect);
     }
+
+    m_picture->update(copy_pass, delta_time);
 
     ChangePosition(m_rect);
 }

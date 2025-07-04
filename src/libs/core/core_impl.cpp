@@ -154,6 +154,7 @@ bool CoreImpl::Run()
         auto const copy_pass = cmd_buffer->start_copy_pass();
         ProcessExecute(*copy_pass);  // transfer control to objects via Execute() function
     }
+    process_pre_draw(*cmd_buffer);
     {
         auto const render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport_native());
         ProcessRealize(*render_pass);  // transfer control to objects via Realize() function
@@ -477,6 +478,14 @@ void CoreImpl::ProcessRealize(storm::GPURenderPass const& render_pass)
     }
 
     ProcessRunEnd(SECTION_REALIZE);
+}
+
+void CoreImpl::process_pre_draw(storm::GPUCommandBuffer const& cmd_buffer)
+{
+    auto const delta_time = Timer.GetDeltaTime();
+    for (auto id: core->GetEntityIds(layer_type_t::realize)) {
+        if (auto* ptr = core->GetEntityPointerSafe(id)) { ptr->pre_draw_stage(cmd_buffer, delta_time); }
+    }
 }
 
 // save core state

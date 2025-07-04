@@ -24,6 +24,8 @@ public:
     void set_screen_rect(storm::FRect const& rect);
     void set_diffuse_color(storm::Color const& color);
 
+    auto get_middle_rect() const -> storm::FRect;
+
 private:
     std::unique_ptr<Picture> m_left;
     std::unique_ptr<Picture> m_middle;

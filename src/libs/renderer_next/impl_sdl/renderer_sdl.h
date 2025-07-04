@@ -65,6 +65,8 @@ public:
     }
 
     [[nodiscard]] auto create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture_target() -> std::unique_ptr<GPUTexture>;
+
     [[nodiscard]] auto create_index_buffer(size_t index_count) -> std::unique_ptr<GPUIndexBuffer>;
     [[nodiscard]] auto create_vertex_buffer(size_t vertex_count, size_t vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>;
 

@@ -20,7 +20,7 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
-    void update(storm::GPUCopyPass const& copy_pass) override;
+    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;

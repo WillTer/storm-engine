@@ -29,7 +29,7 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize) override;
-    void update(storm::GPUCopyPass const& copy_pass) override;
+    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
 
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;

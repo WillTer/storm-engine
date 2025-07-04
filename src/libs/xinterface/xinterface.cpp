@@ -1088,7 +1088,7 @@ void XInterface::LoadDialog(char const* sFileName)
     }
 }
 
-void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*delta_time*/ /*= 0*/)
+void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time /*= 0*/)
 {
     auto const screen_rect = storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)};
     if (!m_mouse_cursor) {
@@ -1114,7 +1114,12 @@ void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t /*de
         pImg = pImg->next;
     }
 
-    nodes_update(copy_pass, m_pNodes);
+    nodes_update(copy_pass, m_pNodes, delta_time);
+}
+
+void XInterface::pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time /* = 0*/)
+{
+    nodes_pre_draw(cmd_buffer, m_pNodes, delta_time);
 }
 
 void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time /*= 0*/)
@@ -1670,10 +1675,17 @@ void XInterface::RestoreNodeLocks(int32_t nStoreCode)
     m_aLocksArray.erase(m_aLocksArray.begin() + n);
 }
 
-void XInterface::nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod) const
+void XInterface::nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod, uint32_t delta_time) const
 {
     for (; nod != nullptr; nod = nod->m_next) {
-        nod->update(copy_pass);
+        nod->update(copy_pass, delta_time);
+    }
+}
+
+void XInterface::nodes_pre_draw(storm::GPUCommandBuffer const& cmd_buffer, CINODE* nod, uint32_t delta_time) const
+{
+    for (; nod != nullptr; nod = nod->m_next) {
+        nod->pre_draw(cmd_buffer, delta_time);
     }
 }
 

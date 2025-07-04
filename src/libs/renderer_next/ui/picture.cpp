@@ -106,8 +106,10 @@ void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& textu
 
     auto const [width, height] = m_texture->get_dimensions();
 
-    m_width  = static_cast<uint32_t>(width * std::fabs(texture_rect.right - texture_rect.left));
-    m_height = static_cast<uint32_t>(height * std::fabs(texture_rect.bottom - texture_rect.top));
+    m_rect = {
+        0.0F, 0.0F, width * std::fabs(texture_rect.right - texture_rect.left), height * std::fabs(texture_rect.bottom - texture_rect.top)};
+    m_width  = static_cast<uint32_t>(m_rect.width());
+    m_height = static_cast<uint32_t>(m_rect.height());
 }
 
 void Picture::recalculate_model_matrix()
@@ -123,6 +125,7 @@ void Picture::set_screen_rect(storm::FRect const& rect)
 
 void Picture::set_rect(storm::FRect const& rect)
 {
+    m_rect            = rect;
     m_translation_mat = float4x4::translation(rect.left, rect.top, 0.0F);
     m_scaling_mat     = float4x4::scale(rect.width(), rect.height(), 1.0F);
     recalculate_model_matrix();
@@ -143,4 +146,9 @@ void Picture::set_diffuse_color(storm::Color const& color)
 auto Picture::get_dimensions() const -> std::pair<uint32_t, uint32_t>
 {
     return std::make_pair(m_width, m_height);
+}
+
+auto Picture::get_rect() const -> storm::FRect
+{
+    return m_rect;
 }

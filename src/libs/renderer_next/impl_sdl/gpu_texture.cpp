@@ -8,6 +8,8 @@
 #include <libs/asset_server/texture_asset.h>
 #include <spdlog/spdlog.h>
 
+#include "gpu_render_pass.h"
+
 using namespace storm;
 
 namespace
@@ -88,6 +90,11 @@ GPUTexture::GPUTexture(
 }
 
 GPUTexture::~GPUTexture() = default;
+
+void GPUTexture::set_as_target(ColorTargetInfo& target_info)
+{
+    target_info.target_texture = m_texture.get();
+}
 
 void GPUTexture::bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const
 {

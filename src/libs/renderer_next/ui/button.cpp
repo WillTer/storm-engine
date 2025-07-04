@@ -87,3 +87,8 @@ void Button::set_diffuse_color(storm::Color const& color)
     m_middle->set_diffuse_color(color);
     m_right->set_diffuse_color(color);
 }
+
+auto Button::get_middle_rect() const -> storm::FRect
+{
+    return m_middle->get_rect();
+}

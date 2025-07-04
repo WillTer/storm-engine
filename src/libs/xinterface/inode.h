@@ -187,7 +187,7 @@ public:
 public:
     CINODE();
     virtual ~CINODE();
-    virtual void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) = 0;
+    virtual void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) = 0;  // TODO: remove delta from draw
     virtual bool Init(
         INIFILE*             ini1,
         char const*          name1,
@@ -196,7 +196,8 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize);
-    virtual void update(storm::GPUCopyPass const& copy_pass);
+    virtual void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time);
+    virtual void pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time);
 
     virtual void   ReleaseAll() = 0;
     CINODE*        DoAction(int wActCode, bool& bBreakPress, bool bFirstPress);

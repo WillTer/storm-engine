@@ -100,6 +100,7 @@ public:
     }
 
     void update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time = 0) override;
+    void pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time = 0) override;
     void draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time = 0) override;
 
     void    CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority = 80);
@@ -256,9 +257,10 @@ protected:
     void ShowContextHelp();
 
     // draw function
+    void nodes_pre_draw(storm::GPUCommandBuffer const& cmd_buffer, CINODE* nod, uint32_t delta_time) const;
     void DrawNode(
         storm::GPURenderPass const& render_pass, CINODE* nod, uint32_t Delta_Time, int32_t startPrior = 0, int32_t endPrior = 32000) const;
-    void nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod) const;
+    void nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod, uint32_t delta_time) const;
     void ShowPrevTexture();
     // initialisation function
     void LoadIni();

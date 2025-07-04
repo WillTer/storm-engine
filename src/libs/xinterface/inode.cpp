@@ -480,7 +480,8 @@ bool CINODE::Init(
     return true;
 }
 
-void CINODE::update(storm::GPUCopyPass const& /*copy_pass*/) {}
+void CINODE::update(storm::GPUCopyPass const& /*copy_pass*/, uint32_t /*delta_time*/) {}
+void CINODE::pre_draw(storm::GPUCommandBuffer const& /*cmd_buffer*/, uint32_t /*delta_time*/) {}
 
 float CINODE::GetIniFloat(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, char const* keyName, float fDefault)
 {

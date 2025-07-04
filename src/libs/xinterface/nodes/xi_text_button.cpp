@@ -3,6 +3,7 @@
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/button.h>
 #include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/texture_sequence.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
@@ -31,6 +32,8 @@ CXI_TEXTBUTTON::CXI_TEXTBUTTON()
     m_bVideoToBack = true;
 
     m_dwBackColor = storm::Color {128, 0, 0, 0}.to_hex();
+
+    m_video_tex = nullptr;
 }
 
 CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
@@ -43,24 +46,21 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
     if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) m_nPressedDelay--;
 
     if (m_bUse) {
+        if (m_nPressedDelay > 0) {
+            m_button->set_rect(m_rect_pressed);
+            m_button_selected->set_rect(m_rect_pressed);
+            m_shadow->set_rect(m_shadow_rect_pressed);
+            if (m_video_tex) { m_video_tex->set_rect(m_rect_pressed); }
+        }
+
         // show shadow
         if (m_shadow) { m_shadow->draw(render_pass); }
-        if (m_idShadowTex >= 0) {
-            // m_rs->TextureSet(0, m_idShadowTex);
-            // if (m_nPressedDelay > 0)
-            //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONETEX_VERTEX), 4 * 3 * 4, 2, "iIcon");
-            // else
-            //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONETEX_VERTEX), 4 * 3 * 4 + 4, 2, "iIcon");
-        } else {
-            // m_rs->TextureSet(0, m_idTex);
-            // if (m_nPressedDelay > 0)
-            //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 4 * 3 * 3, 4 * 3, 0, m_nIndx, "iShadow");
-            // else
-            //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 4 * 3, 4 * 3, 0, m_nIndx, "iShadow");
-        }
 
         if (m_bVideoToBack) {
             // show midle video fragment
+            if (bSelected && m_video_tex) { m_video_tex->draw(render_pass); }
+            // TODO: draw solid background
+
             // if (bSelected && m_pTex != nullptr) {
             //     m_rs->SetTexture(0, m_pTex->m_pTexture);
             //     if (m_nPressedDelay > 0)
@@ -76,25 +76,15 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             // }
         }
 
-        if (m_nPressedDelay > 0) {
-            m_button->set_rect(m_rect_pressed);
-            m_button_selected->set_rect(m_rect_pressed);
-            m_shadow->set_rect(m_shadow_rect_pressed);
-        }
-
         // show button
         if (bSelected) {
             m_button_selected->draw(render_pass);
         } else {
             m_button->draw(render_pass);
         }
-        // m_rs->TextureSet(0, m_idTex);
-        // if (m_nPressedDelay > 0)
-        //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 4 * 3 * 2, 4 * 3, 0, m_nIndx, "iTextButton");
-        // else
-        //     m_rs->DrawBuffer(m_idVBuf, sizeof(XI_ONETEX_VERTEX), m_idIBuf, 0, 4 * 3, 0, m_nIndx, "iTextButton");
 
         if (!m_bVideoToBack) {
+            if (bSelected && m_video_tex) { m_video_tex->draw(render_pass); }
             // show midle video fragment
             // if (bSelected && m_pTex != nullptr) {
             //     m_rs->SetTexture(0, m_pTex->m_pTexture);
@@ -177,7 +167,12 @@ bool CXI_TEXTBUTTON::Init(
     return true;
 }
 
-void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
+void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time)
+{
+    if (m_video_tex) { m_video_tex->pre_draw(cmd_buffer, delta_time); }
+}
+
+void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
     if (!m_button) {
         if (m_uv.right_uv.is_empty()) {
@@ -216,6 +211,16 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass)
         m_shadow->set_screen_rect(m_screen_rect);
         m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
     }
+
+    if (!m_video_tex && !m_video_tex_name.empty()) {
+        m_video_tex = std::make_unique<storm::TextureSequence>(copy_pass, m_video_tex_name);
+        m_video_tex->set_screen_rect(m_screen_rect);
+    }
+
+    m_button->update(copy_pass, delta_time);
+    m_button_selected->update(copy_pass, delta_time);
+    if (m_shadow) { m_shadow->update(copy_pass, delta_time); }
+    if (m_video_tex) { m_video_tex->update(copy_pass, delta_time); }
 
     ChangePosition(m_rect);
 }
@@ -294,13 +299,12 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
     m_idString = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "string", param, sizeof(param), "")) m_idString = pStringService->GetStringNum(param);
+    if (ReadIniString(ini1, name1, ini2, name2, "string", param, sizeof(param), "")) { m_idString = pStringService->GetStringNum(param); }
 
     m_fShadowScale = GetIniFloat(ini1, name1, ini2, name2, "shadowScale", 1.F);
 
     // get video fragment parameters
-    // m_pTex = nullptr;
-    // if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
+    if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) { m_video_tex_name = param; }
 
     // do vertex and index buffer
     m_nIndx = 3 * 2 * 3;      // 3 rectangle * 2 triangle to rectangle * 3 vertex to triangle
@@ -478,14 +482,6 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     //     m_v[i].color = i < 4 ? m_dwFaceColor : m_dwPressedFaceColor;
     //     m_v[i].pos.z = 1.f;
     // }
-    m_v[0].tu = m_v[4].tu = 0.f;
-    m_v[0].tv = m_v[4].tv = 0.f;
-    m_v[1].tu = m_v[5].tu = 1.f;
-    m_v[1].tv = m_v[5].tv = 0.f;
-    m_v[2].tu = m_v[6].tu = 0.f;
-    m_v[2].tv = m_v[6].tv = 1.f;
-    m_v[3].tu = m_v[7].tu = 1.f;
-    m_v[3].tv = m_v[7].tv = 1.f;
 
     if (m_bVideoToBack) {
         // fLeftMiddle  = static_cast<float>(m_rect.left);
@@ -547,6 +543,7 @@ void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)
 
     m_button->set_rect(m_rect);
     m_button_selected->set_rect(m_rect);
+    if (m_video_tex) { m_video_tex->set_rect(m_rect); }
 
     m_rect_pressed = {
         .left   = m_rect.left + m_fXDeltaPress,

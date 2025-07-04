@@ -170,7 +170,7 @@ void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
 {
     // Position of the current frame
     int32_t const fx = m_current_frame % m_progress_info.h_frames_count;
-    int32_t const fy = m_current_frame / m_progress_info.v_frames_count;
+    int32_t const fy = m_current_frame / m_progress_info.h_frames_count;
 
     // Frame grid size
     auto const x_count = static_cast<float>(m_progress_info.h_frames_count);

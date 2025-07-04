@@ -20,6 +20,7 @@ constexpr entid_t invalid_entity = {};
 
 namespace storm
 {
+class GPUCommandBuffer;
 class GPUCopyPass;
 class GPURenderPass;
 }  // namespace storm
@@ -57,6 +58,10 @@ public:
     virtual void ProcessStage(Stage stage, uint32_t delta = 0) = 0;
 
     virtual void update_stage(storm::GPUCopyPass const& /*copy_pass*/, uint32_t delta_time = 0)
+    {
+        (void)delta_time;
+    }
+    virtual void pre_draw_stage(storm::GPUCommandBuffer const& /*cmd_buffer*/, uint32_t delta_time = 0)
     {
         (void)delta_time;
     }
