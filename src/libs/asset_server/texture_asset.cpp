@@ -17,5 +17,11 @@ auto asset_loader::from_file<TextureAsset>(std::filesystem::path const& path) ->
     std::vector<char> data(content.size() - sizeof(header));
     std::memcpy(data.data(), content.data() + sizeof(header), data.size());
 
-    return TextureAsset {.path = path, .header = header, .data = std::move(data)};
+    auto asset        = TextureAsset {};
+    asset.path        = path.string();
+    asset.path_hashed = entt::hashed_string(asset.path.c_str());
+    asset.header      = header;
+    asset.data        = std::move(data);
+
+    return asset;
 }

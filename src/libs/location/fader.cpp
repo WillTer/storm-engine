@@ -104,7 +104,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         std::string const& name = message.String();
 
         auto const texture_asset = asset_server->load_texture_file(name);
-        auto       texture       = renderer->create_texture(texture_asset.header);
+        auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
 
         copy_pass->upload(*texture, std::span(texture_asset.data));
         progress_image->set_picture(std::move(texture));
@@ -113,7 +113,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         std::string const& name = message.String();
 
         auto const texture_asset = asset_server->load_texture_file(name);
-        auto       texture       = renderer->create_texture(texture_asset.header);
+        auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
 
         copy_pass->upload(*texture, std::span(texture_asset.data));
         progress_image->set_background(std::move(texture));

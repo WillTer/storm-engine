@@ -32,7 +32,7 @@ Picture::Picture(
     auto const& renderer     = core->get<RendererService>();
 
     auto const texture_asset = asset_server->load_texture_file(texture);
-    m_texture                = renderer->create_texture(texture_asset.header);
+    m_texture                = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
     copy_pass.upload(*m_texture, std::span(texture_asset.data));
 
     initialize(copy_pass, texture_rect);

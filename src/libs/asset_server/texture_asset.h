@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <entt/core/hashed_string.hpp>
+
 #include "asset_loader.h"
 
 namespace storm
@@ -41,9 +43,10 @@ struct TxFileHeader {
 };
 
 struct TextureAsset {
-    std::filesystem::path path;
-    TxFileHeader          header;
-    std::vector<char>     data;
+    std::string         path;
+    entt::hashed_string path_hashed;
+    TxFileHeader        header;
+    std::vector<char>   data;
 };
 
 namespace asset_loader

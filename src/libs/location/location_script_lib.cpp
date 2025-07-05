@@ -204,7 +204,7 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
     auto const texture_asset = asset_server->load_texture_file(nm);
-    auto       texture       = renderer->create_texture(texture_asset.header);
+    auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
 
     auto cmd_buffer = renderer->acquire_command_buffer();
     auto copy_pass  = cmd_buffer->start_copy_pass();

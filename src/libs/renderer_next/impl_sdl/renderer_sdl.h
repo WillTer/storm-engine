@@ -51,7 +51,7 @@ public:
         return create_vertex_buffer(buffer.size(), sizeof(buffer[0]));
     }
 
-    [[nodiscard]] auto create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture(entt::hashed_string const& name, TxFileHeader const& file_header) -> std::shared_ptr<GPUTexture>;
     [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
     [[nodiscard]] auto create_index_buffer(size_t index_count) -> std::unique_ptr<GPUIndexBuffer>;

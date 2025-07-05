@@ -33,6 +33,9 @@ std::vector const SQUARE_VERTICES = {
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
+constexpr entt::hashed_string PROGRESS_TEX = "loading/progress.tga";
+constexpr entt::hashed_string BORDER_TEX   = "loading/int_border.tga";
+
 // Loading screen textures are made for 4:3 screens
 // TODO: maybe need to set up this in configuration files
 constexpr auto ASPECT_RATIO = 4.0F / 3.0F;
@@ -64,13 +67,13 @@ ProgressImageScene::ProgressImageScene(
         auto command_buffer = renderer->acquire_command_buffer();
         auto copy_pass      = command_buffer->start_copy_pass();
 
-        auto const progress_texture = asset_server->load_texture_file("loading/progress.tga");  // FIXME: hardcode
-        m_progress                  = renderer->create_texture(progress_texture.header);
+        auto const progress_texture = asset_server->load_texture_file(PROGRESS_TEX.data());
+        m_progress                  = renderer->create_texture(PROGRESS_TEX, progress_texture.header);
         copy_pass->upload(*m_progress, std::span(progress_texture.data));
 
         if (m_progress_info.frame) {
-            auto const frame_texture = asset_server->load_texture_file("interfaces/int_border.tga");  // FIXME: hardcode
-            m_frame                  = renderer->create_texture(frame_texture.header);
+            auto const frame_texture = asset_server->load_texture_file(BORDER_TEX.data());
+            m_frame                  = renderer->create_texture(BORDER_TEX, frame_texture.header);
             copy_pass->upload(*m_frame, std::span(frame_texture.data));
         }
 

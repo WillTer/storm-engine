@@ -51,7 +51,7 @@ TextureSequence::TextureSequence(GPUCopyPass const& copy_pass, std::string const
     auto const info = storm::texture_sequence::info(*config_loader, name);
 
     auto const texture_asset = asset_server->load_texture_file(info.texture_file);
-    m_texture                = renderer->create_texture(texture_asset.header);
+    m_texture                = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
     copy_pass.upload(*m_texture, std::span(texture_asset.data));
 
     m_target = renderer->create_texture_target(info.width, info.height);

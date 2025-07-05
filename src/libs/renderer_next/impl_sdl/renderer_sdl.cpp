@@ -100,9 +100,11 @@ struct RendererService::Impl {
         m_window = nullptr;
     }
 
-    [[nodiscard]] auto create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>
+    [[nodiscard]] auto create_texture(entt::hashed_string const& name, TxFileHeader const& file_header) -> std::shared_ptr<GPUTexture>
     {
-        return std::make_unique<GPUTexture>(m_device, file_header);
+        if (!m_cache.contains<GPUTexture>(name)) { m_cache.add(name, std::make_shared<GPUTexture>(m_device, file_header)); }
+
+        return m_cache.get<GPUTexture>(name);
     }
 
     [[nodiscard]] auto create_texture_target(uint32_t const width, uint32_t const height) -> std::unique_ptr<GPUTexture>
@@ -188,9 +190,10 @@ auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::s
     return m_impl->create_pipeline(name);
 }
 
-[[nodiscard]] auto RendererService::create_texture(TxFileHeader const& file_header) -> std::unique_ptr<GPUTexture>
+[[nodiscard]] auto RendererService::create_texture(entt::hashed_string const& name, TxFileHeader const& file_header)
+    -> std::shared_ptr<GPUTexture>
 {
-    return m_impl->create_texture(file_header);
+    return m_impl->create_texture(name, file_header);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)
