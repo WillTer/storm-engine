@@ -9,7 +9,6 @@
 #include <libs/asset_server/shader_asset.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
-#include <libs/renderer_next/draw_texture.h>
 #include <libs/window/sdl_window.hpp>
 #include <spdlog/spdlog.h>
 
@@ -143,12 +142,12 @@ struct RendererService::Impl {
     }
 
     [[nodiscard]] auto create_pipeline(
-        std::vector<VertexAttribute> const&   vertex_attributes,
-        std::vector<VertexDescription> const& vertex_descriptions,
-        ShaderAsset const&                    vertex_shader_asset,
-        ShaderInfo const&                     vertex_shader_info,
-        ShaderAsset const&                    fragment_shader_asset,
-        ShaderInfo const&                     fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        ShaderAsset const&                             vertex_shader_asset,
+        shaders::Info const&                           vertex_shader_info,
+        ShaderAsset const&                             fragment_shader_asset,
+        shaders::Info const&                           fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
     {
         return std::make_unique<GraphicsPipeline>(
             m_device,
@@ -188,12 +187,12 @@ void RendererService::unbind_window(std::shared_ptr<SDL_Window> const& raw_windo
 }
 
 auto RendererService::create_pipeline(
-    std::vector<VertexAttribute> const&   vertex_attributes,
-    std::vector<VertexDescription> const& vertex_descriptions,
-    ShaderAsset const&                    vertex_shader_asset,
-    ShaderInfo const&                     vertex_shader_info,
-    ShaderAsset const&                    fragment_shader_asset,
-    ShaderInfo const&                     fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
+    std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+    std::vector<shaders::VertexDescription> const& vertex_descriptions,
+    ShaderAsset const&                             vertex_shader_asset,
+    shaders::Info const&                           vertex_shader_info,
+    ShaderAsset const&                             fragment_shader_asset,
+    shaders::Info const&                           fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
 {
     return m_impl->create_pipeline(
         vertex_attributes, vertex_descriptions, vertex_shader_asset, vertex_shader_info, fragment_shader_asset, fragment_shader_info);

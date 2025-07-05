@@ -1,27 +1,8 @@
-struct VertexInput {
-    float3 position: TEXCOORD0;
-    float2 tex_coord: TEXCOORD1;
-    float4 diffuse: TEXCOORD2;
-};
-
-struct VertexOutput {
-    float2 tex_coord: TEXCOORD0;
-    float4 diffuse: TEXCOORD1;
-    float4 position: SV_Position;
-};
-
-struct FragmentInput {
-    float2 tex_coord: TEXCOORD0;
-    float4 diffuse: TEXCOORD1;
-};
-
-struct UBO {
-    float4x4 model;
-    float4x4 view_proj;
-};
+#include "common_ui.h"
+#include "ubo_types.h"
 
 [[vk::binding(0, 1)]]
-ConstantBuffer<UBO> ubo: register(b0, space1);
+ConstantBuffer<UBOVertex> ubo: register(b0, space1);
 
 [[vk::binding(0, 2)]]
 Sampler2D Texture: register(t0, space2) : register(s0, space2);

@@ -5,6 +5,9 @@
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
+#include <shaders/ui/ubo_types.h>
+
+#include "image_2d_base.h"
 
 namespace storm
 {
@@ -17,7 +20,7 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class Picture
+class Picture: public Image2DBase
 {
 public:
     Picture(GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
@@ -26,23 +29,15 @@ public:
         std::shared_ptr<GPUTexture> const& external_texture,
         storm::FRect const&                texture_rect = default_texture_rect());
 
-    virtual ~Picture();
+    ~Picture() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
     void draw(GPURenderPass const& render_pass) const;
 
-    void set_rect(storm::FRect const& rect);
-    void set_rotation(float angle);
-
-    void set_screen_rect(storm::FRect const& rect);
     void set_diffuse_color(storm::Color const& color);
-
-    auto get_dimensions() const -> std::pair<uint32_t, uint32_t>;
-    auto get_rect() const -> storm::FRect;
 
 private:
     void initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect);
-    void recalculate_model_matrix();
 
     static constexpr storm::FRect default_texture_rect()
     {
@@ -54,21 +49,7 @@ private:
         };
     }
 
-    uint32_t     m_width  = 0;
-    uint32_t     m_height = 0;
-    storm::FRect m_rect   = {};
-
-    struct UBO {
-        hlsl::float4x4 model_mat     = hlsl::float4x4::identity();
-        hlsl::float4x4 view_proj_mat = hlsl::float4x4::identity();
-    } m_ubo;
-
-    hlsl::float4x4 m_translation_mat = hlsl::float4x4::identity();
-    hlsl::float4x4 m_scaling_mat     = hlsl::float4x4::identity();
-
-    hlsl::float4x4 m_rotation_mat_z = hlsl::float4x4::identity();
-
-    hlsl::float4 m_color;
+    shaders::UBOFragment m_fragment_ubo;
 
     std::unique_ptr<GraphicsPipeline> m_pipeline;
 

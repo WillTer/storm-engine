@@ -1,32 +1,16 @@
-struct VertexInput {
-    float4 position: TEXCOORD0;
-    uint   index: SV_VertexID;
-};
-
-struct VertexOutput {
-    float2 tex_coord: TEXCOORD0;
-    float2 tex_coord_next: TEXCOORD1;
-    float4 position: SV_Position;
-};
-
-struct UBO {
-    int32_t frame;
-    int32_t h_frames_count;
-    int32_t v_frames_count;
-    int16_t flip_h;
-    int16_t flip_v;
-};
+#include "texture_sequence.h"
+#include "ubo_types.h"
 
 // Vertex shader sets
 [[vk::binding(0, 1)]]
-ConstantBuffer<UBO> ubo: register(b0, space1);
+ConstantBuffer<AnimationUBOVertex> ubo: register(b0, space1);
 
 // Fragment shader sets
 [[vk::binding(0, 2)]]
 Sampler2D Texture: register(t0, space2) : register(s0, space2);
 
 [[vk::binding(0, 3)]]
-ConstantBuffer<float4> diffuse: register(b0, space3);
+ConstantBuffer<UBOFragment> fs_ubo: register(b0, space3);
 
 float2 get_tex_coords(int32_t frame, uint index)
 {
@@ -71,7 +55,7 @@ float4 main_fs(float2 tex_coord: TEXCOORD0, float2 tex_coord_next: TEXCOORD1) : 
 {
     float4 tex1  = Texture.Sample(tex_coord);
     float4 tex2  = Texture.Sample(tex_coord_next);
-    float4 color = (1 - diffuse.w) * tex1 + diffuse.w * tex2;
+    float4 color = (1 - fs_ubo.color.w) * tex1 + fs_ubo.color.w * tex2;
     color.w      = 1.0F;
     return color;
 }

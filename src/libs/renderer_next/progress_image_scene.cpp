@@ -1,9 +1,11 @@
 #include "progress_image_scene.h"
 
 #include <cassert>
+#include <span>
 
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
+#include <shaders/ui/common_ui.h>
 
 #include "impl_sdl/gpu_command_buffer.h"
 #include "impl_sdl/gpu_index_buffer.h"
@@ -15,34 +17,22 @@
 using namespace storm;
 using namespace hlslpp;
 
+using ImageVertex = shaders::common_ui::VertexInput;
+
 namespace
 {
 
 std::vector const SQUARE_VERTICES = {
-    VertexWithDiffuse {VertexBase {{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F}}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    VertexWithDiffuse {VertexBase {{1.0F, 0.0F, 0.0F}, {1.0F, 0.0F}}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    VertexWithDiffuse {VertexBase {{1.0F, 1.0F, 0.0F}, {1.0F, 1.0F}}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    VertexWithDiffuse {VertexBase {{0.0F, 1.0F, 0.0F}, {0.0F, 1.0F}}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    ImageVertex {{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    ImageVertex {{1.0F, 0.0F, 0.0F}, {1.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    ImageVertex {{1.0F, 1.0F, 0.0F}, {1.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    ImageVertex {{0.0F, 1.0F, 0.0F}, {0.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
 };
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
-constexpr auto VERTEX_SHADER_INFO = ShaderInfo {
-    .num_samplers         = 0,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
-};
-
-constexpr auto FRAGMENT_SHADER_INFO = ShaderInfo {
-    .num_samplers         = 1,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 0,
-};
-
-constexpr char VERTEX_SHADER[]   = "interface_vs";
-constexpr char FRAGMENT_SHADER[] = "interface_fs";
+constexpr char VERTEX_SHADER[]   = "ui/common_ui_vs";
+constexpr char FRAGMENT_SHADER[] = "ui/common_ui_fs";
 
 // Loading screen textures are made for 4:3 screens
 // TODO: maybe need to set up this in configuration files
@@ -85,10 +75,10 @@ ProgressImageScene::ProgressImageScene(
             copy_pass->upload(*m_frame, std::span(frame_texture.data));
         }
 
-        m_vertex_buffer_back = renderer->create_vertex_buffer(SQUARE_VERTICES.size(), sizeof(VertexWithDiffuse));
+        m_vertex_buffer_back = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
         copy_pass->upload(*m_vertex_buffer_back, std::span(SQUARE_VERTICES));
 
-        m_vertex_buffer_progress = renderer->create_vertex_buffer(SQUARE_VERTICES.size(), sizeof(VertexWithDiffuse));
+        m_vertex_buffer_progress = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
         copy_pass->upload(*m_vertex_buffer_progress, std::span(SQUARE_VERTICES));
 
         m_index_buffer = renderer->create_index_buffer(SQUARE_INDICES.size());
@@ -98,20 +88,20 @@ ProgressImageScene::ProgressImageScene(
     auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
     auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
 
-    m_pipeline =
-        renderer->create_pipeline<VertexWithDiffuse>(vertex_shader_asset, VERTEX_SHADER_INFO, fragment_shader_asset, FRAGMENT_SHADER_INFO);
+    m_pipeline = renderer->create_pipeline<ImageVertex>(
+        vertex_shader_asset, shaders::common_ui::VERTEX_SHADER_INFO, fragment_shader_asset, shaders::common_ui::FRAGMENT_SHADER_INFO);
 
     auto const viewport = renderer->get_viewport();
     auto const proj_mat =
         float4x4::orthographic(projection(frustum(viewport.left, viewport.right, viewport.bottom, viewport.top, -1.0F, 1.0F), zclip::zero));
 
     // Set orthographic projection matrix for all UBOs
-    m_progress_ubo.m_view_proj_matrix = proj_mat;
-    m_picture_ubo.m_view_proj_matrix  = proj_mat;
+    m_progress_ubo.view_proj = proj_mat;
+    m_picture_ubo.view_proj  = proj_mat;
 
     // Background always scaled to entire screen
-    m_background_ubo.m_model_matrix     = float4x4::scale(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F);
-    m_background_ubo.m_view_proj_matrix = proj_mat;
+    m_background_ubo.model     = float4x4::scale(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F);
+    m_background_ubo.view_proj = proj_mat;
 }
 
 void ProgressImageScene::update(GPUCopyPass const& copy_pass, uint64_t const /*delta_time*/)
@@ -178,17 +168,18 @@ void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
 
     std::vector const progress_tex_buffer = {
         // left-top
-        decltype(VertexBase::uv)(fx / x_count, fy / y_count),
+        decltype(ImageVertex::tex_coord)(fx / x_count, fy / y_count),
         // right-top
-        decltype(VertexBase::uv)((fx + 1) / x_count, fy / y_count),
+        decltype(ImageVertex::tex_coord)((fx + 1) / x_count, fy / y_count),
         // right-bottom
-        decltype(VertexBase::uv)((fx + 1) / x_count, (fy + 1) / y_count),
+        decltype(ImageVertex::tex_coord)((fx + 1) / x_count, (fy + 1) / y_count),
         // left-bottom
-        decltype(VertexBase::uv)(fx / x_count, (fy + 1) / y_count),
+        decltype(ImageVertex::tex_coord)(fx / x_count, (fy + 1) / y_count),
     };
 
-    auto const progress_update_info = std::vector(4, BufferUpdateInfo {.offset = offsetof(VertexBase, uv), .size = sizeof(VertexBase::uv)});
-    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, std::span(progress_tex_buffer), sizeof(VertexWithDiffuse));
+    auto const progress_update_info =
+        std::vector(4, BufferUpdateInfo {.offset = offsetof(ImageVertex, tex_coord), .size = sizeof(ImageVertex::tex_coord)});
+    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, std::span(progress_tex_buffer), sizeof(ImageVertex));
 
     ++m_current_frame;
     if (m_current_frame >= x_count * y_count) { m_current_frame = 0; }
@@ -208,7 +199,7 @@ void ProgressImageScene::update_picture_matrices()
     auto const translation_mat = float4x4::translation(offset_x, offset_y, 0.0F);
     auto const scale_mat       = float4x4::scale(picture_width, picture_height, 1.0F);
 
-    m_picture_ubo.m_model_matrix = mul(scale_mat, translation_mat);
+    m_picture_ubo.model = mul(scale_mat, translation_mat);
 }
 
 void ProgressImageScene::update_progress_matrices()
@@ -229,5 +220,5 @@ void ProgressImageScene::update_progress_matrices()
     auto const scale_mat = float4x4::scale(
         picture_width * m_progress_info.relative_width, picture_height * m_progress_info.relative_height * ASPECT_RATIO, 1.0F);
 
-    m_progress_ubo.m_model_matrix = mul(scale_mat, translation_mat);
+    m_progress_ubo.model = mul(scale_mat, translation_mat);
 }

@@ -10,31 +10,20 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
+#include <shaders/ui/image_2d.h>
 
 using namespace storm;
 using namespace hlslpp;
+
+using ImageVertex = shaders::image_2d::VertexInput;
 
 namespace
 {
 
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
-constexpr auto VERTEX_SHADER_INFO = ShaderInfo {
-    .num_samplers         = 0,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
-};
-
-constexpr auto FRAGMENT_SHADER_INFO = ShaderInfo {
-    .num_samplers         = 1,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
-};
-
-constexpr char VERTEX_SHADER[]   = "picture_vs";
-constexpr char FRAGMENT_SHADER[] = "picture_fs";
+constexpr char VERTEX_SHADER[]   = "ui/image_2d_vs";
+constexpr char FRAGMENT_SHADER[] = "ui/image_2d_fs";
 
 }  // namespace
 
@@ -70,8 +59,8 @@ void Picture::draw(GPURenderPass const& render_pass) const
     render_pass.bind(*m_index_buffer);
     render_pass.bind(*m_vertex_buffer);
 
-    render_pass.push_vertex_uniform_data(0, m_ubo);
-    render_pass.push_fragment_uniform_data(0, m_color);
+    render_pass.push_vertex_uniform_data(0, m_vertex_ubo);
+    render_pass.push_fragment_uniform_data(0, m_fragment_ubo);
     render_pass.bind(*m_texture);
     render_pass.draw(*m_index_buffer);
 }
@@ -84,16 +73,17 @@ void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& textu
     auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
     auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
 
-    m_pipeline = renderer->create_pipeline<VertexUI>(vertex_shader_asset, VERTEX_SHADER_INFO, fragment_shader_asset, FRAGMENT_SHADER_INFO);
+    m_pipeline = renderer->create_pipeline<ImageVertex>(
+        vertex_shader_asset, shaders::image_2d::VERTEX_SHADER_INFO, fragment_shader_asset, shaders::image_2d::FRAGMENT_SHADER_INFO);
 
     auto const viewport = renderer->get_viewport();
     set_screen_rect(viewport);  // Use viewport rect for projection matrix by default
 
-    auto const square_vertices = std::vector<VertexUI> {
-        VertexUI {{0.0F, 0.0F, texture_rect.left, texture_rect.top}},
-        VertexUI {{1.0F, 0.0F, texture_rect.right, texture_rect.top}},
-        VertexUI {{1.0F, 1.0F, texture_rect.right, texture_rect.bottom}},
-        VertexUI {{0.0F, 1.0F, texture_rect.left, texture_rect.bottom}},
+    auto const square_vertices = std::vector<ImageVertex> {
+        ImageVertex {{0.0F, 0.0F, texture_rect.left, texture_rect.top}},
+        ImageVertex {{1.0F, 0.0F, texture_rect.right, texture_rect.top}},
+        ImageVertex {{1.0F, 1.0F, texture_rect.right, texture_rect.bottom}},
+        ImageVertex {{0.0F, 1.0F, texture_rect.left, texture_rect.bottom}},
     };
 
     m_vertex_buffer = renderer->create_vertex_buffer(std::span(square_vertices));
@@ -102,7 +92,7 @@ void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& textu
     m_index_buffer = renderer->create_index_buffer(std::span(SQUARE_INDICES));
     copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
 
-    m_color = float4(1.0F);
+    m_fragment_ubo.color = float4(1.0F);
 
     auto const [width, height] = m_texture->get_dimensions();
 
@@ -112,43 +102,8 @@ void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& textu
     m_height = static_cast<uint32_t>(m_rect.height());
 }
 
-void Picture::recalculate_model_matrix()
-{
-    m_ubo.model_mat = mul(mul(m_scaling_mat, m_rotation_mat_z), m_translation_mat);
-}
-
-void Picture::set_screen_rect(storm::FRect const& rect)
-{
-    m_ubo.view_proj_mat =
-        float4x4::orthographic(projection(frustum(rect.left, rect.right, rect.bottom, rect.top, -1.0F, 1.0F), zclip::zero));
-}
-
-void Picture::set_rect(storm::FRect const& rect)
-{
-    m_rect            = rect;
-    m_translation_mat = float4x4::translation(rect.left, rect.top, 0.0F);
-    m_scaling_mat     = float4x4::scale(rect.width(), rect.height(), 1.0F);
-    recalculate_model_matrix();
-}
-
-void Picture::set_rotation(float angle)
-{
-    m_rotation_mat_z = float4x4::rotation_z(angle);
-    recalculate_model_matrix();
-}
-
 void Picture::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
-    m_color                 = float4(r, g, b, a);
-}
-
-auto Picture::get_dimensions() const -> std::pair<uint32_t, uint32_t>
-{
-    return std::make_pair(m_width, m_height);
-}
-
-auto Picture::get_rect() const -> storm::FRect
-{
-    return m_rect;
+    m_fragment_ubo.color    = float4(r, g, b, a);
 }

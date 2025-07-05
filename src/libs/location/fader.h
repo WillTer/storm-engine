@@ -12,11 +12,6 @@
 
 #include <libs/core/entity.h>
 
-namespace storm
-{
-class DrawTextureWithFade;
-}
-
 class Fader final: public Entity
 {
     // --------------------------------------------------------------------------------------------
@@ -55,8 +50,6 @@ private:
     bool    eventStart;
     bool    eventEnd;
     int32_t deleteMe;
-
-    std::shared_ptr<storm::DrawTextureWithFade> m_fader_render;
 
 public:
     static int32_t numberOfTips;

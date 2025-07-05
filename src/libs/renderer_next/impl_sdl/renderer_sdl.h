@@ -4,6 +4,7 @@
 #include <span>
 
 #include <libs/renderer_next/types.h>
+#include <shaders/info.h>
 
 #include "concepts.h"
 #include "gpu_render_pass.h"
@@ -36,10 +37,10 @@ public:
     template <typename VertexType>
         requires has_shader_layout<VertexType>
     [[nodiscard]] auto create_pipeline(
-        ShaderAsset const& vertex_shader_asset,
-        ShaderInfo const&  vertex_shader_info,
-        ShaderAsset const& fragment_shader_asset,
-        ShaderInfo const&  fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
+        ShaderAsset const&   vertex_shader_asset,
+        shaders::Info const& vertex_shader_info,
+        ShaderAsset const&   fragment_shader_asset,
+        shaders::Info const& fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
     {
         return create_pipeline(
             VertexType::attributes(),
@@ -76,12 +77,12 @@ public:
 
 private:
     [[nodiscard]] auto create_pipeline(
-        std::vector<VertexAttribute> const&   vertex_attributes,
-        std::vector<VertexDescription> const& vertex_descriptions,
-        ShaderAsset const&                    vertex_shader_asset,
-        ShaderInfo const&                     vertex_shader_info,
-        ShaderAsset const&                    fragment_shader_asset,
-        ShaderInfo const&                     fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>;
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        ShaderAsset const&                             vertex_shader_asset,
+        shaders::Info const&                           vertex_shader_info,
+        ShaderAsset const&                             fragment_shader_asset,
+        shaders::Info const&                           fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>;
 
     struct Impl;
     std::unique_ptr<Impl> m_impl;

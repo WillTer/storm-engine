@@ -9,4 +9,5 @@ storm_lib(
     HEADERS_DEPS
         hlslpp
         SDL3-storm
+        shader_headers
 )

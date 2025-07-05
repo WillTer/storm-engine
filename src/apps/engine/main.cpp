@@ -11,7 +11,6 @@
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
-#include <libs/renderer_next/draw_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/progress_image_scene.h>

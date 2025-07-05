@@ -3,8 +3,7 @@
 #include <memory>
 
 #include <libs/config/main_config.h>
-
-#include "hlslpp.h"
+#include <shaders/ui/ubo_types.h>
 
 namespace storm
 {
@@ -40,11 +39,6 @@ private:
     void update_picture_matrices();
     void update_progress_matrices();
 
-    struct UBO {
-        hlsl::float4x4 m_model_matrix     = hlsl::float4x4::identity();
-        hlsl::float4x4 m_view_proj_matrix = hlsl::float4x4::identity();
-    };
-
     std::shared_ptr<GraphicsPipeline> m_pipeline = nullptr;
 
     std::shared_ptr<GPUTexture> m_progress   = nullptr;
@@ -56,9 +50,9 @@ private:
     std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_progress = nullptr;
     std::shared_ptr<GPUIndexBuffer>  m_index_buffer           = nullptr;
 
-    UBO m_progress_ubo;
-    UBO m_picture_ubo;
-    UBO m_background_ubo;
+    shaders::UBOVertex m_progress_ubo;
+    shaders::UBOVertex m_picture_ubo;
+    shaders::UBOVertex m_background_ubo;
 
     ProgressImageInfo m_progress_info;
 

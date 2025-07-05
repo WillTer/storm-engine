@@ -13,7 +13,7 @@ namespace
 {
 
 std::shared_ptr<SDL_GPUShader> compile_shader(
-    std::shared_ptr<SDL_GPUDevice> const& device, ShaderAsset const& asset, ShaderInfo const& info, SDL_GPUShaderStage const stage)
+    std::shared_ptr<SDL_GPUDevice> const& device, ShaderAsset const& asset, shaders::Info const& info, SDL_GPUShaderStage const stage)
 {
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
     if (asset.type == ShaderAssetType::SPIRV) {
@@ -39,10 +39,10 @@ std::shared_ptr<SDL_GPUShader> compile_shader(
         SDL_CreateGPUShader(device.get(), &shader_info), [device](SDL_GPUShader* p) { SDL_ReleaseGPUShader(device.get(), p); });
 }
 
-std::vector<SDL_GPUVertexAttribute> convert_attributes(std::vector<VertexAttribute> const& attributes)
+std::vector<SDL_GPUVertexAttribute> convert_attributes(std::vector<shaders::VertexAttribute> const& attributes)
 {
     std::vector<SDL_GPUVertexAttribute> result;
-    std::ranges::transform(attributes, std::back_inserter(result), [](VertexAttribute const& attr) {
+    std::ranges::transform(attributes, std::back_inserter(result), [](shaders::VertexAttribute const& attr) {
         return SDL_GPUVertexAttribute {
             .location    = attr.location,
             .buffer_slot = attr.slot,
@@ -54,10 +54,10 @@ std::vector<SDL_GPUVertexAttribute> convert_attributes(std::vector<VertexAttribu
     return result;
 }
 
-std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<VertexDescription> const& descriptions)
+std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<shaders::VertexDescription> const& descriptions)
 {
     std::vector<SDL_GPUVertexBufferDescription> result;
-    std::ranges::transform(descriptions, std::back_inserter(result), [](VertexDescription const& desc) {
+    std::ranges::transform(descriptions, std::back_inserter(result), [](shaders::VertexDescription const& desc) {
         return SDL_GPUVertexBufferDescription {
             .slot               = desc.slot,
             .pitch              = desc.stride,
@@ -72,14 +72,14 @@ std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<Ver
 }  // namespace
 
 GraphicsPipeline::GraphicsPipeline(
-    std::shared_ptr<SDL_GPUDevice> const& device,
-    std::shared_ptr<SDL_Window> const&    window,
-    std::vector<VertexAttribute> const&   vertex_attributes,
-    std::vector<VertexDescription> const& vertex_descriptions,
-    ShaderAsset const&                    vertex_shader_asset,
-    ShaderInfo const&                     vertex_shader_info,
-    ShaderAsset const&                    fragment_shader_asset,
-    ShaderInfo const&                     fragment_shader_info)
+    std::shared_ptr<SDL_GPUDevice> const&          device,
+    std::shared_ptr<SDL_Window> const&             window,
+    std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+    std::vector<shaders::VertexDescription> const& vertex_descriptions,
+    ShaderAsset const&                             vertex_shader_asset,
+    shaders::Info const&                           vertex_shader_info,
+    ShaderAsset const&                             fragment_shader_asset,
+    shaders::Info const&                           fragment_shader_info)
 {
     auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_info, SDL_GPU_SHADERSTAGE_VERTEX);
     if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }

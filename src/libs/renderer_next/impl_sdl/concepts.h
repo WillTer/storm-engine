@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <libs/renderer_next/vertex.h>
+#include <shaders/vertex.h>
 
 #include "sdl_fwd.h"
 
@@ -19,8 +19,8 @@ struct BufferUpdateInfo {
 
 template <typename T>
 concept has_shader_layout = std::is_standard_layout_v<T> && requires() {
-    { T::attributes() } -> std::same_as<std::vector<VertexAttribute>>;
-    { T::descriptions() } -> std::same_as<std::vector<VertexDescription>>;
+    { T::attributes() } -> std::same_as<std::vector<shaders::VertexAttribute>>;
+    { T::descriptions() } -> std::same_as<std::vector<shaders::VertexDescription>>;
 };
 
 template <typename T, typename V>

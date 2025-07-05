@@ -13,7 +13,6 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
-#include <libs/renderer_next/draw_texture_with_fade.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
@@ -32,8 +31,6 @@ Fader::Fader() : fadeIn(false), isStart(false), isAutodelete(false)
     eventStart = false;
     eventEnd   = false;
     deleteMe   = 0;
-
-    m_fader_render = std::make_shared<storm::DrawTextureWithFade>();
 }
 
 Fader::~Fader() {}
@@ -81,7 +78,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         } else {
             fade_speed = 0.0f;
         }
-        m_fader_render->start_fade(1.0, -fade_speed);
+        // m_fader_render->start_fade(1.0, -fade_speed);
 
         fadeIn       = false;
         isStart      = true;
@@ -94,7 +91,7 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
         float fade_speed = message.Float();
         if (fade_speed < 0.00001f) { fade_speed = 0.00001f; }
         fade_speed = 1.0f / fade_speed;
-        m_fader_render->start_fade(0.0F, fade_speed);
+        // m_fader_render->start_fade(0.0F, fade_speed);
 
         fadeIn       = true;
         isStart      = true;
@@ -157,7 +154,7 @@ void Fader::Realize(uint32_t delta_time)
     if (isStart) { eventStart = true; }
 
     // m_fader_render->update(delta_time);
-    eventEnd = m_fader_render->is_fade_finished();
+    // eventEnd = m_fader_render->is_fade_finished();
     if (eventEnd) {}
 
     isStart = false;

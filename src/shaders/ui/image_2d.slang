@@ -1,27 +1,16 @@
-struct VertexInput {
-    float4 position_uv: TEXCOORD0;  // x,y - vertex position; z,w - texture coords
-};
-
-struct VertexOutput {
-    float2 tex_coord: TEXCOORD0;
-    float4 position: SV_Position;
-};
-
-struct UBO {
-    float4x4 model;
-    float4x4 view_proj;
-};
+#include "image_2d.h"
+#include "ubo_types.h"
 
 // Vertex shader sets
 [[vk::binding(0, 1)]]
-ConstantBuffer<UBO> ubo: register(b0, space1);
+ConstantBuffer<UBOVertex> ubo: register(b0, space1);
 
 // Fragment shader sets
 [[vk::binding(0, 2)]]
 Sampler2D Texture: register(t0, space2) : register(s0, space2);
 
 [[vk::binding(0, 3)]]
-ConstantBuffer<float4> diffuse: register(b0, space3);
+ConstantBuffer<UBOFragment> fs_ubo: register(b0, space3);
 
 [shader("vertex")]
 VertexOutput main_vs(VertexInput input)
@@ -35,5 +24,5 @@ VertexOutput main_vs(VertexInput input)
 [shader("fragment")]
 float4 main_fs(float2 tex_coord: TEXCOORD0) : SV_Target0
 {
-    return diffuse * Texture.Sample(tex_coord);
+    return fs_ubo.color * Texture.Sample(tex_coord);
 }
