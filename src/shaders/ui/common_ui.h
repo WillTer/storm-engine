@@ -9,18 +9,20 @@
 namespace storm::shaders::common_ui
 {
 
-constexpr auto VERTEX_SHADER_INFO = Info {
-    .num_samplers         = 0,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
-};
+struct StageInfo {
+    constexpr static auto VERTEX = Info {
+        .num_samplers         = 0,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 1,
+    };
 
-constexpr auto FRAGMENT_SHADER_INFO = Info {
-    .num_samplers         = 1,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 0,
+    constexpr static auto FRAGMENT = Info {
+        .num_samplers         = 1,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 0,
+    };
 };
 
 #endif
@@ -67,5 +69,5 @@ struct FragmentInput {
 #endif
 
 #ifdef __cplusplus
-}  // namespace storm::shaders::texture_sequence
+}  // namespace storm::shaders::common_ui
 #endif

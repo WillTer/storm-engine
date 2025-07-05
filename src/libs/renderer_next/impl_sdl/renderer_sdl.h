@@ -3,6 +3,7 @@
 #include <memory>
 #include <span>
 
+#include <entt/core/fwd.hpp>
 #include <libs/renderer_next/types.h>
 #include <shaders/info.h>
 
@@ -34,22 +35,7 @@ public:
     void bind_window(std::shared_ptr<SDL_Window> const& raw_window);
     void unbind_window(std::shared_ptr<SDL_Window> const& raw_window);
 
-    template <typename VertexType>
-        requires has_shader_layout<VertexType>
-    [[nodiscard]] auto create_pipeline(
-        ShaderAsset const&   vertex_shader_asset,
-        shaders::Info const& vertex_shader_info,
-        ShaderAsset const&   fragment_shader_asset,
-        shaders::Info const& fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>
-    {
-        return create_pipeline(
-            VertexType::attributes(),
-            VertexType::descriptions(),
-            vertex_shader_asset,
-            vertex_shader_info,
-            fragment_shader_asset,
-            fragment_shader_info);
-    }
+    [[nodiscard]] auto create_pipeline(entt::hashed_string const& name) -> std::shared_ptr<GraphicsPipeline>;
 
     template <typename T>
         requires std::is_same_v<std::remove_cv_t<T>, uint32_t>
@@ -76,14 +62,6 @@ public:
     auto get_viewport() const -> FRect;
 
 private:
-    [[nodiscard]] auto create_pipeline(
-        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
-        std::vector<shaders::VertexDescription> const& vertex_descriptions,
-        ShaderAsset const&                             vertex_shader_asset,
-        shaders::Info const&                           vertex_shader_info,
-        ShaderAsset const&                             fragment_shader_asset,
-        shaders::Info const&                           fragment_shader_info) -> std::unique_ptr<GraphicsPipeline>;
-
     struct Impl;
     std::unique_ptr<Impl> m_impl;
 };

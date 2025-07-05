@@ -11,6 +11,7 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
+#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/image_2d.h>
 #include <shaders/ui/texture_sequence.h>
 
@@ -39,12 +40,6 @@ auto const SEQUENCE_SQUARE_VERTICES = std::vector<SequenceVertex> {
 
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
-constexpr char VERTEX_SHADER[]   = "ui/image_2d_vs";
-constexpr char FRAGMENT_SHADER[] = "ui/image_2d_fs";
-
-constexpr char SEQUENCE_VERTEX_SHADER[]   = "ui/texture_sequence_vs";
-constexpr char SEQUENCE_FRAGMENT_SHADER[] = "ui/texture_sequence_fs";
-
 }  // namespace
 
 TextureSequence::TextureSequence(GPUCopyPass const& copy_pass, std::string const& name)
@@ -61,24 +56,8 @@ TextureSequence::TextureSequence(GPUCopyPass const& copy_pass, std::string const
 
     m_target = renderer->create_texture_target(info.width, info.height);
 
-    {
-        auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
-        auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
-
-        m_pipeline = renderer->create_pipeline<ImageVertex>(
-            vertex_shader_asset, shaders::image_2d::VERTEX_SHADER_INFO, fragment_shader_asset, shaders::image_2d::FRAGMENT_SHADER_INFO);
-    }
-
-    {
-        auto const vertex_shader_asset   = asset_server->load_shader_file(SEQUENCE_VERTEX_SHADER);
-        auto const fragment_shader_asset = asset_server->load_shader_file(SEQUENCE_FRAGMENT_SHADER);
-
-        m_sequence_pipeline = renderer->create_pipeline<SequenceVertex>(
-            vertex_shader_asset,
-            shaders::texture_sequence::VERTEX_SHADER_INFO,
-            fragment_shader_asset,
-            shaders::texture_sequence::FRAGMENT_SHADER_INFO);
-    }
+    m_pipeline          = renderer->create_pipeline(IMAGE_2D_PIPELINE);
+    m_sequence_pipeline = renderer->create_pipeline(TEXTURE_SEQUENCE_PIPELINE);
 
     auto const viewport = renderer->get_viewport();
     set_screen_rect(viewport);  // Use viewport rect for projection matrix by default

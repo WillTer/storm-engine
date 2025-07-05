@@ -51,7 +51,7 @@ private:
 
     shaders::UBOFragment m_fragment_ubo;
 
-    std::unique_ptr<GraphicsPipeline> m_pipeline;
+    std::shared_ptr<GraphicsPipeline> m_pipeline;
 
     std::shared_ptr<GPUTexture>      m_texture;
     std::unique_ptr<GPUVertexBuffer> m_vertex_buffer;

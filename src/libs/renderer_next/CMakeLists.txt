@@ -7,6 +7,7 @@ storm_lib(
         core
         spdlog::spdlog
     HEADERS_DEPS
+        EnTT::EnTT
         hlslpp
         SDL3-storm
         shader_headers

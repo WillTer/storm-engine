@@ -10,6 +10,7 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
+#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/image_2d.h>
 
 using namespace storm;
@@ -21,9 +22,6 @@ namespace
 {
 
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
-
-constexpr char VERTEX_SHADER[]   = "ui/image_2d_vs";
-constexpr char FRAGMENT_SHADER[] = "ui/image_2d_fs";
 
 }  // namespace
 
@@ -67,14 +65,9 @@ void Picture::draw(GPURenderPass const& render_pass) const
 
 void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect)
 {
-    auto const& asset_server = core->get<AssetServer>();
-    auto const& renderer     = core->get<RendererService>();
+    auto const& renderer = core->get<RendererService>();
 
-    auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
-    auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
-
-    m_pipeline = renderer->create_pipeline<ImageVertex>(
-        vertex_shader_asset, shaders::image_2d::VERTEX_SHADER_INFO, fragment_shader_asset, shaders::image_2d::FRAGMENT_SHADER_INFO);
+    m_pipeline = renderer->create_pipeline(IMAGE_2D_PIPELINE);
 
     auto const viewport = renderer->get_viewport();
     set_screen_rect(viewport);  // Use viewport rect for projection matrix by default

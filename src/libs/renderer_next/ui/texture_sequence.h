@@ -40,8 +40,8 @@ private:
     shaders::AnimationUBOVertex m_sequence_ubo;
     shaders::UBOFragment        m_fragment_ubo;
 
-    std::unique_ptr<GraphicsPipeline> m_sequence_pipeline;
-    std::unique_ptr<GraphicsPipeline> m_pipeline;
+    std::shared_ptr<GraphicsPipeline> m_sequence_pipeline;
+    std::shared_ptr<GraphicsPipeline> m_pipeline;
 
     std::shared_ptr<GPUTexture> m_target;
     std::shared_ptr<GPUTexture> m_texture;

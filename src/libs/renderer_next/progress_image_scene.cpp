@@ -14,6 +14,8 @@
 #include "impl_sdl/gpu_vertex_buffer.h"
 #include "impl_sdl/renderer_sdl.h"
 
+#include "pipeline_names.h"
+
 using namespace storm;
 using namespace hlslpp;
 
@@ -30,9 +32,6 @@ std::vector const SQUARE_VERTICES = {
 };
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
-
-constexpr char VERTEX_SHADER[]   = "ui/common_ui_vs";
-constexpr char FRAGMENT_SHADER[] = "ui/common_ui_fs";
 
 // Loading screen textures are made for 4:3 screens
 // TODO: maybe need to set up this in configuration files
@@ -85,11 +84,7 @@ ProgressImageScene::ProgressImageScene(
         copy_pass->upload(*m_index_buffer, std::span(SQUARE_INDICES));
     }
 
-    auto const vertex_shader_asset   = asset_server->load_shader_file(VERTEX_SHADER);
-    auto const fragment_shader_asset = asset_server->load_shader_file(FRAGMENT_SHADER);
-
-    m_pipeline = renderer->create_pipeline<ImageVertex>(
-        vertex_shader_asset, shaders::common_ui::VERTEX_SHADER_INFO, fragment_shader_asset, shaders::common_ui::FRAGMENT_SHADER_INFO);
+    m_pipeline = renderer->create_pipeline(COMMON_UI_PIPELINE);
 
     auto const viewport = renderer->get_viewport();
     auto const proj_mat =

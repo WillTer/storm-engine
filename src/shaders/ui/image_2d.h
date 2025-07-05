@@ -9,26 +9,26 @@
 namespace storm::shaders::image_2d
 {
 
-constexpr auto VERTEX_SHADER_INFO = Info {
-    .num_samplers         = 0,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
-};
+struct StageInfo {
+    constexpr static auto VERTEX = Info {
+        .num_samplers         = 0,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 1,
+    };
 
-constexpr auto FRAGMENT_SHADER_INFO = Info {
-    .num_samplers         = 1,
-    .num_storage_textures = 0,
-    .num_storage_buffers  = 0,
-    .num_uniform_buffers  = 1,
+    constexpr static auto FRAGMENT = Info {
+        .num_samplers         = 1,
+        .num_storage_textures = 0,
+        .num_storage_buffers  = 0,
+        .num_uniform_buffers  = 1,
+    };
 };
-
 #endif
 
 struct VertexInput {
 #ifndef __cplusplus
     float4 position_uv: TEXCOORD0;  // x,y - vertex position; z,w - texture coords
-    uint   index: SV_VertexID;
 #else
     float4 position_uv;
 
@@ -56,5 +56,5 @@ struct VertexOutput {
 #endif
 
 #ifdef __cplusplus
-}  // namespace storm::shaders::texture_sequence
+}  // namespace storm::shaders::image_2d
 #endif
