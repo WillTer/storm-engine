@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libs/renderer_next/cache.h>
+
 #include "vx_service.h"
 #include "xdefines.h"
 
@@ -34,7 +36,10 @@ public:
     ~XSERVICE() override;
 
     // initialization of service
-    void Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHight) override;
+    void Init(int32_t lWidth, int32_t lHight) override;
+
+    void pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) override;
+    void update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time = 0) override;
 
     // get texture identificator for image group
     int32_t GetTextureID(char const* sImageListName) override;
@@ -43,6 +48,8 @@ public:
 
     auto get_texture(std::string_view const& image_list) -> std::shared_ptr<storm::GPUTexture> override;
     auto get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect override;
+
+    auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence> override;
 
     // get texture positon for select picture
     bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect) override;
@@ -65,9 +72,11 @@ public:
     void ReleaseAll() override;
 
 protected:
-    void LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass);
+    void LoadAllPicturesInfo();
 
 protected:
+    storm::RendererCache m_cache;
+
     int32_t         m_dwListQuantity;
     int32_t         m_dwImageQuantity;
     IMAGELISTDESCR* m_pList;

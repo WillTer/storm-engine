@@ -6,6 +6,7 @@
 #include <libs/renderer_next/impl_sdl/gpu_copy_pass.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/ui/texture_atlas_named.h>
+#include <libs/renderer_next/ui/texture_sequence.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 #include <spdlog/spdlog.h>
@@ -25,12 +26,26 @@ XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
 
 XSERVICE::~XSERVICE() {}
 
-void XSERVICE::Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHeight)
+void XSERVICE::Init(int32_t lWidth, int32_t lHeight)
 {
     m_fWAdd = 0.5f;
     m_fHAdd = 0.5f;
 
-    LoadAllPicturesInfo(copy_pass);
+    LoadAllPicturesInfo();
+}
+
+void XSERVICE::pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time)
+{
+    m_cache.for_each<storm::TextureSequence>([&](storm::TextureSequence& tex) { tex.pre_draw(cmd_buffer, delta_time); });
+}
+
+void XSERVICE::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time /*= 0*/)
+{
+    for (auto i = 0; i < m_dwListQuantity; i++) {
+        if (m_pList[i].atlas) { m_pList[i].atlas->update(copy_pass, delta_time); }
+    }
+
+    m_cache.for_each<storm::TextureSequence>([&](storm::TextureSequence& tex) { tex.update(copy_pass, delta_time); });
 }
 
 int32_t XSERVICE::GetTextureID(char const* sImageListName)
@@ -105,6 +120,16 @@ auto XSERVICE::get_texture_uv(std::string_view const& image_list, std::string_vi
     }
 
     return empty_rect;
+}
+
+auto XSERVICE::get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence>
+{
+    auto const hashed_name = entt::hashed_string(name.data());
+    if (!m_cache.contains<storm::TextureSequence>(hashed_name)) {
+        m_cache.add(hashed_name, std::make_shared<storm::TextureSequence>(name));
+    }
+
+    return m_cache.get<storm::TextureSequence>(hashed_name);
 }
 
 bool XSERVICE::GetTexturePos(int32_t pictureNum, FXYRECT& texRect)
@@ -214,7 +239,7 @@ void XSERVICE::GetTextureCutForSize(
     outUV.bottom = fH;
 }
 
-void XSERVICE::LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass)
+void XSERVICE::LoadAllPicturesInfo()
 {
     char section[255];
     char param[255];
@@ -254,7 +279,7 @@ void XSERVICE::LoadAllPicturesInfo(storm::GPUCopyPass const& copy_pass)
 
             auto const texture_path = std::filesystem::path("interfaces") / m_pList[i].sTextureName;
             try {
-                m_pList[i].atlas = std::make_unique<storm::TextureAtlasNamed>(copy_pass, texture_path);
+                m_pList[i].atlas = std::make_unique<storm::TextureAtlasNamed>(texture_path);
             } catch (std::runtime_error const& e) {
                 spdlog::error("Texture {} not found", texture_path.string());
                 m_pList[i].atlas = nullptr;

@@ -152,11 +152,6 @@ void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time
 {
     if ((!m_bClickable || !m_bSelected) && m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor)); }
 
-    if (!m_picture) {
-        m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv);
-        m_picture->set_screen_rect(m_screen_rect);
-    }
-
     m_picture->update(copy_pass, delta_time);
 
     ChangePosition(m_rect);
@@ -205,12 +200,15 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
         m_sGroupName   = new char[len];
         if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
         memcpy(m_sGroupName, param, len);
-        m_texture = pPictureService->get_texture(m_sGroupName);
+        auto const texture = pPictureService->get_texture(m_sGroupName);
 
         // get button picture name
         if (ReadIniString(ini1, name1, ini2, name2, "picture", param, sizeof(param), "")) {
-            m_texture_uv = pPictureService->get_texture_uv(m_sGroupName, param);
+            m_picture = std::make_unique<storm::Picture>(texture, pPictureService->get_texture_uv(m_sGroupName, param));
+        } else {
+            m_picture = std::make_unique<storm::Picture>(texture);
         }
+        m_picture->set_screen_rect(m_screen_rect);
     } else {
         // if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
         m_tRect.left   = 0.f;
@@ -336,9 +334,9 @@ uint32_t CXI_BUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
         }
 
         std::string const& param2 = message.String();
-        m_picture.reset();
-        m_texture    = pPictureService->get_texture(m_sGroupName);
-        m_texture_uv = pPictureService->get_texture_uv(m_sGroupName, param2);
+
+        m_picture = std::make_unique<storm::Picture>(
+            pPictureService->get_texture(m_sGroupName), pPictureService->get_texture_uv(m_sGroupName, param2));
     } break;
     }
 

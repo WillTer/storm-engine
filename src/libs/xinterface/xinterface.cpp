@@ -183,7 +183,7 @@ void XInterface::SetDevice()
     {
         auto const cmd_buffer = renderer->acquire_command_buffer();
         auto const copy_pass  = cmd_buffer->start_copy_pass();  // Maybe not here
-        pPictureService->Init(*copy_pass, dwScreenWidth, dwScreenHeight);
+        pPictureService->Init(dwScreenWidth, dwScreenHeight);
     }
 
     pQuestService = new storm::QuestFileReader;
@@ -908,6 +908,8 @@ void XInterface::LoadIni()
         GlobalScreenRect.bottom = ini->GetInt(platform, "wScreenDown", 0);
     }
 
+    m_screen_rect = storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)};
+
     m_fpMouseOutZoneOffset.x = ini->GetFloat(section, "mouseOutZoneWidth", 0.f);
     m_fpMouseOutZoneOffset.y = ini->GetFloat(section, "mouseOutZoneHeight", 0.f);
     m_nMouseLastClickTimeMax = ini->GetInt(section, "mouseDblClickInterval", 300);
@@ -939,7 +941,8 @@ void XInterface::LoadIni()
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
 
-    m_mouse_cursor_tex = param2;
+    m_mouse_cursor = std::make_shared<storm::Picture>(param2);
+    m_mouse_cursor->set_screen_rect(m_screen_rect);
 
     core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
@@ -1090,35 +1093,16 @@ void XInterface::LoadDialog(char const* sFileName)
 
 void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time /*= 0*/)
 {
-    auto const screen_rect = storm::FRect {0.0F, 0.0F, static_cast<float>(dwScreenWidth), static_cast<float>(dwScreenHeight)};
-    if (!m_mouse_cursor) {
-        m_mouse_cursor = std::make_unique<storm::Picture>(copy_pass, m_mouse_cursor_tex);
-        m_mouse_cursor->set_screen_rect(screen_rect);
-    }
-
-    m_mouse_cursor->set_rect({
-        .left   = fXMousePos - (MouseSize.x / 2.0F),
-        .top    = fYMousePos - (MouseSize.y / 2.0F),
-        .right  = fXMousePos + (MouseSize.x / 2.0F),
-        .bottom = fYMousePos + (MouseSize.y / 2.0F),
-    });
-
-    auto* pImg = m_imgLists;
-    while (pImg != nullptr) {
-        if (pImg->texture && !pImg->picture) {
-            pImg->picture = std::make_unique<storm::Picture>(copy_pass, pImg->texture, pImg->uv);
-            pImg->picture->set_screen_rect(screen_rect);
-            pImg->picture->set_rect(pImg->position);
-        }
-
-        pImg = pImg->next;
-    }
+    pPictureService->update_stage(copy_pass, delta_time);
+    m_mouse_cursor->update(copy_pass, delta_time);
 
     nodes_update(copy_pass, m_pNodes, delta_time);
 }
 
 void XInterface::pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time /* = 0*/)
 {
+    pPictureService->pre_draw_stage(cmd_buffer, delta_time);
+
     nodes_pre_draw(cmd_buffer, m_pNodes, delta_time);
 }
 
@@ -1177,7 +1161,16 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t de
     DrawNode(render_pass, m_pNodes, delta_time, 91, 65536);
 
     // Mouse pointer show
-    if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
+    if (m_bShowMouse) {
+        m_mouse_cursor->set_rect({
+            .left   = fXMousePos - (MouseSize.x / 2.0F),
+            .top    = fYMousePos - (MouseSize.y / 2.0F),
+            .right  = fXMousePos + (MouseSize.x / 2.0F),
+            .bottom = fYMousePos + (MouseSize.y / 2.0F),
+        });
+
+        m_mouse_cursor->draw(render_pass);
+    }
 }
 
 void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)
@@ -2286,8 +2279,11 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 if ((pImList->sImageListName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->texture = pPictureService->get_texture(pImList->sImageListName);
-            pImList->uv      = pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture);
+            pImList->picture = std::make_unique<storm::Picture>(
+                pPictureService->get_texture(pImList->sImageListName),
+                pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture));
+            pImList->picture->set_screen_rect(m_screen_rect);
+            pImList->picture->set_rect(pImList->position);
 
             pImList->imageID = pPictureService->GetImageNum(pImList->sImageListName, pImList->sPicture);
         }

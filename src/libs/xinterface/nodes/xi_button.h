@@ -42,9 +42,7 @@ protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
 protected:
-    std::unique_ptr<storm::Picture>    m_picture;
-    std::shared_ptr<storm::GPUTexture> m_texture;
-    storm::FRect                       m_texture_uv;
+    std::unique_ptr<storm::Picture> m_picture;
 
     char*   m_sGroupName;
     int32_t m_idTex;  // texture identity

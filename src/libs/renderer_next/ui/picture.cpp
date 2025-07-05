@@ -25,31 +25,42 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-Picture::Picture(
-    GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
+Picture::Picture(std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const& renderer     = core->get<RendererService>();
 
-    auto const texture_asset = asset_server->load_texture_file(texture);
-    m_texture                = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-    copy_pass.upload(*m_texture, std::span(texture_asset.data));
+    auto texture_asset         = asset_server->load_texture_file(texture);
+    m_upload_data.texture_data = std::move(texture_asset.data);
 
-    initialize(copy_pass, texture_rect);
+    m_texture = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
+
+    initialize(texture_rect);
 }
 
-Picture::Picture(
-    GPUCopyPass const&                 copy_pass,
-    std::shared_ptr<GPUTexture> const& external_texture,
-    storm::FRect const&                texture_rect /*= default_texture_rect()*/)
+Picture::Picture(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
     : m_texture(external_texture)
 {
-    initialize(copy_pass, texture_rect);
+    initialize(texture_rect);
 }
 
 Picture::~Picture() = default;
 
-void Picture::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
+void Picture::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
+{
+    if (m_need_upload) {
+        if (!m_upload_data.texture_data.empty()) {
+            copy_pass.upload(*m_texture, std::span(m_upload_data.texture_data));
+            m_upload_data.texture_data.clear();
+        }
+
+        copy_pass.upload(*m_vertex_buffer, std::span(m_upload_data.vertex_data));
+        m_upload_data.vertex_data.clear();
+
+        copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
+        m_need_upload = false;
+    }
+}
 
 void Picture::draw(GPURenderPass const& render_pass) const
 {
@@ -63,36 +74,31 @@ void Picture::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Picture::initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect)
+void Picture::initialize(storm::FRect const& texture_rect)
 {
     auto const& renderer = core->get<RendererService>();
 
     m_pipeline = renderer->create_pipeline(IMAGE_2D_PIPELINE);
 
-    auto const viewport = renderer->get_viewport();
-    set_screen_rect(viewport);  // Use viewport rect for projection matrix by default
-
-    auto const square_vertices = std::vector<ImageVertex> {
+    m_upload_data.vertex_data = std::vector<ImageVertex> {
         ImageVertex {{0.0F, 0.0F, texture_rect.left, texture_rect.top}},
         ImageVertex {{1.0F, 0.0F, texture_rect.right, texture_rect.top}},
         ImageVertex {{1.0F, 1.0F, texture_rect.right, texture_rect.bottom}},
         ImageVertex {{0.0F, 1.0F, texture_rect.left, texture_rect.bottom}},
     };
 
-    m_vertex_buffer = renderer->create_vertex_buffer(std::span(square_vertices));
-    copy_pass.upload(*m_vertex_buffer, std::span(square_vertices));
-
-    m_index_buffer = renderer->create_index_buffer(std::span(SQUARE_INDICES));
-    copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
+    m_vertex_buffer = renderer->create_vertex_buffer(std::span(m_upload_data.vertex_data));
+    m_index_buffer  = renderer->create_index_buffer(std::span(SQUARE_INDICES));
 
     m_fragment_ubo.color = float4(1.0F);
 
     auto const [width, height] = m_texture->get_dimensions();
 
-    m_rect = {
-        0.0F, 0.0F, width * std::fabs(texture_rect.right - texture_rect.left), height * std::fabs(texture_rect.bottom - texture_rect.top)};
+    m_rect   = {0.0F, 0.0F, width * std::fabs(texture_rect.width()), height * std::fabs(texture_rect.height())};
     m_width  = static_cast<uint32_t>(m_rect.width());
     m_height = static_cast<uint32_t>(m_rect.height());
+
+    m_need_upload = true;
 }
 
 void Picture::set_diffuse_color(storm::Color const& color)

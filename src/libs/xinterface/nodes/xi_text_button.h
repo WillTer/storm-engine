@@ -22,7 +22,6 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
-    void pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) override;
     void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
@@ -44,35 +43,23 @@ public:
 
 protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
-    void FillPositionIntoVertices();
 
 protected:
     char*   m_sGroupName;
     int32_t m_idTex;        // texture identity
     int32_t m_idShadowTex;  // shadow texture
 
-    struct UV {
-        storm::FRect left_uv   = {};
-        storm::FRect middle_uv = {};
-        storm::FRect right_uv  = {};
-    };
-
-    std::unique_ptr<storm::TextureSequence> m_video_tex;
-    std::string                             m_video_tex_name;
+    std::shared_ptr<storm::TextureSequence> m_video_tex;
 
     std::shared_ptr<storm::GPUTexture> m_texture;
-
-    UV m_uv;
-    UV m_uv_selected;
 
     std::unique_ptr<storm::Button> m_button;
     std::unique_ptr<storm::Button> m_button_selected;
 
-    std::filesystem::path           m_shadow_tex_path;
-    storm::FRect                    m_shadow_uv;
     std::unique_ptr<storm::Picture> m_shadow;
 
     storm::FRect m_rect_pressed;
+    storm::FRect m_shadow_rect;
     storm::FRect m_shadow_rect_pressed;
 
     uint32_t m_dwShadowColor;        // shadow color

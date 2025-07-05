@@ -2,9 +2,11 @@
 
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
+#include <shaders/ui/image_2d.h>
 #include <shaders/ui/ubo_types.h>
 
 #include "image_2d_base.h"
@@ -23,11 +25,8 @@ class GPURenderPass;
 class Picture: public Image2DBase
 {
 public:
-    Picture(GPUCopyPass const& copy_pass, std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
-    Picture(
-        GPUCopyPass const&                 copy_pass,
-        std::shared_ptr<GPUTexture> const& external_texture,
-        storm::FRect const&                texture_rect = default_texture_rect());
+    Picture(std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
+    Picture(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect = default_texture_rect());
 
     ~Picture() override;
 
@@ -37,7 +36,7 @@ public:
     void set_diffuse_color(storm::Color const& color);
 
 private:
-    void initialize(GPUCopyPass const& copy_pass, storm::FRect const& texture_rect);
+    void initialize(storm::FRect const& texture_rect);
 
     static constexpr storm::FRect default_texture_rect()
     {
@@ -48,6 +47,13 @@ private:
             .bottom = 1.0F,
         };
     }
+
+    bool m_need_upload;
+
+    struct UploadData {
+        std::vector<char>                           texture_data;
+        std::vector<shaders::image_2d::VertexInput> vertex_data;
+    } m_upload_data;
 
     shaders::UBOFragment m_fragment_ubo;
 

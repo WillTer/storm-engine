@@ -55,11 +55,8 @@ protected:
 
     char* m_pcGroupName;
 
-    std::shared_ptr<storm::GPUTexture> m_texture;
-    std::unique_ptr<storm::Picture>    m_picture;
-    std::filesystem::path              m_texture_path;
-    storm::FRect                       m_texture_uv;
-    storm::Color                       m_picture_color;
+    std::unique_ptr<storm::Picture> m_picture;
+    storm::Color                    m_picture_color;
 
     bool     m_bMakeBlind;
     float    m_fCurBlindTime;

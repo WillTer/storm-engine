@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include <libs/renderer_next/types.h>
@@ -17,15 +18,20 @@ struct XYPOINT;
 
 namespace storm
 {
+class GPUCommandBuffer;
 class GPUCopyPass;
 class GPUTexture;
+class TextureSequence;
 }  // namespace storm
 
 class VXSERVICE
 {
 public:
-    virtual ~VXSERVICE()                                                                   = default;
-    virtual void Init(storm::GPUCopyPass const& copy_pass, int32_t lWidth, int32_t lHight) = 0;
+    virtual ~VXSERVICE()                              = default;
+    virtual void Init(int32_t lWidth, int32_t lHight) = 0;
+
+    virtual void pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) = 0;
+    virtual void update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)         = 0;
 
     // get texture identificator for image group
     virtual int32_t GetTextureID(char const* sImageListName)     = 0;
@@ -33,6 +39,8 @@ public:
 
     virtual auto get_texture(std::string_view const& image_list) -> std::shared_ptr<storm::GPUTexture>             = 0;
     virtual auto get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect = 0;
+
+    virtual auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence> = 0;
 
     // get texture positon for select picture
     virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;

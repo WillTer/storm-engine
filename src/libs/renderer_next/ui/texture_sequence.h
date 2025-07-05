@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
@@ -24,7 +25,7 @@ class GPURenderPass;
 class TextureSequence final: public Image2DBase
 {
 public:
-    TextureSequence(GPUCopyPass const& copy_pass, std::string const& name);
+    TextureSequence(std::string const& name);
     ~TextureSequence() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
@@ -34,6 +35,12 @@ public:
     void set_diffuse_color(storm::Color const& color);
 
 private:
+    bool m_need_upload;
+
+    struct UploadData {
+        std::vector<char> texture_data;
+    } m_upload_data;
+
     uint32_t m_time_delay;
     uint64_t m_delta_time;
 

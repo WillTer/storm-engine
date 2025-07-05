@@ -29,25 +29,11 @@ CXI_PICTURE::~CXI_PICTURE()
 
 void CXI_PICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (m_bUse) {
-        if (m_bMakeBlind) {
-            if (m_bBlindUp) {
-                m_fCurBlindTime += m_fBlindUpSpeed * Delta_Time;
-                if (m_fCurBlindTime >= 1.f) {
-                    m_fCurBlindTime = 1.f;
-                    m_bBlindUp      = false;
-                }
-            } else {
-                m_fCurBlindTime -= m_fBlindDownSpeed * Delta_Time;
-                if (m_fCurBlindTime <= 0.f) {
-                    m_fCurBlindTime = 0.f;
-                    m_bBlindUp      = true;
-                }
-            }
-            ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
-        }
-
-        if (m_picture) { m_picture->draw(render_pass); }
+    if (m_bUse && m_picture) {
+        m_picture->set_rect(m_rect);
+        m_picture->set_screen_rect(m_screen_rect);
+        m_picture->set_diffuse_color(m_picture_color * 2);  // Modulate color to make it brighter
+        m_picture->draw(render_pass);
     }
 }
 
@@ -66,15 +52,24 @@ bool CXI_PICTURE::Init(
 
 void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if (!m_picture) {
-        if (m_texture) {
-            m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture, m_texture_uv);
+    if (!m_picture) { return; }
+
+    if (m_bMakeBlind) {
+        if (m_bBlindUp) {
+            m_fCurBlindTime += m_fBlindUpSpeed * delta_time;
+            if (m_fCurBlindTime >= 1.f) {
+                m_fCurBlindTime = 1.f;
+                m_bBlindUp      = false;
+            }
         } else {
-            m_picture = std::make_unique<storm::Picture>(copy_pass, m_texture_path, m_texture_uv);
+            m_fCurBlindTime -= m_fBlindDownSpeed * delta_time;
+            if (m_fCurBlindTime <= 0.f) {
+                m_fCurBlindTime = 0.f;
+                m_bBlindUp      = true;
+            }
         }
 
-        m_picture->set_screen_rect(m_screen_rect);
-        ChangeColor(m_picture_color);
+        ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
     }
 
     m_picture->update(copy_pass, delta_time);
@@ -93,21 +88,27 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         m_pcGroupName  = new char[len];
         Assert(m_pcGroupName);
         memcpy(m_pcGroupName, param, len);
-        m_texture = pPictureService->get_texture(m_pcGroupName);
+        auto const texture = pPictureService->get_texture(m_pcGroupName);
 
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
-            m_texture_uv = pPictureService->get_texture_uv(m_pcGroupName, param);
+            m_picture = std::make_unique<storm::Picture>(texture, pPictureService->get_texture_uv(m_pcGroupName, param));
+        } else {
+            m_picture = std::make_unique<storm::Picture>(texture);
         }
-    } else {
-        if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) { m_texture_path = param; }
-        texRect      = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
-        m_texture_uv = {.left = texRect.left, .top = texRect.top, .right = texRect.right, .bottom = texRect.bottom};
+    } else if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
+        auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
+        m_picture           = std::make_unique<storm::Picture>(param, tex_rect);
     }
 
+    assert(m_picture);
+
+    // TODO: video texture
     // m_pTex = nullptr;
     // if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
 
-    m_picture_color = storm::Color::from_hex(GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex()));
+    auto const picture_color =
+        storm::Color::from_hex(GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex()));
+    ChangeColor(picture_color);
 
     // Create rectangle
     ChangePosition(m_rect);
@@ -144,7 +145,6 @@ bool CXI_PICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_PICTURE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
-    if (m_picture) { m_picture->set_rect(m_rect); }
 }
 
 void CXI_PICTURE::SaveParametersToIni()
@@ -167,9 +167,7 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
     ReleasePicture();
     // if (video)
     //     m_pTex = m_rs->GetVideoTexture(sNewTexName);
-    if (!video) { m_texture_path = sNewTexName; }
-
-    m_texture_uv = {0.0F, 0.0F, 1.0F, 1.0F};
+    if (!video) { m_picture = std::make_unique<storm::Picture>(sNewTexName); }
 }
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
@@ -198,8 +196,8 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
         }
     }
 
-    m_texture    = pPictureService->get_texture(m_pcGroupName);
-    m_texture_uv = pPictureService->get_texture_uv(m_pcGroupName, picName);
+    m_picture = std::make_unique<storm::Picture>(
+        pPictureService->get_texture(m_pcGroupName), pPictureService->get_texture_uv(m_pcGroupName, picName));
 }
 
 uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
@@ -311,7 +309,7 @@ void CXI_PICTURE::ChangeColor(uint32_t dwColor)
 
 void CXI_PICTURE::ChangeColor(storm::Color const& color)
 {
-    if (m_picture) { m_picture->set_diffuse_color(color * 2); }  // Modulate color to make it brighter
+    m_picture_color = color;
 }
 
 void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)
@@ -358,6 +356,5 @@ void CXI_PICTURE::ReleasePicture()
 {
     delete[] m_pcGroupName;
     m_pcGroupName = nullptr;
-    m_texture.reset();
     m_picture.reset();
 }

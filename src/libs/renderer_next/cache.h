@@ -2,6 +2,7 @@
 
 #include <any>
 #include <cassert>
+#include <functional>
 #include <memory>
 #include <unordered_map>
 
@@ -75,6 +76,18 @@ public:
     void clear()
     {
         m_objects.clear();
+    }
+
+    template <typename Obj>
+    void for_each(std::function<void(Obj&)> const& pred)
+    {
+        auto const obj_type = entt::type_id<Obj>().index();
+        if (!m_objects.contains(obj_type)) { return; }
+
+        auto& obj_map = m_objects.at(obj_type);
+        std::for_each(obj_map.begin(), obj_map.end(), [&pred](auto const& pair) {
+            pred(*std::any_cast<std::shared_ptr<std::remove_cvref_t<Obj>>>(pair.second));
+        });
     }
 
 private:

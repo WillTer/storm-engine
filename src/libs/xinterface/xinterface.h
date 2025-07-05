@@ -43,18 +43,19 @@ protected:
 
     // parameters obtained from INI file //
     // -------------------------------------
-    float    fScale;
-    XYRECT   GlobalScreenRect;
-    uint32_t dwScreenWidth;
-    uint32_t dwScreenHeight;
-    int      m_nColumnQuantity;  // Column quantity for grid of the previouse texture
-    float    m_fWaveAmplitude;
-    float    m_fWavePhase;
-    float    m_fWaveSpeed;
-    int32_t  m_nBlendStepMax;
-    int32_t  m_nBlendSpeed;
-    XYRECT   GlobalRect;
-    FXYPOINT m_fpMouseOutZoneOffset;
+    float        fScale;
+    XYRECT       GlobalScreenRect;
+    uint32_t     dwScreenWidth;
+    uint32_t     dwScreenHeight;
+    int          m_nColumnQuantity;  // Column quantity for grid of the previouse texture
+    float        m_fWaveAmplitude;
+    float        m_fWavePhase;
+    float        m_fWaveSpeed;
+    int32_t      m_nBlendStepMax;
+    int32_t      m_nBlendSpeed;
+    XYRECT       GlobalRect;
+    FXYPOINT     m_fpMouseOutZoneOffset;
+    storm::FRect m_screen_rect;
     //-------------------------------------
 
     // mouse data
@@ -70,7 +71,6 @@ protected:
     CINODE*      m_pMouseNode;
     VDATA*       m_pMouseWeel;
 
-    std::filesystem::path           m_mouse_cursor_tex;
     std::shared_ptr<storm::Picture> m_mouse_cursor = nullptr;
 
     // save render state parameters
@@ -351,9 +351,7 @@ protected:
 
     // dynamic images data
     struct IMAGE_Entity {
-        std::shared_ptr<storm::GPUTexture> texture;
-        storm::FRect                       uv;
-        std::unique_ptr<storm::Picture>    picture;
+        std::unique_ptr<storm::Picture> picture;
 
         XYRECT        position;
         char*         sImageListName;
