@@ -1,6 +1,6 @@
 #pragma once
 
-#include <filesystem>
+#include <cstdint>
 #include <string>
 
 namespace storm
@@ -9,7 +9,7 @@ namespace storm
 class IConfigLoader;
 
 struct TextureSequenceInfo {
-    std::filesystem::path texture_file;
+    std::string texture_file;
 
     bool     flip_h;
     bool     flip_v;
