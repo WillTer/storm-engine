@@ -6,6 +6,7 @@
 #include <libs/core/s_import_func.h>
 #include <libs/core/v_s_stack.h>
 #include <libs/filesystem/default_paths.h>
+#include <libs/renderer_next/ui/font.h>
 #include <libs/util/string_compare.hpp>
 #include <spdlog/spdlog.h>
 
@@ -400,6 +401,13 @@ void StrService::SetDialogSourceFile(char const* fileName)
 {
     CloseUsersStringFile(m_nDialogSourceFile);
     m_nDialogSourceFile = OpenUsersStringFile((char*)fileName);
+}
+
+auto StrService::get_font(std::string const& name) -> std::shared_ptr<storm::Font>
+{
+    if (!m_font_cache.contains(name)) { m_font_cache.emplace(name, std::make_shared<storm::Font>(name)); }
+
+    return m_font_cache.at(name);
 }
 
 void StrService::LoadIni()

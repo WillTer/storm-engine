@@ -33,7 +33,6 @@ CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 
     m_selection = nullptr;
     m_back      = nullptr;
-    m_font      = nullptr;
     m_text      = nullptr;
 }
 
@@ -44,16 +43,17 @@ CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
 
 void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time)
 {
-    if (m_font && !m_text && (m_idString != -1 || m_sString != nullptr)) {
-        m_text = std::make_unique<storm::Image2D>(m_font->print(
+    if (!m_text && (m_idString != -1 || m_sString != nullptr)) {
+        auto const font = pStringService->get_font(m_font_name);
+        m_text          = std::make_unique<storm::Image2D>(font->print(
             cmd_buffer,
             storm::Color::from_hex(0xFFFFFFFF),
             storm::Color::from_hex(0),
             storm::Font::Alignment::Center,
             true,  // draw_shadow
             m_fFontScale,
-            m_rect.right - m_rect.left,
-            m_rect.bottom - m_rect.top,
+            static_cast<float>(m_rect.right - m_rect.left),
+            static_cast<float>(m_rect.bottom - m_rect.top),
             m_idString != -1 ? pStringService->GetString(m_idString) : m_sString));
         m_text->set_screen_rect(m_screen_rect);
     }
@@ -217,8 +217,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_nMaxDelay = GetIniLong(ini1, name1, ini2, name2, "pressDelay", 20);
 
     // get string parameters
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) { m_font = std::make_unique<storm::Font>(param); }
-    //     if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) { m_font_name = param; }
+    assert(pStringService->get_font(m_font_name));  // Load font to cache and check success
+
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
     m_idString = -1;
@@ -295,7 +296,6 @@ void CXI_TEXTBUTTON::ReleaseAll()
     m_selection.reset();
     m_back.reset();
 
-    m_font.reset();
     m_text.reset();
 
     delete[] m_sGroupName;

@@ -62,7 +62,7 @@ protected:
     storm::FRect m_shadow_rect;
     storm::FRect m_shadow_rect_pressed;
 
-    std::unique_ptr<storm::Font>    m_font;
+    std::string                     m_font_name;
     std::unique_ptr<storm::Image2D> m_text;
 
     uint32_t m_dwShadowColor;        // shadow color

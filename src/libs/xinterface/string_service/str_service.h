@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <libs/core/script_libriary.h>
 
 #include "../string_service.h"
@@ -47,6 +49,8 @@ public:
         return TranslateFromUsers(m_nDialogSourceFile, (char*)str);
     }
 
+    auto get_font(std::string const& name) -> std::shared_ptr<storm::Font> override;
+
 protected:
     void    LoadIni();
     int32_t GetFreeUsersID() const;
@@ -64,6 +68,8 @@ protected:
     UsersStringBlock* m_pUsersBlocks;
 
     int32_t m_nDialogSourceFile;
+
+    std::unordered_map<std::string, std::shared_ptr<storm::Font>> m_font_cache;
 };
 
 class ScriptInterfaceFunctions: public SCRIPT_LIBRIARY

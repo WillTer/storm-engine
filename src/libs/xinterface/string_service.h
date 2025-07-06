@@ -2,6 +2,11 @@
 
 #include <libs/core/service.h>
 
+namespace storm
+{
+class Font;
+}
+
 class VSTRSERVICE: public SERVICE
 {
 public:
@@ -22,4 +27,6 @@ public:
     virtual int32_t OpenUsersStringFile(char const* fileName)         = 0;
     virtual void    CloseUsersStringFile(int32_t id)                  = 0;
     virtual char*   TranslateFromUsers(int32_t id, char const* inStr) = 0;
+
+    virtual auto get_font(std::string const& name) -> std::shared_ptr<storm::Font> = 0;
 };
