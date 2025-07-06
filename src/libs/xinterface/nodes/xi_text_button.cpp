@@ -3,7 +3,7 @@
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/button.h>
 #include <libs/renderer_next/ui/colored_rect.h>
-#include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/image_2d.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
@@ -282,34 +282,28 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         ? pPictureService->get_texture_uv(m_sGroupName, param)
         : storm::FRect {};
 
-    {
-        if (right_uv.is_empty()) {
-            right_uv = storm::FRect {
-                .left   = left_uv.right,  // Mirror x
-                .top    = left_uv.top,
-                .right  = left_uv.left,
-                .bottom = left_uv.bottom,
-            };
-        }
-
-        auto left_pic   = std::make_unique<storm::Image2D>(button_texture, left_uv);
-        auto middle_pic = std::make_unique<storm::Image2D>(button_texture, middle_uv);
-        auto right_pic  = std::make_unique<storm::Image2D>(button_texture, right_uv);
-
-        m_button = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
-        m_button->set_screen_rect(m_screen_rect);
-        m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+    if (right_uv.is_empty()) {
+        right_uv = storm::FRect {
+            .left   = left_uv.right,  // Mirror x
+            .top    = left_uv.top,
+            .right  = left_uv.left,
+            .bottom = left_uv.bottom,
+        };
     }
 
-    {
-        auto left_pic   = std::make_unique<storm::Image2D>(button_texture, !left_uv_selected.is_empty() ? left_uv_selected : left_uv);
-        auto middle_pic = std::make_unique<storm::Image2D>(button_texture, !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv);
-        auto right_pic  = std::make_unique<storm::Image2D>(button_texture, !right_uv_selected.is_empty() ? right_uv_selected : right_uv);
+    m_button = std::make_unique<storm::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect);
+    m_button->set_screen_rect(m_screen_rect);
+    m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
 
-        m_button_selected = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
-        m_button_selected->set_screen_rect(m_screen_rect);
-        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
-    }
+    m_button_selected = std::make_unique<storm::Button>(
+        button_texture,
+        !left_uv_selected.is_empty() ? left_uv_selected : left_uv,
+        !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv,
+        !right_uv_selected.is_empty() ? right_uv_selected : right_uv,
+        m_rect);
+
+    m_button_selected->set_screen_rect(m_screen_rect);
+    m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
 }
 
 void CXI_TEXTBUTTON::ReleaseAll()

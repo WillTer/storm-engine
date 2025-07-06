@@ -5,7 +5,7 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/image_2d.h>
 #include <libs/util/string_compare.hpp>
 #include <libs/window/os_window.hpp>
 

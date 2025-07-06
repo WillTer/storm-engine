@@ -1,4 +1,4 @@
-#include "picture.h"
+#include "image_2d.h"
 
 #include <cassert>
 #include <span>

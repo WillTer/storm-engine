@@ -2,7 +2,7 @@
 
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/colored_rect.h>
-#include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/image_2d.h>
 #include <libs/util/string_compare.hpp>
 
 CXI_BUTTON::CXI_BUTTON()

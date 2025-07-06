@@ -9,7 +9,7 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 
-#include "picture.h"
+#include "image_2d.h"
 
 using namespace storm;
 

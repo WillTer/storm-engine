@@ -1,6 +1,6 @@
 #include "xi_video.h"
 
-#include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/image_2d.h>
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
 {

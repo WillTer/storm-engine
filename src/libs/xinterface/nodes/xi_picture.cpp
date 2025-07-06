@@ -3,8 +3,7 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/renderer_next/types.h>
-#include <libs/renderer_next/ui/picture.h>
-#include <libs/renderer_next/ui/texture_sequence.h>
+#include <libs/renderer_next/ui/image_2d.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
