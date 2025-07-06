@@ -5,6 +5,7 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/renderer_next/pipeline_names.h>
+#include <shaders/ui/colored_rect.h>
 #include <shaders/ui/common_ui.h>
 #include <shaders/ui/image_2d.h>
 #include <shaders/ui/texture_sequence.h>
@@ -61,6 +62,9 @@ auto create_by_name(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
     case TEXTURE_SEQUENCE_PIPELINE.value():
         return create_pipeline<shaders::texture_sequence::VertexInput, shaders::texture_sequence::StageInfo>(
+            device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
+    case COLORED_RECT_PIPELINE.value():
+        return create_pipeline<shaders::colored_rect::VertexInput, shaders::colored_rect::StageInfo>(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
     default: break;
     }

@@ -40,7 +40,7 @@ public:
     virtual auto get_texture(std::string_view const& image_list) -> std::shared_ptr<storm::GPUTexture>             = 0;
     virtual auto get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect = 0;
 
-    virtual auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence> = 0;
+    virtual auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::GPUTexture> = 0;
 
     // get texture positon for select picture
     virtual bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect)                                                     = 0;

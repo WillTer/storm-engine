@@ -5,7 +5,8 @@
 namespace storm
 {
 class Picture;
-}
+class ColoredRect;
+}  // namespace storm
 
 // picture
 class CXI_BUTTON: public CINODE
@@ -42,7 +43,12 @@ protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
 protected:
-    std::unique_ptr<storm::Picture> m_picture;
+    std::unique_ptr<storm::Picture>     m_picture;
+    std::unique_ptr<storm::ColoredRect> m_shadow;
+
+    storm::FRect m_rect_pressed;
+    storm::FRect m_shadow_rect;
+    storm::FRect m_shadow_rect_pressed;
 
     char*   m_sGroupName;
     int32_t m_idTex;  // texture identity

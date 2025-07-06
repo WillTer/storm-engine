@@ -3,10 +3,10 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/renderer_next/types.h>
+#include <libs/renderer_next/ui/picture.h>
+#include <libs/renderer_next/ui/texture_sequence.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
-
-#include "libs/renderer_next/ui/picture.h"
 
 CXI_PICTURE::CXI_PICTURE()
 {
@@ -52,8 +52,6 @@ bool CXI_PICTURE::Init(
 
 void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if (!m_picture) { return; }
-
     if (m_bMakeBlind) {
         if (m_bBlindUp) {
             m_fCurBlindTime += m_fBlindUpSpeed * delta_time;
@@ -72,7 +70,7 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_tim
         ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
     }
 
-    m_picture->update(copy_pass, delta_time);
+    if (m_picture) { m_picture->update(copy_pass, delta_time); }
 
     ChangePosition(m_rect);
 }
@@ -80,8 +78,6 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_tim
 void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
     char param[255];
-
-    auto texRect = FXYRECT(0.f, 0.f, 1.f, 1.f);
 
     if (ReadIniString(ini1, name1, ini2, name2, "groupName", param, sizeof(param), "")) {
         auto const len = strlen(param) + 1;
@@ -96,15 +92,13 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
             m_picture = std::make_unique<storm::Picture>(texture);
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
-        auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
+        auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.F, 0.F, 1.F, 1.F));
         m_picture           = std::make_unique<storm::Picture>(param, tex_rect);
+    } else if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) {
+        m_picture = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param));
     }
 
     assert(m_picture);
-
-    // TODO: video texture
-    // m_pTex = nullptr;
-    // if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
 
     auto const picture_color =
         storm::Color::from_hex(GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex()));
@@ -165,9 +159,11 @@ void CXI_PICTURE::SaveParametersToIni()
 void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 {
     ReleasePicture();
-    // if (video)
-    //     m_pTex = m_rs->GetVideoTexture(sNewTexName);
-    if (!video) { m_picture = std::make_unique<storm::Picture>(sNewTexName); }
+    if (video) {
+        m_picture = std::make_unique<storm::Picture>(pPictureService->get_video_texture(sNewTexName));
+    } else {
+        m_picture = std::make_unique<storm::Picture>(sNewTexName);
+    }
 }
 
 void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
@@ -300,7 +296,10 @@ uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)
     return 0;
 }
 
-void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV) {}
+void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV)
+{
+    assert(false);
+}
 
 void CXI_PICTURE::ChangeColor(uint32_t dwColor)
 {

@@ -1,11 +1,11 @@
 #include "xi_video.h"
 
-#include <libs/renderer_next/ui/texture_sequence.h>
+#include <libs/renderer_next/ui/picture.h>
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
 {
     m_nNodeType = NODETYPE_VIDEO;
-    m_video_tex = nullptr;
+    m_video     = nullptr;
 }
 
 CXI_VIDEO::~CXI_VIDEO()
@@ -13,16 +13,18 @@ CXI_VIDEO::~CXI_VIDEO()
     ReleaseAll();
 }
 
-uint32_t vid_counter = 0;
+void CXI_VIDEO::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+{
+    if (m_video) {
+        m_video->update(copy_pass, delta_time);
+        m_video->set_rect(m_rect);
+        m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor) * 2);
+    }
+}
 
 void CXI_VIDEO::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (m_bUse && m_video_tex) {
-        m_video_tex->set_rect(m_rect);
-        m_video_tex->set_screen_rect(m_screen_rect);
-        m_video_tex->set_diffuse_color(storm::Color::from_hex(m_dwColor) * 2);
-        m_video_tex->draw(render_pass);
-    }
+    if (m_bUse && m_video) { m_video->draw(render_pass); }
 }
 
 bool CXI_VIDEO::Init(
@@ -41,13 +43,14 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
     char param[255];
     if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) {
-        m_video_tex = pPictureService->get_video_texture(param);
+        m_video = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param), m_rectTex);
+        m_video->set_screen_rect(m_screen_rect);
     }
 }
 
 void CXI_VIDEO::ReleaseAll()
 {
-    m_video_tex.reset();
+    m_video.reset();
 }
 
 int CXI_VIDEO::CommandExecute(int wActCode)
@@ -63,7 +66,6 @@ bool CXI_VIDEO::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_VIDEO::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
-    m_video_tex->set_rect(m_rect);
 }
 
 void CXI_VIDEO::SaveParametersToIni()

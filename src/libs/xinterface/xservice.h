@@ -49,7 +49,7 @@ public:
     auto get_texture(std::string_view const& image_list) -> std::shared_ptr<storm::GPUTexture> override;
     auto get_texture_uv(std::string_view const& image_list, std::string_view const& image) -> storm::FRect override;
 
-    auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence> override;
+    auto get_video_texture(std::string const& name) -> std::shared_ptr<storm::GPUTexture> override;
 
     // get texture positon for select picture
     bool GetTexturePos(int32_t pictureNum, FXYRECT& texRect) override;

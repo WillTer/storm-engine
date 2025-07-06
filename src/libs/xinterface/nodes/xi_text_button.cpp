@@ -2,17 +2,14 @@
 
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/button.h>
+#include <libs/renderer_next/ui/colored_rect.h>
 #include <libs/renderer_next/ui/picture.h>
-#include <libs/renderer_next/ui/texture_sequence.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
     m_sGroupName  = nullptr;
     m_idTex       = -1;
     m_idShadowTex = -1;
-
-    m_idVBuf = -1;
-    m_idIBuf = -1;
 
     m_fXShadow = 0.f;
     m_fYShadow = 0.f;
@@ -33,7 +30,8 @@ CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 
     m_dwBackColor = storm::Color {128, 0, 0, 0}.to_hex();
 
-    m_video_tex = nullptr;
+    m_selection = nullptr;
+    m_back      = nullptr;
 }
 
 CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
@@ -43,34 +41,17 @@ CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
 
 void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) m_nPressedDelay--;
-
     if (m_bUse) {
-        if (m_nPressedDelay > 0) {
-            m_button->set_rect(m_rect_pressed);
-            m_button_selected->set_rect(m_rect_pressed);
-            m_shadow->set_rect(m_shadow_rect_pressed);
-            if (m_video_tex) { m_video_tex->set_rect(m_rect_pressed); }
-        } else {
-            m_button->set_rect(m_rect);
-            m_button_selected->set_rect(m_rect);
-            m_shadow->set_rect(m_shadow_rect);
-            if (m_video_tex) { m_video_tex->set_rect(m_rect); }
-        }
-
         // show shadow
         if (m_shadow) { m_shadow->draw(render_pass); }
 
         if (m_bVideoToBack) {
             // show midle video fragment
-            if (bSelected && m_video_tex) {
-                m_video_tex->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor) * 2);
-                m_video_tex->set_screen_rect(m_screen_rect);  // TODO: set screen rect in xservice.cpp
-                m_video_tex->draw(render_pass);
+            if (bSelected && m_selection) {
+                m_selection->draw(render_pass);
+            } else if (m_dwBackColor != 0) {
+                m_back->draw(render_pass);
             }
-            // TODO: draw solid background
-
-            //     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwBackColor);
         }
 
         // show button
@@ -81,11 +62,7 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
         }
 
         if (!m_bVideoToBack) {
-            if (bSelected && m_video_tex) {
-                m_video_tex->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor) * 2);
-                m_video_tex->set_screen_rect(m_screen_rect);
-                m_video_tex->draw(render_pass);
-            }
+            if (bSelected && m_selection) { m_selection->draw(render_pass); }
         }
 
         if (m_idString != -1 || m_sString != nullptr)
@@ -162,18 +139,33 @@ bool CXI_TEXTBUTTON::Init(
 
 void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
+    if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) { m_nPressedDelay--; }
+
+    ChangePosition(m_rect);
+    if (m_nPressedDelay > 0) {
+        m_back->set_rect(m_rect_pressed);
+        m_button->set_rect(m_rect_pressed);
+        m_button_selected->set_rect(m_rect_pressed);
+        m_shadow->set_rect(m_shadow_rect_pressed);
+        if (m_selection) { m_selection->set_rect(m_rect_pressed); }
+    } else {
+        m_back->set_rect(m_rect);
+        m_button->set_rect(m_rect);
+        m_button_selected->set_rect(m_rect);
+        m_shadow->set_rect(m_shadow_rect);
+        if (m_selection) { m_selection->set_rect(m_rect); }
+    }
+
+    m_back->update(copy_pass, delta_time);
     m_button->update(copy_pass, delta_time);
     m_button_selected->update(copy_pass, delta_time);
     if (m_shadow) { m_shadow->update(copy_pass, delta_time); }
-
-    ChangePosition(m_rect);
+    if (m_selection) { m_selection->update(copy_pass, delta_time); }
 }
 
 void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
-    char     param[255];
-    FXYPOINT fPos;
-
+    char param[255];
     // video to back
     m_bVideoToBack = GetIniBool(ini1, name1, ini2, name2, "videoToBack", true);
 
@@ -214,6 +206,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         m_texture = pPictureService->get_texture(m_sGroupName);
     }
 
+    m_back = std::make_unique<storm::ColoredRect>(storm::Color::from_hex(m_dwBackColor));
+    m_back->set_screen_rect(m_screen_rect);
+
     m_idShadowTex = -1;
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
@@ -224,19 +219,19 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     }
 
     // get offset button image in case pressed button
-    fPos           = GetIniFloatPoint(ini1, name1, ini2, name2, "pressPictureOffset", FXYPOINT(0.f, 0.f));
-    m_fXDeltaPress = fPos.x;
-    m_fYDeltaPress = fPos.y;
+    FXYPOINT offset = GetIniFloatPoint(ini1, name1, ini2, name2, "pressPictureOffset", FXYPOINT(0.f, 0.f));
+    m_fXDeltaPress  = offset.x;
+    m_fYDeltaPress  = offset.y;
 
     // get offset button shadow in case pressed button
-    fPos       = GetIniFloatPoint(ini1, name1, ini2, name2, "shadowOffset", FXYPOINT(0.f, 0.f));
-    m_fXShadow = fPos.x;
-    m_fYShadow = fPos.y;
+    offset     = GetIniFloatPoint(ini1, name1, ini2, name2, "shadowOffset", FXYPOINT(0.f, 0.f));
+    m_fXShadow = offset.x;
+    m_fYShadow = offset.y;
 
     // get offset button shadow in case not pressed button
-    fPos            = GetIniFloatPoint(ini1, name1, ini2, name2, "pressShadowOffset", FXYPOINT(0.f, 0.f));
-    m_fXShadowPress = fPos.x;
-    m_fYShadowPress = fPos.y;
+    offset          = GetIniFloatPoint(ini1, name1, ini2, name2, "pressShadowOffset", FXYPOINT(0.f, 0.f));
+    m_fXShadowPress = offset.x;
+    m_fYShadowPress = offset.y;
 
     // get press delay
     m_nMaxDelay = GetIniLong(ini1, name1, ini2, name2, "pressDelay", 20);
@@ -253,13 +248,10 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     // get video fragment parameters
     if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) {
-        m_video_tex = pPictureService->get_video_texture(param);
+        m_selection = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param));
+        m_selection->set_screen_rect(m_screen_rect);
+        m_selection->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor) * 2);
     }
-
-    // do vertex and index buffer
-    m_nIndx = 3 * 2 * 3;      // 3 rectangle * 2 triangle to rectangle * 3 vertex to triangle
-    m_nVert = 4 * 3 * 2 * 2;  // 4 vertex * 3 rectangle * (2=face&shadow) * (2=press&notpress)
-    if (m_idShadowTex >= 0) m_nVert += 8;
 
     // fill left side of button
     auto const left_uv_selected = ReadIniString(ini1, name1, ini2, name2, "selectButtonLeft", param, sizeof(param), "")
@@ -316,8 +308,6 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         m_button_selected->set_screen_rect(m_screen_rect);
         m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
     }
-
-    m_nIndx /= 3;
 }
 
 void CXI_TEXTBUTTON::ReleaseAll()

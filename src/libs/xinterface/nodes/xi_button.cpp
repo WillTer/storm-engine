@@ -1,6 +1,7 @@
 #include "xi_button.h"
 
 #include <libs/renderer_next/types.h>
+#include <libs/renderer_next/ui/colored_rect.h>
 #include <libs/renderer_next/ui/picture.h>
 #include <libs/util/string_compare.hpp>
 
@@ -30,83 +31,9 @@ CXI_BUTTON::~CXI_BUTTON()
 
 void CXI_BUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (nPressedDelay > 0) nPressedDelay--;
-
     if (m_bUse) {
-        // Create rectangle
-        XI_ONETEX_VERTEX vFace[4];
-        XI_ONETEX_VERTEX vShadow[4];
-
-        auto dwFaceColor = m_dwFaceColor;
-        if (bSelected && m_fBlindSpeed > 0.f) {
-            dwFaceColor = ColorInterpolate(m_dwDarkColor, m_dwLightColor, m_fCurBlind);
-            if (m_bUpBlind)
-                m_fCurBlind += m_fBlindSpeed * Delta_Time;
-            else
-                m_fCurBlind -= m_fBlindSpeed * Delta_Time;
-            if (m_fCurBlind < 0.f) {
-                m_fCurBlind = 0.f;
-                m_bUpBlind  = true;
-            }
-            if (m_fCurBlind > 1.f) {
-                m_fCurBlind = 1.f;
-                m_bUpBlind  = false;
-            }
-        }
-
-        for (auto i = 0; i < 4; i++) {
-            vFace[i].color   = dwFaceColor;
-            vFace[i].pos.z   = 1.f;
-            vShadow[i].color = m_dwShadowColor;
-            vShadow[i].pos.z = 1.f;
-        }
-
-        vFace[0].tu = vShadow[0].tu = m_tRect.left;
-        vFace[0].tv = vShadow[0].tv = m_tRect.top;
-        vFace[1].tu = vShadow[1].tu = m_tRect.right;
-        vFace[1].tv = vShadow[1].tv = m_tRect.top;
-        vFace[2].tu = vShadow[2].tu = m_tRect.left;
-        vFace[2].tv = vShadow[2].tv = m_tRect.bottom;
-        vFace[3].tu = vShadow[3].tu = m_tRect.right;
-        vFace[3].tv = vShadow[3].tv = m_tRect.bottom;
-
-        vFace[0].pos.x = static_cast<float>(m_rect.left);
-        vFace[0].pos.y = static_cast<float>(m_rect.top);
-        vFace[1].pos.x = static_cast<float>(m_rect.right);
-        vFace[1].pos.y = static_cast<float>(m_rect.top);
-        vFace[2].pos.x = static_cast<float>(m_rect.left);
-        vFace[2].pos.y = static_cast<float>(m_rect.bottom);
-        vFace[3].pos.x = static_cast<float>(m_rect.right);
-        vFace[3].pos.y = static_cast<float>(m_rect.bottom);
-
-        for (auto i = 0; i < 4; i++) {
-            if (nPressedDelay > 0) {
-                vFace[i].pos.x += fXDeltaPress;
-                vFace[i].pos.y += fYDeltaPress;
-                vShadow[i].pos.x = vFace[i].pos.x + fXShadowPress;
-                vShadow[i].pos.y = vFace[i].pos.y + fYShadowPress;
-            } else {
-                vShadow[i].pos.x = vFace[i].pos.x + fXShadow;
-                vShadow[i].pos.y = vFace[i].pos.y + fYShadow;
-            }
-        }
-
+        m_shadow->draw(render_pass);
         m_picture->draw(render_pass);
-
-        // if (m_idTex != -1)
-        // m_rs->TextureSet(0, m_idTex);
-        // else
-        // m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
-
-        // if (m_idTex >= 0 || m_pTex != nullptr) {
-        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
-        //     if (m_bClickable && m_bSelected)
-        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iButton");
-        //     else {
-        //         m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_argbDisableColor);
-        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iDisabledNode");
-        //     }
-        // }
 
         // if (m_idString != -1L)
         //     if (nPressedDelay > 0) {
@@ -150,11 +77,46 @@ bool CXI_BUTTON::Init(
 
 void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if ((!m_bClickable || !m_bSelected) && m_picture) { m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor)); }
-
-    m_picture->update(copy_pass, delta_time);
+    if (!m_picture) { return; }
 
     ChangePosition(m_rect);
+
+    if (nPressedDelay > 0) {
+        nPressedDelay--;
+        m_picture->set_rect(m_rect_pressed);
+        m_shadow->set_rect(m_shadow_rect_pressed);
+    } else {
+        m_picture->set_rect(m_rect);
+        m_shadow->set_rect(m_shadow_rect);
+    }
+
+    auto face_color = m_dwFaceColor;
+    if (m_bSelected && m_fBlindSpeed > 0.F) {
+        face_color = ColorInterpolate(m_dwDarkColor, m_dwLightColor, m_fCurBlind);
+        if (m_bUpBlind) {
+            m_fCurBlind += m_fBlindSpeed * delta_time;
+        } else {
+            m_fCurBlind -= m_fBlindSpeed * delta_time;
+        }
+
+        if (m_fCurBlind < 0.F) {
+            m_fCurBlind = 0.F;
+            m_bUpBlind  = true;
+        }
+        if (m_fCurBlind > 1.F) {
+            m_fCurBlind = 1.F;
+            m_bUpBlind  = false;
+        }
+    }
+
+    if (!m_bClickable || !m_bSelected) {
+        m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor));
+    } else {
+        m_picture->set_diffuse_color(storm::Color::from_hex(face_color));
+    }
+
+    m_picture->update(copy_pass, delta_time);
+    m_shadow->update(copy_pass, delta_time);
 }
 
 void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
@@ -208,14 +170,15 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
         } else {
             m_picture = std::make_unique<storm::Picture>(texture);
         }
-        m_picture->set_screen_rect(m_screen_rect);
-    } else {
-        // if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
-        m_tRect.left   = 0.f;
-        m_tRect.top    = 0.f;
-        m_tRect.right  = 1.f;
-        m_tRect.bottom = 1.f;
+    } else if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) {
+        m_picture = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param));
     }
+
+    assert(m_picture);
+    m_picture->set_screen_rect(m_screen_rect);
+
+    m_shadow = std::make_unique<storm::ColoredRect>(storm::Color::from_hex(m_dwShadowColor));
+    m_shadow->set_screen_rect(m_screen_rect);
 
     // get offset button image in case pressed button
     tmpLPnt      = GetIniLongPoint(ini1, name1, ini2, name2, "pressPictureOffset", XYPOINT(0, 0));
@@ -276,7 +239,28 @@ void CXI_BUTTON::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
 
-    if (m_picture) { m_picture->set_rect(m_rect); }
+    m_rect_pressed = {
+        .left   = m_rect.left + fXDeltaPress,
+        .top    = m_rect.top + fYDeltaPress,
+        .right  = m_rect.right + fXDeltaPress,
+        .bottom = m_rect.bottom + fYDeltaPress,
+    };
+
+    if (m_shadow) {
+        m_shadow_rect = storm::FRect {
+            .left   = m_rect.left + fXShadow,
+            .top    = m_rect.top + fYShadow,
+            .right  = m_rect.right + fXShadow,
+            .bottom = m_rect.bottom + fYShadow,
+        };
+
+        m_shadow_rect_pressed = {
+            .left   = m_rect.left + fXShadowPress,
+            .top    = m_rect.top + fYShadowPress,
+            .right  = m_rect.right + fXShadowPress,
+            .bottom = m_rect.bottom + fYShadowPress,
+        };
+    }
 }
 
 void CXI_BUTTON::SaveParametersToIni()

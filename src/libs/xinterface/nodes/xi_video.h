@@ -4,7 +4,7 @@
 
 namespace storm
 {
-class TextureSequence;
+class Picture;
 }  // namespace storm
 
 // video
@@ -13,6 +13,8 @@ class CXI_VIDEO: public CINODE
 public:
     CXI_VIDEO();
     ~CXI_VIDEO() override;
+
+    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
 
     void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override;
     bool
@@ -30,8 +32,7 @@ public:
 protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
-    std::shared_ptr<storm::TextureSequence> m_video_tex;
-    std::string                             m_video_tex_name;
+    std::unique_ptr<storm::Picture> m_video;
 
     uint32_t m_dwColor;
     FXYRECT  m_rectTex;

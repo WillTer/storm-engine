@@ -122,14 +122,14 @@ auto XSERVICE::get_texture_uv(std::string_view const& image_list, std::string_vi
     return empty_rect;
 }
 
-auto XSERVICE::get_video_texture(std::string const& name) -> std::shared_ptr<storm::TextureSequence>
+auto XSERVICE::get_video_texture(std::string const& name) -> std::shared_ptr<storm::GPUTexture>
 {
     auto const hashed_name = entt::hashed_string(name.data());
     if (!m_cache.contains<storm::TextureSequence>(hashed_name)) {
         m_cache.add(hashed_name, std::make_shared<storm::TextureSequence>(name));
     }
 
-    return m_cache.get<storm::TextureSequence>(hashed_name);
+    return m_cache.get<storm::TextureSequence>(hashed_name)->get_target_texture();
 }
 
 bool XSERVICE::GetTexturePos(int32_t pictureNum, FXYRECT& texRect)
