@@ -87,15 +87,15 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         auto const texture = pPictureService->get_texture(m_pcGroupName);
 
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
-            m_picture = std::make_unique<storm::Picture>(texture, pPictureService->get_texture_uv(m_pcGroupName, param));
+            m_picture = std::make_unique<storm::Image2D>(texture, pPictureService->get_texture_uv(m_pcGroupName, param));
         } else {
-            m_picture = std::make_unique<storm::Picture>(texture);
+            m_picture = std::make_unique<storm::Image2D>(texture);
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
         auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.F, 0.F, 1.F, 1.F));
-        m_picture           = std::make_unique<storm::Picture>(param, tex_rect);
+        m_picture           = std::make_unique<storm::Image2D>(param, tex_rect);
     } else if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) {
-        m_picture = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param));
+        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
     }
 
     assert(m_picture);
@@ -160,9 +160,9 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 {
     ReleasePicture();
     if (video) {
-        m_picture = std::make_unique<storm::Picture>(pPictureService->get_video_texture(sNewTexName));
+        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(sNewTexName));
     } else {
-        m_picture = std::make_unique<storm::Picture>(sNewTexName);
+        m_picture = std::make_unique<storm::Image2D>(sNewTexName);
     }
 }
 
@@ -192,7 +192,7 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
         }
     }
 
-    m_picture = std::make_unique<storm::Picture>(
+    m_picture = std::make_unique<storm::Image2D>(
         pPictureService->get_texture(m_pcGroupName), pPictureService->get_texture_uv(m_pcGroupName, picName));
 }
 

@@ -198,12 +198,14 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     // get group name and get texture for this
     m_sGroupName = nullptr;
     m_idTex      = -1;
+
+    std::shared_ptr<storm::GPUTexture> button_texture = nullptr;
     if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) {
         auto const len = strlen(param) + 1;
         m_sGroupName   = new char[len];
         if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
         memcpy(m_sGroupName, param, len);
-        m_texture = pPictureService->get_texture(m_sGroupName);
+        button_texture = pPictureService->get_texture(m_sGroupName);
     }
 
     m_back = std::make_unique<storm::ColoredRect>(storm::Color::from_hex(m_dwBackColor));
@@ -213,7 +215,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
 
-        m_shadow = std::make_unique<storm::Picture>(param, shadow_uv);
+        m_shadow = std::make_unique<storm::Image2D>(param, shadow_uv);
         m_shadow->set_screen_rect(m_screen_rect);
         m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
     }
@@ -248,7 +250,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     // get video fragment parameters
     if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) {
-        m_selection = std::make_unique<storm::Picture>(pPictureService->get_video_texture(param));
+        m_selection = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
         m_selection->set_screen_rect(m_screen_rect);
         m_selection->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor) * 2);
     }
@@ -290,9 +292,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
             };
         }
 
-        auto left_pic   = std::make_unique<storm::Picture>(m_texture, left_uv);
-        auto middle_pic = std::make_unique<storm::Picture>(m_texture, middle_uv);
-        auto right_pic  = std::make_unique<storm::Picture>(m_texture, right_uv);
+        auto left_pic   = std::make_unique<storm::Image2D>(button_texture, left_uv);
+        auto middle_pic = std::make_unique<storm::Image2D>(button_texture, middle_uv);
+        auto right_pic  = std::make_unique<storm::Image2D>(button_texture, right_uv);
 
         m_button = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
         m_button->set_screen_rect(m_screen_rect);
@@ -300,9 +302,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     }
 
     {
-        auto left_pic   = std::make_unique<storm::Picture>(m_texture, !left_uv_selected.is_empty() ? left_uv_selected : left_uv);
-        auto middle_pic = std::make_unique<storm::Picture>(m_texture, !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv);
-        auto right_pic  = std::make_unique<storm::Picture>(m_texture, !right_uv_selected.is_empty() ? right_uv_selected : right_uv);
+        auto left_pic   = std::make_unique<storm::Image2D>(button_texture, !left_uv_selected.is_empty() ? left_uv_selected : left_uv);
+        auto middle_pic = std::make_unique<storm::Image2D>(button_texture, !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv);
+        auto right_pic  = std::make_unique<storm::Image2D>(button_texture, !right_uv_selected.is_empty() ? right_uv_selected : right_uv);
 
         m_button_selected = std::make_unique<storm::Button>(std::move(left_pic), std::move(middle_pic), std::move(right_pic));
         m_button_selected->set_screen_rect(m_screen_rect);

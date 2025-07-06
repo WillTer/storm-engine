@@ -4,7 +4,7 @@
 
 namespace storm
 {
-class Picture;
+class Image2D;
 class ColoredRect;
 }  // namespace storm
 
@@ -43,7 +43,7 @@ protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
 protected:
-    std::unique_ptr<storm::Picture>     m_picture;
+    std::unique_ptr<storm::Image2D>     m_picture;
     std::unique_ptr<storm::ColoredRect> m_shadow;
 
     storm::FRect m_rect_pressed;

@@ -942,7 +942,7 @@ void XInterface::LoadIni()
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
 
-    m_mouse_cursor = std::make_shared<storm::Picture>(param2);
+    m_mouse_cursor = std::make_shared<storm::Image2D>(param2);
     m_mouse_cursor->set_screen_rect(m_screen_rect);
 
     window->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
@@ -2277,7 +2277,7 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 if ((pImList->sImageListName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->picture = std::make_unique<storm::Picture>(
+            pImList->picture = std::make_unique<storm::Image2D>(
                 pPictureService->get_texture(pImList->sImageListName),
                 pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture));
             pImList->picture->set_screen_rect(m_screen_rect);

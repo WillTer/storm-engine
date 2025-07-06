@@ -8,7 +8,7 @@ class XInterface;
 namespace storm
 {
 
-class Picture;
+class Image2D;
 
 }
 
@@ -55,7 +55,7 @@ protected:
 
     char* m_pcGroupName;
 
-    std::unique_ptr<storm::Picture> m_picture;
+    std::unique_ptr<storm::Image2D> m_picture;
     storm::Color                    m_picture_color;
 
     bool     m_bMakeBlind;

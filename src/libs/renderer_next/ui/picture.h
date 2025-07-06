@@ -22,13 +22,13 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class Picture: public Image2DBase
+class Image2D: public Image2DBase
 {
 public:
-    Picture(std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
-    Picture(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect = default_texture_rect());
+    Image2D(std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
+    Image2D(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect = default_texture_rect());
 
-    ~Picture() override;
+    ~Image2D() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
     void draw(GPURenderPass const& render_pass) const;

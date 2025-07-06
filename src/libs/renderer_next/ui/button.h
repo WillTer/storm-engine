@@ -9,12 +9,12 @@ namespace storm
 
 class GPUCopyPass;
 class GPURenderPass;
-class Picture;
+class Image2D;
 
 class Button final
 {
 public:
-    Button(std::unique_ptr<Picture>&& left, std::unique_ptr<Picture>&& middle, std::unique_ptr<Picture>&& right);
+    Button(std::unique_ptr<Image2D>&& left, std::unique_ptr<Image2D>&& middle, std::unique_ptr<Image2D>&& right);
     ~Button();
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
@@ -27,9 +27,9 @@ public:
     auto get_middle_rect() const -> storm::FRect;
 
 private:
-    std::unique_ptr<Picture> m_left;
-    std::unique_ptr<Picture> m_middle;
-    std::unique_ptr<Picture> m_right;
+    std::unique_ptr<Image2D> m_left;
+    std::unique_ptr<Image2D> m_middle;
+    std::unique_ptr<Image2D> m_right;
 };
 
 }  // namespace storm

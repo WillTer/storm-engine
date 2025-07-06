@@ -14,7 +14,7 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class Picture;
+class Image2D;
 
 class TextureAtlasNamed final
 {

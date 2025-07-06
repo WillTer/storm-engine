@@ -14,7 +14,7 @@
 
 using namespace storm;
 
-Button::Button(std::unique_ptr<Picture>&& left, std::unique_ptr<Picture>&& middle, std::unique_ptr<Picture>&& right)
+Button::Button(std::unique_ptr<Image2D>&& left, std::unique_ptr<Image2D>&& middle, std::unique_ptr<Image2D>&& right)
     : m_left(std::move(left))
     , m_middle(std::move(middle))
     , m_right(std::move(right))

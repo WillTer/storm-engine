@@ -4,7 +4,7 @@
 
 namespace storm
 {
-class Picture;
+class Image2D;
 }  // namespace storm
 
 // video
@@ -32,7 +32,7 @@ public:
 protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
-    std::unique_ptr<storm::Picture> m_video;
+    std::unique_ptr<storm::Image2D> m_video;
 
     uint32_t m_dwColor;
     FXYRECT  m_rectTex;

@@ -19,11 +19,11 @@ struct ALIGN16 UBOFragment {
 };
 
 struct ALIGN16 AnimationUBOVertex {
-    int32_t frame;
-    int32_t h_frames_count;
-    int32_t v_frames_count;
-    int16_t flip_h;
-    int16_t flip_v;
+    int frame;
+    int h_frames_count;
+    int v_frames_count;
+    int flip_h;
+    int flip_v;
 };
 
 #ifdef __cplusplus

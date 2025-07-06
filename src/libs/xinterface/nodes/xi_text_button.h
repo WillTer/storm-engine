@@ -4,7 +4,7 @@
 
 namespace storm
 {
-class Picture;
+class Image2D;
 class Button;
 class ColoredRect;
 }  // namespace storm
@@ -49,13 +49,11 @@ protected:
     int32_t m_idTex;        // texture identity
     int32_t m_idShadowTex;  // shadow texture
 
-    std::shared_ptr<storm::GPUTexture> m_texture;
-
     std::unique_ptr<storm::Button> m_button;
     std::unique_ptr<storm::Button> m_button_selected;
 
-    std::unique_ptr<storm::Picture>     m_shadow;
-    std::unique_ptr<storm::Picture>     m_selection;
+    std::unique_ptr<storm::Image2D>     m_shadow;
+    std::unique_ptr<storm::Image2D>     m_selection;
     std::unique_ptr<storm::ColoredRect> m_back;
 
     storm::FRect m_rect_pressed;

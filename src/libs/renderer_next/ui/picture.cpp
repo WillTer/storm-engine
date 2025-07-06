@@ -25,7 +25,7 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-Picture::Picture(std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
+Image2D::Image2D(std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
 {
     auto const& asset_server = core->get<AssetServer>();
     auto const& renderer     = core->get<RendererService>();
@@ -38,15 +38,15 @@ Picture::Picture(std::filesystem::path const& texture, storm::FRect const& textu
     initialize(texture_rect);
 }
 
-Picture::Picture(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
+Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
     : m_texture(external_texture)
 {
     initialize(texture_rect);
 }
 
-Picture::~Picture() = default;
+Image2D::~Image2D() = default;
 
-void Picture::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
+void Image2D::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
 {
     if (m_need_upload) {
         if (!m_upload_data.texture_data.empty()) {
@@ -62,7 +62,7 @@ void Picture::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
     }
 }
 
-void Picture::draw(GPURenderPass const& render_pass) const
+void Image2D::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
@@ -74,7 +74,7 @@ void Picture::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Picture::initialize(storm::FRect const& texture_rect)
+void Image2D::initialize(storm::FRect const& texture_rect)
 {
     auto const& renderer = core->get<RendererService>();
 
@@ -101,7 +101,7 @@ void Picture::initialize(storm::FRect const& texture_rect)
     m_need_upload = true;
 }
 
-void Picture::set_diffuse_color(storm::Color const& color)
+void Image2D::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
     m_fragment_ubo.color    = float4(r, g, b, a);
