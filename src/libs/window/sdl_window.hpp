@@ -28,6 +28,8 @@ public:
     void SetFullscreen(bool fullscreen) override;
     void Resize(int width, int height) override;
     void WarpMouseInWindow(int x, int y) override;
+    auto get_mouse_pos() const -> std::pair<float, float> override;
+    void show_cursor(bool is_shown) override;
     void SetTitle(std::string const& title) override;
     void SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256]) override;
 

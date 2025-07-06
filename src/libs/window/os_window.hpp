@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace storm
 {
@@ -57,6 +58,10 @@ public:
     virtual void Resize(int width, int height) = 0;
     //! Warp mouse
     virtual void WarpMouseInWindow(int x, int y) = 0;
+    //! Mouse position
+    virtual auto get_mouse_pos() const -> std::pair<float, float> = 0;
+    //! Toggle mouse cursor
+    virtual void show_cursor(bool is_shown) = 0;
     //! Set window title
     virtual void SetTitle(std::string const& title) = 0;
     //! Set window gamma

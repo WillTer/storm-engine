@@ -9,6 +9,7 @@
 #include <libs/steam_api/steam_api.hpp>
 #include <libs/util/fs.h>
 #include <libs/util/string_compare.hpp>
+#include <libs/window/os_window.hpp>
 #include <spdlog/spdlog.h>
 
 #include "compiler.h"
@@ -240,9 +241,7 @@ void CoreImpl::ProcessEngineIniFile()
         if (script_version_data != nullptr) { script_version_data->Get(script_version); }
 
         if (script_version != ENGINE_SCRIPT_VERSION) {
-#ifdef _WIN32  // FIX_LINUX Cursor
-            ShowCursor(true);
-#endif
+            window_->show_cursor(true);
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "Wrong script version", nullptr);
             Compiler->ExitProgram();
         }

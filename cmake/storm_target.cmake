@@ -26,7 +26,9 @@ set(GNU_CXX_FLAGS_RELEASE -O3)
 set(MSVC_CXX_FLAGS_WARNINGS /WX /W2)
 set(GNU_CXX_FLAGS_WARNINGS -Wall -Werror=return-type -Werror=uninitialized -Werror=address)
 
-set(MSVC_CXX_FLAGS_WARNINGS_FULL /WX /W4)
+set(MSVC_CXX_FLAGS_WARNINGS_FULL /WX /W4
+    /wd4324 # Do not complain about alignment
+)
 set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror)
 
 set(MSVC_CXX_FLAGS

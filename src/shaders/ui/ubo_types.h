@@ -9,12 +9,12 @@ namespace storm::shaders
 #define ALIGN16
 #endif
 
-struct UBOVertex {
+struct ALIGN16 UBOVertex {
     float4x4 model;
     float4x4 view_proj;
 };
 
-struct UBOFragment {
+struct ALIGN16 UBOFragment {
     float4 color;
 };
 

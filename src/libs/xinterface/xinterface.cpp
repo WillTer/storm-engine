@@ -860,7 +860,8 @@ void XInterface::LoadIni()
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / RESOURCE_FILENAME);
     if (!ini) throw std::runtime_error("ini file not found!");
 
-    auto windowSize = core->GetWindow()->GetWindowSize();
+    auto* window     = core->GetWindow();
+    auto  windowSize = window->GetWindowSize();
 
     fScale                = 1.0f;
     auto const screenSize = core->GetScreenSize();
@@ -944,12 +945,11 @@ void XInterface::LoadIni()
     m_mouse_cursor = std::make_shared<storm::Picture>(param2);
     m_mouse_cursor->set_screen_rect(m_screen_rect);
 
-    core->GetWindow()->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
+    window->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
     fXMousePos = static_cast<float>(dwScreenWidth / 2);
     fYMousePos = static_cast<float>(dwScreenHeight / 2);
-#ifdef _WIN32  // FIX_LINUX Cursor
-    ShowCursor(false);
-#endif
+
+    window->show_cursor(false);
 
     // set blind parameters
     m_fBlindSpeed = ini->GetFloat(section, "BlindTime", 1.f);
@@ -1093,8 +1093,22 @@ void XInterface::LoadDialog(char const* sFileName)
 
 void XInterface::update_stage(storm::GPUCopyPass const& copy_pass, uint32_t delta_time /*= 0*/)
 {
+    // Do mouse move
+    auto* pOldNode = m_pCurNode;
+    MouseMove();
+    if (pOldNode != m_pCurNode) {
+        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
+    }
+
     pPictureService->update_stage(copy_pass, delta_time);
     m_mouse_cursor->update(copy_pass, delta_time);
+
+    m_mouse_cursor->set_rect({
+        .left   = fXMousePos - (MouseSize.x / 2.0F),
+        .top    = fYMousePos - (MouseSize.y / 2.0F),
+        .right  = fXMousePos + (MouseSize.x / 2.0F),
+        .bottom = fYMousePos + (MouseSize.y / 2.0F),
+    });
 
     nodes_update(copy_pass, m_pNodes, delta_time);
 }
@@ -1110,13 +1124,6 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t de
 {
     if (!m_bUse || !bActive) { return; }
     DrawNode(render_pass, m_pNodes, delta_time, 0, 80);
-
-    // Do mouse move
-    auto* pOldNode = m_pCurNode;
-    MouseMove();
-    if (pOldNode != m_pCurNode) {
-        core->Event(ISOUND_EVENT, "l", 2);  // choosing a new node
-    }
 
     DrawNode(render_pass, m_pNodes, delta_time, 81, 90);
 
@@ -1161,16 +1168,7 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t de
     DrawNode(render_pass, m_pNodes, delta_time, 91, 65536);
 
     // Mouse pointer show
-    if (m_bShowMouse) {
-        m_mouse_cursor->set_rect({
-            .left   = fXMousePos - (MouseSize.x / 2.0F),
-            .top    = fYMousePos - (MouseSize.y / 2.0F),
-            .right  = fXMousePos + (MouseSize.x / 2.0F),
-            .bottom = fYMousePos + (MouseSize.y / 2.0F),
-        });
-
-        m_mouse_cursor->draw(render_pass);
-    }
+    if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
 }
 
 void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)

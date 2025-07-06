@@ -1,5 +1,6 @@
 #include "pcs_controls.h"
 
+#include <SDL3/SDL_mouse.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
@@ -374,25 +375,24 @@ bool PcsControls::GetControlState(int32_t control_code, CONTROL_STATE& _state_st
 
 void PcsControls::Update(uint32_t DeltaTime)
 {
-#ifdef _WIN32
-    static int nMouseXPrev, nMouseYPrev;
+    static int mouse_x_prev = 0;
+    static int mouse_y_prev = 0;
     if (updateCursor_) {
-        POINT point;
-        GetCursorPos(&point);
+        auto* window = core->GetWindow();
 
-        nMouseDx = point.x - nMouseXPrev;
-        nMouseDy = point.y - nMouseYPrev;
+        auto const [mouse_x, mouse_y] = window->get_mouse_pos();
 
-        RECT r;
-        GetWindowRect(static_cast<HWND>(core->GetWindow()->OSHandle()), &r);
-        nMouseXPrev = r.left + (r.right - r.left) / 2;
-        nMouseYPrev = r.top + (r.bottom - r.top) / 2;
-        SetCursorPos(nMouseXPrev, nMouseYPrev);
+        nMouseDx = mouse_x - mouse_x_prev;
+        nMouseDy = mouse_y - mouse_y_prev;
+
+        auto const rect = window->GetWindowSize();
+        mouse_x_prev    = rect.width / 2;
+        mouse_y_prev    = rect.height / 2;
+        window->WarpMouseInWindow(mouse_x_prev, mouse_y_prev);
     } else {
         nMouseDx = 0;
         nMouseDy = 0;
     }
-#endif
 
     m_ControlTree.Process();
     m_KeyBuffer.Reset();

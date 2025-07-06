@@ -22,10 +22,6 @@ SDLWindow::SDLWindow(
 
     SDL_DestroyProperties(props);
 
-    // #if !defined(_WIN32)
-    //     SDL_SetWindowRelativeMouseMode(window_.get(), true);
-    // #endif
-
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered);
     SDL_AddEventWatch(&SDLEventHandler, this);
@@ -99,6 +95,23 @@ void SDLWindow::Resize(int width, int height)
 void SDLWindow::WarpMouseInWindow(int x, int y)
 {
     SDL_WarpMouseInWindow(window_.get(), static_cast<float>(x), static_cast<float>(y));
+}
+
+auto SDLWindow::get_mouse_pos() const -> std::pair<float, float>
+{
+    float mouse_x = 0.0F;
+    float mouse_y = 0.0F;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    return std::make_pair(mouse_x, mouse_y);
+}
+
+void SDLWindow::show_cursor(bool is_shown)
+{
+    if (is_shown) {
+        SDL_ShowCursor();
+    } else {
+        SDL_HideCursor();
+    }
 }
 
 void SDLWindow::SetTitle(std::string const& title)

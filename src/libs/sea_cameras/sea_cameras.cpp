@@ -1,6 +1,7 @@
 #include "sea_cameras.h"
 
 #include <libs/shared_headers/sea_ai/script_defines.h>
+#include <libs/window/os_window.hpp>
 
 #include "deck_camera.h"
 #include "free_camera.h"
@@ -9,12 +10,12 @@
 SeaCameras::SeaCameras()
 {
     bActive = true;
-    //    ShowCursor(false);
+    core->GetWindow()->show_cursor(false);
 }
 
 SeaCameras::~SeaCameras()
 {
-    //    ShowCursor(true);
+    core->GetWindow()->show_cursor(true);
 }
 
 void SeaCameras::ProcessMessage(uint32_t iMsg, uint32_t wParam, uint32_t lParam) {}
