@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <entt/core/fwd.hpp>
 #include <libs/renderer_next/types.h>

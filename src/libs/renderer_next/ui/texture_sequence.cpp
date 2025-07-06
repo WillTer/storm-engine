@@ -16,16 +16,16 @@
 using namespace storm;
 using namespace hlslpp;
 
-using SequenceVertex = shaders::texture_sequence::VertexInput;
+using Vertex = shaders::texture_sequence::VertexInput;
 
 namespace
 {
 
-auto const SQUARE_VERTICES = std::vector<SequenceVertex> {
-    SequenceVertex {{-1.0F, -1.0F, 0.0F, 1.0F}},
-    SequenceVertex {{1.0F, -1.0F, 0.0F, 1.0F}},
-    SequenceVertex {{1.0F, 1.0F, 0.0F, 1.0F}},
-    SequenceVertex {{-1.0F, 1.0F, 0.0F, 1.0F}},
+auto const SQUARE_VERTICES = std::vector<Vertex> {
+    Vertex {{-1.0F, -1.0F, 0.0F, 1.0F}},
+    Vertex {{1.0F, -1.0F, 0.0F, 1.0F}},
+    Vertex {{1.0F, 1.0F, 0.0F, 1.0F}},
+    Vertex {{-1.0F, 1.0F, 0.0F, 1.0F}},
 };
 
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};

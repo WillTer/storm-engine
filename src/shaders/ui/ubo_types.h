@@ -26,6 +26,13 @@ struct ALIGN16 AnimationUBOVertex {
     int flip_v;
 };
 
+struct ALIGN16 FontUBOVertex {
+    float4x4 model;
+    float4x4 view_proj;
+    // x - left, y - top, z - right, w - bottom
+    float4 tex_coords;
+};
+
 #ifdef __cplusplus
 }  // namespace storm::shaders
 #endif

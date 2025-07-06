@@ -7,6 +7,7 @@ namespace storm
 class Image2D;
 class Button;
 class ColoredRect;
+class Font;
 }  // namespace storm
 
 // picture
@@ -18,6 +19,7 @@ public:
     CXI_TEXTBUTTON();
     ~CXI_TEXTBUTTON() override;
 
+    void pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) override;
     void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override;
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
@@ -59,6 +61,9 @@ protected:
     storm::FRect m_rect_pressed;
     storm::FRect m_shadow_rect;
     storm::FRect m_shadow_rect_pressed;
+
+    std::unique_ptr<storm::Font>    m_font;
+    std::unique_ptr<storm::Image2D> m_text;
 
     uint32_t m_dwShadowColor;        // shadow color
     uint32_t m_dwFaceColor;          // unpressed key color

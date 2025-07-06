@@ -3,8 +3,6 @@
 #include <filesystem>
 #include <string>
 
-#include <libs/util/probability_table.hpp>
-
 namespace storm
 {
 

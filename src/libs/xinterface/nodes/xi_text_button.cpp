@@ -3,6 +3,7 @@
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/button.h>
 #include <libs/renderer_next/ui/colored_rect.h>
+#include <libs/renderer_next/ui/font.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
@@ -32,11 +33,30 @@ CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 
     m_selection = nullptr;
     m_back      = nullptr;
+    m_font      = nullptr;
+    m_text      = nullptr;
 }
 
 CXI_TEXTBUTTON::~CXI_TEXTBUTTON()
 {
     ReleaseAll();
+}
+
+void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time)
+{
+    if (m_font && !m_text && (m_idString != -1 || m_sString != nullptr)) {
+        m_text = std::make_unique<storm::Image2D>(m_font->print(
+            cmd_buffer,
+            storm::Color::from_hex(0xFFFFFFFF),
+            storm::Color::from_hex(0),
+            storm::Font::Alignment::Center,
+            true,  // draw_shadow
+            m_fFontScale,
+            m_rect.right - m_rect.left,
+            m_rect.bottom - m_rect.top,
+            m_idString != -1 ? pStringService->GetString(m_idString) : m_sString));
+        m_text->set_screen_rect(m_screen_rect);
+    }
 }
 
 void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
@@ -65,76 +85,14 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
             if (bSelected && m_selection) { m_selection->draw(render_pass); }
         }
 
-        if (m_idString != -1 || m_sString != nullptr)
-            if (m_nPressedDelay > 0) {
-                // m_rs->ExtPrint(
-                //     m_nFontNum,
-                //     m_dwPressedFontColor,
-                //     0,
-                //     PR_ALIGN_CENTER,
-                //     true,
-                //     m_fFontScale,
-                //     m_screenSize.x,
-                //     m_screenSize.y,
-                //     (m_rect.left + m_rect.right) / 2 + static_cast<int>(m_fXDeltaPress),
-                //     m_rect.top + m_dwStrOffset + static_cast<int>(m_fYDeltaPress),
-                //     "%s",
-                //     m_idString != -1 ? pStringService->GetString(m_idString) : m_sString);
-            } else {
-                if (m_bSelected) {
-                    // if (m_bCurrentSelected) {
-                    //     m_rs->ExtPrint(
-                    //         m_nFontNum,
-                    //         m_dwSelectedFontColor,
-                    //         0,
-                    //         PR_ALIGN_CENTER,
-                    //         true,
-                    //         m_fFontScale,
-                    //         m_screenSize.x,
-                    //         m_screenSize.y,
-                    //         (m_rect.left + m_rect.right) / 2,
-                    //         m_rect.top + m_dwStrOffset,
-                    //         "%s",
-                    //         m_idString != -1 ? pStringService->GetString(m_idString) : m_sString);
-                    // } else {
-                    //     m_rs->ExtPrint(
-                    //         m_nFontNum,
-                    //         m_dwFontColor,
-                    //         0,
-                    //         PR_ALIGN_CENTER,
-                    //         true,
-                    //         m_fFontScale,
-                    //         m_screenSize.x,
-                    //         m_screenSize.y,
-                    //         (m_rect.left + m_rect.right) / 2,
-                    //         m_rect.top + m_dwStrOffset,
-                    //         "%s",
-                    //         m_idString != -1 ? pStringService->GetString(m_idString) : m_sString);
-                    // }
-                } else {
-                    // m_rs->ExtPrint(
-                    //     m_nFontNum,
-                    //     m_dwUnselFontColor,
-                    //     0,
-                    //     PR_ALIGN_CENTER,
-                    //     true,
-                    //     m_fFontScale,
-                    //     m_screenSize.x,
-                    //     m_screenSize.y,
-                    //     (m_rect.left + m_rect.right) / 2,
-                    //     m_rect.top + m_dwStrOffset,
-                    //     "%s",
-                    //     m_idString != -1 ? pStringService->GetString(m_idString) : m_sString);
-                }
-            }
+        if (m_text) { m_text->draw(render_pass); }
     }
 }
 
 bool CXI_TEXTBUTTON::Init(
     INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
-    return true;
+    return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
 void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
@@ -146,14 +104,16 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_
         m_back->set_rect(m_rect_pressed);
         m_button->set_rect(m_rect_pressed);
         m_button_selected->set_rect(m_rect_pressed);
-        m_shadow->set_rect(m_shadow_rect_pressed);
+        if (m_shadow) { m_shadow->set_rect(m_shadow_rect_pressed); }
         if (m_selection) { m_selection->set_rect(m_rect_pressed); }
+        if (m_text) { m_text->set_rect(m_rect_pressed); }
     } else {
         m_back->set_rect(m_rect);
         m_button->set_rect(m_rect);
         m_button_selected->set_rect(m_rect);
-        m_shadow->set_rect(m_shadow_rect);
+        if (m_shadow) { m_shadow->set_rect(m_shadow_rect); }
         if (m_selection) { m_selection->set_rect(m_rect); }
+        if (m_text) { m_text->set_rect(m_rect); }
     }
 
     m_back->update(copy_pass, delta_time);
@@ -161,6 +121,24 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_
     m_button_selected->update(copy_pass, delta_time);
     if (m_shadow) { m_shadow->update(copy_pass, delta_time); }
     if (m_selection) { m_selection->update(copy_pass, delta_time); }
+    if (m_text) { m_text->update(copy_pass, delta_time); }
+
+    if (m_nPressedDelay > 0) {
+        m_button->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
+        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
+        if (m_text) { m_text->set_diffuse_color(storm::Color::from_hex(m_dwPressedFontColor)); }
+    } else {
+        m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+
+        if (m_text) {
+            if (m_bSelected) {
+                m_text->set_diffuse_color(storm::Color::from_hex(m_dwFontColor));
+            } else {
+                m_text->set_diffuse_color(storm::Color::from_hex(m_dwUnselFontColor));
+            }
+        }
+    }
 }
 
 void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
@@ -239,7 +217,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_nMaxDelay = GetIniLong(ini1, name1, ini2, name2, "pressDelay", 20);
 
     // get string parameters
-    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
+    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) { m_font = std::make_unique<storm::Font>(param); }
     //     if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
@@ -309,7 +287,16 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 void CXI_TEXTBUTTON::ReleaseAll()
 {
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName, m_idTex);
-    // TEXTURE_RELEASE(m_rs, m_idShadowTex);
+
+    m_button.reset();
+    m_button_selected.reset();
+
+    m_shadow.reset();
+    m_selection.reset();
+    m_back.reset();
+
+    m_font.reset();
+    m_text.reset();
 
     delete[] m_sGroupName;
     m_sGroupName = nullptr;

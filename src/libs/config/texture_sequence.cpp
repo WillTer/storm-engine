@@ -1,5 +1,6 @@
 #include "texture_sequence.h"
 
+#include <algorithm>
 #include <format>
 
 #include <libs/config/i_config_loader.h>
