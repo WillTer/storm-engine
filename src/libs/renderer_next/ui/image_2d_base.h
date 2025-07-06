@@ -1,13 +1,14 @@
 #pragma once
 
 #include <libs/renderer_next/hlslpp.h>
+#include <libs/renderer_next/i_drawable.h>
 #include <libs/renderer_next/types.h>
 #include <shaders/ui/ubo_types.h>
 
 namespace storm
 {
 
-class Image2DBase
+class Image2DBase: virtual public IDrawable
 {
 public:
     Image2DBase(storm::FRect const& rect = {});

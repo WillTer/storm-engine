@@ -22,7 +22,7 @@ class GPUTexture;
 class GPUCopyPass;
 class GPURenderPass;
 
-class Image2D: public Image2DBase
+class Image2D final: public Image2DBase
 {
 public:
     Image2D(std::filesystem::path const& texture, storm::FRect const& texture_rect = default_texture_rect());
@@ -30,8 +30,8 @@ public:
 
     ~Image2D() override;
 
-    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
-    void draw(GPURenderPass const& render_pass) const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
+    void draw(GPURenderPass const& render_pass) const override;
 
     void set_diffuse_color(storm::Color const& color);
 

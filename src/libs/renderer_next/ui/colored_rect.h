@@ -24,11 +24,10 @@ class ColoredRect final: public Image2DBase
 {
 public:
     ColoredRect(storm::Color const& color);
-
     ~ColoredRect() override;
 
-    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
-    void draw(GPURenderPass const& render_pass) const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
+    void draw(GPURenderPass const& render_pass) const override;
 
     void set_color(storm::Color const& color);
 

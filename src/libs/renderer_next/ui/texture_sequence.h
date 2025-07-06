@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
+#include <libs/renderer_next/i_pre_drawable.h>
 #include <libs/renderer_next/types.h>
 #include <shaders/ui/ubo_types.h>
 
@@ -20,14 +21,14 @@ class GPUCommandBuffer;
 class GPUCopyPass;
 class GPURenderPass;
 
-class TextureSequence final
+class TextureSequence final: virtual public IPreDrawable
 {
 public:
     TextureSequence(std::string const& name);
-    ~TextureSequence();
+    ~TextureSequence() override;
 
-    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
-    void pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t delta_time) const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
+    void pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t delta_time) const override;
 
     auto get_target_texture() const -> std::shared_ptr<GPUTexture>;
 

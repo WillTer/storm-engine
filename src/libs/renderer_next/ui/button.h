@@ -31,8 +31,8 @@ public:
         storm::FRect const&                button_rect);
     ~Button() override;
 
-    void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
-    void draw(GPURenderPass const& render_pass) const;
+    void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
+    void draw(GPURenderPass const& render_pass) const override;
 
     void set_diffuse_color(storm::Color const& color);
 
