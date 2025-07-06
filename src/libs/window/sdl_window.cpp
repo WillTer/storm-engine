@@ -97,12 +97,12 @@ void SDLWindow::WarpMouseInWindow(int x, int y)
     SDL_WarpMouseInWindow(window_.get(), static_cast<float>(x), static_cast<float>(y));
 }
 
-auto SDLWindow::get_mouse_pos() const -> std::pair<float, float>
+auto SDLWindow::get_mouse_pos() const -> std::pair<int, int>
 {
     float mouse_x = 0.0F;
     float mouse_y = 0.0F;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    return std::make_pair(mouse_x, mouse_y);
+    return std::make_pair(static_cast<int>(mouse_x), static_cast<int>(mouse_y));
 }
 
 void SDLWindow::show_cursor(bool is_shown)

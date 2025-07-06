@@ -59,7 +59,7 @@ public:
     //! Warp mouse
     virtual void WarpMouseInWindow(int x, int y) = 0;
     //! Mouse position
-    virtual auto get_mouse_pos() const -> std::pair<float, float> = 0;
+    virtual auto get_mouse_pos() const -> std::pair<int, int> = 0;
     //! Toggle mouse cursor
     virtual void show_cursor(bool is_shown) = 0;
     //! Set window title
