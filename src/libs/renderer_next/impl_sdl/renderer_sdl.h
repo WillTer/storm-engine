@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <span>
 
 #include <entt/core/fwd.hpp>
 #include <libs/renderer_next/types.h>
@@ -17,8 +16,6 @@ namespace storm
 
 class IConfigLoader;
 class AssetServer;
-struct ShaderAsset;
-struct TxFileHeader;
 
 class GPUVertexBuffer;
 class GPUIndexBuffer;
@@ -38,24 +35,20 @@ public:
     [[nodiscard]] auto create_pipeline(entt::hashed_string const& name) -> std::shared_ptr<GraphicsPipeline>;
 
     template <typename T>
-        requires std::is_same_v<std::remove_cv_t<T>, uint32_t>
-    [[nodiscard]] auto create_index_buffer(std::span<T> const& buffer) -> std::unique_ptr<GPUIndexBuffer>
-    {
-        return create_index_buffer(buffer.size());
-    }
-
-    template <typename T>
         requires has_shader_layout<T>
-    [[nodiscard]] auto create_vertex_buffer(std::span<T> const& buffer) -> std::unique_ptr<GPUVertexBuffer>
+    [[nodiscard]] auto create_vertex_buffer(std::vector<T> const& buffer) -> std::shared_ptr<GPUVertexBuffer>
     {
-        return create_vertex_buffer(buffer.size(), sizeof(buffer[0]));
+        return create_vertex_buffer(buffer.data(), buffer.size(), sizeof(buffer[0]));
     }
 
-    [[nodiscard]] auto create_texture(entt::hashed_string const& name, TxFileHeader const& file_header) -> std::shared_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>;
     [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
-    [[nodiscard]] auto create_index_buffer(size_t index_count) -> std::unique_ptr<GPUIndexBuffer>;
-    [[nodiscard]] auto create_vertex_buffer(size_t vertex_count, size_t vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>;
+    [[nodiscard]] auto create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>;
+    [[nodiscard]] auto create_vertex_buffer(void const* data, size_t vertex_count, size_t vertex_type_size)
+        -> std::shared_ptr<GPUVertexBuffer>;
+
+    void upload_pending_data(storm::GPUCopyPass const& copy_pass);
 
     auto acquire_command_buffer() const -> std::unique_ptr<GPUCommandBuffer>;
 

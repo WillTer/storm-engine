@@ -153,7 +153,8 @@ bool CoreImpl::Run()
 
     {
         auto const copy_pass = cmd_buffer->start_copy_pass();
-        ProcessExecute(*copy_pass);  // transfer control to objects via Execute() function
+        renderer->upload_pending_data(*copy_pass);  // Upload pending buffers before any other update
+        ProcessExecute(*copy_pass);                 // transfer control to objects via Execute() function
     }
     process_pre_draw(*cmd_buffer);
     {

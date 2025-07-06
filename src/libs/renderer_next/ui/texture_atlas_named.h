@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <memory>
 #include <unordered_map>
-#include <vector>
 
 #include <libs/renderer_next/types.h>
 
@@ -29,12 +28,6 @@ public:
     auto get_texture() const -> std::shared_ptr<GPUTexture>;
 
 private:
-    bool m_need_upload;
-
-    struct UploadData {
-        std::vector<char> texture_data;
-    } m_upload_data;
-
     uint32_t m_width;
     uint32_t m_height;
 

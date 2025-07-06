@@ -7,7 +7,22 @@
 
 using namespace storm;
 
-GPUBuffer::GPUBuffer() {}
+GPUBuffer::GPUBuffer(std::shared_ptr<SDL_GPUDevice> const& device, void const* data, uint32_t data_size) : m_transfer_size(data_size)
+{
+    auto transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
+    transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    transfer_buffer_create_info.size  = data_size;
+
+    m_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
+        SDL_CreateGPUTransferBuffer(device.get(), &transfer_buffer_create_info),
+        [device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
+    if (!m_transfer_buffer) { throw std::runtime_error(std::format("Failed to create vertex transfer buffer: {}", SDL_GetError())); }
+
+    void* const transfer_data = SDL_MapGPUTransferBuffer(device.get(), m_transfer_buffer.get(), false);
+    std::memcpy(transfer_data, data, data_size);
+    SDL_UnmapGPUTransferBuffer(device.get(), m_transfer_buffer.get());
+}
+
 GPUBuffer::~GPUBuffer() = default;
 
 void GPUBuffer::update(
@@ -57,35 +72,22 @@ void GPUBuffer::update(
     }
 }
 
-void GPUBuffer::upload(
-    std::shared_ptr<SDL_GPUDevice> const&   device,
-    std::shared_ptr<SDL_GPUCopyPass> const& copy_pass,
-    void const*                             data,
-    uint32_t                                data_size) const
+void GPUBuffer::upload(std::shared_ptr<SDL_GPUCopyPass> const& copy_pass)
 {
-    auto transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
-    transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-    transfer_buffer_create_info.size  = data_size;
-
-    auto const transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
-        SDL_CreateGPUTransferBuffer(device.get(), &transfer_buffer_create_info),
-        [device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
-    if (!transfer_buffer) { throw std::runtime_error(std::format("Failed to create vertex transfer buffer: {}", SDL_GetError())); }
-
-    void* const transfer_data = SDL_MapGPUTransferBuffer(device.get(), transfer_buffer.get(), false);
-    std::memcpy(transfer_data, data, data_size);
-    SDL_UnmapGPUTransferBuffer(device.get(), transfer_buffer.get());
+    if (!m_transfer_buffer) { return; }
 
     auto const transfer_location = SDL_GPUTransferBufferLocation {
-        .transfer_buffer = transfer_buffer.get(),
+        .transfer_buffer = m_transfer_buffer.get(),
         .offset          = 0,
     };
 
     auto const buffer_region = SDL_GPUBufferRegion {
         .buffer = m_buffer.get(),
         .offset = 0,
-        .size   = data_size,
+        .size   = m_transfer_size,
     };
 
     SDL_UploadToGPUBuffer(copy_pass.get(), &transfer_location, &buffer_region, false);
+
+    m_transfer_buffer.reset();
 }

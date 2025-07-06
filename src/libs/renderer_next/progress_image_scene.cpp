@@ -1,9 +1,7 @@
 #include "progress_image_scene.h"
 
 #include <cassert>
-#include <span>
 
-#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <shaders/ui/common_ui.h>
 
@@ -33,8 +31,8 @@ std::vector const SQUARE_VERTICES = {
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
-constexpr entt::hashed_string PROGRESS_TEX = "loading/progress.tga";
-constexpr entt::hashed_string BORDER_TEX   = "loading/int_border.tga";
+constexpr char const PROGRESS_TEX[] = "loading/progress.tga";
+constexpr char const BORDER_TEX[]   = "loading/int_border.tga";
 
 // Loading screen textures are made for 4:3 screens
 // TODO: maybe need to set up this in configuration files
@@ -57,9 +55,7 @@ std::pair<float, float> get_loading_picture_offset(FRect const& viewport, float 
 }  // namespace
 
 ProgressImageScene::ProgressImageScene(
-    std::shared_ptr<AssetServer> const&     asset_server,
-    std::shared_ptr<IConfigLoader> const&   config_loader,
-    std::shared_ptr<RendererService> const& renderer)
+    std::shared_ptr<IConfigLoader> const& config_loader, std::shared_ptr<RendererService> const& renderer)
 {
     m_progress_info = main_config::progress_image_info(*config_loader);
 
@@ -67,24 +63,14 @@ ProgressImageScene::ProgressImageScene(
         auto command_buffer = renderer->acquire_command_buffer();
         auto copy_pass      = command_buffer->start_copy_pass();
 
-        auto const progress_texture = asset_server->load_texture_file(PROGRESS_TEX.data());
-        m_progress                  = renderer->create_texture(PROGRESS_TEX, progress_texture.header);
-        copy_pass->upload(*m_progress, std::span(progress_texture.data));
+        m_progress = renderer->create_texture(PROGRESS_TEX);
+        if (m_progress_info.frame) { m_frame = renderer->create_texture(BORDER_TEX); }
 
-        if (m_progress_info.frame) {
-            auto const frame_texture = asset_server->load_texture_file(BORDER_TEX.data());
-            m_frame                  = renderer->create_texture(BORDER_TEX, frame_texture.header);
-            copy_pass->upload(*m_frame, std::span(frame_texture.data));
-        }
+        m_vertex_buffer_back     = renderer->create_vertex_buffer(SQUARE_VERTICES);
+        m_vertex_buffer_progress = renderer->create_vertex_buffer(SQUARE_VERTICES);
+        m_index_buffer           = renderer->create_index_buffer(SQUARE_INDICES);
 
-        m_vertex_buffer_back = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
-        copy_pass->upload(*m_vertex_buffer_back, std::span(SQUARE_VERTICES));
-
-        m_vertex_buffer_progress = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
-        copy_pass->upload(*m_vertex_buffer_progress, std::span(SQUARE_VERTICES));
-
-        m_index_buffer = renderer->create_index_buffer(SQUARE_INDICES.size());
-        copy_pass->upload(*m_index_buffer, std::span(SQUARE_INDICES));
+        renderer->upload_pending_data(*copy_pass);
     }
 
     m_pipeline = renderer->create_pipeline(COMMON_UI_PIPELINE);
@@ -177,7 +163,7 @@ void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
 
     auto const progress_update_info =
         std::vector(4, BufferUpdateInfo {.offset = offsetof(ImageVertex, tex_coord), .size = sizeof(ImageVertex::tex_coord)});
-    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, std::span(progress_tex_buffer), sizeof(ImageVertex));
+    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, progress_tex_buffer, sizeof(ImageVertex));
 
     ++m_current_frame;
     if (m_current_frame >= x_count * y_count) { m_current_frame = 0; }

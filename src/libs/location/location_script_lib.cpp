@@ -2,7 +2,6 @@
 
 #include <thread>
 
-#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/core/s_import_func.h>
@@ -199,16 +198,10 @@ uint32_t slNativeSetReloadBackImage(VS_STACK* pS)
     char const* nm   = nullptr;
     if (!pStr->Get(nm)) return IFUNCRESULT_FAILED;
 
-    auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
-    auto const texture_asset = asset_server->load_texture_file(nm);
-    auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-    auto cmd_buffer = renderer->acquire_command_buffer();
-    auto copy_pass  = cmd_buffer->start_copy_pass();
-    copy_pass->upload(*texture, std::span(texture_asset.data));
+    auto texture = renderer->create_texture(nm);
     progress_image->set_picture(std::move(texture));
 
     return IFUNCRESULT_OK;

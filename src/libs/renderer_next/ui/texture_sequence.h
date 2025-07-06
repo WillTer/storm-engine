@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/i_pre_drawable.h>
@@ -33,12 +32,6 @@ public:
     auto get_target_texture() const -> std::shared_ptr<GPUTexture>;
 
 private:
-    bool m_need_upload;
-
-    struct UploadData {
-        std::vector<char> texture_data;
-    } m_upload_data;
-
     uint32_t m_time_delay;
     uint64_t m_delta_time;
 
@@ -49,8 +42,8 @@ private:
     std::shared_ptr<GPUTexture> m_target;
     std::shared_ptr<GPUTexture> m_texture;
 
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer;
-    std::unique_ptr<GPUIndexBuffer>  m_index_buffer;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer;
+    std::shared_ptr<GPUIndexBuffer>  m_index_buffer;
 };
 
 }  // namespace storm

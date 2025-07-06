@@ -1,7 +1,6 @@
 #include "texture_atlas_named.h"
 
 #include <cassert>
-#include <span>
 
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
@@ -15,30 +14,15 @@ using namespace storm;
 
 TextureAtlasNamed::TextureAtlasNamed(std::filesystem::path const& texture)
 {
-    auto const& asset_server = core->get<AssetServer>();
-    auto const& renderer     = core->get<RendererService>();
+    auto const& renderer = core->get<RendererService>();
+    m_texture            = renderer->create_texture(texture.string());
 
-    auto texture_asset         = asset_server->load_texture_file(texture);
-    m_upload_data.texture_data = std::move(texture_asset.data);
-
-    m_texture = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-    m_width  = texture_asset.header.width;
-    m_height = texture_asset.header.height;
-
-    m_need_upload = true;
+    std::tie(m_width, m_height) = m_texture->get_dimensions();
 }
 
 TextureAtlasNamed::~TextureAtlasNamed() = default;
 
-void TextureAtlasNamed::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
-{
-    if (m_need_upload) {
-        copy_pass.upload(*m_texture, std::span(m_upload_data.texture_data));
-        m_upload_data.texture_data.clear();
-        m_need_upload = false;
-    }
-}
+void TextureAtlasNamed::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
 
 void TextureAtlasNamed::add_picture(std::string const& name, storm::FRect const& texture_pos_rect)
 {

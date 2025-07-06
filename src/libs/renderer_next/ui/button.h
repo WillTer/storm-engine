@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include <libs/renderer_next/types.h>
 #include <shaders/ui/image_2d.h>
@@ -39,27 +38,18 @@ public:
     auto get_middle_rect() const -> storm::FRect;
 
 private:
-    bool m_need_upload;
-
-    struct UploadData {
-        using Vertex = shaders::image_2d::VertexInput;
-        std::vector<Vertex> vertex_data_left;
-        std::vector<Vertex> vertex_data_middle;
-        std::vector<Vertex> vertex_data_right;
-    } m_upload_data;
-
     storm::FRect m_middle_rect;
 
     shaders::UBOFragment m_fragment_ubo;
 
     std::shared_ptr<GraphicsPipeline> m_pipeline;
 
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer_left;
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer_middle;
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer_right;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_left;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_middle;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_right;
 
     std::shared_ptr<GPUTexture>     m_texture;
-    std::unique_ptr<GPUIndexBuffer> m_index_buffer;
+    std::shared_ptr<GPUIndexBuffer> m_index_buffer;
 };
 
 }  // namespace storm

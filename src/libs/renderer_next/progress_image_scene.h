@@ -8,7 +8,6 @@
 namespace storm
 {
 
-class AssetServer;
 class RendererService;
 
 class GraphicsPipeline;
@@ -22,10 +21,7 @@ class GPUCopyPass;
 class ProgressImageScene final
 {
 public:
-    explicit ProgressImageScene(
-        std::shared_ptr<AssetServer> const&     asset_server,
-        std::shared_ptr<IConfigLoader> const&   config_loader,
-        std::shared_ptr<RendererService> const& renderer);
+    explicit ProgressImageScene(std::shared_ptr<IConfigLoader> const& config_loader, std::shared_ptr<RendererService> const& renderer);
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
     void draw(GPURenderPass const& render_pass) const;

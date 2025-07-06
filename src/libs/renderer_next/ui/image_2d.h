@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <memory>
-#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
@@ -48,20 +47,13 @@ private:
         };
     }
 
-    bool m_need_upload;
-
-    struct UploadData {
-        std::vector<char>                           texture_data;
-        std::vector<shaders::image_2d::VertexInput> vertex_data;
-    } m_upload_data;
-
     shaders::UBOFragment m_fragment_ubo;
 
     std::shared_ptr<GraphicsPipeline> m_pipeline;
 
     std::shared_ptr<GPUTexture>      m_texture;
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer;
-    std::unique_ptr<GPUIndexBuffer>  m_index_buffer;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer;
+    std::shared_ptr<GPUIndexBuffer>  m_index_buffer;
 };
 
 }  // namespace storm

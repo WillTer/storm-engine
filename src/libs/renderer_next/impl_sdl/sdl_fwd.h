@@ -9,5 +9,6 @@ struct SDL_GPUBuffer;
 struct SDL_GPUCommandBuffer;
 struct SDL_GPURenderPass;
 struct SDL_GPUCopyPass;
+struct SDL_GPUTransferBuffer;
 
 struct SDL_GPUViewport;

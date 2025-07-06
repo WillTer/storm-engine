@@ -1,7 +1,6 @@
 #include "texture_sequence.h"
 
 #include <cassert>
-#include <span>
 
 #include <libs/asset_server/asset_server.h>
 #include <libs/config/texture_sequence.h>
@@ -35,22 +34,18 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 TextureSequence::TextureSequence(std::string const& name)
 {
-    auto const& asset_server  = core->get<AssetServer>();
     auto const& renderer      = core->get<RendererService>();
     auto const& config_loader = core->get<IConfigLoader>();
 
     auto const info = storm::texture_sequence::info(*config_loader, name);
 
-    auto texture_asset         = asset_server->load_texture_file(info.texture_file);
-    m_upload_data.texture_data = std::move(texture_asset.data);
-
-    m_texture = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
+    m_texture = renderer->create_texture(info.texture_file);
     m_target  = renderer->create_texture_target(info.width, info.height);
 
     m_pipeline = renderer->create_pipeline(TEXTURE_SEQUENCE_PIPELINE);
 
-    m_vertex_buffer = renderer->create_vertex_buffer(std::span(SQUARE_VERTICES));
-    m_index_buffer  = renderer->create_index_buffer(std::span(SQUARE_INDICES));
+    m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
+    m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
 
     m_delta_time = 0;
     m_time_delay = info.time_delay;
@@ -60,23 +55,12 @@ TextureSequence::TextureSequence(std::string const& name)
     m_vertex_ubo.v_frames_count = info.v_frames_count;
     m_vertex_ubo.flip_h         = info.flip_h ? 1 : 0;
     m_vertex_ubo.flip_v         = info.flip_v ? 1 : 0;
-
-    m_need_upload = true;
 }
 
 TextureSequence::~TextureSequence() = default;
 
-void TextureSequence::update(GPUCopyPass const& copy_pass, uint64_t const delta_time)
+void TextureSequence::update(GPUCopyPass const& /*copy_pass*/, uint64_t const delta_time)
 {
-    if (m_need_upload) {
-        copy_pass.upload(*m_texture, std::span(m_upload_data.texture_data));
-        m_upload_data.texture_data.clear();
-
-        copy_pass.upload(*m_vertex_buffer, std::span(SQUARE_VERTICES));
-        copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
-        m_need_upload = false;
-    }
-
     m_delta_time += delta_time;
     while (m_delta_time > m_time_delay) {
         m_delta_time -= m_time_delay;

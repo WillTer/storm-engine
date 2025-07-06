@@ -6,11 +6,13 @@
 
 using namespace storm;
 
-GPUIndexBuffer::GPUIndexBuffer(std::shared_ptr<SDL_GPUDevice> const& device, uint32_t const index_count) : m_index_count(index_count)
+GPUIndexBuffer::GPUIndexBuffer(std::shared_ptr<SDL_GPUDevice> const& device, std::vector<uint32_t> const& indices)
+    : GPUBuffer(device, indices.data(), static_cast<uint32_t>(indices.size()) * sizeof(uint32_t))
+    , m_index_count(static_cast<uint32_t>(indices.size()))
 {
     auto buffer_create_info  = SDL_GPUBufferCreateInfo {};
     buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
-    buffer_create_info.size  = index_count * sizeof(uint32_t);  // Only uint32_t supported for index
+    buffer_create_info.size  = m_index_count * sizeof(uint32_t);  // Only uint32_t supported for index
 
     m_buffer = std::shared_ptr<SDL_GPUBuffer>(
         SDL_CreateGPUBuffer(device.get(), &buffer_create_info), [device](SDL_GPUBuffer* p) { SDL_ReleaseGPUBuffer(device.get(), p); });

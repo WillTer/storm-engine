@@ -170,30 +170,23 @@ bool InfoHandler::DoPreOut()
     //     isOK          = (m_rs->BeginScene() == D3D_OK);
     // }
 
-    auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
     is_ok                      = true;
     if (is_ok) {
         // show picture
-        auto cmd_buffer = renderer->acquire_command_buffer();
-        auto copy_pass  = cmd_buffer->start_copy_pass();
-
         if (picBackTexureFile != nullptr) {
-            auto const texture_asset = asset_server->load_texture_file(picBackTexureFile);
-            auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-            copy_pass->upload(*texture, std::span(texture_asset.data));
+            auto texture = renderer->create_texture(picBackTexureFile);
             progress_image->set_background(std::move(texture));
         }
 
         if (picTexureFile != nullptr) {
-            auto const texture_asset = asset_server->load_texture_file(picTexureFile);
-            auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-            copy_pass->upload(*texture, std::span(texture_asset.data));
+            auto texture = renderer->create_texture(picTexureFile);
             progress_image->set_picture(std::move(texture));
         }
+        auto cmd_buffer = renderer->acquire_command_buffer();
+        auto copy_pass  = cmd_buffer->start_copy_pass();
+        renderer->upload_pending_data(*copy_pass);
 
         // if (inStrStart) {
         //     // show back

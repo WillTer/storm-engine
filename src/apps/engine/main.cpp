@@ -157,7 +157,7 @@ try {
     window->Subscribe(handle_window_event);
     window->Show();
 
-    auto progress_image_view = std::make_shared<storm::ProgressImageScene>(asset_server, config_loader, renderer);
+    auto progress_image_view = std::make_shared<storm::ProgressImageScene>(config_loader, renderer);
     core_internal            = std::make_shared<CoreImpl>(fio, asset_server, config_loader, renderer, progress_image_view);
     core                     = core_internal;
     progress_image_view.reset();

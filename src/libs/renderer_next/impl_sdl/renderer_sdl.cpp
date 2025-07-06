@@ -100,9 +100,14 @@ struct RendererService::Impl {
         m_window = nullptr;
     }
 
-    [[nodiscard]] auto create_texture(entt::hashed_string const& name, TxFileHeader const& file_header) -> std::shared_ptr<GPUTexture>
+    [[nodiscard]] auto create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>
     {
-        if (!m_cache.contains<GPUTexture>(name)) { m_cache.add(name, std::make_shared<GPUTexture>(m_device, file_header)); }
+        auto const name = entt::hashed_string(file.c_str());
+        if (!m_cache.contains<GPUTexture>(name)) {
+            auto const texture = std::make_shared<GPUTexture>(m_device, m_asset_server->load_texture_file(file));
+            m_textures_wait_upload.push_back(texture);
+            m_cache.add(name, texture);
+        }
 
         return m_cache.get<GPUTexture>(name);
     }
@@ -121,14 +126,32 @@ struct RendererService::Impl {
             SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
     }
 
-    [[nodiscard]] auto create_index_buffer(size_t const index_count) -> std::unique_ptr<GPUIndexBuffer>
+    [[nodiscard]] auto create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>
     {
-        return std::make_unique<GPUIndexBuffer>(m_device, static_cast<uint32_t>(index_count));
+        auto buffer = std::make_shared<GPUIndexBuffer>(m_device, indices);
+        m_buffers_wait_upload.push_back(buffer);
+        return buffer;
     }
 
-    [[nodiscard]] auto create_vertex_buffer(size_t const vertex_count, size_t const vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>
+    [[nodiscard]] auto create_vertex_buffer(void const* data, size_t const vertex_count, size_t const vertex_type_size)
+        -> std::shared_ptr<GPUVertexBuffer>
     {
-        return std::make_unique<GPUVertexBuffer>(m_device, static_cast<uint32_t>(vertex_count), static_cast<uint32_t>(vertex_type_size));
+        auto buffer = std::make_shared<GPUVertexBuffer>(m_device, data, static_cast<uint32_t>(vertex_count * vertex_type_size));
+        m_buffers_wait_upload.push_back(buffer);
+        return buffer;
+    }
+
+    void upload_pending_data(storm::GPUCopyPass const& copy_pass)
+    {
+        for (auto const& texture: m_textures_wait_upload) {
+            copy_pass.upload(*texture);
+        }
+        m_textures_wait_upload.clear();
+
+        for (auto const& buffer: m_buffers_wait_upload) {
+            copy_pass.upload(*buffer);
+        }
+        m_buffers_wait_upload.clear();
     }
 
     auto acquire_command_buffer() const -> std::unique_ptr<GPUCommandBuffer>
@@ -163,6 +186,9 @@ private:
     std::shared_ptr<SDL_Window>    m_window = nullptr;
     std::shared_ptr<SDL_GPUDevice> m_device = nullptr;
 
+    std::vector<std::shared_ptr<GPUTexture>> m_textures_wait_upload;
+    std::vector<std::shared_ptr<GPUBuffer>>  m_buffers_wait_upload;
+
     RendererCache m_cache;
 };
 
@@ -190,10 +216,9 @@ auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::s
     return m_impl->create_pipeline(name);
 }
 
-[[nodiscard]] auto RendererService::create_texture(entt::hashed_string const& name, TxFileHeader const& file_header)
-    -> std::shared_ptr<GPUTexture>
+[[nodiscard]] auto RendererService::create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>
 {
-    return m_impl->create_texture(name, file_header);
+    return m_impl->create_texture(file);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)
@@ -202,14 +227,20 @@ auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::s
     return m_impl->create_texture_target(width, height);
 }
 
-auto RendererService::create_index_buffer(size_t const index_count) -> std::unique_ptr<GPUIndexBuffer>
+auto RendererService::create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>
 {
-    return m_impl->create_index_buffer(index_count);
+    return m_impl->create_index_buffer(indices);
 }
 
-auto RendererService::create_vertex_buffer(size_t const vertex_count, size_t const vertex_type_size) -> std::unique_ptr<GPUVertexBuffer>
+auto RendererService::create_vertex_buffer(void const* const data, size_t const vertex_count, size_t const vertex_type_size)
+    -> std::shared_ptr<GPUVertexBuffer>
 {
-    return m_impl->create_vertex_buffer(vertex_count, vertex_type_size);
+    return m_impl->create_vertex_buffer(data, vertex_count, vertex_type_size);
+}
+
+void RendererService::upload_pending_data(storm::GPUCopyPass const& copy_pass)
+{
+    m_impl->upload_pending_data(copy_pass);
 }
 
 auto RendererService::acquire_command_buffer() const -> std::unique_ptr<GPUCommandBuffer>

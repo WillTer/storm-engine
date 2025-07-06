@@ -6,11 +6,13 @@
 
 using namespace storm;
 
-GPUVertexBuffer::GPUVertexBuffer(std::shared_ptr<SDL_GPUDevice> const& device, uint32_t const vertex_count, uint32_t const vertex_type_size)
+GPUVertexBuffer::GPUVertexBuffer(
+    std::shared_ptr<SDL_GPUDevice> const& device, void const* const vertices, uint32_t const vertices_data_size)
+    : GPUBuffer(device, vertices, vertices_data_size)
 {
     auto vertex_buffer_create_info  = SDL_GPUBufferCreateInfo {};
     vertex_buffer_create_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-    vertex_buffer_create_info.size  = vertex_count * vertex_type_size;
+    vertex_buffer_create_info.size  = vertices_data_size;
 
     m_buffer = std::shared_ptr<SDL_GPUBuffer>(SDL_CreateGPUBuffer(device.get(), &vertex_buffer_create_info), [device](SDL_GPUBuffer* p) {
         SDL_ReleaseGPUBuffer(device.get(), p);

@@ -43,7 +43,7 @@ Button::Button(
     auto const right_width = std::fabs((tex_rect_right.width() * width) / button_rect.width());
 
     // Left part - from 0 to left_width
-    m_upload_data.vertex_data_left = std::vector<ImageVertex> {
+    auto const vertex_data_left = std::vector<ImageVertex> {
         ImageVertex {{0.0F, 0.0F, tex_rect_left.left, tex_rect_left.top}},
         ImageVertex {{left_width, 0.0F, tex_rect_left.right, tex_rect_left.top}},
         ImageVertex {{left_width, 1.0F, tex_rect_left.right, tex_rect_left.bottom}},
@@ -51,7 +51,7 @@ Button::Button(
     };
 
     // Middle part - from left_width to 1 - right_width
-    m_upload_data.vertex_data_middle = std::vector<ImageVertex> {
+    auto const vertex_data_middle = std::vector<ImageVertex> {
         ImageVertex {{left_width, 0.0F, tex_rect_middle.left, tex_rect_middle.top}},
         ImageVertex {{1.0F - right_width, 0.0F, tex_rect_middle.right, tex_rect_middle.top}},
         ImageVertex {{1.0F - right_width, 1.0F, tex_rect_middle.right, tex_rect_middle.bottom}},
@@ -59,17 +59,17 @@ Button::Button(
     };
 
     // Right part - from 1 - right_width to 1
-    m_upload_data.vertex_data_right = std::vector<ImageVertex> {
+    auto const vertex_data_right = std::vector<ImageVertex> {
         ImageVertex {{1.0F - right_width, 0.0F, tex_rect_right.left, tex_rect_right.top}},
         ImageVertex {{1.0F, 0.0F, tex_rect_right.right, tex_rect_right.top}},
         ImageVertex {{1.0F, 1.0F, tex_rect_right.right, tex_rect_right.bottom}},
         ImageVertex {{1.0F - right_width, 1.0F, tex_rect_right.left, tex_rect_right.bottom}},
     };
 
-    m_vertex_buffer_left   = renderer->create_vertex_buffer(std::span(m_upload_data.vertex_data_left));
-    m_vertex_buffer_middle = renderer->create_vertex_buffer(std::span(m_upload_data.vertex_data_middle));
-    m_vertex_buffer_right  = renderer->create_vertex_buffer(std::span(m_upload_data.vertex_data_right));
-    m_index_buffer         = renderer->create_index_buffer(std::span(SQUARE_INDICES));
+    m_vertex_buffer_left   = renderer->create_vertex_buffer(vertex_data_left);
+    m_vertex_buffer_middle = renderer->create_vertex_buffer(vertex_data_middle);
+    m_vertex_buffer_right  = renderer->create_vertex_buffer(vertex_data_right);
+    m_index_buffer         = renderer->create_index_buffer(SQUARE_INDICES);
 
     m_fragment_ubo.color = float4(1.0F);
 
@@ -83,28 +83,11 @@ Button::Button(
         .right  = button_rect.right - (tex_rect_right.width() * width),
         .bottom = button_rect.bottom,
     };
-
-    m_need_upload = true;
 }
 
 Button::~Button() = default;
 
-void Button::update(GPUCopyPass const& copy_pass, uint64_t const /*delta_time*/)
-{
-    if (m_need_upload) {
-        copy_pass.upload(*m_vertex_buffer_left, std::span(m_upload_data.vertex_data_left));
-        m_upload_data.vertex_data_left.clear();
-
-        copy_pass.upload(*m_vertex_buffer_middle, std::span(m_upload_data.vertex_data_middle));
-        m_upload_data.vertex_data_middle.clear();
-
-        copy_pass.upload(*m_vertex_buffer_right, std::span(m_upload_data.vertex_data_right));
-        m_upload_data.vertex_data_right.clear();
-
-        copy_pass.upload(*m_index_buffer, std::span(SQUARE_INDICES));
-        m_need_upload = false;
-    }
-}
+void Button::update(GPUCopyPass const& /*copy_pass*/, uint64_t const /*delta_time*/) {}
 
 void Button::draw(GPURenderPass const& render_pass) const
 {

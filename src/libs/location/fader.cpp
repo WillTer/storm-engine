@@ -10,7 +10,6 @@
 
 #include "fader.h"
 
-#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
@@ -62,7 +61,6 @@ bool Fader::Init()
 // Messages
 uint64_t Fader::ProcessMessage(MESSAGE& message)
 {
-    auto const& asset_server   = core->get<storm::AssetServer>();
     auto const& renderer       = core->get<storm::RendererService>();
     auto const& progress_image = core->get<storm::ProgressImageScene>();
 
@@ -103,19 +101,13 @@ uint64_t Fader::ProcessMessage(MESSAGE& message)
     case FADER_PICTURE: {
         std::string const& name = message.String();
 
-        auto const texture_asset = asset_server->load_texture_file(name);
-        auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-        copy_pass->upload(*texture, std::span(texture_asset.data));
+        auto texture = renderer->create_texture(name);
         progress_image->set_picture(std::move(texture));
     } break;
     case FADER_PICTURE0: {
         std::string const& name = message.String();
 
-        auto const texture_asset = asset_server->load_texture_file(name);
-        auto       texture       = renderer->create_texture(texture_asset.path_hashed, texture_asset.header);
-
-        copy_pass->upload(*texture, std::span(texture_asset.data));
+        auto texture = renderer->create_texture(name);
         progress_image->set_background(std::move(texture));
     } break;
     default: break;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <span>
 #include <type_traits>
 #include <vector>
 
@@ -23,10 +22,9 @@ concept has_shader_layout = std::is_standard_layout_v<T> && requires() {
     { T::descriptions() } -> std::same_as<std::vector<shaders::VertexDescription>>;
 };
 
-template <typename T, typename V>
-concept can_upload = requires(
-    T const& t, std::shared_ptr<SDL_GPUDevice> const& device, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass, std::span<V> const& data) {
-    { t.upload(device, copy_pass, data) };
+template <typename T>
+concept can_upload = requires(T& t, std::shared_ptr<SDL_GPUCopyPass> const& copy_pass) {
+    { t.upload(copy_pass) };
 };
 
 template <typename T, typename V>
@@ -35,7 +33,7 @@ concept can_update = requires(
     std::shared_ptr<SDL_GPUDevice> const&   device,
     std::shared_ptr<SDL_GPUCopyPass> const& copy_pass,
     std::vector<BufferUpdateInfo> const&    update_info,
-    std::span<V> const&                     data,
+    std::vector<V> const&                   data,
     size_t                                  stride) {
     { t.update(device, copy_pass, update_info, data, stride) };
 };

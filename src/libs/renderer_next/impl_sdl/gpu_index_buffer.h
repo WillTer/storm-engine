@@ -11,7 +11,7 @@ namespace storm
 class GPUIndexBuffer final: public GPUBuffer
 {
 public:
-    GPUIndexBuffer(std::shared_ptr<SDL_GPUDevice> const& device, uint32_t index_count);
+    GPUIndexBuffer(std::shared_ptr<SDL_GPUDevice> const& device, std::vector<uint32_t> const& indices);
 
     ~GPUIndexBuffer();
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
@@ -32,19 +31,13 @@ public:
     void set_color(storm::Color const& color);
 
 private:
-    bool m_need_upload;
-
-    struct UploadData {
-        std::vector<shaders::colored_rect::VertexInput> vertex_data;
-    } m_upload_data;
-
     storm::Color m_color;
     bool         m_is_color_dirty;
 
     std::shared_ptr<GraphicsPipeline> m_pipeline;
 
-    std::unique_ptr<GPUVertexBuffer> m_vertex_buffer;
-    std::unique_ptr<GPUIndexBuffer>  m_index_buffer;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer;
+    std::shared_ptr<GPUIndexBuffer>  m_index_buffer;
 };
 
 }  // namespace storm

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <span>
 
 #include "concepts.h"
 #include "sdl_fwd.h"
@@ -15,17 +14,16 @@ public:
     GPUCopyPass(std::shared_ptr<SDL_GPUDevice> const& device, std::shared_ptr<SDL_GPUCommandBuffer> const& cmd_buffer);
     ~GPUCopyPass();
 
-    template <typename V>
-    void upload(can_upload<V> auto const& buffer, std::span<V> const& data) const
+    void upload(can_upload auto& buffer) const
     {
-        buffer.upload(m_device, m_pass, data);
+        buffer.upload(m_pass);
     }
 
     template <typename V>
     void update_buffer(
         can_update<V> auto const&            buffer,
         std::vector<BufferUpdateInfo> const& update_info,
-        std::span<V> const&                  data,
+        std::vector<V> const&                data,
         size_t const                         stride) const
     {
         buffer.update(m_device, m_pass, update_info, data, stride);
