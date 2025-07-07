@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <libs/core/service.h>
 
 namespace storm
