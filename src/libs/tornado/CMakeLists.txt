@@ -1,5 +1,5 @@
 storm_lib(
     NAME tornado
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
 )

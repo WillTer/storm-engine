@@ -1,5 +1,5 @@
 storm_lib(
     NAME blade
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
 )

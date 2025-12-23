@@ -1,5 +1,5 @@
 storm_lib(
     NAME util
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         SDL3-storm
 )

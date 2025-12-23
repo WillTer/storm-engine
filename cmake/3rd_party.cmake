@@ -22,13 +22,6 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-    sentry
-    GIT_REPOSITORY  https://github.com/getsentry/sentry-native.git
-    GIT_TAG         0.8.5
-    GIT_SHALLOW     ON
-)
-
-FetchContent_Declare(
     spdlog
     GIT_REPOSITORY  https://github.com/gabime/spdlog.git
     GIT_TAG         v1.15.3
@@ -55,7 +48,7 @@ FetchContent_Declare(
     GIT_TAG         50d79abf8f7d28d06e56fee0ce5529c73cce39a3
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float sentry spdlog entt storm-audio)
+FetchContent_MakeAvailable(Catch2 fast_float spdlog entt storm-audio)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL3 zlib)

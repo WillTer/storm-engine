@@ -1,6 +1,6 @@
 storm_lib(
     NAME animation
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         core
 )

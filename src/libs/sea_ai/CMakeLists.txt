@@ -1,5 +1,5 @@
 storm_lib(
     NAME sea_ai
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
 )

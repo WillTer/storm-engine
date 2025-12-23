@@ -1,5 +1,5 @@
 storm_lib(
     NAME sea_operator
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
 )

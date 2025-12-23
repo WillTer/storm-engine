@@ -1,5 +1,5 @@
 storm_lib(
     NAME rigging
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
 )

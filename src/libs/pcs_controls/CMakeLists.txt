@@ -1,5 +1,5 @@
 storm_lib(
     NAME pcs_controls
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         input
 )

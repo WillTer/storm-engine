@@ -1,6 +1,6 @@
 storm_lib(
     NAME sound_service
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config
         core
         renderer

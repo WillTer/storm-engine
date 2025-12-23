@@ -1,6 +1,8 @@
 storm_lib(
     NAME diagnostics
-    HEADER_DEPENDENCIES
+    FULL_WARNINGS
+    HEADERS_DEPS
         spdlog::spdlog
-        sentry::sentry
+    SOURCES_DEPS
+        SDL3-storm
 )

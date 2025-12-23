@@ -1,6 +1,6 @@
 storm_lib(
     NAME particles
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         core
         renderer
 )
