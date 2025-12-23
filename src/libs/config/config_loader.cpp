@@ -14,7 +14,7 @@ std::unique_ptr<IniFile> ConfigLoader::open_config(std::filesystem::path const& 
         return {};
     }
 
-    if (path.extension().string() != ".ini") {
+    if (path.extension().string() != ".ini" && path.extension().string() != ".lng") {
         core->Trace("Config file \"%s\" was not loaded - extension is not supported", path.string().c_str());
         return {};
     }

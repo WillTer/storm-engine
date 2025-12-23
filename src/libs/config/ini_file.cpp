@@ -113,7 +113,7 @@ read_section(std::string_view const& str, size_t& offset, std::string const& fil
         // Keep offset if section is ended as we need to read another section from that place
         if (!is_section_ended) {
             // Move to next line. This statement allows us to skip both CRLF and LF
-            offset = str.find_first_of('\n', line_end) + 1;
+            offset = line_end == std::string_view::npos ? std::string_view::npos : str.find_first_of('\n', line_end) + 1;
             ++file_line;
         }
     }
