@@ -7,7 +7,6 @@
 #include <libs/core/core_impl.h>
 #include <libs/core/core_private.h>
 #include <libs/core/vma.hpp>
-#include <libs/diagnostics/lifecycle_diagnostics_service.hpp>
 #include <libs/diagnostics/logging.hpp>
 #include <libs/diagnostics/watermark.hpp>
 #include <libs/filesystem/file_service.h>
@@ -26,17 +25,14 @@ std::unique_ptr<storm::IConfigLoader>   config_loader    = nullptr;
 namespace
 {
 
-constexpr char DEFAULT_LOGGER_NAME[]          = "system";
+constexpr char DEFAULT_LOGGER_NAME[]          = "engine";
 bool           is_sound_in_background_enabled = false;
 bool           is_active                      = false;
 bool           should_close                   = false;
 
-storm::diag::LifecycleDiagnosticsService lifecycle_diagnostics;
-
 bool run_frame()
 {
     bool const is_running = core_internal->Run();
-    lifecycle_diagnostics.notifyAfterRun();
 
     return is_running;
 }
@@ -108,42 +104,32 @@ int main()
     core          = core_internal;
     config_loader = std::make_unique<storm::ConfigLoader>();
 
+    // Init logging
+    storm::logging::init_logger_for_sdl();
+    spdlog::set_default_logger(storm::logging::get_logger_with_stdout(DEFAULT_LOGGER_NAME));
+    spdlog::flush_every(std::chrono::seconds(3));
+
+    auto const general_info = storm::main_config::general_info();
+    if (general_info.enable_logs) {
+        spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
+    } else {  // disable logging
+        spdlog::info("Logging disabled!");
+        spdlog::set_level(spdlog::level::off);
+    }
+
     // Load parameters of file service
     fio->init_from_main_config();
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 
-    // Init diagnostics
-    auto const lifecycle_diagnostics_guard =
-#ifdef STORM_ENABLE_CRASH_REPORTS
-        lifecycle_diagnostics.initialize(true);
-#else
-        lifecycle_diagnostics.initialize(false);
-#endif
-    if (!lifecycle_diagnostics_guard) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", "Unable to initialize lifecycle service!", nullptr);
-    } else {
-        lifecycle_diagnostics.setCrashInfoCollector([]() { core_internal->collectCrashInfo(); });
-    }
-
     // Init stash
     create_directories(fs::GetSaveDataPath());
-
-    // Init logging
-    spdlog::set_default_logger(storm::logging::getOrCreateLogger(DEFAULT_LOGGER_NAME));
-    spdlog::info("Logging system initialized. Running on {}", STORM_BUILD_WATERMARK);
 
     // Init core
     core_internal->Init();
 
     // Read config
-    auto const general_info = storm::main_config::general_info();
-    auto const window_info  = storm::main_config::window_info();
-
-    if (!general_info.enable_logs)  // disable logging
-    {
-        spdlog::set_level(spdlog::level::off);
-    }
+    auto const window_info = storm::main_config::window_info();
 
     is_sound_in_background_enabled = window_info.run_in_background && window_info.sound_in_background;
     // initialize SteamApi through evaluating its singleton

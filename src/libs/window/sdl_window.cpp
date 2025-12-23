@@ -21,9 +21,9 @@ SDLWindow::SDLWindow(int width, int height, int preferred_display, bool fullscre
 
     SDL_DestroyProperties(props);
 
-#if !defined(_WIN32)
-    SDL_SetWindowRelativeMouseMode(window_.get(), true);
-#endif
+    // #if !defined(_WIN32)
+    //     SDL_SetWindowRelativeMouseMode(window_.get(), true);
+    // #endif
 
     sdlID_ = SDL_GetWindowID(window_.get());
     SDL_SetWindowBordered(window_.get(), bordered);
