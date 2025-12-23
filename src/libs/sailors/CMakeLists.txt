@@ -1,6 +1,6 @@
 storm_lib(
     NAME sailors
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
         spdlog::spdlog
 )

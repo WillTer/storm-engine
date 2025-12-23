@@ -1,5 +1,5 @@
 storm_lib(
     NAME window
-    HEADER_DEPENDENCIES
+    HEADERS_DEPS
         SDL3-storm
 )

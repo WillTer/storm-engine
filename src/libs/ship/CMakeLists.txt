@@ -1,6 +1,6 @@
 storm_lib(
     NAME ship
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         renderer
         spdlog::spdlog
 )

@@ -1,6 +1,6 @@
 storm_lib(
     NAME battle_interface
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         core
         renderer
 )

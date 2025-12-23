@@ -1,6 +1,6 @@
 storm_lib(
     NAME diagnostics
-    HEADER_DEPENDENCIES
+    HEADERS_DEPS
         spdlog::spdlog
         sentry::sentry
 )

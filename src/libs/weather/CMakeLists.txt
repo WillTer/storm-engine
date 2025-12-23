@@ -1,6 +1,6 @@
 storm_lib(
     NAME weather
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         EnTT::EnTT
         renderer
 )

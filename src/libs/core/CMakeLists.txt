@@ -1,6 +1,6 @@
 storm_lib(
     NAME core
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         config_iface
         diagnostics
         FastFloat::fast_float
@@ -9,6 +9,6 @@ storm_lib(
         Zlib-storm
 
         $<$<PLATFORM_ID:Windows>:comctl32>
-    HEADER_DEPENDENCIES
+    HEADERS_DEPS
         EnTT::EnTT
 )

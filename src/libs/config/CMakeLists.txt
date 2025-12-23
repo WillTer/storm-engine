@@ -1,6 +1,6 @@
 storm_lib(
     NAME config
-    LINK_DEPENDENCIES
+    SOURCES_DEPS
         core
 )
 
