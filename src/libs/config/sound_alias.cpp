@@ -18,7 +18,7 @@ constexpr float DEFAULT_PROBABILITY = 1.0F;
 }  // namespace
 
 template <>
-struct read_to<SoundAlias> {
+struct storm::read_to<SoundAlias> {
     static SoundAlias from_ini(IniFile const& ini, std::string const& section)
     {
         ProbabilityTable<std::string> files = {};
