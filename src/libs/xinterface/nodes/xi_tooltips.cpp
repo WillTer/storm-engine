@@ -1,5 +1,7 @@
 #include "xi_tooltips.h"
 
+#include <libs/renderer_next/types.h>
+
 #include "../str_utils.h"
 #include "../xinterface.h"
 
@@ -8,14 +10,11 @@ CXI_ToolTip::CXI_ToolTip(VXSERVICE* pPicService, VSTRSERVICE* pStrService, XYPOI
     m_pPicService = pPicService;
     m_pStrService = pStrService;
 
-    m_rs = XInterface::GetRenderService();
-    if (!m_rs) { throw std::runtime_error("No service: dx9render"); }
-
     m_nTextureID  = -1;
     m_pV          = nullptr;
     m_pI          = nullptr;
     m_nSquareQ    = 0;
-    m_dwBackColor = ARGB(255, 128, 128, 128);
+    m_dwBackColor = storm::Color {255, 128, 128, 128}.to_hex();
 
     m_nFontID = -1;
 
@@ -37,28 +36,28 @@ void CXI_ToolTip::Draw()
     if (m_sText.empty()) return;  // there is nothing
 
     if (m_nSquareQ > 0) {
-        m_rs->TextureSet(0, m_nTextureID);
-        m_rs->DrawIndexedPrimitiveUP(
-            D3DPT_TRIANGLELIST, 0, m_nSquareQ * 4, m_nSquareQ * 2, m_pI, D3DFMT_INDEX16, m_pV, sizeof(XI_ONETEX_VERTEX), "iVideo");
+        // m_rs->TextureSet(0, m_nTextureID);
+        // m_rs->DrawIndexedPrimitiveUP(
+        //     D3DPT_TRIANGLELIST, 0, m_nSquareQ * 4, m_nSquareQ * 2, m_pI, D3DFMT_INDEX16, m_pV, sizeof(XI_ONETEX_VERTEX), "iVideo");
     }
 
     auto const nX = (m_rPos.left + m_rPos.right) / 2;
     auto       nY = m_rPos.top + m_pntTextOffset.y;
     for (int32_t n = 0; n < m_aSubText.size(); n++) {
-        m_rs->ExtPrint(
-            m_nFontID,
-            m_dwFontColor,
-            0,
-            PR_ALIGN_CENTER,
-            true,
-            m_fFontScale,
-            m_pntScreenSize.x,
-            m_pntScreenSize.y,
-            nX,
-            nY,
-            "%s",
-            m_aSubText[n].c_str());
-        nY += static_cast<int32_t>(m_rs->CharHeight(m_nFontID) * m_fFontScale);
+        // m_rs->ExtPrint(
+        //     m_nFontID,
+        //     m_dwFontColor,
+        //     0,
+        //     PR_ALIGN_CENTER,
+        //     true,
+        //     m_fFontScale,
+        //     m_pntScreenSize.x,
+        //     m_pntScreenSize.y,
+        //     nX,
+        //     nY,
+        //     "%s",
+        //     m_aSubText[n].c_str());
+        // nY += static_cast<int32_t>(m_rs->CharHeight(m_nFontID) * m_fFontScale);
     }
 }
 
@@ -99,7 +98,7 @@ void CXI_ToolTip::SetByFormatString(XYRECT& rectOwner, INIFILE* pDefIni, char co
     m_nFontID        = -1;
     m_fFontScale     = 1.f;
     m_dwFontColor    = 0xFFFFFFFF;
-    m_dwBackColor    = ARGB(255, 128, 128, 128);
+    m_dwBackColor    = storm::Color {255, 128, 128, 128}.to_hex();
     m_nLeftSideWidth = m_nRightSideWidth = 0;
     m_uvBackLeft.left = m_uvBackRight.left = m_uvBackMiddle.left = 0.f;
     m_uvBackLeft.top = m_uvBackRight.top = m_uvBackMiddle.top = 0.f;
@@ -111,7 +110,7 @@ void CXI_ToolTip::SetByFormatString(XYRECT& rectOwner, INIFILE* pDefIni, char co
     m_nPicIndex_Left = m_nPicIndex_Right = m_nPicIndex_Middle = -1;
     //
     if (pDefIni) {
-        if (pDefIni->ReadString(pcToolTipType, "font_id", param, sizeof(param), "")) m_nFontID = m_rs->LoadFont(param);
+        // if (pDefIni->ReadString(pcToolTipType, "font_id", param, sizeof(param), "")) m_nFontID = m_rs->LoadFont(param);
         m_fFontScale  = pDefIni->GetFloat(pcToolTipType, "font_scale", m_fFontScale);
         m_dwFontColor = CINODE::GetIniARGB(pDefIni, pcToolTipType, nullptr, nullptr, "font_color", m_dwFontColor);
         if (m_nMaxStrWidth <= 0) m_nMaxStrWidth = pDefIni->GetInt(pcToolTipType, "str_width", m_pntScreenSize.x);
@@ -148,16 +147,14 @@ void CXI_ToolTip::SetByFormatString(XYRECT& rectOwner, INIFILE* pDefIni, char co
     CXI_UTILS::SplitStringByWidth(m_sText.c_str(), m_nFontID, m_fFontScale, m_nMaxStrWidth, m_aSubText);
     m_nUseWidth = 0;
     for (n = 0; n < m_aSubText.size(); n++) {
-        // m_aSubText[n].TrimLeft();
-        // m_aSubText[n].TrimRight();
         TOREMOVE::trim(m_aSubText[n]);
         TOREMOVE::rtrim(m_aSubText[n]);
 
-        auto const nW = m_rs->StringWidth((char*)m_aSubText[n].c_str(), m_nFontID, m_fFontScale, 0);
-        if (nW > m_nUseWidth) m_nUseWidth = nW;
+        // auto const nW = m_rs->StringWidth((char*)m_aSubText[n].c_str(), m_nFontID, m_fFontScale, 0);
+        // if (nW > m_nUseWidth) m_nUseWidth = nW;
     }
     m_nUseWidth += m_pntTextOffset.x * 2;
-    m_nUseHeight = m_aSubText.size() * static_cast<int32_t>(m_rs->CharHeight(m_nFontID) * m_fFontScale) + 2 * m_pntTextOffset.x;
+    // m_nUseHeight = m_aSubText.size() * static_cast<int32_t>(m_rs->CharHeight(m_nFontID) * m_fFontScale) + 2 * m_pntTextOffset.x;
 
     m_nSquareQ = 3;
     CreateIndexBuffer();
@@ -194,7 +191,7 @@ void CXI_ToolTip::ReleaseAll()
     STORM_DELETE(m_pI);
     m_nSquareQ     = 0;
     m_bDisableDraw = true;
-    FONT_RELEASE(m_rs, m_nFontID);
+    // FONT_RELEASE(m_rs, m_nFontID);
 }
 
 void CXI_ToolTip::CreateIndexBuffer()

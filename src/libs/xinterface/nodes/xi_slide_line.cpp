@@ -23,33 +23,33 @@ void CXI_SLIDELINE::Draw(bool bSelected, uint32_t Delta_Time)
             DoMouseControl();
 
             uint32_t dwOldTF;
-            m_rs->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTF);
-
-            if (m_bSelected)
-                m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF808080);
-            else
-                m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwDisableColor);
-
-            if (m_idTexLine >= 0 && m_idTexSelLine >= 0) {
-                if (bSelected)
-                    m_rs->TextureSet(0, m_idTexSelLine);
-                else
-                    m_rs->TextureSet(0, m_idTexLine);
-                m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iBlindPictures");
-            }
-
-            if (m_idTexPointer >= 0) {
-                m_rs->TextureSet(0, m_idTexPointer);
-                m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iBlindPictures");
-            }
-
-            m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTF);
+            // m_rs->GetRenderState(D3DRS_TEXTUREFACTOR, &dwOldTF);
+            //
+            // if (m_bSelected)
+            //     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF808080);
+            // else
+            //     m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_dwDisableColor);
+            //
+            // if (m_idTexLine >= 0 && m_idTexSelLine >= 0) {
+            //     if (bSelected)
+            //         m_rs->TextureSet(0, m_idTexSelLine);
+            //     else
+            //         m_rs->TextureSet(0, m_idTexLine);
+            //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 0, 2, "iBlindPictures");
+            // }
+            //
+            // if (m_idTexPointer >= 0) {
+            //     m_rs->TextureSet(0, m_idTexPointer);
+            //     m_rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(XI_ONLYONETEX_VERTEX), 4, 2, "iBlindPictures");
+            // }
+            //
+            // m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, dwOldTF);
         }
     }
 }
 
 bool CXI_SLIDELINE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -57,10 +57,10 @@ bool CXI_SLIDELINE::Init(
 
 void CXI_SLIDELINE::ReleaseAll()
 {
-    TEXTURE_RELEASE(m_rs, m_idTexLine);
-    TEXTURE_RELEASE(m_rs, m_idTexSelLine);
-    TEXTURE_RELEASE(m_rs, m_idTexPointer);
-    VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
+    // TEXTURE_RELEASE(m_rs, m_idTexLine);
+    // TEXTURE_RELEASE(m_rs, m_idTexSelLine);
+    // TEXTURE_RELEASE(m_rs, m_idTexPointer);
+    // VERTEX_BUFFER_RELEASE(m_rs, m_idVBuf);
 }
 
 int CXI_SLIDELINE::CommandExecute(int wActCode)
@@ -88,7 +88,6 @@ int CXI_SLIDELINE::CommandExecute(int wActCode)
 
 bool CXI_SLIDELINE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    // if( buttonID == MOUSE_RBUTTON )
     {
         if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom) return true;
     }
@@ -101,24 +100,24 @@ void CXI_SLIDELINE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
 
-    auto* const pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pv) {
-        pv[0].pos.x = pv[1].pos.x = static_cast<float>(m_rect.left);
-        pv[2].pos.x = pv[3].pos.x = static_cast<float>(m_rect.right);
-        pv[0].pos.y = pv[2].pos.y = static_cast<float>(m_rect.top);
-        pv[1].pos.y = pv[3].pos.y = static_cast<float>(m_rect.bottom);
-
-        auto       left  = static_cast<float>(m_rect.left + m_nBaseLeft - m_nPointerLeft);
-        auto const right = static_cast<float>(m_rect.right - m_nBaseLeft + m_nPointerLeft - m_nPointerWidth);
-        left             = left + (right - left) / m_nGrateQuantity * m_nCurValue;
-
-        pv[4].pos.x = pv[5].pos.x = left;
-        pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
-        pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_rect.top + m_rect.bottom - m_nPointerHeight) / 2.f;
-        pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top + m_rect.bottom + m_nPointerHeight) / 2.f;
-
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* const pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pv) {
+    //     pv[0].pos.x = pv[1].pos.x = static_cast<float>(m_rect.left);
+    //     pv[2].pos.x = pv[3].pos.x = static_cast<float>(m_rect.right);
+    //     pv[0].pos.y = pv[2].pos.y = static_cast<float>(m_rect.top);
+    //     pv[1].pos.y = pv[3].pos.y = static_cast<float>(m_rect.bottom);
+    //
+    //     auto       left  = static_cast<float>(m_rect.left + m_nBaseLeft - m_nPointerLeft);
+    //     auto const right = static_cast<float>(m_rect.right - m_nBaseLeft + m_nPointerLeft - m_nPointerWidth);
+    //     left             = left + (right - left) / m_nGrateQuantity * m_nCurValue;
+    //
+    //     pv[4].pos.x = pv[5].pos.x = left;
+    //     pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
+    //     pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_rect.top + m_rect.bottom - m_nPointerHeight) / 2.f;
+    //     pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top + m_rect.bottom + m_nPointerHeight) / 2.f;
+    //
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 }
 
 void CXI_SLIDELINE::SaveParametersToIni()
@@ -160,8 +159,9 @@ void CXI_SLIDELINE::DoMouseControl()
         } else if (fmp.x > m_rect.right - m_nBaseLeft) {
             SetNewValue(m_nCurValue + 1);
         } else {
-            SetNewValue(static_cast<int32_t>(
-                (fmp.x - m_rect.left - m_nBaseLeft) / (m_rect.right - m_rect.left - m_nBaseLeft - m_nBaseLeft) * m_nGrateQuantity));
+            SetNewValue(
+                static_cast<int32_t>(
+                    (fmp.x - m_rect.left - m_nBaseLeft) / (m_rect.right - m_rect.left - m_nBaseLeft - m_nBaseLeft) * m_nGrateQuantity));
         }
     }
 }
@@ -199,16 +199,16 @@ void CXI_SLIDELINE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     char param[255];
 
     m_idTexLine = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "baseTexture", param, sizeof(param), "")) m_idTexLine = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "baseTexture", param, sizeof(param), "")) m_idTexLine = m_rs->TextureCreate(param);
 
     m_idTexSelLine = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "selectTexture", param, sizeof(param), "")) m_idTexSelLine = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "selectTexture", param, sizeof(param), "")) m_idTexSelLine = m_rs->TextureCreate(param);
 
     m_idTexPointer = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "pointerTexture", param, sizeof(param), "")) m_idTexPointer = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "pointerTexture", param, sizeof(param), "")) m_idTexPointer = m_rs->TextureCreate(param);
 
-    m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 8 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
-    if (m_idVBuf == -1) throw std::runtime_error("can not create the vertex buffers");
+    // m_idVBuf = m_rs->CreateVertexBuffer(XI_ONLYONETEX_FVF, 8 * sizeof(XI_ONLYONETEX_VERTEX), D3DUSAGE_WRITEONLY);
+    // if (m_idVBuf == -1) throw std::runtime_error("can not create the vertex buffers");
 
     m_nPointerWidth  = GetIniLong(ini1, name1, ini2, name2, "pointerWidth", 8);
     m_nPointerHeight = GetIniLong(ini1, name1, ini2, name2, "pointerHeight", m_rect.bottom - m_rect.top);
@@ -231,32 +231,32 @@ void CXI_SLIDELINE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 
     m_dwDisableColor = GetIniARGB(ini1, name1, ini2, name2, "disablecolor", 0xA04C4C4C);
 
-    auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pv) {
-        for (i = 0; i < 8; i++)
-            pv[i].pos.z = 1.f;
-
-        pv[0].tu = pv[1].tu = pv[4].tu = pv[5].tu = 0.f;
-        pv[2].tu = pv[3].tu = pv[6].tu = pv[7].tu = 1.f;
-        pv[0].tv = pv[2].tv = pv[4].tv = pv[6].tv = 0.f;
-        pv[1].tv = pv[3].tv = pv[5].tv = pv[7].tv = 1.f;
-
-        pv[0].pos.x = pv[1].pos.x = static_cast<float>(m_rect.left);
-        pv[2].pos.x = pv[3].pos.x = static_cast<float>(m_rect.right);
-        pv[0].pos.y = pv[2].pos.y = static_cast<float>(m_rect.top);
-        pv[1].pos.y = pv[3].pos.y = static_cast<float>(m_rect.bottom);
-
-        auto        left  = static_cast<float>(m_rect.left + m_nBaseLeft - m_nPointerLeft);
-        float const right = static_cast<float>(m_rect.right - m_nBaseLeft + m_nPointerLeft - m_nPointerWidth);
-        left              = left + (right - left) / m_nGrateQuantity * m_nCurValue;
-
-        pv[4].pos.x = pv[5].pos.x = left;
-        pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
-        pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_rect.top + m_rect.bottom - m_nPointerHeight) / 2.f;
-        pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top + m_rect.bottom + m_nPointerHeight) / 2.f;
-
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pv) {
+    //     for (i = 0; i < 8; i++)
+    //         pv[i].pos.z = 1.f;
+    //
+    //     pv[0].tu = pv[1].tu = pv[4].tu = pv[5].tu = 0.f;
+    //     pv[2].tu = pv[3].tu = pv[6].tu = pv[7].tu = 1.f;
+    //     pv[0].tv = pv[2].tv = pv[4].tv = pv[6].tv = 0.f;
+    //     pv[1].tv = pv[3].tv = pv[5].tv = pv[7].tv = 1.f;
+    //
+    //     pv[0].pos.x = pv[1].pos.x = static_cast<float>(m_rect.left);
+    //     pv[2].pos.x = pv[3].pos.x = static_cast<float>(m_rect.right);
+    //     pv[0].pos.y = pv[2].pos.y = static_cast<float>(m_rect.top);
+    //     pv[1].pos.y = pv[3].pos.y = static_cast<float>(m_rect.bottom);
+    //
+    //     auto        left  = static_cast<float>(m_rect.left + m_nBaseLeft - m_nPointerLeft);
+    //     float const right = static_cast<float>(m_rect.right - m_nBaseLeft + m_nPointerLeft - m_nPointerWidth);
+    //     left              = left + (right - left) / m_nGrateQuantity * m_nCurValue;
+    //
+    //     pv[4].pos.x = pv[5].pos.x = left;
+    //     pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
+    //     pv[4].pos.y = pv[6].pos.y = static_cast<float>(m_rect.top + m_rect.bottom - m_nPointerHeight) / 2.f;
+    //     pv[5].pos.y = pv[7].pos.y = static_cast<float>(m_rect.top + m_rect.bottom + m_nPointerHeight) / 2.f;
+    //
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 
     m_bSelected = true;
 }
@@ -272,12 +272,12 @@ void CXI_SLIDELINE::SetNewValue(int32_t newValue)
     auto const right = static_cast<float>(m_rect.right - m_nBaseLeft + m_nPointerLeft - m_nPointerWidth);
     left             = left + (right - left) / m_nGrateQuantity * m_nCurValue;
 
-    auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
-    if (pv) {
-        pv[4].pos.x = pv[5].pos.x = left;
-        pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
-        m_rs->UnLockVertexBuffer(m_idVBuf);
-    }
+    // auto* pv = static_cast<XI_ONLYONETEX_VERTEX*>(m_rs->LockVertexBuffer(m_idVBuf));
+    // if (pv) {
+    //     pv[4].pos.x = pv[5].pos.x = left;
+    //     pv[6].pos.x = pv[7].pos.x = left + m_nPointerWidth;
+    //     m_rs->UnLockVertexBuffer(m_idVBuf);
+    // }
 
     ATTRIBUTES* pA = core->Entity_GetAttributeClass(g_idInterface, "nodes");
     if (pA != nullptr) pA = pA->GetAttributeClass(m_nodeName);

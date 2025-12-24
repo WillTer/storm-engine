@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "wdm_objects_wind.h"
 
@@ -71,8 +70,6 @@ public:
 
     // Engine object, which is in charge of everything
     WorldMap* wm;
-    // Render service
-    VDX9RENDER* rs;
     // Geometry service
     VGEOMETRY* gs;
     // Camera

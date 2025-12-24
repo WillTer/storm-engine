@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 #include "l_types.h"
 #include "lighter_lights.h"
 
@@ -65,7 +63,7 @@ public:
     Window();
     virtual ~Window();
 
-    bool Init(VDX9RENDER* rs);
+    bool Init(/*VDX9RENDER*/ void* rs);
     void InitList(LighterLights& ls);
     void Draw(float dltTime);
     void Reset(bool isVis);
@@ -124,7 +122,7 @@ private:
 
 private:
     //
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
     // Screen size
     float sw, sh;
     // Window options
@@ -150,9 +148,9 @@ private:
     int32_t slidID;
     float   slidDltX;
     // Picker
-    bool               isPikerActive;
-    float              pikerWait;
-    IDirect3DTexture9* pickerTexture;
+    bool  isPikerActive;
+    float pikerWait;
+    // IDirect3DTexture9* pickerTexture;
     // Presets
     int32_t lastPreset;
     char    prsComment[64];

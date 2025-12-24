@@ -32,8 +32,8 @@ BattleInterface::BattleInterface()
     g_IslandDescr.ReleaseAll();
     g_ShipList.ReleaseAll();
     // m_pMessageIcons = null;
-    m_pShipIcon            = nullptr;
-    rs                     = nullptr;
+    m_pShipIcon = nullptr;
+    // rs                     = nullptr;
     m_bShowCommandMenu     = true;
     m_bShowBattleNavigator = true;
     m_bYesShowAll          = false;
@@ -57,9 +57,9 @@ bool BattleInterface::Init()
 {
     BIUtils::idBattleInterface = GetId();
 
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
 
     LoadIniFile();
 
@@ -120,7 +120,7 @@ void BattleInterface::Realize(uint32_t delta_time)
 
     if (m_bYesShowAll) {
         if (m_bVisible) {
-            rs->MakePostProcess();
+            // rs->MakePostProcess();
 
             if (m_bShowBattleNavigator && m_pShipInfoImages) m_pShipInfoImages->Draw();
 
@@ -147,7 +147,7 @@ void BattleInterface::LoadIniFile()
     if (AttributesPointer != nullptr) m_fBlinkSpeed = AttributesPointer->GetAttributeAsFloat("blindSpeed", m_fBlinkSpeed);
     m_fCurBlinkTime = 0;
 
-    BattleNavigator.Init(rs, this);
+    BattleNavigator.Init(/*rs*/ nullptr, this);
 
     ATTRIBUTES* pA = nullptr;
     if (AttributesPointer != nullptr) {
@@ -155,27 +155,21 @@ void BattleInterface::LoadIniFile()
         m_bShowBattleNavigator = AttributesPointer->GetAttributeAsDword("ShowNavigator", 1) != 0;
         pA                     = AttributesPointer->FindAClass(AttributesPointer, "MessageIcons");
 
-        BIUtils::FillTextInfoArray(rs, AttributesPointer->GetAttributeClass("TextInfo"), m_TextArray);
-        m_LinesInfo.Init(rs, AttributesPointer->GetAttributeClass("LineInfo"));
+        BIUtils::FillTextInfoArray(/*rs*/ nullptr, AttributesPointer->GetAttributeClass("TextInfo"), m_TextArray);
+        m_LinesInfo.Init(/*rs*/ nullptr, AttributesPointer->GetAttributeClass("LineInfo"));
 
-        m_BattleBorder.Init(rs, AttributesPointer->GetAttributeClass("battleborder"));
+        m_BattleBorder.Init(/*rs*/ nullptr, AttributesPointer->GetAttributeClass("battleborder"));
 
-        m_ImagesInfo.Init(rs, AttributesPointer->GetAttributeClass("imageslist"));
+        m_ImagesInfo.Init(/*rs*/ nullptr, AttributesPointer->GetAttributeClass("imageslist"));
     }
-
-    /*STORM_DELETE( m_pMessageIcons );
-    m_pMessageIcons = new MESSAGE_ICONS;
-    if(m_pMessageIcons==NULL) {
-      throw std::runtime_error("allocate memory error");
-    }
-    if(m_pMessageIcons)    m_pMessageIcons->InitData(GetId(),rs,pA);*/
 
     STORM_DELETE(m_pShipIcon);
-    m_pShipIcon = new BIShipIcon(GetId(), rs);
+    m_pShipIcon = new BIShipIcon(GetId(), /*rs*/ nullptr);
     Assert(m_pShipIcon);
     m_pShipIcon->Init(AttributesPointer, AttributesPointer ? AttributesPointer->GetAttributeClass("ShipIcon") : nullptr);
 
-    m_pShipInfoImages = new ShipInfoImages(rs, AttributesPointer ? AttributesPointer->GetAttributeClass("ShipInfoImages") : nullptr);
+    m_pShipInfoImages =
+        new ShipInfoImages(/*rs*/ nullptr, AttributesPointer ? AttributesPointer->GetAttributeClass("ShipInfoImages") : nullptr);
     if (m_pShipInfoImages) {
         m_pShipInfoImages->SetVisible(AttributesPointer ? (AttributesPointer->GetAttributeAsDword("ShifInfoVisible", 0) != 0) : false);
     }

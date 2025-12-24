@@ -5,7 +5,7 @@
 
 #include "geometry_r.h"
 
-IDirect3DVertexDeclaration9* GEOM_SERVICE_R::vertexDecl_ = nullptr;
+// IDirect3DVertexDeclaration9* GEOM_SERVICE_R::vertexDecl_ = nullptr;
 
 char           technique[256]      = "";
 char           RenderServiceName[] = "RendererService";
@@ -55,9 +55,9 @@ static bool geoLog = false;
 
 bool GeometryService::Init()
 {
-    RenderService = static_cast<VDX9RENDER*>(core->GetService(RenderServiceName));
-    if (!RenderService) { core->Trace("No service: %s", RenderServiceName); }
-    GSR.SetRenderService(RenderService);
+    // RenderService = static_cast<VDX9RENDER*>(core->GetService(RenderServiceName));
+    // if (!RenderService) { core->Trace("No service: %s", RenderServiceName); }
+    // GSR.SetRenderService(RenderService);
 
     auto const device_info = storm::main_config::device_info();
     geoLog                 = device_info.geometry_log;
@@ -154,26 +154,26 @@ void GeometryService::DeleteGeometry(GEOS* gid)
 // Block 2
 //=================================================================================================
 
-void GEOM_SERVICE_R::SetRenderService(VDX9RENDER* render_service)
-{
-    bCaustic               = false;
-    RenderService          = render_service;
-    CurentIndexBuffer      = INVALID_BUFFER_ID;
-    CurentVertexBuffer     = INVALID_BUFFER_ID;
-    CurentVertexBufferSize = 0;
+// void GEOM_SERVICE_R::SetRenderService(VDX9RENDER* render_service)
+// {
+// bCaustic               = false;
+// RenderService          = render_service;
+// CurentIndexBuffer      = INVALID_BUFFER_ID;
+// CurentVertexBuffer     = INVALID_BUFFER_ID;
+// CurentVertexBufferSize = 0;
 
-    const D3DVERTEXELEMENT9 VertexElements[] = {
-        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-        {0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-        {0, 24, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
-        {0, 28, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
-        D3DDECL_END()};
-    if (vertexDecl_ == nullptr) RenderService->CreateVertexDeclaration(VertexElements, &vertexDecl_);
-}
+// const D3DVERTEXELEMENT9 VertexElements[] = {
+//     {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+//     {0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+//     {0, 24, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+//     {0, 28, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
+//     D3DDECL_END()};
+// if (vertexDecl_ == nullptr) RenderService->CreateVertexDeclaration(VertexElements, &vertexDecl_);
+// }
 
 std::ifstream GEOM_SERVICE_R::OpenFile(char const* fname)
 {
-    if (RenderService) { RenderService->ProgressView(); }
+    // if (RenderService) { RenderService->ProgressView(); }
     auto fileS = fio->open_file<std::ifstream>(fname, std::ios::binary);
     if (!fileS.is_open()) {
         if (storm::iEquals(&fname[strlen(fname) - 4], ".col")) {
@@ -221,11 +221,12 @@ GEOS::ID GEOM_SERVICE_R::CreateTexture(char const* fname)
         strcpy_s(tex, texturePath);
         strcat_s(tex, fname);
     }
-    if (RenderService) {
-        RenderService->ProgressView();
-        return RenderService->TextureCreate(tex);
-    }
-    return INVALID_TEXTURE_ID;
+    // if (RenderService) {
+    //     RenderService->ProgressView();
+    //     return RenderService->TextureCreate(tex);
+    // }
+    // return INVALID_TEXTURE_ID;
+    return -1;
 }
 
 void GEOM_SERVICE_R::SetCausticMode(bool bSet)
@@ -235,63 +236,63 @@ void GEOM_SERVICE_R::SetCausticMode(bool bSet)
 
 void GEOM_SERVICE_R::SetMaterial(const GEOS::MATERIAL& mt)
 {
-    RenderService->TextureSet(0, mt.texture[0]);
+    // RenderService->TextureSet(0, mt.texture[0]);
 
     if (bCaustic) { return; }
 
     if (mt.texture_type[1] != GEOS::TEXTURE_NONE) {
         // path BASE texture through
-        RenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+        // RenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
 
         // stage #2
-        RenderService->TextureSet(1, mt.texture[1]);
+        // RenderService->TextureSet(1, mt.texture[1]);
         // COLOR = BASE_C + DETAIL_C - 0.5
-        RenderService->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
+        // RenderService->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
 
         // COLOR = CURRENT_C * VERTEX_C * 2
-        RenderService->TextureSet(2, 0);
-        RenderService->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
+        // RenderService->TextureSet(2, 0);
+        // RenderService->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
     } else {
-        RenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
+        // RenderService->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE2X);
 
-        RenderService->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
-        RenderService->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
+        // RenderService->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+        // RenderService->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
     }
 
-    RenderService->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-    RenderService->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
-    RenderService->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_CURRENT);
-    RenderService->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_TEXTURE);
-    RenderService->SetTextureStageState(2, D3DTSS_COLORARG1, D3DTA_CURRENT);
-    RenderService->SetTextureStageState(2, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+    // RenderService->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+    // RenderService->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
+    // RenderService->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_CURRENT);
+    // RenderService->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_TEXTURE);
+    // RenderService->SetTextureStageState(2, D3DTSS_COLORARG1, D3DTA_CURRENT);
+    // RenderService->SetTextureStageState(2, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+    //
+    // RenderService->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+    //
+    // D3DMATERIAL9 m;
+    // m.Diffuse.r = m.Diffuse.g = m.Diffuse.b = mt.diffuse;
+    // m.Diffuse.a                             = 1.0f;
+    // m.Ambient.r = m.Ambient.g = m.Ambient.b = m.Ambient.a = 0.0f;
+    // m.Specular.r = m.Specular.g = m.Specular.b = mt.specular;
+    // m.Specular.a                               = 1.0f;
+    // m.Emissive.r = m.Emissive.g = m.Emissive.b = m.Emissive.a = 0.0f;
+    // m.Power                                                   = mt.gloss;
 
-    RenderService->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-
-    D3DMATERIAL9 m;
-    m.Diffuse.r = m.Diffuse.g = m.Diffuse.b = mt.diffuse;
-    m.Diffuse.a                             = 1.0f;
-    m.Ambient.r = m.Ambient.g = m.Ambient.b = m.Ambient.a = 0.0f;
-    m.Specular.r = m.Specular.g = m.Specular.b = mt.specular;
-    m.Specular.a                               = 1.0f;
-    m.Emissive.r = m.Emissive.g = m.Emissive.b = m.Emissive.a = 0.0f;
-    m.Power                                                   = mt.gloss;
-
-    RenderService->SetMaterial(m);
+    // RenderService->SetMaterial(m);
 }
 
 void GEOM_SERVICE_R::ReleaseTexture(GEOS::ID tex)
 {
-    if (RenderService) RenderService->TextureRelease(tex);
+    // if (RenderService) RenderService->TextureRelease(tex);
 }
 
 GEOS::ID GEOM_SERVICE_R::CreateVertexBuffer(int32_t type, int32_t size)
 {
-    if (size == 0) return INVALID_BUFFER_ID;
-    if (!RenderService) return INVALID_BUFFER_ID;
+    // if (size == 0) return INVALID_BUFFER_ID;
+    // if (!RenderService) return INVALID_BUFFER_ID;
 
-    int32_t       texset[4] = {D3DFVF_TEX1, D3DFVF_TEX2, D3DFVF_TEX3, D3DFVF_TEX4};
-    int32_t const fvf       = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2;
-    auto const    FVF       = fvf | texset[type & 3];
+    // int32_t       texset[4] = {D3DFVF_TEX1, D3DFVF_TEX2, D3DFVF_TEX3, D3DFVF_TEX4};
+    // int32_t const fvf       = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2;
+    // auto const    FVF       = fvf | texset[type & 3];
 
     // animated vertices
     if (type & 4) {
@@ -301,64 +302,67 @@ GEOS::ID GEOM_SERVICE_R::CreateVertexBuffer(int32_t type, int32_t size)
         avb[a].buff      = new char[size];
         avb[a].stride    = sizeof(GEOS::VERTEX0);
         avb[a].nvertices = size / sizeof(GEOS::AVERTEX0);
-        avb[a].fvf       = FVF;
+        // avb[a].fvf       = FVF;
         return a + SHIFT_VALUE;
     }
 
     vrtSize += size;
-    return RenderService->CreateVertexBuffer(FVF, size, D3DUSAGE_WRITEONLY);
+    // return RenderService->CreateVertexBuffer(FVF, size, D3DUSAGE_WRITEONLY);
+    return -1;
 }
 
 void* GEOM_SERVICE_R::LockVertexBuffer(GEOS::ID vb)
 {
-    if (vb == INVALID_BUFFER_ID) return nullptr;
-    if (RenderService == nullptr) return nullptr;
+    // if (vb == INVALID_BUFFER_ID) return nullptr;
+    // if (RenderService == nullptr) return nullptr;
     if (vb >= SHIFT_VALUE) return avb[vb - SHIFT_VALUE].buff;
-    return RenderService->LockVertexBuffer(vb);
+    // return RenderService->LockVertexBuffer(vb);
+    return nullptr;
 }
 
 void GEOM_SERVICE_R::UnlockVertexBuffer(GEOS::ID vb)
 {
-    if (vb == INVALID_BUFFER_ID) return;
-    if (RenderService && vb < SHIFT_VALUE) RenderService->UnLockVertexBuffer(vb);
+    // if (vb == INVALID_BUFFER_ID) return;
+    // if (RenderService && vb < SHIFT_VALUE) RenderService->UnLockVertexBuffer(vb);
 }
 
 void GEOM_SERVICE_R::ReleaseVertexBuffer(GEOS::ID vb)
 {
-    if (vb == INVALID_BUFFER_ID) return;
-    if (RenderService)
-        if (vb >= SHIFT_VALUE) {
-            delete[] static_cast<char*>(avb[vb - SHIFT_VALUE].buff);
-            avb[vb - SHIFT_VALUE].nvertices = 0;
-        } else
-            RenderService->ReleaseVertexBuffer(vb);
+    // if (vb == INVALID_BUFFER_ID) return;
+    // if (RenderService)
+    //     if (vb >= SHIFT_VALUE) {
+    //         delete[] static_cast<char*>(avb[vb - SHIFT_VALUE].buff);
+    //         avb[vb - SHIFT_VALUE].nvertices = 0;
+    //     } else
+    //         RenderService->ReleaseVertexBuffer(vb);
 }
 
 GEOS::ID GEOM_SERVICE_R::CreateIndexBuffer(int32_t size)
 {
-    if (RenderService) RenderService->ProgressView();
-    if (size == 0) return INVALID_BUFFER_ID;
-    if (RenderService) return RenderService->CreateIndexBuffer(size);
-    return INVALID_BUFFER_ID;
+    // if (RenderService) RenderService->ProgressView();
+    // if (size == 0) return INVALID_BUFFER_ID;
+    // if (RenderService) return RenderService->CreateIndexBuffer(size);
+    // return INVALID_BUFFER_ID;
+    return -1;
 }
 
 void* GEOM_SERVICE_R::LockIndexBuffer(GEOS::ID ib)
 {
-    if (ib == INVALID_BUFFER_ID) return nullptr;
-    if (RenderService) return RenderService->LockIndexBuffer(ib);
+    // if (ib == INVALID_BUFFER_ID) return nullptr;
+    // if (RenderService) return RenderService->LockIndexBuffer(ib);
     return nullptr;
 }
 
 void GEOM_SERVICE_R::UnlockIndexBuffer(GEOS::ID ib)
 {
-    if (ib == INVALID_BUFFER_ID) return;
-    if (RenderService) RenderService->UnLockIndexBuffer(ib);
+    // if (ib == INVALID_BUFFER_ID) return;
+    // if (RenderService) RenderService->UnLockIndexBuffer(ib);
 }
 
 void GEOM_SERVICE_R::ReleaseIndexBuffer(GEOS::ID ib)
 {
-    if (ib == INVALID_BUFFER_ID) return;
-    if (RenderService) RenderService->ReleaseIndexBuffer(ib);
+    // if (ib == INVALID_BUFFER_ID) return;
+    // if (RenderService) RenderService->ReleaseIndexBuffer(ib);
 }
 
 void GEOM_SERVICE_R::SetIndexBuffer(GEOS::ID ibuff)
@@ -374,69 +378,61 @@ void GEOM_SERVICE_R::SetVertexBuffer(int32_t vsize, GEOS::ID vbuff)
 
 void GEOM_SERVICE_R::DrawIndexedPrimitive(int32_t minv, int32_t numv, int32_t vrtsize, int32_t startidx, int32_t numtrg)
 {
-    if (!RenderService) return;
+    // if (!RenderService) return;
 
     // uint32_t oldZBias;
 
     if (bCaustic) {
-        CMatrix mWorld, mView, mProjection;
-        RenderService->GetTransform(D3DTS_WORLD, mWorld);
-        RenderService->GetTransform(D3DTS_PROJECTION, mProjection);
-        RenderService->GetTransform(D3DTS_VIEW, mView);
+        // CMatrix mWorld, mView, mProjection;
+        // RenderService->GetTransform(D3DTS_WORLD, mWorld);
+        // RenderService->GetTransform(D3DTS_PROJECTION, mProjection);
+        // RenderService->GetTransform(D3DTS_VIEW, mView);
 
-        auto mWVP = (mWorld * mView) * mProjection;
+        // auto mWVP = (mWorld * mView) * mProjection;
 
-        mWVP.Transposition4x4();
+        // mWVP.Transposition4x4();
 
         // constants
         // 0 - World * View * Projection
         // 4 - World
 
-        RenderService->SetVertexShaderConstantF(0, mWVP, 4);
-        RenderService->SetVertexShaderConstantF(4, mWorld, 4);
-
-        RenderService->SetVertexDeclaration(vertexDecl_);
-
-        // RenderService->GetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, &oldZBias);
-        // float SSBias = -0.6f;
-        // RenderService->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, *(int*)&SSBias);
+        // RenderService->SetVertexShaderConstantF(0, mWVP, 4);
+        // RenderService->SetVertexShaderConstantF(4, mWorld, 4);
+        //
+        // RenderService->SetVertexDeclaration(vertexDecl_);
     }
 
     // draw animation
     if (transform_func != nullptr) {
         auto* cavb = &avb[CurentVertexBuffer - SHIFT_VALUE];
 
-        auto* transformed_vb = static_cast<IDirect3DVertexBuffer9*>(transform_func(cavb->buff, minv, numv, cavb->nvertices));
+        // auto* transformed_vb = static_cast<IDirect3DVertexBuffer9*>(transform_func(cavb->buff, minv, numv, cavb->nvertices));
         if (!bCaustic) {
-            RenderService->SetStreamSource(0, transformed_vb, cavb->stride);
-            RenderService->SetFVF(cavb->fvf);
-
-            RenderService->DrawBuffer(-1, cavb->stride, CurentIndexBuffer, minv, numv, startidx, numtrg, technique);
+            // RenderService->SetStreamSource(0, transformed_vb, cavb->stride);
+            // RenderService->SetFVF(cavb->fvf);
+            //
+            // RenderService->DrawBuffer(-1, cavb->stride, CurentIndexBuffer, minv, numv, startidx, numtrg, technique);
         } else {
-            RenderService->SetStreamSource(0, transformed_vb, cavb->stride);
-            RenderService->DrawIndexedPrimitiveNoVShader(
-                D3DPT_TRIANGLELIST, CurentVertexBuffer, 0, CurentIndexBuffer, minv, numv, startidx, numtrg, "caustic");
+            // RenderService->SetStreamSource(0, transformed_vb, cavb->stride);
+            // RenderService->DrawIndexedPrimitiveNoVShader(
+            //     D3DPT_TRIANGLELIST, CurentVertexBuffer, 0, CurentIndexBuffer, minv, numv, startidx, numtrg, "caustic");
         }
         return;
     }
-    if (CurentIndexBuffer != INVALID_BUFFER_ID) {
-        if (!bCaustic)
-            RenderService->DrawBuffer(CurentVertexBuffer, vrtsize, CurentIndexBuffer, minv, numv, startidx, numtrg, technique);
-        else
-            RenderService->DrawIndexedPrimitiveNoVShader(
-                D3DPT_TRIANGLELIST, CurentVertexBuffer, vrtsize, CurentIndexBuffer, minv, numv, startidx, numtrg, "caustic");
-    }
-
-    // if (bCaustic)
-    //{
-    //    RenderService->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, oldZBias);
-    //}
+    // if (CurentIndexBuffer != INVALID_BUFFER_ID) {
+    //     if (!bCaustic)
+    //         RenderService->DrawBuffer(CurentVertexBuffer, vrtsize, CurentIndexBuffer, minv, numv, startidx, numtrg, technique);
+    //     else
+    //         RenderService->DrawIndexedPrimitiveNoVShader(
+    //             D3DPT_TRIANGLELIST, CurentVertexBuffer, vrtsize, CurentIndexBuffer, minv, numv, startidx, numtrg, "caustic");
+    // }
 }
 
 GEOS::ID GEOM_SERVICE_R::CreateLight(const GEOS::LIGHT)
 {
-    if (!RenderService) return INVALID_LIGHT_ID;
-    return INVALID_LIGHT_ID;
+    // if (!RenderService) return INVALID_LIGHT_ID;
+    // return INVALID_LIGHT_ID;
+    return -1;
 }
 
 void GEOM_SERVICE_R::ActivateLight(GEOS::ID n) {}

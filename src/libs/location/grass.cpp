@@ -75,15 +75,15 @@ Grass::~Grass()
 {
     delete miniMap;
     delete block;
-    if (rs) {
-        if (texture >= 0) rs->TextureRelease(texture);
-        if (vb >= 0) {
-            if (vbuffer) rs->UnLockVertexBuffer(vb);
-            vbuffer = nullptr;
-            rs->ReleaseVertexBuffer(vb);
-        }
-        if (ib >= 0) rs->ReleaseIndexBuffer(ib);
-    }
+    // if (rs) {
+    //     if (texture >= 0) rs->TextureRelease(texture);
+    //     if (vb >= 0) {
+    //         if (vbuffer) rs->UnLockVertexBuffer(vb);
+    //         vbuffer = nullptr;
+    //         rs->ReleaseVertexBuffer(vb);
+    //     }
+    //     if (ib >= 0) rs->ReleaseIndexBuffer(ib);
+    // }
 }
 
 // Initialization
@@ -103,37 +103,37 @@ bool Grass::Init()
     // boal shader select <--
 
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
     // Vertex declaration
     CreateVertexDeclaration();
     // Buffer for dynamic data
-    vb = rs->CreateVertexBuffer(0, GRASS_MAX_POINTS * 4 * sizeof(Vertex), D3DUSAGE_DYNAMIC);
+    // vb = rs->CreateVertexBuffer(0, GRASS_MAX_POINTS * 4 * sizeof(Vertex), D3DUSAGE_DYNAMIC);
     if (vb < 0) return false;
     // Vertex Addressing Indexes
-    ib = rs->CreateIndexBuffer(GRASS_MAX_POINTS * 6 * sizeof(uint16_t));
+    // ib = rs->CreateIndexBuffer(GRASS_MAX_POINTS * 6 * sizeof(uint16_t));
     if (ib < 0) return false;
-    auto* index = static_cast<uint16_t*>(rs->LockIndexBuffer(ib));
-    if (!index) return false;
-    for (int32_t i = 0, point = 0; i < GRASS_MAX_POINTS; i++, index += 6, point += 4) {
-        index[0] = static_cast<uint16_t>(point + 0);
-        index[1] = static_cast<uint16_t>(point + 1);
-        index[2] = static_cast<uint16_t>(point + 2);
-        index[3] = static_cast<uint16_t>(point + 2);
-        index[4] = static_cast<uint16_t>(point + 1);
-        index[5] = static_cast<uint16_t>(point + 3);
-    }
-    rs->UnLockIndexBuffer(ib);
+    // auto* index = static_cast<uint16_t*>(rs->LockIndexBuffer(ib));
+    // if (!index) return false;
+    // for (int32_t i = 0, point = 0; i < GRASS_MAX_POINTS; i++, index += 6, point += 4) {
+    //     index[0] = static_cast<uint16_t>(point + 0);
+    //     index[1] = static_cast<uint16_t>(point + 1);
+    //     index[2] = static_cast<uint16_t>(point + 2);
+    //     index[3] = static_cast<uint16_t>(point + 2);
+    //     index[4] = static_cast<uint16_t>(point + 1);
+    //     index[5] = static_cast<uint16_t>(point + 3);
+    // }
+    // rs->UnLockIndexBuffer(ib);
 
     // Constants
     static auto const pi2 = 2.0f * 3.141592653f;
 #ifdef _WIN32  // Effects
     for (size_t i = 0; i < 16; i++) {
         // Angle table
-        aAngles[i] = {sinf(i * pi2 / 16.0f), cosf(i * pi2 / 16.0f), 0.0f};
+        // aAngles[i] = {sinf(i * pi2 / 16.0f), cosf(i * pi2 / 16.0f), 0.0f};
 
         // Uv table
-        aUV[i] = {static_cast<float>(i & 3) * (1.0f / 4.0f), static_cast<float>((i >> 2) & 3) * (1.0f / 4.0f)};
+        // aUV[i] = {static_cast<float>(i & 3) * (1.0f / 4.0f), static_cast<float>((i >> 2) & 3) * (1.0f / 4.0f)};
     }
 #else
     for (size_t i = 0; i < 16; i++) {
@@ -162,7 +162,7 @@ bool Grass::Init()
 bool Grass::LoadData(char const* patchName)
 {
     // Grass texture
-    texture = rs->TextureCreate(textureName);
+    // texture = rs->TextureCreate(textureName);
     // Delete old
     delete miniMap;
     miniMap = nullptr;
@@ -334,246 +334,246 @@ void Grass::Execute(uint32_t delta_time)
 
 void Grass::Realize(uint32_t delta_time)
 {
-#ifdef _WIN32  // Effects
-    if (quality == rq_off || fx_ == nullptr) return;
-#else
-    if (quality == rq_off) return;
-#endif
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    // Remove textures
-    rs->TextureSet(0, -1);
-    rs->TextureSet(1, -1);
-    // States
-    rs->SetRenderState(D3DRS_ZENABLE, false);
-    rs->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-    rs->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-    rs->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-    rs->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-    rs->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-    // Fog
-    uint32_t dwOldFogDensity;
-    rs->GetRenderState(D3DRS_FOGDENSITY, &dwOldFogDensity);
-    entid_t eidIsland = core->GetEntityId("Island");
-    if (eidIsland) {
-        auto        fIslandFogDensity = static_cast<float>(dwOldFogDensity);
-        ATTRIBUTES* pA                = core->Entity_GetAttributePointer(eidIsland);
-        if (pA) fIslandFogDensity = pA->GetAttributeAsFloat("FogDensity", 0.0f);
-        rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fIslandFogDensity));
-    }
-    // Set up the stages
-    uint32_t cop, carg1, cop1, aop, aarg1;
-    rs->GetTextureStageState(0, D3DTSS_COLOROP, &cop);
-    rs->GetTextureStageState(1, D3DTSS_COLOROP, &cop1);
-    rs->GetTextureStageState(0, D3DTSS_COLORARG1, &carg1);
-    rs->GetTextureStageState(0, D3DTSS_ALPHAOP, &aop);
-    rs->GetTextureStageState(0, D3DTSS_ALPHAARG1, &aarg1);
-
-    rs->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-    rs->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-    rs->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
-    rs->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-    rs->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
-
-    struct SphVertex {
-        CVECTOR  v;
-        uint32_t c;
-    };
-
-    SphVertex lineVertex[2];
-    lineVertex[0].c = 0xff009f00;
-    lineVertex[1].c = 0xff00ffff;
-
-    // Restore the stages
-    rs->SetTextureStageState(0, D3DTSS_COLOROP, cop);
-    rs->SetTextureStageState(0, D3DTSS_COLORARG1, carg1);
-    rs->SetTextureStageState(1, D3DTSS_COLOROP, cop1);
-    rs->SetTextureStageState(0, D3DTSS_ALPHAOP, aop);
-    rs->SetTextureStageState(0, D3DTSS_ALPHAARG1, aarg1);
-    // restore the states
-    rs->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-    rs->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-    rs->SetRenderState(D3DRS_ZENABLE, TRUE);
-
-    // if(core->Controls->GetDebugAsyncKeyState('H') < 0) return;
-
-    // If there is no map, then there is no drawing
-    if (!block) return;
-    // Light source parameters
-    BOOL isLight = FALSE;
-    rs->GetLightEnable(0, &isLight);
-    D3DLIGHT9 light;
-    if (isLight && rs->GetLight(0, &light)) {
-        // Installed source
-        // Direction
-        lDir.x    = light.Direction.x;
-        lDir.y    = 0.0f;
-        lDir.z    = light.Direction.z;
-        float len = ~lDir;
-        if (len > 0.0f)
-            lDir *= 1.0f / sqrtf(len);
-        else
-            lDir = !CVECTOR(0.9f, 0.0f, 0.5f);
-        // Direction color
-        lColor.z = light.Diffuse.r;
-        lColor.y = light.Diffuse.g;
-        lColor.x = light.Diffuse.b;
-        if (lColor.x < 0.0f) lColor.x = 0.0f;
-        if (lColor.x > 1.0f) lColor.x = 1.0f;
-        if (lColor.y < 0.0f) lColor.y = 0.0f;
-        if (lColor.y > 1.0f) lColor.y = 1.0f;
-        if (lColor.z < 0.0f) lColor.z = 0.0f;
-        if (lColor.z > 1.0f) lColor.z = 1.0f;
-        lColor.x = powf(lColor.x, 0.2f);
-        lColor.y = powf(lColor.y, 0.2f);
-        lColor.z = powf(lColor.z, 0.2f);
-        // Diffused light
-        uint32_t aclr;
-        if (rs->GetRenderState(D3DRS_AMBIENT, &aclr) != D3D_OK) aclr = 0xffffffff;
-        aColor.z = static_cast<uint8_t>(aclr >> 16) * 1.0f / 255.0f;
-        aColor.y = static_cast<uint8_t>(aclr >> 8) * 1.0f / 255.0f;
-        aColor.x = static_cast<uint8_t>(aclr >> 0) * 1.0f / 255.0f;
-        if (aColor.x > 1.0f) aColor.x = 1.0f;
-        if (aColor.y > 1.0f) aColor.y = 1.0f;
-        if (aColor.z > 1.0f) aColor.z = 1.0f;
-        float y = aColor.z * 0.299f + aColor.y * 0.587f + aColor.x * 0.114f;
-        aColor  = y * 0.7f + aColor * 0.3f;
-        aColor *= 0.8f;
-    } else {
-        // Default source
-        // Diffused light
-        uint32_t aclr;
-        if (rs->GetRenderState(D3DRS_AMBIENT, &aclr) != D3D_OK) aclr = 0xffffffff;
-        aColor.z = static_cast<uint8_t>(aclr >> 16) * 1.0f / 255.0f;
-        aColor.y = static_cast<uint8_t>(aclr >> 8) * 1.0f / 255.0f;
-        aColor.x = static_cast<uint8_t>(aclr >> 0) * 1.0f / 255.0f;
-        if (aColor.x > 1.0f) aColor.x = 1.0f;
-        if (aColor.y > 1.0f) aColor.y = 1.0f;
-        if (aColor.z > 1.0f) aColor.z = 1.0f;
-        // Direction
-        lDir = !CVECTOR(0.9f, 0.0f, 0.5f);
-        // Direction color
-        lColor = 0.3f;
-    }
-
-    // recalculate the parameters of the angles
-    for (int32_t i = 0; i < 16; i++) {
-#ifdef _WIN32  // Effects
-        aAngles[i].z = fabsf(-aAngles[i].y * lDir.x + aAngles[i].x * lDir.z);
-        if (aAngles[i].z < 0.0f) aAngles[i].z = 0.0f;
-        if (aAngles[i].z > 1.0f) aAngles[i].z = 1.0f;
-#else
-        consts[i].z = fabsf(-consts[i].y * lDir.x + consts[i].x * lDir.z);
-        if (consts[i].z < 0.0f) consts[i].z = 0.0f;
-        if (consts[i].z > 1.0f) consts[i].z = 1.0f;
-#endif
-    }
-
-    // matrix
-    CMatrix view, prj;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
-#ifdef _WIN32  // Effects
-    CMatrix cmtx;
-    cmtx.EqMultiply(view, prj);
-#else
-    auto& cmtx = (CMatrix&)consts[32];
-    cmtx.EqMultiply(view, prj);
-    // Source Options
-    consts[36].x = lDir.x;
-    consts[36].y = lDir.z;
-    consts[37].x = aColor.x;
-    consts[37].y = aColor.y;
-    consts[37].z = aColor.z;
-    consts[37].w = 1.0f;
-    consts[38].x = lColor.x;
-    consts[38].y = lColor.y;
-    consts[38].z = lColor.z;
-    consts[38].w = m_fDataScale;  // 1.f;
-    consts[39].y = kLitWF;
-#endif
-
-    // Camera position
-    CVECTOR pos, ang;
-    float   prs;
-    rs->GetCamera(pos, ang, prs);
-    // Clipping planes
-    PLANE* pln = rs->GetPlanes();
-    PLANE  plane[5];
-    plane[0].Nx = plane[0].Ny = plane[0].Nz = 0.0f;
-    for (int32_t i = 0; i < 4; i++) {
-        plane[i + 1] = pln[i];
-        plane[0].Nx += pln[i].Nx;
-        plane[0].Ny += pln[i].Ny;
-        plane[0].Nz += pln[i].Nz;
-    }
-    plane[0].Nx *= 0.25f;
-    plane[0].Ny *= 0.25f;
-    plane[0].Nz *= 0.25f;
-    plane[0].D        = pos.x * plane[0].Nx + pos.y * plane[0].Ny + pos.z * plane[0].Nz;
-    int32_t numPlanes = 5;
-    // set texture
-    rs->TextureSet(0, texture);
-    rs->TextureSet(1, texture);
-    // set constants
-#ifdef _WIN32  // Effects
-    fx_->SetMatrix(hgVP_, cmtx);
-    fx_->SetValue(haAngles_, &aAngles[0], sizeof(D3DXVECTOR3) * 16);
-    fx_->SetValue(haUV_, &aUV[0], sizeof(D3DXVECTOR2) * 16);
-    fx_->SetValue(hlDir_, D3DXVECTOR2(lDir.x, lDir.z), sizeof(D3DXVECTOR2));
-    fx_->SetValue(haColor_, D3DXVECTOR3(aColor.x, aColor.y, aColor.z), sizeof(D3DXVECTOR3));
-    fx_->SetValue(hlColor_, D3DXVECTOR3(lColor.x, lColor.y, lColor.z), sizeof(D3DXVECTOR3));
-    fx_->SetFloat(hkLitWF_, kLitWF);
-    fx_->SetFloat(hfDataScale_, m_fDataScale);
-    fx_->SetValue(haSize_, D3DXVECTOR2(m_fMaxWidth, m_fMaxHeight), sizeof(D3DXVECTOR2));
-#else
-    rs->SetVertexShaderConstantF(0, (const float*)consts, sizeof(consts) / sizeof(VSConstant));
-#endif
-
-    // Camera position on the map
-    int32_t camx = static_cast<int32_t>((pos.x / m_fDataScale - startX) / GRASS_BLK_DST);
-    int32_t camz = static_cast<int32_t>((pos.z / m_fDataScale - startZ) / GRASS_BLK_DST);
-    // The square that covers the area of view on the map
-    int32_t left = camx - GRASS_VEIW, right = camx + GRASS_VEIW;
-    int32_t top = camz - GRASS_VEIW, bottom = camz + GRASS_VEIW;
-    // Clip by the size of the map
-    if (right < 0 || left >= miniX) return;
-    if (bottom < 0 || top >= miniZ) return;
-    if (left < 0) left = 0;
-    if (right >= miniX) right = miniX - 1;
-    if (top < 0) top = 0;
-    if (bottom >= miniZ) bottom = miniZ - 1;
-
-    if (camx < 0) camx = 0;
-    if (camx >= miniX) camx = miniX - 1;
-    if (camz < 0) camz = 0;
-    if (camz >= miniZ) camz = miniZ - 1;
-    // Preparing blocks for rendering
-    numPoints = 0;
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-    if (right != miniX - 1 || bottom != miniZ - 1) {
-        for (auto mx = left; mx < right; mx++) {
-            for (auto mz = top; mz < bottom; mz++) {
-                GRSMiniMapElement& mm = miniMap[mz * miniX + mx];
-
-                // Checking for the block
-                if (mm.num[0] != 0) { RenderBlock(pos, plane, numPlanes, mx, mz); }
-            }
-        }
-    } else {
-        for (auto const& [mx, mz]: cachedMiniMap) {
-            RenderBlock(pos, plane, numPlanes, mx, mz);
-        }
-    }
-
-    // Draw a buffer
-    DrawBuffer();
-
-    rs->SetRenderState(D3DRS_FOGDENSITY, dwOldFogDensity);
-
-    for (size_t i = 0; i < characters.size(); i++) {
-        if (characters[i].useCounter > 2) { characters[i].chr->SetGrassSound(); }
-    }
+    // #ifdef _WIN32  // Effects
+    //     if (quality == rq_off || fx_ == nullptr) return;
+    // #else
+    //     if (quality == rq_off) return;
+    // #endif
+    //     rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //     // Remove textures
+    //     rs->TextureSet(0, -1);
+    //     rs->TextureSet(1, -1);
+    //     // States
+    //     rs->SetRenderState(D3DRS_ZENABLE, false);
+    //     rs->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+    //     rs->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+    //     rs->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+    //     rs->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    //     rs->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    //     // Fog
+    //     uint32_t dwOldFogDensity;
+    //     rs->GetRenderState(D3DRS_FOGDENSITY, &dwOldFogDensity);
+    //     entid_t eidIsland = core->GetEntityId("Island");
+    //     if (eidIsland) {
+    //         auto        fIslandFogDensity = static_cast<float>(dwOldFogDensity);
+    //         ATTRIBUTES* pA                = core->Entity_GetAttributePointer(eidIsland);
+    //         if (pA) fIslandFogDensity = pA->GetAttributeAsFloat("FogDensity", 0.0f);
+    //         rs->SetRenderState(D3DRS_FOGDENSITY, F2DW(fIslandFogDensity));
+    //     }
+    //     // Set up the stages
+    //     uint32_t cop, carg1, cop1, aop, aarg1;
+    //     rs->GetTextureStageState(0, D3DTSS_COLOROP, &cop);
+    //     rs->GetTextureStageState(1, D3DTSS_COLOROP, &cop1);
+    //     rs->GetTextureStageState(0, D3DTSS_COLORARG1, &carg1);
+    //     rs->GetTextureStageState(0, D3DTSS_ALPHAOP, &aop);
+    //     rs->GetTextureStageState(0, D3DTSS_ALPHAARG1, &aarg1);
+    //
+    //     rs->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+    //     rs->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+    //     rs->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+    //     rs->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+    //     rs->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
+    //
+    //     struct SphVertex {
+    //         CVECTOR  v;
+    //         uint32_t c;
+    //     };
+    //
+    //     SphVertex lineVertex[2];
+    //     lineVertex[0].c = 0xff009f00;
+    //     lineVertex[1].c = 0xff00ffff;
+    //
+    //     // Restore the stages
+    //     rs->SetTextureStageState(0, D3DTSS_COLOROP, cop);
+    //     rs->SetTextureStageState(0, D3DTSS_COLORARG1, carg1);
+    //     rs->SetTextureStageState(1, D3DTSS_COLOROP, cop1);
+    //     rs->SetTextureStageState(0, D3DTSS_ALPHAOP, aop);
+    //     rs->SetTextureStageState(0, D3DTSS_ALPHAARG1, aarg1);
+    //     // restore the states
+    //     rs->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+    //     rs->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+    //     rs->SetRenderState(D3DRS_ZENABLE, TRUE);
+    //
+    //     // if(core->Controls->GetDebugAsyncKeyState('H') < 0) return;
+    //
+    //     // If there is no map, then there is no drawing
+    //     if (!block) return;
+    //     // Light source parameters
+    //     BOOL isLight = FALSE;
+    //     rs->GetLightEnable(0, &isLight);
+    //     D3DLIGHT9 light;
+    //     if (isLight && rs->GetLight(0, &light)) {
+    //         // Installed source
+    //         // Direction
+    //         lDir.x    = light.Direction.x;
+    //         lDir.y    = 0.0f;
+    //         lDir.z    = light.Direction.z;
+    //         float len = ~lDir;
+    //         if (len > 0.0f)
+    //             lDir *= 1.0f / sqrtf(len);
+    //         else
+    //             lDir = !CVECTOR(0.9f, 0.0f, 0.5f);
+    //         // Direction color
+    //         lColor.z = light.Diffuse.r;
+    //         lColor.y = light.Diffuse.g;
+    //         lColor.x = light.Diffuse.b;
+    //         if (lColor.x < 0.0f) lColor.x = 0.0f;
+    //         if (lColor.x > 1.0f) lColor.x = 1.0f;
+    //         if (lColor.y < 0.0f) lColor.y = 0.0f;
+    //         if (lColor.y > 1.0f) lColor.y = 1.0f;
+    //         if (lColor.z < 0.0f) lColor.z = 0.0f;
+    //         if (lColor.z > 1.0f) lColor.z = 1.0f;
+    //         lColor.x = powf(lColor.x, 0.2f);
+    //         lColor.y = powf(lColor.y, 0.2f);
+    //         lColor.z = powf(lColor.z, 0.2f);
+    //         // Diffused light
+    //         uint32_t aclr;
+    //         if (rs->GetRenderState(D3DRS_AMBIENT, &aclr) != D3D_OK) aclr = 0xffffffff;
+    //         aColor.z = static_cast<uint8_t>(aclr >> 16) * 1.0f / 255.0f;
+    //         aColor.y = static_cast<uint8_t>(aclr >> 8) * 1.0f / 255.0f;
+    //         aColor.x = static_cast<uint8_t>(aclr >> 0) * 1.0f / 255.0f;
+    //         if (aColor.x > 1.0f) aColor.x = 1.0f;
+    //         if (aColor.y > 1.0f) aColor.y = 1.0f;
+    //         if (aColor.z > 1.0f) aColor.z = 1.0f;
+    //         float y = aColor.z * 0.299f + aColor.y * 0.587f + aColor.x * 0.114f;
+    //         aColor  = y * 0.7f + aColor * 0.3f;
+    //         aColor *= 0.8f;
+    //     } else {
+    //         // Default source
+    //         // Diffused light
+    //         uint32_t aclr;
+    //         if (rs->GetRenderState(D3DRS_AMBIENT, &aclr) != D3D_OK) aclr = 0xffffffff;
+    //         aColor.z = static_cast<uint8_t>(aclr >> 16) * 1.0f / 255.0f;
+    //         aColor.y = static_cast<uint8_t>(aclr >> 8) * 1.0f / 255.0f;
+    //         aColor.x = static_cast<uint8_t>(aclr >> 0) * 1.0f / 255.0f;
+    //         if (aColor.x > 1.0f) aColor.x = 1.0f;
+    //         if (aColor.y > 1.0f) aColor.y = 1.0f;
+    //         if (aColor.z > 1.0f) aColor.z = 1.0f;
+    //         // Direction
+    //         lDir = !CVECTOR(0.9f, 0.0f, 0.5f);
+    //         // Direction color
+    //         lColor = 0.3f;
+    //     }
+    //
+    //     // recalculate the parameters of the angles
+    //     for (int32_t i = 0; i < 16; i++) {
+    // #ifdef _WIN32  // Effects
+    //         aAngles[i].z = fabsf(-aAngles[i].y * lDir.x + aAngles[i].x * lDir.z);
+    //         if (aAngles[i].z < 0.0f) aAngles[i].z = 0.0f;
+    //         if (aAngles[i].z > 1.0f) aAngles[i].z = 1.0f;
+    // #else
+    //         consts[i].z = fabsf(-consts[i].y * lDir.x + consts[i].x * lDir.z);
+    //         if (consts[i].z < 0.0f) consts[i].z = 0.0f;
+    //         if (consts[i].z > 1.0f) consts[i].z = 1.0f;
+    // #endif
+    //     }
+    //
+    //     // matrix
+    //     CMatrix view, prj;
+    //     rs->GetTransform(D3DTS_VIEW, view);
+    //     rs->GetTransform(D3DTS_PROJECTION, prj);
+    // #ifdef _WIN32  // Effects
+    //     CMatrix cmtx;
+    //     cmtx.EqMultiply(view, prj);
+    // #else
+    //     auto& cmtx = (CMatrix&)consts[32];
+    //     cmtx.EqMultiply(view, prj);
+    //     // Source Options
+    //     consts[36].x = lDir.x;
+    //     consts[36].y = lDir.z;
+    //     consts[37].x = aColor.x;
+    //     consts[37].y = aColor.y;
+    //     consts[37].z = aColor.z;
+    //     consts[37].w = 1.0f;
+    //     consts[38].x = lColor.x;
+    //     consts[38].y = lColor.y;
+    //     consts[38].z = lColor.z;
+    //     consts[38].w = m_fDataScale;  // 1.f;
+    //     consts[39].y = kLitWF;
+    // #endif
+    //
+    //     // Camera position
+    //     CVECTOR pos, ang;
+    //     float   prs;
+    //     rs->GetCamera(pos, ang, prs);
+    //     // Clipping planes
+    //     PLANE* pln = rs->GetPlanes();
+    //     PLANE  plane[5];
+    //     plane[0].Nx = plane[0].Ny = plane[0].Nz = 0.0f;
+    //     for (int32_t i = 0; i < 4; i++) {
+    //         plane[i + 1] = pln[i];
+    //         plane[0].Nx += pln[i].Nx;
+    //         plane[0].Ny += pln[i].Ny;
+    //         plane[0].Nz += pln[i].Nz;
+    //     }
+    //     plane[0].Nx *= 0.25f;
+    //     plane[0].Ny *= 0.25f;
+    //     plane[0].Nz *= 0.25f;
+    //     plane[0].D        = pos.x * plane[0].Nx + pos.y * plane[0].Ny + pos.z * plane[0].Nz;
+    //     int32_t numPlanes = 5;
+    //     // set texture
+    //     rs->TextureSet(0, texture);
+    //     rs->TextureSet(1, texture);
+    //     // set constants
+    // #ifdef _WIN32  // Effects
+    //     fx_->SetMatrix(hgVP_, cmtx);
+    //     fx_->SetValue(haAngles_, &aAngles[0], sizeof(D3DXVECTOR3) * 16);
+    //     fx_->SetValue(haUV_, &aUV[0], sizeof(D3DXVECTOR2) * 16);
+    //     fx_->SetValue(hlDir_, D3DXVECTOR2(lDir.x, lDir.z), sizeof(D3DXVECTOR2));
+    //     fx_->SetValue(haColor_, D3DXVECTOR3(aColor.x, aColor.y, aColor.z), sizeof(D3DXVECTOR3));
+    //     fx_->SetValue(hlColor_, D3DXVECTOR3(lColor.x, lColor.y, lColor.z), sizeof(D3DXVECTOR3));
+    //     fx_->SetFloat(hkLitWF_, kLitWF);
+    //     fx_->SetFloat(hfDataScale_, m_fDataScale);
+    //     fx_->SetValue(haSize_, D3DXVECTOR2(m_fMaxWidth, m_fMaxHeight), sizeof(D3DXVECTOR2));
+    // #else
+    //     rs->SetVertexShaderConstantF(0, (const float*)consts, sizeof(consts) / sizeof(VSConstant));
+    // #endif
+    //
+    //     // Camera position on the map
+    //     int32_t camx = static_cast<int32_t>((pos.x / m_fDataScale - startX) / GRASS_BLK_DST);
+    //     int32_t camz = static_cast<int32_t>((pos.z / m_fDataScale - startZ) / GRASS_BLK_DST);
+    //     // The square that covers the area of view on the map
+    //     int32_t left = camx - GRASS_VEIW, right = camx + GRASS_VEIW;
+    //     int32_t top = camz - GRASS_VEIW, bottom = camz + GRASS_VEIW;
+    //     // Clip by the size of the map
+    //     if (right < 0 || left >= miniX) return;
+    //     if (bottom < 0 || top >= miniZ) return;
+    //     if (left < 0) left = 0;
+    //     if (right >= miniX) right = miniX - 1;
+    //     if (top < 0) top = 0;
+    //     if (bottom >= miniZ) bottom = miniZ - 1;
+    //
+    //     if (camx < 0) camx = 0;
+    //     if (camx >= miniX) camx = miniX - 1;
+    //     if (camz < 0) camz = 0;
+    //     if (camz >= miniZ) camz = miniZ - 1;
+    //     // Preparing blocks for rendering
+    //     numPoints = 0;
+    //     rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //
+    //     if (right != miniX - 1 || bottom != miniZ - 1) {
+    //         for (auto mx = left; mx < right; mx++) {
+    //             for (auto mz = top; mz < bottom; mz++) {
+    //                 GRSMiniMapElement& mm = miniMap[mz * miniX + mx];
+    //
+    //                 // Checking for the block
+    //                 if (mm.num[0] != 0) { RenderBlock(pos, plane, numPlanes, mx, mz); }
+    //             }
+    //         }
+    //     } else {
+    //         for (auto const& [mx, mz]: cachedMiniMap) {
+    //             RenderBlock(pos, plane, numPlanes, mx, mz);
+    //         }
+    //     }
+    //
+    //     // Draw a buffer
+    //     DrawBuffer();
+    //
+    //     rs->SetRenderState(D3DRS_FOGDENSITY, dwOldFogDensity);
+    //
+    //     for (size_t i = 0; i < characters.size(); i++) {
+    //         if (characters[i].useCounter > 2) { characters[i].chr->SetGrassSound(); }
+    //     }
 }
 
 uint64_t Grass::ProcessMessage(MESSAGE& message)
@@ -685,7 +685,7 @@ inline void Grass::RenderBlock(GRSMiniMapElement& mme, float kLod)
 {
     // Protect from yourself
     if (!vbuffer) {
-        vbuffer = static_cast<Vertex*>(rs->LockVertexBuffer(vb));
+        // vbuffer = static_cast<Vertex*>(rs->LockVertexBuffer(vb));
         if (!vbuffer) return;
     }
     // Position in the vertex array
@@ -828,21 +828,21 @@ inline void Grass::RenderBlock(GRSMiniMapElement& mme, float kLod)
 // Draw the contents of the buffer
 void Grass::DrawBuffer()
 {
-    if (vbuffer) {
-        rs->UnLockVertexBuffer(vb);
-        vbuffer = nullptr;
-    }
-    // boal shader selection -->
-    if (numPoints > 0) {
-        rs->SetVertexDeclaration(vertexDecl_);
-        if (isGrassLightsOn == 1) {
-            rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, numPoints * 4, 0, numPoints * 2, "Grass");
-        } else {
-            rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, numPoints * 4, 0, numPoints * 2, "GrassDark");
-        }
-        // boal shader selection <--
-        numPoints = 0;
-    }
+    // if (vbuffer) {
+    //     rs->UnLockVertexBuffer(vb);
+    //     vbuffer = nullptr;
+    // }
+    // // boal shader selection -->
+    // if (numPoints > 0) {
+    //     rs->SetVertexDeclaration(vertexDecl_);
+    //     if (isGrassLightsOn == 1) {
+    //         rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, numPoints * 4, 0, numPoints * 2, "Grass");
+    //     } else {
+    //         rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, numPoints * 4, 0, numPoints * 2, "GrassDark");
+    //     }
+    //     // boal shader selection <--
+    //     numPoints = 0;
+    // }
 }
 
 int32_t Grass::GetColor(CVECTOR color)
@@ -861,29 +861,29 @@ int32_t Grass::GetColor(CVECTOR color)
 
 void Grass::CreateVertexDeclaration() const
 {
-    if (vertexDecl_ == nullptr) {
-        constexpr D3DVERTEXELEMENT9 VertexElements[] = {
-            {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-            {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
-            {0, 16, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 1},
-            {0, 20, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-            D3DDECL_END()};
-
-        rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
-    }
-
-#ifdef _WIN32  // Effects
-    fx_ = rs->GetEffectPointer("Grass");
-    if (fx_ != nullptr) {
-        hgVP_        = fx_->GetParameterByName(nullptr, "gVP");
-        haAngles_    = fx_->GetParameterByName(nullptr, "aAngles");
-        haUV_        = fx_->GetParameterByName(nullptr, "aUV");
-        hlDir_       = fx_->GetParameterByName(nullptr, "lDir");
-        hkLitWF_     = fx_->GetParameterByName(nullptr, "kLitWF");
-        haColor_     = fx_->GetParameterByName(nullptr, "aColor");
-        hlColor_     = fx_->GetParameterByName(nullptr, "lColor");
-        hfDataScale_ = fx_->GetParameterByName(nullptr, "fDataScale");
-        haSize_      = fx_->GetParameterByName(nullptr, "aSize");
-    }
-#endif
+    //     if (vertexDecl_ == nullptr) {
+    //         constexpr D3DVERTEXELEMENT9 VertexElements[] = {
+    //             {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+    //             {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+    //             {0, 16, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 1},
+    //             {0, 20, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+    //             D3DDECL_END()};
+    //
+    //         rs->CreateVertexDeclaration(VertexElements, &vertexDecl_);
+    //     }
+    //
+    // #ifdef _WIN32  // Effects
+    //     fx_ = rs->GetEffectPointer("Grass");
+    //     if (fx_ != nullptr) {
+    //         hgVP_        = fx_->GetParameterByName(nullptr, "gVP");
+    //         haAngles_    = fx_->GetParameterByName(nullptr, "aAngles");
+    //         haUV_        = fx_->GetParameterByName(nullptr, "aUV");
+    //         hlDir_       = fx_->GetParameterByName(nullptr, "lDir");
+    //         hkLitWF_     = fx_->GetParameterByName(nullptr, "kLitWF");
+    //         haColor_     = fx_->GetParameterByName(nullptr, "aColor");
+    //         hlColor_     = fx_->GetParameterByName(nullptr, "lColor");
+    //         hfDataScale_ = fx_->GetParameterByName(nullptr, "fDataScale");
+    //         haSize_      = fx_->GetParameterByName(nullptr, "aSize");
+    //     }
+    // #endif
 }

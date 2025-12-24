@@ -10,6 +10,8 @@
 
 #include "locator_array.h"
 
+#include <cstring>
+
 #include <libs/util/string_compare.hpp>
 
 // ============================================================================================

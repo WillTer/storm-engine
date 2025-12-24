@@ -29,8 +29,6 @@
 #define TOPMAST_BEGIN 100  // start of topmast numbering (if any)
 #define HULL_IDENTIFY "shatter"
 
-class VDX9RENDER;
-
 class Ship: public SHIP_BASE
 {
 protected:
@@ -74,7 +72,6 @@ protected:
     entid_t model_id, sphere[36];
     entid_t sail_id, rope_id, flag_id, cannon_id, vant_id, vantl_id, vantz_id, touch_id, sea_id, blots_id;
 
-    static VDX9RENDER*  pRS;
     static SEA_BASE*    pSea;
     static ISLAND_BASE* pIsland;
     static COLLIDE*     pCollide;
@@ -134,8 +131,8 @@ protected:
 
     // executed functions
     CVECTOR ShipRocking(float fDeltaTime);
-    BOOL    ApplyStrength(float dtime, BOOL bCollision);
-    BOOL    CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate);
+    bool    ApplyStrength(float dtime, bool bCollision);
+    bool    CalculateNewSpeedVector(CVECTOR* Speed, CVECTOR* Rotate);
     void    CalculateImmersion();  //
     void    CheckShip2Strand(float fDeltaTime);
     void    MastFall(mast_t* pM);
@@ -148,7 +145,7 @@ protected:
     // init section
     void ScanShipForFirePlaces();
     void LoadPositionFromAttributes();
-    BOOL LoadShipParameters();
+    bool LoadShipParameters();
     void CalcRealBoxsize();
 
     void SetDead() override;
@@ -175,18 +172,17 @@ public:
     int32_t AddStrength(STRENGTH* strength) override;
     bool    DelStrength(int32_t iIdx) override;
 
-    BOOL BuildContour(CVECTOR* vContour, int32_t& iNumVContour) override;
+    bool BuildContour(CVECTOR* vContour, int32_t& iNumVContour) override;
     bool BuildMasts();
     bool BuildHulls();
-    BOOL Move(uint32_t DeltaTime, BOOL bCollision);
-    BOOL TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew) override;
+    bool Move(uint32_t DeltaTime, bool bCollision);
+    bool TouchMove(uint32_t DeltaTime, TOUCH_PARAMS* pTPOld, TOUCH_PARAMS* pTPNew) override;
 
     void LoadServices();
 
     // inherit functions SHIP_BASE
-    bool      bSetLightAndFog;
-    uint32_t  dwSaveAmbient, dwSaveFogColor;
-    D3DLIGHT9 saveLight;
+    bool     bSetLightAndFog;
+    uint32_t dwSaveAmbient, dwSaveFogColor;
 
     void SetLightAndFog(bool bSetLight) override;
     void RestoreLightAndFog() override;

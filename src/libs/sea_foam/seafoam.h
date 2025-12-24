@@ -2,7 +2,6 @@
 
 #include <libs/geometry/geos.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/ship/ship_base.h>
 #include <libs/sound_service/v_sound_service.h>
@@ -51,13 +50,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -71,7 +64,6 @@ private:
     void InterpolateRightParticle(tShipFoamInfo& _shipFoamInfo, int z, uint32_t dTime);
     void AddShip(entid_t pShipEID);
 
-    VDX9RENDER*              renderer;
     entid_t                  seaID;
     SEA_BASE*                sea;
     tShipFoamInfo            shipFoamInfo[MAX_SHIPS] {};

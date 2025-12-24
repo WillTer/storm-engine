@@ -8,7 +8,6 @@
 
 CXI_KEYCHANGER::CXI_KEYCHANGER()
 {
-    m_rs              = nullptr;
     m_pControlsID     = nullptr;
     m_pbControlsStick = nullptr;
     m_nNodeType       = NODETYPE_KEYCHANGER;
@@ -113,7 +112,7 @@ void CXI_KEYCHANGER::SetChoosingControls(ATTRIBUTES* pA)
 }
 
 bool CXI_KEYCHANGER::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     SetGlowCursor(false);
     return true;

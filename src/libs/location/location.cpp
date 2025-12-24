@@ -94,9 +94,9 @@ Location::~Location()
 bool Location::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-    rs->SetRenderState(D3DRS_LIGHTING, FALSE);
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs->SetRenderState(D3DRS_LIGHTING, FALSE);
 
     // core->LayerCreate("execute", true, false);
     core->SetLayerType(EXECUTE, layer_type_t::execute);
@@ -109,7 +109,7 @@ bool Location::Init()
     lightsid     = core->CreateEntity("Lights");
     loceffectsid = core->CreateEntity("LocationEffects");
 
-    enemyBarsTexture = rs->TextureCreate("locefx/state_bars.tga");
+    // enemyBarsTexture = rs->TextureCreate("locefx/state_bars.tga");
 
     lighter = core->CreateEntity("Lighter");
     // cubeShotMaker = core->CreateEntity("CubeShotMakerCam");
@@ -162,17 +162,17 @@ void Location::Realize(uint32_t delta_time)
         if (locators[i]->isVisible) DrawLocators(locators[i]);
     if (IsDebugView()) {
         // Patch rendering
-        ptc.DebugDraw(rs, delta_time * 0.001f);
+        // ptc.DebugDraw(rs, delta_time * 0.001f);
         // Location information
         char const* c = nullptr;
         if (AttributesPointer) { c = AttributesPointer->GetAttribute("id"); }
         if (!c) c = "ID not found";
-        rs->Print(10, 10, "Location ID: '%s'", c);
-        if (IsExDebugView()) {
-            for (int32_t i = 0; i < model.Models(); i++) {
-                rs->Print(10, 40 + i * 26, "%2i mdl: '%s.gm'", i, model.GetModelName(i));
-            }
-        }
+        // rs->Print(10, 10, "Location ID: '%s'", c);
+        // if (IsExDebugView()) {
+        //     for (int32_t i = 0; i < model.Models(); i++) {
+        //         rs->Print(10, 40 + i * 26, "%2i mdl: '%s.gm'", i, model.GetModelName(i));
+        //     }
+        // }
     }
     // Updating characters
     if (isDebugView) Update(delta_time);
@@ -690,65 +690,66 @@ void Location::DrawLocators(LocatorArray* la)
         if (!sphereNumTrgs) CreateSphere();
         CMatrix mPos;
         // Remove textures
-        rs->TextureSet(0, -1);
-        rs->TextureSet(1, -1);
-        // start the technique
-        bool const isSet = rs->TechniqueExecuteStart("DbgDrawLocators");
-        rs->SetRenderState(D3DRS_TEXTUREFACTOR, la->color);
+        // rs->TextureSet(0, -1);
+        // rs->TextureSet(1, -1);
+        // // start the technique
+        // bool const isSet = rs->TechniqueExecuteStart("DbgDrawLocators");
+        // rs->SetRenderState(D3DRS_TEXTUREFACTOR, la->color);
         // Draw
-        for (int32_t i = 0; i < la->Num(); i++) {
-            // Draw a ball
-            la->GetLocatorPos(i, mPos);
-            float const rad = la->GetLocatorRadius(i) * la->kViewRadius;
-            if (rad <= 0.0f) continue;
-            mPos.m[0][0] *= rad;
-            mPos.m[0][1] *= rad;
-            mPos.m[0][2] *= rad;
-            mPos.m[1][0] *= rad;
-            mPos.m[1][1] *= rad;
-            mPos.m[1][2] *= rad;
-            mPos.m[2][0] *= rad;
-            mPos.m[2][1] *= rad;
-            mPos.m[2][2] *= rad;
-            rs->SetTransform(D3DTS_WORLD, mPos);
-            rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, sphereNumTrgs, sphereVertex, sizeof(SphVertex), nullptr);
-        }
-        if (isSet)
-            while (rs->TechniqueExecuteNext()) {}
+        // for (int32_t i = 0; i < la->Num(); i++) {
+        //     // Draw a ball
+        //     la->GetLocatorPos(i, mPos);
+        //     float const rad = la->GetLocatorRadius(i) * la->kViewRadius;
+        //     if (rad <= 0.0f) continue;
+        //     mPos.m[0][0] *= rad;
+        //     mPos.m[0][1] *= rad;
+        //     mPos.m[0][2] *= rad;
+        //     mPos.m[1][0] *= rad;
+        //     mPos.m[1][1] *= rad;
+        //     mPos.m[1][2] *= rad;
+        //     mPos.m[2][0] *= rad;
+        //     mPos.m[2][1] *= rad;
+        //     mPos.m[2][2] *= rad;
+        //     rs->SetTransform(D3DTS_WORLD, mPos);
+        //     rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, sphereNumTrgs, sphereVertex, sizeof(SphVertex),
+        //     nullptr);
+        // }
+        // if (isSet)
+        //     while (rs->TechniqueExecuteNext()) {}
     }
     // sign
     static CMatrix mtx, view, prj;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
-    mtx.EqMultiply(view, prj);
-    // Get the current vp sizes
-    static D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
-    float const    w = vp.Width * 0.5f;
-    float const    h = vp.Height * 0.5f;
-    CVECTOR        lvrt;
-    MTX_PRJ_VECTOR vrt;
-    int32_t const  fh = rs->CharHeight(FONT_DEFAULT);
-    int32_t const  gw = rs->StringWidth(la->GetGroupName()) / 2;
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, prj);
+    // mtx.EqMultiply(view, prj);
+    // // Get the current vp sizes
+    // static D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
+    // float const    w = vp.Width * 0.5f;
+    // float const    h = vp.Height * 0.5f;
+    // CVECTOR        lvrt;
+    // MTX_PRJ_VECTOR vrt;
+    // int32_t const  fh = rs->CharHeight(FONT_DEFAULT);
+    // int32_t const  gw = rs->StringWidth(la->GetGroupName()) / 2;
     view.Transposition();
     float const d       = view.Vz() | view.Pos();
     float const viewDst = la->viewDist * la->viewDist;
     // Draw
-    for (int32_t i = 0; i < la->Num(); i++) {
-        float lbh = la->GetLocatorRadius(i) * la->kViewRadius;
-        if (lbh <= 0.0f) continue;
-        if (lbh > 1.5f) lbh = 1.5f;
-        // writing a text
-        la->GetLocatorPos(i, lvrt.x, lvrt.y, lvrt.z);
-        if ((lvrt | view.Vz()) < d) continue;
-        if (~(lvrt - view.Pos()) > viewDst) continue;
-        lvrt.y += lbh;
-        mtx.Projection(&lvrt, &vrt, 1, w, h, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
-        rs->Print(static_cast<int32_t>(vrt.x - gw), static_cast<int32_t>(vrt.y - fh), la->GetGroupName());
-        int32_t const lw = rs->StringWidth((char*)la->LocatorName(i)) / 2;
-        rs->Print(static_cast<int32_t>(vrt.x - lw), static_cast<int32_t>(vrt.y), (char*)la->LocatorName(i));
-    }
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // for (int32_t i = 0; i < la->Num(); i++) {
+    //     float lbh = la->GetLocatorRadius(i) * la->kViewRadius;
+    //     if (lbh <= 0.0f) continue;
+    //     if (lbh > 1.5f) lbh = 1.5f;
+    //     // writing a text
+    //     la->GetLocatorPos(i, lvrt.x, lvrt.y, lvrt.z);
+    //     if ((lvrt | view.Vz()) < d) continue;
+    //     if (~(lvrt - view.Pos()) > viewDst) continue;
+    //     lvrt.y += lbh;
+    //     mtx.Projection(&lvrt, &vrt, 1, w, h, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
+    //     rs->Print(static_cast<int32_t>(vrt.x - gw), static_cast<int32_t>(vrt.y - fh), la->GetGroupName());
+    //     int32_t const lw = rs->StringWidth((char*)la->LocatorName(i)) / 2;
+    //     rs->Print(static_cast<int32_t>(vrt.x - lw), static_cast<int32_t>(vrt.y), (char*)la->LocatorName(i));
+    // }
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
 }
 
 void Location::DrawLine(const CVECTOR& s, uint32_t cs, const CVECTOR& d, uint32_t cd, bool useZ) const
@@ -758,18 +759,18 @@ void Location::DrawLine(const CVECTOR& s, uint32_t cs, const CVECTOR& d, uint32_
     lineVertex[0].c = cs;
     lineVertex[1].v = d;
     lineVertex[1].c = cd;
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    // Remove textures
-    rs->TextureSet(0, -1);
-    rs->TextureSet(1, -1);
-    // set Z
-    uint32_t oldZState = 1;
-    rs->GetRenderState(D3DRS_ZENABLE, &oldZState);
-    rs->SetRenderState(D3DRS_ZENABLE, useZ);
-    // Draw
-    rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 1, lineVertex, sizeof(SphVertex), "DbgLocationDrawLine");
-    // restore
-    rs->SetRenderState(D3DRS_ZENABLE, oldZState);
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // // Remove textures
+    // rs->TextureSet(0, -1);
+    // rs->TextureSet(1, -1);
+    // // set Z
+    // uint32_t oldZState = 1;
+    // rs->GetRenderState(D3DRS_ZENABLE, &oldZState);
+    // rs->SetRenderState(D3DRS_ZENABLE, useZ);
+    // // Draw
+    // rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 1, lineVertex, sizeof(SphVertex), "DbgLocationDrawLine");
+    // // restore
+    // rs->SetRenderState(D3DRS_ZENABLE, oldZState);
 }
 
 void Location::CreateSphere()
@@ -853,54 +854,54 @@ bool Location::IsDebugView()
 // Write text
 void Location::Print(const CVECTOR& pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale, char const* format, ...) const
 {
-    static char buf[256];
-    scale *= 2.0f;
-    // print to the buffer
-    va_list args;
-    va_start(args, format);
-    auto _ = vsnprintf(buf, sizeof(buf) - 1, format, args);
-    va_end(args);
-    buf[sizeof(buf) - 1] = 0;
-    // Find a position of a point on the screen
-    static CMatrix      mtx, view, prj;
-    static D3DVIEWPORT9 vp;
-    MTX_PRJ_VECTOR      vrt;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
-    mtx.EqMultiply(view, prj);
-    view.Transposition();
-    float dist = ~(pos3D - view.Pos());
-    if (dist >= rad * rad) return;
-    float const d = view.Vz() | view.Pos();
-    if ((pos3D | view.Vz()) < d) return;
-    rs->GetViewport(&vp);
-    mtx.Projection((CVECTOR*)&pos3D, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
-    // Find a position
-    float const fh = rs->CharHeight(FONT_DEFAULT) * 0.8f;
-    vrt.y -= (line + 0.5f) * fh * scale;
-    // Transparency
-    float const kDist = 0.75f;
-    if (alpha < 0.0f) alpha = 0.0f;
-    if (alpha > 1.0f) alpha = 1.0f;
-    if (dist > kDist * kDist * rad * rad) {
-        dist = 1.0f - (sqrtf(dist) - kDist * rad) / (rad - kDist * rad);
-        alpha *= dist;
-    }
-    if (alpha <= 0.0f) return;
-    color = (static_cast<uint32_t>(alpha * 255.0f) << 24) | (color & 0xffffff);
-    // print the text
-    rs->ExtPrint(
-        FONT_DEFAULT,
-        color,
-        0x00000000,
-        PR_ALIGN_CENTER,
-        false,
-        scale,
-        0,
-        0,
-        static_cast<int32_t>(vrt.x),
-        static_cast<int32_t>(vrt.y),
-        buf);
+    // static char buf[256];
+    // scale *= 2.0f;
+    // // print to the buffer
+    // va_list args;
+    // va_start(args, format);
+    // auto _ = vsnprintf(buf, sizeof(buf) - 1, format, args);
+    // va_end(args);
+    // buf[sizeof(buf) - 1] = 0;
+    // // Find a position of a point on the screen
+    // static CMatrix      mtx, view, prj;
+    // static D3DVIEWPORT9 vp;
+    // MTX_PRJ_VECTOR      vrt;
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, prj);
+    // mtx.EqMultiply(view, prj);
+    // view.Transposition();
+    // float dist = ~(pos3D - view.Pos());
+    // if (dist >= rad * rad) return;
+    // float const d = view.Vz() | view.Pos();
+    // if ((pos3D | view.Vz()) < d) return;
+    // rs->GetViewport(&vp);
+    // mtx.Projection((CVECTOR*)&pos3D, &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
+    // // Find a position
+    // float const fh = rs->CharHeight(FONT_DEFAULT) * 0.8f;
+    // vrt.y -= (line + 0.5f) * fh * scale;
+    // // Transparency
+    // float const kDist = 0.75f;
+    // if (alpha < 0.0f) alpha = 0.0f;
+    // if (alpha > 1.0f) alpha = 1.0f;
+    // if (dist > kDist * kDist * rad * rad) {
+    //     dist = 1.0f - (sqrtf(dist) - kDist * rad) / (rad - kDist * rad);
+    //     alpha *= dist;
+    // }
+    // if (alpha <= 0.0f) return;
+    // color = (static_cast<uint32_t>(alpha * 255.0f) << 24) | (color & 0xffffff);
+    // // print the text
+    // rs->ExtPrint(
+    //     FONT_DEFAULT,
+    //     color,
+    //     0x00000000,
+    //     PR_ALIGN_CENTER,
+    //     false,
+    //     scale,
+    //     0,
+    //     0,
+    //     static_cast<int32_t>(vrt.x),
+    //     static_cast<int32_t>(vrt.y),
+    //     buf);
 }
 
 // Add a damage message
@@ -980,144 +981,146 @@ void Location::TestLocatorsInPatch(MESSAGE& message)
 // Drawing bars over characters
 void Location::DrawEnemyBars()
 {
-    float const maxViewDist                = 12.0f;
-    float const alphaThresholdRelativeDist = 0.8f;
-    // Current scene parameters
-    static CMatrix      mtx, view, prj;
-    static D3DVIEWPORT9 vp;
-    struct SortElement {
-        MTX_PRJ_VECTOR vrt;
-        uint32_t       color;
-        float          hp;
-        float          energy;
-    } sort[sizeof(enemyBar) / sizeof(enemyBar[0])];
-    SortElement* selements[sizeof(enemyBar) / sizeof(enemyBar[0])];
-    int32_t      sortCount = 0;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
-    mtx.EqMultiply(view, prj);
-    view.Transposition();
-    rs->GetViewport(&vp);
-    // Looping through all entries
-    for (int32_t i = 0; i < enemyBarsCount; i++) {
-        // Find a position of a point on the screen
-        CVECTOR&    pos3D = enemyBar[i].p;
-        float const dist  = ~(pos3D - view.Pos());
-        if (dist >= maxViewDist * maxViewDist) continue;
-        float const d = view.Vz() | view.Pos();
-        if ((pos3D | view.Vz()) < d) continue;
-        MTX_PRJ_VECTOR vrt;
-        mtx.Projection(static_cast<CVECTOR*>(&pos3D), &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
-        // Calculating transparency
-        float k = sqrtf(dist) / maxViewDist;
-        if (k > alphaThresholdRelativeDist) {
-            k = 1.0f - (k - alphaThresholdRelativeDist) / (1.0f - alphaThresholdRelativeDist);
-        } else {
-            k = 1.0f;
-        }
-        uint32_t color = static_cast<int32_t>(k * enemyBar[i].alpha);
-        if (!color) continue;
-        color = (color << 24) | 0x007f7f7f;
-        // Add to the rendering list
-        sort[sortCount].vrt    = vrt;
-        sort[sortCount].color  = color;
-        sort[sortCount].hp     = enemyBar[i].hp;
-        sort[sortCount].energy = enemyBar[i].energy;
-        selements[sortCount]   = &sort[sortCount];
-        sortCount++;
-    }
-    // Sort by distance
-    for (int32_t i = 0; i < sortCount - 1; i++) {
-        for (int32_t j = i + 1; j < sortCount; j++) {
-            if (selements[i]->vrt.z < selements[j]->vrt.z) {
-                SortElement* tmp = selements[i];
-                selements[i]     = selements[j];
-                selements[j]     = tmp;
-            }
-        }
-    }
-    // Rendering
-    for (int32_t i = 0; i < sortCount; i++) {
-        MTX_PRJ_VECTOR&  vrt   = selements[i]->vrt;
-        uint32_t&        color = selements[i]->color;
-        static BarVertex bar[18];
-        float            width  = (256.0f * vrt.rhw) * 0.5f;
-        float            height = (64.0f * vrt.rhw) * 0.5f;
-        if (width > vp.Width * 0.1f) {
-            float const k = vp.Width * 0.1f / width;
-            width *= k;
-            height *= k;
-        }
-        // Background
-        bar[0].p.x = vrt.x - width;
-        bar[0].p.y = vrt.y - height;
-        bar[0].u   = 0.0f;
-        bar[0].v   = 0.0f;
-        bar[1].p.x = vrt.x + width;
-        bar[1].p.y = vrt.y - height;
-        bar[1].u   = 1.0f;
-        bar[1].v   = 0.0f;
-        bar[2].p.x = vrt.x - width;
-        bar[2].p.y = vrt.y + height;
-        bar[2].u   = 0.0f;
-        bar[2].v   = 0.5f;
-        bar[3]     = bar[2];
-        bar[4]     = bar[1];
-        bar[5].p.x = vrt.x + width;
-        bar[5].p.y = vrt.y + height;
-        bar[5].u   = 1.0f;
-        bar[5].v   = 0.5f;
-        // A life
-        bar[6].p.x  = vrt.x - width;
-        bar[6].p.y  = vrt.y - height;
-        bar[6].u    = 0.0f;
-        bar[6].v    = 0.5f;
-        bar[7].p.x  = vrt.x + width;
-        bar[7].p.y  = vrt.y - height;
-        bar[7].u    = 1.0f;
-        bar[7].v    = 0.5f;
-        bar[8].p.x  = vrt.x - width;
-        bar[8].p.y  = vrt.y;
-        bar[8].u    = 0.0f;
-        bar[8].v    = 0.75f;
-        bar[9]      = bar[8];
-        bar[10]     = bar[7];
-        bar[11].p.x = vrt.x + width;
-        bar[11].p.y = vrt.y;
-        bar[11].u   = 1.0f;
-        bar[11].v   = 0.75f;
-        // Energy
-        bar[12].p.x = vrt.x - width;
-        bar[12].p.y = vrt.y;
-        bar[12].u   = 0.0f;
-        bar[12].v   = 0.75f;
-        bar[13].p.x = vrt.x + width;
-        bar[13].p.y = vrt.y;
-        bar[13].u   = 1.0f;
-        bar[13].v   = 0.75f;
-        bar[14].p.x = vrt.x - width;
-        bar[14].p.y = vrt.y + height;
-        bar[14].u   = 0.0f;
-        bar[14].v   = 1.0f;
-        bar[15]     = bar[14];
-        bar[16]     = bar[13];
-        bar[17].p.x = vrt.x + width;
-        bar[17].p.y = vrt.y + height;
-        bar[17].u   = 1.0f;
-        bar[17].v   = 1.0f;
-        // Common fields
-        for (int32_t n = 0; n < sizeof(bar) / sizeof(bar[0]); n++) {
-            bar[n].p.z = vrt.z;
-            bar[n].rhw = vrt.rhw;
-            bar[n].c   = color;
-        }
-        // Adjusting the bars
-        CorrectBar(selements[i]->hp, 0.03f, 0.97f, bar + 6);
-        CorrectBar(selements[i]->energy, 0.03f, 0.97f, bar + 12);
-        // Draw
-        rs->TextureSet(0, enemyBarsTexture);
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1, 6, bar, sizeof(bar[0]), "LocationModelBlend");
-    }
+    // float const maxViewDist                = 12.0f;
+    // float const alphaThresholdRelativeDist = 0.8f;
+    // // Current scene parameters
+    // static CMatrix      mtx, view, prj;
+    // static D3DVIEWPORT9 vp;
+    // struct SortElement {
+    //     MTX_PRJ_VECTOR vrt;
+    //     uint32_t       color;
+    //     float          hp;
+    //     float          energy;
+    // } sort[sizeof(enemyBar) / sizeof(enemyBar[0])];
+    // SortElement* selements[sizeof(enemyBar) / sizeof(enemyBar[0])];
+    // int32_t      sortCount = 0;
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, prj);
+    // mtx.EqMultiply(view, prj);
+    // view.Transposition();
+    // rs->GetViewport(&vp);
+    // // Looping through all entries
+    // for (int32_t i = 0; i < enemyBarsCount; i++) {
+    //     // Find a position of a point on the screen
+    //     CVECTOR&    pos3D = enemyBar[i].p;
+    //     float const dist  = ~(pos3D - view.Pos());
+    //     if (dist >= maxViewDist * maxViewDist) continue;
+    //     float const d = view.Vz() | view.Pos();
+    //     if ((pos3D | view.Vz()) < d) continue;
+    //     MTX_PRJ_VECTOR vrt;
+    //     mtx.Projection(static_cast<CVECTOR*>(&pos3D), &vrt, 1, vp.Width * 0.5f, vp.Height * 0.5f, sizeof(CVECTOR),
+    //     sizeof(MTX_PRJ_VECTOR));
+    //     // Calculating transparency
+    //     float k = sqrtf(dist) / maxViewDist;
+    //     if (k > alphaThresholdRelativeDist) {
+    //         k = 1.0f - (k - alphaThresholdRelativeDist) / (1.0f - alphaThresholdRelativeDist);
+    //     } else {
+    //         k = 1.0f;
+    //     }
+    //     uint32_t color = static_cast<int32_t>(k * enemyBar[i].alpha);
+    //     if (!color) continue;
+    //     color = (color << 24) | 0x007f7f7f;
+    //     // Add to the rendering list
+    //     sort[sortCount].vrt    = vrt;
+    //     sort[sortCount].color  = color;
+    //     sort[sortCount].hp     = enemyBar[i].hp;
+    //     sort[sortCount].energy = enemyBar[i].energy;
+    //     selements[sortCount]   = &sort[sortCount];
+    //     sortCount++;
+    // }
+    // // Sort by distance
+    // for (int32_t i = 0; i < sortCount - 1; i++) {
+    //     for (int32_t j = i + 1; j < sortCount; j++) {
+    //         if (selements[i]->vrt.z < selements[j]->vrt.z) {
+    //             SortElement* tmp = selements[i];
+    //             selements[i]     = selements[j];
+    //             selements[j]     = tmp;
+    //         }
+    //     }
+    // }
+    // // Rendering
+    // for (int32_t i = 0; i < sortCount; i++) {
+    //     MTX_PRJ_VECTOR&  vrt   = selements[i]->vrt;
+    //     uint32_t&        color = selements[i]->color;
+    //     static BarVertex bar[18];
+    //     float            width  = (256.0f * vrt.rhw) * 0.5f;
+    //     float            height = (64.0f * vrt.rhw) * 0.5f;
+    //     if (width > vp.Width * 0.1f) {
+    //         float const k = vp.Width * 0.1f / width;
+    //         width *= k;
+    //         height *= k;
+    //     }
+    //     // Background
+    //     bar[0].p.x = vrt.x - width;
+    //     bar[0].p.y = vrt.y - height;
+    //     bar[0].u   = 0.0f;
+    //     bar[0].v   = 0.0f;
+    //     bar[1].p.x = vrt.x + width;
+    //     bar[1].p.y = vrt.y - height;
+    //     bar[1].u   = 1.0f;
+    //     bar[1].v   = 0.0f;
+    //     bar[2].p.x = vrt.x - width;
+    //     bar[2].p.y = vrt.y + height;
+    //     bar[2].u   = 0.0f;
+    //     bar[2].v   = 0.5f;
+    //     bar[3]     = bar[2];
+    //     bar[4]     = bar[1];
+    //     bar[5].p.x = vrt.x + width;
+    //     bar[5].p.y = vrt.y + height;
+    //     bar[5].u   = 1.0f;
+    //     bar[5].v   = 0.5f;
+    //     // A life
+    //     bar[6].p.x  = vrt.x - width;
+    //     bar[6].p.y  = vrt.y - height;
+    //     bar[6].u    = 0.0f;
+    //     bar[6].v    = 0.5f;
+    //     bar[7].p.x  = vrt.x + width;
+    //     bar[7].p.y  = vrt.y - height;
+    //     bar[7].u    = 1.0f;
+    //     bar[7].v    = 0.5f;
+    //     bar[8].p.x  = vrt.x - width;
+    //     bar[8].p.y  = vrt.y;
+    //     bar[8].u    = 0.0f;
+    //     bar[8].v    = 0.75f;
+    //     bar[9]      = bar[8];
+    //     bar[10]     = bar[7];
+    //     bar[11].p.x = vrt.x + width;
+    //     bar[11].p.y = vrt.y;
+    //     bar[11].u   = 1.0f;
+    //     bar[11].v   = 0.75f;
+    //     // Energy
+    //     bar[12].p.x = vrt.x - width;
+    //     bar[12].p.y = vrt.y;
+    //     bar[12].u   = 0.0f;
+    //     bar[12].v   = 0.75f;
+    //     bar[13].p.x = vrt.x + width;
+    //     bar[13].p.y = vrt.y;
+    //     bar[13].u   = 1.0f;
+    //     bar[13].v   = 0.75f;
+    //     bar[14].p.x = vrt.x - width;
+    //     bar[14].p.y = vrt.y + height;
+    //     bar[14].u   = 0.0f;
+    //     bar[14].v   = 1.0f;
+    //     bar[15]     = bar[14];
+    //     bar[16]     = bar[13];
+    //     bar[17].p.x = vrt.x + width;
+    //     bar[17].p.y = vrt.y + height;
+    //     bar[17].u   = 1.0f;
+    //     bar[17].v   = 1.0f;
+    //     // Common fields
+    //     for (int32_t n = 0; n < sizeof(bar) / sizeof(bar[0]); n++) {
+    //         bar[n].p.z = vrt.z;
+    //         bar[n].rhw = vrt.rhw;
+    //         bar[n].c   = color;
+    //     }
+    //     // Adjusting the bars
+    //     CorrectBar(selements[i]->hp, 0.03f, 0.97f, bar + 6);
+    //     CorrectBar(selements[i]->energy, 0.03f, 0.97f, bar + 12);
+    //     // Draw
+    //     rs->TextureSet(0, enemyBarsTexture);
+    //     rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1, 6, bar, sizeof(bar[0]),
+    //     "LocationModelBlend");
+    // }
 }
 
 void Location::CorrectBar(float v, float start, float end, BarVertex* vrt)
@@ -1158,15 +1161,15 @@ void Location::LoadCaustic() const
     fCausticDelta = 0.0f;
     fCausticFrame = 0.0f;
 
-    fCausticScale    = pC->GetAttributeAsFloat("scale");
-    fFogDensity      = pC->GetAttributeAsFloat("fogdensity");
-    fCausticDistance = pC->GetAttributeAsFloat("distance");
-    v4CausticColor   = COLOR2VECTOR4(pC->GetAttributeAsDword("color"));
-    fCausticSpeed    = pC->GetAttributeAsFloat("speed");
-
-    char tex[256];
-    for (int32_t i = 0; i < 32; i++) {
-        sprintf_s(tex, "weather/caustic/caustic%.2d.tga", i);
-        iCausticTex[i] = rs->TextureCreate(tex);
-    }
+    // fCausticScale    = pC->GetAttributeAsFloat("scale");
+    // fFogDensity      = pC->GetAttributeAsFloat("fogdensity");
+    // fCausticDistance = pC->GetAttributeAsFloat("distance");
+    // v4CausticColor   = COLOR2VECTOR4(pC->GetAttributeAsDword("color"));
+    // fCausticSpeed    = pC->GetAttributeAsFloat("speed");
+    //
+    // char tex[256];
+    // for (int32_t i = 0; i < 32; i++) {
+    //     sprintf_s(tex, "weather/caustic/caustic%.2d.tga", i);
+    //     iCausticTex[i] = rs->TextureCreate(tex);
+    // }
 }

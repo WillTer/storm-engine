@@ -1,11 +1,12 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <cstdint>
+
+#include <libs/core/entity.h>
+#include <libs/renderer_next/types.h>
 
 class HelpChooser: public Entity
 {
-    VDX9RENDER* rs;
-
 public:
     HelpChooser();
     ~HelpChooser() override;
@@ -19,13 +20,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -46,12 +41,12 @@ protected:
     int32_t m_idBackTexture;
     int32_t m_idVBuf;
 
-    float   m_fScreenWidth;
-    float   m_fScreenHeight;
-    FRECT*  m_pRectList;
-    char**  m_psRectName;
-    int32_t m_nRectQ;
-    int32_t m_nCurRect;
+    float         m_fScreenWidth;
+    float         m_fScreenHeight;
+    storm::FRect* m_pRectList;
+    char**        m_psRectName;
+    int32_t       m_nRectQ;
+    int32_t       m_nCurRect;
 
     // mouse data
     float m_fCurMouseX;

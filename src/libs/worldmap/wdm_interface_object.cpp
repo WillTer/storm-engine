@@ -193,8 +193,8 @@ void WdmInterfaceObject::FillRectColor(Vertex* vrt, uint32_t color)
 // Draw buffer of rectangles
 void WdmInterfaceObject::DrawRects(Vertex* vrt, int32_t numRects, char const* techName)
 {
-    wdmObjects->rs->DrawPrimitiveUP(
-        D3DPT_TRIANGLELIST, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2, numRects * 2, vrt, sizeof(Vertex), techName);
+    // wdmObjects->rs->DrawPrimitiveUP(
+    //     D3DPT_TRIANGLELIST, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2, numRects * 2, vrt, sizeof(Vertex), techName);
 }
 
 // Fill 18 vertices of the scaling rectangle
@@ -228,7 +228,7 @@ void WdmInterfaceObject::Print(int32_t font, int32_t color, float xleft, float x
     va_start(args, format);
     vsnprintf(stringBuffer, sizeof(stringBuffer), format, args);
     va_end(args);
-    auto const strw = wdmObjects->rs->StringWidth(stringBuffer, font);
-    auto const x    = (xright + xleft - strw) * 0.5f;
-    wdmObjects->rs->Print(font, color, static_cast<int32_t>(x), static_cast<int32_t>(y), stringBuffer);
+    // auto const strw = wdmObjects->rs->StringWidth(stringBuffer, font);
+    // auto const x    = (xright + xleft - strw) * 0.5f;
+    // wdmObjects->rs->Print(font, color, static_cast<int32_t>(x), static_cast<int32_t>(y), stringBuffer);
 }

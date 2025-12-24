@@ -11,7 +11,7 @@ class BIImageRender;
 class BIImageMaterial
 {
 public:
-    BIImageMaterial(VDX9RENDER* pRS, BIImageRender* pImgRender);
+    BIImageMaterial(/*VDX9RENDER*/ void* pRS, BIImageRender* pImgRender);
     ~BIImageMaterial();
 
     void Render(int32_t nBegPrior, int32_t nEndPrior);
@@ -27,7 +27,14 @@ public:
     }
 
     BIImage const* CreateImage(
-        BIImageType type, uint32_t color, const FRECT& uv, int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom, int32_t nPrior);
+        BIImageType         type,
+        uint32_t            color,
+        storm::FRect const& uv,
+        int32_t             nLeft,
+        int32_t             nTop,
+        int32_t             nRight,
+        int32_t             nBottom,
+        int32_t             nPrior);
     void DeleteImage(BIImage const* pImg);
 
     void SetTexture(char const* pcTextureName);
@@ -72,7 +79,7 @@ protected:
     void RecalculatePriorityRange();
     void InsertImageToList(BIImage* pImg);
 
-    VDX9RENDER*    m_pRS;
+    // VDX9RENDER*    m_pRS;
     BIImageRender* m_pImageRender;
 
     std::string m_sTextureName;

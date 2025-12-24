@@ -2,13 +2,13 @@
 
 #include <libs/core/core.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 
 #include "ball_splash_defines.h"
 
-VDX9RENDER* TSplash::renderer    = nullptr;
-bool        TSplash::startRender = true;
-float       dU                   = 1.f / SPLASH_FRAMES_COUNT;
+// FIXME: Renderer Next
+// VDX9RENDER* TSplash::renderer    = nullptr;
+bool  TSplash::startRender = true;
+float dU                   = 1.f / SPLASH_FRAMES_COUNT;
 
 int TSplash::buffersUsage = 0;
 /*
@@ -57,76 +57,73 @@ TSplash::~TSplash()
     Release();
 
     if (!--buffersUsage) {
-        if (iBuffer)
-            // delete iBuffer;
-            renderer->ReleaseIndexBuffer(iBuffer);
-        if (vBuffer)
-            // delete vBuffer;
-            renderer->ReleaseVertexBuffer(vBuffer);
-        if (iBuffer2)
-            // delete iBuffer2;
-            renderer->ReleaseIndexBuffer(iBuffer2);
-        if (vBuffer2)
-            // delete vBuffer2;
-            renderer->ReleaseVertexBuffer(vBuffer2);
-        if (texture) renderer->TextureRelease(texture);
-        if (texture2) renderer->TextureRelease(texture2);
+        // FIXME: Renderer Next
+        // if (iBuffer)
+        //     // delete iBuffer;
+        //     renderer->ReleaseIndexBuffer(iBuffer);
+        // if (vBuffer)
+        //     // delete vBuffer;
+        //     renderer->ReleaseVertexBuffer(vBuffer);
+        // if (iBuffer2)
+        //     // delete iBuffer2;
+        //     renderer->ReleaseIndexBuffer(iBuffer2);
+        // if (vBuffer2)
+        //     // delete vBuffer2;
+        //     renderer->ReleaseVertexBuffer(vBuffer2);
+        // if (texture) renderer->TextureRelease(texture);
+        // if (texture2) renderer->TextureRelease(texture2);
     }
 }
 
 //--------------------------------------------------------------------
-void TSplash::Initialize(INIFILE* _ini, IDirect3DDevice9* _device, SEA_BASE* _sea, VDX9RENDER* _renderer)
+void TSplash::Initialize(INIFILE* _ini, /*IDirect3DDevice9* _device,*/ SEA_BASE* _sea /*, VDX9RENDER* _renderer*/)
 {
     ambientColor = 0;
     sea          = _sea;
-    if (!renderer) renderer = _renderer;
+    // if (!renderer) renderer = _renderer;
 
     if (!buffersUsage++) {
-        /*
-        iBuffer  = new WORD[TRIANGLES_COUNT*3];
-        vBuffer  = new GRID_VERTEX[GRID_STEPS*GRID_STEPS];
-        iBuffer2 = new WORD[VPLANES_COUNT*6];
-        vBuffer2 = new GRID_VERTEX[VPLANES_COUNT*4];
-        */
-        iBuffer  = renderer->CreateIndexBuffer(MAX_SPLASHES * TRIANGLES_COUNT * 3 * sizeof(uint16_t), D3DUSAGE_WRITEONLY);
-        vBuffer  = renderer->CreateVertexBuffer(GRID_FVF, MAX_SPLASHES * GRID_STEPS * GRID_STEPS * sizeof(GRID_VERTEX), D3DUSAGE_WRITEONLY);
-        iBuffer2 = renderer->CreateIndexBuffer(MAX_SPLASHES * VPLANES_COUNT * 6 * sizeof(uint16_t), D3DUSAGE_WRITEONLY);
-        vBuffer2 = renderer->CreateVertexBuffer(GRID_FVF2, MAX_SPLASHES * VPLANES_COUNT * 4 * sizeof(GRID_VERTEX2), D3DUSAGE_WRITEONLY);
-
-        texture  = renderer->TextureCreate("explos.tga");
-        texture2 = renderer->TextureCreate("splash.tga");
+        // FIXME: Renderer Next
+        // iBuffer  = renderer->CreateIndexBuffer(MAX_SPLASHES * TRIANGLES_COUNT * 3 * sizeof(uint16_t), D3DUSAGE_WRITEONLY);
+        // vBuffer  = renderer->CreateVertexBuffer(GRID_FVF, MAX_SPLASHES * GRID_STEPS * GRID_STEPS * sizeof(GRID_VERTEX),
+        // D3DUSAGE_WRITEONLY); iBuffer2 = renderer->CreateIndexBuffer(MAX_SPLASHES * VPLANES_COUNT * 6 * sizeof(uint16_t),
+        // D3DUSAGE_WRITEONLY); vBuffer2 = renderer->CreateVertexBuffer(GRID_FVF2, MAX_SPLASHES * VPLANES_COUNT * 4 * sizeof(GRID_VERTEX2),
+        // D3DUSAGE_WRITEONLY);
+        //
+        // texture  = renderer->TextureCreate("explos.tga");
+        // texture2 = renderer->TextureCreate("splash.tga");
 
         // INDEXES 1
-        auto* indexes = /*iBuffer*/ static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer));
+        // auto* indexes = /*iBuffer*/ static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer));
 
-        auto startIndex = 0;
-        for (auto i = 0; i < MAX_SPLASHES; i++, startIndex += GRID_STEPS * GRID_STEPS)
-            for (auto z = 0; z < GRID_STEPS - 1; ++z)
-                for (auto x = 0; x < GRID_STEPS - 1; ++x) {
-                    *(indexes++) = startIndex + GRID_STEPS * z + x;
-                    *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x;
-                    *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x + 1;
-
-                    *(indexes++) = startIndex + GRID_STEPS * z + x;
-                    *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x + 1;
-                    *(indexes++) = startIndex + GRID_STEPS * z + x + 1;
-                }
-        renderer->UnLockIndexBuffer(iBuffer);
+        // auto startIndex = 0;
+        // for (auto i = 0; i < MAX_SPLASHES; i++, startIndex += GRID_STEPS * GRID_STEPS)
+        //     for (auto z = 0; z < GRID_STEPS - 1; ++z)
+        //         for (auto x = 0; x < GRID_STEPS - 1; ++x) {
+        //             *(indexes++) = startIndex + GRID_STEPS * z + x;
+        //             *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x;
+        //             *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x + 1;
+        //
+        //             *(indexes++) = startIndex + GRID_STEPS * z + x;
+        //             *(indexes++) = startIndex + GRID_STEPS * (z + 1) + x + 1;
+        //             *(indexes++) = startIndex + GRID_STEPS * z + x + 1;
+        //         }
+        // renderer->UnLockIndexBuffer(iBuffer);
 
         // INDEXES 2
-        startIndex = 0;
-        indexes    = /*iBuffer2*/ static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer2));
-        for (auto i = 0; i < MAX_SPLASHES; i++, startIndex += VPLANES_COUNT * 4)
-            for (auto j = 0; j < VPLANES_COUNT; j++) {
-                *(indexes++) = startIndex + j * 4 + 0;
-                *(indexes++) = startIndex + j * 4 + 1;
-                *(indexes++) = startIndex + j * 4 + 2;
-
-                *(indexes++) = startIndex + j * 4 + 0;
-                *(indexes++) = startIndex + j * 4 + 2;
-                *(indexes++) = startIndex + j * 4 + 3;
-            }
-        renderer->UnLockIndexBuffer(iBuffer2);
+        // startIndex = 0;
+        // indexes    = /*iBuffer2*/ static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer2));
+        // for (auto i = 0; i < MAX_SPLASHES; i++, startIndex += VPLANES_COUNT * 4)
+        //     for (auto j = 0; j < VPLANES_COUNT; j++) {
+        //         *(indexes++) = startIndex + j * 4 + 0;
+        //         *(indexes++) = startIndex + j * 4 + 1;
+        //         *(indexes++) = startIndex + j * 4 + 2;
+        //
+        //         *(indexes++) = startIndex + j * 4 + 0;
+        //         *(indexes++) = startIndex + j * 4 + 2;
+        //         *(indexes++) = startIndex + j * 4 + 3;
+        //     }
+        // renderer->UnLockIndexBuffer(iBuffer2);
     }
 }
 
@@ -136,10 +133,9 @@ void TSplash::Release() {}
 //--------------------------------------------------------------------
 void TSplash::Start(const CVECTOR& _pos, const CVECTOR& _dir)
 {
-    time   = 0;
-    center = _pos;
-    dir    = _dir;
-    //_VSYSTEM_core->Trace("start dir.x=%f, dir.z=%f", this->dir.x, this->dir.z);
+    time    = 0;
+    center  = _pos;
+    dir     = _dir;
     enabled = true;
     growK   = randUpper(2.0f);
 
@@ -151,7 +147,8 @@ void TSplash::Start(const CVECTOR& _pos, const CVECTOR& _dir)
     width2 = randUpper(VPLANES_WIDTH / 2.f);
 
     if (!ambientColor) {
-        renderer->GetRenderState(D3DRS_AMBIENT, &ambientColor);
+        // FIXME: Renderer Next
+        // renderer->GetRenderState(D3DRS_AMBIENT, &ambientColor);
         ambientColor = Desaturate(ambientColor, 1.0f);
     }
 }
@@ -190,8 +187,8 @@ bool TSplash::Process(uint32_t _dTime)
     uint64_t ticksLock;
     RDTSC_B(ticksLock);
     if (startRender) {
-        startVertices = static_cast<GRID_VERTEX*>(renderer->LockVertexBuffer(vBuffer));
-        startRender   = false;
+        // startVertices = static_cast<GRID_VERTEX*>(renderer->LockVertexBuffer(vBuffer));
+        startRender = false;
     }
     RDTSC_E(ticksLock);
     lockTicks += ticksLock;
@@ -249,7 +246,7 @@ void TSplash::PostProcess()
     if (startRender) return;
     uint64_t ticksUnlock;
     RDTSC_B(ticksUnlock);
-    renderer->UnLockVertexBuffer(vBuffer);
+    // renderer->UnLockVertexBuffer(vBuffer);
     RDTSC_E(ticksUnlock);
     unlockTicks += ticksUnlock;
 }
@@ -266,8 +263,8 @@ bool TSplash::Process2(uint32_t _dTime)
     uint64_t             ticksLock;
     RDTSC_B(ticksLock);
     if (startRender) {
-        startVertices2 = static_cast<GRID_VERTEX2*>(renderer->LockVertexBuffer(vBuffer2));
-        startRender    = false;
+        // startVertices2 = static_cast<GRID_VERTEX2*>(renderer->LockVertexBuffer(vBuffer2));
+        startRender = false;
     }
     RDTSC_E(ticksLock);
     lockTicks += ticksLock;
@@ -338,7 +335,7 @@ void TSplash::PostProcess2()
     if (startRender) return;
     uint64_t ticksUnlock;
     RDTSC_B(ticksUnlock);
-    renderer->UnLockVertexBuffer(vBuffer2);
+    // renderer->UnLockVertexBuffer(vBuffer2);
     RDTSC_E(ticksUnlock);
     unlockTicks += ticksUnlock;
 }
@@ -353,11 +350,11 @@ void TSplash::Realize(uint32_t _dTime)
 
     static uint32_t ambient, tfactor, oldAmbient, alpha;
     CMatrix const   m;
-    renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(m));
-    renderer->TextureSet(0, texture);
-
-    renderer->DrawBuffer(
-        vBuffer, sizeof(GRID_VERTEX), iBuffer, 0, GRID_STEPS * GRID_STEPS * topIndex, 0, TRIANGLES_COUNT * topIndex, "splash");
+    // renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(m));
+    // renderer->TextureSet(0, texture);
+    //
+    // renderer->DrawBuffer(
+    //     vBuffer, sizeof(GRID_VERTEX), iBuffer, 0, GRID_STEPS * GRID_STEPS * topIndex, 0, TRIANGLES_COUNT * topIndex, "splash");
 
     RDTSC_E(ticksRealize);
     realizeTicks += ticksRealize;
@@ -373,12 +370,12 @@ void TSplash::Realize2(uint32_t _dTime)
 
     static uint32_t ambient, fogColor, oldAmbient;
     CMatrix const   m;
-    renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(m));
-    renderer->TextureSet(0, texture2);
-    renderer->TextureSet(1, texture2);
-
-    renderer->DrawBuffer(
-        vBuffer2, sizeof(GRID_VERTEX2), iBuffer2, 0, VPLANES_COUNT * 4 * topIndex, 0, VPLANES_COUNT * 2 * topIndex, nullptr);
+    // renderer->SetTransform(D3DTS_WORLD, static_cast<D3DMATRIX*>(m));
+    // renderer->TextureSet(0, texture2);
+    // renderer->TextureSet(1, texture2);
+    //
+    // renderer->DrawBuffer(
+    //     vBuffer2, sizeof(GRID_VERTEX2), iBuffer2, 0, VPLANES_COUNT * 4 * topIndex, 0, VPLANES_COUNT * 2 * topIndex, nullptr);
 
     RDTSC_E(ticksRealize);
     realizeTicks += ticksRealize;

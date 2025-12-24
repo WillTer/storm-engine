@@ -25,7 +25,7 @@ AIBalls::~AIBalls()
 
     pAIBalls = nullptr;
 
-    AIHelper::pRS->TextureRelease(dwTextureIndex);
+    // AIHelper::pRS->TextureRelease(dwTextureIndex);
 
     for (i = 0; i < aBallTypes.size(); i++) {
         auto* pBallsType = &aBallTypes[i];
@@ -41,7 +41,6 @@ AIBalls::~AIBalls()
 
 bool AIBalls::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     SetDevice();
     return true;
 }
@@ -65,15 +64,9 @@ void AIBalls::FireBallFromCamera()
     auto* pABall = pAMainCharacter->CreateAttribute("_err324__", "");
     if (!pABall) return;
 
-    /*AIHelper::pRS->GetTransform(D3DTS_VIEW, mView);
-    CMatrix mIView = mView;
-    mIView.Transposition3X3();
-    float fY = atan2f(mIView.Vz().x, mIView.Vz().z);
-    float fX = SIGN(mIView.Vz().y) * acosf(mIView.Vz() | CVECTOR(mIView.Vz().x, 0.0f, mIView.Vz().z));*/
-
     CVECTOR vCamPos, vCamAng;
     float   fFov;
-    AIHelper::pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // AIHelper::pRS->GetCamera(vCamPos, vCamAng, fFov);
 
     CMatrix mView(vCamAng, vCamPos);
     auto    mIView = mView;
@@ -166,11 +159,9 @@ void AIBalls::Execute(uint32_t Delta_Time)
     if (!pSail && (EID = core->GetEntityId("Sail"))) pSail = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
     if (!pSea && (EID = core->GetEntityId("Sea"))) pSea = static_cast<CANNON_TRACE_BASE*>(core->GetEntityPointer(EID));
 
-    aBallRects.clear();
+    // aBallRects.clear();
 
-    // if (!pVWForts) pVWForts = (VIDWALKER*)core->LayerGetWalker("fort_cannon_trace");
-
-    auto mView = rs->GetView();
+    // auto mView = rs->GetView();
 
     auto fDeltaTime = 0.001f * static_cast<float>(Delta_Time);
 
@@ -231,21 +222,21 @@ void AIBalls::Execute(uint32_t Delta_Time)
 
             float fRes = 2.0f;
 
-            CVECTOR v1 = mView * vSrc;
-            CVECTOR v2 = mView * vDst;
+            // CVECTOR v1 = mView * vSrc;
+            // CVECTOR v2 = mView * vDst;
 
-            if (SIGN(v1.z) != SIGN(v2.z)) {
-                float fDelta = fabsf(v1.z / (v2.z - v1.z));
-                float x      = v1.x + (v2.x - v1.x) * fDelta;
-                float y      = v1.y + (v2.y - v1.y) * fDelta;
-
-                if (Sqr(x) + Sqr(y) <= Sqr(fBallFlySoundDistance)) {
-                    CVECTOR vRes, v = fBallFlySoundStereoMultiplier * CVECTOR(x, y, 0.0f);
-                    mView.MulToInv(v, vRes);
-
-                    core->Event(BALL_FLY_NEAR_CAMERA, "fff", vRes.x, vRes.y, vRes.z);
-                }
-            }
+            // if (SIGN(v1.z) != SIGN(v2.z)) {
+            //     float fDelta = fabsf(v1.z / (v2.z - v1.z));
+            //     float x      = v1.x + (v2.x - v1.x) * fDelta;
+            //     float y      = v1.y + (v2.y - v1.y) * fDelta;
+            //
+            //     if (Sqr(x) + Sqr(y) <= Sqr(fBallFlySoundDistance)) {
+            //         CVECTOR vRes, v = fBallFlySoundStereoMultiplier * CVECTOR(x, y, 0.0f);
+            //         mView.MulToInv(v, vRes);
+            //
+            //         core->Event(BALL_FLY_NEAR_CAMERA, "fff", vRes.x, vRes.y, vRes.z);
+            //     }
+            // }
 
             // sail trace
             if (pSail) pSail->Cannon_Trace(pBall->iBallOwner, vSrc, vDst);
@@ -289,7 +280,6 @@ void AIBalls::Execute(uint32_t Delta_Time)
                     pBall->pParticle->Stop();
                     STORM_DELETE(pBall->pParticle);
                 }
-                // pBallsType->Balls.ExtractNoShift(j);
                 pBallsType->Balls[j] = pBallsType->Balls.back();
                 pBallsType->Balls.pop_back();
                 j--;
@@ -298,14 +288,13 @@ void AIBalls::Execute(uint32_t Delta_Time)
             }
 
             if (pBall->sBallEvent.empty()) {
-                aBallRects.push_back(RS_RECT {});
-                // RS_RECT * pRSR = &aBallRects[aBallRects.Add()];
-                RS_RECT* pRSR      = &aBallRects.back();
-                pRSR->vPos         = pBall->vPos;
-                pRSR->dwColor      = 0xFFFFFF;
-                pRSR->dwSubTexture = pBallsType->dwSubTexIndex;
-                pRSR->fAngle       = pBall->fTime * 3.0f;
-                pRSR->fSize        = pBallsType->fSize * pBall->fSizeMultiply;
+                // aBallRects.push_back(RS_RECT {});
+                // RS_RECT* pRSR      = &aBallRects.back();
+                // pRSR->vPos         = pBall->vPos;
+                // pRSR->dwColor      = 0xFFFFFF;
+                // pRSR->dwSubTexture = pBallsType->dwSubTexIndex;
+                // pRSR->fAngle       = pBall->fTime * 3.0f;
+                // pRSR->fSize        = pBallsType->fSize * pBall->fSizeMultiply;
             }
         }
     }
@@ -313,23 +302,13 @@ void AIBalls::Execute(uint32_t Delta_Time)
 
 void AIBalls::Realize(uint32_t Delta_Time)
 {
-    if (aBallRects.size()) {
-        AIHelper::pRS->TextureSet(0, dwTextureIndex);
-        AIHelper::pRS->DrawRects(&aBallRects[0], aBallRects.size(), "Cannonballs", dwSubTexX, dwSubTexY);
-        aBallRects.clear();
-    }
+    // if (aBallRects.size()) {
+    // AIHelper::pRS->TextureSet(0, dwTextureIndex);
+    // AIHelper::pRS->DrawRects(&aBallRects[0], aBallRects.size(), "Cannonballs", dwSubTexX, dwSubTexY);
+    // aBallRects.clear();
+    // }
 
     dwFireBallFromCameraTime += Delta_Time;
-    /*
-  #ifndef _XBOX
-    if (core->Controls->GetDebugAsyncKeyState('C') < 0 && dwFireBallFromCameraTime > 30 &&
-  AttributesPointer->GetAttributeAsDword("FireBallFromCamera", 0) != 0)
-    {
-      dwFireBallFromCameraTime = 0;
-      FireBallFromCamera();
-    }
-  #endif
-  */
 }
 
 uint32_t AIBalls::AttributeChanged(ATTRIBUTES* pAttributeChanged)
@@ -369,7 +348,7 @@ uint32_t AIBalls::AttributeChanged(ATTRIBUTES* pAttributeChanged)
         dwSubTexX                     = AttributesPointer->GetAttributeAsDword("SubTexX");
         dwSubTexY                     = AttributesPointer->GetAttributeAsDword("SubTexY");
 
-        dwTextureIndex = AIHelper::pRS->TextureCreate(sTextureName.c_str());
+        // dwTextureIndex = AIHelper::pRS->TextureCreate(sTextureName.c_str());
 
         // install balls
         ATTRIBUTES* pAPBalls = AttributesPointer->GetAttributeClass("Balls");

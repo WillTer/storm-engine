@@ -11,7 +11,6 @@
 #pragma once
 
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
 #define BLOTS_NTRGS 32     // Triangles in 1 blot
 #define BLOTS_MAX 256      // Total blots
@@ -86,7 +85,7 @@ private:
     void LoadBlot(int32_t i);
 
 private:
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
     entid_t     model;
     int32_t     textureID;
     ATTRIBUTES* blotsInfo;

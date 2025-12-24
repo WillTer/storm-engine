@@ -1,5 +1,7 @@
 #include "xi_rectangle.h"
 
+#include <libs/renderer_next/types.h>
+
 CXI_RECTANGLE::CXI_RECTANGLE()
 {
     m_nNodeType = NODETYPE_RECTANGLE;
@@ -13,25 +15,25 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
 void CXI_RECTANGLE::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        m_rs->TextureSet(0, 0);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, m_pVert, sizeof(XI_NOTEX_VERTEX), "iRectangle");
-        if (m_bBorder) {
-            RS_LINE pLines[8];
-            for (auto i = 0; i < 8; i++) {
-                pLines[i].vPos.z  = 1.f;
-                pLines[i].dwColor = m_dwBorderColor;
-            }
-            pLines[0].vPos.x = pLines[1].vPos.x = pLines[2].vPos.x = pLines[7].vPos.x = static_cast<float>(m_rect.left);
-            pLines[1].vPos.y = pLines[2].vPos.y = pLines[3].vPos.y = pLines[4].vPos.y = static_cast<float>(m_rect.top);
-            pLines[3].vPos.x = pLines[4].vPos.x = pLines[5].vPos.x = pLines[6].vPos.x = static_cast<float>(m_rect.right);
-            pLines[0].vPos.y = pLines[5].vPos.y = pLines[6].vPos.y = pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
-            m_rs->DrawLines(pLines, 4, "iRectangle");
-        }
+        // m_rs->TextureSet(0, 0);
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, m_pVert, sizeof(XI_NOTEX_VERTEX), "iRectangle");
+        // if (m_bBorder) {
+        //     RS_LINE pLines[8];
+        //     for (auto i = 0; i < 8; i++) {
+        //         pLines[i].vPos.z  = 1.f;
+        //         pLines[i].dwColor = m_dwBorderColor;
+        //     }
+        //     pLines[0].vPos.x = pLines[1].vPos.x = pLines[2].vPos.x = pLines[7].vPos.x = static_cast<float>(m_rect.left);
+        //     pLines[1].vPos.y = pLines[2].vPos.y = pLines[3].vPos.y = pLines[4].vPos.y = static_cast<float>(m_rect.top);
+        //     pLines[3].vPos.x = pLines[4].vPos.x = pLines[5].vPos.x = pLines[6].vPos.x = static_cast<float>(m_rect.right);
+        //     pLines[0].vPos.y = pLines[5].vPos.y = pLines[6].vPos.y = pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
+        //     m_rs->DrawLines(pLines, 4, "iRectangle");
+        // }
     }
 }
 
 bool CXI_RECTANGLE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -79,35 +81,33 @@ void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 
 void CXI_RECTANGLE::UpdateColors()
 {
-    int alpha, red, green, blue;
-
     // set left top vertex color
-    alpha            = (ALPHA(m_dwLeftColor) * ALPHA(m_dwTopColor)) >> 8L;
-    red              = (RED(m_dwLeftColor) * RED(m_dwTopColor)) >> 8L;
-    green            = (GREEN(m_dwLeftColor) * GREEN(m_dwTopColor)) >> 8L;
-    blue             = (BLUE(m_dwLeftColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_pVert[0].color = ARGB(alpha, red, green, blue);
+    uint8_t alpha    = (ALPHA(m_dwLeftColor) * ALPHA(m_dwTopColor)) >> 8L;
+    uint8_t red      = (RED(m_dwLeftColor) * RED(m_dwTopColor)) >> 8L;
+    uint8_t green    = (GREEN(m_dwLeftColor) * GREEN(m_dwTopColor)) >> 8L;
+    uint8_t blue     = (BLUE(m_dwLeftColor) * BLUE(m_dwTopColor)) >> 8L;
+    m_pVert[0].color = storm::Color {alpha, red, green, blue}.to_hex();
 
     // set left bottom vertex color
     alpha            = (ALPHA(m_dwLeftColor) * ALPHA(m_dwBottomColor)) >> 8L;
     red              = (RED(m_dwLeftColor) * RED(m_dwBottomColor)) >> 8L;
     green            = (GREEN(m_dwLeftColor) * GREEN(m_dwBottomColor)) >> 8L;
     blue             = (BLUE(m_dwLeftColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_pVert[1].color = ARGB(alpha, red, green, blue);
+    m_pVert[1].color = storm::Color {alpha, red, green, blue}.to_hex();
 
     // set right top vertex color
     alpha            = (ALPHA(m_dwRightColor) * ALPHA(m_dwTopColor)) >> 8L;
     red              = (RED(m_dwRightColor) * RED(m_dwTopColor)) >> 8L;
     green            = (GREEN(m_dwRightColor) * GREEN(m_dwTopColor)) >> 8L;
     blue             = (BLUE(m_dwRightColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_pVert[2].color = ARGB(alpha, red, green, blue);
+    m_pVert[2].color = storm::Color {alpha, red, green, blue}.to_hex();
 
     // set right bottom vertex color
     alpha            = (ALPHA(m_dwRightColor) * ALPHA(m_dwBottomColor)) >> 8L;
     red              = (RED(m_dwRightColor) * RED(m_dwBottomColor)) >> 8L;
     green            = (GREEN(m_dwRightColor) * GREEN(m_dwBottomColor)) >> 8L;
     blue             = (BLUE(m_dwRightColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_pVert[3].color = ARGB(alpha, red, green, blue);
+    m_pVert[3].color = storm::Color {alpha, red, green, blue}.to_hex();
 }
 
 bool CXI_RECTANGLE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
@@ -160,7 +160,7 @@ uint32_t CXI_RECTANGLE::MessageProc(int32_t msgcode, MESSAGE& message)
     } break;
     case 1:  // Change rectangle and border color
     {
-        m_dwTopColor = m_dwBottomColor = ARGB(255, 255, 255, 255);
+        m_dwTopColor = m_dwBottomColor = storm::Color {255, 255, 255, 255}.to_hex();
         m_dwLeftColor = m_dwRightColor = message.Long();
         m_dwBorderColor                = message.Long();
         m_bBorder                      = ALPHA(m_dwBorderColor) != 0;

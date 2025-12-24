@@ -46,35 +46,26 @@ bool WdmRenderModel::Load(char const* modelName)
     return false;
 }
 
-void WdmRenderModel::PRender(VDX9RENDER* rs)
+void WdmRenderModel::PRender(/*VDX9RENDER*/ void* rs)
 {
     LRender(rs);
 }
 
-void WdmRenderModel::MRender(VDX9RENDER* rs)
+void WdmRenderModel::MRender(/*VDX9RENDER*/ void* rs)
 {
     auto m(mtx);
     m.m[0][1] = -m.m[0][1];
     m.m[1][1] = -m.m[1][1];
     m.m[2][1] = -m.m[2][1];
     m.m[3][1] = -m.m[3][1];
-    rs->SetTransform(D3DTS_WORLD, m);
+    // rs->SetTransform(D3DTS_WORLD, m);
     Render(rs);
 }
 
-void WdmRenderModel::LRender(VDX9RENDER* rs)
+void WdmRenderModel::LRender(/*VDX9RENDER*/ void* rs)
 {
-    rs->SetTransform(D3DTS_WORLD, mtx);
+    // rs->SetTransform(D3DTS_WORLD, mtx);
     Render(rs);
-
-    /*
-    if(drawCircle)
-    {
-      CMatrix m(mtx);
-      m.Pos() = m*center;
-      wdmObjects->DrawCircle(m, radius, 0x2f0fffff);
-      //wdmObjects->DrawCircle(mtx, modelRadius, 0x2fffff0f);
-    }*/
 }
 
 void WdmRenderModel::SetTech(char const* t, char const* ta)
@@ -106,7 +97,7 @@ void WdmRenderModel::SetTexture(int32_t stage, int32_t id) const
     geo->SetMaterial(0, mtl);
 }
 
-void WdmRenderModel::Render(VDX9RENDER* rs) const
+void WdmRenderModel::Render(/*VDX9RENDER*/ void* rs) const
 {
     if (!geo) return;
     auto a = alpha * 255.0f;
@@ -118,17 +109,17 @@ void WdmRenderModel::Render(VDX9RENDER* rs) const
         wdmObjects->gs->SetTechnique(tech);
     } else {
         wdmObjects->gs->SetTechnique(techa);
-        rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(a) << 24) | 0xffffff);
+        // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(a) << 24) | 0xffffff);
     }
     // Check for visibility
-    auto* const    plane = rs->GetPlanes();
+    // auto* const    plane = rs->GetPlanes();
     static CMatrix mtx;
-    rs->GetTransform(D3DTS_WORLD, mtx);
+    // rs->GetTransform(D3DTS_WORLD, mtx);
     auto const v = mtx * center;
     for (int32_t i = 0; i < 4; i++) {
-        auto&      p    = plane[i];
-        auto const dist = v.x * p.Nx + v.y * p.Ny + v.z * p.Nz - p.D;
-        if (dist < -radius) return;
+        // auto&      p    = plane[i];
+        // auto const dist = v.x * p.Nx + v.y * p.Ny + v.z * p.Nz - p.D;
+        // if (dist < -radius) return;
     }
     geo->Draw(nullptr, 0, nullptr);
     wdmObjects->gs->SetTechnique("");

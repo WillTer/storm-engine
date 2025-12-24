@@ -3,5 +3,5 @@ storm_lib(
     SOURCES_DEPS
         EnTT::EnTT
     HEADERS_DEPS
-        renderer # FIXME
+        renderer_next # FIXME
 )

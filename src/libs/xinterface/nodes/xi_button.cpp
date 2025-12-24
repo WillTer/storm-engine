@@ -2,12 +2,12 @@
 
 #include <libs/util/string_compare.hpp>
 
+#include "libs/renderer_next/types.h"
+
 CXI_BUTTON::CXI_BUTTON()
 {
-    m_rs         = nullptr;
     m_sGroupName = nullptr;
     m_idTex      = -1;
-    m_pTex       = nullptr;
 
     fXShadow = 0.f;
     fYShadow = 0.f;
@@ -91,56 +91,56 @@ void CXI_BUTTON::Draw(bool bSelected, uint32_t Delta_Time)
             }
         }
 
-        if (m_idTex != -1)
-            m_rs->TextureSet(0, m_idTex);
-        else
-            m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
+        // if (m_idTex != -1)
+        // m_rs->TextureSet(0, m_idTex);
+        // else
+        // m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
 
-        if (m_idTex >= 0 || m_pTex != nullptr) {
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
-            if (m_bClickable && m_bSelected)
-                m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iButton");
-            else {
-                m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_argbDisableColor);
-                m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iDisabledNode");
-            }
-        }
+        // if (m_idTex >= 0 || m_pTex != nullptr) {
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vShadow, sizeof(XI_ONETEX_VERTEX), "iShadow");
+        //     if (m_bClickable && m_bSelected)
+        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iButton");
+        //     else {
+        //         m_rs->SetRenderState(D3DRS_TEXTUREFACTOR, m_argbDisableColor);
+        //         m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, vFace, sizeof(XI_ONETEX_VERTEX), "iDisabledNode");
+        //     }
+        // }
 
-        if (m_idString != -1L)
-            if (nPressedDelay > 0) {
-                m_rs->ExtPrint(
-                    m_nFontNum,
-                    m_dwFontColor,
-                    0,
-                    PR_ALIGN_CENTER,
-                    false,
-                    1.f,
-                    m_screenSize.x,
-                    m_screenSize.y,
-                    (m_rect.left + m_rect.right) / 2 + static_cast<int>(fXDeltaPress),
-                    m_rect.top + m_dwStrOffset + static_cast<int>(fYDeltaPress),
-                    "%s",
-                    pStringService->GetString(m_idString));
-            } else {
-                m_rs->ExtPrint(
-                    m_nFontNum,
-                    m_dwFontColor,
-                    0,
-                    PR_ALIGN_CENTER,
-                    false,
-                    1.f,
-                    m_screenSize.x,
-                    m_screenSize.y,
-                    (m_rect.left + m_rect.right) / 2,
-                    m_rect.top + m_dwStrOffset,
-                    "%s",
-                    pStringService->GetString(m_idString));
-            }
+        // if (m_idString != -1L)
+        //     if (nPressedDelay > 0) {
+        //         m_rs->ExtPrint(
+        //             m_nFontNum,
+        //             m_dwFontColor,
+        //             0,
+        //             PR_ALIGN_CENTER,
+        //             false,
+        //             1.f,
+        //             m_screenSize.x,
+        //             m_screenSize.y,
+        //             (m_rect.left + m_rect.right) / 2 + static_cast<int>(fXDeltaPress),
+        //             m_rect.top + m_dwStrOffset + static_cast<int>(fYDeltaPress),
+        //             "%s",
+        //             pStringService->GetString(m_idString));
+        //     } else {
+        //         m_rs->ExtPrint(
+        //             m_nFontNum,
+        //             m_dwFontColor,
+        //             0,
+        //             PR_ALIGN_CENTER,
+        //             false,
+        //             1.f,
+        //             m_screenSize.x,
+        //             m_screenSize.y,
+        //             (m_rect.left + m_rect.right) / 2,
+        //             m_rect.top + m_dwStrOffset,
+        //             "%s",
+        //             pStringService->GetString(m_idString));
+        //     }
     }
 }
 
 bool CXI_BUTTON::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -153,7 +153,7 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
 
     // get font number
     if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) {
-        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+        // if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     }
 
     // get face color
@@ -175,10 +175,10 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
     m_bUpBlind  = false;
 
     // get disable color
-    m_argbDisableColor = GetIniARGB(ini1, name1, ini2, name2, "disableColor", ARGB(255, 128, 128, 128));
+    m_argbDisableColor = GetIniARGB(ini1, name1, ini2, name2, "disableColor", storm::Color {255, 128, 128, 128}.to_hex());
 
     // get shadow color
-    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", ARGB(255, 0, 0, 0));
+    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "shadowColor", storm::Color {255, 0, 0, 0}.to_hex());
 
     // get font color
     m_dwFontColor = GetIniARGB(ini1, name1, ini2, name2, "fontColor", 0xFFFFFFFF);
@@ -195,7 +195,7 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
         if (ReadIniString(ini1, name1, ini2, name2, "picture", param, sizeof(param), ""))
             pPictureService->GetTexturePos(m_sGroupName, param, m_tRect);
     } else {
-        if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
         m_tRect.left   = 0.f;
         m_tRect.top    = 0.f;
         m_tRect.right  = 1.f;
@@ -231,9 +231,6 @@ void CXI_BUTTON::ReleaseAll()
     PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName, m_idTex);
     delete[] m_sGroupName;
     m_sGroupName = nullptr;
-
-    FONT_RELEASE(m_rs, m_nFontNum);
-    VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
 }
 
 int CXI_BUTTON::CommandExecute(int wActCode)

@@ -12,12 +12,11 @@
 
 DeckCamera::DeckCamera()
 {
-    vb_id         = 0;
-    RenderService = nullptr;
-    camera_pos.y  = 1.0f;
-    pACharacter   = nullptr;
-    pathNode      = nullptr;
-    bLoad         = false;
+    vb_id        = 0;
+    camera_pos.y = 1.0f;
+    pACharacter  = nullptr;
+    pathNode     = nullptr;
+    bLoad        = false;
 }
 
 DeckCamera::~DeckCamera() {}
@@ -28,11 +27,7 @@ bool DeckCamera::Init()
     return true;
 }
 
-void DeckCamera::SetDevice()
-{
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(RenderService);
-}
+void DeckCamera::SetDevice() {}
 
 bool DeckCamera::CreateState(ENTITY_STATE_GEN* state_gen)
 {
@@ -259,7 +254,7 @@ void DeckCamera::Move(uint32_t DeltaTime)
     s_pos = pathNode->glob_mtx * (camera_pos + CVECTOR(0.f, h_eye, 0.f));
 
     // set camera
-    RenderService->SetCamera(s_pos, s_ang, GetPerspective());
+    // RenderService->SetCamera(s_pos, s_ang, GetPerspective());
 }
 
 void DeckCamera::SetCharacter(ATTRIBUTES* _pACharacter)

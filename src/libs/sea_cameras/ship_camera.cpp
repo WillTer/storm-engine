@@ -19,7 +19,6 @@ ShipCamera::ShipCamera()
     , pSea(nullptr)
     , pIsland(nullptr)
     , lIlsInitCnt(0)
-    , pRS(nullptr)
 {
     SetOn(false);
     SetActive(false);
@@ -33,9 +32,6 @@ bool ShipCamera::Init()
 
 void ShipCamera::SetDevices()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
-
     pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 }
 
@@ -60,8 +56,8 @@ void ShipCamera::Execute(uint32_t dwDeltaTime)
 
 void ShipCamera::Realize(uint32_t dwDeltaTime) const
 {
-    pRS->DrawEllipsoid(GetAIObj()->GetPos(), a, b, c, fModelAy, 0x900C0C0C);
-    pRS->DrawSphere(vCenter, 5.0f, 0xFFFFFFFF);
+    // pRS->DrawEllipsoid(GetAIObj()->GetPos(), a, b, c, fModelAy, 0x900C0C0C);
+    // pRS->DrawSphere(vCenter, 5.0f, 0xFFFFFFFF);
 }
 
 void ShipCamera::Move(float fDeltaTime)
@@ -158,8 +154,8 @@ void ShipCamera::Move(float fDeltaTime)
     }
     if (vPos.y > oldPosY) vCenter.y += vPos.y - oldPosY;
     // Set new camera
-    pRS->SetCamera(vPos, vCenter, CVECTOR(0.0f, 1.0f, 0.0f));
-    pRS->SetPerspective(GetPerspective());
+    // pRS->SetCamera(vPos, vCenter, CVECTOR(0.0f, 1.0f, 0.0f));
+    // pRS->SetPerspective(GetPerspective());
 }
 
 void ShipCamera::SetCharacter(ATTRIBUTES* _pACharacter)

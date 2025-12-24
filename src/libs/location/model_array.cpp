@@ -13,7 +13,6 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
@@ -320,42 +319,42 @@ uint32_t ModelArray::CalcHashString(char const* str)
     return hval;
 }
 
-void ModelArray::UVSlider::Set(MODEL* model, VDX9RENDER* rs)
+void ModelArray::UVSlider::Set(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
-    static CMatrix mtx;
-    mtx.m[2][0] = u0;
-    mtx.m[2][1] = v0;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
-    mtx.m[2][0] = u1;
-    mtx.m[2][1] = v1;
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
-    rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
-    rs->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
+    // static CMatrix mtx;
+    // mtx.m[2][0] = u0;
+    // mtx.m[2][1] = v0;
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // mtx.m[2][0] = u1;
+    // mtx.m[2][1] = v1;
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
+    // rs->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
 }
 
-void ModelArray::UVSlider::Restore(MODEL* model, VDX9RENDER* rs)
+void ModelArray::UVSlider::Restore(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
-    static CMatrix mtx;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
-    rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
-    rs->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+    // static CMatrix mtx;
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+    // rs->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
 }
 
-void ModelArray::Relection::Set(MODEL* model, VDX9RENDER* rs)
+void ModelArray::Relection::Set(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
-    CMatrix mtx;
-    rs->GetTransform(D3DTS_VIEW, mtx);
-    mtx.Transposition();
-    mtx.Pos() = 0.0f;
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, tfactor);
+    // CMatrix mtx;
+    // rs->GetTransform(D3DTS_VIEW, mtx);
+    // mtx.Transposition();
+    // mtx.Pos() = 0.0f;
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, tfactor);
 }
 
-void ModelArray::Relection::Restore(MODEL* model, VDX9RENDER* rs)
+void ModelArray::Relection::Restore(MODEL* model, /*VDX9RENDER*/ void* rs)
 {
     CMatrix const mtx;
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
 }
 
 void ModelArray::UpdatePath(std::string& path)

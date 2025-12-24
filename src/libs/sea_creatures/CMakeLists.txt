@@ -1,6 +1,6 @@
 storm_lib(
     NAME sea_creatures
     SOURCES_DEPS
-        renderer
+        renderer_next
         SDL3-storm
 )

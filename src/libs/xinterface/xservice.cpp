@@ -2,7 +2,6 @@
 
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/util/platform/platform.hpp>
 #include <libs/util/string_compare.hpp>
 
@@ -17,33 +16,12 @@ XSERVICE::XSERVICE() : m_fWScale(0), m_fHScale(0), m_fWAdd(0), m_fHAdd(0)
     m_dwImageQuantity = 0;
     m_pList           = nullptr;
     m_pImage          = nullptr;
-
-    m_pRS = nullptr;
 }
 
 XSERVICE::~XSERVICE() {}
 
-void XSERVICE::Init(VDX9RENDER* pRS, int32_t lWidth, int32_t lHeight)
+void XSERVICE::Init(/*VDX9RENDER*/ void* pRS, int32_t lWidth, int32_t lHeight)
 {
-    m_pRS = pRS;
-
-    // get the size of the output window
-    /*    D3DVIEWPORT9 vp;
-      m_pRS->GetViewport(&vp);
-      m_fWAdd = m_fWScale = (float)vp.Width/lWidth;
-      m_fHAdd = m_fHScale = (float)vp.Height/lHeight;
-
-      while(m_fWAdd>1.f) m_fWAdd-=1.f;
-      while(m_fWAdd<0.f) m_fWAdd+=1.f;
-      while(m_fHAdd>1.f) m_fHAdd-=1.f;
-      while(m_fHAdd<0.f) m_fHAdd+=1.f;
-      if(m_fWAdd>0.5f) m_fWAdd = 2.f-m_fWAdd*2.f;
-      else    m_fWAdd *= 2.f;
-      if(m_fHAdd>0.5f) m_fHAdd = 2.f-m_fHAdd*2.f;
-      else    m_fHAdd *= 2.f;
-      m_fWAdd *= ERROR_MUL;
-      m_fHAdd *= ERROR_MUL;
-    */
     m_fWAdd = 0.5f;
     m_fHAdd = 0.5f;
 
@@ -58,7 +36,7 @@ int32_t XSERVICE::GetTextureID(char const* sImageListName)
                 if (m_pList[i].textureQuantity <= 0) {
                     char sTexName[256];
                     sprintf_s(sTexName, "interfaces/%s", m_pList[i].sTextureName);
-                    m_pList[i].textureID       = m_pRS->TextureCreate(sTexName);
+                    // m_pList[i].textureID       = m_pRS->TextureCreate(sTexName);
                     m_pList[i].textureQuantity = 1;
                 } else
                     m_pList[i].textureQuantity++;
@@ -84,7 +62,7 @@ bool XSERVICE::ReleaseTextureID(char const* sImageListName)
     for (auto i = 0; i < m_dwListQuantity; i++)
         if (storm::iEquals(m_pList[i].sImageListName, sImageListName))
             if (--m_pList[i].textureQuantity == 0) {
-                m_pRS->TextureRelease(m_pList[i].textureID);
+                // m_pRS->TextureRelease(m_pList[i].textureID);
                 return true;
             }
 
@@ -286,7 +264,7 @@ void XSERVICE::ReleaseAll()
 {
     if (m_pList != nullptr) {
         for (auto i = 0; i < m_dwListQuantity; i++) {
-            if (m_pList[i].textureQuantity != 0) m_pRS->TextureRelease(m_pList[i].textureID);
+            // if (m_pList[i].textureQuantity != 0) m_pRS->TextureRelease(m_pList[i].textureID);
 
             delete[] m_pList[i].sImageListName;
 

@@ -2,15 +2,16 @@
 
 #include <filesystem>
 
+#include <libs/core/entity.h>
+#include <libs/core/entity_state.h>
 #include <libs/geometry/geos.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 class NODE;
 
 #define VANT_EDGE 5  // number of edges in the rope section
 
-#define VANTVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define VANTVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct VANTVERTEX {
     CVECTOR pos;
@@ -44,8 +45,6 @@ public:
                 RestoreRender(delta); break;*/
         }
     }
-
-    VDX9RENDER* RenderService;
 
 protected:
     // parameters obtained from INI file //

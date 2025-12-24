@@ -13,7 +13,6 @@
 #include <libs/animation/animation.h>
 #include <libs/island/island_base.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/ship/ship_base.h>
 
@@ -111,15 +110,14 @@ private:
     bool LoadPeriscopeModel();
 
 private:
-    VDX9RENDER* rs;
-    Shark       shark[6];
-    int32_t     numShakes;
-    Periscope   periscope;
-    float       waitPTime;
-    CVECTOR     camPos;
-    entid_t     sea;
-    entid_t     island;
-    int32_t     trackTx;
-    uint16_t    indeces[7 * 10 * 3];
-    Vertex      vrt[7 * 10];
+    Shark     shark[6];
+    int32_t   numShakes;
+    Periscope periscope;
+    float     waitPTime;
+    CVECTOR   camPos;
+    entid_t   sea;
+    entid_t   island;
+    int32_t   trackTx;
+    uint16_t  indeces[7 * 10 * 3];
+    Vertex    vrt[7 * 10];
 };

@@ -4,12 +4,12 @@
 
 #include "img_render.h"
 
-BIString::BIString(BIImageRender* pImgRender, VDX9RENDER* rs)
+BIString::BIString(BIImageRender* pImgRender, /*VDX9RENDER*/ void* rs)
 {
     m_pImgRender = pImgRender;
     Assert(m_pImgRender);
-    m_pRS = rs;
-    Assert(m_pRS);
+    // m_pRS = rs;
+    // Assert(m_pRS);
     m_nPrioritet    = ImagePrioritet_DefaultValue;
     m_bUpdateString = false;
 
@@ -26,13 +26,13 @@ BIString::~BIString()
 void BIString::Render()
 {
     if (m_bUpdateString) { UpdateString(); }
-    m_pRS->ExtPrint(m_nFontID, m_dwColor, 0, PR_ALIGN_LEFT, true, m_fScale, 0, 0, m_pntOutPos.x, m_pntOutPos.y, "%s", m_sText.c_str());
+    // m_pRS->ExtPrint(m_nFontID, m_dwColor, 0, PR_ALIGN_LEFT, true, m_fScale, 0, 0, m_pntOutPos.x, m_pntOutPos.y, "%s", m_sText.c_str());
 }
 
 void BIString::SetFont(char const* pcFontName)
 {
-    FONT_RELEASE(m_pRS, m_nFontID);
-    m_nFontID       = m_pRS->LoadFont((char*)pcFontName);
+    // FONT_RELEASE(m_pRS, m_nFontID);
+    // m_nFontID       = m_pRS->LoadFont((char*)pcFontName);
     m_bUpdateString = true;
 }
 

@@ -12,10 +12,6 @@
 
 #include "wdm_render_model.h"
 
-// #define WDM_SHIP_MODELL 6.0f // Half the length of the ship
-// #define WDM_SHIP_MODELW 1.9f // Half Ship Width
-// #define WDM_SHIP_RADIUS2        (WDM_SHIP_MODELL*WDM_SHIP_MODELL + WDM_SHIP_MODELW*WDM_SHIP_MODELW)
-
 #define WDM_SHIP_SPEED 7.5f     // Ship speed
 #define WDM_SHIP_TSPEED 1.0f    // Swing speed
 #define WDM_SHIP_INER_ST 2.5f   // Acceleration inertia
@@ -51,7 +47,7 @@ public:
     bool Load(char const* modelName) override;
     // Calculations
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // true if free
     static bool CheckPosition(float x, float z, float objRadius);

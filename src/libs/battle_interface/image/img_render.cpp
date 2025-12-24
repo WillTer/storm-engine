@@ -6,9 +6,9 @@
 
 #include "string.h"
 
-BIImageRender::BIImageRender(VDX9RENDER* pRS) : m_nBeginOutputPrioritet(0), m_nEndOutputPrioritet(0)
+BIImageRender::BIImageRender(/*VDX9RENDER*/ void* pRS) : m_nBeginOutputPrioritet(0), m_nEndOutputPrioritet(0)
 {
-    m_pRS     = pRS;
+    // m_pRS     = pRS;
     m_fHScale = m_fVScale = 1.f;
     m_fHOffset = m_fVOffset = 0.f;
 }
@@ -31,22 +31,22 @@ void BIImageRender::Render()
         } while (GetNextPrioritetRange());
 }
 
-uint64_t BIImageRender::ProcessMessage(MESSAGE& message)
-{
-    return 0;
-}
+// uint64_t BIImageRender::ProcessMessage(MESSAGE& message)
+// {
+//     return 0;
+// }
 
 IBIImage* BIImageRender::CreateImage(
-    BIImageType  type,
-    char const*  pcTextureName,
-    uint32_t     color,
-    const FRECT& uv,
-    int32_t      nLeft,
-    int32_t      nTop,
-    int32_t      nRight,
-    int32_t      nBottom,
-    int32_t      nPrior,
-    char const*  pcTechniqueName)
+    BIImageType         type,
+    char const*         pcTextureName,
+    uint32_t            color,
+    storm::FRect const& uv,
+    int32_t             nLeft,
+    int32_t             nTop,
+    int32_t             nRight,
+    int32_t             nBottom,
+    int32_t             nPrior,
+    char const*         pcTechniqueName)
 {
     auto* pMaterial = CreateMaterial(pcTextureName, pcTechniqueName);
     if (pMaterial) return (IBIImage*)pMaterial->CreateImage(type, color, uv, nLeft, nTop, nRight, nBottom, nPrior);
@@ -54,13 +54,13 @@ IBIImage* BIImageRender::CreateImage(
 }
 
 IBIImage* BIImageRender::CreateImage(
-    BIImageType  type,
-    char const*  pcTextureName,
-    uint32_t     color,
-    const FRECT& uv,
-    const RECT&  pos,
-    int32_t      nPrior,
-    char const*  pcTechniqueName)
+    BIImageType         type,
+    char const*         pcTextureName,
+    uint32_t            color,
+    storm::FRect const& uv,
+    storm::Rect const&  pos,
+    int32_t             nPrior,
+    char const*         pcTechniqueName)
 {
     auto* pMaterial = CreateMaterial(pcTextureName, pcTechniqueName);
     if (pMaterial) return (IBIImage*)pMaterial->CreateImage(type, color, uv, pos.left, pos.top, pos.right, pos.bottom, nPrior);
@@ -78,7 +78,7 @@ BIImageMaterial* BIImageRender::CreateMaterial(char const* pcTextureName, char c
 {
     auto* pMaterial = FindMaterial(pcTextureName, pcTechniqueName ? pcTechniqueName : "battle_tex_col_Rectangle");
     if (!pMaterial) {
-        pMaterial = new BIImageMaterial(m_pRS, this);
+        pMaterial = new BIImageMaterial(/*m_pRS*/ nullptr, this);
         Assert(pMaterial);
         pMaterial->SetTexture(pcTextureName);
         pMaterial->SetTechnique(pcTechniqueName);
@@ -148,7 +148,7 @@ IBIString* BIImageRender::CreateString(
     int32_t     nBottom,
     int32_t     nPrior)
 {
-    auto* pStr = new BIString(this, m_pRS);
+    auto* pStr = new BIString(this, nullptr /*m_pRS*/);
     if (!pStr) return pStr;
 
     pStr->SetFont(font_name);
@@ -163,14 +163,14 @@ IBIString* BIImageRender::CreateString(
 }
 
 IBIString* BIImageRender::CreateString(
-    char const* text,
-    char const* font_name,
-    float       font_scale,
-    uint32_t    font_color,
-    int32_t     valign,
-    int32_t     halign,
-    const RECT& pos,
-    int32_t     nPrior)
+    char const*        text,
+    char const*        font_name,
+    float              font_scale,
+    uint32_t           font_color,
+    int32_t            valign,
+    int32_t            halign,
+    storm::Rect const& pos,
+    int32_t            nPrior)
 {
     return CreateString(text, font_name, font_scale, font_color, valign, halign, pos.left, pos.top, pos.right, pos.bottom, nPrior);
 }
@@ -196,22 +196,22 @@ void BIImageRender::CutPrioritetRangeByStrings()
 
 void BIImageRender::SetBaseScreenSize(int32_t nHSize, int32_t nVSize, int32_t nHOffset, int32_t nVOffset)
 {
-    D3DVIEWPORT9 vp;
-    m_pRS->GetViewport(&vp);
+    // D3DVIEWPORT9 vp;
+    // m_pRS->GetViewport(&vp);
 
-    if (vp.Width == nHSize && nHOffset == 0) {
-        m_fHScale  = 1.f;
-        m_fHOffset = 0.f;
-    } else {
-        m_fHScale = static_cast<float>(vp.Width) / (nHSize + 2 * nHOffset);
-    }
-
-    if (vp.Height == nVSize && nVOffset == 0) {
-        m_fVScale  = 1.f;
-        m_fVOffset = 0.f;
-    } else {
-        m_fVScale = static_cast<float>(vp.Height) / (nVSize + 2 * nVOffset);
-    }
+    // if (vp.Width == nHSize && nHOffset == 0) {
+    //     m_fHScale  = 1.f;
+    //     m_fHOffset = 0.f;
+    // } else {
+    //     m_fHScale = static_cast<float>(vp.Width) / (nHSize + 2 * nHOffset);
+    // }
+    //
+    // if (vp.Height == nVSize && nVOffset == 0) {
+    //     m_fVScale  = 1.f;
+    //     m_fVOffset = 0.f;
+    // } else {
+    //     m_fVScale = static_cast<float>(vp.Height) / (nVSize + 2 * nVOffset);
+    // }
 }
 
 void BIImageRender::Release()

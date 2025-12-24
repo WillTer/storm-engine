@@ -6,7 +6,7 @@
 #include "island_descr.h"
 #include "ships_list.h"
 
-BIShipCommandList::BIShipCommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs) : BICommandList(eid, pA, rs)
+BIShipCommandList::BIShipCommandList(entid_t eid, ATTRIBUTES* pA, /*VDX9RENDER*/ void* rs) : BICommandList(eid, pA, rs)
 {
     Init();
 }

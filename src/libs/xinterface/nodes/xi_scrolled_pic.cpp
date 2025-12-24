@@ -22,7 +22,7 @@ void CXI_SCROLLEDPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_SCROLLEDPICTURE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     auto const bSuccess = CXI_PICTURE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
     return bSuccess;

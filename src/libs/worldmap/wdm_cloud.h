@@ -16,8 +16,7 @@
 
 class WdmCloud: public WdmRenderObject
 {
-    static IDirect3DVertexDeclaration9* vertexDecl_;
-    void                                CreateVertexDeclaration(VDX9RENDER* rs);
+    void CreateVertexDeclaration(/*VDX9RENDER*/ void* rs);
 
     struct MoveInfo {
         CVECTOR pos;
@@ -54,12 +53,12 @@ public:
     // Calculations
     void Update(float dltTime) override;
     // Rendering
-    void PRender(VDX9RENDER* rs) override;
-    void LRender(VDX9RENDER* rs) override;
+    void PRender(/*VDX9RENDER*/ void* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     virtual void Move(float dltTime);
 
-    int32_t FillRain(RS_RECT* rainRect, int32_t rcnt);
+    // int32_t FillRain(RS_RECT* rainRect, int32_t rcnt);
 
     CVECTOR pos;          // Cloud position
     CVECTOR dir;          // Direction of cloud movement
@@ -71,7 +70,6 @@ public:
     // --------------------------------------------------------------------------------------------
 protected:
     virtual void BuildCloud(int32_t n);
-    RS_RECT      rect[8];
     int32_t      texture;
     int32_t      light;
     int32_t      lightning;
@@ -92,7 +90,7 @@ protected:
     float rainBurnTime;
 
 private:
-    void  Render(VDX9RENDER* rs);
+    // void  Render(VDX9RENDER* rs);
     void  FindPartPos(CVECTOR& v);
     float Rnd();
 };

@@ -4,7 +4,7 @@
 
 class ShipPointer: public Entity
 {
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
 public:
     ShipPointer();

@@ -11,7 +11,6 @@
 #include "location_effects.h"
 
 #include <libs/core/core.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/util/string_compare.hpp>
 
 #define LFX_SPLASHES_NUM (sizeof(chrSplash) / sizeof(ChrSplash))
@@ -24,7 +23,7 @@
 // Construction, destruction
 // ============================================================================================
 
-LocationEffects::LocationEffects() : rs(nullptr), smoke {}, flinders {}, blood {}, buffer {}
+LocationEffects::LocationEffects() : smoke {}, flinders {}, blood {}, buffer {}
 {
     // Splash
     chrSplashRefCounter = 0;
@@ -49,22 +48,22 @@ LocationEffects::LocationEffects() : rs(nullptr), smoke {}, flinders {}, blood {
 
 LocationEffects::~LocationEffects()
 {
-    if (rs) {
-        if (splashesTxt >= 0) rs->TextureRelease(splashesTxt);
-        if (texSmoke >= 0) rs->TextureRelease(texSmoke);
-        if (texFlinders >= 0) rs->TextureRelease(texFlinders);
-        if (texBlood >= 0) rs->TextureRelease(texBlood);
-        if (texHor >= 0) rs->TextureRelease(texHor);
-        if (flyTex >= 0) rs->TextureRelease(flyTex);
-    }
+    // if (rs) {
+    //     if (splashesTxt >= 0) rs->TextureRelease(splashesTxt);
+    //     if (texSmoke >= 0) rs->TextureRelease(texSmoke);
+    //     if (texFlinders >= 0) rs->TextureRelease(texFlinders);
+    //     if (texBlood >= 0) rs->TextureRelease(texBlood);
+    //     if (texHor >= 0) rs->TextureRelease(texHor);
+    //     if (flyTex >= 0) rs->TextureRelease(flyTex);
+    // }
 }
 
 // Initialization
 bool LocationEffects::Init()
 {
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
 
     // core->LayerCreate("execute", true, false);
     core->SetLayerType(EXECUTE, layer_type_t::execute);
@@ -74,8 +73,8 @@ bool LocationEffects::Init()
     core->SetLayerType(REALIZE, layer_type_t::realize);
     core->AddToLayer(REALIZE, GetId(), 1000000);
 
-    splashesTxt = rs->TextureCreate("locefx/chrsplprt.tga");
-    flyTex      = rs->TextureCreate("locefx/firefly.tga");
+    // splashesTxt = rs->TextureCreate("locefx/chrsplprt.tga");
+    // flyTex      = rs->TextureCreate("locefx/firefly.tga");
 
     return true;
 }
@@ -144,66 +143,66 @@ uint64_t LocationEffects::ProcessMessage(MESSAGE& message)
 inline void
 LocationEffects::DrawParticles(void* prts, int32_t num, int32_t size, int32_t texture, char const* tech, bool isEx, int32_t numU)
 {
-    if (num <= 0) return;
-    CMatrix camMtx;
-    rs->GetTransform(D3DTS_VIEW, camMtx);
-    rs->SetTransform(D3DTS_VIEW, CMatrix());
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    rs->TextureSet(0, texture);
-    int32_t n = 0;
-    for (int32_t i = 0; i < num; i++) {
-        auto* parts      = static_cast<Particle*>(prts);
-        prts             = static_cast<char*>(prts) + size;
-        auto       pos   = camMtx * parts->pos;
-        auto const size  = parts->size * 0.5f;
-        auto const sn    = sinf(parts->angle);
-        auto const cs    = cosf(parts->angle);
-        auto       color = (static_cast<int32_t>(parts->alpha) << 24);
-        if (!isEx)
-            color |= 0x00ffffff;
-        else
-            color |= 0x00ffffff & static_cast<ParticleEx*>(parts)->color;
-        auto u1 = 0.0f;
-        auto u2 = 1.0f;
-        if (isEx && numU) {
-            u2 = 1.0f / static_cast<float>(numU);
-            u1 = static_cast<int32_t>(static_cast<ParticleEx*>(parts)->frame) * u2;
-            u2 += u1;
-        }
-        buffer[n * 6 + 0].pos   = pos + CVECTOR(size * (-cs + sn), size * (sn + cs), 0.0f);
-        buffer[n * 6 + 0].color = color;
-        buffer[n * 6 + 0].u     = u1;
-        buffer[n * 6 + 0].v     = 0.0f;
-        buffer[n * 6 + 1].pos   = pos + CVECTOR(size * (-cs - sn), size * (sn - cs), 0.0f);
-        buffer[n * 6 + 1].color = color;
-        buffer[n * 6 + 1].u     = u1;
-        buffer[n * 6 + 1].v     = 1.0f;
-        buffer[n * 6 + 2].pos   = pos + CVECTOR(size * (cs + sn), size * (-sn + cs), 0.0f);
-        buffer[n * 6 + 2].color = color;
-        buffer[n * 6 + 2].u     = u2;
-        buffer[n * 6 + 2].v     = 0.0f;
-        buffer[n * 6 + 3].pos   = buffer[n * 6 + 2].pos;
-        buffer[n * 6 + 3].color = color;
-        buffer[n * 6 + 3].u     = u2;
-        buffer[n * 6 + 3].v     = 0.0f;
-        buffer[n * 6 + 4].pos   = buffer[n * 6 + 1].pos;
-        buffer[n * 6 + 4].color = color;
-        buffer[n * 6 + 4].u     = u1;
-        buffer[n * 6 + 4].v     = 1.0f;
-        buffer[n * 6 + 5].pos   = pos + CVECTOR(size * (cs - sn), size * (-sn - cs), 0.0f);
-        buffer[n * 6 + 5].color = color;
-        buffer[n * 6 + 5].u     = u2;
-        buffer[n * 6 + 5].v     = 1.0f;
-        n++;
-        if (n * 2 == 256) {
-            rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
-            n = 0;
-        }
-    }
-    if (n > 0) {
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
-    }
-    rs->SetTransform(D3DTS_VIEW, camMtx);
+    // if (num <= 0) return;
+    // CMatrix camMtx;
+    // rs->GetTransform(D3DTS_VIEW, camMtx);
+    // rs->SetTransform(D3DTS_VIEW, CMatrix());
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // rs->TextureSet(0, texture);
+    // int32_t n = 0;
+    // for (int32_t i = 0; i < num; i++) {
+    //     auto* parts      = static_cast<Particle*>(prts);
+    //     prts             = static_cast<char*>(prts) + size;
+    //     auto       pos   = camMtx * parts->pos;
+    //     auto const size  = parts->size * 0.5f;
+    //     auto const sn    = sinf(parts->angle);
+    //     auto const cs    = cosf(parts->angle);
+    //     auto       color = (static_cast<int32_t>(parts->alpha) << 24);
+    //     if (!isEx)
+    //         color |= 0x00ffffff;
+    //     else
+    //         color |= 0x00ffffff & static_cast<ParticleEx*>(parts)->color;
+    //     auto u1 = 0.0f;
+    //     auto u2 = 1.0f;
+    //     if (isEx && numU) {
+    //         u2 = 1.0f / static_cast<float>(numU);
+    //         u1 = static_cast<int32_t>(static_cast<ParticleEx*>(parts)->frame) * u2;
+    //         u2 += u1;
+    //     }
+    //     buffer[n * 6 + 0].pos   = pos + CVECTOR(size * (-cs + sn), size * (sn + cs), 0.0f);
+    //     buffer[n * 6 + 0].color = color;
+    //     buffer[n * 6 + 0].u     = u1;
+    //     buffer[n * 6 + 0].v     = 0.0f;
+    //     buffer[n * 6 + 1].pos   = pos + CVECTOR(size * (-cs - sn), size * (sn - cs), 0.0f);
+    //     buffer[n * 6 + 1].color = color;
+    //     buffer[n * 6 + 1].u     = u1;
+    //     buffer[n * 6 + 1].v     = 1.0f;
+    //     buffer[n * 6 + 2].pos   = pos + CVECTOR(size * (cs + sn), size * (-sn + cs), 0.0f);
+    //     buffer[n * 6 + 2].color = color;
+    //     buffer[n * 6 + 2].u     = u2;
+    //     buffer[n * 6 + 2].v     = 0.0f;
+    //     buffer[n * 6 + 3].pos   = buffer[n * 6 + 2].pos;
+    //     buffer[n * 6 + 3].color = color;
+    //     buffer[n * 6 + 3].u     = u2;
+    //     buffer[n * 6 + 3].v     = 0.0f;
+    //     buffer[n * 6 + 4].pos   = buffer[n * 6 + 1].pos;
+    //     buffer[n * 6 + 4].color = color;
+    //     buffer[n * 6 + 4].u     = u1;
+    //     buffer[n * 6 + 4].v     = 1.0f;
+    //     buffer[n * 6 + 5].pos   = pos + CVECTOR(size * (cs - sn), size * (-sn - cs), 0.0f);
+    //     buffer[n * 6 + 5].color = color;
+    //     buffer[n * 6 + 5].u     = u2;
+    //     buffer[n * 6 + 5].v     = 1.0f;
+    //     n++;
+    //     if (n * 2 == 256) {
+    //         rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex),
+    //         (char*)tech); n = 0;
+    //     }
+    // }
+    // if (n > 0) {
+    //     rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, n * 2, buffer, sizeof(Vertex), (char*)tech);
+    // }
+    // rs->SetTransform(D3DTS_VIEW, camMtx);
 }
 
 void LocationEffects::CreateSplash(const CVECTOR& pos, float power)
@@ -312,7 +311,7 @@ void LocationEffects::AddLampFlys(CVECTOR& pos)
 void LocationEffects::ProcessedFlys(float dltTime)
 {
     CMatrix view;
-    rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_VIEW, view);
     view.Transposition();
     const CVECTOR cam = view.Pos();
     float const   dax = dltTime * 1.3f;
@@ -376,21 +375,21 @@ void LocationEffects::ProcessedFlys(float dltTime)
 void LocationEffects::SGInited()
 {
     if (!isShgInited) {
-        texSmoke    = rs->TextureCreate("locefx/sgsmoke.tga");
-        texFlinders = rs->TextureCreate("locefx/sgflinders.tga");
-        texBlood    = rs->TextureCreate("locefx/sgblood.tga");
-        texHor      = rs->TextureCreate("locefx/sghor.tga");
+        // texSmoke    = rs->TextureCreate("locefx/sgsmoke.tga");
+        // texFlinders = rs->TextureCreate("locefx/sgflinders.tga");
+        // texBlood    = rs->TextureCreate("locefx/sgblood.tga");
+        // texHor      = rs->TextureCreate("locefx/sghor.tga");
         isShgInited = true;
     }
 }
 
 void LocationEffects::SGRelease()
 {
-    if (texSmoke >= 0) rs->TextureRelease(texSmoke);
-    if (texFlinders >= 0) rs->TextureRelease(texFlinders);
-    if (texBlood >= 0) rs->TextureRelease(texBlood);
-    if (texHor >= 0) rs->TextureRelease(texHor);
-    isShgInited = false;
+    // if (texSmoke >= 0) rs->TextureRelease(texSmoke);
+    // if (texFlinders >= 0) rs->TextureRelease(texFlinders);
+    // if (texBlood >= 0) rs->TextureRelease(texBlood);
+    // if (texHor >= 0) rs->TextureRelease(texHor);
+    // isShgInited = false;
     texSmoke    = -1;
     texFlinders = -1;
     texBlood    = -1;
@@ -572,7 +571,7 @@ void LocationEffects::ProcessedShotgun(float dltTime)
     if (numBlood) { DrawParticles(blood, numBlood, sizeof(blood[0]), texBlood, "ShootParticles"); }
     if (numSmoke) { DrawParticles(smoke, numSmoke, sizeof(smoke[0]), texSmoke, "ShootParticles"); }
     CMatrix mtx;
-    rs->GetTransform(D3DTS_VIEW, mtx);
+    // rs->GetTransform(D3DTS_VIEW, mtx);
     mtx.Transposition();
     Particle prt;
     prt.pos   = mtx.Pos() + mtx.Vz() * 2.0f;

@@ -5,7 +5,6 @@
 
 #include <libs/math/math_inlines.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 int const MAX_POINTS = 100;
 
@@ -130,9 +129,9 @@ public:
     Points points;
     Links  links;
 
-    void Draw(VDX9RENDER* rs, bool pointmode);
-    void Draw_(VDX9RENDER* rs, bool pointmode);
-    void DrawLinks(VDX9RENDER* rs);
+    void Draw(/*VDX9RENDER*/ void* rs, bool pointmode);
+    void Draw_(/*VDX9RENDER*/ void* rs, bool pointmode);
+    void DrawLinks(/*VDX9RENDER*/ void* rs);
 
     Path findPath(Path& path, int from, int to);  // Calculate the path
 

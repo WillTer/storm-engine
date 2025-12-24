@@ -37,12 +37,12 @@ public:
         return m_pManager;
     }
 
-    VDX9RENDER* Render() const
-    {
-        return m_pRS;
-    }
+    // VDX9RENDER* Render() const
+    // {
+    //     return m_pRS;
+    // }
 
 protected:
     BI_ManagerBase* m_pManager;
-    VDX9RENDER*     m_pRS;
+    // VDX9RENDER*     m_pRS;
 };

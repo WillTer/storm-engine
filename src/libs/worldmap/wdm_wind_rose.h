@@ -30,10 +30,10 @@ public:
     // Calculations
     void Update(float dltTime) override;
 
-    void PRender(VDX9RENDER* rs) override {};
+    void PRender(/*VDX9RENDER*/ void* rs) override {};
 
-    void MRender(VDX9RENDER* rs) override {};
-    void LRender(VDX9RENDER* rs) override;
+    void MRender(/*VDX9RENDER*/ void* rs) override {};
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation

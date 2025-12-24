@@ -2,7 +2,6 @@
 
 #include <libs/battle_interface/bi_defines.h>
 #include <libs/battle_interface/bi_utils.h>
-#include <libs/renderer/dx9render.h>
 
 #include "battle_navigator.h"
 
@@ -11,7 +10,7 @@ class ShipInfoImages;
 
 class BattleInterface: public Entity
 {
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
 public:
     BattleInterface();

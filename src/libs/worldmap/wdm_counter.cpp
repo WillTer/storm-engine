@@ -36,9 +36,8 @@ WdmCounter::WdmCounter()
     m[0] = m[1] = nullptr;
     y[0] = y[1] = y[2] = y[3] = nullptr;
 
-    Assert(wdmObjects->rs);
-    auto const kDef = wdmObjects->rs->GetHeightDeformator();
-    mtx.BuildMatrix(-0.1f, 0.0f, 0.0f, 1.4f, 0.9f * kDef, 40.0f);
+    // auto const kDef = wdmObjects->rs->GetHeightDeformator();
+    // mtx.BuildMatrix(-0.1f, 0.0f, 0.0f, 1.4f, 0.9f * kDef, 40.0f);
     mtx.Vx() *= -0.25f;
     mtx.Vy() *= 0.25f;
     mtx.Vz() *= -0.25f;
@@ -67,16 +66,16 @@ WdmCounter::~WdmCounter()
     if (y[1]) delete y[1];
     if (y[2]) delete y[2];
     if (y[3]) delete y[3];
-    if (wdmObjects->rs) {
-        for (int32_t i = 0; i < WMD_NUM_SKYS; i++) {
-            if (skytx[i] >= 0) wdmObjects->rs->TextureRelease(skytx[i]);
-        }
-    }
+    // if (wdmObjects->rs) {
+    //     for (int32_t i = 0; i < WMD_NUM_SKYS; i++) {
+    //         if (skytx[i] >= 0) wdmObjects->rs->TextureRelease(skytx[i]);
+    //     }
+    // }
 }
 
 bool WdmCounter::Init()
 {
-    if (!wdmObjects->rs) return false;
+    // if (!wdmObjects->rs) return false;
     if (!Load("counter/counter")) return false;
     if (!LoadModel(sky, "counter/sky", "WdmCounterDrawSky")) return false;
     if (!LoadModel(d[0], "counter/d1", "WdmCounterDrawNumber")) return false;
@@ -87,8 +86,8 @@ bool WdmCounter::Init()
     if (!LoadModel(y[1], "counter/y2", "WdmCounterDrawNumber")) return false;
     if (!LoadModel(y[2], "counter/y3", "WdmCounterDrawNumber")) return false;
     if (!LoadModel(y[3], "counter/y4", "WdmCounterDrawNumber")) return false;
-    for (int32_t i = 0; i < WMD_NUM_SKYS; i++)
-        skytx[i] = wdmObjects->rs->TextureCreate(skytex[i]);
+    // for (int32_t i = 0; i < WMD_NUM_SKYS; i++)
+    //     skytx[i] = wdmObjects->rs->TextureCreate(skytex[i]);
     lastSkys[0] = sky->GetTexture(0);
     lastSkys[1] = sky->GetTexture(1);
     for (int32_t i = 0; i < sizeof(skyseq) / sizeof(int32_t); i += 2) {
@@ -101,18 +100,18 @@ bool WdmCounter::Init()
 // Calculations
 void WdmCounter::Update(float dltTime) {}
 
-void WdmCounter::LRender(VDX9RENDER* rs)
+void WdmCounter::LRender(/*VDX9RENDER*/ void* rs)
 {
     // Camera matrix
     static CMatrix view, prj, oldPrj;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, oldPrj);
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, oldPrj);
     float scrw, scrh;
     wdmObjects->GetVPSize(scrw, scrh);
     // prj.BuildProjectionMatrix(0.1f, scrw, scrh, 10.0f, 100.0f);
     prj.BuildProjectionMatrix(0.1f, 4.0f, 3.0f, 10.0f, 100.0f);
-    rs->SetTransform(D3DTS_PROJECTION, prj);
-    rs->SetTransform(D3DTS_VIEW, CMatrix());
+    // rs->SetTransform(D3DTS_PROJECTION, prj);
+    // rs->SetTransform(D3DTS_VIEW, CMatrix());
     // Sky
     int32_t const numSkys = sizeof(skyseq) / sizeof(int32_t);
     if (dayCounter < 0) dayCounter = wdmObjects->wm->day;
@@ -139,8 +138,8 @@ void WdmCounter::LRender(VDX9RENDER* rs)
     hr += 0.5f;
     sky->SetTexture(0, skyseq[one]);
     sky->SetTexture(1, skyseq[two]);
-    rs->TextureSet(1, skyseq[two]);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(hr * 255.0f) << 24) | 0x00ffffff);
+    // rs->TextureSet(1, skyseq[two]);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(hr * 255.0f) << 24) | 0x00ffffff);
     sky->LRender(rs);
     // Housing
     WdmRenderModel::LRender(rs);
@@ -215,8 +214,8 @@ void WdmCounter::LRender(VDX9RENDER* rs)
     if (low < 9) kMove = 0.0f;
     low = static_cast<float>((year / 1000) % 10);
     DrawNum(rs, y[0], 0.0f, (low + kMove) * 0.1f);
-    rs->SetTransform(D3DTS_PROJECTION, oldPrj);
-    rs->SetTransform(D3DTS_VIEW, view);
+    // rs->SetTransform(D3DTS_PROJECTION, oldPrj);
+    // rs->SetTransform(D3DTS_VIEW, view);
 }
 
 bool WdmCounter::LoadModel(WdmRenderModel*& pnt, char const* name, char const* tech) const
@@ -228,18 +227,18 @@ bool WdmCounter::LoadModel(WdmRenderModel*& pnt, char const* name, char const* t
     return true;
 }
 
-void WdmCounter::DrawNum(VDX9RENDER* rs, WdmRenderModel* m, float u, float v)
+void WdmCounter::DrawNum(/*VDX9RENDER*/ void* rs, WdmRenderModel* m, float u, float v)
 {
     CMatrix mtx;
     mtx.m[0][0] = 0.25f;
     mtx.m[2][0] = u;
     mtx.m[2][1] = v;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
-    rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
     m->LRender(rs);
     mtx.m[0][0] = 1.0f;
     mtx.m[2][0] = 0.0f;
     mtx.m[2][1] = 0.0f;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
-    rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
 }

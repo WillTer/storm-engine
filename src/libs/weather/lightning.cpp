@@ -13,11 +13,7 @@ Lightning::~Lightning()
     Release();
 }
 
-void Lightning::Release() const
-{
-    pRS->TextureRelease(iLightningTexture);
-    pRS->TextureRelease(iFlashTexture);
-}
+void Lightning::Release() const {}
 
 bool Lightning::Init()
 {
@@ -27,8 +23,6 @@ bool Lightning::Init()
 
 void Lightning::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
 }
@@ -69,38 +63,38 @@ void Lightning::Execute(uint32_t Delta_Time)
 void Lightning::Realize(uint32_t Delta_Time)
 {
     uint32_t i;
-    RS_RECT  rs_rect;
+    // RS_RECT  rs_rect;
 
-    if (iLightningTexture >= 0) {
-        pRS->TextureSet(0, iLightningTexture);
-        for (i = 0; i < aLightnings.size(); i++) {
-            auto* const pL = &aLightnings[i];
-            auto*       pR = &rs_rect;
-
-            auto const dwAlpha = static_cast<uint32_t>(255.0f * pL->fAlpha);
-            pR->dwSubTexture   = pL->dwSubTexture;
-            pR->dwColor        = makeRGB(dwAlpha, dwAlpha, dwAlpha);
-            pR->vPos           = pL->vPos;
-            pR->fSize          = pL->fSize;
-            pR->fAngle         = 0.0f;
-            pRS->DrawRects(pR, 1, pL->sTechnique.c_str(), dwSubTexX, dwSubTexY, pL->fScaleX, pL->fScaleY);
-        }
-    }
-
-    if (iFlashTexture >= 0) {
-        pRS->TextureSet(0, iFlashTexture);
-        for (i = 0; i < aLightnings.size(); i++) {
-            auto* const pL = &aLightnings[i];
-            auto*       pR = &rs_rect;
-
-            auto const dwAlpha = static_cast<uint32_t>(255.0f * pL->fAlpha * pL->fPower);
-            pR->dwColor        = makeRGB(dwAlpha, dwAlpha, dwAlpha);
-            pR->vPos           = pL->vPos;
-            pR->fSize          = pL->Flash.fSize;
-            pR->fAngle         = 0.0f;
-            pRS->DrawRects(pR, 1, pL->Flash.sTechnique.c_str());
-        }
-    }
+    // if (iLightningTexture >= 0) {
+    //     pRS->TextureSet(0, iLightningTexture);
+    //     for (i = 0; i < aLightnings.size(); i++) {
+    //         auto* const pL = &aLightnings[i];
+    //         auto*       pR = &rs_rect;
+    //
+    //         auto const dwAlpha = static_cast<uint32_t>(255.0f * pL->fAlpha);
+    //         pR->dwSubTexture   = pL->dwSubTexture;
+    //         pR->dwColor        = makeRGB(dwAlpha, dwAlpha, dwAlpha);
+    //         pR->vPos           = pL->vPos;
+    //         pR->fSize          = pL->fSize;
+    //         pR->fAngle         = 0.0f;
+    //         pRS->DrawRects(pR, 1, pL->sTechnique.c_str(), dwSubTexX, dwSubTexY, pL->fScaleX, pL->fScaleY);
+    //     }
+    // }
+    //
+    // if (iFlashTexture >= 0) {
+    //     pRS->TextureSet(0, iFlashTexture);
+    //     for (i = 0; i < aLightnings.size(); i++) {
+    //         auto* const pL = &aLightnings[i];
+    //         auto*       pR = &rs_rect;
+    //
+    //         auto const dwAlpha = static_cast<uint32_t>(255.0f * pL->fAlpha * pL->fPower);
+    //         pR->dwColor        = makeRGB(dwAlpha, dwAlpha, dwAlpha);
+    //         pR->vPos           = pL->vPos;
+    //         pR->fSize          = pL->Flash.fSize;
+    //         pR->fAngle         = 0.0f;
+    //         pRS->DrawRects(pR, 1, pL->Flash.sTechnique.c_str());
+    //     }
+    // }
 }
 
 uint64_t Lightning::ProcessMessage(MESSAGE& message)
@@ -140,7 +134,7 @@ void Lightning::CalcFlashPower(lightning_t* pL) const
     CVECTOR vCamPos, vCamAng, vTrace[3];
     float   fFov;
 
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
 
     vTrace[0] = CVECTOR(pL->vPos.x, pL->vPos.y + pL->fSize * 0.9f, pL->vPos.z);
     vTrace[1] = pL->vPos;
@@ -168,16 +162,16 @@ uint32_t Lightning::AttributeChanged(ATTRIBUTES* pAttribute)
 
     if (*pParent == "Flash") {
         if (*pAttribute == "Texture") {
-            if (iFlashTexture >= 0) pRS->TextureRelease(iFlashTexture);
-            iFlashTexture = pRS->TextureCreate(pAttribute->GetThisAttr());
+            // if (iFlashTexture >= 0) pRS->TextureRelease(iFlashTexture);
+            // iFlashTexture = pRS->TextureCreate(pAttribute->GetThisAttr());
             return 0;
         }
         return 0;
     }
 
     if (*pAttribute == "Texture") {
-        if (iLightningTexture >= 0) pRS->TextureRelease(iLightningTexture);
-        iLightningTexture = pRS->TextureCreate(pAttribute->GetThisAttr());
+        // if (iLightningTexture >= 0) pRS->TextureRelease(iLightningTexture);
+        // iLightningTexture = pRS->TextureCreate(pAttribute->GetThisAttr());
         return 0;
     }
 

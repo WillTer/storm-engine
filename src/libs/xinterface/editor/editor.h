@@ -6,7 +6,6 @@ class XInterface;
 class CXI_IMAGE;
 class GIEditorList;
 class CINODE;
-class VDX9RENDER;
 
 class GIEditor: public GIEditorObject
 {
@@ -44,7 +43,6 @@ protected:
     GIEditorList* m_pSubNameList;
 
 public:
-    VDX9RENDER* m_pRS;
     XInterface* m_pGIOwner;
 
     void ChangeNodeName();

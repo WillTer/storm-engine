@@ -14,6 +14,7 @@
 
 #include <libs/core/vma.hpp>
 #include <libs/geometry/geometry.h>
+#include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
 //============================================================================================
@@ -30,11 +31,9 @@ WdmObjects::WdmObjects()
     using std::chrono::milliseconds;
     using std::chrono::system_clock;
 
-    Assert(!wdmObjects);
     srand(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
     wdmObjects = this;
     wm         = nullptr;
-    rs         = nullptr;
     gs         = nullptr;
     camera     = nullptr;
     islands    = nullptr;
@@ -74,7 +73,6 @@ void WdmObjects::SetWorldSize(float x, float z)
 void WdmObjects::Clear()
 {
     wm                    = nullptr;
-    rs                    = nullptr;
     gs                    = nullptr;
     islands               = nullptr;
     isDebug               = false;
@@ -194,10 +192,10 @@ void WdmObjects::DrawCircle(CMatrix& mtx, float radius, uint32_t color) const
         vertex[i].v.z = radius * cosf(2.0f * WdmObjects_myPI * i / 63);
         vertex[i].c   = color;
     }
-    rs->TextureSet(0, -1);
-    rs->TextureSet(1, -1);
-    rs->SetTransform(D3DTS_WORLD, mtx);
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, D3DFVF_XYZ | D3DFVF_DIFFUSE, 62, vertex, sizeof(vertex[0]), "WdmDebugDraw");
+    // rs->TextureSet(0, -1);
+    // rs->TextureSet(1, -1);
+    // rs->SetTransform(D3DTS_WORLD, mtx);
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, D3DFVF_XYZ | D3DFVF_DIFFUSE, 62, vertex, sizeof(vertex[0]), "WdmDebugDraw");
 }
 
 void WdmObjects::DrawVector(const CVECTOR& start, const CVECTOR& end, uint32_t color) const
@@ -281,8 +279,8 @@ void WdmObjects::DrawVector(const CVECTOR& start, const CVECTOR& end, uint32_t c
         t += 6;
     }
     Assert(t * 3 * 6 < sizeof(vertex) / sizeof(Vertex));
-    rs->TextureSet(0, -1);
-    rs->TextureSet(1, -1);
+    // rs->TextureSet(0, -1);
+    // rs->TextureSet(1, -1);
     auto yBs = dir ^ CVECTOR(0.0f, 1.0f, 0.0f);
     if (~yBs == 0.0f) {
         yBs = dir ^ CVECTOR(1.0f, 0.0f, 0.0f);
@@ -294,8 +292,8 @@ void WdmObjects::DrawVector(const CVECTOR& start, const CVECTOR& end, uint32_t c
     mtx.Vy() = yBs;
     mtx.Vz() = dir;
     mtx.SetPosition(start.x, start.y, start.z);
-    rs->SetTransform(D3DTS_WORLD, mtx);
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, t, vertex, sizeof(vertex[0]), "WdmDebugDraw");
+    // rs->SetTransform(D3DTS_WORLD, mtx);
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, t, vertex, sizeof(vertex[0]), "WdmDebugDraw");
 }
 
 void WdmObjects::DrawLine(const CVECTOR& start, const CVECTOR& end, uint32_t color) const
@@ -305,8 +303,8 @@ void WdmObjects::DrawLine(const CVECTOR& start, const CVECTOR& end, uint32_t col
     vertex[1].v = end;
     vertex[1].c = color;
     CMatrix const mtx;
-    rs->SetTransform(D3DTS_WORLD, mtx);
-    rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 1, vertex, sizeof(vertex[0]), "WdmDebugDraw");
+    // rs->SetTransform(D3DTS_WORLD, mtx);
+    // rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 1, vertex, sizeof(vertex[0]), "WdmDebugDraw");
 }
 
 void WdmObjects::DrawBox2D(CMatrix& mtx, float l, float w, uint32_t color) const
@@ -327,18 +325,18 @@ void WdmObjects::DrawBox2D(CMatrix& mtx, float l, float w, uint32_t color) const
     vertex[6].c = color;
     vertex[7].v = CVECTOR(-w, 0.2f, l);
     vertex[7].c = color;
-    rs->SetTransform(D3DTS_WORLD, mtx);
-    rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 4, vertex, sizeof(vertex[0]), "WdmDebugDraw");
+    // rs->SetTransform(D3DTS_WORLD, mtx);
+    // rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, 4, vertex, sizeof(vertex[0]), "WdmDebugDraw");
 }
 
 // Get vp dimensions
 void WdmObjects::GetVPSize(float& w, float& h) const
 {
     // Get the current vp sizes
-    D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
-    w = static_cast<float>(vp.Width);
-    h = static_cast<float>(vp.Height);
+    // D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
+    // w = static_cast<float>(vp.Width);
+    // h = static_cast<float>(vp.Height);
 }
 
 // Get wind direction and strength

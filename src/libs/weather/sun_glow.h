@@ -25,20 +25,14 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
     void DrawSunMoon();
 
 private:
-    enum { SUNGLOWVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, SUNGLOW_FORCE_DWORD = 0x7FFFFFFF };
+    // enum { SUNGLOWVERTEX_FORMAT = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, SUNGLOW_FORCE_DWORD = 0x7FFFFFFF };
 
     struct SUNGLOWVERTEX {
         CVECTOR  vPos;
@@ -96,10 +90,7 @@ private:
     COLLIDE*      pCollide;
     WEATHER_BASE* pWeather;
     Sky*          pSky;
-    VDX9RENDER*   pRS;
     int32_t       idRectBuf;
-
-    std::vector<RS_RECT> aRSR;
 
     bool    bSimpleSea;
     int32_t iNumFlares;

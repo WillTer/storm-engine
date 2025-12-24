@@ -2,14 +2,13 @@
 
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer_next/types.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
 CXI_PICTURE::CXI_PICTURE()
 {
-    m_rs              = nullptr;
     m_idTex           = -1;
-    m_pTex            = nullptr;
     m_nNodeType       = NODETYPE_PICTURE;
     m_pcGroupName     = nullptr;
     m_bMakeBlind      = false;
@@ -17,8 +16,8 @@ CXI_PICTURE::CXI_PICTURE()
     m_bBlindUp        = true;
     m_fBlindUpSpeed   = 0.001f;
     m_fBlindDownSpeed = 0.001f;
-    m_dwBlindMin      = ARGB(255, 128, 128, 128);
-    m_dwBlindMax      = ARGB(255, 255, 255, 255);
+    m_dwBlindMin      = storm::Color {255, 128, 128, 128}.to_hex();
+    m_dwBlindMax      = storm::Color {255, 255, 255, 255}.to_hex();
 }
 
 CXI_PICTURE::~CXI_PICTURE()
@@ -46,18 +45,18 @@ void CXI_PICTURE::Draw(bool bSelected, uint32_t Delta_Time)
             ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
         }
 
-        if (m_idTex != -1 || m_pTex) {
-            if (m_idTex != -1)
-                m_rs->TextureSet(0, m_idTex);
-            else
-                m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
-        }
+        // if (m_idTex != -1 || m_pTex) {
+        //     if (m_idTex != -1)
+        //         m_rs->TextureSet(0, m_idTex);
+        //     else
+        //         m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
+        // }
     }
 }
 
 bool CXI_PICTURE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -81,14 +80,14 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), ""))
             pPictureService->GetTexturePos(m_pcGroupName, param, texRect);
     } else {
-        if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
+        // if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
         texRect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", texRect);
     }
 
-    m_pTex = nullptr;
-    if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
+    // m_pTex = nullptr;
+    // if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
 
-    auto const color = GetIniARGB(ini1, name1, ini2, name2, "color", ARGB(255, 128, 128, 128));
+    auto const color = GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex());
 
     // Create rectangle
     ChangePosition(m_rect);
@@ -105,8 +104,8 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
     if (fTmp > 0.f) m_fBlindUpSpeed = 0.001f / fTmp;
     fTmp = GetIniFloat(ini1, name1, ini2, name2, "blindDownTime", 1.f);
     if (fTmp > 0.f) m_fBlindDownSpeed = 0.001f / fTmp;
-    m_dwBlindMin = GetIniARGB(ini1, name1, ini2, name2, "blindMinColor", ARGB(255, 128, 128, 128));
-    m_dwBlindMax = GetIniARGB(ini1, name1, ini2, name2, "blindMaxColor", ARGB(255, 255, 255, 255));
+    m_dwBlindMin = GetIniARGB(ini1, name1, ini2, name2, "blindMinColor", storm::Color {255, 128, 128, 128}.to_hex());
+    m_dwBlindMax = GetIniARGB(ini1, name1, ini2, name2, "blindMaxColor", storm::Color {255, 255, 255, 255}.to_hex());
 }
 
 void CXI_PICTURE::ReleaseAll()
@@ -158,10 +157,10 @@ void CXI_PICTURE::SaveParametersToIni()
 void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 {
     ReleasePicture();
-    if (video)
-        m_pTex = m_rs->GetVideoTexture(sNewTexName);
-    else
-        m_idTex = m_rs->TextureCreate(sNewTexName);
+    // if (video)
+    //     m_pTex = m_rs->GetVideoTexture(sNewTexName);
+    // else
+    //     m_idTex = m_rs->TextureCreate(sNewTexName);
 
     FXYRECT uv;
     uv.left = uv.top = 0.f;
@@ -327,11 +326,11 @@ void CXI_PICTURE::ChangeColor(uint32_t dwColor)
 
 void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)
 {
-    if (!m_pTex && m_idTex == -1) {
-        m_bUse = false;
-        nWidth = nHeight = 0;
-        return;
-    }
+    // if (!m_pTex && m_idTex == -1) {
+    //     m_bUse = false;
+    //     nWidth = nHeight = 0;
+    //     return;
+    // }
 
     if (nWidth <= 0) {
         // find the real width
@@ -362,9 +361,9 @@ void CXI_PICTURE::SetPictureSize(int32_t& nWidth, int32_t& nHeight)
 
 void CXI_PICTURE::SetNewPictureByPointer(int32_t textureId)
 {
-    IDirect3DBaseTexture9* texture = m_rs->GetTextureFromID(textureId);
-    m_rs->TextureIncReference(textureId);
-    if (texture) texture->AddRef();
+    // IDirect3DBaseTexture9* texture = m_rs->GetTextureFromID(textureId);
+    // m_rs->TextureIncReference(textureId);
+    // if (texture) texture->AddRef();
     ReleasePicture();
     m_idTex = textureId;
 
@@ -381,6 +380,6 @@ void CXI_PICTURE::ReleasePicture()
     delete[] m_pcGroupName;
     m_pcGroupName = nullptr;
 
-    TEXTURE_RELEASE(m_rs, m_idTex);
-    VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
+    // TEXTURE_RELEASE(m_rs, m_idTex);
+    // VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
 }

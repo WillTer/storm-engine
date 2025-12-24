@@ -1,20 +1,19 @@
 #pragma once
 
+#include <libs/core/entity_state.h>
 #include <libs/island/island_base.h>
-#include <libs/renderer/dx9render.h>
 
 #include "common_camera.h"
 
 class FreeCamera: public COMMON_CAMERA
 {
 private:
-    VDX9RENDER* pRS;
-    CVECTOR     vPos, vAng;
-    float       fFov;
-    int32_t     iLockX, iLockY;
+    CVECTOR vPos, vAng;
+    float   fFov;
+    int32_t iLockX, iLockY;
 
     ISLAND_BASE* pIslandBase;
-    BOOL         bCameraOnEarth;
+    bool         bCameraOnEarth;
     float        fCameraOnEarthHeight;
 
 public:

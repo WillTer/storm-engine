@@ -154,28 +154,9 @@ void TSinkSplash::Reset(uint16_t* _indexes, SINK_VERTEX* _vertexes)
 {
     time    = 0;
     enabled = false;
-    /*
-      float midY = sea->WaveXZ(center.x, center.z) + SPLASH_MOVE_Y;
-      float stepSize = GRID_LENGTH / GRID_STEPS;
-      float halfSize = GRID_LENGTH / 2.0f;
-      int x,z;
-      for (z=0; z < GRID_STEPS; ++z)
-      for (x=0; x < GRID_STEPS; ++x)
-      {
-        _vertexes->pos.x = center.x + stepSize * x - halfSize;
-        _vertexes->pos.z = center.z + stepSize * z - halfSize;
-        _vertexes->pos.y = midY;
-        _vertexes->tu = ((float) x) / ((float) GRID_STEPS);
-        _vertexes->tv = ((float) z) / ((float) GRID_STEPS);
-        ++_vertexes;
-      }
-    */
 }
 
 //--------------------------------------------------------------------
-void TSinkSplash::AdditionalRealize(uint32_t dTime)
-{
-    // ps->Realize(_dTime);
-}
+void TSinkSplash::AdditionalRealize(uint32_t dTime) {}
 
 //--------------------------------------------------------------------

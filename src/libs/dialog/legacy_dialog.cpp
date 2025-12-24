@@ -22,47 +22,48 @@ constexpr std::string_view DIALOG_INI_FILE_PATH      = "dialog.ini";
 constexpr std::string_view DEFAULT_INTERFACE_TEXTURE = "dialog/dialog.tga";
 
 constexpr uint32_t const COLOR_NORMAL          = 0xFFFFFFFF;
-constexpr uint32_t const COLOR_LINK_UNSELECTED = ARGB(255, 127, 127, 127);
+constexpr uint32_t const COLOR_LINK_UNSELECTED = storm::Color {255, 127, 127, 127}.to_hex();
 
 constexpr uint32_t const UNFADE_TIME = 1000;
 
-int32_t LoadFont(std::string_view const& fontName, INIFILE& ini, VDX9RENDER& renderService)
+int32_t LoadFont(std::string_view const& fontName, INIFILE& ini)
 {
     std::array<char, MAX_PATH> string_buffer {};
     ini.ReadString("DIALOG", fontName.data(), string_buffer.data(), string_buffer.size(), "DIALOG0");
-    return renderService.LoadFont(string_buffer.data());
+    return -1;
+    // return renderService.LoadFont(string_buffer.data());
 }
 
-void FillIndexBuffer(VDX9RENDER& renderService, int32_t indexBuffer, size_t spriteCount)
+void FillIndexBuffer(/*VDX9RENDER& renderService, */ int32_t indexBuffer, size_t spriteCount)
 {
-    auto* pI = static_cast<uint16_t*>(renderService.LockIndexBuffer(indexBuffer));
-    for (size_t n = 0; n < spriteCount; n++) {
-        pI[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
-        pI[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 2);
-        pI[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 1);
-        pI[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 1);
-        pI[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 2);
-        pI[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 3);
-    }
-    renderService.UnLockIndexBuffer(indexBuffer);
+    // auto* pI = static_cast<uint16_t*>(renderService.LockIndexBuffer(indexBuffer));
+    // for (size_t n = 0; n < spriteCount; n++) {
+    //     pI[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
+    //     pI[n * 6 + 1] = static_cast<uint16_t>(n * 4 + 2);
+    //     pI[n * 6 + 2] = static_cast<uint16_t>(n * 4 + 1);
+    //     pI[n * 6 + 3] = static_cast<uint16_t>(n * 4 + 1);
+    //     pI[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 2);
+    //     pI[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 3);
+    // }
+    // renderService.UnLockIndexBuffer(indexBuffer);
 }
 
-constexpr FRECT ScaleUv(FRECT uv)
+constexpr storm::FRect ScaleUv(storm::FRect uv)
 {
     constexpr float hScale = 1.f / 1024.f;
     constexpr float vScale = 1.f / 256.f;
 
     return {
-        uv.x1 * hScale,
-        uv.y1 * vScale,
-        uv.x2 * hScale,
-        uv.y2 * vScale,
+        uv.left * hScale,
+        uv.top * vScale,
+        uv.right * hScale,
+        uv.bottom * vScale,
     };
 }
 
 struct SpriteInfo {
-    FRECT position {};
-    FRECT uv {};
+    storm::FRect position {};
+    storm::FRect uv {};
 };
 
 constexpr size_t const  DIALOG_MAX_LINES   = 8;
@@ -121,19 +122,19 @@ constexpr auto SPRITE_COUNT = SPRITE_DATA.size() + (DIALOG_MAX_LINES - 1);
 
 }  // namespace
 
-VDX9RENDER* LegacyDialog::RenderService = nullptr;
+// VDX9RENDER* LegacyDialog::RenderService = nullptr;
 
 LegacyDialog::~LegacyDialog() noexcept
 {
     core->SetTimeScale(1.f);
 
-    if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
+    // if (interfaceTexture_) { RenderService->TextureRelease(interfaceTexture_); }
 }
 
 bool LegacyDialog::Init()
 {
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(RenderService != nullptr);
+    // RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // Assert(RenderService != nullptr);
 
     soundService_ = static_cast<VSoundService*>(core->GetService("SoundService"));
 
@@ -143,16 +144,16 @@ bool LegacyDialog::Init()
 
     UpdateScreenSize();
 
-    if (char const* texture = AttributesPointer->GetAttribute("texture"); texture != nullptr) {
-        interfaceTexture_ = RenderService->TextureCreate(texture);
-    } else {
-        interfaceTexture_ = RenderService->TextureCreate(DEFAULT_INTERFACE_TEXTURE.data());
-    }
+    // if (char const* texture = AttributesPointer->GetAttribute("texture"); texture != nullptr) {
+    //     interfaceTexture_ = RenderService->TextureCreate(texture);
+    // } else {
+    //     interfaceTexture_ = RenderService->TextureCreate(DEFAULT_INTERFACE_TEXTURE.data());
+    // }
 
     CreateBackBuffers();
 
     linkDescribe_.SetAttributes(AttributesPointer);
-    linkDescribe_.SetRenderer(RenderService);
+    // linkDescribe_.SetRenderer(RenderService);
     linkDescribe_.SetFont(subFont_);
     linkDescribe_.SetFontScale(fontScale_);
     linkDescribe_.SetLineHeight(lineHeight_);
@@ -201,18 +202,18 @@ void LegacyDialog::Realize(uint32_t deltaTime)
     DrawHeadModel(deltaTime);
 
     if (!characterName_.empty()) {
-        RenderService->ExtPrint(
-            nameFont_,
-            COLOR_NORMAL,
-            0,
-            PR_ALIGN_LEFT,
-            true,
-            fontScale_,
-            0,
-            0,
-            static_cast<int32_t>(screenScale_.x * 168),
-            static_cast<int32_t>(screenScale_.y * 28),
-            characterName_.c_str());
+        // RenderService->ExtPrint(
+        //     nameFont_,
+        //     COLOR_NORMAL,
+        //     0,
+        //     PR_ALIGN_LEFT,
+        //     true,
+        //     fontScale_,
+        //     0,
+        //     0,
+        //     static_cast<int32_t>(screenScale_.x * 168),
+        //     static_cast<int32_t>(screenScale_.y * 28),
+        //     characterName_.c_str());
     }
 
     DrawLinks();
@@ -232,8 +233,8 @@ uint32_t LegacyDialog::AttributeChanged(ATTRIBUTES* attributes)
     std::string_view const attributeName = attributes->GetThisName();
 
     if (storm::iEquals(attributeName, "texture")) {
-        RenderService->TextureRelease(interfaceTexture_);
-        interfaceTexture_ = RenderService->TextureCreate(attributes->GetThisAttr());
+        // RenderService->TextureRelease(interfaceTexture_);
+        // interfaceTexture_ = RenderService->TextureCreate(attributes->GetThisAttr());
     } else if (storm::iEquals(attributeName, "headModel")) {
         UpdateHeadModel(attributes->GetValue());
     } else if (storm::iEquals(attributeName, "mood")) {
@@ -279,34 +280,34 @@ void LegacyDialog::LoadIni()
 {
     auto ini = fio->open_ini_file(fio->base_directory_path(BaseDirectory::Ini) / DIALOG_INI_FILE_PATH);
 
-    mainFont_ = LoadFont("mainfont", *ini, *RenderService);
-    nameFont_ = LoadFont("namefont", *ini, *RenderService);
-    subFont_  = LoadFont("subfont", *ini, *RenderService);
+    // mainFont_ = LoadFont("mainfont", *ini, *RenderService);
+    // nameFont_ = LoadFont("namefont", *ini, *RenderService);
+    // subFont_  = LoadFont("subfont", *ini, *RenderService);
 
     ini.reset();
 }
 
 void LegacyDialog::UpdateScreenSize()
 {
-    D3DVIEWPORT9 viewport;
-    RenderService->GetViewport(&viewport);
+    // D3DVIEWPORT9 viewport;
+    // RenderService->GetViewport(&viewport);
     auto const screenSize = core->GetScreenSize();
 
-    auto const hScale = static_cast<float>(viewport.Width) / static_cast<float>(screenSize.width);
-    auto const vScale = static_cast<float>(viewport.Height) / static_cast<float>(screenSize.height);
+    // auto const hScale = static_cast<float>(viewport.Width) / static_cast<float>(screenSize.width);
+    // auto const vScale = static_cast<float>(viewport.Height) / static_cast<float>(screenSize.height);
 
-    if (fabs(screenScale_.x - hScale) > 1e-3f || fabs(screenScale_.y - vScale) > 1e-3f) {
-        screenScale_.x = hScale;
-        screenScale_.y = vScale;
-
-        backNeedsUpdate_ = true;
-    }
+    // if (fabs(screenScale_.x - hScale) > 1e-3f || fabs(screenScale_.y - vScale) > 1e-3f) {
+    //     screenScale_.x = hScale;
+    //     screenScale_.y = vScale;
+    //
+    //     backNeedsUpdate_ = true;
+    // }
 
     float const oldFontScale = fontScale_;
-    fontScale_               = static_cast<float>(viewport.Height) / 600.f;
-    if (fabs(fontScale_ - oldFontScale) > 1e-3f) {
-        lineHeight_ = static_cast<int32_t>(static_cast<float>(RenderService->CharHeight(mainFont_)) * fontScale_);
-    }
+    // fontScale_               = static_cast<float>(viewport.Height) / 600.f;
+    // if (fabs(fontScale_ - oldFontScale) > 1e-3f) {
+    //     lineHeight_ = static_cast<int32_t>(static_cast<float>(RenderService->CharHeight(mainFont_)) * fontScale_);
+    // }
 }
 
 void LegacyDialog::CreateBackBuffers()
@@ -314,10 +315,10 @@ void LegacyDialog::CreateBackBuffers()
     constexpr auto vertex_count = SPRITE_COUNT * 4;
     constexpr auto index_count  = SPRITE_COUNT * 6;
 
-    backVertexBuffer_ = RenderService->CreateVertexBuffer(XI_TEX_FVF, vertex_count * sizeof(XI_TEX_VERTEX), D3DUSAGE_WRITEONLY);
-
-    backIndexBuffer_ = RenderService->CreateIndexBuffer(index_count * sizeof(uint16_t));
-    FillIndexBuffer(*RenderService, backIndexBuffer_, SPRITE_COUNT);
+    // backVertexBuffer_ = RenderService->CreateVertexBuffer(XI_TEX_FVF, vertex_count * sizeof(XI_TEX_VERTEX), D3DUSAGE_WRITEONLY);
+    //
+    // backIndexBuffer_ = RenderService->CreateIndexBuffer(index_count * sizeof(uint16_t));
+    // FillIndexBuffer(*RenderService, backIndexBuffer_, SPRITE_COUNT);
 }
 
 void LegacyDialog::UpdateBackBuffers()
@@ -355,30 +356,30 @@ void LegacyDialog::UpdateBackBuffers()
         return mesh;
     };
 
-    auto*  pV = static_cast<XI_TEX_VERTEX*>(RenderService->LockVertexBuffer(backVertexBuffer_));
-    size_t vi = 0;
-    for (size_t i = 0; i < 7; ++i) {
-        auto const& vertices = createSpriteMesh(SPRITE_DATA[i]);
-        pV[vi++]             = vertices[0];
-        pV[vi++]             = vertices[1];
-        pV[vi++]             = vertices[2];
-        pV[vi++]             = vertices[3];
-    }
+    // auto*  pV = static_cast<XI_TEX_VERTEX*>(RenderService->LockVertexBuffer(backVertexBuffer_));
+    // size_t vi = 0;
+    // for (size_t i = 0; i < 7; ++i) {
+    //     auto const& vertices = createSpriteMesh(SPRITE_DATA[i]);
+    //     pV[vi++]             = vertices[0];
+    //     pV[vi++]             = vertices[1];
+    //     pV[vi++]             = vertices[2];
+    //     pV[vi++]             = vertices[3];
+    // }
 
     SpriteInfo sprite_data {};
 
-    for (size_t i = 0; i < DIALOG_MAX_LINES; ++i) {
-        sprite_data       = SPRITE_DATA[7];
-        auto const offset = static_cast<float>(DIALOG_LINE_HEIGHT * i);
-        sprite_data.position.top -= offset;
-        sprite_data.position.bottom -= offset;
-
-        auto const& vertices = createSpriteMesh(sprite_data);
-        pV[vi++]             = vertices[0];
-        pV[vi++]             = vertices[1];
-        pV[vi++]             = vertices[2];
-        pV[vi++]             = vertices[3];
-    }
+    // for (size_t i = 0; i < DIALOG_MAX_LINES; ++i) {
+    //     sprite_data       = SPRITE_DATA[7];
+    //     auto const offset = static_cast<float>(DIALOG_LINE_HEIGHT * i);
+    //     sprite_data.position.top -= offset;
+    //     sprite_data.position.bottom -= offset;
+    //
+    //     auto const& vertices = createSpriteMesh(sprite_data);
+    //     pV[vi++]             = vertices[0];
+    //     pV[vi++]             = vertices[1];
+    //     pV[vi++]             = vertices[2];
+    //     pV[vi++]             = vertices[3];
+    // }
 
     // Top of main dialog
     {
@@ -394,10 +395,10 @@ void LegacyDialog::UpdateBackBuffers()
         sprite_data.position.bottom -= offset;
 
         auto const& vertices = createSpriteMesh(sprite_data);
-        pV[vi++]             = vertices[0];
-        pV[vi++]             = vertices[1];
-        pV[vi++]             = vertices[2];
-        pV[vi++]             = vertices[3];
+        // pV[vi++]             = vertices[0];
+        // pV[vi++]             = vertices[1];
+        // pV[vi++]             = vertices[2];
+        // pV[vi++]             = vertices[3];
     }
 
     // Divider
@@ -408,22 +409,22 @@ void LegacyDialog::UpdateBackBuffers()
         sprite_data.position.bottom -= offset;
 
         auto const& vertices = createSpriteMesh(sprite_data);
-        pV[vi++]             = vertices[0];
-        pV[vi++]             = vertices[1];
-        pV[vi++]             = vertices[2];
-        pV[vi++]             = vertices[3];
+        // pV[vi++]             = vertices[0];
+        // pV[vi++]             = vertices[1];
+        // pV[vi++]             = vertices[2];
+        // pV[vi++]             = vertices[3];
     }
 
-    RenderService->UnLockVertexBuffer(backVertexBuffer_);
+    // RenderService->UnLockVertexBuffer(backVertexBuffer_);
 
     backNeedsUpdate_ = false;
 }
 
 void LegacyDialog::DrawBackground(size_t start, size_t count)
 {
-    RenderService->TextureSet(0, interfaceTexture_);
-    RenderService->DrawBuffer(
-        backVertexBuffer_, sizeof(XI_TEX_VERTEX), backIndexBuffer_, 0, SPRITE_COUNT * 4, start * 6, count * 2, "texturedialogfon");
+    // RenderService->TextureSet(0, interfaceTexture_);
+    // RenderService->DrawBuffer(
+    //     backVertexBuffer_, sizeof(XI_TEX_VERTEX), backIndexBuffer_, 0, SPRITE_COUNT * 4, start * 6, count * 2, "texturedialogfon");
 }
 
 void LegacyDialog::SetAction(std::string action)
@@ -495,66 +496,66 @@ void LegacyDialog::UpdateHeadModel(std::string const& headModelPath)
 void LegacyDialog::DrawHeadModel(uint32_t deltaTime)
 {
     if (headModel_ != invalid_entity) {
-        D3DVIEWPORT9 viewport;
-        RenderService->GetViewport(&viewport);
+        // D3DVIEWPORT9 viewport;
+        // RenderService->GetViewport(&viewport);
 
         CMatrix  mtx, view, prj;
         uint32_t lightingState, zenableState;
         uint32_t zWriteState {};
-        RenderService->GetTransform(D3DTS_VIEW, view);
-        RenderService->GetTransform(D3DTS_PROJECTION, prj);
-        RenderService->GetRenderState(D3DRS_LIGHTING, &lightingState);
-        RenderService->GetRenderState(D3DRS_ZENABLE, &zenableState);
-        RenderService->GetRenderState(D3DRS_ZWRITEENABLE, &zWriteState);
+        // RenderService->GetTransform(D3DTS_VIEW, view);
+        // RenderService->GetTransform(D3DTS_PROJECTION, prj);
+        // RenderService->GetRenderState(D3DRS_LIGHTING, &lightingState);
+        // RenderService->GetRenderState(D3DRS_ZENABLE, &zenableState);
+        // RenderService->GetRenderState(D3DRS_ZWRITEENABLE, &zWriteState);
 
         mtx.BuildViewMatrix(CVECTOR(0.0f, 0.0f, 0.0f), CVECTOR(0.0f, 0.0f, 1.0f), CVECTOR(0.0f, 1.0f, 0.0f));
-        RenderService->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&mtx);
+        // RenderService->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&mtx);
 
         mtx.BuildProjectionMatrix(PId2 - 1.49f, screenScale_.x * 116, screenScale_.y * 158, 1.0f, 10.0f);
-        RenderService->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&mtx);
+        // RenderService->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&mtx);
 
-        D3DVIEWPORT9 headViewport {};
-        headViewport.X      = static_cast<int32_t>(screenScale_.x * 31);
-        headViewport.Y      = static_cast<int32_t>(screenScale_.y * 28);
-        headViewport.Width  = static_cast<int32_t>(screenScale_.x * 115);
-        headViewport.Height = static_cast<int32_t>(screenScale_.y * 157);
-        headViewport.MinZ   = 0.0f;
-        headViewport.MaxZ   = 1.0f;
+        // D3DVIEWPORT9 headViewport {};
+        // headViewport.X      = static_cast<int32_t>(screenScale_.x * 31);
+        // headViewport.Y      = static_cast<int32_t>(screenScale_.y * 28);
+        // headViewport.Width  = static_cast<int32_t>(screenScale_.x * 115);
+        // headViewport.Height = static_cast<int32_t>(screenScale_.y * 157);
+        // headViewport.MinZ   = 0.0f;
+        // headViewport.MaxZ   = 1.0f;
+        //
+        // RenderService->SetViewport(&headViewport);
+        // RenderService->Clear(0, 0, D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
+        // RenderService->SetRenderState(D3DRS_LIGHTING, TRUE);
+        // RenderService->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
+        // RenderService->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+        //
+        // D3DLIGHT9 oldLight {};
+        // BOOL      oldLightEnabled = FALSE;
+        // RenderService->GetLight(0, &oldLight);
+        // RenderService->GetLightEnable(0, &oldLightEnabled);
+        //
+        // D3DLIGHT9 headLight {};
+        // headLight.Type        = D3DLIGHT_DIRECTIONAL;
+        // headLight.Diffuse.r   = 1.f;
+        // headLight.Diffuse.g   = 1.f;
+        // headLight.Diffuse.b   = 1.f;
+        // headLight.Diffuse.a   = 1.f;
+        // headLight.Direction.x = -1.f;
+        // headLight.Direction.y = -1.f;
+        // headLight.Direction.z = 2.f;
 
-        RenderService->SetViewport(&headViewport);
-        RenderService->Clear(0, 0, D3DCLEAR_ZBUFFER, 0, 1.0f, 0);
-        RenderService->SetRenderState(D3DRS_LIGHTING, TRUE);
-        RenderService->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
-        RenderService->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-
-        D3DLIGHT9 oldLight {};
-        BOOL      oldLightEnabled = FALSE;
-        RenderService->GetLight(0, &oldLight);
-        RenderService->GetLightEnable(0, &oldLightEnabled);
-
-        D3DLIGHT9 headLight {};
-        headLight.Type        = D3DLIGHT_DIRECTIONAL;
-        headLight.Diffuse.r   = 1.f;
-        headLight.Diffuse.g   = 1.f;
-        headLight.Diffuse.b   = 1.f;
-        headLight.Diffuse.a   = 1.f;
-        headLight.Direction.x = -1.f;
-        headLight.Direction.y = -1.f;
-        headLight.Direction.z = 2.f;
-
-        RenderService->SetLight(0, &headLight);
-        RenderService->LightEnable(0, TRUE);
-        auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
-        model->ProcessStage(Entity::Stage::realize, deltaTime);
-
-        RenderService->SetLight(0, &oldLight);
-        RenderService->LightEnable(0, oldLightEnabled);
-        RenderService->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&view);
-        RenderService->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&prj);
-        RenderService->SetViewport(&viewport);
-        RenderService->SetRenderState(D3DRS_LIGHTING, lightingState);
-        RenderService->SetRenderState(D3DRS_ZENABLE, zenableState);
-        RenderService->SetRenderState(D3DRS_ZWRITEENABLE, zWriteState);
+        // RenderService->SetLight(0, &headLight);
+        // RenderService->LightEnable(0, TRUE);
+        // auto const model = dynamic_cast<MODEL*>(core->GetEntityPointer(headModel_));
+        // model->ProcessStage(Entity::Stage::realize, deltaTime);
+        //
+        // RenderService->SetLight(0, &oldLight);
+        // RenderService->LightEnable(0, oldLightEnabled);
+        // RenderService->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&view);
+        // RenderService->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&prj);
+        // RenderService->SetViewport(&viewport);
+        // RenderService->SetRenderState(D3DRS_LIGHTING, lightingState);
+        // RenderService->SetRenderState(D3DRS_ZENABLE, zenableState);
+        // RenderService->SetRenderState(D3DRS_ZWRITEENABLE, zWriteState);
     }
 }
 
@@ -564,11 +565,11 @@ void LegacyDialog::UpdateLinks()
 
     auto const oldHeight = linkDescribe_.GetShowHeight();
 
-    D3DVIEWPORT9 vp;
-    RenderService->GetViewport(&vp);
+    // D3DVIEWPORT9 vp;
+    // RenderService->GetViewport(&vp);
 
-    auto const text_width_limit = static_cast<int32_t>(570.f * (vp.Width / 640.f));
-    linkDescribe_.SetWindowWidth(text_width_limit);
+    // auto const text_width_limit = static_cast<int32_t>(570.f * (vp.Width / 640.f));
+    // linkDescribe_.SetWindowWidth(text_width_limit);
     linkDescribe_.ChangeText(links_attr);
 
     if (oldHeight != linkDescribe_.GetShowHeight()) { backNeedsUpdate_ = true; }
@@ -577,8 +578,8 @@ void LegacyDialog::UpdateLinks()
 void LegacyDialog::DrawLinks()
 {
     linkDescribe_.SetOffset({
-        .x = static_cast<int32_t>(screenScale_.x * 35),
-        .y = static_cast<int32_t>(screenScale_.y * 450) - linkDescribe_.GetShowHeight(),
+        static_cast<int32_t>(screenScale_.x * 35),
+        static_cast<int32_t>(screenScale_.y * 450) - linkDescribe_.GetShowHeight(),
     });
     linkDescribe_.Show(0);
 }
@@ -591,15 +592,15 @@ void LegacyDialog::UpdateDialogText()
     if (text_attr) { dialogText_ = text_attr; }
     formattedDialogText_.clear();
     if (!dialogText_.empty()) {
-        D3DVIEWPORT9 vp;
-        RenderService->GetViewport(&vp);
+        // D3DVIEWPORT9 vp;
+        // RenderService->GetViewport(&vp);
 
-        int32_t const text_width_limit = static_cast<int32_t>(570.f * (vp.Width / 640.f));
+        // int32_t const text_width_limit = static_cast<int32_t>(570.f * (vp.Width / 640.f));
 
-        storm::dialog::AddToStringArrayLimitedByWidth(
-            dialogText_, text_width_limit, formattedDialogText_, [this](std::string_view const& text) {
-                return RenderService->StringWidth(text, mainFont_, fontScale_);
-            });
+        // storm::dialog::AddToStringArrayLimitedByWidth(
+        //     dialogText_, text_width_limit, formattedDialogText_, [this](std::string_view const& text) {
+        //         return 0;  // RenderService->StringWidth(text, mainFont_, fontScale_);
+        //     });
     }
 
     if (previous_lines != formattedDialogText_.size()) { backNeedsUpdate_ = true; }
@@ -613,18 +614,18 @@ void LegacyDialog::DrawDialogText()
         auto const offset = static_cast<int32_t>(screenScale_.y * static_cast<float>(445 - textureLines_ * DIALOG_LINE_HEIGHT));
 
         for (std::string const& text: formattedDialogText_) {
-            RenderService->ExtPrint(
-                mainFont_,
-                COLOR_NORMAL,
-                0,
-                PR_ALIGN_LEFT,
-                true,
-                fontScale_,
-                0,
-                0,
-                static_cast<int32_t>(screenScale_.x * 35),
-                offset + line_offset,
-                text.c_str());
+            // RenderService->ExtPrint(
+            //     mainFont_,
+            //     COLOR_NORMAL,
+            //     0,
+            //     PR_ALIGN_LEFT,
+            //     true,
+            //     fontScale_,
+            //     0,
+            //     0,
+            //     static_cast<int32_t>(screenScale_.x * 35),
+            //     offset + line_offset,
+            //     text.c_str());
             line_offset += lineHeight_;
         }
     }

@@ -369,26 +369,26 @@ void WdmIslands::SetIslandsData(ATTRIBUTES* apnt, bool isChange)
         labels[index].heightView = heightView;
         labels[index].weight     = weight;
         // Line Sizes
-        float const textWidth  = static_cast<float>(wdmObjects->rs->StringWidth((char*)labels[index].text.c_str(), labels[index].font));
-        float       textHeight = static_cast<float>(wdmObjects->rs->CharHeight(labels[index].font));
+        // float const textWidth  = static_cast<float>(wdmObjects->rs->StringWidth((char*)labels[index].text.c_str(), labels[index].font));
+        // float       textHeight = static_cast<float>(wdmObjects->rs->CharHeight(labels[index].font));
         // Label dimensions
-        float const labelWidth  = textWidth + (labels[index].icon >= 0 ? icons.w + 4.0f : 0.0f);
-        float const labelHeight = labels[index].icon >= 0 ? std::max(textHeight, icons.h) : textHeight;
+        // float const labelWidth  = textWidth + (labels[index].icon >= 0 ? icons.w + 4.0f : 0.0f);
+        // float const labelHeight = labels[index].icon >= 0 ? std::max(textHeight, icons.h) : textHeight;
         // Position of the label taking into account the offset
-        float const labelX = pivotX * labelWidth;
-        float const labelY = pivotY * labelHeight;
+        // float const labelX = pivotX * labelWidth;
+        // float const labelY = pivotY * labelHeight;
         // Offset rectangle
-        labels[index].dl = labelX;
-        labels[index].dt = labelY;
-        labels[index].dr = labelX + labelWidth;
-        labels[index].db = labelY + labelHeight;
+        // labels[index].dl = labelX;
+        // labels[index].dt = labelY;
+        // labels[index].dr = labelX + labelWidth;
+        // labels[index].db = labelY + labelHeight;
         if (labels[index].icon >= 0) {
             // Picture position
-            labels[index].iconX = 0.0f;
-            labels[index].iconY = (labelHeight - icons.h) * 0.5f;
-            // Text position
-            labels[index].textX = icons.h + 4.0f;
-            labels[index].textY = (labelHeight - textHeight) * 0.5f;
+            // labels[index].iconX = 0.0f;
+            // labels[index].iconY = (labelHeight - icons.h) * 0.5f;
+            // // Text position
+            // labels[index].textX = icons.h + 4.0f;
+            // labels[index].textY = (labelHeight - textHeight) * 0.5f;
         } else {
             // Picture position
             labels[index].iconX = 0.0f;
@@ -424,7 +424,7 @@ void WdmIslands::LabelsReadIconParams(ATTRIBUTES* apnt)
     if (!texName) texName = "";
     std::string name = "worldmap/interfaces/";
     name += texName;
-    icons.texture = wdmObjects->rs->TextureCreate(name.c_str());
+    // icons.texture = wdmObjects->rs->TextureCreate(name.c_str());
     // Dimensions uv
     float const tw = icons.w * icons.frames;
     float const th = icons.h * icons.num;
@@ -481,8 +481,8 @@ int32_t WdmIslands::LabelsAddFont(char const* name)
     // Font & font = fonts[index = fonts.Add()];
     Font font;
     font.name = name;
-    font.id   = wdmObjects->rs->LoadFont((char*)name);
-    if (font.id < 0) font.id = FONT_DEFAULT;
+    // font.id   = wdmObjects->rs->LoadFont((char*)name);
+    // if (font.id < 0) font.id = FONT_DEFAULT;
     fonts.push_back(font);
     return fonts.size() - 1;
 }
@@ -496,10 +496,10 @@ void WdmIslands::LabelsRelease()
     }
     // Remove all fonts
     for (int32_t i = 0; i < fonts.size(); i++) {
-        if (fonts[i].id != FONT_DEFAULT) { wdmObjects->rs->UnloadFont(fonts[i].id); }
+        // if (fonts[i].id != FONT_DEFAULT) { wdmObjects->rs->UnloadFont(fonts[i].id); }
     }
     // Delete all pictures
-    if (icons.texture >= 0) { wdmObjects->rs->TextureRelease(icons.texture); }
+    // if (icons.texture >= 0) { wdmObjects->rs->TextureRelease(icons.texture); }
     memset(&icons, 0, sizeof(icons));
     icons.texture = -1;
 }
@@ -534,7 +534,7 @@ void WdmIslands::Update(float dltTime)
     }
 }
 
-void WdmIslands::LRender(VDX9RENDER* rs)
+void WdmIslands::LRender(/*VDX9RENDER*/ void* rs)
 {
     // Draw a patch if needed
     if (wdmObjects->isDebug) {
@@ -558,20 +558,20 @@ void WdmIslands::LRender(VDX9RENDER* rs)
     icons.f[1] *= icons.u;
     // get the current transformation matrix
     static CMatrix mtx, view, prj;
-    rs->GetTransform(D3DTS_VIEW, view);
-    rs->GetTransform(D3DTS_PROJECTION, prj);
+    // rs->GetTransform(D3DTS_VIEW, view);
+    // rs->GetTransform(D3DTS_PROJECTION, prj);
     mtx.EqMultiply(view, prj);
     // Get the current vp sizes
-    static D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
-    auto const w = static_cast<float>(vp.Width);
-    auto const h = static_cast<float>(vp.Height);
+    // static D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
+    // auto const w = static_cast<float>(vp.Width);
+    // auto const h = static_cast<float>(vp.Height);
     // Get the height of the camera
     float const cameraHeight = wdmObjects->camera->realHeight;
     float const dAlpha       = core->GetDeltaTime() * (0.001f * 1.5f * 255.0f);
     // Projecting to the screen
     labelSort.clear();
-    MTX_PRJ_VECTOR prjVertex;
+    MTX_PRJ_VECTOR prjVertex = {};
     for (int32_t i = 0; i < labels.size(); i++) {
         // Label
         Label& label = labels[i];
@@ -587,14 +587,14 @@ void WdmIslands::LRender(VDX9RENDER* rs)
         if (label.alpha < 1.0f) continue;
         // calculate the projection point
         // rs->DrawSphere(label.pos, 1.0f, 0xff00ff00);
-        mtx.Projection(&label.pos, &prjVertex, 1, w * 0.5f, h * 0.5f, 0, 0);
+        // mtx.Projection(&label.pos, &prjVertex, 1, w * 0.5f, h * 0.5f, 0, 0);
         // Rectangle on screen
         label.l = prjVertex.x + label.dl;  // label.dl;
         label.t = prjVertex.y + 0;         // label.dt;
         label.r = prjVertex.x + label.dr - label.dl;
         label.b = prjVertex.y + label.db - label.dt;
         // If the label is not visible, then delete the entry
-        if (label.l >= w || label.t >= h || label.r < 0.0f || label.b < 0.0f) { continue; }
+        // if (label.l >= w || label.t >= h || label.r < 0.0f || label.b < 0.0f) { continue; }
         labelSort.push_back(i);
     }
     // place the labels so that they do not overlap in order
@@ -605,17 +605,17 @@ void WdmIslands::LRender(VDX9RENDER* rs)
         Label& label = labels[labelSort[i]];
         // writing a text
         uint32_t const color = (static_cast<int32_t>(label.alpha) << 24) | 0xffffff;
-        rs->Print(
-            label.font,
-            color,
-            static_cast<int32_t>(label.l + label.textX),
-            static_cast<int32_t>(label.t + label.textY),
-            (char*)label.text.c_str());
+        // rs->Print(
+        //     label.font,
+        //     color,
+        //     static_cast<int32_t>(label.l + label.textX),
+        //     static_cast<int32_t>(label.t + label.textY),
+        //     (char*)label.text.c_str());
         // Draw a picture
         if (label.icon < 0) continue;
-        rs->TextureSet(0, icons.texture);
-        rs->TextureSet(1, icons.texture);
-        rs->SetRenderState(D3DRS_TEXTUREFACTOR, static_cast<uint32_t>(icons.blend));
+        // rs->TextureSet(0, icons.texture);
+        // rs->TextureSet(1, icons.texture);
+        // rs->SetRenderState(D3DRS_TEXTUREFACTOR, static_cast<uint32_t>(icons.blend));
         // Filling the vertices
         static struct {
             float    x, y, z, rhw;
@@ -664,8 +664,8 @@ void WdmIslands::LRender(VDX9RENDER* rs)
         drawbuf[3].tu2 = drawbuf[2].tu2;
         drawbuf[3].tv2 = drawbuf[3].tv1;
         // draw the result
-        rs->DrawPrimitiveUP(
-            D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2, 2, drawbuf, sizeof(drawbuf[0]), "WdmDrawLabelIcon");
+        // rs->DrawPrimitiveUP(
+        //     D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX2, 2, drawbuf, sizeof(drawbuf[0]), "WdmDrawLabelIcon");
     }
 }
 
@@ -838,7 +838,7 @@ void WdmIslandWaves::Update(float dltTime)
         phase -= 1.0f;
 }
 
-void WdmIslandWaves::LRender(VDX9RENDER* rs)
+void WdmIslandWaves::LRender(/*VDX9RENDER*/ void* rs)
 {
     float const fullPeriod = 0.8f;
     float       k          = phase * (1.0f / fullPeriod);
@@ -852,18 +852,17 @@ void WdmIslandWaves::LRender(VDX9RENDER* rs)
     if (k <= 1.0f) { Render(rs, k); }
 }
 
-void WdmIslandWaves::Render(VDX9RENDER* rs, float k)
+void WdmIslandWaves::Render(/*VDX9RENDER*/ void* rs, float k)
 {
     // Setting the matrix for the texture
-    // k = 0.5f + 0.5f * sinf (k * 2.0f * PI);
     CMatrix mtx;
     mtx.m[1][1] = 0.3f + 1.0f * sinf(k * PI);
     mtx.m[2][1] = 0.0f;  // 0.2f*sinf((k - 0.25f)*2.0f*PI) - 0.5f;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
     // set the overall transparency
     float const a = sinf(k * PI) * (1.0f - k * 0.5f) * 1.25f;
     // Draw the model
     SetTech("WdmIslandWaves", nullptr);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(a * a * a * a * 255.0f) << 24) | 0xffffff);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(a * a * a * a * 255.0f) << 24) | 0xffffff);
     WdmRenderModel::LRender(rs);
 }

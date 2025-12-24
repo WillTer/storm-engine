@@ -1,5 +1,5 @@
 storm_lib(
     NAME dialog
     SOURCES_DEPS
-        renderer
+        renderer_next
 )

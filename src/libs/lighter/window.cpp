@@ -17,35 +17,34 @@
 #include <libs/filesystem/default_paths.h>
 #include <libs/shared_headers/messages.h>
 
-
 // ============================================================================================
 // Construction, destruction
 // ============================================================================================
 
 Window::Window()
 {
-    rs = nullptr;
-    sw = sh            = 0.0f;
-    isNeedInit         = false;
-    isNoPrepared       = false;
-    isVisible          = false;
-    isTraceShadows     = false;
-    isSmoothShadows    = false;
-    smoothNorm         = true;
-    isBlurLight        = false;
-    isResetBlurLight   = false;
-    isTraceBlur        = true;
-    isLockCtrl         = false;
-    font               = FONT_DEFAULT;
-    list               = nullptr;
-    numElements        = 0;
-    selected           = -1;
-    listPos            = 0.0f;
-    isList             = false;
-    isPikerActive      = false;
-    listWait           = 0.0f;
-    pikerWait          = 0.0f;
-    pickerTexture      = nullptr;
+    // rs = nullptr;
+    sw = sh          = 0.0f;
+    isNeedInit       = false;
+    isNoPrepared     = false;
+    isVisible        = false;
+    isTraceShadows   = false;
+    isSmoothShadows  = false;
+    smoothNorm       = true;
+    isBlurLight      = false;
+    isResetBlurLight = false;
+    isTraceBlur      = true;
+    isLockCtrl       = false;
+    // font               = FONT_DEFAULT;
+    list          = nullptr;
+    numElements   = 0;
+    selected      = -1;
+    listPos       = 0.0f;
+    isList        = false;
+    isPikerActive = false;
+    listWait      = 0.0f;
+    pikerWait     = 0.0f;
+    // pickerTexture      = nullptr;
     tracePrc           = 0.0f;
     smoothPrc          = 0.0f;
     smoothRad          = 0.2f;
@@ -72,8 +71,8 @@ Window::Window()
 
 Window::~Window()
 {
-    if (pickerTexture) pickerTexture->Release();
-    if (rs && font != FONT_DEFAULT) rs->UnloadFont("Lighter");
+    // if (pickerTexture) pickerTexture->Release();
+    // if (rs && font != FONT_DEFAULT) rs->UnloadFont("Lighter");
     if (list) {
         for (int32_t i = 0; i < numElements; i++)
             delete list[i].name;
@@ -81,18 +80,18 @@ Window::~Window()
     }
 }
 
-bool Window::Init(VDX9RENDER* rs)
+bool Window::Init(/*VDX9RENDER*/ void* rs)
 {
-    this->rs = rs;
-    Assert(rs);
-    font = rs->LoadFont("Lighter");
-    if (font < 0) font = FONT_DEFAULT;
-    fontHeight = static_cast<float>(rs->CharHeight(font));
+    // this->rs = rs;
+    // Assert(rs);
+    // font = rs->LoadFont("Lighter");
+    // if (font < 0) font = FONT_DEFAULT;
+    // fontHeight = static_cast<float>(rs->CharHeight(font));
     // Get the current vp sizes
-    D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
-    sw        = static_cast<float>(vp.Width);
-    sh        = static_cast<float>(vp.Height);
+    // D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
+    // sw        = static_cast<float>(vp.Width);
+    // sh        = static_cast<float>(vp.Height);
     cursx     = sw * 0.5f;
     cursy     = sh * 0.5f;
     winw      = 300.0f;
@@ -105,26 +104,26 @@ bool Window::Init(VDX9RENDER* rs)
     textColor = 0xffffff8f;
     selColor  = 0x00c0c000;
     // Picker texture
-    if (rs->CreateTexture(256, 256, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pickerTexture) == D3D_OK && pickerTexture) {
-        D3DLOCKED_RECT lockedRect;
-        if (rs->LockRect(pickerTexture, 0, &lockedRect, nullptr, 0) == D3D_OK) {
-            auto* pnt = static_cast<uint8_t*>(lockedRect.pBits);
-            for (int32_t y = 0; y < 256; y++)
-                for (int32_t x = 0; x < 256; x++, pnt += 4) {
-                    auto       r = static_cast<float>(x);
-                    auto       g = static_cast<float>(y);
-                    auto const b = static_cast<float>(255 - x);
-                    auto       k = r > g ? r : g;
-                    if (k < b) k = b;
-                    k      = 255.0f / k;
-                    pnt[0] = static_cast<uint8_t>(b * k);
-                    pnt[1] = static_cast<uint8_t>(g * k);
-                    pnt[2] = static_cast<uint8_t>(r * k);
-                    pnt[3] = 255;
-                }
-            rs->UnlockRect(pickerTexture, 0);
-        }
-    }
+    // if (rs->CreateTexture(256, 256, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pickerTexture) == D3D_OK && pickerTexture) {
+    //     D3DLOCKED_RECT lockedRect;
+    //     if (rs->LockRect(pickerTexture, 0, &lockedRect, nullptr, 0) == D3D_OK) {
+    //         auto* pnt = static_cast<uint8_t*>(lockedRect.pBits);
+    //         for (int32_t y = 0; y < 256; y++)
+    //             for (int32_t x = 0; x < 256; x++, pnt += 4) {
+    //                 auto       r = static_cast<float>(x);
+    //                 auto       g = static_cast<float>(y);
+    //                 auto const b = static_cast<float>(255 - x);
+    //                 auto       k = r > g ? r : g;
+    //                 if (k < b) k = b;
+    //                 k      = 255.0f / k;
+    //                 pnt[0] = static_cast<uint8_t>(b * k);
+    //                 pnt[1] = static_cast<uint8_t>(g * k);
+    //                 pnt[2] = static_cast<uint8_t>(r * k);
+    //                 pnt[3] = 255;
+    //             }
+    //         rs->UnlockRect(pickerTexture, 0);
+    //     }
+    // }
 
     return true;
 }
@@ -619,8 +618,8 @@ void Window::DrawRect(float x1, float y1, float x2, float y2, uint32_t color)
     v[3].y   = y2;
     v[3].z   = 0.5f;
     v[3].rhw = 2.0f;
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, color);
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW, 2, v, sizeof(Vertex), "DbgDraw2DTFColor");
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, color);
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW, 2, v, sizeof(Vertex), "DbgDraw2DTFColor");
 }
 
 void Window::DrawLine(float x1, float y1, float x2, float y2, uint32_t color)
@@ -634,8 +633,8 @@ void Window::DrawLine(float x1, float y1, float x2, float y2, uint32_t color)
     v[1].y   = y2;
     v[1].z   = 0.5f;
     v[1].rhw = 2.0f;
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, color);
-    rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, color);
+    // rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
 }
 
 void Window::DrawLRect(float x1, float y1, float x2, float y2, uint32_t bkgColor, uint32_t lnColor)
@@ -656,11 +655,11 @@ void Window::Print(int32_t color, float xleft, float xright, float y, float scal
     vsnprintf(stringBuffer, sizeof(stringBuffer), format, args);
     va_end(args);
     auto x = xleft;
-    if (isAlign) {
-        auto const strw = rs->StringWidth(stringBuffer, font) * scale;
-        x               = (xright + xleft - strw) * 0.5f;
-    }
-    rs->ExtPrint(font, color, 0, 0, false, scale, 0, 0, static_cast<int32_t>(x), static_cast<int32_t>(y), stringBuffer);
+    // if (isAlign) {
+    //     auto const strw = rs->StringWidth(stringBuffer, font) * scale;
+    //     x               = (xright + xleft - strw) * 0.5f;
+    // }
+    // rs->ExtPrint(font, color, 0, 0, false, scale, 0, 0, static_cast<int32_t>(x), static_cast<int32_t>(y), stringBuffer);
 }
 
 void Window::DrawCursor()
@@ -681,12 +680,12 @@ void Window::DrawCursor()
     v[2].y   = p2y;
     v[2].z   = 0.5f;
     v[2].rhw = 2.0f;
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xff9f9f9f);
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xff9f9f9f);
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
     v[2].x = p3x;
     v[2].y = p3y;
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xffcfcfcf);
-    rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xffcfcfcf);
+    // rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZRHW, 1, v, sizeof(Vertex), "DbgDraw2DTFColor");
     DrawLine(cursx, cursy, p2x, p2y, 0xcf404040);
     DrawLine(p2x, p2y, p1x, p1y, 0xcf404040);
     DrawLine(p1x, p1y, p3x, p3y, 0xcf404040);
@@ -796,10 +795,10 @@ bool Window::ColorPicker(int32_t id, float y, CVECTOR& ref, float st, CVECTOR& r
         v[3].rhw = 2.0f;
         v[3].u   = 1.0f;
         v[3].v   = 1.0f;
-        rs->TextureSet(0, -1);
-        rs->SetTexture(0, pickerTexture);
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW | D3DFVF_TEX1, 2, v, sizeof(v[0]), "DbgDraw2DTexture");
-        rs->SetTexture(0, nullptr);
+        // rs->TextureSet(0, -1);
+        // rs->SetTexture(0, pickerTexture);
+        // rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, D3DFVF_XYZRHW | D3DFVF_TEX1, 2, v, sizeof(v[0]), "DbgDraw2DTexture");
+        // rs->SetTexture(0, nullptr);
         //
         if (pikerWait < 0.0f && isMouseDown) {
             if (cursy >= y1 && cursy <= y2 && cursx >= x1 && cursx <= x2) {

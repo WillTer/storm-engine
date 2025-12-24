@@ -23,7 +23,7 @@
 #define Y_SPEED 1.0f
 #define SINGLE_SIZE 0.25f
 
-#define BUTTERFLY_VERTEX_TYPE (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define BUTTERFLY_VERTEX_TYPE (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 #pragma pack(push, 1)
 struct tButterflyVertex {
@@ -34,8 +34,6 @@ struct tButterflyVertex {
 //--------------------------------------------------------------------
 
 class COLLIDE;
-class VDX9RENDER;
-class IVBufferManager;
 
 class TButterfly
 {
@@ -68,9 +66,9 @@ public:
         maxY = minY + MAX_HEIGHT;
     }
 
-    void Draw(HDC _dc);
-    void Draw(IVBufferManager* _ivManager);
-    void Draw(VDX9RENDER* _renderer, MODEL* _model);
+    // void Draw(HDC _dc);
+    // void Draw(IVBufferManager* _ivManager);
+    // void Draw(VDX9RENDER* _renderer, MODEL* _model);
 
 private:
     CVECTOR centerPosition, centerVelocity, oldPos;

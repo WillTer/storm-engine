@@ -13,8 +13,6 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/filesystem/default_paths.h>
-#include <libs/renderer/dx9render.h>
-
 
 #ifdef _WIN32
 #include <corecrt_io.h>
@@ -80,7 +78,7 @@ void LGeometry::AddObject(char const* name, entid_t model)  // unused method?
 }
 
 // Process data
-bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
+bool LGeometry::Process(/*VDX9RENDER*/ void* rs, int32_t numLights)
 {
     // Preparing data for lighting
     for (int32_t i = 0; i < numObjects; i++) {
@@ -123,149 +121,151 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
             vbuffer[numVBuffers].vbID    = vbID;
             vbuffer[numVBuffers++].start = numVrt;
             // get the vertices
-            auto*                vbuf = rs->GetVertexBuffer(vbID);
-            D3DVERTEXBUFFER_DESC desc;
-            if (!vbuf || vbuf->GetDesc(&desc) != D3D_OK) {
-                core->Trace("Location lighter: vertex buffer error, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
-                return false;
-            }
+            // auto*                vbuf = rs->GetVertexBuffer(vbID);
+            // D3DVERTEXBUFFER_DESC desc;
+            // if (!vbuf || vbuf->GetDesc(&desc) != D3D_OK) {
+            //     core->Trace("Location lighter: vertex buffer error, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
+            //     return false;
+            // }
             // Analyzing the type
             auto isEnabledType = true;
-            isEnabledType &= ((desc.FVF & D3DFVF_POSITION_MASK) == D3DFVF_XYZ);
-            isEnabledType &= ((desc.FVF & D3DFVF_NORMAL) != 0);
-            isEnabledType &= ((desc.FVF & D3DFVF_DIFFUSE) != 0);
-            isEnabledType &= ((desc.FVF & D3DFVF_PSIZE) == 0);
+            // isEnabledType &= ((desc.FVF & D3DFVF_POSITION_MASK) == D3DFVF_XYZ);
+            // isEnabledType &= ((desc.FVF & D3DFVF_NORMAL) != 0);
+            // isEnabledType &= ((desc.FVF & D3DFVF_DIFFUSE) != 0);
+            // isEnabledType &= ((desc.FVF & D3DFVF_PSIZE) == 0);
             if (!isEnabledType) {
                 core->Trace("Location lighter: incorrect fvf of vertex buffer, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
                 return false;
             }
             // Vertex size
             int32_t stride = 6 * sizeof(float) + sizeof(uint32_t);
-            stride += ((desc.FVF & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT) * 2 * sizeof(float);
-            if (desc.FVF & D3DFVF_SPECULAR) stride += sizeof(uint32_t);
+            // stride += ((desc.FVF & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT) * 2 * sizeof(float);
+            // if (desc.FVF & D3DFVF_SPECULAR) stride += sizeof(uint32_t);
             // Number of vertices
-            auto num = desc.Size / stride;
-            if (num <= 0) {
-                core->Trace(
-                    "Location lighter: incorrect number of verteces in vertex buffer, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
-                return false;
-            }
-            // reserve a place
-            if (numVrt + num > maxVrt) {
-                maxVrt = numVrt + num + 64;
-                vrt.resize(maxVrt);
-            }
+            // auto num = desc.Size / stride;
+            // if (num <= 0) {
+            //     core->Trace(
+            //         "Location lighter: incorrect number of verteces in vertex buffer, model %s, vbID %i", object[i].nameReal.c_str(),
+            //         vbID);
+            //     return false;
+            // }
+            // // reserve a place
+            // if (numVrt + num > maxVrt) {
+            //     maxVrt = numVrt + num + 64;
+            //     vrt.resize(maxVrt);
+            // }
             // Copy
-            uint8_t* pnt = nullptr;
-            if (vbuf->Lock(0, desc.Size, (void**)&pnt, 0) != D3D_OK) {
-                core->Trace("Location lighter: vertex buffer no locked, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
-                return false;
-            }
-            for (int32_t v = 0; v < num; v++) {
-                auto* pos     = (CVECTOR*)(pnt + v * stride);
-                vrt[numVrt].p = *pos;
-                auto* nrm     = (CVECTOR*)(pnt + v * stride + 3 * sizeof(float));
-                vrt[numVrt].n = *nrm;
-                auto color    = *(uint32_t*)(pnt + v * stride + 6 * sizeof(float));
-                auto l        = ~vrt[numVrt].n;
-                if (l > 0.0f) {
-                    if (l != 1.0f) vrt[numVrt].n *= 1.0f / sqrtf(l);
-                } else {
-                    core->Trace(
-                        "Location lighter: model %s, vbID %i, vrt: %i : normal have zero length", object[i].nameReal.c_str(), vbID, v);
-                }
-                vrt[numVrt].c      = 0.0f;
-                vrt[numVrt].bc     = 0.0f;
-                vrt[numVrt].mc     = 1.0f;
-                vrt[numVrt].alpha  = 0xff000000;
-                vrt[numVrt].flags  = Vertex::f_zero;
-                vrt[numVrt].vbid   = vbID;
-                vrt[numVrt].shadow = nullptr;
-                vrt[numVrt].addr   = v * stride + 6 * sizeof(float);
-                vrt[numVrt].obj    = i;
-                vrt[numVrt].cindex = cindex++;
-                if (useColor) {
-                    vrt[numVrt].mc.x  = ((color >> 16) & 255) * (1.0f / 255.0f) * 2.0f;
-                    vrt[numVrt].mc.y  = ((color >> 8) & 255) * (1.0f / 255.0f) * 2.0f;
-                    vrt[numVrt].mc.z  = ((color >> 0) & 255) * (1.0f / 255.0f) * 2.0f;
-                    vrt[numVrt].alpha = color & 0xff000000;
-                }
-                numVrt++;
-            }
-            vbuf->Unlock();
+            // uint8_t* pnt = nullptr;
+            // if (vbuf->Lock(0, desc.Size, (void**)&pnt, 0) != D3D_OK) {
+            //     core->Trace("Location lighter: vertex buffer no locked, model %s, vbID %i", object[i].nameReal.c_str(), vbID);
+            //     return false;
+            // }
+            // for (int32_t v = 0; v < num; v++) {
+            //     auto* pos     = (CVECTOR*)(pnt + v * stride);
+            //     vrt[numVrt].p = *pos;
+            //     auto* nrm     = (CVECTOR*)(pnt + v * stride + 3 * sizeof(float));
+            //     vrt[numVrt].n = *nrm;
+            //     auto color    = *(uint32_t*)(pnt + v * stride + 6 * sizeof(float));
+            //     auto l        = ~vrt[numVrt].n;
+            //     if (l > 0.0f) {
+            //         if (l != 1.0f) vrt[numVrt].n *= 1.0f / sqrtf(l);
+            //     } else {
+            //         core->Trace(
+            //             "Location lighter: model %s, vbID %i, vrt: %i : normal have zero length", object[i].nameReal.c_str(), vbID, v);
+            //     }
+            //     vrt[numVrt].c      = 0.0f;
+            //     vrt[numVrt].bc     = 0.0f;
+            //     vrt[numVrt].mc     = 1.0f;
+            //     vrt[numVrt].alpha  = 0xff000000;
+            //     vrt[numVrt].flags  = Vertex::f_zero;
+            //     vrt[numVrt].vbid   = vbID;
+            //     vrt[numVrt].shadow = nullptr;
+            //     vrt[numVrt].addr   = v * stride + 6 * sizeof(float);
+            //     vrt[numVrt].obj    = i;
+            //     vrt[numVrt].cindex = cindex++;
+            //     if (useColor) {
+            //         vrt[numVrt].mc.x  = ((color >> 16) & 255) * (1.0f / 255.0f) * 2.0f;
+            //         vrt[numVrt].mc.y  = ((color >> 8) & 255) * (1.0f / 255.0f) * 2.0f;
+            //         vrt[numVrt].mc.z  = ((color >> 0) & 255) * (1.0f / 255.0f) * 2.0f;
+            //         vrt[numVrt].alpha = color & 0xff000000;
+            //     }
+            //     numVrt++;
+            // }
+            // vbuf->Unlock();
         }
         object[i].lBufSize = cindex;
         // Triangles ------------------------------------------------- -------------------------------
-        auto  ibID = g->GetIndexBuffer();
-        auto* idx  = static_cast<uint16_t*>(rs->LockIndexBuffer(ibID));
-        if (!idx) {
-            core->Trace("Location lighter: index buffer no locked, model %s", object[i].nameReal.c_str());
-            return false;
-        }
+        auto ibID = g->GetIndexBuffer();
+        // auto* idx  = static_cast<uint16_t*>(rs->LockIndexBuffer(ibID));
+        // if (!idx) {
+        //     core->Trace("Location lighter: index buffer no locked, model %s", object[i].nameReal.c_str());
+        //     return false;
+        // }
         GEOS::OBJECT obj;
-        for (int32_t n = 0; n < info.nobjects; n++) {
-            g->GetObj(n, obj);
-            // looking for a vertex buffer
-            int32_t vb;
-            for (vb = 0; vb < numVBuffers; vb++)
-                if (vbuffer[vb].vbID == static_cast<int32_t>(obj.vertex_buff)) break;
-            if (vb >= numVBuffers) {
-                core->Trace("Location lighter: vertex buffer %i not found, model %s", obj.vertex_buff, object[i].nameReal.c_str());
-                return false;
-            }
-            vb = vbuffer[vb].start + obj.start_vertex;
-            // Reading triangles
-            auto* triangles = idx + obj.striangle * 3;
-            for (int32_t t = 0; t < obj.ntriangles; t++) {
-                // Relative indices
-                int32_t i1 = triangles[t * 3 + 0];
-                int32_t i2 = triangles[t * 3 + 1];
-                int32_t i3 = triangles[t * 3 + 2];
-                if (i1 >= obj.num_vertices || i2 >= obj.num_vertices || i3 >= obj.num_vertices) {
-                    core->Trace(
-                        "Location lighter: model %s have incorrect vertex index, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
-                    return false;
-                }
-                // Absolute indices
-                i1 += vb;
-                i2 += vb;
-                i3 += vb;
-                // Normal to triangle
-                Assert(i1 >= 0 && i1 < numVrt);
-                Assert(i2 >= 0 && i2 < numVrt);
-                Assert(i3 >= 0 && i3 < numVrt);
-                auto  nrm = ((vrt[i2].p - vrt[i1].p) ^ (vrt[i3].p - vrt[i1].p));
-                float sq  = sqrtf(~nrm);
-                // skip the empty triangle
-                if (sq <= 0.0f) {
-                    core->Trace("Location lighter: model %s have zero triangle, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
-                    continue;
-                }
-                // Add a triangle
-                if (numTrg >= maxTrg) {
-                    maxTrg += 256;
-                    trg.resize(maxTrg);
-                }
-                trg[numTrg].n    = nrm * (1.0f / sq);
-                trg[numTrg].sq   = sq;
-                trg[numTrg].i[0] = i1;
-                trg[numTrg].i[1] = i2;
-                trg[numTrg].i[2] = i3;
-                for (int32_t nv = 0; nv < 3; nv++) {
-                    Vertex& vr    = vrt[trg[numTrg].i[nv]];
-                    bool    isInv = (trg[numTrg].n | vr.n) < 0.0f;
-                    if (vr.flags & Vertex::f_set) {
-                        if (((vr.flags & Vertex::f_inv) != 0) != isInv) {
-                            core->Trace("Location lighter: model %s have bug normals, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
-                            vr.flags |= Vertex::f_bug;
-                        }
-                    } else {
-                        if (isInv) vr.flags |= Vertex::f_inv;
-                    }
-                }
-                numTrg++;
-            }
-        }
+        // for (int32_t n = 0; n < info.nobjects; n++) {
+        //     g->GetObj(n, obj);
+        //     // looking for a vertex buffer
+        //     int32_t vb;
+        //     for (vb = 0; vb < numVBuffers; vb++)
+        //         if (vbuffer[vb].vbID == static_cast<int32_t>(obj.vertex_buff)) break;
+        //     if (vb >= numVBuffers) {
+        //         core->Trace("Location lighter: vertex buffer %i not found, model %s", obj.vertex_buff, object[i].nameReal.c_str());
+        //         return false;
+        //     }
+        //     vb = vbuffer[vb].start + obj.start_vertex;
+        //     // Reading triangles
+        //     auto* triangles = idx + obj.striangle * 3;
+        //     for (int32_t t = 0; t < obj.ntriangles; t++) {
+        //         // Relative indices
+        //         int32_t i1 = triangles[t * 3 + 0];
+        //         int32_t i2 = triangles[t * 3 + 1];
+        //         int32_t i3 = triangles[t * 3 + 2];
+        //         if (i1 >= obj.num_vertices || i2 >= obj.num_vertices || i3 >= obj.num_vertices) {
+        //             core->Trace(
+        //                 "Location lighter: model %s have incorrect vertex index, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
+        //             return false;
+        //         }
+        //         // Absolute indices
+        //         i1 += vb;
+        //         i2 += vb;
+        //         i3 += vb;
+        //         // Normal to triangle
+        //         Assert(i1 >= 0 && i1 < numVrt);
+        //         Assert(i2 >= 0 && i2 < numVrt);
+        //         Assert(i3 >= 0 && i3 < numVrt);
+        //         auto  nrm = ((vrt[i2].p - vrt[i1].p) ^ (vrt[i3].p - vrt[i1].p));
+        //         float sq  = sqrtf(~nrm);
+        //         // skip the empty triangle
+        //         if (sq <= 0.0f) {
+        //             core->Trace("Location lighter: model %s have zero triangle, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
+        //             continue;
+        //         }
+        //         // Add a triangle
+        //         if (numTrg >= maxTrg) {
+        //             maxTrg += 256;
+        //             trg.resize(maxTrg);
+        //         }
+        //         trg[numTrg].n    = nrm * (1.0f / sq);
+        //         trg[numTrg].sq   = sq;
+        //         trg[numTrg].i[0] = i1;
+        //         trg[numTrg].i[1] = i2;
+        //         trg[numTrg].i[2] = i3;
+        //         for (int32_t nv = 0; nv < 3; nv++) {
+        //             Vertex& vr    = vrt[trg[numTrg].i[nv]];
+        //             bool    isInv = (trg[numTrg].n | vr.n) < 0.0f;
+        //             if (vr.flags & Vertex::f_set) {
+        //                 if (((vr.flags & Vertex::f_inv) != 0) != isInv) {
+        //                     core->Trace(
+        //                         "Location lighter: model %s have bug normals, (obj: %i, trg: %i)", object[i].nameReal.c_str(), n, t);
+        //                     vr.flags |= Vertex::f_bug;
+        //                 }
+        //             } else {
+        //                 if (isInv) vr.flags |= Vertex::f_inv;
+        //             }
+        //         }
+        //         numTrg++;
+        //     }
+        // }
     }
     if (numVrt <= 0) return false;
     shadows = new lighter::Shadow[numVrt * numLights];
@@ -296,33 +296,33 @@ bool LGeometry::Process(VDX9RENDER* rs, int32_t numLights)
 }
 
 // Draw normals
-void LGeometry::DrawNormals(VDX9RENDER* rs)
+void LGeometry::DrawNormals(/*VDX9RENDER*/ void* rs)
 {
     if (!drawbuf) drawbuf = new CVECTOR[1024];
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xff00ff00);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xff00ff00);
     int32_t p = 0;
     for (int32_t i = 0; i < numVrt; i++) {
         drawbuf[p + 0] = vrt[i].p;
         drawbuf[p + 1] = vrt[i].p + vrt[i].n;
         p += 2;
-        if (p >= 1024) {
-            rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ, 512, drawbuf, sizeof(CVECTOR), "DbgDrawLines");
-            p = 0;
-        }
+        // if (p >= 1024) {
+        //     rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ, 512, drawbuf, sizeof(CVECTOR), "DbgDrawLines");
+        //     p = 0;
+        // }
     }
-    if (p > 1) { rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ, p / 2, drawbuf, sizeof(CVECTOR), "DbgDrawLines"); }
+    // if (p > 1) { rs->DrawPrimitiveUP(D3DPT_LINELIST, D3DFVF_XYZ, p / 2, drawbuf, sizeof(CVECTOR), "DbgDrawLines"); }
 }
 
 // Update colors in buffers
-void LGeometry::UpdateColors(VDX9RENDER* rs)
+void LGeometry::UpdateColors(/*VDX9RENDER*/ void* rs)
 {
     int32_t  lockedVB = -1;
     uint8_t* pnt      = nullptr;
     for (int32_t i = 0; i < numVrt; i++) {
         if (vrt[i].vbid != lockedVB) {
-            if (lockedVB >= 0) rs->UnLockVertexBuffer(lockedVB);
+            // if (lockedVB >= 0) rs->UnLockVertexBuffer(lockedVB);
             lockedVB = -1;
-            pnt      = static_cast<uint8_t*>(rs->LockVertexBuffer(vrt[i].vbid));
+            // pnt      = static_cast<uint8_t*>(rs->LockVertexBuffer(vrt[i].vbid));
             if (!pnt) {
                 core->Trace("Location lighter: no lock vertex buffer for update color");
                 continue;
@@ -339,7 +339,7 @@ void LGeometry::UpdateColors(VDX9RENDER* rs)
         uint32_t& clr = *(uint32_t*)(pnt + vrt[i].addr);
         clr = (static_cast<uint32_t>(c.x) << 16) | (static_cast<uint32_t>(c.y) << 8) | (static_cast<uint32_t>(c.z) << 0) | vrt[i].alpha;
     }
-    if (lockedVB >= 0) rs->UnLockVertexBuffer(lockedVB);
+    // if (lockedVB >= 0) rs->UnLockVertexBuffer(lockedVB);
 }
 
 // Trace the ray

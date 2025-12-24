@@ -11,7 +11,7 @@
 
 // #define SPECIAL_VERSION
 
-void CalculateTexturePos(FRECT& texRect, int hort, int vert, int numt)
+void CalculateTexturePos(storm::FRect& texRect, int hort, int vert, int numt)
 {
     auto const vn  = numt / hort;
     auto const hn  = numt - vn * hort;
@@ -21,7 +21,8 @@ void CalculateTexturePos(FRECT& texRect, int hort, int vert, int numt)
 
 ILogAndActions::ILogAndActions()
 {
-    rs                   = nullptr;
+    // FIXME: Renderer Next
+    // rs                   = nullptr;
     m_idIconTexture      = -1;
     m_sRoot              = nullptr;
     m_fontID             = -1;
@@ -42,12 +43,12 @@ ILogAndActions::~ILogAndActions()
 
 bool ILogAndActions::Init()
 {
-    if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
-        throw std::runtime_error("Can`t create render service");
-    }
-    D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
-    core->Event("SetWindowSize", "lll", static_cast<int32_t>(vp.Width), static_cast<int32_t>(vp.Height), false);
+    // if ((rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"))) == nullptr) {
+    //     throw std::runtime_error("Can`t create render service");
+    // }
+    // D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
+    // core->Event("SetWindowSize", "lll", static_cast<int32_t>(vp.Width), static_cast<int32_t>(vp.Height), false);
     return true;
 }
 
@@ -178,21 +179,21 @@ void ILogAndActions::Realize(uint32_t delta_time)
     }
 #endif
     if (core->Controls->GetDebugAsyncKeyState('K') < 0) return;
-    if (rs == nullptr) return;
+    // if (rs == nullptr) return;
     if (m_bDontShowAll) return;
 
-    rs->MakePostProcess();
+    // rs->MakePostProcess();
 
     // Show Active Action
     //---------------------
     if (m_bShowActiveCommand) {
-        CMatrix matw;
-        rs->SetTransform(D3DTS_WORLD, matw);
+        // CMatrix matw;
+        // rs->SetTransform(D3DTS_WORLD, matw);
         // show icon
         if ((m_idIconTexture != -1L) && m_bThatRealAction) {
-            rs->TextureSet(0, m_idIconTexture);
-            rs->DrawPrimitiveUP(
-                D3DPT_TRIANGLESTRIP, BI_ONETEX_VERTEX_FORMAT, 2, m_IconVertex, sizeof(BI_ONETEXTURE_VERTEX), "battle_rectangle");
+            // rs->TextureSet(0, m_idIconTexture);
+            // rs->DrawPrimitiveUP(
+            //     D3DPT_TRIANGLESTRIP, BI_ONETEX_VERTEX_FORMAT, 2, m_IconVertex, sizeof(BI_ONETEXTURE_VERTEX), "battle_rectangle");
 
             m_ActionHint1.Print();
             m_ActionHint2.Print();
@@ -211,37 +212,34 @@ void ILogAndActions::Realize(uint32_t delta_time)
         }
         auto strY = m_nStringBegin;
         while (ptr != nullptr) {
-            // rs->Print(m_fontID,m_dwColor,strX,strY,"%s",ptr->str);
-            if (ptr->alpha <= 255.f)
-                // rs->Print(m_fontID,m_dwColor+(int32_t(ptr->alpha)<<24),strX,m_nWindowUp+(int32_t)ptr->offset,"%s",ptr->str);
-                rs->ExtPrint(
-                    m_fontID,
-                    m_dwColor + (static_cast<int32_t>(ptr->alpha) << 24),
-                    0,
-                    nAlign,
-                    true,
-                    m_fFontScale,
-                    0,
-                    0,
-                    strX,
-                    m_nWindowUp + static_cast<int32_t>(ptr->offset),
-                    "%s",
-                    ptr->str);
-            else
-                // rs->Print(m_fontID,m_dwColor+0xFF000000,strX,m_nWindowUp+(int32_t)ptr->offset,"%s",ptr->str);
-                rs->ExtPrint(
-                    m_fontID,
-                    m_dwColor + 0xFF000000,
-                    0,
-                    nAlign,
-                    true,
-                    m_fFontScale,
-                    0,
-                    0,
-                    strX,
-                    m_nWindowUp + static_cast<int32_t>(ptr->offset),
-                    "%s",
-                    ptr->str);
+            // if (ptr->alpha <= 255.f)
+            //     rs->ExtPrint(
+            //         m_fontID,
+            //         m_dwColor + (static_cast<int32_t>(ptr->alpha) << 24),
+            //         0,
+            //         nAlign,
+            //         true,
+            //         m_fFontScale,
+            //         0,
+            //         0,
+            //         strX,
+            //         m_nWindowUp + static_cast<int32_t>(ptr->offset),
+            //         "%s",
+            //         ptr->str);
+            // else
+            //     rs->ExtPrint(
+            //         m_fontID,
+            //         m_dwColor + 0xFF000000,
+            //         0,
+            //         nAlign,
+            //         true,
+            //         m_fFontScale,
+            //         0,
+            //         0,
+            //         strX,
+            //         m_nWindowUp + static_cast<int32_t>(ptr->offset),
+            //         "%s",
+            //         ptr->str);
             strY += m_nStringOffset;
             ptr = ptr->next;
         }
@@ -256,16 +254,16 @@ void ILogAndActions::Create(bool bFastComShow, bool bLogStringShow)
     // Set parameters for the active action icon
     auto* pA = AttributesPointer->GetAttributeClass("ActiveActions");
     if (pA != nullptr) {
-        m_idIconTexture = rs->TextureCreate(pA->GetAttribute("TextureName"));
-        m_horzDiv       = pA->GetAttributeAsDword("horzQ", 1);
-        m_vertDiv       = pA->GetAttributeAsDword("vertQ", 1);
-        m_nIconWidth    = pA->GetAttributeAsDword("width", 64);
-        m_nIconHeight   = pA->GetAttributeAsDword("height", 64);
-        m_nIconLeft     = pA->GetAttributeAsDword("left", 0);
-        m_nIconUp       = pA->GetAttributeAsDword("top", 0);
+        // m_idIconTexture = rs->TextureCreate(pA->GetAttribute("TextureName"));
+        m_horzDiv     = pA->GetAttributeAsDword("horzQ", 1);
+        m_vertDiv     = pA->GetAttributeAsDword("vertQ", 1);
+        m_nIconWidth  = pA->GetAttributeAsDword("width", 64);
+        m_nIconHeight = pA->GetAttributeAsDword("height", 64);
+        m_nIconLeft   = pA->GetAttributeAsDword("left", 0);
+        m_nIconUp     = pA->GetAttributeAsDword("top", 0);
 
-        m_ActionHint1.Init(rs, pA->GetAttributeClass("text1"));
-        m_ActionHint2.Init(rs, pA->GetAttributeClass("text2"));
+        m_ActionHint1.Init(/*rs*/ nullptr, pA->GetAttributeClass("text1"));
+        m_ActionHint2.Init(/*rs*/ nullptr, pA->GetAttributeClass("text2"));
     } else {
         m_idIconTexture = -1L;
         m_horzDiv       = 1;
@@ -295,7 +293,7 @@ void ILogAndActions::Create(bool bFastComShow, bool bLogStringShow)
         m_nWindowLeft   = pA->GetAttributeAsDword("left", -1);
         m_nWindowRight  = pA->GetAttributeAsDword("right", -1);
         m_nWindowUp     = pA->GetAttributeAsDword("up", 0);
-        m_fontID        = rs->LoadFont(pA->GetAttribute("font"));
+        // m_fontID        = rs->LoadFont(pA->GetAttribute("font"));
         m_fFontScale    = pA->GetAttributeAsFloat("fontscale", 1.f);
         m_dwColor       = pA->GetAttributeAsDword("color", 0x00FFFFFF);
         m_nStringOffset = pA->GetAttributeAsDword("offsetString", 24);
@@ -324,21 +322,21 @@ void ILogAndActions::ActionChange(bool bFastComShow, bool bLogStringShow)
     m_bThatRealAction = false;
 
     // Delete the old parameters
-    TEXTURE_RELEASE(rs, m_idIconTexture);
+    // TEXTURE_RELEASE(rs, m_idIconTexture);
 
     // Set parameters for the active action icon
     ATTRIBUTES* pA = AttributesPointer->GetAttributeClass("ActiveActions");
     if (pA != nullptr) {
-        m_idIconTexture = rs->TextureCreate(pA->GetAttribute("TextureName"));
-        m_horzDiv       = pA->GetAttributeAsDword("horzQ", 1);
-        m_vertDiv       = pA->GetAttributeAsDword("vertQ", 1);
-        m_nIconWidth    = pA->GetAttributeAsDword("width", 64);
-        m_nIconHeight   = pA->GetAttributeAsDword("height", 64);
-        m_nIconLeft     = pA->GetAttributeAsDword("left", 0);
-        m_nIconUp       = pA->GetAttributeAsDword("top", 0);
+        // m_idIconTexture = rs->TextureCreate(pA->GetAttribute("TextureName"));
+        m_horzDiv     = pA->GetAttributeAsDword("horzQ", 1);
+        m_vertDiv     = pA->GetAttributeAsDword("vertQ", 1);
+        m_nIconWidth  = pA->GetAttributeAsDword("width", 64);
+        m_nIconHeight = pA->GetAttributeAsDword("height", 64);
+        m_nIconLeft   = pA->GetAttributeAsDword("left", 0);
+        m_nIconUp     = pA->GetAttributeAsDword("top", 0);
 
-        m_ActionHint1.Init(rs, pA->GetAttributeClass("text1"));
-        m_ActionHint2.Init(rs, pA->GetAttributeClass("text2"));
+        m_ActionHint1.Init(/*rs*/ nullptr, pA->GetAttributeClass("text1"));
+        m_ActionHint2.Init(/*rs*/ nullptr, pA->GetAttributeClass("text2"));
     } else {
         m_idIconTexture = -1L;
         m_horzDiv       = 1;
@@ -363,9 +361,9 @@ void ILogAndActions::ActionChange(bool bFastComShow, bool bLogStringShow)
 
 void ILogAndActions::Release()
 {
-    TEXTURE_RELEASE(rs, m_idIconTexture);
+    // TEXTURE_RELEASE(rs, m_idIconTexture);
 
-    rs->UnloadFont(m_fontID);
+    // rs->UnloadFont(m_fontID);
     while (m_sRoot != nullptr) {
         STRING_DESCR* p = m_sRoot;
         m_sRoot         = p->next;
@@ -374,7 +372,7 @@ void ILogAndActions::Release()
     }
     m_ActionHint1.Release();
     m_ActionHint2.Release();
-    rs = nullptr;
+    // rs = nullptr;
 }
 
 void ILogAndActions::SetString(char const* str, bool immortal)
@@ -444,7 +442,7 @@ void ILogAndActions::SetAction(char const* actionName)
     if (pA == nullptr) return;
     strcpy_s(m_sActionName, actionName);
     // set texture coordinates for this action icon
-    FRECT         texRect;
+    storm::FRect  texRect;
     int32_t const curIconNum = pA->GetAttributeAsDword("IconNum", 0);
     if (curIconNum == -1) {
         m_bThatRealAction = false;
@@ -459,10 +457,10 @@ void ILogAndActions::SetAction(char const* actionName)
 
     pA = AttributesPointer->GetAttributeClass("ActiveActions");
     if (pA) {
-        m_ActionHint1.Init(rs, pA->GetAttributeClass("text1"));
-        m_ActionHint2.Init(rs, pA->GetAttributeClass("text2"));
+        m_ActionHint1.Init(/*rs*/ nullptr, pA->GetAttributeClass("text1"));
+        m_ActionHint2.Init(/*rs*/ nullptr, pA->GetAttributeClass("text2"));
     } else {
-        m_ActionHint1.Init(rs, nullptr);
-        m_ActionHint2.Init(rs, nullptr);
+        m_ActionHint1.Init(/*rs*/ nullptr, nullptr);
+        m_ActionHint2.Init(/*rs*/ nullptr, nullptr);
     }
 }

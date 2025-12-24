@@ -12,6 +12,20 @@ class VMA;
 class CoreImpl final: public CorePrivate
 {
 public:
+    template <typename... Args>
+    explicit CoreImpl(std::shared_ptr<Args>&&... args)
+        : Container(std::forward<std::shared_ptr<Args>>(args)...)
+        , Exit_flag {false}
+        , Memory_Leak_flag {false}
+        , Root_flag {false}
+        , Initialized {false}
+        , bEngineIniProcessed {false}
+        , State_loading {false}
+        , State_file_name {nullptr}
+        , fTimeScale {1.0F}
+    {
+    }
+
     void Init();
 
     void InitBase();

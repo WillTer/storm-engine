@@ -4,7 +4,6 @@
 
 #include <libs/animation/animation.h>
 #include <libs/geometry/geometry.h>
-#include <libs/renderer/dx9render.h>
 
 #include "model.h"
 
@@ -33,8 +32,7 @@ public:
     float   radius;
     CVECTOR center;
 
-    static VGEOMETRY*  gs;
-    static VDX9RENDER* rs;
+    static VGEOMETRY* gs;
 
     bool Init(
         char const* lightPath, char const* pname, char const* oname, CMatrix const& m, CMatrix const& globm, NODER* par, char const* lmPath)
@@ -77,15 +75,14 @@ class ModelR: public MODEL
     std::string LightPath, lmPath;
 
     struct ANIBUFFER {
-        FVF_VERTEX* v;
-        int32_t     num;
-        int32_t     vb;
+        /*FVF_VERTEX*/ void* v;
+        int32_t              num;
+        int32_t              vb;
     };
 
-    VDX9RENDER* rs;
-    VGEOMETRY*  GeometyService;
-    Animation*  ani;
-    float       aniPos[ANI_MAX_ACTIONS];
+    VGEOMETRY* GeometyService;
+    Animation* ani;
+    float      aniPos[ANI_MAX_ACTIONS];
 
     bool  bSetupFog;
     bool  bFogEnable;
@@ -93,11 +90,10 @@ class ModelR: public MODEL
 
     int32_t nAniVerts;
 
-    ANIBUFFER               aniVerts[MODEL_ANI_MAXBUFFERS];
-    void                    AniRender();
-    NODE*                   colideNode;
-    void                    FindPlanes(CMatrix const& view, CMatrix const& proj);
-    IDirect3DVertexBuffer9* d3dDestVB;
+    ANIBUFFER aniVerts[MODEL_ANI_MAXBUFFERS];
+    void      AniRender();
+    NODE*     colideNode;
+    void      FindPlanes(CMatrix const& view, CMatrix const& proj);
 
     unsigned short* idxBuff;
 

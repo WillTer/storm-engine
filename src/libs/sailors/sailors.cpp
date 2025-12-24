@@ -796,7 +796,7 @@ void ShipWalk::CheckPosition(uint32_t const& dltTime)
     }
 }
 
-Sailors::Sailors() : rs(nullptr)
+Sailors::Sailors()
 {
     editorMode = false;
     disabled   = false;
@@ -804,8 +804,6 @@ Sailors::Sailors() : rs(nullptr)
 
 bool Sailors::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-
     core->SetLayerType(SEA_REALIZE, layer_type_t::realize);
     core->AddToLayer(SEA_REALIZE, GetId(), 65530);
 
@@ -818,7 +816,7 @@ void Sailors::Realize(uint32_t dltTime)
 
     if (disabled) return;
 
-    rs->SetRenderState(D3DRS_LIGHTING, true);
+    // rs->SetRenderState(D3DRS_LIGHTING, true);
 
 #ifdef SAILORS_DEBUG
     if (core->Controls->GetDebugAsyncKeyState(VK_F7) < 0) {
@@ -834,7 +832,7 @@ void Sailors::Realize(uint32_t dltTime)
         // If the ship and all people are dead then delete the object
         if (walk->shipState.dead && walk->shipMan.empty()) {
             shipWalk.erase(walk);
-            rs->SetRenderState(D3DRS_LIGHTING, false);
+            // rs->SetRenderState(D3DRS_LIGHTING, false);
             return;
         }
 
@@ -854,7 +852,7 @@ void Sailors::Realize(uint32_t dltTime)
             // If died then delete
             if (man->dieTime > 10 || man->pos.y < -100) {
                 walk->shipMan.erase(man);
-                rs->SetRenderState(D3DRS_LIGHTING, false);
+                // rs->SetRenderState(D3DRS_LIGHTING, false);
                 return;
             }
         }
@@ -872,7 +870,7 @@ void Sailors::Realize(uint32_t dltTime)
         }
     }
 
-    rs->SetRenderState(D3DRS_LIGHTING, false);
+    // rs->SetRenderState(D3DRS_LIGHTING, false);
 }
 
 uint64_t Sailors::ProcessMessage(MESSAGE& message)

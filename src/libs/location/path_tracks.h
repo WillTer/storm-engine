@@ -2,7 +2,6 @@
 
 #include <libs/math/math3d.h>
 #include <libs/math/math3d/quaternion.h>
-#include <libs/renderer/dx9render.h>
 
 class PathTracks
 {
@@ -24,7 +23,7 @@ public:
     // Upload track to PathTracks
     bool Load(char const* fileName);
     // Draw track
-    void Draw(VDX9RENDER* render);
+    void Draw(/*VDX9RENDER*/ void* render);
     // Get track point
     bool GetPoint(float index, Vector& cp, Quaternion& cq) const;
 

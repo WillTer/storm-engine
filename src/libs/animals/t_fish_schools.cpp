@@ -4,7 +4,6 @@
 #include <libs/core/entity.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/math/math_inlines.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/util/rands.h>
 
@@ -39,8 +38,9 @@ void TFishSchools::Init()
 {
     LoadSettings();
 
-    renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!renderService) throw std::runtime_error("!FishSchools: No service 'dx9render'");
+    // FIXME: Renderer Next
+    // renderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!renderService) throw std::runtime_error("!FishSchools: No service 'dx9render'");
 
     sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
     if (!sea) {
@@ -83,9 +83,11 @@ void TFishSchools::Execute(uint32_t _dTime)
 {
     if (!enabled) return;
 
-    CVECTOR pos, ang, fishPos;
-    float   persp;
-    renderService->GetCamera(pos, ang, persp);
+    CVECTOR pos     = {};
+    CVECTOR ang     = {};
+    CVECTOR fishPos = {};
+    float   persp   = 0.0F;
+    // renderService->GetCamera(pos, ang, persp);
 
     cameraObject.SetXYZ(pos);
     auto const speedK = static_cast<float>(_dTime) / 1000.0f;

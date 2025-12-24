@@ -1,7 +1,5 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 #include "../xdefines.h"
 
 class INIFILE;
@@ -31,7 +29,6 @@ protected:
     void ReplaceRectangle(int32_t x, int32_t y);
 
 protected:
-    VDX9RENDER*       m_rs;
     XI_ONETEX_VERTEX* m_pV;
     uint16_t*         m_pI;
     int32_t           m_nSquareQ;

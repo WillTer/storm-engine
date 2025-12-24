@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
-
 #include "loc_rat.h"
 
 class LocRats: public Entity

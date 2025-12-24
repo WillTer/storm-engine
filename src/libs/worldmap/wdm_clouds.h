@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <libs/math/c_vector.h>
+
 #include "wdm_render_object.h"
 
 class WdmCloud;
@@ -18,8 +20,7 @@ class WdmCloud;
 
 class WdmClouds: public WdmRenderObject
 {
-    static IDirect3DVertexDeclaration9* vertexDecl_;
-    void                                CreateVertexDeclaration(VDX9RENDER* rs);
+    void CreateVertexDeclaration(/*VDX9RENDER*/ void* rs);
 
     struct Cloud {
         struct Cld {
@@ -42,7 +43,7 @@ class WdmClouds: public WdmRenderObject
         // Update cloud state
         void Update(float dltTime);
         // Fill an array of rectangles
-        int32_t FillRects(RS_RECT* rects, int32_t cnt, float galpha);
+        // int32_t FillRects(RS_RECT* rects, int32_t cnt, float galpha);
         // Get sphere center and radius
         float GetBound(CVECTOR& _center) const;
         // Run the cloud removal mechanism if there is an intersection
@@ -67,9 +68,9 @@ public:
     // Calculations
     void Update(float dltTime) override;
     // Drawing
-    void LRender(VDX9RENDER* rs) override;
+    // void LRender(VDX9RENDER* rs) override;
 
     int32_t texture, light;
     Cloud   clouds[16];
-    RS_RECT rects[WDMCLOUDSMAX * 16];
+    // RS_RECT rects[WDMCLOUDSMAX * 16];
 };

@@ -446,7 +446,6 @@ int32_t Sharks::Shark::GenerateTrack(uint16_t* inds, Vertex* vrt, uint16_t base,
 
 Sharks::Sharks() : sea(0), island(0), indeces {}, vrt {}
 {
-    rs             = nullptr;
     camPos         = 0.0f;
     numShakes      = 3 + (SDL_GetTicks() & 3);
     trackTx        = -1;
@@ -457,14 +456,12 @@ Sharks::Sharks() : sea(0), island(0), indeces {}, vrt {}
 Sharks::~Sharks()
 {
     core->EraseEntity(periscope.model);
-    if (rs) rs->TextureRelease(trackTx);
+    // if (rs) rs->TextureRelease(trackTx);
 }
 
 // Initialization
 bool Sharks::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
     for (int32_t i = 0; i < numShakes; i++)
         if (!shark[i].Init(0.0f, 0.0f)) return false;
     // Execution layers
@@ -480,7 +477,7 @@ bool Sharks::Init()
         core->AddToLayer(SEA_REALIZE, shark[i].model, rmdl);
     }
     // Load the texture
-    trackTx = rs->TextureCreate("animals/SharkTrack.tga");
+    // trackTx = rs->TextureCreate("animals/SharkTrack.tga");
     // Analyzing the possibility of creating a periscope
     auto* v = static_cast<VDATA*>(core->GetScriptVariable("Environment"));
     if (v) {
@@ -512,7 +509,7 @@ void Sharks::Execute(uint32_t delta_time)
 {
     CVECTOR a;
     if (delta_time & 1) rand();
-    rs->GetCamera(camPos, a, a.x);
+    // rs->GetCamera(camPos, a, a.x);
     auto const dltTime = delta_time * 0.001f;
     auto const num     = numShakes;
     // Reset the states
@@ -583,7 +580,7 @@ void Sharks::Execute(uint32_t delta_time)
                     if (LoadPeriscopeModel()) {
                         periscope.time = 30.0f + rand() * (20.0f / RAND_MAX);
                         CVECTOR dummy;
-                        rs->GetCamera(periscope.pos, dummy, periscope.pos.y);
+                        // rs->GetCamera(periscope.pos, dummy, periscope.pos.y);
                     }
                     periscope.pos.y = -10.0f;
                     waitPTime       = -1.0f;
@@ -623,29 +620,9 @@ void Sharks::Realize(uint32_t delta_time)
         num += shark[i].GenerateTrack(indeces + num * 3, vrt + num, static_cast<uint16_t>(num), sb);
     }
     if (num) {
-        rs->TextureSet(0, trackTx);
-        rs->SetTransform(D3DTS_WORLD, CMatrix());
-        rs->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1);
-        rs->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST, 0, num, num, indeces, D3DFMT_INDEX16, vrt, sizeof(Vertex), "SharkTrack");
+        // rs->TextureSet(0, trackTx);
+        // rs->SetTransform(D3DTS_WORLD, CMatrix());
+        // rs->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1);
+        // rs->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST, 0, num, num, indeces, D3DFMT_INDEX16, vrt, sizeof(Vertex), "SharkTrack");
     }
-
-    /*
-    ISLAND_BASE * ib = (ISLAND_BASE *)core->GetEntityPointer(island);
-    if(!ib) return;
-    float maxRad = 0.0f;
-    int32_t s = 30;
-    for(int32_t i = 0; i < numShakes; i++)
-    {
-      float r = sqrtf(~(shark[i].spos - shark[i].pos));
-      if(r > maxRad) maxRad = r;
-      if(ib)
-      {
-        float h = -1000.0f;
-        ib->GetDepth(shark[i].spos.x, shark[i].spos.z, &h);
-        rs->Print(10, s, "Height = %f", h);
-        s += 20;
-      }
-    }
-    rs->Print(10, 10, "MaxRad = %f", maxRad);
-    */
 }

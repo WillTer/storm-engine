@@ -26,7 +26,6 @@ LocModelRealizer::~LocModelRealizer() {}
 // Initialization
 bool LocModelRealizer::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     return true;
 }
@@ -37,60 +36,60 @@ void LocModelRealizer::Execute(uint32_t delta_time) {}
 void LocModelRealizer::Realize(uint32_t delta_time) const
 {
     if (!bShow) return;
-    auto* pE = core->GetEntityPointer(eid_model);
-    if (pE) {
-        BOOL     bLight0Enable;
-        uint32_t dwLighting;
-        if (lights) {
-            static CVECTOR camPos, camAng;
-            rs->GetCamera(camPos, camAng, camAng.x);
-
-            rs->GetRenderState(D3DRS_LIGHTING, &dwLighting);
-            rs->GetLightEnable(0, &bLight0Enable);
-
-            // calc lightning at camera pos
-            lights->SetLightsAt(camPos);
-
-            rs->SetRenderState(D3DRS_LIGHTING, TRUE);
-            rs->LightEnable(0, TRUE);
-        }
-
-        pE->ProcessStage(Stage::realize, delta_time);
-        if (lights) {
-            lights->UnsetLights();
-            rs->SetRenderState(D3DRS_LIGHTING, dwLighting);
-            rs->LightEnable(0, bLight0Enable);
-        }
-
-        if (bCausticEnable) {
-            // constants
-            // 10 - (caustic scale, caustic frame, 0, 0)
-            // 11 - diffuse
-            // 12 - (fog density, fog_start, 0, 0)
-            // 13 - (0, 0, 0, 0)
-
-            fCausticDelta   = fCausticFrame - static_cast<int32_t>(fCausticFrame);
-            auto const vec1 = CVECTOR4(fCausticScale, fCausticDelta, 0.0f, 0.0f);
-            auto const vec2 = CVECTOR4(fFogDensity, 0.0f, 0.0f, 0.0f);
-            auto const vec3 = CVECTOR4(0.0f, 0.0f, 0.0f, 0.0f);
-            auto const vec4 = CVECTOR4(0.0f, 1.0f, 0.0f, 0.0f);
-            auto const vec5 = CVECTOR4(1.0f / fCausticDistance, 1.0f, 0.0f, 0.0f);
-            rs->SetVertexShaderConstantF(10, reinterpret_cast<float const*>(&vec1), 1);
-            rs->SetVertexShaderConstantF(11, reinterpret_cast<float const*>(&v4CausticColor), 1);
-            rs->SetVertexShaderConstantF(12, reinterpret_cast<float const*>(&vec2), 1);
-            rs->SetVertexShaderConstantF(13, reinterpret_cast<float const*>(&vec3), 1);
-            rs->SetVertexShaderConstantF(14, reinterpret_cast<float const*>(&vec4), 1);
-            rs->SetVertexShaderConstantF(15, reinterpret_cast<float const*>(&vec5), 1);
-
-            rs->TextureSet(1, iCausticTex[static_cast<int32_t>(fCausticFrame) % 32]);
-            rs->TextureSet(2, iCausticTex[(static_cast<int32_t>(fCausticFrame) + 1) % 32]);
-
-            // draw caustics
-            gs->SetCausticMode(true);
-            pE->ProcessStage(Stage::realize, 0);
-            gs->SetCausticMode(false);
-        }
-    }
+    // auto* pE = core->GetEntityPointer(eid_model);
+    // if (pE) {
+    //     BOOL     bLight0Enable;
+    //     uint32_t dwLighting;
+    //     if (lights) {
+    //         static CVECTOR camPos, camAng;
+    //         rs->GetCamera(camPos, camAng, camAng.x);
+    //
+    //         rs->GetRenderState(D3DRS_LIGHTING, &dwLighting);
+    //         rs->GetLightEnable(0, &bLight0Enable);
+    //
+    //         // calc lightning at camera pos
+    //         lights->SetLightsAt(camPos);
+    //
+    //         rs->SetRenderState(D3DRS_LIGHTING, TRUE);
+    //         rs->LightEnable(0, TRUE);
+    //     }
+    //
+    //     pE->ProcessStage(Stage::realize, delta_time);
+    //     if (lights) {
+    //         lights->UnsetLights();
+    //         rs->SetRenderState(D3DRS_LIGHTING, dwLighting);
+    //         rs->LightEnable(0, bLight0Enable);
+    //     }
+    //
+    //     if (bCausticEnable) {
+    //         // constants
+    //         // 10 - (caustic scale, caustic frame, 0, 0)
+    //         // 11 - diffuse
+    //         // 12 - (fog density, fog_start, 0, 0)
+    //         // 13 - (0, 0, 0, 0)
+    //
+    //         fCausticDelta   = fCausticFrame - static_cast<int32_t>(fCausticFrame);
+    //         auto const vec1 = CVECTOR4(fCausticScale, fCausticDelta, 0.0f, 0.0f);
+    //         auto const vec2 = CVECTOR4(fFogDensity, 0.0f, 0.0f, 0.0f);
+    //         auto const vec3 = CVECTOR4(0.0f, 0.0f, 0.0f, 0.0f);
+    //         auto const vec4 = CVECTOR4(0.0f, 1.0f, 0.0f, 0.0f);
+    //         auto const vec5 = CVECTOR4(1.0f / fCausticDistance, 1.0f, 0.0f, 0.0f);
+    //         rs->SetVertexShaderConstantF(10, reinterpret_cast<float const*>(&vec1), 1);
+    //         rs->SetVertexShaderConstantF(11, reinterpret_cast<float const*>(&v4CausticColor), 1);
+    //         rs->SetVertexShaderConstantF(12, reinterpret_cast<float const*>(&vec2), 1);
+    //         rs->SetVertexShaderConstantF(13, reinterpret_cast<float const*>(&vec3), 1);
+    //         rs->SetVertexShaderConstantF(14, reinterpret_cast<float const*>(&vec4), 1);
+    //         rs->SetVertexShaderConstantF(15, reinterpret_cast<float const*>(&vec5), 1);
+    //
+    //         rs->TextureSet(1, iCausticTex[static_cast<int32_t>(fCausticFrame) % 32]);
+    //         rs->TextureSet(2, iCausticTex[(static_cast<int32_t>(fCausticFrame) + 1) % 32]);
+    //
+    //         // draw caustics
+    //         gs->SetCausticMode(true);
+    //         pE->ProcessStage(Stage::realize, 0);
+    //         gs->SetCausticMode(false);
+    //     }
+    // }
 }
 
 // Messages

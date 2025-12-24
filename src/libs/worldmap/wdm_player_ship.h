@@ -27,7 +27,7 @@ public:
 
     // Calculations
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // Check when exiting the map
     bool ExitFromMap();

@@ -3,13 +3,11 @@
 #include <algorithm>
 
 #include <libs/math/math3d.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 
 #include "ship.h"
 
-VDX9RENDER* ShipLights::pRS      = nullptr;
-COLLIDE*    ShipLights::pCollide = nullptr;
+COLLIDE* ShipLights::pCollide = nullptr;
 
 ShipLights::ShipLights() : fSunRoadFlareSize(0), dwCoronaSubTexX(0), dwCoronaSubTexY(0)
 {
@@ -29,8 +27,8 @@ ShipLights::ShipLights() : fSunRoadFlareSize(0), dwCoronaSubTexX(0), dwCoronaSub
 
 ShipLights::~ShipLights()
 {
-    if (iCoronaTex >= 0) pRS->TextureRelease(iCoronaTex);
-    if (iFlareSunRoadTex >= 0) pRS->TextureRelease(iFlareSunRoadTex);
+    // if (iCoronaTex >= 0) pRS->TextureRelease(iCoronaTex);
+    // if (iFlareSunRoadTex >= 0) pRS->TextureRelease(iFlareSunRoadTex);
 
     aLights.clear();
     aSelectedLights.clear();
@@ -41,8 +39,6 @@ ShipLights::~ShipLights()
 
 bool ShipLights::Init()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
     pSea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
@@ -99,9 +95,9 @@ bool ShipLights::LoadLights()
 
     dwMaxD3DLights = Min(static_cast<uint32_t>(7), pA->GetAttributeAsDword("MaxD3DLights", 7));
 
-    sCoronaTechnique  = (pA->GetAttribute("CoronaTechnique")) ? pA->GetAttribute("CoronaTechnique") : "";
-    iCoronaTex        = (pA->GetAttribute("CoronaTexture")) ? pRS->TextureCreate(pA->GetAttribute("CoronaTexture")) : -1;
-    iFlareSunRoadTex  = (pA->GetAttribute("FlareSunRoadTexture")) ? pRS->TextureCreate(pA->GetAttribute("FlareSunRoadTexture")) : -1;
+    sCoronaTechnique = (pA->GetAttribute("CoronaTechnique")) ? pA->GetAttribute("CoronaTechnique") : "";
+    // iCoronaTex        = (pA->GetAttribute("CoronaTexture")) ? pRS->TextureCreate(pA->GetAttribute("CoronaTexture")) : -1;
+    // iFlareSunRoadTex  = (pA->GetAttribute("FlareSunRoadTexture")) ? pRS->TextureCreate(pA->GetAttribute("FlareSunRoadTexture")) : -1;
     dwCoronaSubTexX   = pA->GetAttributeAsDword("CoronaTextureX", 1);
     dwCoronaSubTexY   = pA->GetAttributeAsDword("CoronaTextureY", 1);
     fSunRoadFlareSize = pA->GetAttributeAsFloat("SunRoadFlareSize", 4.0);
@@ -134,35 +130,35 @@ void ShipLights::AddDynamicLights(VAI_OBJBASE* pObject, const CVECTOR& vPos)
         return;
     }
 
-    auto light               = ShipLight {};
-    light.bDynamicLight      = true;
-    light.pObject            = pObject;
-    light.vPos               = vPos;
-    light.bOff               = false;
-    light.bLightOff          = false;
-    light.bBrokenTimeOff     = false;
-    light.fCurTime           = 0.0;
-    light.fTotalTime         = pLT->fLifeTime;
-    light.fUpTime            = pLT->fUpTime;
-    light.vCurPos            = vPos;
-    light.bCoronaOnly        = false;
-    light.fFlareAlpha        = 0.0f;
-    light.fFlareAlphaMax     = 1.0f;
-    light.bVisible           = false;
-    light.fBrokenTime        = 0.0f;
-    light.bDead              = false;
-    light.fTotalBrokenTime   = 0.0f;
-    light.Light              = {};
-    light.Light.Type         = D3DLIGHT_POINT;
-    light.Light.Diffuse.r    = pLT->cLightColor.r;
-    light.Light.Diffuse.g    = pLT->cLightColor.g;
-    light.Light.Diffuse.b    = pLT->cLightColor.b;
-    light.Light.Diffuse.a    = 1.0f;
-    light.Light.Range        = pLT->fRange;
-    light.Light.Attenuation0 = pLT->fAttenuation0;
-    light.Light.Attenuation1 = pLT->fAttenuation1;
-    light.Light.Attenuation2 = pLT->fAttenuation2;
-    light.pLT                = pLT;
+    auto light             = ShipLight {};
+    light.bDynamicLight    = true;
+    light.pObject          = pObject;
+    light.vPos             = vPos;
+    light.bOff             = false;
+    light.bLightOff        = false;
+    light.bBrokenTimeOff   = false;
+    light.fCurTime         = 0.0;
+    light.fTotalTime       = pLT->fLifeTime;
+    light.fUpTime          = pLT->fUpTime;
+    light.vCurPos          = vPos;
+    light.bCoronaOnly      = false;
+    light.fFlareAlpha      = 0.0f;
+    light.fFlareAlphaMax   = 1.0f;
+    light.bVisible         = false;
+    light.fBrokenTime      = 0.0f;
+    light.bDead            = false;
+    light.fTotalBrokenTime = 0.0f;
+    // light.Light              = {};
+    // light.Light.Type         = D3DLIGHT_POINT;
+    // light.Light.Diffuse.r    = pLT->cLightColor.r;
+    // light.Light.Diffuse.g    = pLT->cLightColor.g;
+    // light.Light.Diffuse.b    = pLT->cLightColor.b;
+    // light.Light.Diffuse.a    = 1.0f;
+    // light.Light.Range        = pLT->fRange;
+    // light.Light.Attenuation0 = pLT->fAttenuation0;
+    // light.Light.Attenuation1 = pLT->fAttenuation1;
+    // light.Light.Attenuation2 = pLT->fAttenuation2;
+    light.pLT = pLT;
     aLights.push_back(light);
 }
 
@@ -187,7 +183,7 @@ void ShipLights::AddFlare(VAI_OBJBASE* pObject, bool bLight, MODEL* pModel, cons
 
     aLights.push_back(ShipLight {});
     ShipLight* pL = &aLights.back();
-    memcpy(m, label.m, sizeof(m));
+    memcpy(&m, label.m, sizeof(m));
 
     pL->pNode = nullptr;
     pL->vPos  = m.Pos();
@@ -239,19 +235,19 @@ void ShipLights::AddFlare(VAI_OBJBASE* pObject, bool bLight, MODEL* pModel, cons
     pL->bBrokenTimeOff   = false;
     pL->bDead            = false;
 
-    if (bLight) {
-        pL->Light              = {};
-        pL->bCoronaOnly        = false;
-        pL->Light.Type         = D3DLIGHT_POINT;
-        pL->Light.Diffuse.r    = pLT->cLightColor.r;
-        pL->Light.Diffuse.g    = pLT->cLightColor.g;
-        pL->Light.Diffuse.b    = pLT->cLightColor.b;
-        pL->Light.Diffuse.a    = 1.0f;
-        pL->Light.Range        = pLT->fRange;
-        pL->Light.Attenuation0 = pLT->fAttenuation0;
-        pL->Light.Attenuation1 = pLT->fAttenuation1;
-        pL->Light.Attenuation2 = pLT->fAttenuation2;
-    }
+    // if (bLight) {
+    //     pL->Light              = {};
+    //     pL->bCoronaOnly        = false;
+    //     pL->Light.Type         = D3DLIGHT_POINT;
+    //     pL->Light.Diffuse.r    = pLT->cLightColor.r;
+    //     pL->Light.Diffuse.g    = pLT->cLightColor.g;
+    //     pL->Light.Diffuse.b    = pLT->cLightColor.b;
+    //     pL->Light.Diffuse.a    = 1.0f;
+    //     pL->Light.Range        = pLT->fRange;
+    //     pL->Light.Attenuation0 = pLT->fAttenuation0;
+    //     pL->Light.Attenuation1 = pLT->fAttenuation1;
+    //     pL->Light.Attenuation2 = pLT->fAttenuation2;
+    // }
 
     pL->Osc[0].fStep      = pLT->fFreq;
     pL->Osc[0].fAmp       = pLT->fFlicker;
@@ -367,9 +363,9 @@ void ShipLights::SetLights(VAI_OBJBASE* pObject)
 
             aLights[i].fCurDistance = sqrtf(~(pObject->GetPos() - aLights[i].vCurPos));
         }
-        aLights[i].Light.Position.x = aLights[i].vCurPos.x;
-        aLights[i].Light.Position.y = aLights[i].vCurPos.y;
-        aLights[i].Light.Position.z = aLights[i].vCurPos.z;
+        // aLights[i].Light.Position.x = aLights[i].vCurPos.x;
+        // aLights[i].Light.Position.y = aLights[i].vCurPos.y;
+        // aLights[i].Light.Position.z = aLights[i].vCurPos.z;
 
         if (pObject == aLights[i].pObject || aLights[i].bCoronaOnly) continue;
 
@@ -389,8 +385,8 @@ void ShipLights::SetLights(VAI_OBJBASE* pObject)
 
         ShipLight* pL = &aLights[aSelectedLights[i].dwIndex];
 
-        pRS->SetLight(i + 1, &pL->Light);
-        pRS->LightEnable(i + 1, true);
+        // pRS->SetLight(i + 1, &pL->Light);
+        // pRS->LightEnable(i + 1, true);
 
         iMinLight = Min(iMinLight, static_cast<int32_t>(i + 1));
         iMaxLight = Max(iMaxLight, static_cast<int32_t>(i + 1));
@@ -404,7 +400,7 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
 
     float   fFov;
     CVECTOR vCamPos, vCamAng;
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
 
     for (uint32_t i = 0; i < aLights.size(); i++) {
         ShipLight& L = aLights[i];
@@ -480,10 +476,10 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
                 if (fKAmp < 0.0f) break;
             }
 
-            fIntensity        = 1.0f + Clampf(fIntensity, -1.0f, 1.0f);
-            L.Light.Diffuse.r = L.pLT->cLightColor.r * fIntensity * fBroken;
-            L.Light.Diffuse.g = L.pLT->cLightColor.g * fIntensity * fBroken;
-            L.Light.Diffuse.b = L.pLT->cLightColor.b * fIntensity * fBroken;
+            fIntensity = 1.0f + Clampf(fIntensity, -1.0f, 1.0f);
+            // L.Light.Diffuse.r = L.pLT->cLightColor.r * fIntensity * fBroken;
+            // L.Light.Diffuse.g = L.pLT->cLightColor.g * fIntensity * fBroken;
+            // L.Light.Diffuse.b = L.pLT->cLightColor.b * fIntensity * fBroken;
 
             L.fCoronaIntensity = fBroken * (0.5f + fIntensity * 0.5f);
         } else {
@@ -497,10 +493,10 @@ void ShipLights::Execute(uint32_t dwDeltaTime)
 
             float fIntensity =
                 (L.fCurTime < L.fUpTime) ? L.fCurTime / L.fUpTime : (1.0f - (L.fCurTime - L.fUpTime) / (L.fTotalTime - L.fUpTime));
-            fIntensity        = 0.5f + Clampf(fIntensity, -0.5f, 0.5f);
-            L.Light.Diffuse.r = L.pLT->cLightColor.r * fIntensity;
-            L.Light.Diffuse.g = L.pLT->cLightColor.g * fIntensity;
-            L.Light.Diffuse.b = L.pLT->cLightColor.b * fIntensity;
+            fIntensity = 0.5f + Clampf(fIntensity, -0.5f, 0.5f);
+            // L.Light.Diffuse.r = L.pLT->cLightColor.r * fIntensity;
+            // L.Light.Diffuse.g = L.pLT->cLightColor.g * fIntensity;
+            // L.Light.Diffuse.b = L.pLT->cLightColor.b * fIntensity;
         }
     }
 }
@@ -512,10 +508,10 @@ void ShipLights::Realize(uint32_t dwDeltaTime)
 
     float   fFov;
     CVECTOR vCamPos, vCamAng;
-    pRS->GetCamera(vCamPos, vCamAng, fFov);
+    // pRS->GetCamera(vCamPos, vCamAng, fFov);
 
-    static std::vector<RS_RECT> aRects;
-    aRects.clear();
+    // static std::vector<RS_RECT> aRects;
+    // aRects.clear();
 
     float const fReflSize = (bReflection) ? fSunRoadFlareSize : 1.0f;
 
@@ -531,41 +527,41 @@ void ShipLights::Realize(uint32_t dwDeltaTime)
             fDistanceFade         = 1.0f - Clamp(fDistance / L.pLT->fSunRoadFlareFadeDistance);
         }
 
-        if (L.bDynamicLight && bReflection) {
-            RS_RECT r;
-            r.vPos         = L.vCurPos;
-            r.fAngle       = 0.0f;
-            r.dwSubTexture = 0;
-            r.fSize        = 10.0f;
-            r.dwColor      = ARGB(255, 255, 255, 255);
-            aRects.push_back(r);
-            continue;
-        }
+        // if (L.bDynamicLight && bReflection) {
+        //     RS_RECT r;
+        //     r.vPos         = L.vCurPos;
+        //     r.fAngle       = 0.0f;
+        //     r.dwSubTexture = 0;
+        //     r.fSize        = 10.0f;
+        //     r.dwColor      = ARGB(255, 255, 255, 255);
+        //     aRects.push_back(r);
+        //     continue;
+        // }
 
-        RS_RECT r;
-        r.vPos         = L.vCurPos;
-        r.fSize        = L.pLT->fCoronaSize * L.fCoronaIntensity * fReflSize;
-        r.fAngle       = 0.0f;
-        r.dwSubTexture = 0;
-        Color cColor   = L.pLT->cCoronaColor * (L.fCoronaIntensity * fDistanceFade);
-        cColor.Normalize();
-        cColor    = cColor * 255.0f * L.fFlareAlpha;
-        cColor.a  = Clamp(L.fFlareAlpha * fReflSize);
-        r.dwColor = ARGB(cColor.a, cColor.r, cColor.g, cColor.b);
-        aRects.push_back(r);
+        // RS_RECT r;
+        // r.vPos         = L.vCurPos;
+        // r.fSize        = L.pLT->fCoronaSize * L.fCoronaIntensity * fReflSize;
+        // r.fAngle       = 0.0f;
+        // r.dwSubTexture = 0;
+        // Color cColor   = L.pLT->cCoronaColor * (L.fCoronaIntensity * fDistanceFade);
+        // cColor.Normalize();
+        // cColor    = cColor * 255.0f * L.fFlareAlpha;
+        // cColor.a  = Clamp(L.fFlareAlpha * fReflSize);
+        // r.dwColor = ARGB(cColor.a, cColor.r, cColor.g, cColor.b);
+        // aRects.push_back(r);
     }
 
-    if (aRects.size()) {
-        pRS->TextureSet(0, (bReflection) ? iFlareSunRoadTex : iCoronaTex);
-        pRS->DrawRects(&aRects[0], aRects.size(), sCoronaTechnique.c_str(), dwCoronaSubTexX, dwCoronaSubTexY);
-    }
+    // if (aRects.size()) {
+    //     pRS->TextureSet(0, (bReflection) ? iFlareSunRoadTex : iCoronaTex);
+    //     pRS->DrawRects(&aRects[0], aRects.size(), sCoronaTechnique.c_str(), dwCoronaSubTexX, dwCoronaSubTexY);
+    // }
 }
 
 void ShipLights::UnSetLights(VAI_OBJBASE* pObject)
 {
     if (!bLoadLights) return;
-    for (int32_t i = iMinLight; i <= iMaxLight; i++)
-        pRS->LightEnable(i, false);
+    // for (int32_t i = iMinLight; i <= iMaxLight; i++)
+    //     pRS->LightEnable(i, false);
 
     iMinLight = 1000;
     iMaxLight = -1;

@@ -4,8 +4,6 @@
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
 {
-    m_rs        = nullptr;
-    pTex        = nullptr;
     m_nNodeType = NODETYPE_VIDEO;
 }
 
@@ -41,13 +39,13 @@ void CXI_VIDEO::Draw(bool bSelected, uint32_t Delta_Time)
             v[i].pos.z = 1.f;
         }
 
-        m_rs->SetTexture(0, pTex ? pTex->m_pTexture : nullptr);
-        if (vid_counter++ > 10) m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iVideo");
+        // m_rs->SetTexture(0, pTex ? pTex->m_pTexture : nullptr);
+        // if (vid_counter++ > 10) m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, v, sizeof(XI_ONETEX_VERTEX), "iVideo");
     }
 }
 
 bool CXI_VIDEO::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetGlowCursor(false);
@@ -58,8 +56,8 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 {
     char param[255];
 
-    if (pTex) m_rs->ReleaseVideoTexture(pTex);
-    if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) pTex = m_rs->GetVideoTexture(param);
+    // if (pTex) m_rs->ReleaseVideoTexture(pTex);
+    // if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) pTex = m_rs->GetVideoTexture(param);
 
     m_rectTex = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
@@ -68,7 +66,7 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
 void CXI_VIDEO::ReleaseAll()
 {
-    VIDEOTEXTURE_RELEASE(m_rs, pTex);
+    // VIDEOTEXTURE_RELEASE(m_rs, pTex);
 }
 
 int CXI_VIDEO::CommandExecute(int wActCode)

@@ -1,5 +1,7 @@
 #include "xi_cont_help.h"
 
+#include <libs/renderer_next/types.h>
+
 CXI_CONTEXTHELP::CXI_CONTEXTHELP()
 {
     m_dwColor       = 0;
@@ -34,28 +36,28 @@ void CXI_CONTEXTHELP::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         // outputting the context help rectangle
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, m_pVert, sizeof(XI_NOTEX_VERTEX), "iRectangle");
-        if (m_bBorder) m_rs->DrawLines(m_pLines, 4, "iRectangle");
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, m_pVert, sizeof(XI_NOTEX_VERTEX), "iRectangle");
+        // if (m_bBorder) m_rs->DrawLines(m_pLines, 4, "iRectangle");
 
         // help line output
-        m_rs->ExtPrint(
-            m_idFont,
-            m_dwFontColor,
-            m_dwColor,
-            PR_ALIGN_CENTER,
-            true,
-            m_fCurScale,
-            m_screenSize.x,
-            m_screenSize.y,
-            (m_rect.left + m_rect.right) / 2,
-            m_rect.top + m_offset,
-            "%s",
-            GetCurrentHelpString(Delta_Time));
+        // m_rs->ExtPrint(
+        // m_idFont,
+        // m_dwFontColor,
+        // m_dwColor,
+        // PR_ALIGN_CENTER,
+        // true,
+        // m_fCurScale,
+        // m_screenSize.x,
+        // m_screenSize.y,
+        // (m_rect.left + m_rect.right) / 2,
+        // m_rect.top + m_offset,
+        // "%s",
+        // GetCurrentHelpString(Delta_Time));
     }
 }
 
 bool CXI_CONTEXTHELP::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -70,7 +72,7 @@ void CXI_CONTEXTHELP::ReleaseAll()
     m_helpQuantity = 0;
     m_curHelp      = nullptr;
 
-    FONT_RELEASE(m_rs, m_idFont);
+    // FONT_RELEASE(m_rs, m_idFont);
     STORM_DELETE(m_sTempString);
     m_nCurDelayCounter = 0;
 }
@@ -89,7 +91,7 @@ void CXI_CONTEXTHELP::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
     if (m_nHelpWidth < 0) m_nHelpWidth = 0;
 
     // Get rectangle color
-    m_dwColor = GetIniARGB(ini1, name1, ini2, name2, "color", ARGB(255, 255, 255, 255));
+    m_dwColor = GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 255, 255, 255}.to_hex());
 
     // Get bounder parameters
     m_dwBorderColor = GetIniARGB(ini1, name1, ini2, name2, "borderColor", m_dwColor);
@@ -97,10 +99,10 @@ void CXI_CONTEXTHELP::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
 
     // Get help string  parameters
     m_nMaxDelayCounter = GetIniLong(ini1, name1, ini2, name2, "delay", 0);
-    m_dwFontColor      = GetIniARGB(ini1, name1, ini2, name2, "fontColor", ARGB(255, 255, 255, 255));
+    m_dwFontColor      = GetIniARGB(ini1, name1, ini2, name2, "fontColor", storm::Color {255, 255, 255, 255}.to_hex());
 
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
-        if ((m_idFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), ""))
+    // if ((m_idFont = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     m_offset = GetIniLong(ini1, name1, ini2, name2, "offset", 0);
 
     // Get help strings quantity
@@ -152,13 +154,13 @@ void CXI_CONTEXTHELP::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, c
     // fill lines parameters
     if (m_bBorder) {
         for (auto i = 0; i < 8; i++) {
-            m_pLines[i].vPos.z  = 1.f;
-            m_pLines[i].dwColor = m_dwBorderColor;
+            // m_pLines[i].vPos.z  = 1.f;
+            // m_pLines[i].dwColor = m_dwBorderColor;
         }
-        m_pLines[0].vPos.x = m_pLines[1].vPos.x = m_pLines[2].vPos.x = m_pLines[7].vPos.x = static_cast<float>(m_rect.left);
-        m_pLines[1].vPos.y = m_pLines[2].vPos.y = m_pLines[3].vPos.y = m_pLines[4].vPos.y = static_cast<float>(m_rect.top);
-        m_pLines[3].vPos.x = m_pLines[4].vPos.x = m_pLines[5].vPos.x = m_pLines[6].vPos.x = static_cast<float>(m_rect.right);
-        m_pLines[0].vPos.y = m_pLines[5].vPos.y = m_pLines[6].vPos.y = m_pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
+        // m_pLines[0].vPos.x = m_pLines[1].vPos.x = m_pLines[2].vPos.x = m_pLines[7].vPos.x = static_cast<float>(m_rect.left);
+        // m_pLines[1].vPos.y = m_pLines[2].vPos.y = m_pLines[3].vPos.y = m_pLines[4].vPos.y = static_cast<float>(m_rect.top);
+        // m_pLines[3].vPos.x = m_pLines[4].vPos.x = m_pLines[5].vPos.x = m_pLines[6].vPos.x = static_cast<float>(m_rect.right);
+        // m_pLines[0].vPos.y = m_pLines[5].vPos.y = m_pLines[6].vPos.y = m_pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
     }
 }
 
@@ -182,10 +184,10 @@ void CXI_CONTEXTHELP::ChangePosition(XYRECT& rNewPos)
 
     // fill lines parameters
     if (m_bBorder) {
-        m_pLines[0].vPos.x = m_pLines[1].vPos.x = m_pLines[2].vPos.x = m_pLines[7].vPos.x = static_cast<float>(m_rect.left);
-        m_pLines[1].vPos.y = m_pLines[2].vPos.y = m_pLines[3].vPos.y = m_pLines[4].vPos.y = static_cast<float>(m_rect.top);
-        m_pLines[3].vPos.x = m_pLines[4].vPos.x = m_pLines[5].vPos.x = m_pLines[6].vPos.x = static_cast<float>(m_rect.right);
-        m_pLines[0].vPos.y = m_pLines[5].vPos.y = m_pLines[6].vPos.y = m_pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
+        // m_pLines[0].vPos.x = m_pLines[1].vPos.x = m_pLines[2].vPos.x = m_pLines[7].vPos.x = static_cast<float>(m_rect.left);
+        // m_pLines[1].vPos.y = m_pLines[2].vPos.y = m_pLines[3].vPos.y = m_pLines[4].vPos.y = static_cast<float>(m_rect.top);
+        // m_pLines[3].vPos.x = m_pLines[4].vPos.x = m_pLines[5].vPos.x = m_pLines[6].vPos.x = static_cast<float>(m_rect.right);
+        // m_pLines[0].vPos.y = m_pLines[5].vPos.y = m_pLines[6].vPos.y = m_pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
     }
 }
 
@@ -235,12 +237,11 @@ void CXI_CONTEXTHELP::SetTempHelp(char const* pStr)
         auto const len = strlen(pStr);
         if ((m_sTempString = new char[len]) == nullptr) throw std::runtime_error("allocate memory error");
         memcpy(m_sTempString, &pStr[1], len);
-        nCurStrWidth = m_rs->StringWidth(m_sTempString, m_idFont, m_fMaxScale, m_screenSize.x);
+        // nCurStrWidth = m_rs->StringWidth(m_sTempString, m_idFont, m_fMaxScale, m_screenSize.x);
     } else  // or the name of the string in the localization list
     {
         m_idTempString = pStringService->GetStringNum(pStr);
-        if (m_idTempString != -1) nCurStrWidth = m_rs->StringWidth(pStringService->GetString(m_idTempString), m_idFont, m_fMaxScale, 0);
-        // m_screenSize.x);
+        // if (m_idTempString != -1) nCurStrWidth = m_rs->StringWidth(pStringService->GetString(m_idTempString), m_idFont, m_fMaxScale, 0);
     }
 
     if (nCurStrWidth > m_nHelpWidth)

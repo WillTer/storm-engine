@@ -5,6 +5,8 @@
 #include <libs/core/core.h>
 #include <libs/util/string_compare.hpp>
 
+#include "libs/renderer_next/types.h"
+
 CINODE::CINODE()
 {
     m_bMouseWeelReaction              = false;
@@ -324,7 +326,8 @@ uint32_t CINODE::GetColorFromStr(char const* inStr, uint32_t dwDefColor)
         int g = GREEN(dwDefColor);
         int b = BLUE(dwDefColor);
         GetDataStr(inStr, "llll", &a, &r, &g, &b);
-        dwDefColor = ARGB(a, r, g, b);
+        dwDefColor =
+            storm::Color {static_cast<uint8_t>(a), static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)}.to_hex();
     }
     return dwDefColor;
 }
@@ -356,6 +359,7 @@ char const* CINODE::GetDataStr(char const* inStr, char const* strOrder, ...)
         case 'F': *va_arg(vl, float*) = static_cast<float>(atof(param)); break;
         case 'l':
         case 'L': *va_arg(vl, int32_t*) = atol(param); break;
+        case 'b': *va_arg(vl, uint8_t*) = static_cast<uint8_t>(atoi(param)); break;
         }
     }
     return inStr;
@@ -409,11 +413,12 @@ bool CINODE::CheckCommandUsed(int comCode) const
     return m_pCommands[i].bUse;
 }
 
-bool CINODE::Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+bool CINODE::Init(
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     char param[512];
     if (!rs) return false;
-    m_rs = rs;
+    // m_rs = rs;
     memcpy(&m_screenSize, &ScreenSize, sizeof(ScreenSize));
     memcpy(&m_hostRect, &hostRect, sizeof(hostRect));
 
@@ -560,12 +565,12 @@ uint32_t CINODE::GetIniARGB(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 {
     char param[256];
     if (ReadIniString(ini1, name1, ini2, name2, keyName, param, sizeof(param))) {
-        int32_t a = ALPHA(dwDefColor);
-        int32_t r = RED(dwDefColor);
-        int32_t g = GREEN(dwDefColor);
-        int32_t b = BLUE(dwDefColor);
-        GetDataStr(param, "llll", &a, &r, &g, &b);
-        dwDefColor = ARGB(a, r, g, b);
+        uint8_t a = ALPHA(dwDefColor);
+        uint8_t r = RED(dwDefColor);
+        uint8_t g = GREEN(dwDefColor);
+        uint8_t b = BLUE(dwDefColor);
+        GetDataStr(param, "bbbb", &a, &r, &g, &b);
+        dwDefColor = storm::Color {a, r, g, b}.to_hex();
     }
     return dwDefColor;
 }

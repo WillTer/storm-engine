@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <libs/math/c_vector.h>
+
 #include "wdm_render_object.h"
 
 class ATTRIBUTES;
@@ -33,7 +35,7 @@ public:
 
     // Calculations
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     char const* GetId() const;
 
@@ -69,7 +71,7 @@ private:
 
     // Rain
     int32_t rainTexture;
-    RS_RECT rainRect[48 * 8];
+    // RS_RECT rainRect[48 * 8];
 
     static char cloudPosName[16];
     static char rotSpdName[16];

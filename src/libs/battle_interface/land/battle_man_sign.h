@@ -12,7 +12,7 @@ class BIManCommandList;
 class BIManSign
 {
 public:
-    BIManSign(entid_t BIEntityID, VDX9RENDER* pRS);
+    BIManSign(entid_t BIEntityID, /*VDX9RENDER*/ void* pRS);
     ~BIManSign();
 
     void Draw();
@@ -38,17 +38,18 @@ protected:
     void    UpdateBuffers(int32_t nShipQ);
     void    FillIndexBuffer() const;
     void    FillVertexBuffer();
-    int32_t WriteSquareToVBuff(BI_COLOR_VERTEX* pv, const FRECT& uv, uint32_t color, const BIFPOINT& center, const FPOINT& size);
+    int32_t
+    WriteSquareToVBuff(BI_COLOR_VERTEX* pv, storm::FRect const& uv, uint32_t color, storm::FPoint const& center, storm::FPoint const& size);
     int32_t WriteSquareToVBuffWithProgress(
-        BI_COLOR_VERTEX* pv,
-        const FRECT&     uv,
-        uint32_t         color,
-        const BIFPOINT&  center,
-        const FPOINT&    size,
-        float            fClampUp,
-        float            fClampDown,
-        float            fClampLeft,
-        float            fClampRight);
+        BI_COLOR_VERTEX*     pv,
+        storm::FRect const&  uv,
+        uint32_t             color,
+        storm::FPoint const& center,
+        storm::FPoint const& size,
+        float                fClampUp,
+        float                fClampDown,
+        float                fClampLeft,
+        float                fClampRight);
     void UpdateCommandList() const;
 
     int32_t GetCurrentCommandTopLine() const;
@@ -67,11 +68,11 @@ protected:
     bool     LongACompare(ATTRIBUTES* pA, char const* attrName, int32_t& nCompareVal);
     bool     FloatACompare(ATTRIBUTES* pA, char const* attrName, float& fCompareVal);
     bool     StringACompare(ATTRIBUTES* pA, char const* attrName, std::string& sCompareVal);
-    bool     FRectACompare(ATTRIBUTES* pA, char const* attrName, FRECT& rCompareVal);
+    bool     FRectACompare(ATTRIBUTES* pA, char const* attrName, storm::FRect& rCompareVal);
     bool     BoolACompare(ATTRIBUTES* pA, char const* attrName, bool& bCompareVal);
     uint32_t GetColorByFactor(uint32_t dwLowColor, uint32_t dwHighColor, float fFactor);
 
-    VDX9RENDER*       m_pRS;
+    // VDX9RENDER*       m_pRS;
     ATTRIBUTES*       m_pARoot;
     BIManCommandList* m_pCommandList;
     entid_t           m_idHostEntity;
@@ -83,64 +84,64 @@ protected:
 
     int32_t m_nMaxSquareQ;
 
-    int32_t  m_nBackTextureID;
-    int32_t  m_nBackSquareQ;
-    uint32_t m_dwBackColor;
-    FRECT    m_rBackUV;
-    BIFPOINT m_pntBackOffset;
-    FPOINT   m_pntBackIconSize;
+    int32_t       m_nBackTextureID;
+    int32_t       m_nBackSquareQ;
+    uint32_t      m_dwBackColor;
+    storm::FRect  m_rBackUV;
+    storm::FPoint m_pntBackOffset;
+    storm::FPoint m_pntBackIconSize;
 
-    bool     m_bIsAlarmOn;
-    int32_t  m_nAlarmSquareQ;
-    int32_t  m_nAlarmTextureID;
-    uint32_t m_dwAlarmHighColor;
-    uint32_t m_dwAlarmLowColor;
-    FRECT    m_rAlarmUV;
-    BIFPOINT m_pntAlarmOffset;
-    FPOINT   m_pntAlarmIconSize;
-    bool     m_bAlarmUpDirection;
-    float    m_fAlarmTime;
-    float    m_fAlarmUpSpeed;
-    float    m_fAlarmDownSpeed;
+    bool          m_bIsAlarmOn;
+    int32_t       m_nAlarmSquareQ;
+    int32_t       m_nAlarmTextureID;
+    uint32_t      m_dwAlarmHighColor;
+    uint32_t      m_dwAlarmLowColor;
+    storm::FRect  m_rAlarmUV;
+    storm::FPoint m_pntAlarmOffset;
+    storm::FPoint m_pntAlarmIconSize;
+    bool          m_bAlarmUpDirection;
+    float         m_fAlarmTime;
+    float         m_fAlarmUpSpeed;
+    float         m_fAlarmDownSpeed;
 
-    int32_t  m_nManStateTextureID;
-    int32_t  m_nManStateSquareQ;
-    uint32_t m_dwManStateColor;
-    FRECT    m_rManHPUV;
-    BIFPOINT m_pntManHPOffset;
-    FPOINT   m_pntManHPIconSize;
-    FRECT    m_rManEnergyUV;
-    BIFPOINT m_pntManEnergyOffset;
-    FPOINT   m_pntManEnergyIconSize;
+    int32_t       m_nManStateTextureID;
+    int32_t       m_nManStateSquareQ;
+    uint32_t      m_dwManStateColor;
+    storm::FRect  m_rManHPUV;
+    storm::FPoint m_pntManHPOffset;
+    storm::FPoint m_pntManHPIconSize;
+    storm::FRect  m_rManEnergyUV;
+    storm::FPoint m_pntManEnergyOffset;
+    storm::FPoint m_pntManEnergyIconSize;
 
-    int32_t  m_nGunChargeTextureID;
-    int32_t  m_nGunChargeSquareQ;
-    uint32_t m_dwGunChargeColor;
-    uint32_t m_dwGunChargeBackColor;
-    FRECT    m_rGunChargeUV;
-    BIFPOINT m_pntGunChargeOffset;
-    FPOINT   m_pntGunChargeIconSize;
+    int32_t       m_nGunChargeTextureID;
+    int32_t       m_nGunChargeSquareQ;
+    uint32_t      m_dwGunChargeColor;
+    uint32_t      m_dwGunChargeBackColor;
+    storm::FRect  m_rGunChargeUV;
+    storm::FPoint m_pntGunChargeOffset;
+    storm::FPoint m_pntGunChargeIconSize;
 
-    int32_t  m_nGunReloadTextureID;
-    int32_t  m_nGunReloadSquareQ;
-    uint32_t m_dwGunReloadColor;
-    uint32_t m_dwGunReloadBackColor;
-    FRECT    m_rGunReloadUV;
-    BIFPOINT m_pntGunReloadOffset;
-    FPOINT   m_pntGunReloadIconSize;
+    int32_t       m_nGunReloadTextureID;
+    int32_t       m_nGunReloadSquareQ;
+    uint32_t      m_dwGunReloadColor;
+    uint32_t      m_dwGunReloadBackColor;
+    storm::FRect  m_rGunReloadUV;
+    storm::FPoint m_pntGunReloadOffset;
+    storm::FPoint m_pntGunReloadIconSize;
 
     std::vector<float> m_aChargeProgress;
 
-    FRECT    m_rManPicUV;
-    BIFPOINT m_pntManPicOffset;
-    FPOINT   m_pntManPicIconSize;
-    uint32_t m_dwManFaceColor;
+    storm::FRect  m_rManPicUV;
+    storm::FPoint m_pntManPicOffset;
+    storm::FPoint m_pntManPicIconSize;
+    uint32_t      m_dwManFaceColor;
 
     struct ManDescr {
-        FPOINT      pntPos;  // center
-        std::string sTexture;
-        int32_t     nTexture;
-        FRECT       rUV;
+        storm::FPoint pntPos;  // center
+        std::string   sTexture;
+        int32_t       nTexture;
+        storm::FRect  rUV;
 
         int32_t nSlotIndex;
         int32_t nCharacterIndex;
@@ -183,11 +184,11 @@ inline bool BIManSign::StringACompare(ATTRIBUTES* pA, char const* attrName, std:
     return true;
 }
 
-inline bool BIManSign::FRectACompare(ATTRIBUTES* pA, char const* attrName, FRECT& rCompareVal)
+inline bool BIManSign::FRectACompare(ATTRIBUTES* pA, char const* attrName, storm::FRect& rCompareVal)
 {
     char const* pVal = pA->GetAttribute(attrName);
     if (!pVal) return false;
-    FRECT rTmp;
+    storm::FRect rTmp;
     rTmp.left   = rCompareVal.left;
     rTmp.top    = rCompareVal.top;
     rTmp.right  = rCompareVal.right;
@@ -223,5 +224,6 @@ inline uint32_t BIManSign::GetColorByFactor(uint32_t dwLowColor, uint32_t dwHigh
     gsrc += static_cast<int32_t>((gdst - gsrc) * fFactor) & 0xFF;
     bsrc += static_cast<int32_t>((bdst - bsrc) * fFactor) & 0xFF;
     //
-    return ARGB(asrc, rsrc, gsrc, bsrc);
+    return storm::Color {static_cast<uint8_t>(asrc), static_cast<uint8_t>(rsrc), static_cast<uint8_t>(gsrc), static_cast<uint8_t>(bsrc)}
+        .to_hex();
 }

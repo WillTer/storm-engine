@@ -5,7 +5,7 @@
 class BIShipCommandList: public BICommandList
 {
 public:
-    BIShipCommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs);
+    BIShipCommandList(entid_t eid, ATTRIBUTES* pA, /*VDX9RENDER*/ void* rs);
     ~BIShipCommandList() override;
 
     void FillIcons() override;

@@ -2,7 +2,6 @@
 
 #include <queue>
 
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 #include <libs/ship/ship_base.h>
 
@@ -22,8 +21,6 @@ struct tAction {
     int        hitIntoShip;
     void (SeaOperator::*actionMethod)(tAction* _action);
 };
-
-// typedef TFIFOBuffer<tAction> TActionBuffer;
 
 using TActionBuffer = std::queue<tAction>;
 
@@ -73,13 +70,12 @@ private:
     void StartNewAction();
     void ProcessActions(uint32_t dTime);
 
-    bool        enabled, active;
-    SEA_BASE*   sea;
-    VDX9RENDER* renderer;
-    SHIP_BASE * myShip, *enemyShip;
-    int32_t     actionTime;
-    bool        ballTracked;
-    CVECTOR     ballPosition, lastBallPosition, finalBallPosition;
+    bool       enabled, active;
+    SEA_BASE*  sea;
+    SHIP_BASE *myShip, *enemyShip;
+    int32_t    actionTime;
+    bool       ballTracked;
+    CVECTOR    ballPosition, lastBallPosition, finalBallPosition;
 
     uint32_t      idleTime, sinceLastActionTime;
     TActionBuffer actionBuffer;

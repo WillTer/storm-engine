@@ -47,7 +47,6 @@ void free_sound(SoundService::PlayingSound& sound)
 
 SoundService::SoundService()
     : m_device {nullptr}
-    , m_renderer {nullptr}
     , m_is_initialized {false}
     , m_fader_parity {false}
     , m_fx_volume {VOLUME_DEFAULT}
@@ -77,9 +76,6 @@ bool SoundService::Init()
 {
     m_is_initialized = false;
 
-    m_renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (m_renderer == nullptr) { return false; }
-
     m_device = std::make_unique<Device>(trace_message, Device::DistanceModel::Linear, STREAM_BUFFER_COUNT, BUFFER_SAMPLE_COUNT);
     if (!m_device) { return false; }
 
@@ -108,21 +104,21 @@ void SoundService::RunEnd() {}
 
 void SoundService::RunStart()
 {
-    if (m_renderer != nullptr) {
-        static CVECTOR pos  = {};
-        static CVECTOR nose = {};
-        static CVECTOR head = {};
-        static CMatrix view = {};
-
-        m_renderer->GetTransform(D3DTS_VIEW, view);
-        view.Transposition();
-        nose = view.Vz();
-        head = view.Vy();
-        pos  = view.Pos();
-
-        set_camera_position(pos);
-        set_camera_orientation(nose, head);
-    }
+    // if (m_renderer != nullptr) {
+    //     static CVECTOR pos  = {};
+    //     static CVECTOR nose = {};
+    //     static CVECTOR head = {};
+    //     static CMatrix view = {};
+    //
+    //     m_renderer->GetTransform(D3DTS_VIEW, view);
+    //     view.Transposition();
+    //     nose = view.Vz();
+    //     head = view.Vy();
+    //     pos  = view.Pos();
+    //
+    //     set_camera_position(pos);
+    //     set_camera_orientation(nose, head);
+    // }
 
     update_playing_list();
 

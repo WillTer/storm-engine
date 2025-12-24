@@ -103,8 +103,8 @@ public:
 
     Lights* GetLights() const;
 
-    VDX9RENDER* GetRS() const;
-    void        DrawLine(const CVECTOR& s, uint32_t cs, const CVECTOR& d, uint32_t cd, bool useZ = true) const;
+    void* GetRS() const;
+    void  DrawLine(const CVECTOR& s, uint32_t cs, const CVECTOR& d, uint32_t cd, bool useZ = true) const;
     // Write text
     void Print(const CVECTOR& pos3D, float rad, int32_t line, float alpha, uint32_t color, float scale, char const* format, ...) const;
 
@@ -158,8 +158,6 @@ private:
     bool isPause;
     bool isDebugView;
 
-    VDX9RENDER* rs;
-
     // All models
     ModelArray model;
 
@@ -211,11 +209,6 @@ inline MODEL* Location::JmpPatch()
 {
     if (patchJump < 0) return nullptr;
     return model[patchJump];
-}
-
-inline VDX9RENDER* Location::GetRS() const
-{
-    return rs;
 }
 
 // Check the visibility of 2 points

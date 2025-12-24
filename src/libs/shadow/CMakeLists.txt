@@ -1,5 +1,5 @@
 storm_lib(
     NAME shadow
     SOURCES_DEPS
-        renderer
+        renderer_next
 )

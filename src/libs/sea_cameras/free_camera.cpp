@@ -15,7 +15,6 @@ FreeCamera::FreeCamera()
     SetActive(false);
 
     pIslandBase = nullptr;
-    pRS         = nullptr;
     vPos.z      = 250.0f;
     vPos.y      = 3.0f;
     fFov        = FOV;
@@ -37,14 +36,8 @@ bool FreeCamera::Init()
 
 void FreeCamera::SetDevice()
 {
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
     pCollide = static_cast<COLLIDE*>(core->GetService("CollideService"));
     Assert(pCollide);
-
-    /*core->CreateEntity(&sphere,"ModelR");
-    core->Send_Message(sphere,"ls",MSG_MODEL_LOAD_GEO,"mirror");
-    core->AddToLayer(realize,sphere,10000);*/
 }
 
 bool FreeCamera::CreateState(ENTITY_STATE_GEN* state_gen) const
@@ -68,7 +61,7 @@ void FreeCamera::Execute(uint32_t Delta_Time)
     SetPerspective(AttributesPointer->GetAttributeAsFloat("Perspective"));
 
     float persp;
-    pRS->GetCamera(vPos, vAng, persp);
+    // pRS->GetCamera(vPos, vAng, persp);
 
     if (!pIslandBase) pIslandBase = static_cast<ISLAND_BASE*>(core->GetEntityPointer(core->GetEntityId("Island")));
 
@@ -111,32 +104,7 @@ void FreeCamera::Move(uint32_t DeltaTime)
     core->Controls->GetControlState("FreeCamera_Backward", cs);
     if (cs.state == CST_ACTIVE) vPos -= speed * CVECTOR(s0 * c1, -s1, c0 * c1);
 
-    /*if (core->Controls->GetAsyncKeyState(VK_LBUTTON))    vPos += speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if (core->Controls->GetAsyncKeyState(VK_RBUTTON))    vPos -= speed*CVECTOR(s0*c1, -s1, c0*c1);
-    if(core->Controls->GetAsyncKeyState('I'))    vPos += speed*CVECTOR(0.0f, 0.1f , 0.0f);
-    if(core->Controls->GetAsyncKeyState('K'))    vPos += speed*CVECTOR(0.0f, -0.1f, 0.0f);*/
-
-    // vPos = CVECTOR(0.0f, 20.0f, 0.0f);
-
-    pRS->SetCamera(vPos, vAng, GetPerspective());
-
-    /*CVECTOR vRes;
-    CVECTOR vDst = vPos + 2000.0f*CVECTOR(s0*c1, -s1, c0*c1);
-
-    walker_tpVW = core->LayerGetWalker("sun_trace");
-    float fRes = pCollide->Trace(*pVW,vPos,vDst,nullptr,0);
-    if (fRes > 1.0f) vRes = vDst;
-    else
-    {
-      vRes = vPos + fRes * (vDst - vPos);
-      entid_t ent = pCollide->GetObjectID();
-      MODELR *pEntity = (MODELR*)core->GetEntityPointer(ent);
-    }
-
-
-    MODEL* pModel = (MODEL*)core->GetEntityPointer(sphere);
-    pModel->mtx.BuildPosition(vRes.x,vRes.y,vRes.z);
-    delete pVW;*/
+    // pRS->SetCamera(vPos, vAng, GetPerspective());
 }
 
 void FreeCamera::Save(CSaveLoad* pSL)

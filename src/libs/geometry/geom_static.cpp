@@ -138,64 +138,64 @@ GEOM::GEOM(char const* fname, char const* lightname, GEOM_SERVICE& _srv, int32_t
     srv.free(obj);
 
     // read triangles
-    idx_buff  = srv.CreateIndexBuffer(rhead.ntriangles * sizeof(RDF_TRIANGLE));
-    auto* trg = static_cast<RDF_TRIANGLE*>(srv.LockIndexBuffer(idx_buff));
-    srv.ReadFile(file, trg, sizeof(RDF_TRIANGLE) * rhead.ntriangles);
-    srv.UnlockIndexBuffer(idx_buff);
+    // idx_buff  = srv.CreateIndexBuffer(rhead.ntriangles * sizeof(RDF_TRIANGLE));
+    // auto* trg = static_cast<RDF_TRIANGLE*>(srv.LockIndexBuffer(idx_buff));
+    // srv.ReadFile(file, trg, sizeof(RDF_TRIANGLE) * rhead.ntriangles);
+    // srv.UnlockIndexBuffer(idx_buff);
 
     auto nvertices = 0;
     // read vertex buffers
-    auto* rvb = static_cast<RDF_VERTEXBUFF*>(srv.malloc(rhead.nvrtbuffs * sizeof(RDF_VERTEXBUFF)));
-    srv.ReadFile(file, rvb, rhead.nvrtbuffs * sizeof(RDF_VERTEXBUFF));
-    vbuff = static_cast<VERTEX_BUFFER*>(srv.malloc(rhead.nvrtbuffs * sizeof(VERTEX_BUFFER)));
-    int32_t v;
-    for (v = 0; v < rhead.nvrtbuffs; v++) {
-        vbuff[v].type     = rvb[v].type;
-        vbuff[v].stride   = sizeof(RDF_VERTEX0) + (rvb[v].type & 3) * 8 + (rvb[v].type >> 2) * 8;
-        vbuff[v].size     = rvb[v].size;
-        vbuff[v].nverts   = vbuff[v].size / vbuff[v].stride;
-        vbuff[v].dev_buff = vbuff[v].nverts > 0 ? srv.CreateVertexBuffer(rvb[v].type, rvb[v].size) : -1;
-        nvertices += vbuff[v].nverts;
-    }
-    srv.free(rvb);
+    // auto* rvb = static_cast<RDF_VERTEXBUFF*>(srv.malloc(rhead.nvrtbuffs * sizeof(RDF_VERTEXBUFF)));
+    // srv.ReadFile(file, rvb, rhead.nvrtbuffs * sizeof(RDF_VERTEXBUFF));
+    // vbuff = static_cast<VERTEX_BUFFER*>(srv.malloc(rhead.nvrtbuffs * sizeof(VERTEX_BUFFER)));
+    // int32_t v;
+    // for (v = 0; v < rhead.nvrtbuffs; v++) {
+    //     vbuff[v].type     = rvb[v].type;
+    //     vbuff[v].stride   = sizeof(RDF_VERTEX0) + (rvb[v].type & 3) * 8 + (rvb[v].type >> 2) * 8;
+    //     vbuff[v].size     = rvb[v].size;
+    //     vbuff[v].nverts   = vbuff[v].size / vbuff[v].stride;
+    //     vbuff[v].dev_buff = vbuff[v].nverts > 0 ? srv.CreateVertexBuffer(rvb[v].type, rvb[v].size) : -1;
+    //     nvertices += vbuff[v].nverts;
+    // }
+    // srv.free(rvb);
     // read vertices
-    auto itColData = colData.begin();
-    for (v = 0; v < rhead.nvrtbuffs; v++) {
-        auto* vrt = static_cast<RDF_VERTEX0*>(srv.LockVertexBuffer(vbuff[v].dev_buff));
-        srv.ReadFile(file, vrt, vbuff[v].size);
-        for (int32_t vr = 0; vr < vbuff[v].nverts; vr++) {
-            auto* prv = (RDF_VERTEX0*)((uint8_t*)(vrt) + vbuff[v].stride * vr);
-            if (colData.size() == nvertices) {
-                prv->color = *itColData;
-                ++itColData;
-            }
-        }
-
-        srv.UnlockVertexBuffer(vbuff[v].dev_buff);
-    }
+    // auto itColData = colData.begin();
+    // for (v = 0; v < rhead.nvrtbuffs; v++) {
+    //     auto* vrt = static_cast<RDF_VERTEX0*>(srv.LockVertexBuffer(vbuff[v].dev_buff));
+    //     srv.ReadFile(file, vrt, vbuff[v].size);
+    //     for (int32_t vr = 0; vr < vbuff[v].nverts; vr++) {
+    //         auto* prv = (RDF_VERTEX0*)((uint8_t*)(vrt) + vbuff[v].stride * vr);
+    //         if (colData.size() == nvertices) {
+    //             prv->color = *itColData;
+    //             ++itColData;
+    //         }
+    //     }
+    //
+    //     srv.UnlockVertexBuffer(vbuff[v].dev_buff);
+    // }
 
     // read BSP
     // rhead.flags &= ~FLAGS_BSP_PRESENT;
-    if (rhead.flags & FLAGS_BSP_PRESENT) {
-        RDF_BSPHEAD bhead;
-        srv.ReadFile(file, &bhead, sizeof(RDF_BSPHEAD));
-
-        sroot = std::vector<BSP_NODE>(bhead.nnodes);
-        srv.ReadFile(file, sroot.data(), sroot.size() * sizeof(BSP_NODE));
-
-        vrt = std::vector<CVECTOR>(bhead.nvertices);
-        srv.ReadFile(file, vrt.data(), vrt.size() * sizeof(RDF_BSPVERTEX));
-
-        btrg = std::vector<RDF_BSPTRIANGLE>(bhead.ntriangles);
-        srv.ReadFile(file, btrg.data(), btrg.size() * sizeof(RDF_BSPTRIANGLE));
-
-        if constexpr (storm::kValidateCollisionData) {
-            bool const valid = std::all_of(std::begin(btrg), std::end(btrg), [this](auto const& triangle) {
-                return triangle.getIndex(0) < vrt.size() && triangle.getIndex(1) < vrt.size() && triangle.getIndex(2) < vrt.size();
-            });
-            if (!valid) { throw std::runtime_error(std::format("Detected invalid collision data while loading file '{}'", fname)); }
-        }
-    }
+    // if (rhead.flags & FLAGS_BSP_PRESENT) {
+    //     RDF_BSPHEAD bhead;
+    //     srv.ReadFile(file, &bhead, sizeof(RDF_BSPHEAD));
+    //
+    //     sroot = std::vector<BSP_NODE>(bhead.nnodes);
+    //     srv.ReadFile(file, sroot.data(), sroot.size() * sizeof(BSP_NODE));
+    //
+    //     vrt = std::vector<CVECTOR>(bhead.nvertices);
+    //     srv.ReadFile(file, vrt.data(), vrt.size() * sizeof(RDF_BSPVERTEX));
+    //
+    //     btrg = std::vector<RDF_BSPTRIANGLE>(bhead.ntriangles);
+    //     srv.ReadFile(file, btrg.data(), btrg.size() * sizeof(RDF_BSPTRIANGLE));
+    //
+    //     if constexpr (storm::kValidateCollisionData) {
+    //         bool const valid = std::all_of(std::begin(btrg), std::end(btrg), [this](auto const& triangle) {
+    //             return triangle.getIndex(0) < vrt.size() && triangle.getIndex(1) < vrt.size() && triangle.getIndex(2) < vrt.size();
+    //         });
+    //         if (!valid) { throw std::runtime_error(std::format("Detected invalid collision data while loading file '{}'", fname)); }
+    //     }
+    // }
 
     srv.CloseFile(file);
 
@@ -224,8 +224,8 @@ GEOM::GEOM(char const* fname, char const* lightname, GEOM_SERVICE& _srv, int32_t
 // delete all textures, buffers, memory
 GEOM::~GEOM()
 {
-    for (int32_t v = 0; v < rhead.nvrtbuffs; v++)
-        srv.ReleaseVertexBuffer(vbuff[v].dev_buff);
+    // for (int32_t v = 0; v < rhead.nvrtbuffs; v++)
+    //     srv.ReleaseVertexBuffer(vbuff[v].dev_buff);
     srv.free(vbuff);
 
     srv.ReleaseIndexBuffer(idx_buff);
@@ -249,25 +249,26 @@ GEOM::~GEOM()
 // visible analyze and draw all objects
 void GEOM::Draw(const PLANE* pl, int32_t np, MATERIAL_FUNC mtf) const
 {
-    srv.SetIndexBuffer(idx_buff);
-    for (int32_t o = 0; o < rhead.nobjects; o++) {
-        if (!(object[o].flags & VISIBLE)) continue;
-        // clip by external planes
-        int32_t cp;
-        for (cp = 0; cp < np; cp++) {
-            auto const dist =
-                object[o].center.x * pl[cp].nrm.x + object[o].center.y * pl[cp].nrm.y + object[o].center.z * pl[cp].nrm.z - pl[cp].d;
-            if (dist > object[o].radius) break;
-            // if(dist<-object[o].radius)    break;
-        }
-        if (cp < np) continue;
-
-        auto* const vb = &vbuff[object[o].vertex_buff];
-        srv.SetVertexBuffer(vb->stride, vb->dev_buff);
-        srv.SetMaterial(material[object[o].material]);
-        if (mtf != nullptr) mtf(material[object[o].material]);
-        srv.DrawIndexedPrimitive(object[o].start_vertex, object[o].num_vertices, vb->stride, object[o].striangle * 3, object[o].ntriangles);
-    }
+    // srv.SetIndexBuffer(idx_buff);
+    // for (int32_t o = 0; o < rhead.nobjects; o++) {
+    //     if (!(object[o].flags & VISIBLE)) continue;
+    //     // clip by external planes
+    //     int32_t cp;
+    //     for (cp = 0; cp < np; cp++) {
+    //         auto const dist =
+    //             object[o].center.x * pl[cp].nrm.x + object[o].center.y * pl[cp].nrm.y + object[o].center.z * pl[cp].nrm.z - pl[cp].d;
+    //         if (dist > object[o].radius) break;
+    //         // if(dist<-object[o].radius)    break;
+    //     }
+    //     if (cp < np) continue;
+    //
+    //     auto* const vb = &vbuff[object[o].vertex_buff];
+    //     srv.SetVertexBuffer(vb->stride, vb->dev_buff);
+    //     srv.SetMaterial(material[object[o].material]);
+    //     if (mtf != nullptr) mtf(material[object[o].material]);
+    //     srv.DrawIndexedPrimitive(object[o].start_vertex, object[o].num_vertices, vb->stride, object[o].striangle * 3,
+    //     object[o].ntriangles);
+    // }
 }
 
 bool GEOM::GetCollisionDetails(TRACE_INFO& ti) const

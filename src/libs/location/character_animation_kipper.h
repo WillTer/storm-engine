@@ -13,8 +13,6 @@
 #include <libs/animation/animation.h>
 #include <libs/core/entity.h>
 
-class VDX9RENDER;
-
 class CharacterAnimationKipper: public Entity
 {
     // --------------------------------------------------------------------------------------------
@@ -34,8 +32,6 @@ public:
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
-    VDX9RENDER* rs;
-
     AnimationService* asr;
     Animation*        aniMan;
     Animation*        aniWoman;

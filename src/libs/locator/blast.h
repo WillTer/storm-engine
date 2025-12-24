@@ -3,7 +3,6 @@
 #include <libs/collide/cannon_trace.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "blast.h"
 
@@ -20,7 +19,6 @@ using GEOPARTICLE = struct {
 
 class Blast: public Entity
 {
-    VDX9RENDER*              rs;
     VGEOMETRY*               gs;
     std::vector<GEOPARTICLE> Item;
     CANNON_TRACE_BASE*       pSea;

@@ -3,12 +3,12 @@
 #include <libs/core/core.h>
 #include <libs/filesystem/default_paths.h>
 #include <libs/filesystem/v_file_service.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <stdio.h>
 
+// FIXME: Renderer Next
 //--------------------------------------------------------------------
-BallSplash::BallSplash() : renderer(nullptr), sea(nullptr) {}
+BallSplash::BallSplash() : /*renderer(nullptr),*/ sea(nullptr) {}
 
 //--------------------------------------------------------------------
 BallSplash::~BallSplash()
@@ -23,7 +23,7 @@ bool BallSplash::Init()
 {
     sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
 
-    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     // core->CreateEntity(&arrowModel,"ModelR");
     // core->Send_Message(arrowModel,"ls",MSG_MODEL_LOAD_GEO, "fish01");
@@ -89,18 +89,18 @@ void BallSplash::Realize(uint32_t _dTime)
     splashes[lastProcessed].Realize(_dTime);
 
     // draw top part
-    auto const techniqueStarted = renderer->TechniqueExecuteStart("splash2");
-    TSplash::startRender        = true;
-    TSplash::topIndex           = 0;
-    lastProcessed               = -1;
+    // auto const techniqueStarted = renderer->TechniqueExecuteStart("splash2");
+    TSplash::startRender = true;
+    TSplash::topIndex    = 0;
+    lastProcessed        = -1;
     for (auto i = 0; i < MAX_SPLASHES; ++i) {
         if (splashes[i].Process2(_dTime)) lastProcessed = i;
     }
     splashes[lastProcessed].PostProcess2();
     splashes[lastProcessed].Realize2(_dTime);
-    if (techniqueStarted)
-        while (renderer->TechniqueExecuteNext())
-            ;
+    // if (techniqueStarted)
+    //     while (renderer->TechniqueExecuteNext())
+    //         ;
 
     RDTSC_E(ticks);
     /*
@@ -136,7 +136,8 @@ void BallSplash::InitializeSplashes()
 
     for (auto i = 0; i < MAX_SPLASHES; ++i) {
         splashes[i].Release();
-        splashes[i].Initialize(psIni.get(), nullptr, sea, renderer);
+        splashes[i].Initialize(psIni.get(), sea);
+        // splashes[i].Initialize(psIni.get(), nullptr, sea, renderer);
     }
 }
 

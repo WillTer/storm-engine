@@ -45,11 +45,11 @@ public:
     // Add object
     void AddObject(char const* name, entid_t model);
     // Process data
-    bool Process(VDX9RENDER* rs, int32_t numLights);
+    bool Process(/*VDX9RENDER*/ void* rs, int32_t numLights);
     // Draw normals
-    void DrawNormals(VDX9RENDER* rs);
+    void DrawNormals(/*VDX9RENDER*/ void* rs);
     // Update colors in buffers
-    void UpdateColors(VDX9RENDER* rs);
+    void UpdateColors(/*VDX9RENDER*/ void* rs);
     // Trace the ray through all models
     float Trace(const CVECTOR& src, const CVECTOR& dst);
     // Save lighting

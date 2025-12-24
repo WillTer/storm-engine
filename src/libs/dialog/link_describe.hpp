@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <libs/math/matrix.h>
+#include <libs/renderer_next/types.h>
 
-class VDX9RENDER;
 class ATTRIBUTES;
 class INIFILE;
 
@@ -24,8 +24,8 @@ public:
     void                  Show(int32_t nY);
 
     DlgLinkDescribe& SetAttributes(ATTRIBUTES* attributes);
-    DlgLinkDescribe& SetRenderer(VDX9RENDER* renderer);
-    DlgLinkDescribe& SetOffset(const POINT& offset);
+    DlgLinkDescribe& SetRenderer(/*VDX9RENDER*/ void* renderer);
+    DlgLinkDescribe& SetOffset(storm::Point const& offset);
     DlgLinkDescribe& SetWindowWidth(int32_t width);
     DlgLinkDescribe& SetFont(int32_t font_id);
     DlgLinkDescribe& SetFontScale(float scale);
@@ -48,17 +48,17 @@ private:
     void UpdateEditMode(int32_t nTextIdx);
     void ShowEditMode(int32_t nX, int32_t nY, int32_t nTextIdx);
 
-    VDX9RENDER* renderer_ = nullptr;
-    POINT       offset_ {};
-    int32_t     fontId_ = -1;
-    float       fontScale_ {1.0f};
-    int32_t     lineHeight_ {};
-    uint32_t    textColor_ {};
-    uint32_t    selectedTextColor_ {};
-    int32_t     windowWidth_;
-    int32_t     selectedLine_ {};
-    int32_t     startIndex_ {};
-    int32_t     maxLinesPerPage_ {5};
+    // VDX9RENDER* renderer_ = nullptr;
+    storm::Point offset_ {};
+    int32_t      fontId_ = -1;
+    float        fontScale_ {1.0f};
+    int32_t      lineHeight_ {};
+    uint32_t     textColor_ {};
+    uint32_t     selectedTextColor_ {};
+    int32_t      windowWidth_;
+    int32_t      selectedLine_ {};
+    int32_t      startIndex_ {};
+    int32_t      maxLinesPerPage_ {5};
 
     struct EditConfig {
         int32_t line      = 0;

@@ -6,7 +6,7 @@
 
 #include "../xdefines.h"
 
-#define HCHOOSER_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define HCHOOSER_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct HCHOOSER_VERTEX {
     CVECTOR pos;
@@ -18,7 +18,6 @@ extern char* XI_ParseStr(char* inStr, char* buf, size_t bufSize, char devChar = 
 
 HelpChooser::HelpChooser()
 {
-    rs               = nullptr;
     m_idMouseTexture = -1;
     m_idPicTexture   = -1;
     m_idBackTexture  = -1;
@@ -33,12 +32,7 @@ HelpChooser::~HelpChooser()
     AllRelease();
 }
 
-void HelpChooser::SetDevice()
-{
-    // get render service
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-}
+void HelpChooser::SetDevice() {}
 
 bool HelpChooser::Init()
 {
@@ -126,13 +120,13 @@ void HelpChooser::Execute(uint32_t Delta_Time)
     }
 
     if (m_idVBuf == -1) return;
-    auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
-    if (pv == nullptr) return;
-    pv[14].pos.x = pv[15].pos.x = m_fCurMouseX - m_nMouseCornerX;
-    pv[16].pos.x = pv[17].pos.x = m_fCurMouseX - m_nMouseCornerX + m_nMouseWidth;
-    pv[14].pos.y = pv[16].pos.y = m_fCurMouseY - m_nMouseCornerY;
-    pv[15].pos.y = pv[17].pos.y = m_fCurMouseY - m_nMouseCornerY + m_nMouseHeight;
-    rs->UnLockVertexBuffer(m_idVBuf);
+    // auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    // if (pv == nullptr) return;
+    // pv[14].pos.x = pv[15].pos.x = m_fCurMouseX - m_nMouseCornerX;
+    // pv[16].pos.x = pv[17].pos.x = m_fCurMouseX - m_nMouseCornerX + m_nMouseWidth;
+    // pv[14].pos.y = pv[16].pos.y = m_fCurMouseY - m_nMouseCornerY;
+    // pv[15].pos.y = pv[17].pos.y = m_fCurMouseY - m_nMouseCornerY + m_nMouseHeight;
+    // rs->UnLockVertexBuffer(m_idVBuf);
 }
 
 void HelpChooser::Realize(uint32_t Delta_Time) const
@@ -140,17 +134,17 @@ void HelpChooser::Realize(uint32_t Delta_Time) const
     if (m_idVBuf == -1) return;
 
     if (m_idBackTexture != -1) {
-        rs->TextureSet(0, m_idBackTexture);
-        rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 0, 8, "iHelpChooser");
+        // rs->TextureSet(0, m_idBackTexture);
+        // rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 0, 8, "iHelpChooser");
     }
     if (m_idPicTexture != -1) {
-        rs->TextureSet(0, m_idPicTexture);
-        rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 10, 2, "iHelpChooser");
+        // rs->TextureSet(0, m_idPicTexture);
+        // rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 10, 2, "iHelpChooser");
     }
 
     if (m_idMouseTexture != -1) {
-        rs->TextureSet(0, m_idMouseTexture);
-        rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 14, 2, "iHelpChooser");
+        // rs->TextureSet(0, m_idMouseTexture);
+        // rs->DrawPrimitive(D3DPT_TRIANGLESTRIP, m_idVBuf, sizeof(HCHOOSER_VERTEX), 14, 2, "iHelpChooser");
     }
 }
 
@@ -167,10 +161,10 @@ uint64_t HelpChooser::ProcessMessage(MESSAGE& message)
 
 void HelpChooser::AllRelease()
 {
-    TEXTURE_RELEASE(rs, m_idMouseTexture);
-    TEXTURE_RELEASE(rs, m_idPicTexture);
-    TEXTURE_RELEASE(rs, m_idBackTexture);
-    VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
+    // TEXTURE_RELEASE(rs, m_idMouseTexture);
+    // TEXTURE_RELEASE(rs, m_idPicTexture);
+    // TEXTURE_RELEASE(rs, m_idBackTexture);
+    // VERTEX_BUFFER_RELEASE(rs, m_idVBuf);
     STORM_DELETE(m_pRectList);
     for (auto i = 0; i < m_nRectQ; i++) {
         STORM_DELETE(m_psRectName[i]);
@@ -201,19 +195,19 @@ bool HelpChooser::RunChooser(char const* ChooserGroup)
     texHeight = ini->GetFloat(ChooserGroup, "TextureHeight", 512.f);
 
     // Get the size of the output surface (window size)
-    IDirect3DSurface9* pRenderTarget;
-    rs->GetRenderTarget(&pRenderTarget);
-    D3DSURFACE_DESC dscrSurface;
-    pRenderTarget->GetDesc(&dscrSurface);
-    m_fScreenWidth  = static_cast<float>(dscrSurface.Width);
-    m_fScreenHeight = static_cast<float>(dscrSurface.Height);
-    pRenderTarget->Release();
+    // IDirect3DSurface9* pRenderTarget;
+    // rs->GetRenderTarget(&pRenderTarget);
+    // D3DSURFACE_DESC dscrSurface;
+    // pRenderTarget->GetDesc(&dscrSurface);
+    // m_fScreenWidth  = static_cast<float>(dscrSurface.Width);
+    // m_fScreenHeight = static_cast<float>(dscrSurface.Height);
+    // pRenderTarget->Release();
 
     // texture of the selected image
-    if (ini->ReadString(ChooserGroup, "FrontTexture", param, sizeof(param) - 1, "")) m_idPicTexture = rs->TextureCreate(param);
+    // if (ini->ReadString(ChooserGroup, "FrontTexture", param, sizeof(param) - 1, "")) m_idPicTexture = rs->TextureCreate(param);
 
     // texture of unselected (background) image
-    if (ini->ReadString(ChooserGroup, "BackTexture", param, sizeof(param) - 1, "")) m_idBackTexture = rs->TextureCreate(param);
+    // if (ini->ReadString(ChooserGroup, "BackTexture", param, sizeof(param) - 1, "")) m_idBackTexture = rs->TextureCreate(param);
 
     // counting the number of rectangles for choosing help
     m_nRectQ = 0;
@@ -222,7 +216,7 @@ bool HelpChooser::RunChooser(char const* ChooserGroup)
         } while (ini->ReadStringNext(ChooserGroup, "rect", param, sizeof(param) - 1));
     // create an array of coordinates of the selection rectangles
     if (m_nRectQ > 0) {
-        m_pRectList  = new FRECT[m_nRectQ];
+        m_pRectList  = new storm::FRect[m_nRectQ];
         m_psRectName = new char*[m_nRectQ];
         if (m_pRectList == nullptr || m_psRectName == nullptr) { throw std::runtime_error("Allocate memory error"); }
     }
@@ -263,54 +257,54 @@ bool HelpChooser::RunChooser(char const* ChooserGroup)
     m_nMouseHeight  = ini->GetInt("COMMON", "mouseHeight", 32);
     m_nMouseCornerX = ini->GetInt("COMMON", "mouseCornerX", 0);
     m_nMouseCornerY = ini->GetInt("COMMON", "mouseCornerY", 0);
-    if (m_nMouseWidth > 0 && m_nMouseHeight > 0)
-        if (ini->ReadString("COMMON", "mouseTexture", param, sizeof(param) - 1, "")) m_idMouseTexture = rs->TextureCreate(param);
+    // if (m_nMouseWidth > 0 && m_nMouseHeight > 0)
+    // if (ini->ReadString("COMMON", "mouseTexture", param, sizeof(param) - 1, "")) m_idMouseTexture = rs->TextureCreate(param);
 
     // create a vertex buffer
-    m_idVBuf = rs->CreateVertexBuffer(HCHOOSER_FVF, 18 * sizeof(HCHOOSER_VERTEX), D3DUSAGE_WRITEONLY);
+    // m_idVBuf = rs->CreateVertexBuffer(HCHOOSER_FVF, 18 * sizeof(HCHOOSER_VERTEX), D3DUSAGE_WRITEONLY);
     if (m_idVBuf == -1)
         core->Trace("WARNING! Can`t create vertex buffer for help chooser");
     else {
-        auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
-        if (pv != nullptr) {
-            for (i = 0; i < 18; i++) {
-                pv[i].pos.z = 1.f;
-                pv[i].w     = 0.5f;
-            }
-
-            pv[0].pos.x = 0.f;
-            pv[0].pos.y = 0.f;
-            pv[2].pos.x = static_cast<float>(dscrSurface.Width);
-            pv[2].pos.y = 0.f;
-            pv[4].pos.x = static_cast<float>(dscrSurface.Width);
-            pv[4].pos.y = static_cast<float>(dscrSurface.Height);
-            pv[6].pos.x = 0.f;
-            pv[6].pos.y = static_cast<float>(dscrSurface.Height);
-            pv[8].pos.x = 0.f;
-            pv[8].pos.y = 0.f;
-
-            pv[0].tu = 0.f;
-            pv[0].tv = 0.f;
-            pv[2].tu = 1.f;
-            pv[2].tv = 0.f;
-            pv[4].tu = 1.f;
-            pv[4].tv = 1.f;
-            pv[6].tu = 0.f;
-            pv[6].tv = 1.f;
-            pv[8].tu = 0.f;
-            pv[8].tv = 0.f;
-
-            pv[14].tu = 0.f;
-            pv[14].tv = 0.f;
-            pv[15].tu = 0.f;
-            pv[15].tv = 1.f;
-            pv[16].tu = 1.f;
-            pv[16].tv = 0.f;
-            pv[17].tu = 1.f;
-            pv[17].tv = 1.f;
-
-            rs->UnLockVertexBuffer(m_idVBuf);
-        }
+        // auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+        // if (pv != nullptr) {
+        //     for (i = 0; i < 18; i++) {
+        //         pv[i].pos.z = 1.f;
+        //         pv[i].w     = 0.5f;
+        //     }
+        //
+        //     pv[0].pos.x = 0.f;
+        //     pv[0].pos.y = 0.f;
+        //     pv[2].pos.x = static_cast<float>(dscrSurface.Width);
+        //     pv[2].pos.y = 0.f;
+        //     pv[4].pos.x = static_cast<float>(dscrSurface.Width);
+        //     pv[4].pos.y = static_cast<float>(dscrSurface.Height);
+        //     pv[6].pos.x = 0.f;
+        //     pv[6].pos.y = static_cast<float>(dscrSurface.Height);
+        //     pv[8].pos.x = 0.f;
+        //     pv[8].pos.y = 0.f;
+        //
+        //     pv[0].tu = 0.f;
+        //     pv[0].tv = 0.f;
+        //     pv[2].tu = 1.f;
+        //     pv[2].tv = 0.f;
+        //     pv[4].tu = 1.f;
+        //     pv[4].tv = 1.f;
+        //     pv[6].tu = 0.f;
+        //     pv[6].tv = 1.f;
+        //     pv[8].tu = 0.f;
+        //     pv[8].tv = 0.f;
+        //
+        //     pv[14].tu = 0.f;
+        //     pv[14].tv = 0.f;
+        //     pv[15].tu = 0.f;
+        //     pv[15].tv = 1.f;
+        //     pv[16].tu = 1.f;
+        //     pv[16].tv = 0.f;
+        //     pv[17].tu = 1.f;
+        //     pv[17].tv = 1.f;
+        //
+        //     rs->UnLockVertexBuffer(m_idVBuf);
+        // }
     }
 
     m_nCurRect = -1;
@@ -327,26 +321,26 @@ void HelpChooser::SetRectangle(int32_t newRectNum)
         return;
     }
     if (m_idVBuf == -1) return;
-    auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
-    if (pv == nullptr) return;
-    m_nCurRect = newRectNum;
-
-    pv[1].tu = pv[7].tu = pv[9].tu = pv[10].tu = pv[11].tu = m_pRectList[newRectNum].left;
-    pv[3].tu = pv[5].tu = pv[12].tu = pv[13].tu = m_pRectList[newRectNum].right;
-    pv[1].tv = pv[3].tv = pv[9].tv = pv[10].tv = pv[12].tv = m_pRectList[newRectNum].top;
-    pv[5].tv = pv[7].tv = pv[11].tv = pv[13].tv = m_pRectList[newRectNum].bottom;
-
-    pv[1].pos.x = pv[7].pos.x = pv[9].pos.x = pv[10].pos.x = pv[11].pos.x = m_pRectList[newRectNum].left * m_fScreenWidth;
-    pv[3].pos.x = pv[5].pos.x = pv[12].pos.x = pv[13].pos.x = m_pRectList[newRectNum].right * m_fScreenWidth;
-    pv[1].pos.y = pv[3].pos.y = pv[9].pos.y = pv[10].pos.y = pv[12].pos.y = m_pRectList[newRectNum].top * m_fScreenHeight;
-    pv[5].pos.y = pv[7].pos.y = pv[11].pos.y = pv[13].pos.y = m_pRectList[newRectNum].bottom * m_fScreenHeight;
-
-    pv[14].pos.x = pv[15].pos.x = m_fCurMouseX - m_nMouseCornerX;
-    pv[16].pos.x = pv[17].pos.x = m_fCurMouseX - m_nMouseCornerX + m_nMouseWidth;
-    pv[14].pos.y = pv[16].pos.y = m_fCurMouseY - m_nMouseCornerY;
-    pv[15].pos.y = pv[17].pos.y = m_fCurMouseY - m_nMouseCornerY + m_nMouseHeight;
-
-    rs->UnLockVertexBuffer(m_idVBuf);
+    // auto* pv = static_cast<HCHOOSER_VERTEX*>(rs->LockVertexBuffer(m_idVBuf));
+    // if (pv == nullptr) return;
+    // m_nCurRect = newRectNum;
+    //
+    // pv[1].tu = pv[7].tu = pv[9].tu = pv[10].tu = pv[11].tu = m_pRectList[newRectNum].left;
+    // pv[3].tu = pv[5].tu = pv[12].tu = pv[13].tu = m_pRectList[newRectNum].right;
+    // pv[1].tv = pv[3].tv = pv[9].tv = pv[10].tv = pv[12].tv = m_pRectList[newRectNum].top;
+    // pv[5].tv = pv[7].tv = pv[11].tv = pv[13].tv = m_pRectList[newRectNum].bottom;
+    //
+    // pv[1].pos.x = pv[7].pos.x = pv[9].pos.x = pv[10].pos.x = pv[11].pos.x = m_pRectList[newRectNum].left * m_fScreenWidth;
+    // pv[3].pos.x = pv[5].pos.x = pv[12].pos.x = pv[13].pos.x = m_pRectList[newRectNum].right * m_fScreenWidth;
+    // pv[1].pos.y = pv[3].pos.y = pv[9].pos.y = pv[10].pos.y = pv[12].pos.y = m_pRectList[newRectNum].top * m_fScreenHeight;
+    // pv[5].pos.y = pv[7].pos.y = pv[11].pos.y = pv[13].pos.y = m_pRectList[newRectNum].bottom * m_fScreenHeight;
+    //
+    // pv[14].pos.x = pv[15].pos.x = m_fCurMouseX - m_nMouseCornerX;
+    // pv[16].pos.x = pv[17].pos.x = m_fCurMouseX - m_nMouseCornerX + m_nMouseWidth;
+    // pv[14].pos.y = pv[16].pos.y = m_fCurMouseY - m_nMouseCornerY;
+    // pv[15].pos.y = pv[17].pos.y = m_fCurMouseY - m_nMouseCornerY + m_nMouseHeight;
+    //
+    // rs->UnLockVertexBuffer(m_idVBuf);
 }
 
 int32_t HelpChooser::GetRectangleLeft() const

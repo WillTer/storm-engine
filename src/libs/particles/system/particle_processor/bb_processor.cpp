@@ -30,8 +30,6 @@ Must be > 0
 #define PLOD 5.0f
 //=============================================================
 
-IDirect3DVertexDeclaration9* BillBoardProcessor::vertexDecl_ = nullptr;
-
 BillBoardProcessor::BillBoardProcessor()
 {
     Particles.reserve(MAX_BILLBOARDS);
@@ -41,41 +39,38 @@ BillBoardProcessor::BillBoardProcessor()
         pMemArray[n].Free = true;
     }
 
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
-
     CreateVertexDeclaration();
 
     int const RectVertexSize = sizeof(RECT_VERTEX);
 
-    pVBuffer = pRS->CreateVertexBuffer(0, MAX_BILLBOARDS * RectVertexSize * 4, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
-    Assert(pVBuffer != -1);
+    // pVBuffer = pRS->CreateVertexBuffer(0, MAX_BILLBOARDS * RectVertexSize * 4, D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC);
+    // Assert(pVBuffer != -1);
 
-    pIBuffer = pRS->CreateIndexBuffer(MAX_BILLBOARDS * 6 * sizeof(uint16_t));
-    Assert(pIBuffer != -1);
-    auto* pTrgs = static_cast<uint16_t*>(pRS->LockIndexBuffer(pIBuffer));
-    Assert(pTrgs != NULL);
+    // pIBuffer = pRS->CreateIndexBuffer(MAX_BILLBOARDS * 6 * sizeof(uint16_t));
+    // Assert(pIBuffer != -1);
+    // auto* pTrgs = static_cast<uint16_t*>(pRS->LockIndexBuffer(pIBuffer));
+    // Assert(pTrgs != NULL);
 
-    for (int32_t i = 0; i < MAX_BILLBOARDS; i++) {
-        pTrgs[i * 6 + 0] = static_cast<uint16_t>(i * 4 + 0);
-        pTrgs[i * 6 + 1] = static_cast<uint16_t>(i * 4 + 1);
-        pTrgs[i * 6 + 2] = static_cast<uint16_t>(i * 4 + 2);
-        pTrgs[i * 6 + 3] = static_cast<uint16_t>(i * 4 + 0);
-        pTrgs[i * 6 + 4] = static_cast<uint16_t>(i * 4 + 2);
-        pTrgs[i * 6 + 5] = static_cast<uint16_t>(i * 4 + 3);
-    }
-    pRS->UnLockIndexBuffer(pIBuffer);
+    // for (int32_t i = 0; i < MAX_BILLBOARDS; i++) {
+    //     pTrgs[i * 6 + 0] = static_cast<uint16_t>(i * 4 + 0);
+    //     pTrgs[i * 6 + 1] = static_cast<uint16_t>(i * 4 + 1);
+    //     pTrgs[i * 6 + 2] = static_cast<uint16_t>(i * 4 + 2);
+    //     pTrgs[i * 6 + 3] = static_cast<uint16_t>(i * 4 + 0);
+    //     pTrgs[i * 6 + 4] = static_cast<uint16_t>(i * 4 + 2);
+    //     pTrgs[i * 6 + 5] = static_cast<uint16_t>(i * 4 + 3);
+    // }
+    // pRS->UnLockIndexBuffer(pIBuffer);
 }
 
 BillBoardProcessor::~BillBoardProcessor()
 {
     delete[] pMemArray;
 
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (pRS != nullptr) {
-        pRS->ReleaseVertexBuffer(pVBuffer);
-        pRS->ReleaseIndexBuffer(pIBuffer);
-    }
+    // pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (pRS != nullptr) {
+    //     pRS->ReleaseVertexBuffer(pVBuffer);
+    //     pRS->ReleaseIndexBuffer(pIBuffer);
+    // }
 
     pVBuffer = -1;
     pIBuffer = -1;
@@ -283,7 +278,7 @@ uint32_t BillBoardProcessor::CalcDistanceToCamera()
 {
     uint32_t     VisParticles = 0;
     Matrix const mView;
-    pRS->GetTransform(D3DTS_VIEW, mView);
+    // pRS->GetTransform(D3DTS_VIEW, mView);
     for (uint32_t j = 0; j < Particles.size(); j++) {
         Particles[j]->CamDistance = Vector(Particles[j]->RenderPos * mView).z;
 
@@ -300,7 +295,7 @@ uint32_t BillBoardProcessor::CalcDistanceToCamera()
 }
 
 // Compare function when sorting
-BOOL BillBoardProcessor::CompareFunction(BB_ParticleData* e1, BB_ParticleData* e2)
+bool BillBoardProcessor::CompareFunction(BB_ParticleData* e1, BB_ParticleData* e2)
 {
     if (e1->CamDistance > e2->CamDistance) return true;
     return false;
@@ -312,9 +307,7 @@ void BillBoardProcessor::Draw()
     if (CalcDistanceToCamera() == 0) return;
     ParticleSorter.QSort(CompareFunction, &Particles[0], Particles.size());
 
-    auto* pVerts = static_cast<RECT_VERTEX*>(pRS->LockVertexBuffer(pVBuffer, D3DLOCK_DISCARD));
-    // RECT_VERTEX * pVerts = (RECT_VERTEX*)pVBuffer->Lock(0, 0, D3DLOCK_DISCARD);
-    // RECT_VERTEX * pVerts = (RECT_VERTEX*)pVBuffer->Lock();
+    // auto* pVerts = static_cast<RECT_VERTEX*>(pRS->LockVertexBuffer(pVBuffer, D3DLOCK_DISCARD));
 
     int32_t  Index          = 0;
     uint32_t ParticlesCount = 0;
@@ -360,7 +353,7 @@ void BillBoardProcessor::Draw()
         if (SizeK < PLOD) fSize = pR->CamDistance / PLOD;
         //=============================================================
 
-        auto* pV = &pVerts[Index * 4];
+        // auto* pV = &pVerts[Index * 4];
         Index++;
 
         auto DirAngle = 0.0f;
@@ -368,7 +361,7 @@ void BillBoardProcessor::Draw()
 
         if (SpeedOriented) {
             Matrix matView;
-            pRS->GetTransform(D3DTS_VIEW, matView);
+            // pRS->GetTransform(D3DTS_VIEW, matView);
             auto SpeedVector = pR->Velocity;
             // pR->RenderPos - pR->OldRenderPos;
             SpeedVector = matView.MulNormal(SpeedVector);
@@ -387,82 +380,74 @@ void BillBoardProcessor::Draw()
         uint32_t dwAlpha = static_cast<uint8_t>(Alpha) << 24;
         dwColor          = dwColor & 0x00FFFFFF;
         dwColor          = dwColor | dwAlpha;
+        // pV[0].vRelativePos = Vector(-fSize, -fSize, 0.0f);
+        // pV[0].dwColor      = dwColor;
+        // pV[0].tu1          = UV_WH1.v4[UV_TX1];
+        // pV[0].tv1          = UV_WH1.v4[UV_TY1];
+        // pV[0].tu2          = UV_WH2.v4[UV_TX1];
+        // pV[0].tv2          = UV_WH2.v4[UV_TY1];
+        // pV[0].angle        = fAngle;
+        // pV[0].BlendK       = FrameBlendK;
+        // pV[0].vParticlePos = vPos;
+        // pV[0].AddPowerK    = AddPower;
 
-        // if (j == 0)    core->Trace("fAngle[0]: %3.2f", fAngle);
-
-        pV[0].vRelativePos = Vector(-fSize, -fSize, 0.0f);
-        pV[0].dwColor      = dwColor;
-        pV[0].tu1          = UV_WH1.v4[UV_TX1];
-        pV[0].tv1          = UV_WH1.v4[UV_TY1];
-        pV[0].tu2          = UV_WH2.v4[UV_TX1];
-        pV[0].tv2          = UV_WH2.v4[UV_TY1];
-        pV[0].angle        = fAngle;
-        pV[0].BlendK       = FrameBlendK;
-        pV[0].vParticlePos = vPos;
-        pV[0].AddPowerK    = AddPower;
-
-        // if (SpeedOriented) pV[0].DirK = 0.0f; else pV[0].DirK = 1.0f;
-
-        if (SpeedOriented) {
-            pV[0].angle = DirAngle;
-            pV[0].vRelativePos.y *= ScaleF;
-        }
-
-        pV[1].vRelativePos = Vector(-fSize, fSize, 0.0f);
-        pV[1].dwColor      = dwColor;
-        pV[1].tu1          = UV_WH1.v4[UV_TX1];
-        pV[1].tv1          = UV_WH1.v4[UV_TY2];
-        pV[1].tu2          = UV_WH2.v4[UV_TX1];
-        pV[1].tv2          = UV_WH2.v4[UV_TY2];
-        pV[1].angle        = fAngle;
-        pV[1].BlendK       = FrameBlendK;
-        pV[1].vParticlePos = vPos;
-        pV[1].AddPowerK    = AddPower;
-        // if (SpeedOriented) pV[1].DirK = 0.0f; else pV[1].DirK = 1.0f;
-
-        if (SpeedOriented) {
-            pV[1].angle = DirAngle;
-            pV[1].vRelativePos.y *= ScaleF;
-        }
-
-        pV[2].vRelativePos = Vector(fSize, fSize, 0.0f);
-        pV[2].dwColor      = dwColor;
-        pV[2].tu1          = UV_WH1.v4[UV_TX2];
-        pV[2].tv1          = UV_WH1.v4[UV_TY2];
-        pV[2].tu2          = UV_WH2.v4[UV_TX2];
-        pV[2].tv2          = UV_WH2.v4[UV_TY2];
-        pV[2].angle        = fAngle;
-        pV[2].BlendK       = FrameBlendK;
-        pV[2].vParticlePos = vPos;
-        pV[2].AddPowerK    = AddPower;
-        // if (SpeedOriented) pV[2].DirK = 0.0f; else pV[2].DirK = 1.0f;
-
-        if (SpeedOriented) {
-            pV[2].angle = DirAngle;
-            pV[2].vRelativePos.y *= ScaleF;
-        }
-
-        pV[3].vRelativePos = Vector(fSize, -fSize, 0.0f);
-        pV[3].dwColor      = dwColor;
-        pV[3].tu1          = UV_WH1.v4[UV_TX2];
-        pV[3].tv1          = UV_WH1.v4[UV_TY1];
-        pV[3].tu2          = UV_WH2.v4[UV_TX2];
-        pV[3].tv2          = UV_WH2.v4[UV_TY1];
-        pV[3].angle        = fAngle;
-        pV[3].BlendK       = FrameBlendK;
-        pV[3].vParticlePos = vPos;
-        pV[3].AddPowerK    = AddPower;
-        // if (SpeedOriented) pV[3].DirK = 0.0f; else pV[3].DirK = 1.0f;
-
-        if (SpeedOriented) {
-            pV[3].angle = DirAngle;
-            pV[3].vRelativePos.y *= ScaleF;
-        }
+        // if (SpeedOriented) {
+        //     pV[0].angle = DirAngle;
+        //     pV[0].vRelativePos.y *= ScaleF;
+        // }
+        //
+        // pV[1].vRelativePos = Vector(-fSize, fSize, 0.0f);
+        // pV[1].dwColor      = dwColor;
+        // pV[1].tu1          = UV_WH1.v4[UV_TX1];
+        // pV[1].tv1          = UV_WH1.v4[UV_TY2];
+        // pV[1].tu2          = UV_WH2.v4[UV_TX1];
+        // pV[1].tv2          = UV_WH2.v4[UV_TY2];
+        // pV[1].angle        = fAngle;
+        // pV[1].BlendK       = FrameBlendK;
+        // pV[1].vParticlePos = vPos;
+        // pV[1].AddPowerK    = AddPower;
+        //
+        // if (SpeedOriented) {
+        //     pV[1].angle = DirAngle;
+        //     pV[1].vRelativePos.y *= ScaleF;
+        // }
+        //
+        // pV[2].vRelativePos = Vector(fSize, fSize, 0.0f);
+        // pV[2].dwColor      = dwColor;
+        // pV[2].tu1          = UV_WH1.v4[UV_TX2];
+        // pV[2].tv1          = UV_WH1.v4[UV_TY2];
+        // pV[2].tu2          = UV_WH2.v4[UV_TX2];
+        // pV[2].tv2          = UV_WH2.v4[UV_TY2];
+        // pV[2].angle        = fAngle;
+        // pV[2].BlendK       = FrameBlendK;
+        // pV[2].vParticlePos = vPos;
+        // pV[2].AddPowerK    = AddPower;
+        //
+        // if (SpeedOriented) {
+        //     pV[2].angle = DirAngle;
+        //     pV[2].vRelativePos.y *= ScaleF;
+        // }
+        //
+        // pV[3].vRelativePos = Vector(fSize, -fSize, 0.0f);
+        // pV[3].dwColor      = dwColor;
+        // pV[3].tu1          = UV_WH1.v4[UV_TX2];
+        // pV[3].tv1          = UV_WH1.v4[UV_TY1];
+        // pV[3].tu2          = UV_WH2.v4[UV_TX2];
+        // pV[3].tv2          = UV_WH2.v4[UV_TY1];
+        // pV[3].angle        = fAngle;
+        // pV[3].BlendK       = FrameBlendK;
+        // pV[3].vParticlePos = vPos;
+        // pV[3].AddPowerK    = AddPower;
+        //
+        // if (SpeedOriented) {
+        //     pV[3].angle = DirAngle;
+        //     pV[3].vRelativePos.y *= ScaleF;
+        // }
 
         ParticlesCount++;
     }
 
-    pRS->UnLockVertexBuffer(pVBuffer);
+    // pRS->UnLockVertexBuffer(pVBuffer);
 
     Vector4 const1(0.0416666f, 1.0f, 0.0f, -0.5f);
     Vector4 const2(0.159155f, 0.5f, 0.25f, 6.28319f);
@@ -470,31 +455,29 @@ void BillBoardProcessor::Draw()
 
     Vector4 cGlobal(0.0f, 1.0f, 0.5f, 0.0f);
 
-    pRS->SetVertexDeclaration(vertexDecl_);
+    // pRS->SetVertexDeclaration(vertexDecl_);
 
-    pRS->SetVertexShaderConstantF(0, static_cast<float const*>(const1.v4), 1);
-    pRS->SetVertexShaderConstantF(1, static_cast<float const*>(const2.v4), 1);
-    pRS->SetVertexShaderConstantF(2, static_cast<float const*>(const3.v4), 1);
-    pRS->SetVertexShaderConstantF(13, static_cast<float const*>(cGlobal.v4), 1);
+    // pRS->SetVertexShaderConstantF(0, static_cast<float const*>(const1.v4), 1);
+    // pRS->SetVertexShaderConstantF(1, static_cast<float const*>(const2.v4), 1);
+    // pRS->SetVertexShaderConstantF(2, static_cast<float const*>(const3.v4), 1);
+    // pRS->SetVertexShaderConstantF(13, static_cast<float const*>(cGlobal.v4), 1);
 
     Matrix matOldView, matView, matProjection;
-    pRS->GetTransform(D3DTS_VIEW, matView);
-    pRS->GetTransform(D3DTS_PROJECTION, matProjection);
+    // pRS->GetTransform(D3DTS_VIEW, matView);
+    // pRS->GetTransform(D3DTS_PROJECTION, matProjection);
 
     matOldView = matView;
     matView.Transposition();
     matProjection.Transposition();
 
-    pRS->SetVertexShaderConstantF(3, static_cast<float const*>(matView.matrix), 4);
-    pRS->SetVertexShaderConstantF(7, static_cast<float const*>(matProjection.matrix), 4);
-
-    pRS->SetTransform(D3DTS_VIEW, Matrix());
-    pRS->SetTransform(D3DTS_WORLD, Matrix());
-    pRS->DrawBuffer(pVBuffer, sizeof(RECT_VERTEX), pIBuffer, 0, ParticlesCount * 4, 0, ParticlesCount * 2, "AdvancedParticles");
-
-    pRS->SetTransform(D3DTS_VIEW, matOldView);
-
-    // pRS->Print(20, 20, "PSYS 2.0 : Draw %d billboard particles", ParticlesCount);
+    // pRS->SetVertexShaderConstantF(3, static_cast<float const*>(matView.matrix), 4);
+    // pRS->SetVertexShaderConstantF(7, static_cast<float const*>(matProjection.matrix), 4);
+    //
+    // pRS->SetTransform(D3DTS_VIEW, Matrix());
+    // pRS->SetTransform(D3DTS_WORLD, Matrix());
+    // pRS->DrawBuffer(pVBuffer, sizeof(RECT_VERTEX), pIBuffer, 0, ParticlesCount * 4, 0, ParticlesCount * 2, "AdvancedParticles");
+    //
+    // pRS->SetTransform(D3DTS_VIEW, matOldView);
 }
 
 uint32_t BillBoardProcessor::GetCount() const
@@ -527,18 +510,18 @@ void BillBoardProcessor::Clear()
 
 void BillBoardProcessor::CreateVertexDeclaration() const
 {
-    if (vertexDecl_ != nullptr) return;
+    // if (vertexDecl_ != nullptr) return;
 
-    const D3DVERTEXELEMENT9 VertexElements[] = {
-        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
-        {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
-        {0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
-        {0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
-        {0, 32, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0},
-        {0, 36, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BLENDWEIGHT, 0},
-        {0, 40, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2},
-        {0, 52, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 3},
-        D3DDECL_END()};
+    // const D3DVERTEXELEMENT9 VertexElements[] = {
+    //     {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+    //     {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+    //     {0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+    //     {0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
+    //     {0, 32, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT, 0},
+    //     {0, 36, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BLENDWEIGHT, 0},
+    //     {0, 40, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2},
+    //     {0, 52, D3DDECLTYPE_FLOAT1, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 3},
+    //     D3DDECL_END()};
 
-    pRS->CreateVertexDeclaration(VertexElements, &vertexDecl_);
+    // pRS->CreateVertexDeclaration(VertexElements, &vertexDecl_);
 }

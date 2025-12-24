@@ -1,10 +1,14 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <cstdint>
+
+#include <libs/core/entity.h>
+#include <libs/renderer_next/types.h>
 
 class ActivePerkShower: public Entity
 {
-    VDX9RENDER* rs;
+    // FIXME: Renderer Next
+    // VDX9RENDER* rs;
 
 public:
     ActivePerkShower();
@@ -34,7 +38,7 @@ protected:
     int32_t m_idVBuf;
     int32_t m_idIBuf;
     void    FillVIBuffers();
-    void    FillRectData(void* vbuf, const FRECT& rectPos, const FRECT& rectTex);
+    void    FillRectData(void* vbuf, storm::FRect const& rectPos, storm::FRect const& rectTex);
 
     size_t m_nTextureQ;
 
@@ -48,8 +52,8 @@ protected:
         int32_t m_nIndxStart;
     }* m_pTexDescr;
 
-    bool  CreateTextures(ATTRIBUTES* pATextureRoot);
-    FRECT GetTextureRect(int textIdx, int picIdx) const;
+    bool         CreateTextures(ATTRIBUTES* pATextureRoot);
+    storm::FRect GetTextureRect(int textIdx, int picIdx) const;
 
     int m_nIconWidth;
     int m_nIconHeight;
@@ -57,7 +61,7 @@ protected:
     int m_nSpaceVert;
 
     int m_nShowPlaceQ;
-    using _SHOW_PLACE = FRECT;
+    using _SHOW_PLACE = storm::FRect;
     _SHOW_PLACE* m_pShowPlaces;
     bool         CreateShowPlaces(ATTRIBUTES* pAPlacesRoot);
     void         RefreshShowPlaces(ATTRIBUTES* pAPlacesRoot);

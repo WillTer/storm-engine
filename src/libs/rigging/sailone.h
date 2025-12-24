@@ -9,7 +9,6 @@
 #endif  // _MSC_VER > 1000
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "sail_base.h"
 
@@ -21,7 +20,7 @@ class NODE;
 
 #define SAIL_COL_MAX 13
 #define SAIL_ROW_MAX 17
-#define SAILVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX3 | D3DFVF_TEXTUREFORMAT2)
+// #define SAILVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX3 | D3DFVF_TEXTUREFORMAT2)
 
 struct SAILVERTEX {
     CVECTOR pos, norm;
@@ -159,7 +158,6 @@ class SAILONE: public SAILONE_BASE
     friend Sail;
 
 public:
-    VDX9RENDER* RenderService;
     SAILONE();
     ~SAILONE();
     bool      SetSail();
@@ -258,10 +256,9 @@ private:
     float   m_fMaxAngle;
     float   m_fMinAngle;
 
-    int32_t            surfaceTex;
-    bool               m_bIsGerald;
-    int32_t            m_nGeraldTex;
-    IDirect3DTexture9* m_pGeraldTex;
+    int32_t surfaceTex;
+    bool    m_bIsGerald;
+    int32_t m_nGeraldTex;
 
     float m_fHorzGeraldScale;
     float m_fVertGeraldScale;

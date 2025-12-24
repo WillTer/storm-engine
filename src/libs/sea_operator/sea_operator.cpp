@@ -16,7 +16,6 @@ SeaOperator::SeaOperator()
     : enabled(false)
     , active(false)
     , sea(nullptr)
-    , renderer(nullptr)
     , myShip(nullptr)
     , enemyShip(nullptr)
     , actionTime(0)
@@ -37,8 +36,6 @@ bool SeaOperator::Init()
 {
     core->AddToLayer(REALIZE, GetId(), 1);
     core->AddToLayer(EXECUTE, GetId(), 0);
-
-    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     return true;
 }
@@ -118,18 +115,18 @@ void SeaOperator::Realize(uint32_t dTime)
 
     static CVECTOR upVector(0.0f, 1.0f, 0.0f);
     if (active) {
-        renderer->SetCamera(cameraPos, cameraTargetPos, upVector);
-        renderer->Print(
-            0,
-            30,
-            "cam: [%3.1f;%3.1f;%3.1f], tgt: [%3.1f;%3.1f;%3.1f]",
-            cameraPos.x,
-            cameraPos.y,
-            cameraPos.z,
-            cameraTargetPos.x,
-            cameraTargetPos.y,
-            cameraTargetPos.z);
-        renderer->Print(0, 60, dbgs);
+        // renderer->SetCamera(cameraPos, cameraTargetPos, upVector);
+        // renderer->Print(
+        //     0,
+        //     30,
+        //     "cam: [%3.1f;%3.1f;%3.1f], tgt: [%3.1f;%3.1f;%3.1f]",
+        //     cameraPos.x,
+        //     cameraPos.y,
+        //     cameraPos.z,
+        //     cameraTargetPos.x,
+        //     cameraTargetPos.y,
+        //     cameraTargetPos.z);
+        // renderer->Print(0, 60, dbgs);
     }
 }
 

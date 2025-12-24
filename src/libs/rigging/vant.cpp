@@ -14,7 +14,6 @@ constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 VANT_BASE::VANT_BASE()
 {
     bUse          = false;
-    RenderService = nullptr;
     TextureName   = nullptr;
     texl          = -1;
     bRunFirstTime = true;
@@ -31,7 +30,7 @@ VANT_BASE::VANT_BASE()
 
 VANT_BASE::~VANT_BASE()
 {
-    TEXTURE_RELEASE(RenderService, texl);
+    // TEXTURE_RELEASE(RenderService, texl);
     delete[] TextureName;
     TextureName = nullptr;
     while (groupQuantity > 0) {
@@ -47,8 +46,8 @@ VANT_BASE::~VANT_BASE()
     delete[] vlist;
     vlist = nullptr;
 
-    VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-    INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    // VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    // INDEX_BUFFER_RELEASE(RenderService, iBuf);
     nVert = nIndx = 0;
 }
 
@@ -60,13 +59,9 @@ bool VANT_BASE::Init()
 
 void VANT_BASE::SetDevice()
 {
-    // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
-
     LoadIni();
 
-    if (texl == -1) texl = RenderService->TextureCreate(TextureName);
+    // if (texl == -1) texl = RenderService->TextureCreate(TextureName);
 }
 
 bool VANT_BASE::CreateState(ENTITY_STATE_GEN* state_gen)
@@ -101,33 +96,32 @@ void VANT_BASE::Realize(uint32_t Delta_Time)
 {
     if (bUse) {
         // _asm rdtsc _asm mov rtm,eax
-
-        RenderService->TextureSet(0, texl);
-        uint32_t ambient;
-        RenderService->GetRenderState(D3DRS_AMBIENT, &ambient);
-        RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
-        auto const bDraw = RenderService->TechniqueExecuteStart("ShipVant");
-        if (!bDraw) return;
-
-        // draw nature vants
-        CVECTOR cp, ca;
-        float   pr;
-        RenderService->GetCamera(cp, ca, pr);
-        pr = tanf(pr * .5f);
-        for (auto gn = 0; gn < groupQuantity; gn++)
-            if (gdata[gn].nIndx && nVert && (~(gdata[gn].pMatWorld->Pos() - cp)) * pr < fVantMaxDist) {
-                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLightAndFog(true);
-                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLights();
-
-                RenderService->SetTransform(D3DTS_WORLD, *gdata[gn].pMatWorld);
-                RenderService->DrawBuffer(vBuf, sizeof(VANTVERTEX), iBuf, 0, nVert, gdata[gn].sIndx, gdata[gn].nIndx);
-
-                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->UnSetLights();
-                static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->RestoreLightAndFog();
-                //_asm rdtsc  _asm sub eax,rtm _asm mov rtm,eax
-            }
-        while (RenderService->TechniqueExecuteNext()) {}
-        // RenderService->Print(0,200,"Vants vert=%d, tr=%d, time=%d",nVert,nIndx,rtm);
+        //
+        // RenderService->TextureSet(0, texl);
+        // uint32_t ambient;
+        // RenderService->GetRenderState(D3DRS_AMBIENT, &ambient);
+        // RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
+        // auto const bDraw = RenderService->TechniqueExecuteStart("ShipVant");
+        // if (!bDraw) return;
+        //
+        // // draw nature vants
+        // CVECTOR cp, ca;
+        // float   pr;
+        // RenderService->GetCamera(cp, ca, pr);
+        // pr = tanf(pr * .5f);
+        // for (auto gn = 0; gn < groupQuantity; gn++)
+        //     if (gdata[gn].nIndx && nVert && (~(gdata[gn].pMatWorld->Pos() - cp)) * pr < fVantMaxDist) {
+        //         static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLightAndFog(true);
+        //         static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->SetLights();
+        //
+        //         RenderService->SetTransform(D3DTS_WORLD, *gdata[gn].pMatWorld);
+        //         RenderService->DrawBuffer(vBuf, sizeof(VANTVERTEX), iBuf, 0, nVert, gdata[gn].sIndx, gdata[gn].nIndx);
+        //
+        //         static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->UnSetLights();
+        //         static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[gn].shipEI))->RestoreLightAndFog();
+        //         //_asm rdtsc  _asm sub eax,rtm _asm mov rtm,eax
+        //     }
+        // while (RenderService->TechniqueExecuteNext()) {}
     }
 }
 
@@ -261,76 +255,76 @@ void VANT_BASE::SetIndex() const
     int i, j;
     int ti, vi;
 
-    auto pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
-    if (pt) {
-        for (int vn = 0; vn < vantQuantity; vn++) {
-            ti = vlist[vn]->st;
-            vi = vlist[vn]->sv;
-
-            // set center treangle & square
-            pt[ti++] = vi;
-            pt[ti++] = vi + 2;
-            pt[ti++] = vi + 1;
-            pt[ti++] = vi + 3;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 5;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 6;
-            pt[ti++] = vi + 5;
-            vi += 7;
-
-            // set balk treangles
-            pt[ti++] = vi;
-            pt[ti++] = vi + 1;
-            pt[ti++] = vi + 2;
-            pt[ti++] = vi + 3;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 5;
-            pt[ti++] = vi;
-            pt[ti++] = vi + 3;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 1;
-            pt[ti++] = vi;
-            pt[ti++] = vi + 2;
-            pt[ti++] = vi + 3;
-            pt[ti++] = vi + 3;
-            pt[ti++] = vi + 2;
-            pt[ti++] = vi + 5;
-            pt[ti++] = vi + 2;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 5;
-            pt[ti++] = vi + 1;
-            pt[ti++] = vi + 4;
-            pt[ti++] = vi + 2;
-            vi += 6;
-
-            int dIdx = vi + (VANT_EDGE + 1) * ROPE_QUANT;
-            // set ropes treangles
-            for (i = 0; i < ROPE_QUANT; i++) {
-                for (j = 0; j < VANT_EDGE; j++) {
-                    pt[ti] = pt[ti + 3] = vi + j;
-                    pt[ti + 2]          = dIdx + j;
-                    //                    if(j<(VANT_EDGE-1))
-                    //                    {
-                    pt[ti + 4] = vi + j + 1;
-                    pt[ti + 1] = pt[ti + 5] = dIdx + j + 1;
-                    //                    }
-                    /*                    else
-                                        {
-                                            pt[ti+4]=vi;
-                                            pt[ti+1]=pt[ti+5]=dIdx;
-                                        }*/
-                    ti += 6;
-                }
-                dIdx += VANT_EDGE + 1;
-                vi += VANT_EDGE + 1;
-            }
-        }
-
-        RenderService->UnLockIndexBuffer(iBuf);
-    }
+    // auto pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
+    // if (pt) {
+    //     for (int vn = 0; vn < vantQuantity; vn++) {
+    //         ti = vlist[vn]->st;
+    //         vi = vlist[vn]->sv;
+    //
+    //         // set center treangle & square
+    //         pt[ti++] = vi;
+    //         pt[ti++] = vi + 2;
+    //         pt[ti++] = vi + 1;
+    //         pt[ti++] = vi + 3;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 5;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 6;
+    //         pt[ti++] = vi + 5;
+    //         vi += 7;
+    //
+    //         // set balk treangles
+    //         pt[ti++] = vi;
+    //         pt[ti++] = vi + 1;
+    //         pt[ti++] = vi + 2;
+    //         pt[ti++] = vi + 3;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 5;
+    //         pt[ti++] = vi;
+    //         pt[ti++] = vi + 3;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 1;
+    //         pt[ti++] = vi;
+    //         pt[ti++] = vi + 2;
+    //         pt[ti++] = vi + 3;
+    //         pt[ti++] = vi + 3;
+    //         pt[ti++] = vi + 2;
+    //         pt[ti++] = vi + 5;
+    //         pt[ti++] = vi + 2;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 5;
+    //         pt[ti++] = vi + 1;
+    //         pt[ti++] = vi + 4;
+    //         pt[ti++] = vi + 2;
+    //         vi += 6;
+    //
+    //         int dIdx = vi + (VANT_EDGE + 1) * ROPE_QUANT;
+    //         // set ropes treangles
+    //         for (i = 0; i < ROPE_QUANT; i++) {
+    //             for (j = 0; j < VANT_EDGE; j++) {
+    //                 pt[ti] = pt[ti + 3] = vi + j;
+    //                 pt[ti + 2]          = dIdx + j;
+    //                 //                    if(j<(VANT_EDGE-1))
+    //                 //                    {
+    //                 pt[ti + 4] = vi + j + 1;
+    //                 pt[ti + 1] = pt[ti + 5] = dIdx + j + 1;
+    //                 //                    }
+    //                 /*                    else
+    //                                     {
+    //                                         pt[ti+4]=vi;
+    //                                         pt[ti+1]=pt[ti+5]=dIdx;
+    //                                     }*/
+    //                 ti += 6;
+    //             }
+    //             dIdx += VANT_EDGE + 1;
+    //             vi += VANT_EDGE + 1;
+    //         }
+    //     }
+    //
+    //     RenderService->UnLockIndexBuffer(iBuf);
+    // }
 }
 
 void VANT_BASE::SetVertexes() const
@@ -339,101 +333,101 @@ void VANT_BASE::SetVertexes() const
     uint32_t iv;
     CVECTOR  uPos, lPos, rPos;
 
-    auto* pv = static_cast<VANTVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-    if (pv) {
-        for (int vn = 0; vn < vantQuantity; vn++) {
-            if (gdata[vlist[vn]->HostGroup].bDeleted) continue;
-            iv = vlist[vn]->sv;
-
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pUpMatWorld) * vlist[vn]->pUp, uPos);
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pDownMatWorld) * vlist[vn]->pLeft, lPos);
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pDownMatWorld) * vlist[vn]->pRight, rPos);
-
-            // Set last parameters
-            vlist[vn]->pLeftStart = vlist[vn]->pLeftOld = lPos;
-            vlist[vn]->pUpStart = vlist[vn]->pUpOld = uPos;
-
-            CVECTOR horzDirect = !(rPos - lPos);
-            CVECTOR vertDirect = !((rPos + lPos) * .5f - uPos);
-            // Set angles point
-            pv[iv].pos     = uPos;
-            pv[iv + 3].pos = pv[iv + 1].pos = uPos - horzDirect * (upWidth * .5f) + vertDirect * upHeight * (1.f - fBalkHeight);
-            pv[iv + 4].pos = pv[iv + 2].pos = uPos + horzDirect * (upWidth * .5f) + vertDirect * upHeight * (1.f - fBalkHeight);
-            pv[iv + 5].pos                  = lPos;
-            pv[iv + 6].pos                  = rPos;
-            //
-            pv[iv].tu     = (treangXl + treangXr) * .5f;
-            pv[iv].tv     = treangYu;
-            pv[iv + 1].tu = treangXl;
-            pv[iv + 1].tv = treangYd;
-            pv[iv + 2].tu = treangXr;
-            pv[iv + 2].tv = treangYd;
-            //
-            float const fh   = sqrtf(~((rPos + lPos) * .5f - uPos));
-            auto        ftmp = static_cast<float>(static_cast<int>(fh / hRopeHeight + .5f));
-            pv[iv + 3].tu    = ropeXl;
-            pv[iv + 3].tv    = 0.f;
-            pv[iv + 4].tu    = ropeXr;
-            pv[iv + 4].tv    = 0.f;
-            pv[iv + 5].tu    = ropeXl;
-            pv[iv + 5].tv    = ftmp;
-            pv[iv + 6].tu    = ropeXr;
-            pv[iv + 6].tv    = ftmp;
-            iv += 7;
-
-            // set beam points
-            CVECTOR tvec   = uPos - horzDirect * (upWidth * .5f) + vertDirect * upHeight;
-            pv[iv].pos     = tvec - vertDirect * upHeight * fBalkHeight;
-            pv[iv + 1].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
-            pv[iv + 2].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
-            tvec += horzDirect * upWidth;
-            pv[iv + 3].pos = tvec - vertDirect * upHeight * fBalkHeight;
-            pv[iv + 4].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
-            pv[iv + 5].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
-            //
-            pv[iv].tu = pv[iv + 1].tu = pv[iv + 2].tu = treangXl;
-            pv[iv + 3].tu = pv[iv + 4].tu = pv[iv + 5].tu = treangXr;
-            pv[iv].tv = pv[iv + 3].tv = balkYu;
-            pv[iv + 1].tv = pv[iv + 2].tv = pv[iv + 4].tv = pv[iv + 5].tv = balkYd;
-            iv += 6;
-
-            // Set up ropes points
-            CVECTOR     sp   = uPos - horzDirect * (.5f * upWidth) + vertDirect * upHeight;
-            CVECTOR     dp   = horzDirect * (upWidth / static_cast<float>(ROPE_QUANT - 1));
-            float const dtmp = (vRopeXr - vRopeXl) / static_cast<float>(VANT_EDGE);
-            for (i = 0; i < ROPE_QUANT; i++) {
-                for (j = 0; j <= VANT_EDGE; j++) {
-                    if (j == VANT_EDGE)
-                        pv[iv + j].pos = sp + vlist[vn]->pos[0];
-                    else
-                        pv[iv + j].pos = sp + vlist[vn]->pos[j];
-                    pv[iv + j].tu = vRopeXl + dtmp * static_cast<float>(j);
-                    pv[iv + j].tv = 0.f;
-                }
-                iv += VANT_EDGE + 1;
-                sp += dp;
-            }
-
-            // Set down ropes points
-            sp   = lPos;
-            dp   = (rPos - lPos) / static_cast<float>(ROPE_QUANT - 1);
-            ftmp = fh / vRopeHeight;
-            for (i = 0; i < ROPE_QUANT; i++) {
-                for (j = 0; j <= VANT_EDGE; j++) {
-                    if (j == VANT_EDGE)
-                        pv[iv + j].pos = sp + vlist[vn]->pos[0];
-                    else
-                        pv[iv + j].pos = sp + vlist[vn]->pos[j];
-                    pv[iv + j].tu = vRopeXl + dtmp * static_cast<float>(j);
-                    pv[iv + j].tv = ftmp;
-                }
-                iv += VANT_EDGE + 1;
-                sp += dp;
-            }
-        }
-
-        RenderService->UnLockVertexBuffer(vBuf);
-    }
+    // auto* pv = static_cast<VANTVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+    // if (pv) {
+    //     for (int vn = 0; vn < vantQuantity; vn++) {
+    //         if (gdata[vlist[vn]->HostGroup].bDeleted) continue;
+    //         iv = vlist[vn]->sv;
+    //
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pUpMatWorld) * vlist[vn]->pUp, uPos);
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pDownMatWorld) * vlist[vn]->pLeft, lPos);
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv((*vlist[vn]->pDownMatWorld) * vlist[vn]->pRight, rPos);
+    //
+    //         // Set last parameters
+    //         vlist[vn]->pLeftStart = vlist[vn]->pLeftOld = lPos;
+    //         vlist[vn]->pUpStart = vlist[vn]->pUpOld = uPos;
+    //
+    //         CVECTOR horzDirect = !(rPos - lPos);
+    //         CVECTOR vertDirect = !((rPos + lPos) * .5f - uPos);
+    //         // Set angles point
+    //         pv[iv].pos     = uPos;
+    //         pv[iv + 3].pos = pv[iv + 1].pos = uPos - horzDirect * (upWidth * .5f) + vertDirect * upHeight * (1.f - fBalkHeight);
+    //         pv[iv + 4].pos = pv[iv + 2].pos = uPos + horzDirect * (upWidth * .5f) + vertDirect * upHeight * (1.f - fBalkHeight);
+    //         pv[iv + 5].pos                  = lPos;
+    //         pv[iv + 6].pos                  = rPos;
+    //         //
+    //         pv[iv].tu     = (treangXl + treangXr) * .5f;
+    //         pv[iv].tv     = treangYu;
+    //         pv[iv + 1].tu = treangXl;
+    //         pv[iv + 1].tv = treangYd;
+    //         pv[iv + 2].tu = treangXr;
+    //         pv[iv + 2].tv = treangYd;
+    //         //
+    //         float const fh   = sqrtf(~((rPos + lPos) * .5f - uPos));
+    //         auto        ftmp = static_cast<float>(static_cast<int>(fh / hRopeHeight + .5f));
+    //         pv[iv + 3].tu    = ropeXl;
+    //         pv[iv + 3].tv    = 0.f;
+    //         pv[iv + 4].tu    = ropeXr;
+    //         pv[iv + 4].tv    = 0.f;
+    //         pv[iv + 5].tu    = ropeXl;
+    //         pv[iv + 5].tv    = ftmp;
+    //         pv[iv + 6].tu    = ropeXr;
+    //         pv[iv + 6].tv    = ftmp;
+    //         iv += 7;
+    //
+    //         // set beam points
+    //         CVECTOR tvec   = uPos - horzDirect * (upWidth * .5f) + vertDirect * upHeight;
+    //         pv[iv].pos     = tvec - vertDirect * upHeight * fBalkHeight;
+    //         pv[iv + 1].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
+    //         pv[iv + 2].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
+    //         tvec += horzDirect * upWidth;
+    //         pv[iv + 3].pos = tvec - vertDirect * upHeight * fBalkHeight;
+    //         pv[iv + 4].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
+    //         pv[iv + 5].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
+    //         //
+    //         pv[iv].tu = pv[iv + 1].tu = pv[iv + 2].tu = treangXl;
+    //         pv[iv + 3].tu = pv[iv + 4].tu = pv[iv + 5].tu = treangXr;
+    //         pv[iv].tv = pv[iv + 3].tv = balkYu;
+    //         pv[iv + 1].tv = pv[iv + 2].tv = pv[iv + 4].tv = pv[iv + 5].tv = balkYd;
+    //         iv += 6;
+    //
+    //         // Set up ropes points
+    //         CVECTOR     sp   = uPos - horzDirect * (.5f * upWidth) + vertDirect * upHeight;
+    //         CVECTOR     dp   = horzDirect * (upWidth / static_cast<float>(ROPE_QUANT - 1));
+    //         float const dtmp = (vRopeXr - vRopeXl) / static_cast<float>(VANT_EDGE);
+    //         for (i = 0; i < ROPE_QUANT; i++) {
+    //             for (j = 0; j <= VANT_EDGE; j++) {
+    //                 if (j == VANT_EDGE)
+    //                     pv[iv + j].pos = sp + vlist[vn]->pos[0];
+    //                 else
+    //                     pv[iv + j].pos = sp + vlist[vn]->pos[j];
+    //                 pv[iv + j].tu = vRopeXl + dtmp * static_cast<float>(j);
+    //                 pv[iv + j].tv = 0.f;
+    //             }
+    //             iv += VANT_EDGE + 1;
+    //             sp += dp;
+    //         }
+    //
+    //         // Set down ropes points
+    //         sp   = lPos;
+    //         dp   = (rPos - lPos) / static_cast<float>(ROPE_QUANT - 1);
+    //         ftmp = fh / vRopeHeight;
+    //         for (i = 0; i < ROPE_QUANT; i++) {
+    //             for (j = 0; j <= VANT_EDGE; j++) {
+    //                 if (j == VANT_EDGE)
+    //                     pv[iv + j].pos = sp + vlist[vn]->pos[0];
+    //                 else
+    //                     pv[iv + j].pos = sp + vlist[vn]->pos[j];
+    //                 pv[iv + j].tu = vRopeXl + dtmp * static_cast<float>(j);
+    //                 pv[iv + j].tv = ftmp;
+    //             }
+    //             iv += VANT_EDGE + 1;
+    //             sp += dp;
+    //         }
+    //     }
+    //
+    //     RenderService->UnLockVertexBuffer(vBuf);
+    // }
 }
 
 void VANT_BASE::AddLabel(GEOS::LABEL& lbl, NODE* nod)
@@ -558,15 +552,15 @@ void Vant::LoadIni()
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "vant.tga");
     if (texl != -1) {
-        if (strcmp(TextureName, param))
-            if (RenderService) {
-                delete TextureName;
-                auto const len = strlen(param) + 1;
-                TextureName    = new char[len];
-                memcpy(TextureName, param, len);
-                RenderService->TextureRelease(texl);
-                texl = RenderService->TextureCreate(TextureName);
-            }
+        // if (strcmp(TextureName, param))
+        // if (RenderService) {
+        //     delete TextureName;
+        //     auto const len = strlen(param) + 1;
+        //     TextureName    = new char[len];
+        //     memcpy(TextureName, param, len);
+        //     RenderService->TextureRelease(texl);
+        //     texl = RenderService->TextureCreate(TextureName);
+        // }
     } else {
         auto const len = strlen(param) + 1;
         TextureName    = new char[len];
@@ -629,15 +623,15 @@ void VantL::LoadIni()
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "vant.tga");
     if (texl != -1) {
-        if (strcmp(TextureName, param))
-            if (RenderService) {
-                delete TextureName;
-                auto const len = strlen(param) + 1;
-                TextureName    = new char[len];
-                memcpy(TextureName, param, len);
-                RenderService->TextureRelease(texl);
-                texl = RenderService->TextureCreate(TextureName);
-            }
+        // if (strcmp(TextureName, param))
+        //     if (RenderService) {
+        //         delete TextureName;
+        //         auto const len = strlen(param) + 1;
+        //         TextureName    = new char[len];
+        //         memcpy(TextureName, param, len);
+        //         RenderService->TextureRelease(texl);
+        //         texl = RenderService->TextureCreate(TextureName);
+        //     }
     } else {
         auto const len = strlen(param) + 1;
         TextureName    = new char[len];
@@ -700,15 +694,15 @@ void VantZ::LoadIni()
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "vant.tga");
     if (texl != -1) {
-        if (strcmp(TextureName, param))
-            if (RenderService) {
-                delete TextureName;
-                auto const len = strlen(param) + 1;
-                TextureName    = new char[len];
-                memcpy(TextureName, param, len);
-                RenderService->TextureRelease(texl);
-                texl = RenderService->TextureCreate(TextureName);
-            }
+        // if (strcmp(TextureName, param))
+        // if (RenderService) {
+        //     delete TextureName;
+        //     auto const len = strlen(param) + 1;
+        //     TextureName    = new char[len];
+        //     memcpy(TextureName, param, len);
+        //     RenderService->TextureRelease(texl);
+        //     texl = RenderService->TextureCreate(TextureName);
+        // }
     } else {
         auto const len = strlen(param) + 1;
         TextureName    = new char[len];
@@ -761,86 +755,86 @@ void VANT_BASE::doMove()
     uint32_t iv;
     CVECTOR  uPos, lPos, rPos;
 
-    auto* pv = static_cast<VANTVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-    if (pv) {
-        for (int vn = 0; vn < vantQuantity; vn++) {
-            if (gdata[vlist[vn]->HostGroup].bDeleted || vlist[vn]->bDeleted) {
-                bYesDeleted = true;
-                continue;
-            }
-            CVECTOR vtmp, htmp;
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pUpMatWorld * vlist[vn]->pUp, uPos);
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pDownMatWorld * vlist[vn]->pLeft, lPos);
-            gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pDownMatWorld * vlist[vn]->pRight, rPos);
-
-            if (!VectCmp(lPos, vlist[vn]->pLeftStart, MAXFALL_CMP_VAL) || !VectCmp(uPos, vlist[vn]->pUpStart, MAXFALL_CMP_VAL)) {
-                vlist[vn]->bDeleted = true;  // set the sign of guy removal
-                bYesDeleted         = true;
-            }
-
-            if (!VectCmp(lPos, vlist[vn]->pLeftOld, ZERO_CMP_VAL) || !VectCmp(uPos, vlist[vn]->pUpOld, ZERO_CMP_VAL)) {
-                // Set last parameters
-                vlist[vn]->pLeftOld = lPos;
-                vlist[vn]->pUpOld   = uPos;
-
-                CVECTOR horzDirect = !(rPos - lPos);
-                CVECTOR vertDirect = !((rPos + lPos) * .5f - uPos);
-
-                iv = vlist[vn]->sv;
-
-                // Set angles point
-                pv[iv].pos     = uPos;
-                htmp           = horzDirect * (upWidth * .5f);
-                vtmp           = vertDirect * upHeight * (1.f - fBalkHeight);
-                pv[iv + 3].pos = pv[iv + 1].pos = uPos - htmp + vtmp;
-                pv[iv + 4].pos = pv[iv + 2].pos = uPos + htmp + vtmp;
-                pv[iv + 5].pos                  = lPos;
-                pv[iv + 6].pos                  = rPos;
-                iv += 7;
-
-                // set beam points
-                CVECTOR tvec   = uPos - htmp + vertDirect * upHeight;
-                pv[iv].pos     = uPos - htmp + vtmp;
-                pv[iv + 1].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
-                pv[iv + 2].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
-                tvec += horzDirect * upWidth;
-                pv[iv + 3].pos = uPos + htmp + vtmp;
-                pv[iv + 4].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
-                pv[iv + 5].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
-                iv += 6;
-
-                // Set up ropes points
-                CVECTOR sp = uPos - horzDirect * (.5f * upWidth) + vertDirect * upHeight;
-                CVECTOR dp = horzDirect * (upWidth / static_cast<float>(ROPE_QUANT - 1));
-                for (i = 0; i < ROPE_QUANT; i++) {
-                    for (j = 0; j <= VANT_EDGE; j++) {
-                        if (j == VANT_EDGE)
-                            pv[iv + j].pos = sp + vlist[vn]->pos[0];
-                        else
-                            pv[iv + j].pos = sp + vlist[vn]->pos[j];
-                    }
-                    iv += VANT_EDGE + 1;
-                    sp += dp;
-                }
-
-                // Set down ropes points
-                sp = lPos;
-                dp = (rPos - lPos) / static_cast<float>(ROPE_QUANT - 1);
-                for (i = 0; i < ROPE_QUANT; i++) {
-                    for (j = 0; j <= VANT_EDGE; j++) {
-                        if (j == VANT_EDGE)
-                            pv[iv + j].pos = sp + vlist[vn]->pos[0];
-                        else
-                            pv[iv + j].pos = sp + vlist[vn]->pos[j];
-                    }
-                    iv += VANT_EDGE + 1;
-                    sp += dp;
-                }
-            }
-        }
-
-        RenderService->UnLockVertexBuffer(vBuf);
-    }
+    // auto* pv = static_cast<VANTVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+    // if (pv) {
+    //     for (int vn = 0; vn < vantQuantity; vn++) {
+    //         if (gdata[vlist[vn]->HostGroup].bDeleted || vlist[vn]->bDeleted) {
+    //             bYesDeleted = true;
+    //             continue;
+    //         }
+    //         CVECTOR vtmp, htmp;
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pUpMatWorld * vlist[vn]->pUp, uPos);
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pDownMatWorld * vlist[vn]->pLeft, lPos);
+    //         gdata[vlist[vn]->HostGroup].pMatWorld->MulToInv(*vlist[vn]->pDownMatWorld * vlist[vn]->pRight, rPos);
+    //
+    //         if (!VectCmp(lPos, vlist[vn]->pLeftStart, MAXFALL_CMP_VAL) || !VectCmp(uPos, vlist[vn]->pUpStart, MAXFALL_CMP_VAL)) {
+    //             vlist[vn]->bDeleted = true;  // set the sign of guy removal
+    //             bYesDeleted         = true;
+    //         }
+    //
+    //         if (!VectCmp(lPos, vlist[vn]->pLeftOld, ZERO_CMP_VAL) || !VectCmp(uPos, vlist[vn]->pUpOld, ZERO_CMP_VAL)) {
+    //             // Set last parameters
+    //             vlist[vn]->pLeftOld = lPos;
+    //             vlist[vn]->pUpOld   = uPos;
+    //
+    //             CVECTOR horzDirect = !(rPos - lPos);
+    //             CVECTOR vertDirect = !((rPos + lPos) * .5f - uPos);
+    //
+    //             iv = vlist[vn]->sv;
+    //
+    //             // Set angles point
+    //             pv[iv].pos     = uPos;
+    //             htmp           = horzDirect * (upWidth * .5f);
+    //             vtmp           = vertDirect * upHeight * (1.f - fBalkHeight);
+    //             pv[iv + 3].pos = pv[iv + 1].pos = uPos - htmp + vtmp;
+    //             pv[iv + 4].pos = pv[iv + 2].pos = uPos + htmp + vtmp;
+    //             pv[iv + 5].pos                  = lPos;
+    //             pv[iv + 6].pos                  = rPos;
+    //             iv += 7;
+    //
+    //             // set beam points
+    //             CVECTOR tvec   = uPos - htmp + vertDirect * upHeight;
+    //             pv[iv].pos     = uPos - htmp + vtmp;
+    //             pv[iv + 1].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
+    //             pv[iv + 2].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
+    //             tvec += horzDirect * upWidth;
+    //             pv[iv + 3].pos = uPos + htmp + vtmp;
+    //             pv[iv + 4].pos = tvec + vlist[vn]->pos[0] * fBalkWidth;
+    //             pv[iv + 5].pos = tvec + vlist[vn]->pos[VANT_EDGE / 2] * fBalkWidth;
+    //             iv += 6;
+    //
+    //             // Set up ropes points
+    //             CVECTOR sp = uPos - horzDirect * (.5f * upWidth) + vertDirect * upHeight;
+    //             CVECTOR dp = horzDirect * (upWidth / static_cast<float>(ROPE_QUANT - 1));
+    //             for (i = 0; i < ROPE_QUANT; i++) {
+    //                 for (j = 0; j <= VANT_EDGE; j++) {
+    //                     if (j == VANT_EDGE)
+    //                         pv[iv + j].pos = sp + vlist[vn]->pos[0];
+    //                     else
+    //                         pv[iv + j].pos = sp + vlist[vn]->pos[j];
+    //                 }
+    //                 iv += VANT_EDGE + 1;
+    //                 sp += dp;
+    //             }
+    //
+    //             // Set down ropes points
+    //             sp = lPos;
+    //             dp = (rPos - lPos) / static_cast<float>(ROPE_QUANT - 1);
+    //             for (i = 0; i < ROPE_QUANT; i++) {
+    //                 for (j = 0; j <= VANT_EDGE; j++) {
+    //                     if (j == VANT_EDGE)
+    //                         pv[iv + j].pos = sp + vlist[vn]->pos[0];
+    //                     else
+    //                         pv[iv + j].pos = sp + vlist[vn]->pos[j];
+    //                 }
+    //                 iv += VANT_EDGE + 1;
+    //                 sp += dp;
+    //             }
+    //         }
+    //     }
+    //
+    //     RenderService->UnLockVertexBuffer(vBuf);
+    // }
 }
 
 bool VANT_BASE::VectCmp(CVECTOR v1, CVECTOR v2, float minCmpVal)  // return true if equal
@@ -854,14 +848,14 @@ bool VANT_BASE::VectCmp(CVECTOR v1, CVECTOR v2, float minCmpVal)  // return true
 
 void VANT_BASE::FirstRun()
 {
-    if (nVert > 0 && nIndx > 0) {
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-        vBuf = RenderService->CreateVertexBuffer(VANTVERTEX_FORMAT, nVert * sizeof(VANTVERTEX), D3DUSAGE_WRITEONLY);
-        iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
-        SetVertexes();
-        SetIndex();
-    }
+    // if (nVert > 0 && nIndx > 0) {
+    //     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //     INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //     vBuf = RenderService->CreateVertexBuffer(VANTVERTEX_FORMAT, nVert * sizeof(VANTVERTEX), D3DUSAGE_WRITEONLY);
+    //     iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
+    //     SetVertexes();
+    //     SetIndex();
+    // }
 
     bUse = (vBuf != -1 && iBuf != -1);
 
@@ -954,24 +948,24 @@ void VANT_BASE::DoSTORM_DELETE()
 
     nIndx /= 3;
     // if there are no more guys, then remove them all
-    if (ngn == 0 || nvn == 0) {
-        vantQuantity = groupQuantity = 0;
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-        delete[] vlist;
-        vlist = nullptr;
-        delete gdata;
-        gdata = nullptr;
-    } else if (nvn != vantQuantity || ngn != groupQuantity) {
-        vantQuantity  = nvn;
-        groupQuantity = ngn;
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-        vBuf = RenderService->CreateVertexBuffer(VANTVERTEX_FORMAT, nVert * sizeof(VANTVERTEX), D3DUSAGE_WRITEONLY);
-        iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
-        SetVertexes();
-        SetIndex();
-    }
+    // if (ngn == 0 || nvn == 0) {
+    //     vantQuantity = groupQuantity = 0;
+    //     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //     INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //     delete[] vlist;
+    //     vlist = nullptr;
+    //     delete gdata;
+    //     gdata = nullptr;
+    // } else if (nvn != vantQuantity || ngn != groupQuantity) {
+    //     vantQuantity  = nvn;
+    //     groupQuantity = ngn;
+    //     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //     INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //     vBuf = RenderService->CreateVertexBuffer(VANTVERTEX_FORMAT, nVert * sizeof(VANTVERTEX), D3DUSAGE_WRITEONLY);
+    //     iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
+    //     SetVertexes();
+    //     SetIndex();
+    // }
 
     bYesDeleted = false;
     wVantLast   = vantQuantity;

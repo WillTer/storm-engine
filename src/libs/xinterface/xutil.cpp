@@ -1,5 +1,10 @@
+#include <cstring>
+
+#include <libs/core/entity.h>
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
+
+#include "libs/renderer_next/types.h"
 
 #include "xdefines.h"
 
@@ -64,11 +69,7 @@ uint32_t ColorInterpolate(uint32_t sCol, uint32_t dCol, float m)
     r += static_cast<int>((rd - r) * m);
     g += static_cast<int>((gd - g) * m);
     b += static_cast<int>((bd - b) * m);
-    /*    a = a>ad ? int(a-(a-ad)*m) : int(ad-(ad-a)*m);
-      r = r>rd ? int(r-(r-rd)*m) : int(rd-(rd-r)*m);
-      g = g>gd ? int(g-(g-gd)*m) : int(gd-(gd-g)*m);
-      b = b>bd ? int(b-(b-bd)*m) : int(bd-(bd-b)*m);*/
-    return ARGB(a, r, g, b);
+    return storm::Color {static_cast<uint8_t>(a), static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)}.to_hex();
 }
 
 void DublicateString(char*& pDstStr, char const* pSrcStr)
@@ -83,13 +84,4 @@ void DublicateString(char*& pDstStr, char const* pSrcStr)
         Assert(pDstStr);
         memcpy(pDstStr, pSrcStr, len);
     }
-    /*
-    if( pSrcStr )
-    {
-      pDstStr = new char[strlen(pSrcStr)+1];
-      Assert(pDstStr);
-      strcpy_s(pDstStr,pSrcStr);
-    } else {
-        pDstStr = 0;
-    } */
 }

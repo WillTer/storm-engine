@@ -5,7 +5,7 @@
 #include <libs/shared_headers/messages.h>
 #include <libs/util/string_compare.hpp>
 
-Locator::Locator() : rs(nullptr), ParticlesID(0)
+Locator::Locator() : ParticlesID(0)
 {
     gs          = nullptr;
     geo         = nullptr;
@@ -21,7 +21,6 @@ Locator::~Locator()
 
 bool Locator::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
     gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return false;
 
@@ -90,9 +89,9 @@ void Locator::LocateForI(VDATA* pData)
         "%s/%s",
         (pAFilesPath) ? static_cast<char const*>(pAFilesPath->GetThisAttr()) : "",
         static_cast<char const*>(pA->GetAttribute("locators")));
-    rs->SetLoadTextureEnable(false);
+    // rs->SetLoadTextureEnable(false);
     g = gs->CreateGeometry(sFileLocators, "", 0);
-    rs->SetLoadTextureEnable(true);
+    // rs->SetLoadTextureEnable(true);
     if (!g) {
         core->Trace("?void LOCATOR::LocateForI(VDATA * pData)");
         return;
@@ -265,9 +264,9 @@ uint64_t Locator::ProcessMessage(MESSAGE& message)
         std::string const& name = message.String();
         delete geo;
         geo = nullptr;
-        rs->SetLoadTextureEnable(false);
+        // rs->SetLoadTextureEnable(false);
         geo = gs->CreateGeometry(name.c_str(), "", 0);
-        rs->SetLoadTextureEnable(true);
+        // rs->SetLoadTextureEnable(true);
         break;
         /*case LM_LOCATE:
           groupID = geo->FindName("smoke");

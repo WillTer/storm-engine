@@ -5,7 +5,6 @@
 
 #include <entt/core/hashed_string.hpp>
 #include <libs/math/c_vector4.h>
-#include <libs/renderer/dx9render.h>
 
 #include "sea_base.h"
 
@@ -16,8 +15,6 @@ private:
     uint32_t dwIslandCode = entt::hashed_string::value("Island");
     uint32_t dwShipCode   = entt::hashed_string::value("Ship");
     uint32_t dwSailCode   = entt::hashed_string::value("Sail");
-
-    static IDirect3DVertexDeclaration9* vertexDecl_;
 
     struct SeaVertex {
         CVECTOR vPos;
@@ -63,7 +60,6 @@ private:
         float    fTime;
     };
 
-    VDX9RENDER* rs;
     static Sea* pSea;
 
     uint32_t dwMaxDim, dwMinDim;
@@ -83,13 +79,6 @@ private:
 
     int32_t iVSeaBuffer, iISeaBuffer;
 
-    IDirect3DVolumeTexture9* pVolumeTexture;
-    IDirect3DCubeTexture9 *  pEnvMap, *pSunRoadMap;
-    IDirect3DSurface9*       pZStencil;
-
-    IDirect3DTexture9 *pReflection, *pReflectionSunroad;
-    IDirect3DSurface9* pReflectionSurfaceDepth;
-
     bool bSimpleSea;
 
     SeaVertex* pVSea;
@@ -103,21 +92,16 @@ private:
     int32_t               iSeaTrashTexture;
     float                 fLastTrashTime;
     std::vector<SeaTrash> aSeaTrash;
-    std::vector<RS_RECT>  aTrashRects;
 
     int32_t               iSeaLightTexture;
     std::vector<SeaLight> aSeaLights;
     float                 fLastLightTime;
-    std::vector<RS_RECT>  aLightsRects;
 
     std::vector<uint32_t*> aNormals;
     std::vector<uint8_t*>  aBumps;
     std::vector<SeaBlock>  aBlocks;
 
     CVECTOR4 v4SeaColor, v4SkyColor, v4SeaParameters;
-
-    std::vector<IDirect3DTexture9*> aBumpMaps;
-    IDirect3DTexture9*              pRenderTargetBumpMap;
 
     float *pSeaFrame1, *pSeaFrame2, *pSeaNormalsFrame1, *pSeaNormalsFrame2;
 
@@ -168,7 +152,7 @@ private:
     bool EnvMap_Render2();
     bool SunRoad_Render();
     bool EnvMap_Render();
-    void EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView);
+    // void EnvMap_GetSideMatrix(D3DCUBEMAP_FACES Face, CMatrix& mView);
 
     void SFLB_CreateBuffers();
     void CreateVertexDeclaration();

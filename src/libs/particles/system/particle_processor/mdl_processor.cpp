@@ -24,9 +24,6 @@ ModelProcessor::ModelProcessor(ParticleManager* pManager) : Parser()
     for (uint32_t n = 0; n < MAX_MODELS; n++) {
         pMemArray[n].Free = true;
     }
-
-    pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(pRS);
 }
 
 ModelProcessor::~ModelProcessor()
@@ -234,18 +231,11 @@ void ModelProcessor::Process(float DeltaTime)
 
     for (uint32_t n = 0; n < Particles.size(); n++) {
         if (Particles[n]->AttachedEmitter) {
-            // core->Trace("%d, %3.2f, %3.2f, %3.2f", n, Particles[n]->RenderPos.x, Particles[n]->RenderPos.y,
-            // Particles[n]->RenderPos.z); Particles[n]->AttachedEmitter->SaveTime();
             Particles[n]->AttachedEmitter->Teleport(Matrix(Particles[n]->OldRenderAngle, Particles[n]->OldRenderPos));
             Particles[n]->AttachedEmitter->SetTransform(Matrix(Particles[n]->RenderAngle, Particles[n]->RenderPos));
             Particles[n]->AttachedEmitter->BornParticles(DeltaTime);
-
-            // if (n < Particles.size()-1)  Particles[n]->AttachedEmitter->RestoreTime();
         }
     }
-
-    // RDTSC_E (t);
-    // core->Trace("Time - %d", t);
 }
 
 uint32_t ModelProcessor::GetCount() const
@@ -273,11 +263,9 @@ void ModelProcessor::Draw()
     for (uint32_t j = 0; j < Particles.size(); j++) {
         auto const pR = Particles[j];
 
-        pMasterManager->Render()->SetTransform(D3DTS_WORLD, Matrix(pR->RenderAngle, pR->RenderPos));
+        // pMasterManager->Render()->SetTransform(D3DTS_WORLD, Matrix(pR->RenderAngle, pR->RenderPos));
         pR->pScene->Draw(nullptr, 0, nullptr);
     }
-
-    // core->Trace ("PSYS 2.0 : Draw %d model particles", Particles.size());
 }
 
 void ModelProcessor::Clear()

@@ -1,10 +1,11 @@
 #include "xi_glow_cursor.h"
 
+#include <libs/renderer_next/types.h>
+
 CXI_GLOWCURSOR::CXI_GLOWCURSOR()
 {
     m_nNodeType   = NODETYPE_GLOWCURSOR;
     m_idBackTex   = -1;
-    m_pBackTex    = nullptr;
     m_pPrevNode   = nullptr;
     m_bShowGlow   = false;
     m_bGlowToBack = false;
@@ -60,33 +61,33 @@ void CXI_GLOWCURSOR::Draw(bool bSelected, uint32_t Delta_Time)
                     }
                 }
 
-                if (m_idBackTex >= 0) {
-                    m_rs->TextureSet(0, m_idBackTex);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iGlow");
-                }
-                if (m_pBackTex != nullptr) {
-                    m_rs->SetTexture(0, m_pBackTex->m_pTexture);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iGlow");
-                }
+                // if (m_idBackTex >= 0) {
+                //     m_rs->TextureSet(0, m_idBackTex);
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iGlow");
+                // }
+                // if (m_pBackTex != nullptr) {
+                //     m_rs->SetTexture(0, m_pBackTex->m_pTexture);
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iGlow");
+                // }
             }
         }
         if ((m_bGlowToBack && Delta_Time > 0) || (Delta_Time == 0 && !m_bGlowToBack)) {
             if (m_bShowGlow) {
-                if (m_idBackTex >= 0) {
-                    m_rs->TextureSet(0, m_idBackTex);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 8, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
-                }
-                if (m_pBackTex != nullptr) {
-                    m_rs->SetTexture(0, m_pBackTex->m_pTexture);
-                    m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 8, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
-                }
+                // if (m_idBackTex >= 0) {
+                //     m_rs->TextureSet(0, m_idBackTex);
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 8, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
+                // }
+                // if (m_pBackTex != nullptr) {
+                //     m_rs->SetTexture(0, m_pBackTex->m_pTexture);
+                //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 8, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
+                // }
             }
         }
     }
 }
 
 bool CXI_GLOWCURSOR::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -94,8 +95,8 @@ bool CXI_GLOWCURSOR::Init(
 
 void CXI_GLOWCURSOR::ReleaseAll()
 {
-    TEXTURE_RELEASE(m_rs, m_idBackTex);
-    VIDEOTEXTURE_RELEASE(m_rs, m_pBackTex);
+    // TEXTURE_RELEASE(m_rs, m_idBackTex);
+    // VIDEOTEXTURE_RELEASE(m_rs, m_pBackTex);
 }
 
 void CXI_GLOWCURSOR::ChangePosition(XYRECT& rNewPos)
@@ -127,7 +128,7 @@ void CXI_GLOWCURSOR::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_rect.left = m_rect.top = m_rect.right = m_rect.bottom = 0;
 
     // get fone color
-    m_dwFoneColor = GetIniARGB(ini1, name1, ini2, name2, "foneColor", ARGB(255, 128, 128, 128));
+    m_dwFoneColor = GetIniARGB(ini1, name1, ini2, name2, "foneColor", storm::Color {255, 128, 128, 128}.to_hex());
     m_dwCurColor  = m_dwFoneColor;
 
     // get Blind color
@@ -154,10 +155,10 @@ void CXI_GLOWCURSOR::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_yOffset = fPnt.y;
 
     // get video texture (for inside picture)
-    m_pBackTex = nullptr;
-    if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pBackTex = m_rs->GetVideoTexture(param);
-
-    if (ReadIniString(ini1, name1, ini2, name2, "backTexture", param, sizeof(param), "")) m_idBackTex = m_rs->TextureCreate(param);
+    // m_pBackTex = nullptr;
+    // if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pBackTex = m_rs->GetVideoTexture(param);
+    //
+    // if (ReadIniString(ini1, name1, ini2, name2, "backTexture", param, sizeof(param), "")) m_idBackTex = m_rs->TextureCreate(param);
 
     // set constant buffers data
     for (i = 0; i < 14; i++) {

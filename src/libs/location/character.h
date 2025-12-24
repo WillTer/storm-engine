@@ -100,8 +100,8 @@ class Character: public Entity
 
     class RTuner: public MODEL::RenderTuner
     {
-        void Set(MODEL* model, VDX9RENDER* rs) override;
-        void Restore(MODEL* model, VDX9RENDER* rs) override;
+        void Set(MODEL* model, /*VDX9RENDER*/ void* rs) override;
+        void Restore(MODEL* model, /*VDX9RENDER*/ void* rs) override;
 
     public:
         RTuner();

@@ -1,5 +1,5 @@
 storm_lib(
     NAME sea_cameras
     SOURCES_DEPS
-        renderer
+        renderer_next
 )

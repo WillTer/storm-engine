@@ -21,7 +21,6 @@ Tornado::Tornado() : particles(pillar), noiseCloud(pillar), debris(pillar)
 {
     ib           = -1;
     vb           = -1;
-    rs           = nullptr;
     eventCounter = 0.0f;
     liveTime     = 60.0f;
     galhpa       = 1.0f;
@@ -31,13 +30,13 @@ Tornado::Tornado() : particles(pillar), noiseCloud(pillar), debris(pillar)
 
 Tornado::~Tornado()
 {
-    if (rs) {
-        if (ib >= 0) rs->ReleaseIndexBuffer(ib);
-        if (vb >= 0) rs->ReleaseVertexBuffer(vb);
-        if (noiseCloud.texture >= 0) rs->TextureRelease(noiseCloud.texture);
-        if (particles.txtPillarPrts >= 0) rs->TextureRelease(particles.txtPillarPrts);
-        if (particles.txtGroundPrts >= 0) rs->TextureRelease(particles.txtGroundPrts);
-    }
+    // if (rs) {
+    //     if (ib >= 0) rs->ReleaseIndexBuffer(ib);
+    //     if (vb >= 0) rs->ReleaseVertexBuffer(vb);
+    //     if (noiseCloud.texture >= 0) rs->TextureRelease(noiseCloud.texture);
+    //     if (particles.txtPillarPrts >= 0) rs->TextureRelease(particles.txtPillarPrts);
+    //     if (particles.txtGroundPrts >= 0) rs->TextureRelease(particles.txtGroundPrts);
+    // }
     if (soundService && sID != SOUND_INVALID_ID) soundService->sound_release(sID);
 }
 
@@ -53,22 +52,18 @@ bool Tornado::Init()
     core->AddToLayer(EXECUTE, GetId(), 70000);
     core->AddToLayer(REALIZE, GetId(), 70000);
 
-    // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-
     // Create buffers for the pillar
-    ib = rs->CreateIndexBuffer(pillar.GetNumTriangles() * 3 * sizeof(uint16_t));
+    // ib = rs->CreateIndexBuffer(pillar.GetNumTriangles() * 3 * sizeof(uint16_t));
     if (ib < 0) return false;
-    vb = rs->CreateVertexBuffer(D3DFVF_XYZ | D3DFVF_DIFFUSE, pillar.GetNumVerteces() * sizeof(Pillar::Vertex), D3DUSAGE_WRITEONLY);
+    // vb = rs->CreateVertexBuffer(D3DFVF_XYZ | D3DFVF_DIFFUSE, pillar.GetNumVerteces() * sizeof(Pillar::Vertex), D3DUSAGE_WRITEONLY);
     if (vb < 0) return false;
-    auto* ibpnt = static_cast<uint16_t*>(rs->LockIndexBuffer(ib));
-    if (!ibpnt) return false;
-    pillar.FillIndexBuffer(ibpnt);
-    rs->UnLockIndexBuffer(ib);
-    noiseCloud.texture      = rs->TextureCreate("tornado/trncloud.tga");
-    particles.txtPillarPrts = rs->TextureCreate("tornado/pillarprts.tga");
-    particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
+    // auto* ibpnt = static_cast<uint16_t*>(rs->LockIndexBuffer(ib));
+    // if (!ibpnt) return false;
+    // pillar.FillIndexBuffer(ibpnt);
+    // rs->UnLockIndexBuffer(ib);
+    // noiseCloud.texture      = rs->TextureCreate("tornado/trncloud.tga");
+    // particles.txtPillarPrts = rs->TextureCreate("tornado/pillarprts.tga");
+    // particles.txtGroundPrts = rs->TextureCreate("tornado/groundprts.tga");
     particles.SetSea();
     particles.Update(0.0f);
     debris.Init();
@@ -110,23 +105,23 @@ void Tornado::Execute(uint32_t delta_time)
 void Tornado::Realize(uint32_t delta_time)
 {
     liveTime = 1000.0f;
-    // Wreckage
-    debris.Draw(rs);
-    // World identity matrix
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-    // The clouds
-    noiseCloud.Draw(rs);
-    // Pillar
-    auto* vrt = static_cast<Pillar::Vertex*>(rs->LockVertexBuffer(vb));
-    if (!vrt) return;
-    rs->TextureSet(0, -1);
-    pillar.FillVertexBuffer(vrt);
-    rs->UnLockVertexBuffer(vb);
-    rs->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
-    rs->DrawIndexedPrimitiveNoVShader(
-        D3DPT_TRIANGLELIST, vb, sizeof(Pillar::Vertex), ib, 0, pillar.GetNumVerteces(), 0, pillar.GetNumTriangles(), "TornadoPillar");
-    // Particle systems
-    particles.Draw(rs);
+    // // Wreckage
+    // debris.Draw(rs);
+    // // World identity matrix
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    // // The clouds
+    // noiseCloud.Draw(rs);
+    // // Pillar
+    // auto* vrt = static_cast<Pillar::Vertex*>(rs->LockVertexBuffer(vb));
+    // if (!vrt) return;
+    // rs->TextureSet(0, -1);
+    // pillar.FillVertexBuffer(vrt);
+    // rs->UnLockVertexBuffer(vb);
+    // rs->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+    // rs->DrawIndexedPrimitiveNoVShader(
+    //     D3DPT_TRIANGLELIST, vb, sizeof(Pillar::Vertex), ib, 0, pillar.GetNumVerteces(), 0, pillar.GetNumTriangles(), "TornadoPillar");
+    // // Particle systems
+    // particles.Draw(rs);
 }
 
 uint64_t Tornado::ProcessMessage(MESSAGE& message)

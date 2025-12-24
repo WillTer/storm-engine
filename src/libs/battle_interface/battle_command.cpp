@@ -8,11 +8,11 @@
 
 #include "bi_utils.h"
 
-BICommandList::BICommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs)
+BICommandList::BICommandList(entid_t eid, ATTRIBUTES* pA, /*VDX9RENDER*/ void* rs)
 {
     m_idHostObj = eid;
     m_pARoot    = pA;
-    m_pRS       = rs;
+    // m_pRS       = rs;
 
     m_pImgRender = new BIImageRender(rs);
     Assert(m_pImgRender);
@@ -53,20 +53,20 @@ void BICommandList::Draw()
     }
     if (m_pImgRender) m_pImgRender->Render();
 
-    if (!m_NoteText.empty())
-        m_pRS->ExtPrint(
-            m_NoteFontID,
-            m_NoteFontColor,
-            0,
-            PR_ALIGN_CENTER,
-            true,
-            m_NoteFontScale,
-            0,
-            0,
-            m_NotePos.x,
-            m_NotePos.y,
-            "%s",
-            m_NoteText.c_str());
+    // if (!m_NoteText.empty())
+    //     m_pRS->ExtPrint(
+    //         m_NoteFontID,
+    //         m_NoteFontColor,
+    //         0,
+    //         PR_ALIGN_CENTER,
+    //         true,
+    //         m_NoteFontScale,
+    //         0,
+    //         0,
+    //         m_NotePos.x,
+    //         m_NotePos.y,
+    //         "%s",
+    //         m_NoteText.c_str());
 }
 
 void BICommandList::Update(int32_t nTopLine, int32_t nCharacterIndex, int32_t nCommandMode)
@@ -199,8 +199,8 @@ void BICommandList::Init()
     m_IconSize.y     = 64;
     m_nIconSpace     = 8;
 
-    FONT_RELEASE(m_pRS, m_NoteFontID);
-    m_NoteFontColor = ARGB(255, 255, 255, 255);
+    // FONT_RELEASE(m_pRS, m_NoteFontID);
+    m_NoteFontColor = storm::Color {255, 255, 255, 255}.to_hex();
     m_NoteFontScale = 1.f;
     m_NoteOffset.x = m_NoteOffset.y = 0;
 
@@ -244,7 +244,7 @@ void BICommandList::Init()
         char const* attr = nullptr;
 
         // get note font parameters
-        if (pAList->GetAttribute("CommandNoteFont")) m_NoteFontID = m_pRS->LoadFont(pAList->GetAttribute("CommandNoteFont"));
+        // if (pAList->GetAttribute("CommandNoteFont")) m_NoteFontID = m_pRS->LoadFont(pAList->GetAttribute("CommandNoteFont"));
         m_NoteFontColor = pAList->GetAttributeAsDword("CommandNoteColor", m_NoteFontColor);
         m_NoteFontScale = pAList->GetAttributeAsFloat("CommandNoteScale", m_NoteFontScale);
         if (pAList->GetAttribute("CommandNoteOffset"))
@@ -385,28 +385,28 @@ void BICommandList::AddAdditiveToIconList(int32_t nTextureNum, int32_t nPictureN
 void BICommandList::Release()
 {
     STORM_DELETE(m_pImgRender);
-    FONT_RELEASE(m_pRS, m_NoteFontID);
+    // FONT_RELEASE(m_pRS, m_NoteFontID);
 }
 
-int32_t BICommandList::IconAdd(int32_t nPictureNum, int32_t nTextureNum, RECT& rpos)
+int32_t BICommandList::IconAdd(int32_t nPictureNum, int32_t nTextureNum, storm::Rect& rpos)
 {
     if (nTextureNum < 0 || nTextureNum >= m_aTexture.size() || nPictureNum < 0
         || nPictureNum >= m_aTexture[nTextureNum].nCols * m_aTexture[nTextureNum].nRows)
         return 0;
 
-    FRECT uv;
+    storm::FRect uv;
     m_pImgRender->CreateImage(
         BIType_square, m_aTexture[nTextureNum].sFileName.c_str(), 0xFF808080, GetPictureUV(nTextureNum, nPictureNum, uv), rpos);
     return 1;
 }
 
-int32_t BICommandList::ClockIconAdd(int32_t nForePictureNum, int32_t nBackPictureNum, int32_t nTextureNum, RECT& rpos, float fFactor)
+int32_t BICommandList::ClockIconAdd(int32_t nForePictureNum, int32_t nBackPictureNum, int32_t nTextureNum, storm::Rect& rpos, float fFactor)
 {
     if (nTextureNum < 0 || nTextureNum >= m_aTexture.size() || nForePictureNum < 0
         || nForePictureNum >= m_aTexture[nTextureNum].nCols * m_aTexture[nTextureNum].nRows)
         return 0;
 
-    FRECT uv;
+    storm::FRect uv;
     m_pImgRender->CreateImage(
         BIType_square, m_aTexture[nTextureNum].sFileName.c_str(), 0xFF808080, GetPictureUV(nTextureNum, nBackPictureNum, uv), rpos);
     auto* pImg = m_pImgRender->CreateImage(
@@ -418,7 +418,7 @@ int32_t BICommandList::ClockIconAdd(int32_t nForePictureNum, int32_t nBackPictur
 void BICommandList::AdditiveIconAdd(float fX, float fY, std::vector<UsedCommand::AdditiveIcon>& aList)
 {
     if (aList.size() <= 0) return;
-    RECT rCur;
+    storm::Rect rCur;
     for (int32_t n = 0; n < aList.size(); n++) {
         rCur.top    = static_cast<int32_t>(fY + aList[n].fDelta);
         rCur.bottom = rCur.top + static_cast<int32_t>(aList[n].fpSize.y);
@@ -428,7 +428,7 @@ void BICommandList::AdditiveIconAdd(float fX, float fY, std::vector<UsedCommand:
     }
 }
 
-FRECT& BICommandList::GetPictureUV(int32_t nTextureNum, int32_t nPictureNum, FRECT& uv)
+storm::FRect& BICommandList::GetPictureUV(int32_t nTextureNum, int32_t nPictureNum, storm::FRect& uv)
 {
     if (nTextureNum < 0 || nTextureNum >= m_aTexture.size() || nPictureNum < 0
         || nPictureNum >= m_aTexture[nTextureNum].nCols * m_aTexture[nTextureNum].nRows) {
@@ -447,7 +447,7 @@ FRECT& BICommandList::GetPictureUV(int32_t nTextureNum, int32_t nPictureNum, FRE
     return uv;
 }
 
-RECT& BICommandList::GetCurrentPos(int32_t num, RECT& rpos) const
+storm::Rect& BICommandList::GetCurrentPos(int32_t num, storm::Rect& rpos) const
 {
     rpos.left   = m_LeftTopPoint.x + num * (m_IconSize.x + m_nIconSpace);
     rpos.right  = rpos.left + m_IconSize.x;
@@ -458,7 +458,7 @@ RECT& BICommandList::GetCurrentPos(int32_t num, RECT& rpos) const
 
 void BICommandList::UpdateShowIcon()
 {
-    RECT rPos;
+    storm::Rect rPos;
 
     m_pImgRender->ReleaseAllImages();
 

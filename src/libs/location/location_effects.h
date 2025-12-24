@@ -14,7 +14,6 @@
 #include <libs/math/matrix.h>
 
 class MESSAGE;
-class VDX9RENDER;
 
 #define LFX_SPLASHES_SECT 16
 
@@ -110,8 +109,6 @@ private:
     void DrawParticles(void* prts, int32_t num, int32_t size, int32_t texture, char const* tech, bool isEx = false, int32_t numU = 0);
 
 private:
-    VDX9RENDER* rs;
-
     // ---------------------------------------------------
     // Ѕplashes from the character
     // ---------------------------------------------------

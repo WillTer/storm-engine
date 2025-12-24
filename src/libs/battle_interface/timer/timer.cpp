@@ -29,7 +29,7 @@ void BITimer::Realize(uint32_t delta_time)
         if (m_fCurTimerCounter > 0.f) {
             if (m_pForeImage) m_pForeImage->CutSide(0.f, 1.f - m_fCurTimerCounter / m_fMaxTimerCounter, 0.f, 0.f);
             if (m_pImgRndr) {
-                m_pRender->MakePostProcess();
+                // m_pRender->MakePostProcess();
                 m_pImgRndr->Render();
             }
         } else
@@ -56,7 +56,7 @@ bool BITimer::ReadAndCreate()
     if (!m_pImgRndr) return false;
 
     // read position
-    RECT rBackPos, rForePos;
+    storm::Rect rBackPos, rForePos;
     rBackPos.left = rBackPos.top = rBackPos.right = rBackPos.bottom = 0;
     rForePos.left = rForePos.top = rForePos.right = rForePos.bottom = 0;
     BIUtils::ReadRectFromAttr(AttributesPointer, "timerpos", rBackPos, rBackPos);
@@ -67,7 +67,7 @@ bool BITimer::ReadAndCreate()
     rForePos.bottom = rBackPos.bottom - rForePos.bottom;
 
     // read uv
-    FRECT rBackUV, rForeUV;
+    storm::FRect rBackUV, rForeUV;
     rBackUV.left = rBackUV.top = rForeUV.left = rForeUV.top = 0.f;
     rBackUV.right = rBackUV.bottom = rForeUV.right = rForeUV.bottom = 1.f;
     BIUtils::ReadRectFromAttr(AttributesPointer, "timerbackuv", rBackUV, rBackUV);
@@ -90,9 +90,9 @@ void BITimer::SetBeginData()
     m_fCurTimerCounter = 0.f;
     m_fMaxTimerCounter = 0.f;
 
-    m_pRender = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    Assert(m_pRender);
-    m_pImgRndr   = new BIImageRender(m_pRender);
+    // m_pRender = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // Assert(m_pRender);
+    m_pImgRndr   = new BIImageRender(/*m_pRender*/ nullptr);
     m_pBackImage = nullptr;
     m_pForeImage = nullptr;
 }

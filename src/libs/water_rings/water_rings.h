@@ -2,11 +2,9 @@
 
 #include <libs/collide/collide.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 // #include "..\geom_lib\geos.h"
-#include <libs/renderer/iv_buffer_manager.h>
 
 namespace waterrings
 {
@@ -18,7 +16,7 @@ constexpr int   GRID_STEPS_COUNT = 3;
 constexpr int   TRIANGLES_COUNT  = ((GRID_STEPS_COUNT - 1) * (GRID_STEPS_COUNT - 1) * 2);
 constexpr float Y_DELTA          = .01f;
 
-constexpr int RING_FVF = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
+// constexpr int RING_FVF = (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2);
 }  // namespace waterrings
 
 struct RING_VERTEX {
@@ -51,24 +49,14 @@ public:
     void ProcessStage(Stage stage, uint32_t delta) override
     {
         switch (stage) {
-            // case Stage::execute:
-            //    Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
 private:
     void UpdateGrid(int _ringI, uint16_t* iPointer, RING_VERTEX* vPointer, int32_t vOffset);
 
-    VDX9RENDER*      renderService;
-    SEA_BASE*        sea;
-    IVBufferManager* ivManager;
-    int32_t          ringTexture;
-    tRing            rings[waterrings::MAX_RINGS];
+    SEA_BASE* sea;
+    int32_t   ringTexture;
+    tRing     rings[waterrings::MAX_RINGS];
 };

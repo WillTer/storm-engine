@@ -7,7 +7,7 @@
 #include <libs/ship/ship_base.h>
 
 //--------------------------------------------------------------------
-SinkEffect::SinkEffect() : renderer(nullptr), sea(nullptr) {}
+SinkEffect::SinkEffect() : sea(nullptr) {}
 
 //--------------------------------------------------------------------
 SinkEffect::~SinkEffect()
@@ -21,8 +21,6 @@ SinkEffect::~SinkEffect()
 bool SinkEffect::Init()
 {
     sea = static_cast<SEA_BASE*>(core->GetEntityPointer(core->GetEntityId("Sea")));
-
-    renderer = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
 
     InitializeSinks();
 
@@ -44,14 +42,6 @@ uint64_t SinkEffect::ProcessMessage(MESSAGE& message)
         if (attrs) {
             auto&& entities = core->GetEntityIds("Ship");
             for (auto ent: entities) {
-                /*
-                shipBase = (SHIP_BASE *) core->GetEntityPointer(shipID);
-                if (shipBase->GetACharacter() == attrs)
-                {
-                  TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
-                  return outValue;
-                }*/
-
                 auto* shipBase = static_cast<SHIP_BASE*>(core->GetEntityPointer(ent));
                 if (shipBase->GetACharacter() == attrs) {
                     TryToAddSink(shipBase->GetPos(), shipBase->GetBoxsize().z / 2.0f);
@@ -81,29 +71,6 @@ void SinkEffect::Realize(uint32_t _dTime)
 //--------------------------------------------------------------------
 void SinkEffect::Execute(uint32_t _dTime)
 {
-    // GUARD(SINKEFFECT::Execute)
-    /*
-      if (core->Controls->GetAsyncKeyState('X'))
-      {
-        if (renderer && sea)
-        {
-          static CVECTOR pos, ang, nose, head;
-          static CMatrix view;
-          //CVECTOR dir(randCentered(2.0f), -1.0f, randCentered(2.0f));
-          CVECTOR dir(0.0f, -1.0f, 0.0f);
-
-          renderer->GetTransform(D3DTS_VIEW, view);
-          view.Transposition();
-          nose = view.Vz();
-          //head = view.Vy();
-          pos = view.Pos();
-
-          pos += 10.0f * !nose;
-          pos.y = sea->WaveXZ(pos.x, pos.y);
-          TSink *sinks= TryToAddSink(pos, 10.0f);
-        }
-      }
-    */
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i)
         sinks[i].Process(_dTime);
 
@@ -118,7 +85,7 @@ void SinkEffect::InitializeSinks()
 
     for (auto i = 0; i < sink_effect::MAX_SINKS; ++i) {
         sinks[i].Release();
-        sinks[i].Initialize(psIni.get(), nullptr, sea, renderer);
+        sinks[i].Initialize(psIni.get(), sea);
     }
 }
 

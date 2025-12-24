@@ -1,17 +1,16 @@
 #pragma once
 
+#include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>
-#include <libs/renderer/dx9render.h>
 
 class Lights;
 
 class LocModelRealizer: public Entity
 {
-    entid_t     eid_model;
-    Lights*     lights;
-    VDX9RENDER* rs;
-    VGEOMETRY*  gs;
-    bool        bShow;
+    entid_t    eid_model;
+    Lights*    lights;
+    VGEOMETRY* gs;
+    bool       bShow;
 
     // --------------------------------------------------------------------------------------------
     // Construction, destruction

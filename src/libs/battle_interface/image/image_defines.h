@@ -1,8 +1,12 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <cstdint>
 
-#define BI_IMAGE_VERTEX_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+#include <libs/math/c_vector.h>
+#include <libs/renderer_next/types.h>
+
+// FIXME: Renderer Next
+#define BI_IMAGE_VERTEX_FORMAT 0  // (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct BI_IMAGE_VERTEX {
     CVECTOR  pos;
@@ -29,7 +33,7 @@ public:
     virtual void SetColor(uint32_t color)                                                  = 0;
     virtual void SetPosition(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom) = 0;
     virtual void Set3DPosition(const CVECTOR& vPos, float fWidth, float fHeight)           = 0;
-    virtual void SetUV(const FRECT& uv)                                                    = 0;
+    virtual void SetUV(storm::FRect const& uv)                                             = 0;
 
     virtual void CutSide(float fleft, float fright, float ftop, float fbottom) = 0;
     virtual void CutClock(float fBegin, float fEnd, float fFactor)             = 0;

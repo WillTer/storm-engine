@@ -20,8 +20,6 @@ static float const farBlend     = 16.0f;
 static int32_t const vbuff_size = 1024;
 static int32_t       refcount   = 0;
 #define TEXTURE_SIZE 128
-IDirect3DTexture9 *     shTex = nullptr, *blurTex = nullptr;
-IDirect3DVertexBuffer9* vbuff;
 
 Shadow::Shadow()
 {
@@ -33,9 +31,9 @@ Shadow::~Shadow()
 {
     refcount--;
     if (refcount == 0) {
-        rs->Release(vbuff);
-        rs->Release(shTex);
-        rs->Release(blurTex);
+        // rs->Release(vbuff);
+        // rs->Release(shTex);
+        // rs->Release(blurTex);
     }
 }
 
@@ -46,20 +44,17 @@ bool Shadow::Init()
 
     core->AddToLayer(REALIZE, GetId(), 900);
 
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-
     if (refcount == 0) {
-        rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &shTex);
-        if (shTex == nullptr)
-            rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &shTex);
+        // rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &shTex);
+        // if (shTex == nullptr)
+        //     rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &shTex);
+        //
+        // rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &blurTex);
+        // if (blurTex == nullptr)
+        //     rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &blurTex);
 
-        rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &blurTex);
-        if (blurTex == nullptr)
-            rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &blurTex);
-
-        rs->CreateVertexBuffer(
-            sizeof(SHADOW_VERTEX) * (vbuff_size + 128), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, SHADOW_FVF, D3DPOOL_DEFAULT, &vbuff);
+        // rs->CreateVertexBuffer(
+        //     sizeof(SHADOW_VERTEX) * (vbuff_size + 128), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, SHADOW_FVF, D3DPOOL_DEFAULT, &vbuff);
     }
     refcount++;
 
@@ -125,8 +120,8 @@ void Shadow::Realize(uint32_t Delta_Time)
     HEAD_DENSITY = ((VDATA*)pV->GetArrayElement(0))->GetInt();
     DENSITY      = ((VDATA*)pV->GetArrayElement(1))->GetInt();
 
-    D3DVIEWPORT9 vp;
-    rs->GetViewport(&vp);
+    // D3DVIEWPORT9 vp;
+    // rs->GetViewport(&vp);
 
     pV              = core->Event("EWhr_GetFogDensity");
     auto fogDensity = pV->GetFloat();
@@ -141,190 +136,190 @@ void Shadow::Realize(uint32_t Delta_Time)
     auto headPos = objPos;
     headPos.y += gi.radius;
 
-    D3DLIGHT9 dLight;
-    BOOL      bOk = false;
-    rs->GetLightEnable(0, &bOk);
-    if (bOk)
-        rs->GetLight(0, &dLight);
-    else
-        return;
+    // D3DLIGHT9 dLight;
+    // BOOL      bOk = false;
+    // rs->GetLightEnable(0, &bOk);
+    // if (bOk)
+    //     rs->GetLight(0, &dLight);
+    // else
+    // return;
 
-    dLight.Position.y = lightPos.y;
+    // dLight.Position.y = lightPos.y;
 
-    auto light_pos = !CVECTOR(dLight.Direction.x, dLight.Direction.y, dLight.Direction.z);
-    if (light_pos.y > -0.6f) light_pos.y = -0.6f;
-    light_pos = -1000.0f * (!light_pos);
-
-    light_pos = objPos - !(objPos - light_pos) * 100.0f;
-
-    CVECTOR dir = !(objPos - light_pos);
-    lightPos    = light_pos;
+    // auto light_pos = !CVECTOR(dLight.Direction.x, dLight.Direction.y, dLight.Direction.z);
+    // if (light_pos.y > -0.6f) light_pos.y = -0.6f;
+    // light_pos = -1000.0f * (!light_pos);
+    //
+    // light_pos = objPos - !(objPos - light_pos) * 100.0f;
+    //
+    // CVECTOR dir = !(objPos - light_pos);
+    // lightPos    = light_pos;
 
     // check visibility of shadow
-    CMatrix visView, visPoj;
-    rs->GetTransform(D3DTS_VIEW, visView);
-    camPos.x = -visView.m[3][0] * visView.m[0][0] - visView.m[3][1] * visView.m[0][1] - visView.m[3][2] * visView.m[0][2];
-    camPos.y = -visView.m[3][0] * visView.m[1][0] - visView.m[3][1] * visView.m[1][1] - visView.m[3][2] * visView.m[1][2];
-    camPos.z = -visView.m[3][0] * visView.m[2][0] - visView.m[3][1] * visView.m[2][1] - visView.m[3][2] * visView.m[2][2];
+    // CMatrix visView, visPoj;
+    // rs->GetTransform(D3DTS_VIEW, visView);
+    // camPos.x = -visView.m[3][0] * visView.m[0][0] - visView.m[3][1] * visView.m[0][1] - visView.m[3][2] * visView.m[0][2];
+    // camPos.y = -visView.m[3][0] * visView.m[1][0] - visView.m[3][1] * visView.m[1][1] - visView.m[3][2] * visView.m[1][2];
+    // camPos.z = -visView.m[3][0] * visView.m[2][0] - visView.m[3][1] * visView.m[2][1] - visView.m[3][2] * visView.m[2][2];
+    //
+    // rs->GetTransform(D3DTS_PROJECTION, visPoj);
+    // FindPlanes(visView, visPoj);
 
-    rs->GetTransform(D3DTS_PROJECTION, visPoj);
-    FindPlanes(visView, visPoj);
-
-    auto const its = core->GetEntityIds(SHADOW);
-
-    CVECTOR hdest = headPos + !(headPos - light_pos) * 100.0f;
-    float   ray   = col->Trace(its, headPos, hdest, nullptr, 0);
-    CVECTOR cen;
-    float   radius;
-    if (ray <= 1.0f) {
-        if (ray < 4.0f / 100.0f) ray = 4.0f / 100.0f;
-        if (ray > 10.0f / 100.0f) ray = 10.0f / 100.0f;
-        cen    = headPos + 0.5f * ray * (hdest - headPos);
-        radius = ray * 50.0f;
-    } else {
-        cen    = headPos + 4.0f * !(hdest - headPos);
-        radius = 8.0f;
-    }
-
-    int32_t p;
-    for (p = 0; p < 4; p++) {
-        float dist = cen.x * planes[p].Nx + cen.y * planes[p].Ny + cen.z * planes[p].Nz - planes[p].D;
-        if (dist > radius) break;
-    }
-    if (p < 4) { return; }
-
-    float minVal = 0.0f;
-    for (int32_t it = 0; it < 10; it++) {
-        CVECTOR ps = ObjPos;
-        ps.y += gi.radius * 0.111f * static_cast<float>(it);
-        if (col->Trace(its, ps, lightPos, nullptr, 0) > 1.0f) minVal += 0.1f;
-    }
-
-    float dtime = Delta_Time * 0.001f;
-    if (minVal <= 0.5f)
-        shading -= dtime;
-    else
-        shading += dtime;
-
-    shading = std::max(0.2f, std::max(minVal, std::min(shading, 1.0f)));
-    shading *= (blendValue >> 24) / 255.0f;
-
-    // if(core->Controls->GetAsyncKeyState(0xc0)<0)
-    {
-        float dist = sqrtf(~(cen - camPos));
-        if (dist > farBlend)  // too far
-        {
-            return;
-        }
-        if (dist > nearBlend)  // blend
-            shading *= 1.0f - (dist - nearBlend) / (farBlend - nearBlend);
-    }
-
-    // view matrix-------------------------------------
-    CMatrix lightmtx;
-    lightmtx.BuildViewMatrix(CVECTOR(0.0f, 0.0f, 0.0f), dir, CVECTOR(0.0f, 1.0f, 0.0f));
-    lightmtx.SetInversePosition(light_pos.x, light_pos.y, light_pos.z);
-    // projection matrix-------------------------------------
-    CMatrix proj;
-    float   tanfov = sqrtf(~(objPos - light_pos)) / (1.2f * gi.radius);
-    float   fov    = 2.0f * atanf(1.0f / tanfov);
-
-    proj.BuildProjectionMatrix(fov, TEXTURE_SIZE, TEXTURE_SIZE, 0.1f, 1000.0f);
-
-    // general params-------------------------------------
-    trans       = lightmtx;
-    perspective = std::max(proj.m[0][0], proj.m[1][1]);
-    atten_start = 1200.0f;
-    atten_end   = 1300.0f;
-    //---------------------------------------------------------------
-    // draw PROJECTOR
-    FindPlanes(lightmtx, proj);
-
-    //---------------------------------------------------------------
-    //---------------------------------------------------------------
-    // draw object into shadow texture
-    CMatrix prev_view, prev_proj;
-    rs->GetTransform(D3DTS_VIEW, prev_view);
-    rs->GetTransform(D3DTS_PROJECTION, prev_proj);
-
-    IDirect3DSurface9 *backbuff, *zbuff;
-    rs->GetRenderTarget(&backbuff);
-    rs->GetDepthStencilSurface(&zbuff);
-    rs->EndScene();
-
-    rs->SetTransform(D3DTS_PROJECTION, proj);
-    rs->SetTransform(D3DTS_VIEW, lightmtx);
-
-    IDirect3DSurface9* texsurf;
-    shTex->GetSurfaceLevel(0, &texsurf);
-    rs->SetRenderTarget(texsurf, nullptr);
-    rs->Release(texsurf);
-
-    rs->Clear(0L, nullptr, D3DCLEAR_TARGET, 0, 0.0f, 0L);
-    rs->BeginScene();
-
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, DENSITY);
-    char tech[256];
-    strcpy_s(tech, node->GetTechnique());
-    node->SetTechnique("shadow_model");
-    node->flags &= ~NODE::VISIBLE_TREE;
-
-    rs->SetRenderState(D3DRS_ZENABLE, FALSE);
-    obj->ProcessStage(Stage::realize, 0);
-    rs->SetRenderState(D3DRS_ZENABLE, TRUE);
-
-    node->flags |= NODE::VISIBLE_TREE;
-    node->SetTechnique(tech);
-
-    rs->EndScene();
-
-    Smooth();
-
-    rs->SetRenderTarget(backbuff, zbuff);
-    rs->Release(backbuff);
-    rs->Release(zbuff);
-    rs->SetTransform(D3DTS_VIEW, prev_view);
-    rs->SetTransform(D3DTS_PROJECTION, prev_proj);
-    rs->BeginScene();
-
-    //---------------------------------------------------------------
-    //---------------------------------------------------------------
-
-    // create last plane
-    lightmtx.Transposition3X3();
-    CVECTOR pdir = -!CVECTOR(dir.x, 0.0f, dir.z);
-    planes[4].Nx = pdir.x;
-    planes[4].Ny = pdir.y;
-    planes[4].Nz = pdir.z;
-    planes[4].D  = pdir | (objPos + 0.5f * pdir);
-    planes[5].Nx = -pdir.x;
-    planes[5].Ny = -pdir.y;
-    planes[5].Nz = -pdir.z;
-    planes[5].D  = -pdir | (objPos - 3.5f * pdir);
-
-    rs->SetTexture(0, blurTex);
-    rs->SetTransform(D3DTS_WORLD, CMatrix());
-
-    float dist = 3.0f * sqrtf(~(cen - camPos));
-    shading *= powf(2.71f, -fogDensity * dist);
-
-    int32_t shade = static_cast<int32_t>(fabsf(shading * 255.0f));
-
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, (shade << 16) | (shade << 8) | (shade << 0));
-    rs->SetFVF(SHADOW_FVF);
-    // rs->SetIndices(0,0);
-    rs->SetStreamSource(0, vbuff, sizeof(SHADOW_VERTEX));
-
-    tot_verts = 0;
-    rs->VBLock(vbuff, 0, 0, (uint8_t**)&shadvert, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
-    col->Clip(its, &planes[0], 5, cen, radius, AddPoly, &entity, 1);
-
-    rs->VBUnlock(vbuff);
-
-    if (tot_verts >= 3 && rs->TechniqueExecuteStart("shadow_draw")) do {
-            rs->DrawPrimitive(D3DPT_TRIANGLELIST, 0, tot_verts / 3);
-        } while (rs->TechniqueExecuteNext());
-    rs->SetViewport(&vp);
+    // auto const its = core->GetEntityIds(SHADOW);
+    //
+    // CVECTOR hdest = headPos + !(headPos - light_pos) * 100.0f;
+    // float   ray   = col->Trace(its, headPos, hdest, nullptr, 0);
+    // CVECTOR cen;
+    // float   radius;
+    // if (ray <= 1.0f) {
+    //     if (ray < 4.0f / 100.0f) ray = 4.0f / 100.0f;
+    //     if (ray > 10.0f / 100.0f) ray = 10.0f / 100.0f;
+    //     cen    = headPos + 0.5f * ray * (hdest - headPos);
+    //     radius = ray * 50.0f;
+    // } else {
+    //     cen    = headPos + 4.0f * !(hdest - headPos);
+    //     radius = 8.0f;
+    // }
+    //
+    // int32_t p;
+    // for (p = 0; p < 4; p++) {
+    //     float dist = cen.x * planes[p].Nx + cen.y * planes[p].Ny + cen.z * planes[p].Nz - planes[p].D;
+    //     if (dist > radius) break;
+    // }
+    // if (p < 4) { return; }
+    //
+    // float minVal = 0.0f;
+    // for (int32_t it = 0; it < 10; it++) {
+    //     CVECTOR ps = ObjPos;
+    //     ps.y += gi.radius * 0.111f * static_cast<float>(it);
+    //     if (col->Trace(its, ps, lightPos, nullptr, 0) > 1.0f) minVal += 0.1f;
+    // }
+    //
+    // float dtime = Delta_Time * 0.001f;
+    // if (minVal <= 0.5f)
+    //     shading -= dtime;
+    // else
+    //     shading += dtime;
+    //
+    // shading = std::max(0.2f, std::max(minVal, std::min(shading, 1.0f)));
+    // shading *= (blendValue >> 24) / 255.0f;
+    //
+    // // if(core->Controls->GetAsyncKeyState(0xc0)<0)
+    // {
+    //     float dist = sqrtf(~(cen - camPos));
+    //     if (dist > farBlend)  // too far
+    //     {
+    //         return;
+    //     }
+    //     if (dist > nearBlend)  // blend
+    //         shading *= 1.0f - (dist - nearBlend) / (farBlend - nearBlend);
+    // }
+    //
+    // // view matrix-------------------------------------
+    // CMatrix lightmtx;
+    // lightmtx.BuildViewMatrix(CVECTOR(0.0f, 0.0f, 0.0f), dir, CVECTOR(0.0f, 1.0f, 0.0f));
+    // lightmtx.SetInversePosition(light_pos.x, light_pos.y, light_pos.z);
+    // // projection matrix-------------------------------------
+    // CMatrix proj;
+    // float   tanfov = sqrtf(~(objPos - light_pos)) / (1.2f * gi.radius);
+    // float   fov    = 2.0f * atanf(1.0f / tanfov);
+    //
+    // proj.BuildProjectionMatrix(fov, TEXTURE_SIZE, TEXTURE_SIZE, 0.1f, 1000.0f);
+    //
+    // // general params-------------------------------------
+    // trans       = lightmtx;
+    // perspective = std::max(proj.m[0][0], proj.m[1][1]);
+    // atten_start = 1200.0f;
+    // atten_end   = 1300.0f;
+    // //---------------------------------------------------------------
+    // // draw PROJECTOR
+    // FindPlanes(lightmtx, proj);
+    //
+    // //---------------------------------------------------------------
+    // //---------------------------------------------------------------
+    // // draw object into shadow texture
+    // CMatrix prev_view, prev_proj;
+    // rs->GetTransform(D3DTS_VIEW, prev_view);
+    // rs->GetTransform(D3DTS_PROJECTION, prev_proj);
+    //
+    // IDirect3DSurface9 *backbuff, *zbuff;
+    // rs->GetRenderTarget(&backbuff);
+    // rs->GetDepthStencilSurface(&zbuff);
+    // rs->EndScene();
+    //
+    // rs->SetTransform(D3DTS_PROJECTION, proj);
+    // rs->SetTransform(D3DTS_VIEW, lightmtx);
+    //
+    // IDirect3DSurface9* texsurf;
+    // shTex->GetSurfaceLevel(0, &texsurf);
+    // rs->SetRenderTarget(texsurf, nullptr);
+    // rs->Release(texsurf);
+    //
+    // rs->Clear(0L, nullptr, D3DCLEAR_TARGET, 0, 0.0f, 0L);
+    // rs->BeginScene();
+    //
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, DENSITY);
+    // char tech[256];
+    // strcpy_s(tech, node->GetTechnique());
+    // node->SetTechnique("shadow_model");
+    // node->flags &= ~NODE::VISIBLE_TREE;
+    //
+    // rs->SetRenderState(D3DRS_ZENABLE, FALSE);
+    // obj->ProcessStage(Stage::realize, 0);
+    // rs->SetRenderState(D3DRS_ZENABLE, TRUE);
+    //
+    // node->flags |= NODE::VISIBLE_TREE;
+    // node->SetTechnique(tech);
+    //
+    // rs->EndScene();
+    //
+    // Smooth();
+    //
+    // rs->SetRenderTarget(backbuff, zbuff);
+    // rs->Release(backbuff);
+    // rs->Release(zbuff);
+    // rs->SetTransform(D3DTS_VIEW, prev_view);
+    // rs->SetTransform(D3DTS_PROJECTION, prev_proj);
+    // rs->BeginScene();
+    //
+    // //---------------------------------------------------------------
+    // //---------------------------------------------------------------
+    //
+    // // create last plane
+    // lightmtx.Transposition3X3();
+    // CVECTOR pdir = -!CVECTOR(dir.x, 0.0f, dir.z);
+    // planes[4].Nx = pdir.x;
+    // planes[4].Ny = pdir.y;
+    // planes[4].Nz = pdir.z;
+    // planes[4].D  = pdir | (objPos + 0.5f * pdir);
+    // planes[5].Nx = -pdir.x;
+    // planes[5].Ny = -pdir.y;
+    // planes[5].Nz = -pdir.z;
+    // planes[5].D  = -pdir | (objPos - 3.5f * pdir);
+    //
+    // rs->SetTexture(0, blurTex);
+    // rs->SetTransform(D3DTS_WORLD, CMatrix());
+    //
+    // float dist = 3.0f * sqrtf(~(cen - camPos));
+    // shading *= powf(2.71f, -fogDensity * dist);
+    //
+    // int32_t shade = static_cast<int32_t>(fabsf(shading * 255.0f));
+    //
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (shade << 16) | (shade << 8) | (shade << 0));
+    // rs->SetFVF(SHADOW_FVF);
+    // // rs->SetIndices(0,0);
+    // rs->SetStreamSource(0, vbuff, sizeof(SHADOW_VERTEX));
+    //
+    // tot_verts = 0;
+    // rs->VBLock(vbuff, 0, 0, (uint8_t**)&shadvert, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
+    // col->Clip(its, &planes[0], 5, cen, radius, AddPoly, &entity, 1);
+    //
+    // rs->VBUnlock(vbuff);
+    //
+    // if (tot_verts >= 3 && rs->TechniqueExecuteStart("shadow_draw")) do {
+    //         rs->DrawPrimitive(D3DPT_TRIANGLELIST, 0, tot_verts / 3);
+    //     } while (rs->TechniqueExecuteNext());
+    // rs->SetViewport(&vp);
 }
 
 void Shadow::FindPlanes(CMatrix const& view, CMatrix const& proj)
@@ -429,43 +424,43 @@ void Shadow::Smooth()
     vrt[0].diffuse = vrt[3].diffuse = HEAD_DENSITY;
     vrt[1].diffuse = vrt[2].diffuse = 0xFFFFFFFF;
 
-    IDirect3DSurface9* texsurf;
-    blurTex->GetSurfaceLevel(0, &texsurf);
-    rs->SetRenderTarget(texsurf, nullptr);
-    rs->Release(texsurf);
-
-    rs->Clear(0L, nullptr, D3DCLEAR_TARGET, 0, 0.0f, 0L);
-    rs->BeginScene();
-
-    rs->SetTexture(0, shTex);
-
-    if (rs->TechniqueExecuteStart("shadow_smooth")) do {
-            static int32_t const nIterations = 3;
-
-            for (int32_t u = 0; u < nIterations; u++)
-                for (int32_t v = 0; v < nIterations; v++) {
-                    float const ud    = 1.5f * (u / (nIterations - 1.0f) - 0.5f) / (TEXTURE_SIZE - 1.0f) * 2.0f;
-                    float const vd    = 1.5f * (v / (nIterations - 1.0f) - 0.5f) / (TEXTURE_SIZE - 1.0f) * 2.0f;
-                    vrt[0].tu         = 0.0f + ud;
-                    vrt[0].tv         = 0.0f + vd;
-                    vrt[1].tu         = 0.0f + ud;
-                    vrt[1].tv         = 1.0f + vd;
-                    vrt[2].tu         = 1.0f + ud;
-                    vrt[2].tv         = 1.0f + vd;
-                    vrt[3].tu         = 1.0f + ud;
-                    vrt[3].tv         = 0.0f + vd;
-                    int32_t const col = static_cast<int32_t>(1.0f / (nIterations * nIterations) * 255.0f);
-                    rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF000000 | (col << 16) | (col << 8) | (col << 0));
-                    rs->DrawPrimitiveUP(
-                        D3DPT_TRIANGLEFAN,
-                        D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2,
-                        2,
-                        &vrt,
-                        sizeof(SMOOTHVRT));
-                }
-        } while (rs->TechniqueExecuteNext());
-
-    rs->EndScene();
+    // IDirect3DSurface9* texsurf;
+    // blurTex->GetSurfaceLevel(0, &texsurf);
+    // rs->SetRenderTarget(texsurf, nullptr);
+    // rs->Release(texsurf);
+    //
+    // rs->Clear(0L, nullptr, D3DCLEAR_TARGET, 0, 0.0f, 0L);
+    // rs->BeginScene();
+    //
+    // rs->SetTexture(0, shTex);
+    //
+    // if (rs->TechniqueExecuteStart("shadow_smooth")) do {
+    //         static int32_t const nIterations = 3;
+    //
+    //         for (int32_t u = 0; u < nIterations; u++)
+    //             for (int32_t v = 0; v < nIterations; v++) {
+    //                 float const ud    = 1.5f * (u / (nIterations - 1.0f) - 0.5f) / (TEXTURE_SIZE - 1.0f) * 2.0f;
+    //                 float const vd    = 1.5f * (v / (nIterations - 1.0f) - 0.5f) / (TEXTURE_SIZE - 1.0f) * 2.0f;
+    //                 vrt[0].tu         = 0.0f + ud;
+    //                 vrt[0].tv         = 0.0f + vd;
+    //                 vrt[1].tu         = 0.0f + ud;
+    //                 vrt[1].tv         = 1.0f + vd;
+    //                 vrt[2].tu         = 1.0f + ud;
+    //                 vrt[2].tv         = 1.0f + vd;
+    //                 vrt[3].tu         = 1.0f + ud;
+    //                 vrt[3].tv         = 0.0f + vd;
+    //                 int32_t const col = static_cast<int32_t>(1.0f / (nIterations * nIterations) * 255.0f);
+    //                 rs->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF000000 | (col << 16) | (col << 8) | (col << 0));
+    //                 rs->DrawPrimitiveUP(
+    //                     D3DPT_TRIANGLEFAN,
+    //                     D3DFVF_XYZRHW | D3DFVF_TEX1 | D3DFVF_DIFFUSE | D3DFVF_TEXTUREFORMAT2,
+    //                     2,
+    //                     &vrt,
+    //                     sizeof(SMOOTHVRT));
+    //             }
+    //     } while (rs->TechniqueExecuteNext());
+    //
+    // rs->EndScene();
 }
 
 uint64_t Shadow::ProcessMessage(MESSAGE& message)
@@ -482,24 +477,24 @@ uint64_t Shadow::ProcessMessage(MESSAGE& message)
 void Shadow::LostRender()
 {
     if (--refcount == 0) {
-        rs->Release(shTex);
-        rs->Release(blurTex);
-        rs->Release(vbuff);
+        // rs->Release(shTex);
+        // rs->Release(blurTex);
+        // rs->Release(vbuff);
     }
 }
 
 void Shadow::RestoreRender()
 {
     if (refcount++ == 0) {
-        rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &shTex);
-        if (shTex == nullptr)
-            rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &shTex);
-
-        rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &blurTex);
-        if (blurTex == nullptr)
-            rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &blurTex);
-
-        rs->CreateVertexBuffer(
-            sizeof(SHADOW_VERTEX) * (vbuff_size + 128), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, SHADOW_FVF, D3DPOOL_DEFAULT, &vbuff);
+        // rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &shTex);
+        // if (shTex == nullptr)
+        //     rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &shTex);
+        //
+        // rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &blurTex);
+        // if (blurTex == nullptr)
+        //     rs->CreateTexture(TEXTURE_SIZE, TEXTURE_SIZE, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R5G6B5, D3DPOOL_DEFAULT, &blurTex);
+        //
+        // rs->CreateVertexBuffer(
+        //     sizeof(SHADOW_VERTEX) * (vbuff_size + 128), D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, SHADOW_FVF, D3DPOOL_DEFAULT, &vbuff);
     }
 }

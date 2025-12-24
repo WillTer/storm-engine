@@ -103,9 +103,9 @@ private:
 
     uint32_t dwNumPenasExecuted;
 
-    VDX9RENDER* rs;
+    // VDX9RENDER* rs;
 
-    void ExtractRay(const D3DVIEWPORT9& viewport, float fCursorX, float fCursorY, CVECTOR& raystart, CVECTOR& rayend);
+    void ExtractRay(float fCursorX, float fCursorY, CVECTOR& raystart, CVECTOR& rayend);
 
     bool IsClipped(Foam* pF);
 

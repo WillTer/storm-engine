@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/entity.h>
 
 class WideScreen: public Entity
 {
@@ -47,8 +47,7 @@ public:
     // Encapsulation
     // --------------------------------------------------------------------------------------------
 private:
-    VDX9RENDER* rs;     //
-    float       w, h;   // Screen dimensions
-    float       state;  // Screen state
-    float       dlt;    // Screen change direction
+    float w, h;   // Screen dimensions
+    float state;  // Screen state
+    float dlt;    // Screen change direction
 };

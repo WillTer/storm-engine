@@ -23,8 +23,8 @@ class ModelArray
     class UVSlider: public MODEL::RenderTuner
     {
     public:
-        void Set(MODEL* model, VDX9RENDER* rs) override;
-        void Restore(MODEL* model, VDX9RENDER* rs) override;
+        void Set(MODEL* model, /*VDX9RENDER*/ void* rs) override;
+        void Restore(MODEL* model, /*VDX9RENDER*/ void* rs) override;
 
         float u0, v0;
         float us0, vs0;
@@ -35,8 +35,8 @@ class ModelArray
     class Relection: public MODEL::RenderTuner
     {
     public:
-        void     Set(MODEL* model, VDX9RENDER* rs) override;
-        void     Restore(MODEL* model, VDX9RENDER* rs) override;
+        void     Set(MODEL* model, /*VDX9RENDER*/ void* rs) override;
+        void     Restore(MODEL* model, /*VDX9RENDER*/ void* rs) override;
         uint32_t tfactor;
     };
 

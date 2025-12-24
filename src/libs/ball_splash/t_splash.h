@@ -3,8 +3,6 @@
 #include <libs/math/c_vector.h>
 #include <libs/sea/sea_base.h>
 
-// #include "../sound_service/v_sound_service.h"
-
 class INIFILE;
 ///////////////////////////////////////////////////////////////////
 // CLASS DEFINITION
@@ -22,14 +20,13 @@ struct GRID_VERTEX2 {
     float    tu2, tv2;
 };
 
-class VDX9RENDER;
 class TSplash
 {
 public:
     TSplash();
     virtual ~TSplash();
 
-    void Initialize(INIFILE* _ini, IDirect3DDevice9* _device, SEA_BASE* sea, VDX9RENDER* _renderer);
+    void Initialize(INIFILE* _ini, /*IDirect3DDevice9* _device, */ SEA_BASE* sea /*, VDX9RENDER* _renderer*/);
     void Release();
     void Start(const CVECTOR& _pos, const CVECTOR& _dir);
     bool Process(uint32_t dTime);
@@ -49,9 +46,10 @@ private:
 
     bool enabled;
 
-    static VDX9RENDER* renderer;
-    SEA_BASE*          sea;
-    IDirect3DDevice9*  device;
+    // FIXME: Renderer Next
+    // static VDX9RENDER* renderer;
+    // IDirect3DDevice9* device;
+    SEA_BASE* sea;
 
     static int32_t vBuffer, iBuffer, texture, texture2, vBuffer2, iBuffer2;
     static int     buffersUsage;

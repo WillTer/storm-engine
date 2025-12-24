@@ -270,7 +270,7 @@ void Player::Rotate(float dltTime)
                 // Rotate the vector relative to the camera
                 CMatrix     mtx;
                 auto* const location = GetLocation();
-                location->GetRS()->GetTransform(D3DTS_VIEW, mtx);
+                // location->GetRS()->GetTransform(D3DTS_VIEW, mtx);
                 mtx.Transposition3X3();
                 mtx.Vy()       = CVECTOR(0.0f, 1.0f, 0.0f);
                 mtx.Vx().y     = 0.0f;
@@ -559,7 +559,7 @@ void Player::FireFromShootgun()
     auto        dz = cosf(ay);
     CMatrix     mtx;
     auto* const location = GetLocation();
-    location->GetRS()->GetTransform(D3DTS_VIEW, mtx);
+    // location->GetRS()->GetTransform(D3DTS_VIEW, mtx);
     mtx.Transposition();
     auto const src = mtx.Pos() + mtx.Vz() * 0.7f;
     core->Send_Message(effects, "sffffff", "SGFireParticles", src.x, src.y - 0.35f, src.z, mtx.Vz().x, mtx.Vz().y, mtx.Vz().z);

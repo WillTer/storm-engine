@@ -16,7 +16,6 @@ constexpr std::string_view RIGGING_INI_FILE = "rigging.ini";
 Flag::Flag()
 {
     bUse          = false;
-    RenderService = nullptr;
     bFirstRun     = true;
     texl          = -1;
     flist         = nullptr;
@@ -31,12 +30,8 @@ Flag::Flag()
 
 Flag::~Flag()
 {
-    TEXTURE_RELEASE(RenderService, texl);
     delete[] gdata;
     gdata = nullptr;
-
-    VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-    INDEX_BUFFER_RELEASE(RenderService, iBuf);
 
     while (flagQuantity > 0) {
         flagQuantity--;
@@ -55,15 +50,12 @@ bool Flag::Init()
 
 void Flag::SetDevice()
 {
-    // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
     globalWind.ang.x = 0.f;
     globalWind.ang.y = 0.f;
     globalWind.ang.z = 1.f;
     globalWind.base  = 1.f;
     LoadIni();
-    texl = RenderService->TextureCreate(textureName_.c_str());
+    // texl = RenderService->TextureCreate(textureName_.c_str());
 }
 
 bool Flag::CreateState(ENTITY_STATE_GEN* state_gen)
@@ -104,13 +96,13 @@ void Flag::Execute(uint32_t Delta_Time)
         }
 
         // calculation of the shape of the flag
-        vertBuf = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-        if (vertBuf) {
-            auto const dt = static_cast<float>(Delta_Time) * 0.02f;
-            for (auto fn = 0; fn < flagQuantity; fn++)
-                DoMove(flist[fn], dt);
-            RenderService->UnLockVertexBuffer(vBuf);
-        }
+        // vertBuf = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+        // if (vertBuf) {
+        //     auto const dt = static_cast<float>(Delta_Time) * 0.02f;
+        //     for (auto fn = 0; fn < flagQuantity; fn++)
+        //         DoMove(flist[fn], dt);
+        //     RenderService->UnLockVertexBuffer(vBuf);
+        // }
     }
 }
 
@@ -119,17 +111,14 @@ void Flag::Realize(uint32_t Delta_Time)
     if (bUse) {
         //_asm rdtsc _asm mov rtm,eax
 
-        RenderService->TextureSet(0, texl);
-        uint32_t ambient;
-        RenderService->GetRenderState(D3DRS_AMBIENT, &ambient);
-        RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
-        RenderService->SetTransform(D3DTS_WORLD, rootMatrix);
+        // RenderService->TextureSet(0, texl);
+        // uint32_t ambient;
+        // RenderService->GetRenderState(D3DRS_AMBIENT, &ambient);
+        // RenderService->SetRenderState(D3DRS_TEXTUREFACTOR, ambient);
+        // RenderService->SetTransform(D3DTS_WORLD, rootMatrix);
 
         // draw nature flag
-        if (nVert != 0 && nIndx != 0) RenderService->DrawBuffer(vBuf, sizeof(FLAGLXVERTEX), iBuf, 0, nVert, 0, nIndx, "ShipFlag");
-        //_asm rdtsc  _asm sub eax,rtm _asm mov rtm,eax
-        // Print info
-        // RenderService->Print(0,220,"Flags tics= %d",rtm);
+        // if (nVert != 0 && nIndx != 0) RenderService->DrawBuffer(vBuf, sizeof(FLAGLXVERTEX), iBuf, 0, nVert, 0, nIndx, "ShipFlag");
     }
 }
 
@@ -275,39 +264,39 @@ void Flag::SetTextureCoordinate()
         float   stu, addtu, dtu;
         float   stv, addtv, dtv;
 
-        auto* pv = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-        if (pv) {
-            for (auto fn = 0; fn < flagQuantity; fn++) {
-                if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
-                sIdx  = flist[fn]->sv;
-                addtu = 1.f / static_cast<float>(FlagTextureQuantity);
-                addtv = 1.f / (float)FlagTextureQuantityRow;
-                stu   = addtu * flist[fn]->texNumC;
-                stv   = addtv * flist[fn]->texNumR;
-                if (flist[fn]->triangle) {
-                    dtu = addtu / static_cast<float>(flist[fn]->vectQuant + 1);
-                    dtv = .5f / static_cast<float>(flist[fn]->vectQuant + 1);
-                } else {
-                    dtu = addtu / static_cast<float>(flist[fn]->vectQuant);
-                    dtv = 0.f;
-                }
-                for (i = 0; i <= flist[fn]->vectQuant; i++) {
-                    pv[sIdx].tu   = stu;
-                    pv[sIdx++].tv = stv;
-                    pv[sIdx].tu   = stu;
-                    pv[sIdx++].tv = stv + addtv;
-
-                    stu += dtu;
-                    stv += dtv;
-                }
-                if (flist[fn]->triangle) {
-                    pv[sIdx].tv = stv;
-                    pv[sIdx].tu = stu;
-                }
-            }
-            RenderService->UnLockVertexBuffer(vBuf);
-            verticesNeedUpdate_ = false;
-        }
+        // auto* pv = static_cast<FLAGLXVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+        // if (pv) {
+        //     for (auto fn = 0; fn < flagQuantity; fn++) {
+        //         if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
+        //         sIdx  = flist[fn]->sv;
+        //         addtu = 1.f / static_cast<float>(FlagTextureQuantity);
+        //         addtv = 1.f / (float)FlagTextureQuantityRow;
+        //         stu   = addtu * flist[fn]->texNumC;
+        //         stv   = addtv * flist[fn]->texNumR;
+        //         if (flist[fn]->triangle) {
+        //             dtu = addtu / static_cast<float>(flist[fn]->vectQuant + 1);
+        //             dtv = .5f / static_cast<float>(flist[fn]->vectQuant + 1);
+        //         } else {
+        //             dtu = addtu / static_cast<float>(flist[fn]->vectQuant);
+        //             dtv = 0.f;
+        //         }
+        //         for (i = 0; i <= flist[fn]->vectQuant; i++) {
+        //             pv[sIdx].tu   = stu;
+        //             pv[sIdx++].tv = stv;
+        //             pv[sIdx].tu   = stu;
+        //             pv[sIdx++].tv = stv + addtv;
+        //
+        //             stu += dtu;
+        //             stv += dtv;
+        //         }
+        //         if (flist[fn]->triangle) {
+        //             pv[sIdx].tv = stv;
+        //             pv[sIdx].tu = stu;
+        //         }
+        //     }
+        //     RenderService->UnLockVertexBuffer(vBuf);
+        //     verticesNeedUpdate_ = false;
+        // }
     }
 }
 
@@ -480,20 +469,20 @@ void Flag::SetTreangle() const
 {
     int i, idx;
 
-    auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
-    if (pt) {
-        for (auto fn = 0; fn < flagQuantity; fn++) {
-            if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
-            idx = flist[fn]->st;
-            for (i = 0; i < static_cast<int>(flist[fn]->nt); i++) {
-                pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv);
-                pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 1);
-                pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 2);
-            }
-        }
-
-        RenderService->UnLockIndexBuffer(iBuf);
-    }
+    // auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
+    // if (pt) {
+    //     for (auto fn = 0; fn < flagQuantity; fn++) {
+    //         if (flist[fn] == nullptr || flist[fn]->bDisabled) continue;
+    //         idx = flist[fn]->st;
+    //         for (i = 0; i < static_cast<int>(flist[fn]->nt); i++) {
+    //             pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv);
+    //             pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 1);
+    //             pt[idx++] = static_cast<uint16_t>(i + flist[fn]->sv + 2);
+    //         }
+    //     }
+    //
+    //     RenderService->UnLockIndexBuffer(iBuf);
+    // }
 }
 
 void Flag::LoadIni()
@@ -585,15 +574,15 @@ void Flag::FirstRun()
         rootMatrix.SetIdentity();
     }
 
-    if (nVert) {
-        bUse = true;
-        iBuf = RenderService->CreateIndexBuffer(nIndx * 2);
-        SetTreangle();
-        vBuf                = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
-        verticesNeedUpdate_ = true;
-        SetTextureCoordinate();
-        nIndx /= 3;
-    }
+    // if (nVert) {
+    //     bUse = true;
+    //     iBuf = RenderService->CreateIndexBuffer(nIndx * 2);
+    //     SetTreangle();
+    //     vBuf                = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
+    //     verticesNeedUpdate_ = true;
+    //     SetTextureCoordinate();
+    //     nIndx /= 3;
+    // }
 
     bFirstRun = false;
     wFlagLast = flagQuantity;
@@ -654,43 +643,43 @@ void Flag::DoSTORM_DELETE()
     }
 
     nIndx /= 3;
-    if (nfn == 0 || ngn == 0) {
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-        flagQuantity = groupQuantity = 0;
-        delete[] flist;
-        flist = nullptr;
-        delete gdata;
-        gdata = nullptr;
-    } else if (nfn != flagQuantity || ngn != groupQuantity) {
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-        vBuf = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
-        iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
-
-        flagQuantity  = nfn;
-        groupQuantity = ngn;
-
-        auto* const oldflist = flist;
-        flist                = new FLAGDATA*[flagQuantity];
-        if (flist) {
-            memcpy(flist, oldflist, sizeof(FLAGDATA*) * flagQuantity);
-            delete oldflist;
-        } else
-            flist = oldflist;
-
-        auto* const oldgdata = gdata;
-        gdata                = new GROUPDATA[groupQuantity];
-        if (gdata) {
-            memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
-            delete oldgdata;
-        } else
-            gdata = oldgdata;
-
-        SetTreangle();
-        verticesNeedUpdate_ = true;
-        SetTextureCoordinate();
-    }
+    // if (nfn == 0 || ngn == 0) {
+    //     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //     INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //     flagQuantity = groupQuantity = 0;
+    //     delete[] flist;
+    //     flist = nullptr;
+    //     delete gdata;
+    //     gdata = nullptr;
+    // } else if (nfn != flagQuantity || ngn != groupQuantity) {
+    //     VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //     INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //     vBuf = RenderService->CreateVertexBuffer(FLAGLXVERTEX_FORMAT, nVert * sizeof(FLAGLXVERTEX), D3DUSAGE_WRITEONLY);
+    //     iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
+    //
+    //     flagQuantity  = nfn;
+    //     groupQuantity = ngn;
+    //
+    //     auto* const oldflist = flist;
+    //     flist                = new FLAGDATA*[flagQuantity];
+    //     if (flist) {
+    //         memcpy(flist, oldflist, sizeof(FLAGDATA*) * flagQuantity);
+    //         delete oldflist;
+    //     } else
+    //         flist = oldflist;
+    //
+    //     auto* const oldgdata = gdata;
+    //     gdata                = new GROUPDATA[groupQuantity];
+    //     if (gdata) {
+    //         memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
+    //         delete oldgdata;
+    //     } else
+    //         gdata = oldgdata;
+    //
+    //     SetTreangle();
+    //     verticesNeedUpdate_ = true;
+    //     SetTextureCoordinate();
+    // }
 
     wFlagLast   = flagQuantity;
     bYesDeleted = false;
@@ -802,8 +791,8 @@ void Flag::SetAdd(int flagNum)
         }
     }
     // remove old buffers
-    VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-    INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    // VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    // INDEX_BUFFER_RELEASE(RenderService, iBuf);
 }
 
 void Flag::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
@@ -844,9 +833,9 @@ void Flag::MoveOtherHost(entid_t newm_id, int32_t flagNum, entid_t oldm_id)
 
 void Flag::UpdateTexture(std::string_view const& texturePath)
 {
-    if (textureName_ != texturePath) {
-        textureName_ = texturePath;
-        RenderService->TextureRelease(texl);
-        texl = RenderService->TextureCreate(textureName_.c_str());
-    }
+    // if (textureName_ != texturePath) {
+    //     textureName_ = texturePath;
+    //     RenderService->TextureRelease(texl);
+    //     texl = RenderService->TextureCreate(textureName_.c_str());
+    // }
 }

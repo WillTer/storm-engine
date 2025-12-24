@@ -12,11 +12,11 @@ class VAI_OBJBASE;
 class ISpyglass: public Entity
 {
     struct ImageParam {
-        BIImage*    pImage;
-        std::string sTextureName;
-        uint32_t    dwColor;
-        FRECT       rUV;
-        RECT        rPos;
+        BIImage*     pImage;
+        std::string  sTextureName;
+        uint32_t     dwColor;
+        storm::FRect rUV;
+        storm::Rect  rPos;
 
         ImageParam()
         {
@@ -38,24 +38,24 @@ class ISpyglass: public Entity
             int32_t        nDefRightPos,
             int32_t        nDefBottomPos,
             int32_t        nPrior);
-        void ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, FRECT& frUV);
+        void ChangeIcon(BIImageRender* pImgRender, char const* pcTextureName, storm::FRect& frUV);
     };
 
     struct TextParam {
-        VDX9RENDER* rs;
-        int32_t     nFontID;
-        IPOINT      pos;
-        float       fScale;
-        uint32_t    dwColor;
-        std::string sText;
-        int32_t     nAlign;
+        // VDX9RENDER* rs;
+        int32_t      nFontID;
+        storm::Point pos;
+        float        fScale;
+        uint32_t     dwColor;
+        std::string  sText;
+        int32_t      nAlign;
 
         TextParam(TextParam&&)      = delete;
         TextParam(TextParam const&) = delete;
 
         TextParam()
         {
-            rs      = nullptr;
+            // rs      = nullptr;
             nFontID = -1;
         }
 
@@ -66,11 +66,11 @@ class ISpyglass: public Entity
 
         void Release()
         {
-            if (rs && nFontID >= 0) rs->UnloadFont(nFontID);
+            // if (rs && nFontID >= 0) rs->UnloadFont(nFontID);
             nFontID = -1;
         }
 
-        void LoadFromAttr(VDX9RENDER* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos);
+        void LoadFromAttr(/*VDX9RENDER*/ void* rs, ATTRIBUTES* pA, char const* pcDefText, int32_t nDefXPos, int32_t nDefYPos);
         void Print() const;
     };
 
@@ -111,7 +111,7 @@ public:
     }
 
 protected:
-    VDX9RENDER*    rs;
+    // VDX9RENDER*    rs;
     BIImageRender* m_pImgRender;
 
     // telescope lens
@@ -163,10 +163,10 @@ protected:
     bool    m_bIsPresentShipInfo;
     int32_t m_nInfoCharacterIndex;
 
-    SpyGlassCameraParameters m_Camera {};
-    std::vector<FRECT>       m_aNationUV;
-    std::vector<FRECT>       m_aChargeUV;
-    std::vector<FRECT>       m_aSailUV;
+    SpyGlassCameraParameters  m_Camera {};
+    std::vector<storm::FRect> m_aNationUV;
+    std::vector<storm::FRect> m_aChargeUV;
+    std::vector<storm::FRect> m_aSailUV;
 
     VAI_OBJBASE* m_pFortObj;
 
@@ -204,6 +204,6 @@ protected:
                char const* pcCaptainName,
                char const* pcFaceTexture,
                int32_t     nShipClass);
-    void         FillUVArrayFromAttributes(std::vector<FRECT>& m_aUV, ATTRIBUTES* pA) const;
+    void         FillUVArrayFromAttributes(std::vector<storm::FRect>& m_aUV, ATTRIBUTES* pA) const;
     VAI_OBJBASE* GetFort();
 };

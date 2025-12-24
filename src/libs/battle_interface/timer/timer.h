@@ -45,7 +45,7 @@ protected:  // data
     float       m_fMaxTimerCounter;
     std::string m_sEventName;
 
-    VDX9RENDER*    m_pRender;
+    // VDX9RENDER*    m_pRender;
     BIImageRender* m_pImgRndr;
     IBIImage*      m_pBackImage;
     IBIImage*      m_pForeImage;

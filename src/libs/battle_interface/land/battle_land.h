@@ -43,8 +43,8 @@ protected:
 
     // data
 protected:
-    VDX9RENDER* m_pRS;
-    bool        m_bShowCommandos;
+    // VDX9RENDER* m_pRS;
+    bool m_bShowCommandos;
 
     BIManSign* m_pManSign;
 

@@ -1,7 +1,5 @@
 #pragma once
 #include <libs/math/c_vector.h>
-#include <libs/renderer/dx9render.h>
-#include <libs/renderer/iv_buffer_manager.h>
 #include <libs/sea/sea_base.h>
 
 #include "t_flotsam.h"
@@ -16,7 +14,7 @@ public:
     TSink();
     virtual ~TSink();
 
-    void Initialize(INIFILE* _ini, IDirect3DDevice9* _device, SEA_BASE* sea, VDX9RENDER* _renderer);
+    void Initialize(INIFILE* _ini, SEA_BASE* sea);
     void Release();
     void Start(const CVECTOR& _pos, float _radius);
     void Process(uint32_t dTime);
@@ -26,11 +24,9 @@ public:
 private:
     bool enabled;
 
-    VDX9RENDER*      renderer;
-    SEA_BASE*        sea;
-    int32_t          texture;
-    IVBufferManager* ivManager;
-    uint32_t         time;
+    SEA_BASE* sea;
+    int32_t   texture;
+    uint32_t  time;
 
     TSinkSplash splashes[sink_effect::MAX_SPLASHES];
     int32_t     times[sink_effect::MAX_SPLASHES];

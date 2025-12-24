@@ -21,8 +21,8 @@ public:
     WdmIslandWaves();
 
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER* rs) override;
-    void Render(VDX9RENDER* rs, float k);
+    void LRender(/*VDX9RENDER*/ void* rs) override;
+    void Render(/*VDX9RENDER*/ void* rs, float k);
 
 private:
     float phase;
@@ -112,7 +112,7 @@ public:
     void GetNearPointToArea(char const* islandName, float& x, float& z);
 
     void Update(float dltTime) override;
-    void LRender(VDX9RENDER* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     // --------------------------------------------------------------------------------------------
     // Encapsulation

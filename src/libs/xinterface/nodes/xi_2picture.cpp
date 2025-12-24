@@ -2,6 +2,7 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer_next/types.h>
 
 void SetRectanglePos(XI_ONETEX_VERTEX v[4], const FXYPOINT& center, const FXYPOINT& size)
 {
@@ -27,7 +28,6 @@ void SetRectangleColor(XI_ONETEX_VERTEX v[4], uint32_t color)
 
 CXI_TWOPICTURE::CXI_TWOPICTURE()
 {
-    m_rs       = nullptr;
     m_idOneTex = m_idTwoTex   = -1L;
     m_nNodeType               = NODETYPE_TWOPICTURE;
     m_bSelected               = true;
@@ -42,15 +42,15 @@ CXI_TWOPICTURE::~CXI_TWOPICTURE()
 void CXI_TWOPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        m_rs->TextureSet(0, m_idOneTex);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vOne, sizeof(XI_ONETEX_VERTEX), "iIcon");
-        m_rs->TextureSet(0, m_idTwoTex);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vTwo, sizeof(XI_ONETEX_VERTEX), "iIcon");
+        // m_rs->TextureSet(0, m_idOneTex);
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vOne, sizeof(XI_ONETEX_VERTEX), "iIcon");
+        // m_rs->TextureSet(0, m_idTwoTex);
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_vTwo, sizeof(XI_ONETEX_VERTEX), "iIcon");
     }
 }
 
 bool CXI_TWOPICTURE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -76,20 +76,20 @@ void CXI_TWOPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_PressOffset       = GetIniFloatPoint(ini1, name1, ini2, name2, "offsetPress", FXYPOINT(4.0, 4.0));
 
     // textures
-    if (ReadIniString(ini1, name1, ini2, name2, "oneTexName", param, sizeof(param), ""))
-        m_idOneTex = m_rs->TextureCreate(param);
-    else
-        m_idOneTex = -1;
+    // if (ReadIniString(ini1, name1, ini2, name2, "oneTexName", param, sizeof(param), ""))
+    //     m_idOneTex = m_rs->TextureCreate(param);
+    // else
+    m_idOneTex = -1;
 
-    if (ReadIniString(ini1, name1, ini2, name2, "twoTexName", param, sizeof(param), ""))
-        m_idTwoTex = m_rs->TextureCreate(param);
-    else
-        m_idTwoTex = -1;
+    // if (ReadIniString(ini1, name1, ini2, name2, "twoTexName", param, sizeof(param), ""))
+    //     m_idTwoTex = m_rs->TextureCreate(param);
+    // else
+    m_idTwoTex = -1;
 
     // get used colors
-    m_dwSelectColor = GetIniARGB(ini1, name1, ini2, name2, "argbSelectCol", ARGB(255, 128, 128, 128));
-    m_dwDarkColor   = GetIniARGB(ini1, name1, ini2, name2, "argbDisableCol", ARGB(255, 48, 48, 48));
-    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "argbShadowCol", ARGB(255, 48, 48, 48));
+    m_dwSelectColor = GetIniARGB(ini1, name1, ini2, name2, "argbSelectCol", storm::Color {255, 128, 128, 128}.to_hex());
+    m_dwDarkColor   = GetIniARGB(ini1, name1, ini2, name2, "argbDisableCol", storm::Color {255, 48, 48, 48}.to_hex());
+    m_dwShadowColor = GetIniARGB(ini1, name1, ini2, name2, "argbShadowCol", storm::Color {255, 48, 48, 48}.to_hex());
 
     // texture coordinates
     auto const texRect = GetIniFloatRect(ini1, name1, ini2, name2, "texPos", FXYRECT(0.f, 0.f, 1.f, 1.f));
@@ -114,8 +114,8 @@ void CXI_TWOPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
 void CXI_TWOPICTURE::ReleaseAll()
 {
-    TEXTURE_RELEASE(m_rs, m_idOneTex);
-    TEXTURE_RELEASE(m_rs, m_idTwoTex);
+    // TEXTURE_RELEASE(m_rs, m_idOneTex);
+    // TEXTURE_RELEASE(m_rs, m_idTwoTex);
 }
 
 int CXI_TWOPICTURE::CommandExecute(int wActCode)

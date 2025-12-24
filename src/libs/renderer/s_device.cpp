@@ -2829,12 +2829,12 @@ void RendererService::MakeScreenShot()
         return;
     }
 
-    if (CHECKD3DERR(D3DXLoadSurfaceFromSurface(surface, NULL, NULL, renderTarget, NULL, NULL, D3DX_DEFAULT, 0))) {
-        surface->Release();
-        renderTarget->Release();
-        core->Trace("Failed to make screenshot");
-        return;
-    }
+    // if (CHECKD3DERR(D3DXLoadSurfaceFromSurface(surface, NULL, NULL, renderTarget, NULL, NULL, D3DX_DEFAULT, 0))) {
+    //     surface->Release();
+    //     renderTarget->Release();
+    //     core->Trace("Failed to make screenshot");
+    //     return;
+    // }
 
     auto const screenshot_base_filename = std::format("{0:%F}_{0:%H}-{0:%M}-{0:%S}", std::chrono::system_clock::now());
     auto       screenshot_path          = fs::GetScreenshotsPath() / screenshot_base_filename;
@@ -3328,8 +3328,9 @@ HRESULT RendererService::UpdateSurface(
     IDirect3DSurface9* pDestinationSurface,
     const POINT*       pDestPointsArray)
 {
-    return CHECKD3DERR(
-        D3DXLoadSurfaceFromSurface(pDestinationSurface, nullptr, nullptr, pSourceSurface, nullptr, nullptr, D3DX_DEFAULT, 0));
+    return S_OK;
+    // return CHECKD3DERR(
+    // D3DXLoadSurfaceFromSurface(pDestinationSurface, nullptr, nullptr, pSourceSurface, nullptr, nullptr, D3DX_DEFAULT, 0));
     // return CHECKD3DERR(d3d9->UpdateSurface(pSourceSurface, pSourceRectsArray, pDestinationSurface,
     // pDestPointsArray));
 }

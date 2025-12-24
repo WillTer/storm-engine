@@ -9,7 +9,7 @@
 
 BattleLandInterface::BattleLandInterface() : m_bShowCommandos(false)
 {
-    m_pRS      = nullptr;
+    // m_pRS      = nullptr;
     m_pManSign = nullptr;
 }
 
@@ -20,8 +20,8 @@ BattleLandInterface::~BattleLandInterface()
 
 bool BattleLandInterface::Init()
 {
-    m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!m_pRS) { throw std::runtime_error("Can`t create render service"); }
+    // m_pRS = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!m_pRS) { throw std::runtime_error("Can`t create render service"); }
 
     SetShowParameters();
     return true;
@@ -44,7 +44,7 @@ void BattleLandInterface::Execute(uint32_t delta_time) const
 void BattleLandInterface::Realize(uint32_t delta_time)
 {
     if (m_bShowCommandos) {
-        m_pRS->MakePostProcess();
+        // m_pRS->MakePostProcess();
         if (m_pManSign) m_pManSign->Draw();
 
         m_Images.Draw();
@@ -102,7 +102,7 @@ void BattleLandInterface::SetParameters()
 
 void BattleLandInterface::Release()
 {
-    m_pRS = nullptr;
+    // m_pRS = nullptr;
     STORM_DELETE(m_pManSign);
 
     m_TextInfo.clear();
@@ -115,13 +115,13 @@ void BattleLandInterface::SetShowParameters()
     auto* const pA   = AttributesPointer ? AttributesPointer->GetAttributeClass("Parameters") : nullptr;
     m_bShowCommandos = 0 != BIUtils::GetIntFromAttr(pA, "DoShowCommandos", true);
 
-    m_pManSign = new BIManSign(GetId(), m_pRS);
-    Assert(m_pManSign);
-    m_pManSign->Init(AttributesPointer, (AttributesPointer ? AttributesPointer->GetAttributeClass("ManSign") : nullptr));
+    // m_pManSign = new BIManSign(GetId(), m_pRS);
+    // Assert(m_pManSign);
+    // m_pManSign->Init(AttributesPointer, (AttributesPointer ? AttributesPointer->GetAttributeClass("ManSign") : nullptr));
 
-    BIUtils::FillTextInfoArray(m_pRS, AttributesPointer ? AttributesPointer->GetAttributeClass("textinfo") : nullptr, m_TextInfo);
+    // BIUtils::FillTextInfoArray(m_pRS, AttributesPointer ? AttributesPointer->GetAttributeClass("textinfo") : nullptr, m_TextInfo);
 
-    m_Images.Init(m_pRS, AttributesPointer ? AttributesPointer->GetAttributeClass("imageslist") : nullptr);
+    // m_Images.Init(m_pRS, AttributesPointer ? AttributesPointer->GetAttributeClass("imageslist") : nullptr);
 }
 
 void BattleLandInterface::UpdateCommandos() const

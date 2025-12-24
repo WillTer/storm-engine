@@ -30,7 +30,7 @@ Blots::Blots() : model(0), vrt {}
 {
     for (int32_t i = 0; i < BLOTS_MAX; i++)
         blot[i].isUsed = 0;
-    rs                 = nullptr;
+    // rs                 = nullptr;
     textureID          = -1;
     useVrt             = 0;
     blotsInfo          = nullptr;
@@ -40,7 +40,7 @@ Blots::Blots() : model(0), vrt {}
 
 Blots::~Blots()
 {
-    if (rs && textureID >= 0) rs->TextureRelease(textureID);
+    // if (rs && textureID >= 0) rs->TextureRelease(textureID);
 }
 
 // Initialization
@@ -48,13 +48,9 @@ bool Blots::Init()
 {
     // GUARD(Blots::Init())
     // DX9 render
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-    // Layers
-    ////core->LayerCreate("realize", true, false);
-    // core->SetLayerType(realize, layer_type_t::realize);
-    // core->AddToLayer(realize, GetId(), 1000);
-    textureID = rs->TextureCreate("blot.tga");
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) throw std::runtime_error("No service: dx9render");
+    // textureID = rs->TextureCreate("blot.tga");
     return true;
     // UNGUARD
 }
@@ -301,8 +297,8 @@ void Blots::Realize(uint32_t delta_time)
     auto* m = static_cast<MODEL*>(core->GetEntityPointer(model));
     if (!m) return;
     // Distance from camera
-    CVECTOR pos, ang;
-    rs->GetCamera(pos, ang, ang.x);
+    CVECTOR pos = {}, ang;
+    // rs->GetCamera(pos, ang, ang.x);
     auto dist = ~(pos - m->mtx.Pos());
     if (dist >= BLOTS_DIST * BLOTS_DIST) return;
     // Transparency according to the distance to the ship
@@ -310,10 +306,10 @@ void Blots::Realize(uint32_t delta_time)
     if (dist <= 0.0f) dist = 0.0f;
     dist       = (1.0f - dist) * 255.0f;
     auto color = static_cast<int32_t>(dist);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, (color << 24) | (color << 16) | (color << 8) | color);
-    // Settings
-    rs->SetTransform(D3DTS_WORLD, m->mtx);
-    rs->TextureSet(0, textureID);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (color << 24) | (color << 16) | (color << 8) | color);
+    // // Settings
+    // rs->SetTransform(D3DTS_WORLD, m->mtx);
+    // rs->TextureSet(0, textureID);
     // Draw all the added blots
     for (int32_t i = 0; i < BLOTS_MAX; i++) {
         // Skip unused
@@ -401,8 +397,8 @@ void Blots::Realize(uint32_t delta_time)
         }
     }
     // Draw
-    if (useVrt > 3)
-        rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, useVrt / 3, vrt, sizeof(Vertex), "Blot");
+    // if (useVrt > 3)
+    //     rs->DrawPrimitiveUP(D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, useVrt / 3, vrt, sizeof(Vertex), "Blot");
 }
 
 bool Blots::AddPolygon(const CVECTOR* v, int32_t nv)

@@ -46,8 +46,8 @@ WdmShip::WdmShip()
     }
     wmtexture = -1;
     wdmObjects->AddShip(this);
-    kMaxSpeed        = 1.0f;
-    wmtexture        = wdmObjects->rs->TextureCreate("worldmap/watermark.tga");
+    kMaxSpeed = 1.0f;
+    // wmtexture        = wdmObjects->rs->TextureCreate("worldmap/watermark.tga");
     isLive           = true;
     isSelect         = false;
     collisionCounter = 0;
@@ -56,7 +56,7 @@ WdmShip::WdmShip()
 WdmShip::~WdmShip()
 {
     wdmObjects->DelShip(this);
-    wdmObjects->rs->TextureRelease(wmtexture);
+    // wdmObjects->rs->TextureRelease(wmtexture);
     if ((WdmShip*)wdmObjects->enemyShip == this) wdmObjects->enemyShip = nullptr;
 }
 
@@ -206,7 +206,7 @@ void WdmShip::ShipUpdate(float dltTime)
     UpdateWaterMark(dltTime);
 }
 
-void WdmShip::LRender(VDX9RENDER* rs)
+void WdmShip::LRender(/*VDX9RENDER*/ void* rs)
 {
     if (wmtexture >= 0 && isWMRender) {
         isWMRender = false;
@@ -250,24 +250,23 @@ void WdmShip::LRender(VDX9RENDER* rs)
         }
         // draw a strip
         // Textures
-        rs->TextureSet(0, wmtexture);
+        // rs->TextureSet(0, wmtexture);
         // Transform
         static CMatrix identity;
-        rs->SetTransform(D3DTS_WORLD, identity);
+        // rs->SetTransform(D3DTS_WORLD, identity);
         // Render
-        rs->DrawPrimitiveUP(
-            D3DPT_TRIANGLESTRIP,
-            D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-            WDM_SHIP_WMSZ * 2 - 1,
-            vrt,
-            sizeof(Vertex),
-            "WdmShipWaterTrack");
+        // rs->DrawPrimitiveUP(
+        //     D3DPT_TRIANGLESTRIP,
+        //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+        //     WDM_SHIP_WMSZ * 2 - 1,
+        //     vrt,
+        //     sizeof(Vertex),
+        //     "WdmShipWaterTrack");
     } else {
         isWMRender = true;
         // Draw a model
         WdmRenderModel::LRender(rs);
     }
-    // wdmObjects->DrawVector(rs, mtx.Pos(), mtx.Pos() + rspeed, 0xff00ff00);
 }
 
 void WdmShip::UpdateWaterMark(float dltTime)

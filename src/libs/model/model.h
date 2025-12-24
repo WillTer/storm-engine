@@ -6,7 +6,6 @@
 
 class Animation;
 class NODER;
-
 class NODE
 {
 public:
@@ -60,8 +59,6 @@ public:
     virtual void SubstituteGeometry(std::string const& new_model) = 0;
 };
 
-class VDX9RENDER;
-
 class MODEL: public COLLISION_OBJECT
 {
 public:
@@ -74,9 +71,9 @@ public:
 
         virtual ~RenderTuner() {};
 
-        virtual void Set(MODEL* model, VDX9RENDER* rs) {};
+        virtual void Set(MODEL* model, /*VDX9RENDER*/ void* rs) {};
 
-        virtual void Restore(MODEL* model, VDX9RENDER* rs) {};
+        virtual void Restore(MODEL* model, /*VDX9RENDER*/ void* rs) {};
     };
 
     void SetRenderTuner(RenderTuner* rt)

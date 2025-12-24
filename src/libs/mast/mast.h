@@ -4,7 +4,6 @@
 
 #include <libs/collide/collide.h>
 #include <libs/model/model.h>
-#include <libs/renderer/dx9render.h>
 
 #define SR_MOVE 1
 #define SR_STOPROTATE 2
@@ -21,7 +20,6 @@ class Mast: public Entity
     bool                            bUse;
     bool                            bFallUnderWater;
     int                             wMoveCounter;
-    VDX9RENDER*                     RenderService;
     COLLIDE*                        pCollide;
     bool                            bModel;
     entid_t                         model_id, oldmodel_id;
@@ -82,10 +80,9 @@ class Hull: public Entity
         entid_t modelEI;
     } m_mount_param;
 
-    VDX9RENDER* RenderService;
-    COLLIDE*    pCollide;
-    NODE*       m_pHullNode;
-    bool        bModel;
+    COLLIDE* pCollide;
+    NODE*    m_pHullNode;
+    bool     bModel;
 
     bool bUse;
     int  wMoveCounter;

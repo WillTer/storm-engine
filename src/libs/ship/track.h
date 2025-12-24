@@ -6,7 +6,6 @@
 
 #include "ship_base.h"
 
-class VDX9RENDER;
 class ShipTracks: public Entity
 {
 public:
@@ -22,13 +21,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 
@@ -42,12 +35,11 @@ private:
     class ShipTrack
     {
     public:
-        static VDX9RENDER* pRS;
-        static SEA_BASE*   pSea;
-        static int32_t     iVTmpBuffer1, iVTmpBuffer2;
-        static int32_t     iITmpBuffer1, iITmpBuffer2;
-        static int32_t     iRefCount;
-        static uint32_t    dwMaxBufferSize1, dwMaxBufferSize2;
+        static SEA_BASE* pSea;
+        static int32_t   iVTmpBuffer1, iVTmpBuffer2;
+        static int32_t   iITmpBuffer1, iITmpBuffer2;
+        static int32_t   iRefCount;
+        static uint32_t  dwMaxBufferSize1, dwMaxBufferSize2;
 
         SHIP_BASE* pShip;
 

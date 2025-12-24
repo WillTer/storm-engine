@@ -55,8 +55,6 @@ class ParticleManager: public IParticleManager
     // The service that created the system
     ParticleService* pService;
 
-    VDX9RENDER* pRS;
-
     void DeleteAllSystems();
 
     float    TimeFromLastStatUpdate;
@@ -85,7 +83,7 @@ public:
     bool Release() override;
 
     // Get a pointer to Render / FileService
-    VDX9RENDER* Render() override;
+    /*void*/ void* Render() override;
 
     // Open project
     bool OpenProject(char const* FileName) override;

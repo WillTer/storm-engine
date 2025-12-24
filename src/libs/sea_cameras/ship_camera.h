@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libs/island/island_base.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/sea/sea_base.h>
 
 #include "common_camera.h"
@@ -37,7 +36,6 @@ private:
     SEA_BASE*    pSea;
     ISLAND_BASE* pIsland;
     int32_t      lIlsInitCnt;
-    VDX9RENDER*  pRS;
 
     void Move(float fDeltaTime);
 

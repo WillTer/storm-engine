@@ -5,11 +5,9 @@
 
 class WaterFlare: public Entity
 {
-    RS_RECT*      pRSRect;
     float*        pfAlpha;
     int32_t       iFlareTex, iFlaresNum;
     WEATHER_BASE* pWeather;
-    VDX9RENDER*   RS;
 
     void GenerateFlares();
 
@@ -29,13 +27,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-              LostRender(delta); break;
-            case Stage::restore_render:
-              RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 };

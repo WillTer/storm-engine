@@ -2,18 +2,18 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
+#include <libs/renderer_next/types.h>
 
 CXI_CHANGER::CXI_CHANGER()
 {
     m_nPlaceQuantity = 0;
     m_pPlace         = nullptr;
 
-    m_dwFoneColor = ARGB(255, 0, 0, 0);
+    m_dwFoneColor = storm::Color {255, 0, 0, 0}.to_hex();
     m_xOffset     = 0.f;
     m_yOffset     = 0.f;
 
-    m_idBackTex               = -1;
-    IDirect3DTexture9* m_pTex = nullptr;
+    m_idBackTex = -1;
 
     m_bClickable = true;
     m_nNodeType  = NODETYPE_CHANGER;
@@ -45,19 +45,19 @@ void CXI_CHANGER::Draw(bool bSelected, uint32_t Delta_Time)
             m_pTexVert[4].color = m_pTexVert[5].color = m_pTexVert[6].color = m_pTexVert[7].color = m_dwCurColor;
         }
 
-        if (m_idBackTex >= 0) {
-            m_rs->TextureSet(0, m_idBackTex);
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
-        } else {
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iRectangle");
-        }
-        m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
-        m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iChanger");
+        // if (m_idBackTex >= 0) {
+        //     m_rs->TextureSet(0, m_idBackTex);
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iGlow");
+        // } else {
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, &m_pTexVert[4], sizeof(XI_ONETEX_VERTEX), "iRectangle");
+        // }
+        // m_rs->SetTexture(0, m_pTex ? m_pTex->m_pTexture : nullptr);
+        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_pTexVert, sizeof(XI_ONETEX_VERTEX), "iChanger");
     }
 }
 
 bool CXI_CHANGER::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -92,7 +92,7 @@ void CXI_CHANGER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
     }
 
     // get fone color
-    m_dwFoneColor = GetIniARGB(ini1, name1, ini2, name2, "foneColor", ARGB(255, 255, 255, 255));
+    m_dwFoneColor = GetIniARGB(ini1, name1, ini2, name2, "foneColor", storm::Color {255, 255, 255, 255}.to_hex());
     m_dwCurColor  = m_dwFoneColor;
 
     // get Blind color
@@ -119,10 +119,10 @@ void CXI_CHANGER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
     m_yOffset = fPnt.y;
 
     // get video texture (for inside picture)
-    m_pTex = nullptr;
-    if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
+    // m_pTex = nullptr;
+    // if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) m_pTex = m_rs->GetVideoTexture(param);
 
-    if (ReadIniString(ini1, name1, ini2, name2, "backTexture", param, sizeof(param), "")) m_idBackTex = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "backTexture", param, sizeof(param), "")) m_idBackTex = m_rs->TextureCreate(param);
 
     // set constant buffers data
     for (i = 0; i < 8; i++) {
@@ -144,8 +144,8 @@ void CXI_CHANGER::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
 void CXI_CHANGER::ReleaseAll()
 {
     STORM_DELETE(m_pPlace);
-    TEXTURE_RELEASE(m_rs, m_idBackTex);
-    VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
+    // TEXTURE_RELEASE(m_rs, m_idBackTex);
+    // VIDEOTEXTURE_RELEASE(m_rs, m_pTex);
 }
 
 int CXI_CHANGER::CommandExecute(int wActCode)

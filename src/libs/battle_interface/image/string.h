@@ -11,7 +11,7 @@ class BIString: public IBIString
 public:
     BIString(BIString&&)      = delete;
     BIString(BIString const&) = delete;
-    BIString(BIImageRender* pImgRender, VDX9RENDER* rs);
+    BIString(BIImageRender* pImgRender, /*VDX9RENDER*/ void* rs);
     ~BIString() override;
 
     int32_t GetPrioritet() const
@@ -51,16 +51,16 @@ protected:
     void UpdateString();
 
     BIImageRender* m_pImgRender;
-    VDX9RENDER*    m_pRS;
-    FRECT          m_BasePos;
-    int32_t        m_nPrioritet;
-    std::string    m_sText;
+    // VDX9RENDER*    m_pRS;
+    storm::FRect m_BasePos;
+    int32_t      m_nPrioritet;
+    std::string  m_sText;
 
     uint32_t m_dwColor;
     float    m_fScale;
     int32_t  m_nFontID;
 
-    POINT m_pntOutPos {};
+    storm::Point m_pntOutPos {};
 
     bool m_bUpdateString;
 };

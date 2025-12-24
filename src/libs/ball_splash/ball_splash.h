@@ -40,7 +40,8 @@ private:
     void     InitializeSplashes();
     TSplash* TryToAddSplash(const CVECTOR& _pos, const CVECTOR& _dir);
 
-    TSplash     splashes[MAX_SPLASHES];
-    VDX9RENDER* renderer;
-    SEA_BASE*   sea;
+    TSplash splashes[MAX_SPLASHES];
+    // FIXME: Renderer Next
+    // VDX9RENDER* renderer;
+    SEA_BASE* sea;
 };

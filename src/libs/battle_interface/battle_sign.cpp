@@ -5,7 +5,7 @@
 
 #include "bi_utils.h"
 
-BISignIcon::BISignIcon(entid_t BIEntityID, VDX9RENDER* pRS)
+BISignIcon::BISignIcon(entid_t BIEntityID, /*VDX9RENDER*/ void* pRS)
 {
     Assert(pRS);
 
@@ -13,7 +13,7 @@ BISignIcon::BISignIcon(entid_t BIEntityID, VDX9RENDER* pRS)
     m_pAData = nullptr;
 
     m_idHostEntity = BIEntityID;
-    m_pRS          = pRS;
+    // m_pRS          = pRS;
 
     m_nVBufID = -1;
     m_nIBufID = -1;
@@ -57,83 +57,83 @@ void BISignIcon::Draw()
         int32_t const nStartI = 0;
 
         // sign face
-        if (m_nSignFaceSquareQ > 0) {
-            m_pRS->TextureSet(0, m_nSignFaceTextureID);
-            m_pRS->DrawBuffer(
-                m_nVBufID,
-                sizeof(BI_COLOR_VERTEX),
-                m_nIBufID,
-                nStartV,
-                m_nSignFaceSquareQ * 4,
-                nStartI,
-                m_nSignFaceSquareQ * 2,
-                "battle_colorRectangle");
-        }
+        // if (m_nSignFaceSquareQ > 0) {
+        //     m_pRS->TextureSet(0, m_nSignFaceTextureID);
+        //     m_pRS->DrawBuffer(
+        //         m_nVBufID,
+        //         sizeof(BI_COLOR_VERTEX),
+        //         m_nIBufID,
+        //         nStartV,
+        //         m_nSignFaceSquareQ * 4,
+        //         nStartI,
+        //         m_nSignFaceSquareQ * 2,
+        //         "battle_colorRectangle");
+        // }
         nStartV += m_nSignFaceSquareQ * 4;
 
         // back
-        if (m_nBackSquareQ > 0) {
-            m_pRS->TextureSet(0, m_nBackTextureID);
-            m_pRS->DrawBuffer(
-                m_nVBufID,
-                sizeof(BI_COLOR_VERTEX),
-                m_nIBufID,
-                nStartV,
-                m_nBackSquareQ * 4,
-                nStartI,
-                m_nBackSquareQ * 2,
-                "battle_colorRectangle");
-        }
+        // if (m_nBackSquareQ > 0) {
+        //     m_pRS->TextureSet(0, m_nBackTextureID);
+        //     m_pRS->DrawBuffer(
+        //         m_nVBufID,
+        //         sizeof(BI_COLOR_VERTEX),
+        //         m_nIBufID,
+        //         nStartV,
+        //         m_nBackSquareQ * 4,
+        //         nStartI,
+        //         m_nBackSquareQ * 2,
+        //         "battle_colorRectangle");
+        // }
         nStartV += m_nBackSquareQ * 4;
 
         // sign state (left & right)
-        if (m_nSignStateSquareQ > 0) {
-            m_pRS->TextureSet(0, m_nSignStateTextureID);
-            m_pRS->DrawBuffer(
-                m_nVBufID,
-                sizeof(BI_COLOR_VERTEX),
-                m_nIBufID,
-                nStartV,
-                m_nSignStateSquareQ * 4,
-                nStartI,
-                m_nSignStateSquareQ * 2,
-                "battle_colorRectangle");
-        }
+        // if (m_nSignStateSquareQ > 0) {
+        //     m_pRS->TextureSet(0, m_nSignStateTextureID);
+        //     m_pRS->DrawBuffer(
+        //         m_nVBufID,
+        //         sizeof(BI_COLOR_VERTEX),
+        //         m_nIBufID,
+        //         nStartV,
+        //         m_nSignStateSquareQ * 4,
+        //         nStartI,
+        //         m_nSignStateSquareQ * 2,
+        //         "battle_colorRectangle");
+        // }
         nStartV += m_nSignStateSquareQ * 4;
 
         // sign star
-        if (m_nSignStarSquareQ > 0) {
-            m_pRS->TextureSet(0, m_nSignStarTextureID);
-            m_pRS->DrawBuffer(
-                m_nVBufID,
-                sizeof(BI_COLOR_VERTEX),
-                m_nIBufID,
-                nStartV,
-                m_nSignStarSquareQ * 4,
-                nStartI,
-                m_nSignStarSquareQ * 2,
-                "battle_alphacutcolor");
-        }
+        // if (m_nSignStarSquareQ > 0) {
+        //     m_pRS->TextureSet(0, m_nSignStarTextureID);
+        //     m_pRS->DrawBuffer(
+        //         m_nVBufID,
+        //         sizeof(BI_COLOR_VERTEX),
+        //         m_nIBufID,
+        //         nStartV,
+        //         m_nSignStarSquareQ * 4,
+        //         nStartI,
+        //         m_nSignStarSquareQ * 2,
+        //         "battle_alphacutcolor");
+        // }
         nStartV += m_nSignStarSquareQ * 4;
     }
 
-    for (int32_t n = 0; n < m_nSignQ; n++) {
-        if (m_Sign[n].sText.length() > 0) {
-            m_pRS->ExtPrint(
-                m_idSignTextFont,
-                m_dwSignTextFontColor,
-                0,
-                PR_ALIGN_CENTER,
-                false,
-                m_fSignTextFontScale,
-                0,
-                0,
-                static_cast<int32_t>(m_Sign[n].pntPos.x) + m_SignTextFontOffset.x,
-                static_cast<int32_t>(m_Sign[n].pntPos.y) + m_SignTextFontOffset.y,
-                "%s",
-                m_Sign[n].sText.c_str());
-        }
-    }
+    // for (int32_t n = 0; n < m_nSignQ; n++) {
+    //     if (m_Sign[n].sText.length() > 0) {
+    //         m_pRS->ExtPrint(
+    //             m_idSignTextFont,
+    //             m_dwSignTextFontColor,
+    //             0,
+    //             PR_ALIGN_CENTER,
+    //             false,
+    //             m_fSignTextFontScale,
+    //             0,
+    //             0,
+    //             static_cast<int32_t>(m_Sign[n].pntPos.x) + m_SignTextFontOffset.x,
+    //             static_cast<int32_t>(m_Sign[n].pntPos.y) + m_SignTextFontOffset.y,
+    //             "%s",
+    //             m_Sign[n].sText.c_str());
+    //     }
+    // }
 }
 
 void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
@@ -147,13 +147,13 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
 
     // default value
     m_nBackTextureID = -1;
-    m_dwBackColor    = ARGB(255, 128, 128, 128);
+    m_dwBackColor    = storm::Color {255, 128, 128, 128}.to_hex();
     FULLRECT(m_rBackUV);
     ZERROPOINT(m_pntBackOffset);
     FILLPOINT(m_pntBackIconSize, 128, 128);
 
     m_nSignStateTextureID = -1;
-    m_dwSignStateColor    = ARGB(255, 128, 128, 128);
+    m_dwSignStateColor    = storm::Color {255, 128, 128, 128}.to_hex();
     FULLRECT(m_rSignStateLeftUV);
     ZERROPOINT(m_pntSignStateLeftOffset);
     FILLPOINT(m_pntSignStateLeftIconSize, 128, 128);
@@ -162,18 +162,18 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
     FILLPOINT(m_pntSignStateRightIconSize, 128, 128);
 
     m_nSignStarTextureID = -1;
-    m_dwSignStarColor    = ARGB(255, 128, 128, 128);
+    m_dwSignStarColor    = storm::Color {255, 128, 128, 128}.to_hex();
     FULLRECT(m_rSignStarUV);
     ZERROPOINT(m_pntSignStarOffset);
     FILLPOINT(m_pntSignStarIconSize, 128, 128);
 
     m_nSignFaceTextureID = -1;
-    m_dwSignFaceColor    = ARGB(255, 128, 128, 128);
+    m_dwSignFaceColor    = storm::Color {255, 128, 128, 128}.to_hex();
     ZERROPOINT(m_pntSignFaceOffset);
     FILLPOINT(m_pntSignFaceIconSize, 128, 128);
 
     m_idSignTextFont       = -1;
-    m_dwSignTextFontColor  = ARGB(255, 64, 64, 64);
+    m_dwSignTextFontColor  = storm::Color {255, 64, 64, 64}.to_hex();
     m_fSignTextFontScale   = 1.f;
     m_SignTextFontOffset.x = -14;
     m_SignTextFontOffset.y = 18;
@@ -185,7 +185,7 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
 
     if (pA) {
         pcTmp = pA->GetAttribute("fontid");
-        if (pcTmp) m_idSignTextFont = m_pRS->LoadFont(pcTmp);
+        // if (pcTmp) m_idSignTextFont = m_pRS->LoadFont(pcTmp);
         m_dwSignTextFontColor = pA->GetAttributeAsDword("fontcolor", m_dwSignTextFontColor);
         m_fSignTextFontScale  = pA->GetAttributeAsFloat("fontscale", m_fSignTextFontScale);
 
@@ -193,7 +193,7 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
         if (pcTmp) sscanf(pcTmp, "%ld,%ld", &m_SignTextFontOffset.x, &m_SignTextFontOffset.y);
 
         pcTmp = pA->GetAttribute("backtexturename");
-        if (pcTmp) m_nBackTextureID = m_pRS->TextureCreate(pcTmp);
+        // if (pcTmp) m_nBackTextureID = m_pRS->TextureCreate(pcTmp);
         m_dwBackColor = pA->GetAttributeAsDword("backcolor", m_dwBackColor);
         pcTmp         = pA->GetAttribute("backuv");
         if (pcTmp) sscanf(pcTmp, "%f,%f,%f,%f", &m_rBackUV.left, &m_rBackUV.top, &m_rBackUV.right, &m_rBackUV.bottom);
@@ -203,7 +203,7 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
         if (pcTmp) sscanf(pcTmp, "%f,%f", &m_pntBackIconSize.x, &m_pntBackIconSize.y);
 
         pcTmp = pA->GetAttribute("shipstatetexturename");
-        if (pcTmp) m_nSignStateTextureID = m_pRS->TextureCreate(pcTmp);
+        // if (pcTmp) m_nSignStateTextureID = m_pRS->TextureCreate(pcTmp);
         m_dwSignStateColor = pA->GetAttributeAsDword("shipstatecolor", m_dwSignStateColor);
         pcTmp              = pA->GetAttribute("shiphpuv");
         if (pcTmp)
@@ -233,7 +233,7 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
         if (pcTmp) sscanf(pcTmp, "%f,%f", &m_pntSignStateRightIconSize.x, &m_pntSignStateRightIconSize.y);
 
         pcTmp = pA->GetAttribute("shipclasstexturename");
-        if (pcTmp) m_nSignStarTextureID = m_pRS->TextureCreate(pcTmp);
+        // if (pcTmp) m_nSignStarTextureID = m_pRS->TextureCreate(pcTmp);
         m_dwSignStarColor = pA->GetAttributeAsDword("shipclasscolor", m_dwSignStarColor);
         pcTmp             = pA->GetAttribute("shipclassuv");
         if (pcTmp) sscanf(pcTmp, "%f,%f,%f,%f", &m_rSignStarUV.left, &m_rSignStarUV.top, &m_rSignStarUV.right, &m_rSignStarUV.bottom);
@@ -243,7 +243,7 @@ void BISignIcon::Init(ATTRIBUTES* pRoot, ATTRIBUTES* pA)
         if (pcTmp) sscanf(pcTmp, "%f,%f", &m_pntSignStarIconSize.x, &m_pntSignStarIconSize.y);
 
         pcTmp = pA->GetAttribute("shiptexturename");
-        if (pcTmp) m_nSignFaceTextureID = m_pRS->TextureCreate(pcTmp);
+        // if (pcTmp) m_nSignFaceTextureID = m_pRS->TextureCreate(pcTmp);
         m_dwSignFaceColor = pA->GetAttributeAsDword("shipcolor", m_dwSignFaceColor);
         /*pcTmp = pA->GetAttribute( "shipuv" );
         if( pcTmp ) sscanf( pcTmp, "%f,%f,%f,%f",
@@ -307,13 +307,13 @@ void BISignIcon::Release()
 {
     SetActive(false);  // disable control
 
-    TEXTURE_RELEASE(m_pRS, m_nBackTextureID);
-    TEXTURE_RELEASE(m_pRS, m_nSignFaceTextureID);
-    TEXTURE_RELEASE(m_pRS, m_nSignStateTextureID);
-    TEXTURE_RELEASE(m_pRS, m_nSignStarTextureID);
-    VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
-    INDEX_BUFFER_RELEASE(m_pRS, m_nIBufID);
-    FONT_RELEASE(m_pRS, m_idSignTextFont);
+    // TEXTURE_RELEASE(m_pRS, m_nBackTextureID);
+    // TEXTURE_RELEASE(m_pRS, m_nSignFaceTextureID);
+    // TEXTURE_RELEASE(m_pRS, m_nSignStateTextureID);
+    // TEXTURE_RELEASE(m_pRS, m_nSignStarTextureID);
+    // VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
+    // INDEX_BUFFER_RELEASE(m_pRS, m_nIBufID);
+    // FONT_RELEASE(m_pRS, m_idSignTextFont);
 
     m_nMaxSquareQ       = 0;
     m_nBackSquareQ      = 0;
@@ -342,8 +342,8 @@ void BISignIcon::UpdateBuffers(int32_t nQ)
     auto const nMaxSignQ = BIUtils::GetMaxFromFourLong(nBackSquareQ, nSignStateSquareQ, nSignStarSquareQ, nSignFaceSquareQ);
     if (m_nMaxSquareQ != nMaxSignQ) {
         m_nMaxSquareQ = nMaxSignQ;
-        INDEX_BUFFER_RELEASE(m_pRS, m_nIBufID);
-        m_nIBufID = m_pRS->CreateIndexBuffer(m_nMaxSquareQ * 6 * sizeof(uint16_t));
+        // INDEX_BUFFER_RELEASE(m_pRS, m_nIBufID);
+        // m_nIBufID = m_pRS->CreateIndexBuffer(m_nMaxSquareQ * 6 * sizeof(uint16_t));
         FillIndexBuffer();
     }
 
@@ -353,11 +353,11 @@ void BISignIcon::UpdateBuffers(int32_t nQ)
         m_nSignStateSquareQ = nSignStateSquareQ;
         m_nSignStarSquareQ  = nSignStarSquareQ;
         m_nSignFaceSquareQ  = nSignFaceSquareQ;
-        VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
-        m_nVBufID = m_pRS->CreateVertexBuffer(
-            BI_COLOR_VERTEX_FORMAT,
-            (m_nBackSquareQ + m_nSignStateSquareQ + m_nSignStarSquareQ + m_nSignFaceSquareQ) * 4 * sizeof(BI_COLOR_VERTEX),
-            D3DUSAGE_WRITEONLY);
+        // VERTEX_BUFFER_RELEASE(m_pRS, m_nVBufID);
+        // m_nVBufID = m_pRS->CreateVertexBuffer(
+        //     BI_COLOR_VERTEX_FORMAT,
+        //     (m_nBackSquareQ + m_nSignStateSquareQ + m_nSignStarSquareQ + m_nSignFaceSquareQ) * 4 * sizeof(BI_COLOR_VERTEX),
+        //     D3DUSAGE_WRITEONLY);
     }
     FillVertexBuffer();
 }
@@ -365,7 +365,8 @@ void BISignIcon::UpdateBuffers(int32_t nQ)
 void BISignIcon::FillIndexBuffer() const
 {
     if (m_nIBufID < 0) return;
-    auto* pI = static_cast<uint16_t*>(m_pRS->LockIndexBuffer(m_nIBufID));
+    uint16_t* pI = nullptr;
+    // auto* pI = static_cast<uint16_t*>(m_pRS->LockIndexBuffer(m_nIBufID));
     if (pI) {
         for (int32_t n = 0; n < m_nMaxSquareQ; n++) {
             pI[n * 6 + 0] = static_cast<uint16_t>(n * 4 + 0);
@@ -376,7 +377,7 @@ void BISignIcon::FillIndexBuffer() const
             pI[n * 6 + 4] = static_cast<uint16_t>(n * 4 + 1);
             pI[n * 6 + 5] = static_cast<uint16_t>(n * 4 + 3);
         }
-        m_pRS->UnLockIndexBuffer(m_nIBufID);
+        // m_pRS->UnLockIndexBuffer(m_nIBufID);
     }
 }
 
@@ -384,7 +385,8 @@ void BISignIcon::FillVertexBuffer()
 {
     int32_t n;
     if (m_nVBufID < 0) return;
-    auto* pV = static_cast<BI_COLOR_VERTEX*>(m_pRS->LockVertexBuffer(m_nVBufID));
+    BI_COLOR_VERTEX* pV = nullptr;
+    // auto* pV = static_cast<BI_COLOR_VERTEX*>(m_pRS->LockVertexBuffer(m_nVBufID));
     if (pV) {
         int32_t vn = 0;
 
@@ -431,11 +433,12 @@ void BISignIcon::FillVertexBuffer()
                 0.f,
                 1.f - m_Sign[n].fStarProgress);
 
-        m_pRS->UnLockVertexBuffer(m_nVBufID);
+        // m_pRS->UnLockVertexBuffer(m_nVBufID);
     }
 }
 
-int32_t BISignIcon::WriteSquareToVBuff(BI_COLOR_VERTEX* pv, const FRECT& uv, uint32_t color, const BIFPOINT& center, const FPOINT& size)
+int32_t BISignIcon::WriteSquareToVBuff(
+    BI_COLOR_VERTEX* pv, storm::FRect const& uv, uint32_t color, storm::FPoint const& center, storm::FPoint const& size)
 {
     if (!pv) return 0;
 
@@ -480,15 +483,15 @@ int32_t BISignIcon::WriteSquareToVBuff(BI_COLOR_VERTEX* pv, const FRECT& uv, uin
 }
 
 int32_t BISignIcon::WriteSquareToVBuffWithProgress(
-    BI_COLOR_VERTEX* pv,
-    const FRECT&     uv,
-    uint32_t         color,
-    const BIFPOINT&  center,
-    const FPOINT&    size,
-    float            fClampUp,
-    float            fClampDown,
-    float            fClampLeft,
-    float            fClampRight)
+    BI_COLOR_VERTEX*     pv,
+    storm::FRect const&  uv,
+    uint32_t             color,
+    storm::FPoint const& center,
+    storm::FPoint const& size,
+    float                fClampUp,
+    float                fClampDown,
+    float                fClampLeft,
+    float                fClampRight)
 {
     if (!pv) return 0;
 

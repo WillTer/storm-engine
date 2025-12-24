@@ -13,7 +13,6 @@
 #include <libs/core/core.h>
 #include <libs/core/entity.h>
 #include <libs/geometry/geometry.h>
-#include <libs/renderer/dx9render.h>
 #include <libs/shared_headers/messages.h>
 #include <libs/ship/ship_base.h>
 
@@ -118,7 +117,7 @@ void Debris::Update(float dltTime)
     }
 }
 
-void Debris::Draw(VDX9RENDER* rs)
+void Debris::Draw(/*VDX9RENDER*/ void* rs)
 {
     for (int32_t i = 0; i < flyCounter; i++) {
         // Model position
@@ -130,7 +129,7 @@ void Debris::Draw(VDX9RENDER* rs)
         for (int32_t a = 0; a < 3; a++)
             for (int32_t b = 0; b < 3; b++)
                 fly[i].mdl->mtx.m[a][b] *= fly[i].scale;
-        rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(fly[i].alpha * galpha) << 24) | 0xffffff);
+        // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (static_cast<int32_t>(fly[i].alpha * galpha) << 24) | 0xffffff);
         fly[i].mdl->ProcessStage(Entity::Stage::realize, 10);
     }
 }

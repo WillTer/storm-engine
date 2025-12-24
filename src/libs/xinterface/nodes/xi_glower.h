@@ -1,5 +1,7 @@
 #pragma once
 
+#include <libs/renderer_next/types.h>
+
 #include "../inode.h"
 
 #define MAX_USED_RECTANGLE 20
@@ -12,19 +14,20 @@
 class CXI_GLOWER: public CINODE
 {
     struct GLOW_DESCR {
-        RS_RECT rect;
-        int32_t allTime;
-        int32_t curTime;
-        float   angleSpeed;
-        int     action;
+        storm::Rect rect;
+        int32_t     allTime;
+        int32_t     curTime;
+        float       angleSpeed;
+        int         action;
     };
 
 public:
     CXI_GLOWER();
     ~CXI_GLOWER() override;
     void Draw(bool bSelected, uint32_t Delta_Time) override;
-    bool Init(
-        INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize) override;
+    bool
+    Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+        override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;

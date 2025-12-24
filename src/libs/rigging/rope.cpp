@@ -7,14 +7,13 @@
 #include <libs/shared_headers/sail_msg.h>
 #include <libs/ship/ship_base.h>
 
-extern void sailPrint(VDX9RENDER* rs, const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
+extern void sailPrint(const CVECTOR& pos3D, float rad, int32_t line, char const* format, ...);
 
 Rope::Rope()
 {
     bUse          = false;
     bYesDeleted   = false;
     wRopeLast     = 0;
-    RenderService = nullptr;
     gdata         = nullptr;
     groupQuantity = 0;
     rlist         = nullptr;
@@ -24,12 +23,12 @@ Rope::Rope()
     texl        = -1;
     bFirstRun   = true;
 
-    mat.Diffuse.r = 1.f;
-    mat.Diffuse.g = 1.f;
-    mat.Diffuse.b = 1.f;
-    mat.Ambient.r = 1.f;
-    mat.Ambient.g = 1.f;
-    mat.Ambient.b = 1.f;
+    // mat.Diffuse.r = 1.f;
+    // mat.Diffuse.g = 1.f;
+    // mat.Diffuse.b = 1.f;
+    // mat.Ambient.r = 1.f;
+    // mat.Ambient.g = 1.f;
+    // mat.Ambient.b = 1.f;
 
     vBuf = iBuf = -1;
     nVert = nIndx = 0;
@@ -57,12 +56,8 @@ Rope::~Rope()
         groupQuantity = 0;
     }
     // removing textures
-    TEXTURE_RELEASE(RenderService, texl);
     delete[] TextureName;
     TextureName = nullptr;
-
-    VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-    INDEX_BUFFER_RELEASE(RenderService, iBuf);
     nVert = nIndx = 0;
 }
 
@@ -74,13 +69,9 @@ bool Rope::Init()
 
 void Rope::SetDevice()
 {
-    // get render service
-    RenderService = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!RenderService) { throw std::runtime_error("No service: dx9render"); }
-
     LoadIni();
 
-    texl = RenderService->TextureCreate(TextureName);
+    // texl = RenderService->TextureCreate(TextureName);
 }
 
 bool Rope::CreateState(ENTITY_STATE_GEN* state_gen)
@@ -102,22 +93,22 @@ void Rope::Execute(uint32_t Delta_Time)
     if (bYesDeleted) DoSTORM_DELETE();
 
     if (bUse) {
-        vertBuf = static_cast<ROPEVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-        if (vertBuf) {
-            auto const dtime = static_cast<float>(Delta_Time) * .02f;
-            for (auto i = 0; i < ropeQuantity; i++) {
-                if (rlist[i]->bUse && !gdata[rlist[i]->HostGroup].bDeleted) SetVertexes(rlist[i], dtime);
-                // DoMove(rlist[i]);
-                else if (rlist[i]->len != 0.f)  // set all vertex to point(0,0,0)
-                {
-                    auto const nulVect = CVECTOR(0.f, 0.f, 0.f);
-                    for (auto idx = rlist[i]->sv; idx < rlist[i]->sv + rlist[i]->nv; idx++)
-                        vertBuf[idx].pos = nulVect;
-                }
-            }
-
-            RenderService->UnLockVertexBuffer(vBuf);
-        }
+        // vertBuf = static_cast<ROPEVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+        // if (vertBuf) {
+        //     auto const dtime = static_cast<float>(Delta_Time) * .02f;
+        //     for (auto i = 0; i < ropeQuantity; i++) {
+        //         if (rlist[i]->bUse && !gdata[rlist[i]->HostGroup].bDeleted) SetVertexes(rlist[i], dtime);
+        //         // DoMove(rlist[i]);
+        //         else if (rlist[i]->len != 0.f)  // set all vertex to point(0,0,0)
+        //         {
+        //             auto const nulVect = CVECTOR(0.f, 0.f, 0.f);
+        //             for (auto idx = rlist[i]->sv; idx < rlist[i]->sv + rlist[i]->nv; idx++)
+        //                 vertBuf[idx].pos = nulVect;
+        //         }
+        //     }
+        //
+        //     RenderService->UnLockVertexBuffer(vBuf);
+        // }
     }
 
     RDTSC_E(rtm);
@@ -136,39 +127,30 @@ void Rope::Realize(uint32_t Delta_Time)
             // draw nature rope
             CVECTOR cp, ca;
             float   pr;
-            RenderService->GetCamera(cp, ca, pr);
-            pr = tanf(pr * .5f);
-
-            auto const bDraw = RenderService->TechniqueExecuteStart("ShipRope");
-
-            if (bDraw) {
-                for (auto i = 0; i < groupQuantity; i++)
-                    if (!gdata[i].bDeleted && gdata[i].nt != 0 && nVert != 0)
-                        if ((~(gdata[i].pMatWorld->Pos() - cp)) * pr < fMaxRopeDist)
-                        // if the distance to the ship is not more than the maximum
-                        {
-                            static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->SetLightAndFog(true);
-                            RenderService->SetTransform(D3DTS_WORLD, *gdata[i].pMatWorld);
-
-                            RenderService->TextureSet(0, texl);
-                            RenderService->SetMaterial(mat);
-                            RenderService->DrawBuffer(vBuf, sizeof(ROPEVERTEX), iBuf, 0, nVert, gdata[i].st, gdata[i].nt);
-                            static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->RestoreLightAndFog();
-                        }
-                while (RenderService->TechniqueExecuteNext()) {}
-            }
+            // RenderService->GetCamera(cp, ca, pr);
+            // pr = tanf(pr * .5f);
+            //
+            // auto const bDraw = RenderService->TechniqueExecuteStart("ShipRope");
+            //
+            // if (bDraw) {
+            //     for (auto i = 0; i < groupQuantity; i++)
+            //         if (!gdata[i].bDeleted && gdata[i].nt != 0 && nVert != 0)
+            //             if ((~(gdata[i].pMatWorld->Pos() - cp)) * pr < fMaxRopeDist)
+            //             // if the distance to the ship is not more than the maximum
+            //             {
+            //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->SetLightAndFog(true);
+            //                 RenderService->SetTransform(D3DTS_WORLD, *gdata[i].pMatWorld);
+            //
+            //                 RenderService->TextureSet(0, texl);
+            //                 RenderService->SetMaterial(mat);
+            //                 RenderService->DrawBuffer(vBuf, sizeof(ROPEVERTEX), iBuf, 0, nVert, gdata[i].st, gdata[i].nt);
+            //                 static_cast<SHIP_BASE*>(core->GetEntityPointer(gdata[i].shipEI))->RestoreLightAndFog();
+            //             }
+            //     while (RenderService->TechniqueExecuteNext()) {}
+            // }
 
             RDTSC_E(rtm);
             realize_tm = rtm;
-            // RenderService->Print(0,10,"exec=%d, real=%d",execute_tm,realize_tm);
-            /*if(core->Controls->GetDebugAsyncKeyState('M')<0)
-              for(int i=0; i<ropeQuantity; i++)
-              {
-                sailPrint(RenderService,*(rlist[i]->bMatWorld) *
-              rlist[i]->pBeg,25.f,0,"B%d_%s%d",rlist[i]->ropeNum,rlist[i]->btie?"tie":"",rlist[i]->bgnum);
-                sailPrint(RenderService,*(rlist[i]->eMatWorld) *
-              rlist[i]->pEnd,25.f,0,"E%d_%s%d",rlist[i]->ropeNum,rlist[i]->etie?"tie":"",rlist[i]->bgnum);
-              }*/
         }
     }
 }
@@ -299,69 +281,69 @@ void Rope::SetIndex() const
     int i, j;
     int ti, vi;
 
-    auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
-    if (pt) {
-        for (int rn = 0; rn < ropeQuantity; rn++) {
-            ti = rlist[rn]->st;
-            vi = rlist[rn]->sv;
-
-            // set begin edge point triangles
-            for (j = 0; j < ROPE_EDGE; j++) {
-                pt[ti]     = vi;
-                pt[ti + 1] = vi + 1 + j;
-                if (j < ROPE_EDGE - 1)
-                    pt[ti + 2] = vi + 2 + j;
-                else
-                    pt[ti + 2] = vi + 1;
-                ti += 3;
-            }
-            vi++;
-
-            // set medium triangles
-            for (i = 0; i < rlist[rn]->segquant; i++) {
-                for (j = 0; j < ROPE_EDGE; j++) {
-                    pt[ti]     = vi + j;
-                    pt[ti + 1] = pt[ti + 4] = vi + j + ROPE_EDGE;
-                    if (j < ROPE_EDGE - 1) {
-                        pt[ti + 2] = pt[ti + 3] = vi + j + 1;
-                        pt[ti + 5]              = vi + j + 1 + ROPE_EDGE;
-                    } else {
-                        pt[ti + 2] = pt[ti + 3] = vi;
-                        pt[ti + 5]              = vi + ROPE_EDGE;
-                    }
-                    ti += 6;
-                }
-                vi += ROPE_EDGE;
-            }
-
-            // set end edge point triangles
-            for (j = 0; j < ROPE_EDGE; j++) {
-                pt[ti]     = vi + j;
-                pt[ti + 1] = vi + 1;
-                if (j < ROPE_EDGE - 1)
-                    pt[ti + 2] = vi + j + 1;
-                else
-                    pt[ti + 2] = vi;
-                ti += 3;
-            }
-        }
-
-        RenderService->UnLockIndexBuffer(iBuf);
-    }
+    // auto* pt = static_cast<uint16_t*>(RenderService->LockIndexBuffer(iBuf));
+    // if (pt) {
+    //     for (int rn = 0; rn < ropeQuantity; rn++) {
+    //         ti = rlist[rn]->st;
+    //         vi = rlist[rn]->sv;
+    //
+    //         // set begin edge point triangles
+    //         for (j = 0; j < ROPE_EDGE; j++) {
+    //             pt[ti]     = vi;
+    //             pt[ti + 1] = vi + 1 + j;
+    //             if (j < ROPE_EDGE - 1)
+    //                 pt[ti + 2] = vi + 2 + j;
+    //             else
+    //                 pt[ti + 2] = vi + 1;
+    //             ti += 3;
+    //         }
+    //         vi++;
+    //
+    //         // set medium triangles
+    //         for (i = 0; i < rlist[rn]->segquant; i++) {
+    //             for (j = 0; j < ROPE_EDGE; j++) {
+    //                 pt[ti]     = vi + j;
+    //                 pt[ti + 1] = pt[ti + 4] = vi + j + ROPE_EDGE;
+    //                 if (j < ROPE_EDGE - 1) {
+    //                     pt[ti + 2] = pt[ti + 3] = vi + j + 1;
+    //                     pt[ti + 5]              = vi + j + 1 + ROPE_EDGE;
+    //                 } else {
+    //                     pt[ti + 2] = pt[ti + 3] = vi;
+    //                     pt[ti + 5]              = vi + ROPE_EDGE;
+    //                 }
+    //                 ti += 6;
+    //             }
+    //             vi += ROPE_EDGE;
+    //         }
+    //
+    //         // set end edge point triangles
+    //         for (j = 0; j < ROPE_EDGE; j++) {
+    //             pt[ti]     = vi + j;
+    //             pt[ti + 1] = vi + 1;
+    //             if (j < ROPE_EDGE - 1)
+    //                 pt[ti + 2] = vi + j + 1;
+    //             else
+    //                 pt[ti + 2] = vi;
+    //             ti += 3;
+    //         }
+    //     }
+    //
+    //     RenderService->UnLockIndexBuffer(iBuf);
+    // }
 }
 
 void Rope::SetVertexes()
 {
-    vertBuf = static_cast<ROPEVERTEX*>(RenderService->LockVertexBuffer(vBuf));
-    if (vertBuf) {
-        for (int rn = 0; rn < ropeQuantity; rn++)
-            if (rlist[rn]->bUse && !rlist[rn]->bDeleted && !gdata[rlist[rn]->HostGroup].bDeleted) {
-                SetVertexes(rlist[rn], 0.f);
-                SetTextureGrid(rlist[rn]);
-            }
-
-        RenderService->UnLockVertexBuffer(vBuf);
-    }
+    // vertBuf = static_cast<ROPEVERTEX*>(RenderService->LockVertexBuffer(vBuf));
+    // if (vertBuf) {
+    //     for (int rn = 0; rn < ropeQuantity; rn++)
+    //         if (rlist[rn]->bUse && !rlist[rn]->bDeleted && !gdata[rlist[rn]->HostGroup].bDeleted) {
+    //             SetVertexes(rlist[rn], 0.f);
+    //             SetTextureGrid(rlist[rn]);
+    //         }
+    //
+    //     RenderService->UnLockVertexBuffer(vBuf);
+    // }
 }
 
 void Rope::SetVertexes(ROPEDATA* pr, float dtime) const
@@ -695,15 +677,15 @@ void Rope::LoadIni()
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "sail_rope.tga");
     if (texl != -1) {
-        if (strcmp(TextureName, param))
-            if (RenderService) {
-                auto const len = strlen(param) + 1;
-                delete TextureName;
-                TextureName = new char[len];
-                memcpy(TextureName, param, len);
-                RenderService->TextureRelease(texl);
-                texl = RenderService->TextureCreate(TextureName);
-            }
+        // if (strcmp(TextureName, param))
+        //     if (RenderService) {
+        //         auto const len = strlen(param) + 1;
+        //         delete TextureName;
+        //         TextureName = new char[len];
+        //         memcpy(TextureName, param, len);
+        //         RenderService->TextureRelease(texl);
+        //         texl = RenderService->TextureCreate(TextureName);
+        //     }
     } else {
         auto const len = strlen(param) + 1;
         TextureName    = new char[len];
@@ -741,65 +723,24 @@ void Rope::LoadIni()
 
 void Rope::FirstRun()
 {
-    /*    SetAdd(wRopeLast);
-        if(wRopeLast>0)
-            nIndx*=3;
-        else
-        {
-            nVert=0; nIndx=0;
-        }
-
-        int gn;
-        if(wRopeLast<ropeQuantity)
-            gn=rlist[wRopeLast]->HostGroup;
-        else
-            gn=groupQuantity;
-
-        for(; gn<groupQuantity; gn++)
-        {
-            gdata[gn].nt=0;
-            gdata[gn].nv=0;
-            gdata[gn].st=nIndx;
-            gdata[gn].sv=nVert;
-            gdata[gn].ropeQuantity=0;
-            for(int rn=wRopeLast; rn<ropeQuantity; rn++)
-            {
-                if(rlist[rn]->HostGroup==gn)
-                {
-                    gdata[gn].ropeQuantity++;
-                    gdata[gn].nv+=rlist[rn]->nv;
-                    gdata[gn].nt+=rlist[rn]->nt;
-                    rlist[rn]->sv=nVert;
-                    rlist[rn]->st=nIndx;
-                    nVert+=rlist[rn]->nv;
-                    nIndx+=rlist[rn]->nt*3;
-                }
-            }
-            gdata[gn].ropeIdx = new int[gdata[gn].ropeQuantity];
-            int idx=0;
-            for(rn=wRopeLast; rn<ropeQuantity; rn++)
-                if(rlist[rn]->HostGroup==gn)
-                    gdata[gn].ropeIdx[idx++]=rn;
-        }*/
-
-    if (nVert && nIndx) {
-        if (ropeQuantity > wRopeLast) {
-            if (wRopeLast) {
-                VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-                INDEX_BUFFER_RELEASE(RenderService, iBuf);
-            }
-            vBuf = RenderService->CreateVertexBuffer(ROPEVERTEX_FORMAT, nVert * sizeof(ROPEVERTEX), D3DUSAGE_WRITEONLY);
-            iBuf = RenderService->CreateIndexBuffer(nIndx * 2);
-
-            if (vBuf >= 0 && iBuf >= 0) {
-                SetVertexes();
-                SetIndex();
-            } else
-                core->Trace("Can`t create index or vertex buffer (index = %d, vertex = %d)", nIndx, nVert);
-        }
-        nIndx /= 3;  // translate index quantity to triangle quantity
-        bUse = true;
-    }
+    // if (nVert && nIndx) {
+    //     if (ropeQuantity > wRopeLast) {
+    //         if (wRopeLast) {
+    //             VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+    //             INDEX_BUFFER_RELEASE(RenderService, iBuf);
+    //         }
+    //         vBuf = RenderService->CreateVertexBuffer(ROPEVERTEX_FORMAT, nVert * sizeof(ROPEVERTEX), D3DUSAGE_WRITEONLY);
+    //         iBuf = RenderService->CreateIndexBuffer(nIndx * 2);
+    //
+    //         if (vBuf >= 0 && iBuf >= 0) {
+    //             SetVertexes();
+    //             SetIndex();
+    //         } else
+    //             core->Trace("Can`t create index or vertex buffer (index = %d, vertex = %d)", nIndx, nVert);
+    //     }
+    //     nIndx /= 3;  // translate index quantity to triangle quantity
+    //     bUse = true;
+    // }
 
     bFirstRun = false;
     wRopeLast = ropeQuantity;
@@ -973,11 +914,11 @@ void Rope::DoSTORM_DELETE()
     // change the vertex size and buffer index
     nIndx /= 3;
     if (oldnVert != nVert) {
-        VERTEX_BUFFER_RELEASE(RenderService, vBuf);
-        INDEX_BUFFER_RELEASE(RenderService, iBuf);
-
-        if (nVert > 0) vBuf = RenderService->CreateVertexBuffer(ROPEVERTEX_FORMAT, nVert * sizeof(ROPEVERTEX), D3DUSAGE_WRITEONLY);
-        if (nIndx > 0) iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
+        // VERTEX_BUFFER_RELEASE(RenderService, vBuf);
+        // INDEX_BUFFER_RELEASE(RenderService, iBuf);
+        //
+        // if (nVert > 0) vBuf = RenderService->CreateVertexBuffer(ROPEVERTEX_FORMAT, nVert * sizeof(ROPEVERTEX), D3DUSAGE_WRITEONLY);
+        // if (nIndx > 0) iBuf = RenderService->CreateIndexBuffer(nIndx * 6);
 
         if (nVert > 0 && nIndx > 0) {
             SetVertexes();

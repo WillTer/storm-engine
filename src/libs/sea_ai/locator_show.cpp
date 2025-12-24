@@ -72,7 +72,7 @@ void SeaLocatorShow::PrintLocator(ATTRIBUTES* pA)
 
     auto d = view.Vz() | view.Pos();
 
-    auto fh = static_cast<int32_t>(AIHelper::pRS->CharHeight(FONT_DEFAULT) * fScale);
+    // auto fh = static_cast<int32_t>(AIHelper::pRS->CharHeight(FONT_DEFAULT) * fScale);
 
     auto vPos = GetLocatorPos(pA);
     auto fAng = GetLocatorAng(pA);
@@ -83,42 +83,35 @@ void SeaLocatorShow::PrintLocator(ATTRIBUTES* pA)
     CMatrix m;
     m.BuildRotateY(fAng);
     m.SetPosition(vPos);
-    // m.BuildPosition(vPos.x,vPos.y,vPos.z);
-    AIHelper::pRS->SetTransform(D3DTS_WORLD, m);
+    // AIHelper::pRS->SetTransform(D3DTS_WORLD, m);
 
-    AIHelper::pRS->DrawPrimitiveUP(
-        D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, sphereNumTrgs, sphereVertex, sizeof(SphVertex), "SeaLocatorsShow");
+    // AIHelper::pRS->DrawPrimitiveUP(
+    //     D3DPT_TRIANGLELIST, D3DFVF_XYZ | D3DFVF_DIFFUSE, sphereNumTrgs, sphereVertex, sizeof(SphVertex), "SeaLocatorsShow");
 
     mtx.Projection(&vPos, &vrt, 1, fWidth, fHeight, sizeof(CVECTOR), sizeof(MTX_PRJ_VECTOR));
     vPos = CVECTOR(vrt.x, vrt.y, vrt.z);
 
     char const *pName, *pGName;
 
-    if (pGName = GetLocatorGroupName(pA)) AIHelper::Print(vPos.x, vPos.y - fh * 0.8f, fScale, "grp: \"%s\"", pGName);
+    // if (pGName = GetLocatorGroupName(pA)) AIHelper::Print(vPos.x, vPos.y - fh * 0.8f, fScale, "grp: \"%s\"", pGName);
     if (pName = GetLocatorName(pA)) AIHelper::Print(vPos.x, vPos.y, fScale, "loc: \"%s\"", pName);
     auto fRadius = GetLocatorRadius(pA);
-    AIHelper::Print(vPos.x, vPos.y + fh * 0.8f, fScale, "rad: %.2f", fRadius);
+    // AIHelper::Print(vPos.x, vPos.y + fh * 0.8f, fScale, "rad: %.2f", fRadius);
     if (fRadius > 0.0f) {
         std::vector<SphVertex> Vrts;
         auto                   vPos1   = GetLocatorPos(pA);
         auto                   vCenter = CVECTOR(vPos1.x, 2.0f, vPos1.z);
 
-        // SphVertex* pVrt = &Vrts[Vrts.Add()];
-        // pVrt->v = vCenter;
-        // pVrt->c = 0x4F00FF00;
         Vrts.push_back(SphVertex {vCenter, 0x4F00FF00});
         for (uint32_t i = 0; i < 32; i++) {
             auto fAngle = static_cast<float>(i) / 31.0f * PIm2;
-            // pVrt = &Vrts[Vrts.Add()];
-            // pVrt->v = vCenter + CVECTOR(sinf(fAngle) * fRadius, 0.0f, cosf(fAngle) * fRadius);
-            // pVrt->c = 0x0F00FF00
             Vrts.push_back(SphVertex {vCenter + CVECTOR(sinf(fAngle) * fRadius, 0.0f, cosf(fAngle) * fRadius), 0x0F00FF00});
         }
         CMatrix m_ident;
         m_ident.SetIdentity();
-        AIHelper::pRS->SetTransform(D3DTS_WORLD, m_ident);
-        AIHelper::pRS->DrawPrimitiveUP(
-            D3DPT_TRIANGLEFAN, D3DFVF_XYZ | D3DFVF_DIFFUSE, Vrts.size() - 2, &Vrts[0], sizeof(SphVertex), "SeaLocatorsShow");
+        // AIHelper::pRS->SetTransform(D3DTS_WORLD, m_ident);
+        // AIHelper::pRS->DrawPrimitiveUP(
+        //     D3DPT_TRIANGLEFAN, D3DFVF_XYZ | D3DFVF_DIFFUSE, Vrts.size() - 2, &Vrts[0], sizeof(SphVertex), "SeaLocatorsShow");
     }
 }
 
@@ -140,21 +133,21 @@ void SeaLocatorShow::Realize(uint32_t Delta_Time)
     }
     if (!bShow || !pALocators) return;
     CMatrix const prj;
-    AIHelper::pRS->GetTransform(D3DTS_VIEW, view);
-    AIHelper::pRS->GetTransform(D3DTS_PROJECTION, prj);
+    // AIHelper::pRS->GetTransform(D3DTS_VIEW, view);
+    // AIHelper::pRS->GetTransform(D3DTS_PROJECTION, prj);
     mtx.EqMultiply(view, prj);
 
-    D3DVIEWPORT9 vp;
-
-    AIHelper::pRS->GetViewport(&vp);
-    fWidth  = vp.Width * 0.5f;
-    fHeight = vp.Height * 0.5f;
+    // D3DVIEWPORT9 vp;
+    //
+    // AIHelper::pRS->GetViewport(&vp);
+    // fWidth  = vp.Width * 0.5f;
+    // fHeight = vp.Height * 0.5f;
     view.Transposition();
     // Draw
 
     // Remove textures
-    AIHelper::pRS->TextureSet(0, -1);
-    AIHelper::pRS->TextureSet(1, -1);
+    // AIHelper::pRS->TextureSet(0, -1);
+    // AIHelper::pRS->TextureSet(1, -1);
 
     ProcessLocators(pALocators);
 }

@@ -29,9 +29,9 @@ public:
 
     virtual bool Load(char const* modelName);
 
-    void PRender(VDX9RENDER* rs) override;
-    void MRender(VDX9RENDER* rs) override;
-    void LRender(VDX9RENDER* rs) override;
+    void PRender(/*VDX9RENDER*/ void* rs) override;
+    void MRender(/*VDX9RENDER*/ void* rs) override;
+    void LRender(/*VDX9RENDER*/ void* rs) override;
 
     void    SetTech(char const* t, char const* ta);
     int32_t GetTexture(int32_t stage) const;
@@ -41,7 +41,7 @@ public:
     float   alpha;
 
 public:
-    void Render(VDX9RENDER* rs) const;
+    void Render(/*VDX9RENDER*/ void* rs) const;
 
     GEOS*       geo;
     char const* tech;

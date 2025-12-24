@@ -3,6 +3,6 @@ storm_lib(
     SOURCES_DEPS
         config
         core
-        renderer
+        renderer_next
         storm-audio
 )

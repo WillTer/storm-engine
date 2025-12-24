@@ -1,6 +1,6 @@
 #include <libs/core/vma.hpp>
 #include <libs/location/location_script_lib.h>
-#include <libs/renderer/s_device.h>
+#include <libs/renderer_next/script_library.h>
 #include <libs/rigging/script_func.h>
 #include <libs/script_library/script_libriary_test.h>
 #include <libs/steam_api/steam_api_script_lib.hpp>

@@ -59,7 +59,6 @@ void GetQuotedString(char* inBuf, char* outBuf, int32_t bufSize)
 
 TmpTeleport::TmpTeleport() : m_leftPos(0), m_topPos(0), m_deltaPos(0), m_showStrQuantity(0), m_nShowType(0)
 {
-    rs             = nullptr;
     m_descrArray   = nullptr;
     m_nStrQuantity = m_nCurStr = m_nCurShowPos = 0;
 }
@@ -71,9 +70,6 @@ TmpTeleport::~TmpTeleport()
 
 bool TmpTeleport::Init()
 {
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) throw std::runtime_error("No service: dx9render");
-
     m_leftPos         = 20;
     m_topPos          = 80;
     m_deltaPos        = 30;
@@ -141,10 +137,10 @@ void TmpTeleport::Realize(uint32_t Delta_Time)
         auto ftop = m_topPos;
         for (int i = m_nCurStr; i < m_nStrQuantity; i++) {
             if (j >= m_showStrQuantity) break;
-            if (j == m_nCurShowPos)
-                rs->Print(FONT_DEFAULT, ARGB(255, 155, 155, 55), m_leftPos, ftop, "%s", m_descrArray[i].name);
-            else
-                rs->Print(FONT_DEFAULT, ARGB(255, 255, 255, 255), m_leftPos, ftop, "%s", m_descrArray[i].name);
+            // if (j == m_nCurShowPos)
+            //     rs->Print(FONT_DEFAULT, ARGB(255, 155, 155, 55), m_leftPos, ftop, "%s", m_descrArray[i].name);
+            // else
+            //     rs->Print(FONT_DEFAULT, ARGB(255, 255, 255, 255), m_leftPos, ftop, "%s", m_descrArray[i].name);
             ftop += m_deltaPos;
             j++;
         }

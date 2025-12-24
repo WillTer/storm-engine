@@ -19,7 +19,7 @@ public:
     void LoadFromFile(char const* sFileName);
     void LoadFromBase(char const* sListName, char const* sPictureName, bool bGetSizeFromSource = false);
     void LoadAccordingToString(char const* pcImageParam);
-    void SetPointerToTexture(IDirect3DTexture9* pTex);
+    void SetPointerToTexture(/*IDirect3DTexture9*/ void* pTex);
 
     void Draw();
     void Draw(int32_t nX, int32_t nY, ImagePointType alignment);
@@ -56,7 +56,7 @@ public:
 
     bool IsImagePresent() const
     {
-        return (m_nTextureID >= 0 || m_pTexture);
+        return (m_nTextureID >= 0 /*|| m_pTexture*/);
     }
 
     bool IsPointInside(int32_t nX, int32_t nY) const;
@@ -67,15 +67,12 @@ public:
     }
 
 protected:
-    VDX9RENDER* m_rs;
-
     bool     m_bDisableDraw;
     char*    m_pcPictureListName;
     int32_t  m_nPictureNum;
     FXYPOINT m_nLeftTopCutUV;
 
-    int32_t            m_nTextureID;
-    IDirect3DTexture9* m_pTexture;
+    int32_t m_nTextureID;
 
     FXYRECT m_frUV;
 

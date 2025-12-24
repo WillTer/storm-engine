@@ -6,7 +6,6 @@
 #include <libs/core/save_load.h>
 #include <libs/island/island_base.h>
 #include <libs/location/character_helpers.h>
-#include <libs/renderer/dx9render.h>
 
 class AIAttributesHolder
 {
@@ -35,7 +34,6 @@ public:
 
     static ATTRIBUTES*  pASeaCameras;
     static ISLAND_BASE* pIsland;
-    static VDX9RENDER*  pRS;
     static COLLIDE*     pCollide;
 
     static float fGravity;

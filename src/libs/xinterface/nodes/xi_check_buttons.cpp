@@ -1,5 +1,6 @@
 #include "xi_check_buttons.h"
 
+#include <libs/battle_interface/bi_defines.h>
 #include <libs/util/string_compare.hpp>
 #include <spdlog/spdlog.h>
 #include <stdio.h>
@@ -55,19 +56,19 @@ void CXI_CHECKBUTTONS::Draw(bool bSelected, uint32_t Delta_Time)
 
         // display all lines
         for (auto& line: button->aStr) {
-            m_rs->ExtPrint(
-                m_nFontNum,
-                dwColor,
-                0,
-                PR_ALIGN_LEFT,
-                true,
-                m_fFontScale,
-                m_screenSize.x,
-                m_screenSize.y,
-                static_cast<int32_t>(fX + m_frTextOffset.left + line.fX),
-                static_cast<int32_t>(fY + m_frTextOffset.top),
-                "%s",
-                line.str.c_str());
+            // m_rs->ExtPrint(
+            //     m_nFontNum,
+            //     dwColor,
+            //     0,
+            //     PR_ALIGN_LEFT,
+            //     true,
+            //     m_fFontScale,
+            //     m_screenSize.x,
+            //     m_screenSize.y,
+            //     static_cast<int32_t>(fX + m_frTextOffset.left + line.fX),
+            //     static_cast<int32_t>(fY + m_frTextOffset.top),
+            //     "%s",
+            //     line.str.c_str());
             fY += m_fTextLineHeight;
         }
 
@@ -77,7 +78,7 @@ void CXI_CHECKBUTTONS::Draw(bool bSelected, uint32_t Delta_Time)
 }
 
 bool CXI_CHECKBUTTONS::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     return true;
@@ -85,8 +86,7 @@ bool CXI_CHECKBUTTONS::Init(
 
 void CXI_CHECKBUTTONS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
-    char    param[2048];
-    XYPOINT tmpLPnt;
+    char param[2048];
 
     // Selecting only one item or not
     m_bExclusiveChoose = GetIniBool(ini1, name1, ini2, name2, "exclusiveChoose", true);
@@ -96,7 +96,7 @@ void CXI_CHECKBUTTONS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
     // get font number
     if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) {
-        if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
+        // if ((m_nFontNum = m_rs->LoadFont(param)) == -1) core->Trace("can not load font:'%s'", param);
     }
     m_fFontScale = GetIniFloat(ini1, name1, ini2, name2, "fontScale", 1.f);
 
@@ -111,8 +111,8 @@ void CXI_CHECKBUTTONS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     m_frTextOffset.left = m_frTextOffset.top = m_frTextOffset.right = m_frTextOffset.bottom = 0.f;
     m_frTextOffset = GetIniFloatRect(ini1, name1, ini2, name2, "rect_textoffset", m_frTextOffset);
 
-    m_fTextLineHeight      = GetIniFloat(ini1, name1, ini2, name2, "lineheight", static_cast<float>(m_rs->CharHeight(m_nFontNum)));
-    m_fTextSectionInterval = GetIniFloat(ini1, name1, ini2, name2, "sectioninterval", static_cast<float>(m_rs->CharHeight(m_nFontNum)));
+    // m_fTextLineHeight      = GetIniFloat(ini1, name1, ini2, name2, "lineheight", static_cast<float>(m_rs->CharHeight(m_nFontNum)));
+    // m_fTextSectionInterval = GetIniFloat(ini1, name1, ini2, name2, "sectioninterval", static_cast<float>(m_rs->CharHeight(m_nFontNum)));
 
     m_fpIconSize = GetIniFloatPoint(ini1, name1, ini2, name2, "iconsize", m_fpIconSize);
     if (ReadIniString(ini1, name1, ini2, name2, "icongroup", param, sizeof(param), "")) m_sIconGroupName = param;
@@ -181,12 +181,9 @@ void CXI_CHECKBUTTONS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
 void CXI_CHECKBUTTONS::ReleaseAll()
 {
-    FONT_RELEASE(m_rs, m_nFontNum);
-
     for (auto const& button: m_aButton)
         delete button;
     m_aButton.clear();
-    // m_aButton.DelAllWithPointers();
 }
 
 int CXI_CHECKBUTTONS::CommandExecute(int wActCode)
@@ -334,7 +331,6 @@ void CXI_CHECKBUTTONS::AddButton(char const* pcText, bool bDisable, bool bSelect
 {
     auto pBD = new ButtonDescribe;
     Assert(pBD);
-    // pBD->aStr.Add();
     ButtonDescribe::StrDescribe strDescribe;
     if (pcText && pcText[0] == '#') {
         strDescribe.str = &pcText[1];
@@ -365,8 +361,6 @@ void CXI_CHECKBUTTONS::ChangeText(int32_t nButtonNum, char const* pcText)
     if (nButtonNum < 0 || nButtonNum >= m_aButton.size()) return;
     m_aButton[nButtonNum]->aStr.clear();
     m_aButton[nButtonNum]->aStr.push_back(ButtonDescribe::StrDescribe {pcText, 0.0f});
-    // m_aButton[nButtonNum]->aStr[0].fX = 0.f;
-    // m_aButton[nButtonNum]->aStr[0].str = pcText;
 }
 
 void CXI_CHECKBUTTONS::CheckMouseClick(const FXYPOINT& pntMouse)
@@ -469,17 +463,15 @@ void CXI_CHECKBUTTONS::UpdateTextInfo(int32_t nButtonNum)
     std::vector<std::string> asOutStr;
     CXI_UTILS::SplitStringByWidth(sAllText.c_str(), m_nFontNum, m_fFontScale, nWidth, asOutStr);
 
-    // m_aButton[nButtonNum]->aStr.clear();
     m_aButton[nButtonNum]->aStr.resize(asOutStr.size());
     for (int32_t n = 0; n < asOutStr.size(); n++) {
-        // m_aButton[nButtonNum]->aStr.Add();
         m_aButton[nButtonNum]->aStr[n].str = asOutStr[n];
-        int32_t const nOffset              = m_rs->StringWidth(asOutStr[n].c_str(), m_nFontNum, m_fFontScale, 0);
-        switch (m_nFontAlignment) {
-        case PR_ALIGN_LEFT: m_aButton[nButtonNum]->aStr[n].fX = 0.f; break;
-        case PR_ALIGN_CENTER: m_aButton[nButtonNum]->aStr[n].fX = static_cast<float>((nWidth - nOffset) / 2); break;
-        case PR_ALIGN_RIGHT: m_aButton[nButtonNum]->aStr[n].fX = static_cast<float>(nWidth - nOffset); break;
-        }
+        // int32_t const nOffset              = m_rs->StringWidth(asOutStr[n].c_str(), m_nFontNum, m_fFontScale, 0);
+        // switch (m_nFontAlignment) {
+        // case PR_ALIGN_LEFT: m_aButton[nButtonNum]->aStr[n].fX = 0.f; break;
+        // case PR_ALIGN_CENTER: m_aButton[nButtonNum]->aStr[n].fX = static_cast<float>((nWidth - nOffset) / 2); break;
+        // case PR_ALIGN_RIGHT: m_aButton[nButtonNum]->aStr[n].fX = static_cast<float>(nWidth - nOffset); break;
+        // }
     }
 }
 

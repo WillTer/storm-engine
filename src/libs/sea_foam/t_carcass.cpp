@@ -9,7 +9,7 @@
 #define WIDEN_K 3.0f
 
 //--------------------------------------------------------------------
-TCarcass::TCarcass(int _levelsCount, int _measurePointsCount, VDX9RENDER* _renderer, bool _normalsInverted /*= false*/)
+TCarcass::TCarcass(int _levelsCount, int _measurePointsCount, /*VDX9RENDER*/ void* _renderer, bool _normalsInverted /*= false*/)
     : normalsInverted(_normalsInverted)
     , levelsCount(_levelsCount)
     , ivElementIndex(0)
@@ -17,24 +17,23 @@ TCarcass::TCarcass(int _levelsCount, int _measurePointsCount, VDX9RENDER* _rende
     , time(0)
     , vSpeed(0.f)
     , speedA(0.f)
-    , renderer(_renderer)
 {
     BOUND_UPPER(levelsCount, MAX_LEVELS);
 
     measure.pointsCount = _measurePointsCount;
     BOUND_UPPER(measure.pointsCount, MAX_MEASURE_POINTS);
 
-    uSpeed  = 15e-5f;
-    iBuffer = renderer->CreateIndexBuffer(3 * 2 * (MEASURE_POINTS - 1) * (TRACE_STEPS_Z - 1) * sizeof(uint16_t));
-    vBuffer = renderer->CreateVertexBuffer(
-        CARCASS_VERTEX_FORMAT, MEASURE_POINTS * (TRACE_STEPS_Z + 1) * sizeof(tCarcassVertex), 0, D3DPOOL_MANAGED);
+    uSpeed = 15e-5f;
+    // iBuffer = renderer->CreateIndexBuffer(3 * 2 * (MEASURE_POINTS - 1) * (TRACE_STEPS_Z - 1) * sizeof(uint16_t));
+    // vBuffer = renderer->CreateVertexBuffer(
+    //     CARCASS_VERTEX_FORMAT, MEASURE_POINTS * (TRACE_STEPS_Z + 1) * sizeof(tCarcassVertex), 0, D3DPOOL_MANAGED);
 }
 
 //--------------------------------------------------------------------
 TCarcass::~TCarcass()
 {
-    if (vBuffer) renderer->ReleaseVertexBuffer(vBuffer);
-    if (iBuffer) renderer->ReleaseIndexBuffer(iBuffer);
+    // if (vBuffer) renderer->ReleaseVertexBuffer(vBuffer);
+    // if (iBuffer) renderer->ReleaseIndexBuffer(iBuffer);
 }
 
 //--------------------------------------------------------------------
@@ -163,35 +162,35 @@ void TCarcass::Execute(uint32_t _dTime, CMatrix& _mtx, const CVECTOR* _starts)
     for (auto level = 0; level < levelsCount; level++)
         levelStarts[level] = _starts[level];
 
-    auto* vBufferPointer = static_cast<tCarcassVertex*>(renderer->LockVertexBuffer(vBuffer));
-    auto* iBufferPointer = static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer));
+    // auto* vBufferPointer = static_cast<tCarcassVertex*>(renderer->LockVertexBuffer(vBuffer));
+    // auto* iBufferPointer = static_cast<uint16_t*>(renderer->LockIndexBuffer(iBuffer));
 
-    if (indexesCreated)
-        RebuildLevels(vBufferPointer, false, _dTime);
-    else {
-        RebuildIndexes(iBufferPointer);
-        RebuildLevels(vBufferPointer, true, _dTime);
-        indexesCreated = true;
-    }
-
-    renderer->UnLockVertexBuffer(vBuffer);
-    renderer->UnLockIndexBuffer(iBuffer);
+    // if (indexesCreated)
+    //     RebuildLevels(vBufferPointer, false, _dTime);
+    // else {
+    //     RebuildIndexes(iBufferPointer);
+    //     RebuildLevels(vBufferPointer, true, _dTime);
+    //     indexesCreated = true;
+    // }
+    //
+    // renderer->UnLockVertexBuffer(vBuffer);
+    // renderer->UnLockIndexBuffer(iBuffer);
     time += _dTime;
 }
 
 //--------------------------------------------------------------------
 void TCarcass::Realize(char const* _technique)
 {
-    renderer->SetTransform(D3DTS_WORLD, sceneMatrix);
-    renderer->DrawBuffer(
-        vBuffer,
-        sizeof(tCarcassVertex),
-        iBuffer,
-        0,
-        MEASURE_POINTS * (TRACE_STEPS_Z + 1),
-        0,
-        2 * (MEASURE_POINTS - 1) * (TRACE_STEPS_Z - 1),
-        const_cast<char*>(_technique));
+    // renderer->SetTransform(D3DTS_WORLD, sceneMatrix);
+    // renderer->DrawBuffer(
+    //     vBuffer,
+    //     sizeof(tCarcassVertex),
+    //     iBuffer,
+    //     0,
+    //     MEASURE_POINTS * (TRACE_STEPS_Z + 1),
+    //     0,
+    //     2 * (MEASURE_POINTS - 1) * (TRACE_STEPS_Z - 1),
+    //     const_cast<char*>(_technique));
 }
 
 //--------------------------------------------------------------------

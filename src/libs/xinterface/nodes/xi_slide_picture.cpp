@@ -34,7 +34,6 @@ void SetTextureCoordinate(XI_ONETEX_VERTEX v[4], FXYRECT tr, float angle)
 CXI_SLIDEPICTURE::CXI_SLIDEPICTURE() : m_v {}, minRotate(0), deltaRotate(0), curRotate(0), curAngle(0), nCurSlide(0)
 {
     nLifeTime        = 0;
-    m_rs             = nullptr;
     m_idTex          = -1L;
     m_nNodeType      = NODETYPE_SLIDEPICTURE;
     pSlideSpeedList  = nullptr;
@@ -51,18 +50,18 @@ void CXI_SLIDEPICTURE::Draw(bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
         Update(Delta_Time);
-        m_rs->TextureSet(0, m_idTex);
-        m_rs->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-        m_rs->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-        if (strTechniqueName == nullptr)
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
-        else
-            m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), strTechniqueName);
+        // m_rs->TextureSet(0, m_idTex);
+        // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
+        // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+        // if (strTechniqueName == nullptr)
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
+        // else
+        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), strTechniqueName);
     }
 }
 
 bool CXI_SLIDEPICTURE::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetGlowCursor(false);
@@ -86,7 +85,7 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     }
 
     m_idTex = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
 
     m_texRect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
@@ -168,7 +167,7 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
 void CXI_SLIDEPICTURE::ReleaseAll()
 {
-    TEXTURE_RELEASE(m_rs, m_idTex);
+    // TEXTURE_RELEASE(m_rs, m_idTex);
     STORM_DELETE(pSlideSpeedList);
     STORM_DELETE(strTechniqueName);
     nSlideListSize = 0;
@@ -213,8 +212,8 @@ void CXI_SLIDEPICTURE::SaveParametersToIni()
 
 void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
 {
-    if (m_idTex != -1L) m_rs->TextureRelease(m_idTex);
-    m_idTex = m_rs->TextureCreate(sNewTexName);
+    // if (m_idTex != -1L) m_rs->TextureRelease(m_idTex);
+    // m_idTex = m_rs->TextureCreate(sNewTexName);
 }
 
 void CXI_SLIDEPICTURE::Update(uint32_t Delta_Time)

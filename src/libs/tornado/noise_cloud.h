@@ -11,7 +11,6 @@
 #pragma once
 
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #include "pillar.h"
 
@@ -41,7 +40,7 @@ public:
     virtual ~NoiseCloud();
 
     void Update(float dltTime);
-    void Draw(VDX9RENDER* rs);
+    void Draw(/*VDX9RENDER*/ void* rs);
 
     void SetGlobalAlpha(float a);
 

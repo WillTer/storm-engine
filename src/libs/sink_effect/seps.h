@@ -1,9 +1,9 @@
 #pragma once
 
+#include <libs/core/entity.h>
 #include <libs/filesystem/v_file_service.h>
 #include <libs/geometry/geometry.h>
 #include <libs/math/matrix.h>
-#include <libs/renderer/dx9render.h>
 
 #define MAX_PS_TEXTURES 8
 #define VERTEXS_ON_PARTICLE 6
@@ -51,7 +51,7 @@ struct PARTICLE_VERTEX {
     float    tu, tv;
 };
 
-#define PARTICLE_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
+// #define PARTICLE_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
 struct PARTICLE {
     CVECTOR pos;
@@ -104,16 +104,13 @@ class SEPS_PS
 
     bool bTrackAngle;
 
-    VDX9RENDER* RenderService;
-    VGEOMETRY*  gs;
+    VGEOMETRY* gs;
 
     int32_t TextureID[MAX_PS_TEXTURES];
     int32_t TexturesNum;
 
     int32_t                ParticlesNum;
     sink_effect::PARTICLE* Particle;
-
-    IDirect3DVertexBuffer9* VBuffer;
 
     CVECTOR Camera_EmitterPos;
     CVECTOR Camera_EmitterPosA;
@@ -144,7 +141,6 @@ class SEPS_PS
     int32_t  DeltaTimeSLE;  // SinceLastEmission
     bool     EmitParticle();
     int32_t  nSystemLifeTime;
-    // void  AddTrackPoint(CVECTOR pos);
     CVECTOR* pFlowTrack;
     uint32_t nFlowTrackSize;
     bool     bUseFlowTrack;

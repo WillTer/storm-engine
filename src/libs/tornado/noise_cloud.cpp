@@ -76,9 +76,9 @@ void NoiseCloud::Update(float dltTime)
     }
 }
 
-void NoiseCloud::Draw(VDX9RENDER* rs)
+void NoiseCloud::Draw(/*VDX9RENDER*/ void* rs)
 {
-    rs->TextureSet(0, texture);
+    // rs->TextureSet(0, texture);
     for (int32_t i = 0; i < sizeof(rect) / sizeof(Rect); i++) {
         // The size
         auto const size = rect[i].size;
@@ -115,13 +115,13 @@ void NoiseCloud::Draw(VDX9RENDER* rs)
         buf[i * 6 + 4].color = color;
         buf[i * 6 + 5].color = color;
     }
-    rs->DrawPrimitiveUP(
-        D3DPT_TRIANGLELIST,
-        D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
-        2 * sizeof(rect) / sizeof(Rect),
-        buf,
-        sizeof(Vertex),
-        "TornadoClouds");
+    // rs->DrawPrimitiveUP(
+    //     D3DPT_TRIANGLELIST,
+    //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1,
+    //     2 * sizeof(rect) / sizeof(Rect),
+    //     buf,
+    //     sizeof(Vertex),
+    //     "TornadoClouds");
 }
 
 void NoiseCloud::SetGlobalAlpha(float a)

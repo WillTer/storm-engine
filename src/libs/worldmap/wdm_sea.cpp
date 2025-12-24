@@ -59,74 +59,74 @@ WdmSea::WdmSea()
         whiteHorses[i] = -1;
     // Init
     // Create a buffer for indexes
-    ib = wdmObjects->rs->CreateIndexBuffer(WDM_SEA_NT * 3 * 2);
+    // ib = wdmObjects->rs->CreateIndexBuffer(WDM_SEA_NT * 3 * 2);
     // Create a vertex buffer
-    vb = wdmObjects->rs->CreateVertexBuffer(
-        D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, (WDM_SEA_NV + 4) * sizeof(Vertex), D3DUSAGE_WRITEONLY);
+    // vb = wdmObjects->rs->CreateVertexBuffer(
+    //     D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1, (WDM_SEA_NV + 4) * sizeof(Vertex), D3DUSAGE_WRITEONLY);
     Assert(ib >= 0 && vb >= 0);
     // Indexes
-    auto* triangle = static_cast<Triangle*>(wdmObjects->rs->LockIndexBuffer(ib));
-    Assert(triangle);
-    for (int32_t j = 0, p = 0; j < WDM_SEA_SECTIONS_Z; j++) {
-        auto* const trg  = triangle + j * WDM_SEA_SECTIONS_X * 2;
-        auto const  base = j * (WDM_SEA_SECTIONS_X + 1);
-        for (int32_t i = 0; i < WDM_SEA_SECTIONS_X; i++) {
-            trg[i * 2 + 0].index[0] = static_cast<uint16_t>(base + i);
-            trg[i * 2 + 0].index[1] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i + 1);
-            trg[i * 2 + 0].index[2] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i);
-            trg[i * 2 + 1].index[0] = static_cast<uint16_t>(base + i);
-            trg[i * 2 + 1].index[1] = static_cast<uint16_t>(base + i + 1);
-            trg[i * 2 + 1].index[2] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i + 1);
-        }
-    }
-    wdmObjects->rs->UnLockIndexBuffer(ib);
+    // auto* triangle = static_cast<Triangle*>(wdmObjects->rs->LockIndexBuffer(ib));
+    // Assert(triangle);
+    // for (int32_t j = 0, p = 0; j < WDM_SEA_SECTIONS_Z; j++) {
+    //     auto* const trg  = triangle + j * WDM_SEA_SECTIONS_X * 2;
+    //     auto const  base = j * (WDM_SEA_SECTIONS_X + 1);
+    //     for (int32_t i = 0; i < WDM_SEA_SECTIONS_X; i++) {
+    //         trg[i * 2 + 0].index[0] = static_cast<uint16_t>(base + i);
+    //         trg[i * 2 + 0].index[1] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i + 1);
+    //         trg[i * 2 + 0].index[2] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i);
+    //         trg[i * 2 + 1].index[0] = static_cast<uint16_t>(base + i);
+    //         trg[i * 2 + 1].index[1] = static_cast<uint16_t>(base + i + 1);
+    //         trg[i * 2 + 1].index[2] = static_cast<uint16_t>(base + WDM_SEA_SECTIONS_X + 1 + i + 1);
+    //     }
+    // }
+    // wdmObjects->rs->UnLockIndexBuffer(ib);
     // Vertices
-    auto* vertex = static_cast<Vertex*>(wdmObjects->rs->LockVertexBuffer(vb));
-    Assert(vertex);
-    // The sea
-    for (int32_t z = 0, p = 0; z <= WDM_SEA_SECTIONS_Z; z++) {
-        for (int32_t x = 0; x <= WDM_SEA_SECTIONS_X; x++, p++) {
-            auto& v = vertex[p];
-            v.x     = (x / static_cast<float>(WDM_SEA_SECTIONS_X) - 0.5f) * seaSizeX;
-            v.y     = 0.0f;
-            v.z     = (0.5f - z / static_cast<float>(WDM_SEA_SECTIONS_Z)) * seaSizeZ;
-            v.color = 0xffffffff;
-            v.tu    = x / static_cast<float>(WDM_SEA_SECTIONS_X);
-            v.tv    = z / static_cast<float>(WDM_SEA_SECTIONS_Z);
-        }
-    }
+    // auto* vertex = static_cast<Vertex*>(wdmObjects->rs->LockVertexBuffer(vb));
+    // Assert(vertex);
+    // // The sea
+    // for (int32_t z = 0, p = 0; z <= WDM_SEA_SECTIONS_Z; z++) {
+    //     for (int32_t x = 0; x <= WDM_SEA_SECTIONS_X; x++, p++) {
+    //         auto& v = vertex[p];
+    //         v.x     = (x / static_cast<float>(WDM_SEA_SECTIONS_X) - 0.5f) * seaSizeX;
+    //         v.y     = 0.0f;
+    //         v.z     = (0.5f - z / static_cast<float>(WDM_SEA_SECTIONS_Z)) * seaSizeZ;
+    //         v.color = 0xffffffff;
+    //         v.tu    = x / static_cast<float>(WDM_SEA_SECTIONS_X);
+    //         v.tv    = z / static_cast<float>(WDM_SEA_SECTIONS_Z);
+    //     }
+    // }
     // For waves
-    vertex[WDM_SEA_NV + 0].x     = -0.5f;
-    vertex[WDM_SEA_NV + 0].y     = 0.0f;
-    vertex[WDM_SEA_NV + 0].z     = 0.5f;
-    vertex[WDM_SEA_NV + 0].color = 0xffffffff;
-    vertex[WDM_SEA_NV + 0].tu    = 0.0f;
-    vertex[WDM_SEA_NV + 0].tv    = 0.0f;
-    vertex[WDM_SEA_NV + 1].x     = 0.5f;
-    vertex[WDM_SEA_NV + 1].y     = 0.0f;
-    vertex[WDM_SEA_NV + 1].z     = 0.5f;
-    vertex[WDM_SEA_NV + 1].color = 0xffffffff;
-    vertex[WDM_SEA_NV + 1].tu    = 1.0f;
-    vertex[WDM_SEA_NV + 1].tv    = 0.0f;
-    vertex[WDM_SEA_NV + 3].x     = 0.5f;
-    vertex[WDM_SEA_NV + 3].y     = 0.0f;
-    vertex[WDM_SEA_NV + 3].z     = -0.5f;
-    vertex[WDM_SEA_NV + 3].color = 0xffffffff;
-    vertex[WDM_SEA_NV + 3].tu    = 0.0f;
-    vertex[WDM_SEA_NV + 3].tv    = 1.0f;
-    vertex[WDM_SEA_NV + 2].x     = -0.5f;
-    vertex[WDM_SEA_NV + 2].y     = 0.0f;
-    vertex[WDM_SEA_NV + 2].z     = -0.5f;
-    vertex[WDM_SEA_NV + 2].color = 0xffffffff;
-    vertex[WDM_SEA_NV + 2].tu    = 1.0f;
-    vertex[WDM_SEA_NV + 2].tv    = 1.0f;
-    wdmObjects->rs->UnLockVertexBuffer(vb);
+    // vertex[WDM_SEA_NV + 0].x     = -0.5f;
+    // vertex[WDM_SEA_NV + 0].y     = 0.0f;
+    // vertex[WDM_SEA_NV + 0].z     = 0.5f;
+    // vertex[WDM_SEA_NV + 0].color = 0xffffffff;
+    // vertex[WDM_SEA_NV + 0].tu    = 0.0f;
+    // vertex[WDM_SEA_NV + 0].tv    = 0.0f;
+    // vertex[WDM_SEA_NV + 1].x     = 0.5f;
+    // vertex[WDM_SEA_NV + 1].y     = 0.0f;
+    // vertex[WDM_SEA_NV + 1].z     = 0.5f;
+    // vertex[WDM_SEA_NV + 1].color = 0xffffffff;
+    // vertex[WDM_SEA_NV + 1].tu    = 1.0f;
+    // vertex[WDM_SEA_NV + 1].tv    = 0.0f;
+    // vertex[WDM_SEA_NV + 3].x     = 0.5f;
+    // vertex[WDM_SEA_NV + 3].y     = 0.0f;
+    // vertex[WDM_SEA_NV + 3].z     = -0.5f;
+    // vertex[WDM_SEA_NV + 3].color = 0xffffffff;
+    // vertex[WDM_SEA_NV + 3].tu    = 0.0f;
+    // vertex[WDM_SEA_NV + 3].tv    = 1.0f;
+    // vertex[WDM_SEA_NV + 2].x     = -0.5f;
+    // vertex[WDM_SEA_NV + 2].y     = 0.0f;
+    // vertex[WDM_SEA_NV + 2].z     = -0.5f;
+    // vertex[WDM_SEA_NV + 2].color = 0xffffffff;
+    // vertex[WDM_SEA_NV + 2].tu    = 1.0f;
+    // vertex[WDM_SEA_NV + 2].tv    = 1.0f;
+    // wdmObjects->rs->UnLockVertexBuffer(vb);
     // Loading textures
     char buf[256];
-    baseTexture = wdmObjects->rs->TextureCreate("/worldmap/sea/sea.tga");
+    // baseTexture = wdmObjects->rs->TextureCreate("/worldmap/sea/sea.tga");
     for (int32_t i = 0; i < sizeof(aniTextures) / sizeof(int32_t); i++) {
         sprintf_s(buf, "/worldmap/sea/ani/wave_%.4i.tga", i);
-        aniTextures[i] = wdmObjects->rs->TextureCreate(buf);
+        // aniTextures[i] = wdmObjects->rs->TextureCreate(buf);
     }
     for (int32_t i = 0; i < sizeof(whiteHorses) / sizeof(int32_t); i++) {
         sprintf_s(buf, "/worldmap/sea/whitehorses/wh%.3i.tga", i);
@@ -135,19 +135,19 @@ WdmSea::WdmSea()
     for (int32_t i = 0; i < sizeof(flare) / sizeof(flare[0]); i++) {
         flare[i].index = -1;
     }
-    flareTexture       = wdmObjects->rs->TextureCreate("/worldmap/sea/flare.tga");
+    // flareTexture       = wdmObjects->rs->TextureCreate("/worldmap/sea/flare.tga");
     flareCount         = 0;
     flareCerateCounter = 0.0f;
 }
 
 WdmSea::~WdmSea()
 {
-    if (ib >= 0) wdmObjects->rs->ReleaseIndexBuffer(ib);
-    if (vb >= 0) wdmObjects->rs->ReleaseVertexBuffer(vb);
-    for (int32_t i = 0; i < sizeof(aniTextures) / sizeof(int32_t); i++)
-        if (aniTextures[i] >= 0) wdmObjects->rs->TextureRelease(aniTextures[i]);
-    if (baseTexture >= 0) wdmObjects->rs->TextureRelease(baseTexture);
-    if (flareTexture >= 0) wdmObjects->rs->TextureRelease(flareTexture);
+    // if (ib >= 0) wdmObjects->rs->ReleaseIndexBuffer(ib);
+    // if (vb >= 0) wdmObjects->rs->ReleaseVertexBuffer(vb);
+    // for (int32_t i = 0; i < sizeof(aniTextures) / sizeof(int32_t); i++)
+    //     if (aniTextures[i] >= 0) wdmObjects->rs->TextureRelease(aniTextures[i]);
+    // if (baseTexture >= 0) wdmObjects->rs->TextureRelease(baseTexture);
+    // if (flareTexture >= 0) wdmObjects->rs->TextureRelease(flareTexture);
     ib = -1;
     vb = -1;
     for (int32_t i = 0; i < sizeof(wh) / sizeof(WhiteHorses); i++)
@@ -208,18 +208,18 @@ void WdmSea::Update(float dltTime)
             // delete
             flareCount--;
             for (auto j = f.index; j < flareCount; j++) {
-                flare[flareRect[j + 1].dwColor & 0xffff].index--;
-                flareRect[j] = flareRect[j + 1];
+                // flare[flareRect[j + 1].dwColor & 0xffff].index--;
+                // flareRect[j] = flareRect[j + 1];
             }
             f.index = -1;
             continue;
         }
         // Updating parameters
-        auto&      r = flareRect[f.index];
+        // auto&      r = flareRect[f.index];
         auto const k = 1.0f - (f.time - 0.5f) * (f.time - 0.5f) * 4.0f;
-        r.fSize      = k * 0.3f;
-        r.dwColor    = (r.dwColor & 0xffff) | (static_cast<int32_t>(k * k * k * k * k * k * 255.0f) << 24);
-        r.fAngle += dltTime * 8.0f * sinf(f.phase + f.time * 6.0f);
+        // r.fSize      = k * 0.3f;
+        // r.dwColor    = (r.dwColor & 0xffff) | (static_cast<int32_t>(k * k * k * k * k * k * 255.0f) << 24);
+        // r.fAngle += dltTime * 8.0f * sinf(f.phase + f.time * 6.0f);
     }
     Assert(wdmObjects->playerShip);
     float playerX, playerZ, playerAng;
@@ -233,45 +233,45 @@ void WdmSea::Update(float dltTime)
                 if (flare[i].index < 0) break;
             }
             if (i >= sizeof(flare) / sizeof(flare[0])) break;
-            Assert(flareCount < sizeof(flareRect) / sizeof(flareRect[0]));
+            // Assert(flareCount < sizeof(flareRect) / sizeof(flareRect[0]));
             // Fill in with new parameters
-            auto& f         = flare[i];
-            f.index         = flareCount++;
-            f.time          = 0.0f;
-            f.k             = 1.0f / (0.8f + 0.5f * rand() * (1.0f / RAND_MAX));
-            f.phase         = rand() * (2.0f * PI / RAND_MAX);
-            auto&      r    = flareRect[f.index];
+            auto& f = flare[i];
+            f.index = flareCount++;
+            f.time  = 0.0f;
+            f.k     = 1.0f / (0.8f + 0.5f * rand() * (1.0f / RAND_MAX));
+            f.phase = rand() * (2.0f * PI / RAND_MAX);
+            // auto&      r    = flareRect[f.index];
             auto const pang = rand() * (2.0f * PI / RAND_MAX);
             auto const prad = rand() * (300.0f / RAND_MAX);
-            r.vPos.x        = playerX + prad * sinf(pang);
-            r.vPos.y        = 0.0f;
-            r.vPos.z        = playerZ + prad * cosf(pang);
-            r.fSize         = 0.0f;
-            r.fAngle        = rand() * (6.28f / RAND_MAX);
-            r.dwColor       = i;  // Only alpha is used, in color the index of the control structure
-            r.dwSubTexture  = 0;
+            // r.vPos.x        = playerX + prad * sinf(pang);
+            // r.vPos.y        = 0.0f;
+            // r.vPos.z        = playerZ + prad * cosf(pang);
+            // r.fSize         = 0.0f;
+            // r.fAngle        = rand() * (6.28f / RAND_MAX);
+            // r.dwColor       = i;  // Only alpha is used, in color the index of the control structure
+            // r.dwSubTexture  = 0;
         }
     }
 }
 
-void WdmSea::PRender(VDX9RENDER* rs)
+void WdmSea::PRender(/*VDX9RENDER*/ void* rs)
 {
     // Preliminary background rendering
     // Textures
-    rs->TextureSet(0, baseTexture);
+    // rs->TextureSet(0, baseTexture);
     PresetMain(rs);
     // Render
     Render(rs, "WdmSeaDraw1");
 }
 
-void WdmSea::LRender(VDX9RENDER* rs)
+void WdmSea::LRender(/*VDX9RENDER*/ void* rs)
 {
     // Further background rendering
     // Textures
-    rs->TextureSet(0, baseTexture);
+    // rs->TextureSet(0, baseTexture);
     PresetMain(rs);
     // RenderState
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, WDM_SEA_CLR(0xff - WDM_SEA_MBR, 0xff));
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, WDM_SEA_CLR(0xff - WDM_SEA_MBR, 0xff));
     // Render
     Render(rs, "WdmSeaDraw2");
     // Drawing an animated texture
@@ -283,22 +283,22 @@ void WdmSea::LRender(VDX9RENDER* rs)
     if (k < 0.0f) k = 0.0f;
     if (k > 255.0f) k = 255.0f;
     // Textures
-    rs->TextureSet(0, aniTextures[curFrame]);
-    rs->TextureSet(1, aniTextures[nextFrame]);
+    // rs->TextureSet(0, aniTextures[curFrame]);
+    // rs->TextureSet(1, aniTextures[nextFrame]);
     // Matrix for textures
     CMatrix mtx;
     mtx.m[0][0] = aniTiling;
     mtx.m[1][1] = aniTiling;
     mtx.m[2][2] = aniTiling;
     mtx.Pos()   = 0.0f;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
-    rs->SetTransform(D3DTS_TEXTURE1, mtx);
-    rs->SetRenderState(D3DRS_TEXTUREFACTOR, WDM_SEA_CLR(WDM_SEA_ANIALPHA, k));
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE1, mtx);
+    // rs->SetRenderState(D3DRS_TEXTUREFACTOR, WDM_SEA_CLR(WDM_SEA_ANIALPHA, k));
     Render(rs, "WdmSeaDraw3");
     // draw flares
     if (flareCount > 0) {
         CMatrix view;
-        rs->GetTransform(D3DTS_VIEW, view);
+        // rs->GetTransform(D3DTS_VIEW, view);
         view.Transposition();
         auto       y    = view.Pos().y;
         auto const maxy = 130.0f;
@@ -308,23 +308,23 @@ void WdmSea::LRender(VDX9RENDER* rs)
             if (y < 0.0f) y = 0.0f;
             y            = (1.0f - y) * (1.0f - y);
             auto const c = static_cast<int32_t>(y * 255.0f) << 24;
-            rs->TextureSet(0, flareTexture);
-            rs->SetRenderState(D3DRS_TEXTUREFACTOR, (c << 24) | (c << 16) | (c << 8) | c);
-            rs->DrawRects(flareRect, flareCount, "WdmSeaDrawFlare");
+            // rs->TextureSet(0, flareTexture);
+            // rs->SetRenderState(D3DRS_TEXTUREFACTOR, (c << 24) | (c << 16) | (c << 8) | c);
+            // rs->DrawRects(flareRect, flareCount, "WdmSeaDrawFlare");
         }
     }
 }
 
-void WdmSea::Render(VDX9RENDER* rs, char const* tech) const
+void WdmSea::Render(/*VDX9RENDER*/ void* rs, char const* tech) const
 {
     static CMatrix identity;
     if (vb < 0 || ib < 0) return;
-    rs->SetTransform(D3DTS_WORLD, identity);
-    rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, WDM_SEA_NV, 0, WDM_SEA_NT, (char*)tech);
+    // rs->SetTransform(D3DTS_WORLD, identity);
+    // rs->DrawBuffer(vb, sizeof(Vertex), ib, 0, WDM_SEA_NV, 0, WDM_SEA_NT, (char*)tech);
 }
 
 // Adjust texture coordinate transformations
-void WdmSea::PresetMain(VDX9RENDER* rs) const
+void WdmSea::PresetMain(/*VDX9RENDER*/ void* rs) const
 {
     // Matrix for textures
     CMatrix mtx;
@@ -332,5 +332,5 @@ void WdmSea::PresetMain(VDX9RENDER* rs) const
     mtx.m[1][1] = mtx.m[0][0];
     mtx.m[2][0] = (1.0f - mtx.m[0][0]) * 0.5f;
     mtx.m[2][1] = (1.0f - mtx.m[0][0]) * 0.5f;
-    rs->SetTransform(D3DTS_TEXTURE0, mtx);
+    // rs->SetTransform(D3DTS_TEXTURE0, mtx);
 }

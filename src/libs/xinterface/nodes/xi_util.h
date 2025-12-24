@@ -4,7 +4,7 @@
 
 #define UTILS_KEYS_DELAY_FOR_REPEAT 800
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/attributes.h>
 
 #include "../xdefines.h"
 
@@ -96,21 +96,21 @@ public:
     WriteSquareToVertexBuffer(XI_ONETEX_VERTEX* pv, uint32_t color, FXYRECT& uv, int32_t left, int32_t top, int32_t right, int32_t bottom);
 
     static void PrintTextIntoWindow(
-        VDX9RENDER* pRender,
-        int32_t     nFont,
-        uint32_t    dwColor,
-        int32_t     wAlignment,
-        bool        bShadow,
-        float       fScale,
-        int32_t     scrWidth,
-        int32_t     scrHeight,
-        int32_t     x,
-        int32_t     y,
-        char const* pcString,
-        int32_t     left,
-        int32_t     top,
-        int32_t     width,
-        int32_t     height);
+        /*VDX9RENDER*/ void* pRender,
+        int32_t              nFont,
+        uint32_t             dwColor,
+        int32_t              wAlignment,
+        bool                 bShadow,
+        float                fScale,
+        int32_t              scrWidth,
+        int32_t              scrHeight,
+        int32_t              x,
+        int32_t              y,
+        char const*          pcString,
+        int32_t              left,
+        int32_t              top,
+        int32_t              width,
+        int32_t              height);
 
 protected:
     static CXI_UTILS* pThis;

@@ -1,11 +1,9 @@
 #pragma once
 
-#include <libs/renderer/dx9render.h>
+#include <libs/core/entity.h>
 
 class TmpTeleport: public Entity
 {
-    VDX9RENDER* rs;
-
     struct TELEPORT_DESCR {
         int   num;
         char* name;
@@ -23,13 +21,7 @@ public:
     {
         switch (stage) {
         case Stage::execute: Execute(delta); break;
-        case Stage::realize:
-            Realize(delta);
-            break;
-            /*case Stage::lost_render:
-                LostRender(delta); break;
-            case Stage::restore_render:
-                RestoreRender(delta); break;*/
+        case Stage::realize: Realize(delta); break;
         }
     }
 

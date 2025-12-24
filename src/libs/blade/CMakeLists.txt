@@ -1,5 +1,5 @@
 storm_lib(
     NAME blade
     SOURCES_DEPS
-        renderer
+        renderer_next
 )

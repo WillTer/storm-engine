@@ -9,7 +9,6 @@
 
 Blast::Blast() : sea_eid(0), Splash(0)
 {
-    rs             = nullptr;
     gs             = nullptr;
     AngleDeviation = 1.57f;
     ItemsNum       = 0;
@@ -26,8 +25,8 @@ bool Blast::Init()
 {
     gs = static_cast<VGEOMETRY*>(core->GetService("GeometryService"));
     if (!gs) return false;
-    rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
-    if (!rs) return false;
+    // rs = static_cast<VDX9RENDER*>(core->GetService("RendererService"));
+    // if (!rs) return false;
 
     //    int32_t n;
     // FIXME: hardcode
@@ -198,8 +197,8 @@ void Blast::Realize(uint32_t Delta_Time)
     for (n = 0; n < ItemsNum; n++) {
         if (Item[n].geo) {
             Center.BuildMatrix(Item[n].ang, Item[n].pos);
-            rs->SetTransform(D3DTS_WORLD, Center);
-            Item[n].geo->Draw((GEOS::PLANE*)rs->GetPlanes(), 0, nullptr);
+            // rs->SetTransform(D3DTS_WORLD, Center);
+            // Item[n].geo->Draw((GEOS::PLANE*)rs->GetPlanes(), 0, nullptr);
         }
     }
 }

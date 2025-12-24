@@ -15,8 +15,6 @@
 #include "oct_tree.h"
 #include "window.h"
 
-class VDX9RENDER;
-
 class LightProcessor
 {
     // --------------------------------------------------------------------------------------------
@@ -25,7 +23,7 @@ class LightProcessor
 public:
     LightProcessor();
     virtual ~LightProcessor();
-    void SetParams(LGeometry* g, Window* win, LighterLights* lit, OctTree* ot, VDX9RENDER* _rs);
+    void SetParams(LGeometry* g, Window* win, LighterLights* lit, OctTree* ot);
     void UpdateLightsParam();
 
     // Perform Calculation Step
@@ -50,8 +48,8 @@ private:
     LGeometry*     geometry;
     Window*        window;
     LighterLights* lights;
-    VDX9RENDER*    rs;
-    OctTree*       octtree;
+    // VDX9RENDER*    rs;
+    OctTree* octtree;
 
     int32_t shadowTriangle;
     int32_t smoothVertex;

@@ -1,5 +1,7 @@
 #include "xi_quest_texts.h"
 
+#include <libs/renderer_next/types.h>
+
 CXI_QUESTTEXTS::STRING_DESCRIBER::STRING_DESCRIBER(char const* ls)
 {
     auto const len = strlen(ls) + 1;
@@ -85,14 +87,14 @@ bool GetNextIdFromList(char*& sptr, char* bufQuestID, size_t nSizeBufQuestID, ch
     return true;
 }
 
-static void SubRightWord(char* buf, int fontNum, int width, VDX9RENDER* rs)
+static void SubRightWord(char* buf, int fontNum, int width, /*VDX9RENDER*/ void* rs)
 {
     if (buf == nullptr) return;
     int32_t const bufSize = strlen(buf);
     for (auto* pEnd = buf + bufSize; pEnd > buf; pEnd--) {
         if (*pEnd == ' ') {
             *pEnd = 0;
-            if (rs->StringWidth(buf, fontNum) <= width) return;
+            // if (rs->StringWidth(buf, fontNum) <= width) return;
         }
     }
 }
@@ -129,11 +131,11 @@ bool CXI_QUESTTEXTS::GetLineNext(int fontNum, char*& pInStr, char* buf, int bufS
     }
 
     strncpy_s(buf, bufSize, pStart, lineSize);
-    buf[lineSize]       = 0;
-    auto const strWidth = m_rs->StringWidth(buf, fontNum);
-    if (strWidth <= m_rect.right - m_rect.left) return true;
+    buf[lineSize] = 0;
+    // auto const strWidth = m_rs->StringWidth(buf, fontNum);
+    // if (strWidth <= m_rect.right - m_rect.left) return true;
 
-    SubRightWord(buf, fontNum, m_rect.right - m_rect.left, m_rs);
+    // SubRightWord(buf, fontNum, m_rect.right - m_rect.left, m_rs);
     pInStr = pStart + strlen(buf);
 
     // remove leading spaces
@@ -148,8 +150,8 @@ CXI_QUESTTEXTS::CXI_QUESTTEXTS() : m_vertOffset(0)
     m_nNodeType = NODETYPE_QTEXTS;
 
     m_idFont             = -1;
-    m_dwNonCompleteColor = ARGB(255, 255, 255, 255);
-    m_dwCompleteColor    = ARGB(255, 128, 128, 128);
+    m_dwNonCompleteColor = storm::Color {255, 255, 255, 255}.to_hex();
+    m_dwCompleteColor    = storm::Color {255, 128, 128, 128}.to_hex();
 
     m_allStrings = 0;
 
@@ -172,14 +174,14 @@ void CXI_QUESTTEXTS::Draw(bool bSelected, uint32_t Delta_Time)
         // display lines
         auto const curColor = sd->complete ? m_dwCompleteColor : m_dwNonCompleteColor;
         if (sd->lineStr != nullptr && sd->lineStr[0] != 0)
-            m_rs->ExtPrint(
-                m_idFont, curColor, 0, PR_ALIGN_LEFT, true, 1.f, m_screenSize.x, m_screenSize.y, m_rect.left, curY, "%s", sd->lineStr);
-        curY += m_vertOffset;
+            // m_rs->ExtPrint(
+            //     m_idFont, curColor, 0, PR_ALIGN_LEFT, true, 1.f, m_screenSize.x, m_screenSize.y, m_rect.left, curY, "%s", sd->lineStr);
+            curY += m_vertOffset;
     }
 }
 
 bool CXI_QUESTTEXTS::Init(
-    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, VDX9RENDER* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
+    INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
     if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
     SetGlowCursor(false);
@@ -188,7 +190,7 @@ bool CXI_QUESTTEXTS::Init(
 
 void CXI_QUESTTEXTS::ReleaseAll()
 {
-    FONT_RELEASE(m_rs, m_idFont);
+    // FONT_RELEASE(m_rs, m_idFont);
     ReleaseStringes();
 }
 
@@ -258,12 +260,12 @@ void CXI_QUESTTEXTS::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_allStrings = (m_rect.bottom - m_rect.top) / m_vertOffset;
 
     // get colors
-    m_dwCompleteColor    = GetIniARGB(ini1, name1, ini2, name2, "completeColor", ARGB(255, 128, 128, 128));
-    m_dwNonCompleteColor = GetIniARGB(ini1, name1, ini2, name2, "noncompleteColor", ARGB(255, 255, 255, 255));
+    m_dwCompleteColor    = GetIniARGB(ini1, name1, ini2, name2, "completeColor", storm::Color {255, 128, 128, 128}.to_hex());
+    m_dwNonCompleteColor = GetIniARGB(ini1, name1, ini2, name2, "noncompleteColor", storm::Color {255, 255, 255, 255}.to_hex());
 
     // get font
     m_idFont = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
+    // if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) m_idFont = m_rs->LoadFont(param);
 }
 
 void CXI_QUESTTEXTS::StartQuestShow(ATTRIBUTES* pA, int qn)

@@ -22,7 +22,7 @@ class BICommandList
 public:
     BICommandList(BICommandList&&)      = delete;
     BICommandList(BICommandList const&) = delete;
-    BICommandList(entid_t eid, ATTRIBUTES* pA, VDX9RENDER* rs);
+    BICommandList(entid_t eid, ATTRIBUTES* pA, /*VDX9RENDER*/ void* rs);
     virtual ~BICommandList();
 
     void         Draw();
@@ -63,7 +63,8 @@ public:
 protected:
     entid_t     m_idHostObj;
     ATTRIBUTES* m_pARoot;
-    VDX9RENDER* m_pRS;
+    // FIXME: Renderer Next
+    // VDX9RENDER* m_pRS;
 
     BIImageRender* m_pImgRender;
 
@@ -90,10 +91,10 @@ protected:
         float fCooldownFactor;
 
         struct AdditiveIcon {
-            int32_t nTex;
-            int32_t nPic;
-            float   fDelta;
-            FPOINT  fpSize;
+            int32_t       nTex;
+            int32_t       nPic;
+            float         fDelta;
+            storm::FPoint fpSize;
         };
 
         std::vector<AdditiveIcon> aAddPicList;
@@ -106,45 +107,45 @@ protected:
     int32_t                  m_nSelectedCommandIndex;
     int32_t                  m_nIconShowMaxQuantity;
 
-    IPOINT      m_pntActiveIconOffset;
-    IPOINT      m_pntActiveIconSize;
-    std::string m_sActiveIconTexture;
-    FRECT       m_frActiveIconUV1;
-    FRECT       m_frActiveIconUV2;
-    std::string m_sActiveIconNote;
+    storm::Point m_pntActiveIconOffset;
+    storm::Point m_pntActiveIconSize;
+    std::string  m_sActiveIconTexture;
+    storm::FRect m_frActiveIconUV1;
+    storm::FRect m_frActiveIconUV2;
+    std::string  m_sActiveIconNote;
 
-    bool        m_bUpArrow;
-    bool        m_bDownArrow;
-    std::string m_sUpDownArrowTexture;
-    FRECT       m_frUpArrowUV;
-    FRECT       m_frDownArrowUV;
-    IPOINT      m_pntUpDownArrowSize;
-    IPOINT      m_pntUpArrowOffset;
-    IPOINT      m_pntDownArrowOffset;
+    bool         m_bUpArrow;
+    bool         m_bDownArrow;
+    std::string  m_sUpDownArrowTexture;
+    storm::FRect m_frUpArrowUV;
+    storm::FRect m_frDownArrowUV;
+    storm::Point m_pntUpDownArrowSize;
+    storm::Point m_pntUpArrowOffset;
+    storm::Point m_pntDownArrowOffset;
 
-    bool        m_bLeftArrow;
-    bool        m_bRightArrow;
-    std::string m_sLeftRightArrowTexture;
-    FRECT       m_frLeftArrowUV;
-    FRECT       m_frRightArrowUV;
-    IPOINT      m_pntLeftRightArrowSize;
-    IPOINT      m_pntLeftArrowOffset;
-    IPOINT      m_pntRightArrowOffset;
+    bool         m_bLeftArrow;
+    bool         m_bRightArrow;
+    std::string  m_sLeftRightArrowTexture;
+    storm::FRect m_frLeftArrowUV;
+    storm::FRect m_frRightArrowUV;
+    storm::Point m_pntLeftRightArrowSize;
+    storm::Point m_pntLeftArrowOffset;
+    storm::Point m_pntRightArrowOffset;
 
     std::string m_sCurrentCommandName;
     int32_t     m_nCurrentCommandCharacterIndex;
     int32_t     m_nCurrentCommandMode;
 
-    IPOINT  m_LeftTopPoint;
-    IPOINT  m_IconSize;
-    int32_t m_nIconSpace;
+    storm::Point m_LeftTopPoint;
+    storm::Point m_IconSize;
+    int32_t      m_nIconSpace;
 
-    int32_t     m_NoteFontID;
-    uint32_t    m_NoteFontColor;
-    float       m_NoteFontScale;
-    IPOINT      m_NotePos;
-    IPOINT      m_NoteOffset;
-    std::string m_NoteText;
+    int32_t      m_NoteFontID;
+    uint32_t     m_NoteFontColor;
+    float        m_NoteFontScale;
+    storm::Point m_NotePos;
+    storm::Point m_NoteOffset;
+    std::string  m_NoteText;
 
     struct CoolDownUpdateData {
         int32_t nIconNum;
@@ -156,12 +157,12 @@ protected:
 
     void Release();
 
-    int32_t IconAdd(int32_t nPictureNum, int32_t nTextureNum, RECT& rpos);
-    int32_t ClockIconAdd(int32_t nForePictureNum, int32_t nBackPictureNum, int32_t nTextureNum, RECT& rpos, float fFactor);
-    void    AdditiveIconAdd(float fX, float fY, std::vector<UsedCommand::AdditiveIcon>& aList);
-    FRECT&  GetPictureUV(int32_t nTextureNum, int32_t nPictureNum, FRECT& uv);
-    RECT&   GetCurrentPos(int32_t num, RECT& rpos) const;
-    RECT&   GetAddingPos(int32_t num, RECT& rpos);
+    int32_t       IconAdd(int32_t nPictureNum, int32_t nTextureNum, storm::Rect& rpos);
+    int32_t       ClockIconAdd(int32_t nForePictureNum, int32_t nBackPictureNum, int32_t nTextureNum, storm::Rect& rpos, float fFactor);
+    void          AdditiveIconAdd(float fX, float fY, std::vector<UsedCommand::AdditiveIcon>& aList);
+    storm::FRect& GetPictureUV(int32_t nTextureNum, int32_t nPictureNum, storm::FRect& uv);
+    storm::Rect&  GetCurrentPos(int32_t num, storm::Rect& rpos) const;
+    storm::Rect&  GetAddingPos(int32_t num, storm::Rect& rpos);
 
     void UpdateShowIcon();
     void SetNote(char const* pcNote, int32_t nX, int32_t nY);
