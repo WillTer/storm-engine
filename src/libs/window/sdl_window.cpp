@@ -157,10 +157,10 @@ void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
         handler.second(winEvent);
 }
 
-std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
-{
-    return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
-}
+// std::shared_ptr<OSWindow> OSWindow::Create(int width, int height, int preferred_display, bool fullscreen, bool bordered)
+// {
+//     return std::make_shared<SDLWindow>(width, height, preferred_display, fullscreen, bordered);
+// }
 
 bool SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
 {

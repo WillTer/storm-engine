@@ -48,7 +48,13 @@ FetchContent_Declare(
     GIT_TAG         50d79abf8f7d28d06e56fee0ce5529c73cce39a3
 )
 
-FetchContent_MakeAvailable(Catch2 fast_float spdlog entt storm-audio)
+FetchContent_Declare(
+    raylib
+    GIT_REPOSITORY  https://github.com/raysan5/raylib.git
+    GIT_TAG         5.5
+)
+
+FetchContent_MakeAvailable(Catch2 fast_float spdlog entt raylib storm-audio)
 
 if (WIN32)
     FetchContent_MakeAvailable(SDL3 zlib)
