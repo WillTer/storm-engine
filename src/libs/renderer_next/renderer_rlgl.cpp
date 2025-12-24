@@ -50,7 +50,7 @@ RendererRlgl::~RendererRlgl() = default;
 void RendererRlgl::init()
 {
     auto const& asset_server = core->get<AssetServer>();
-    auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>("glsl");
+    // auto const  shader_load  = asset_server->get_loader<ShaderAsset, AssetServer::NoCache>("glsl");
 
     // Testing
     auto  texture = asset_server->get_texture("loading/storm.tga.tx");

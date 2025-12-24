@@ -4,4 +4,5 @@ storm_lib(
         config
         spdlog::spdlog
         SDL3-storm
+        util
 )

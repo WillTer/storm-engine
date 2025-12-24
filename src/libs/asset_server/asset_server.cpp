@@ -35,4 +35,6 @@ TextureAsset const& AssetServer::get_texture(std::filesystem::path const& path)
     case asset_loader::Error::ExtensionNotSupported:
         throw std::runtime_error(std::format("File extension is not supported for selected asset type: {}", path.string()));
     }
+
+    throw std::runtime_error("Unspecified error");
 }

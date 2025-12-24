@@ -73,7 +73,11 @@ void RaylibWindow::Resize(int width, int height)
     SetWindowSize(width, height);
 }
 
-void RaylibWindow::WarpMouseInWindow(int x, int y) {}
+void RaylibWindow::WarpMouseInWindow(int x, int y)
+{
+    (void)x;
+    (void)y;
+}
 
 void RaylibWindow::SetTitle(std::string const& title)
 {
@@ -81,7 +85,12 @@ void RaylibWindow::SetTitle(std::string const& title)
     SetWindowTitle(m_title.c_str());
 }
 
-void RaylibWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256]) {}
+void RaylibWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256])
+{
+    (void)red;
+    (void)green;
+    (void)blue;
+}
 
 int RaylibWindow::Subscribe(EventHandler const& handler)
 {

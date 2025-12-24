@@ -1,16 +1,13 @@
 #pragma once
 
+#include <format>
+#include <stdexcept>
+
 #include <math.h>
 
 struct CVECTOR {
 public:
-    union {
-        struct {
-            float x, y, z;
-        };
-
-        float v[3];
-    };
+    float x, y, z;
 
     CVECTOR() = default;
 
@@ -105,6 +102,30 @@ public:
     float GetLength2D() const
     {
         return static_cast<float>(sqrt(static_cast<double>(x) * static_cast<double>(x) + static_cast<double>(z) * static_cast<double>(z)));
+    }
+
+    float& operator[](size_t const i)
+    {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: break;
+        }
+
+        throw std::out_of_range(std::format("Index {} is out of CVECTOR range (3)", i));
+    }
+
+    float operator[](size_t const i) const
+    {
+        switch (i) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: break;
+        }
+
+        throw std::out_of_range(std::format("Index {} is out of CVECTOR range (3)", i));
     }
 
     // normalize

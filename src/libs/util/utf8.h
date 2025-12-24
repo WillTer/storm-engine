@@ -90,7 +90,7 @@ inline int Utf8ToCodepoint(char const* utf8)
 
     if (l < 1) return -1;
     unsigned char u0 = utf8[0];
-    if (u0 >= 0 && u0 <= 0x7F) return u0;
+    if (u0 <= 0x7F) return u0;
 
     if (l < 2) return -1;
     unsigned char u1 = utf8[1];
@@ -189,7 +189,7 @@ inline void FixInvalidUtf8(char* str)
     int  len         = strlen(str) + 1;
     char replacement = '?';
     for (int i = 0; i < len; i++) {
-        if (0x00 <= str[i] && str[i] <= 0x7f) { continue; }
+        if (0x00 <= str[i]) { continue; }
 
         str[i] = replacement;
     }
