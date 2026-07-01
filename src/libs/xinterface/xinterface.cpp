@@ -170,14 +170,18 @@ void XInterface::SetDevice()
     m_UtilContainer.Init();
 
     pStringService = static_cast<VSTRSERVICE*>(core->GetService("StrService"));
-    if (!pStringService) { throw std::runtime_error("No service: strservice"); }
+    if (!pStringService) {
+        throw std::runtime_error("No service: strservice");
+    }
 
     // Load common parameters
     LoadIni();
 
     // Create pictures and string lists service
     pPictureService = new XSERVICE;
-    if (pPictureService == nullptr) { throw std::runtime_error("Not memory allocate"); }
+    if (pPictureService == nullptr) {
+        throw std::runtime_error("Not memory allocate");
+    }
 
     auto const& renderer = core->get<storm::RendererService>();
     {
@@ -187,7 +191,9 @@ void XInterface::SetDevice()
     }
 
     pQuestService = new storm::QuestFileReader;
-    if (pQuestService == nullptr) { throw std::runtime_error("Not memory allocate"); }
+    if (pQuestService == nullptr) {
+        throw std::runtime_error("Not memory allocate");
+    }
     auto* pvd = core->Event("GetQuestTextFileName", "");
     if (pvd != nullptr) {
         int const   nq = pvd->GetElementsNum();
@@ -427,7 +433,9 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
         auto               nItemNum  = message.Long();
 
         CINODE* pNode = (m_pNodes != nullptr ? m_pNodes->FindNode(sNodeName.c_str()) : nullptr);
-        if (pNode != nullptr && pNode->m_nNodeType == NODETYPE_FOURIMAGE) { static_cast<CXI_FOURIMAGE*>(pNode)->ChangeItem(nItemNum); }
+        if (pNode != nullptr && pNode->m_nNodeType == NODETYPE_FOURIMAGE) {
+            static_cast<CXI_FOURIMAGE*>(pNode)->ChangeItem(nItemNum);
+        }
     } break;
 
     case MSG_INTERFACE_INIT: {
@@ -800,12 +808,16 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
         char       param2[1024];
         std::strftime(param2, sizeof(param2), "%H:%M:%S", locTime);
         VDATA* pvdat = message.ScriptVariablePointer();
-        if (pvdat) { pvdat->Set(param2); }
+        if (pvdat) {
+            pvdat->Set(param2);
+        }
 
         if (message.GetFormat() == "lsee") {
             std::strftime(param2, sizeof(param2), "%d.%m.%Y", locTime);
             pvdat = message.ScriptVariablePointer();
-            if (pvdat) { pvdat->Set(param2); }
+            if (pvdat) {
+                pvdat->Set(param2);
+            }
         }
     } break;
 
@@ -1122,7 +1134,9 @@ void XInterface::pre_draw_stage(storm::GPUCommandBuffer const& cmd_buffer, uint3
 
 void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t delta_time /*= 0*/)
 {
-    if (!m_bUse || !bActive) { return; }
+    if (!m_bUse || !bActive) {
+        return;
+    }
     DrawNode(render_pass, m_pNodes, delta_time, 0, 80);
 
     DrawNode(render_pass, m_pNodes, delta_time, 81, 90);
@@ -1168,7 +1182,9 @@ void XInterface::draw_stage(storm::GPURenderPass const& render_pass, uint32_t de
     DrawNode(render_pass, m_pNodes, delta_time, 91, 65536);
 
     // Mouse pointer show
-    if (m_bShowMouse) { m_mouse_cursor->draw(render_pass); }
+    if (m_bShowMouse) {
+        m_mouse_cursor->draw(render_pass);
+    }
 }
 
 void XInterface::CreateNode(char const* sFileName, char const* sNodeType, char const* sNodeName, int32_t priority)
@@ -1280,7 +1296,9 @@ void XInterface::SFLB_CreateNode(INIFILE* pOwnerIni, INIFILE* pUserIni, char con
                         continue;
                     }
 
-                    if (!strncmp(stmp, "sound:", 6)) { sscanf(stmp, "sound:%d", &pNewNod->m_pCommands[nComNum].nSound); }
+                    if (!strncmp(stmp, "sound:", 6)) {
+                        sscanf(stmp, "sound:%d", &pNewNod->m_pCommands[nComNum].nSound);
+                    }
                 }
             } while (usedini->ReadStringNext(pNewNod->m_nodeName, "command", param, sizeof(param) - 1));
     }
@@ -1789,7 +1807,9 @@ void XInterface::DoControl()
     if (cs.state == CST_INACTIVATED) {
         bDeClick   = true;
         m_idButton = MOUSE_LBUTTON;
-        if (bDeClick && m_pMouseNode && m_pMouseNode->m_bMakeActionInDeclick) { MouseDeClick(); }
+        if (bDeClick && m_pMouseNode && m_pMouseNode->m_bMakeActionInDeclick) {
+            MouseDeClick();
+        }
     }
     if (cs.state == CST_ACTIVE) {
         m_bMouseClick = true;
@@ -1803,7 +1823,9 @@ void XInterface::DoControl()
         bWasFirst     = true;
         core->Event("MouseRClickDown");
     }
-    if (cs.state == CST_INACTIVATED) { core->Event("MouseRClickUP"); }
+    if (cs.state == CST_INACTIVATED) {
+        core->Event("MouseRClickUP");
+    }
     if (!m_bMouseClick && cs.state == CST_ACTIVE) {
         m_bMouseClick = true;
         m_idButton    = MOUSE_RBUTTON;
@@ -2052,7 +2074,9 @@ void XInterface::MouseClick(bool bFirstClick)
         m_bNotFirstPress = true;
     }
 
-    if (bFirstClick && m_nMouseLastClickTimeCur > 0 && clickNod->CheckCommandUsed(ACTION_MOUSEDBLCLICK)) { m_bDblMouseClick = true; }
+    if (bFirstClick && m_nMouseLastClickTimeCur > 0 && clickNod->CheckCommandUsed(ACTION_MOUSEDBLCLICK)) {
+        m_bDblMouseClick = true;
+    }
     m_nMouseLastClickTimeCur = m_nMouseLastClickTimeMax;
 
     if (clickNod != nullptr)  //~!~
@@ -2247,10 +2271,14 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
         // no this picture / create new
         if (pImList == nullptr) {
             pImList = new IMAGE_Entity;
-            if (pImList == nullptr) { throw std::runtime_error("Allocation memory error"); }
+            if (pImList == nullptr) {
+                throw std::runtime_error("Allocation memory error");
+            }
             *pImList       = {};
             auto const len = strlen(sImageName) + 1;
-            if ((pImList->sImageName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
+            if ((pImList->sImageName = new char[len]) == nullptr) {
+                throw std::runtime_error("Allocate memory error");
+            }
             memcpy(pImList->sImageName, sImageName, len);
             // insert that into images list
             pImList->next = m_imgLists;
@@ -2262,7 +2290,9 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
             STORM_DELETE(pImList->sPicture);
             if (patr->HasValue()) {
                 auto const len = strlen(patr->GetThisAttr()) + 1;
-                if ((pImList->sPicture = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
+                if ((pImList->sPicture = new char[len]) == nullptr) {
+                    throw std::runtime_error("Allocate memory error");
+                }
                 memcpy(pImList->sPicture, patr->GetThisAttr(), len);
             }
             if (pImList->sImageListName == nullptr) return 0;
@@ -2274,12 +2304,14 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
             STORM_DELETE(pImList->sImageListName);
             if (patr->HasValue()) {
                 auto const len = strlen(patr->GetThisAttr()) + 1;
-                if ((pImList->sImageListName = new char[len]) == nullptr) { throw std::runtime_error("Allocate memory error"); }
+                if ((pImList->sImageListName = new char[len]) == nullptr) {
+                    throw std::runtime_error("Allocate memory error");
+                }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
             pImList->picture = std::make_unique<storm::Image2D>(
                 pPictureService->get_texture(pImList->sImageListName),
-                pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture));
+                pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture ? pImList->sPicture : ""));
             pImList->picture->set_screen_rect(m_screen_rect);
             pImList->picture->set_rect(pImList->position);
 
@@ -2306,7 +2338,9 @@ bool XInterface::SFLB_DoSaveFileData(std::filesystem::path const& saveName, char
     // pTex->GetLevelDesc(0, &dscr);
 
     auto pdat = static_cast<char*>(malloc(sizeof(SAVE_DATA_HANDLE) + slen));
-    if (pdat == nullptr) { throw std::runtime_error("allocate memory error"); }
+    if (pdat == nullptr) {
+        throw std::runtime_error("allocate memory error");
+    }
 
     ((SAVE_DATA_HANDLE*)pdat)->StringDataSize = slen;
     // if(slen>0)
@@ -2338,7 +2372,9 @@ bool XInterface::SFLB_GetSaveFileData(std::filesystem::path const& saveName, int
     if (pdat == nullptr) return false;
 
     char* stringData = &pdat[sizeof(SAVE_DATA_HANDLE)];
-    if (!utf8::IsValidUtf8(stringData)) { utf8::FixInvalidUtf8(stringData); }
+    if (!utf8::IsValidUtf8(stringData)) {
+        utf8::FixInvalidUtf8(stringData);
+    }
 
     int32_t strSize = ((SAVE_DATA_HANDLE*)pdat)->StringDataSize;
     if (strSize >= bufSize) {
@@ -2372,7 +2408,9 @@ void XInterface::AddFindData(std::filesystem::path filePath)
         m_pSaveFindRoot          = p;
         auto const len           = sSaveFileName.size() + 1;
         p->save_file_name        = new char[len];
-        if (p->save_file_name) { memcpy(p->save_file_name, sSaveFileName.c_str(), len); }
+        if (p->save_file_name) {
+            memcpy(p->save_file_name, sSaveFileName.c_str(), len);
+        }
     }
 }
 
@@ -2417,7 +2455,9 @@ char* XInterface::SaveFileFind(int32_t saveNum, char* buffer, size_t bufSize, in
     {
         // get file name for searching (whith full path)
         char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-        if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
+        if (sSavePath != nullptr) {
+            fio->create_directories(sSavePath);
+        }
 
         // start save file finding
         auto const vFilePaths = fio->paths_by_mask(sSavePath, "", true);
@@ -2721,16 +2761,22 @@ void XInterface::SaveOptionsFile(char const* fileName, ATTRIBUTES* pAttr)
 {
     char FullPath[MAX_PATH];
 
-    if (fileName == nullptr || pAttr == nullptr) { return; }
+    if (fileName == nullptr || pAttr == nullptr) {
+        return;
+    }
     strcpy_s(FullPath, fileName);
 
     PrecreateDirForFile(FullPath);
     auto fileS = fio->open_file<std::ofstream>(FullPath, std::ios::binary);
-    if (!fileS.is_open()) { return; }
+    if (!fileS.is_open()) {
+        return;
+    }
 
     char* pOutBuffer = nullptr;
 
-    if (pAttr) { pOutBuffer = AddAttributesStringsToBuffer(nullptr, nullptr, pAttr); }
+    if (pAttr) {
+        pOutBuffer = AddAttributesStringsToBuffer(nullptr, nullptr, pAttr);
+    }
 
     if (pOutBuffer) {
         fileS.write(pOutBuffer, strlen(pOutBuffer));
@@ -2743,10 +2789,14 @@ void XInterface::LoadOptionsFile(std::string_view fileName, ATTRIBUTES* pAttr)
     constexpr unsigned int const OPTION_NAME_MAX_LENGTH  = 512;
     constexpr unsigned int const OPTION_VALUE_MAX_LENGTH = 1024;
 
-    if (fileName.empty() || pAttr == nullptr) { return; }
+    if (fileName.empty() || pAttr == nullptr) {
+        return;
+    }
 
     auto fileS = fio->open_file<std::ifstream>(fileName.data(), std::ios::binary);
-    if (!fileS.is_open()) { return; }
+    if (!fileS.is_open()) {
+        return;
+    }
 
     uint32_t const fileSize = fio->file_size(fileName.data());
     if (fileSize == 0) {
@@ -2828,11 +2878,15 @@ void XInterface::ShowContextHelp()
 int XInterface::LoadIsExist()
 {
     char* sCurLngName = GetStringService()->GetLanguage();
-    if (sCurLngName == nullptr) { return 0; }
+    if (sCurLngName == nullptr) {
+        return 0;
+    }
 
     char        param[1024];
     char const* sSavePath = AttributesPointer->GetAttribute("SavePath");
-    if (sSavePath != nullptr) { fio->create_directories(sSavePath); }
+    if (sSavePath != nullptr) {
+        fio->create_directories(sSavePath);
+    }
 
     bool       bFindFile  = false;
     auto const vFilenames = fio->string_paths_by_mask(sSavePath, "*", true);
@@ -2844,8 +2898,12 @@ int XInterface::LoadIsExist()
             int i;
             for (i = strlen(datBuf); i >= 0 && datBuf[i] != '@'; i--)
                 ;
-            if (i < 0) { i = 0; }
-            if (datBuf[i] == '@') { i++; }
+            if (i < 0) {
+                i = 0;
+            }
+            if (datBuf[i] == '@') {
+                i++;
+            }
             if (storm::iEquals(sCurLngName, &datBuf[i])) {
                 bFindFile = true;
                 break;

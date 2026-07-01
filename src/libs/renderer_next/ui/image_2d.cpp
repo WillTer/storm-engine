@@ -44,6 +44,10 @@ void Image2D::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) 
 
 void Image2D::draw(GPURenderPass const& render_pass) const
 {
+    if (!m_texture) {
+        return;
+    }
+
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
     render_pass.bind(*m_vertex_buffer);
@@ -72,11 +76,13 @@ void Image2D::initialize(storm::FRect const& texture_rect)
 
     m_fragment_ubo.color = float4(1.0F);
 
-    auto const [width, height] = m_texture->get_dimensions();
+    if (m_texture) {
+        auto const [width, height] = m_texture->get_dimensions();
 
-    m_rect   = {0.0F, 0.0F, width * std::fabs(texture_rect.width()), height * std::fabs(texture_rect.height())};
-    m_width  = static_cast<uint32_t>(m_rect.width());
-    m_height = static_cast<uint32_t>(m_rect.height());
+        m_rect   = {0.0F, 0.0F, width * std::fabs(texture_rect.width()), height * std::fabs(texture_rect.height())};
+        m_width  = static_cast<uint32_t>(m_rect.width());
+        m_height = static_cast<uint32_t>(m_rect.height());
+    }
 }
 
 void Image2D::set_diffuse_color(storm::Color const& color)

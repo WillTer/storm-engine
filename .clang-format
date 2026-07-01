@@ -9,7 +9,7 @@ AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Always
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: WithoutElse
