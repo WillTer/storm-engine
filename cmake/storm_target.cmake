@@ -29,7 +29,7 @@ set(GNU_CXX_FLAGS_WARNINGS -Wall -Werror=return-type -Werror=uninitialized -Werr
 set(MSVC_CXX_FLAGS_WARNINGS_FULL /WX /W4
     /wd4324 # Do not complain about alignment
 )
-set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror)
+set(GNU_CXX_FLAGS_WARNINGS_FULL -Wall -Wextra -Wpedantic -Werror -Wno-cast-user-defined)
 
 set(MSVC_CXX_FLAGS
     ${MSVC_CXX_FLAGS_ANY}
