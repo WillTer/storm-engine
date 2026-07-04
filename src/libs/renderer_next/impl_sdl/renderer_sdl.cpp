@@ -63,7 +63,9 @@ struct RendererService::Impl {
             SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_SPIRV, IS_DEBUG_MODE, backend.c_str()),
             &SDL_DestroyGPUDevice);
 
-        if (!m_device) { throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError())); }
+        if (!m_device) {
+            throw std::runtime_error(std::format("Failed to create GPU device: {}", SDL_GetError()));
+        }
 
         m_asset_server->set_asset_ext<ShaderAsset>(BACKEND_SHADER_EXT.at(backend));
 

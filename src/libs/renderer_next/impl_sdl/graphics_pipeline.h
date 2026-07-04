@@ -16,6 +16,8 @@ struct ShaderAsset;
 class GraphicsPipeline final
 {
 public:
+    enum class PrimitiveType { TriangleList, LineList };
+
     GraphicsPipeline(
         std::shared_ptr<SDL_GPUDevice> const&          device,
         std::shared_ptr<SDL_Window> const&             window,
@@ -24,7 +26,8 @@ public:
         ShaderAsset const&                             vertex_shader_asset,
         shaders::Info const&                           vertex_shader_info,
         ShaderAsset const&                             fragment_shader_asset,
-        shaders::Info const&                           fragment_shader_info);
+        shaders::Info const&                           fragment_shader_info,
+        PrimitiveType                                  primitive_type);
 
     ~GraphicsPipeline();
 

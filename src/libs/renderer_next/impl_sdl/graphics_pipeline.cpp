@@ -79,13 +79,18 @@ GraphicsPipeline::GraphicsPipeline(
     ShaderAsset const&                             vertex_shader_asset,
     shaders::Info const&                           vertex_shader_info,
     ShaderAsset const&                             fragment_shader_asset,
-    shaders::Info const&                           fragment_shader_info)
+    shaders::Info const&                           fragment_shader_info,
+    PrimitiveType                                  primitive_type)
 {
     auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_info, SDL_GPU_SHADERSTAGE_VERTEX);
-    if (!vertex_shader) { throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError())); }
+    if (!vertex_shader) {
+        throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError()));
+    }
 
     auto const fragment_shader = compile_shader(device, fragment_shader_asset, fragment_shader_info, SDL_GPU_SHADERSTAGE_FRAGMENT);
-    if (!fragment_shader) { throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError())); }
+    if (!fragment_shader) {
+        throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError()));
+    }
 
     auto blend_state                  = SDL_GPUColorTargetBlendState {};
     blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
@@ -120,16 +125,22 @@ GraphicsPipeline::GraphicsPipeline(
     auto pipeline_create_info                       = SDL_GPUGraphicsPipelineCreateInfo {};
     pipeline_create_info.target_info                = target_info;
     pipeline_create_info.vertex_input_state         = vertex_input_state;
-    pipeline_create_info.primitive_type             = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
     pipeline_create_info.vertex_shader              = vertex_shader.get();
     pipeline_create_info.fragment_shader            = fragment_shader.get();
     pipeline_create_info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+
+    switch (primitive_type) {
+    case PrimitiveType::TriangleList: pipeline_create_info.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST; break;
+    case PrimitiveType::LineList: pipeline_create_info.primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST; break;
+    }
 
     m_pipeline = std::shared_ptr<SDL_GPUGraphicsPipeline>(
         SDL_CreateGPUGraphicsPipeline(device.get(), &pipeline_create_info),
         [device](SDL_GPUGraphicsPipeline* p) { SDL_ReleaseGPUGraphicsPipeline(device.get(), p); });
 
-    if (!m_pipeline) { throw std::runtime_error(std::format("Failed to create GPU GraphicsPipeline: {}", SDL_GetError())); }
+    if (!m_pipeline) {
+        throw std::runtime_error(std::format("Failed to create GPU GraphicsPipeline: {}", SDL_GetError()));
+    }
 }
 
 GraphicsPipeline::~GraphicsPipeline() = default;

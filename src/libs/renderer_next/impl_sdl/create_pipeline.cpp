@@ -5,10 +5,10 @@
 #include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/renderer_next/pipeline_names.h>
-#include <shaders/ui/colored_rect.h>
 #include <shaders/ui/common_ui.h>
 #include <shaders/ui/font_normal.h>
 #include <shaders/ui/image_2d.h>
+#include <shaders/ui/rectangle.h>
 #include <shaders/ui/texture_sequence.h>
 
 #include "graphics_pipeline.h"
@@ -24,7 +24,8 @@ auto create_pipeline(
     std::shared_ptr<SDL_Window> const&    window,
     std::shared_ptr<AssetServer> const&   asset_server,
     std::string const&                    vertex_shader,
-    std::string const&                    fragment_shader) -> std::shared_ptr<GraphicsPipeline>
+    std::string const&                    fragment_shader,
+    GraphicsPipeline::PrimitiveType primitive_type = GraphicsPipeline::PrimitiveType::TriangleList) -> std::shared_ptr<GraphicsPipeline>
 {
     auto const vertex_shader_asset   = asset_server->load_shader_file(vertex_shader);
     auto const fragment_shader_asset = asset_server->load_shader_file(fragment_shader);
@@ -37,7 +38,8 @@ auto create_pipeline(
         vertex_shader_asset,
         StageInfo::VERTEX,
         fragment_shader_asset,
-        StageInfo::FRAGMENT);
+        StageInfo::FRAGMENT,
+        primitive_type);
 }
 
 }  // namespace
@@ -64,12 +66,22 @@ auto create_by_name(
     case TEXTURE_SEQUENCE_PIPELINE.value():
         return create_pipeline<shaders::texture_sequence::VertexInput, shaders::texture_sequence::StageInfo>(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
-    case COLORED_RECT_PIPELINE.value():
-        return create_pipeline<shaders::colored_rect::VertexInput, shaders::colored_rect::StageInfo>(
+    case FILL_RECTANGLE_PIPELINE.value():
+        return create_pipeline<shaders::rectangle::VertexInput, shaders::rectangle::StageInfo>(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
     case FONT_NORMAL_PIPELINE.value():
         return create_pipeline<shaders::font_normal::VertexInput, shaders::font_normal::StageInfo>(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
+
+    // Special pipelines
+    case WIRE_RECTANGLE_PIPELINE.value():
+        return create_pipeline<shaders::rectangle::VertexInput, shaders::rectangle::StageInfo>(
+            device,
+            window,
+            asset_server,
+            std::format("ui/{}_vs", FILL_RECTANGLE_PIPELINE.data()),
+            std::format("ui/{}_fs", FILL_RECTANGLE_PIPELINE.data()),
+            GraphicsPipeline::PrimitiveType::LineList);
     default: break;
     }
 

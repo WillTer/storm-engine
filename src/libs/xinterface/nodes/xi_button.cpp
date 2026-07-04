@@ -1,8 +1,8 @@
 #include "xi_button.h"
 
 #include <libs/renderer_next/types.h>
-#include <libs/renderer_next/ui/colored_rect.h>
 #include <libs/renderer_next/ui/image_2d.h>
+#include <libs/renderer_next/ui/rectangle.h>
 #include <libs/util/string_compare.hpp>
 
 CXI_BUTTON::CXI_BUTTON()
@@ -77,7 +77,9 @@ bool CXI_BUTTON::Init(
 
 void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if (!m_picture) { return; }
+    if (!m_picture) {
+        return;
+    }
 
     ChangePosition(m_rect);
 
@@ -177,7 +179,7 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
     assert(m_picture);
     m_picture->set_screen_rect(m_screen_rect);
 
-    m_shadow = std::make_unique<storm::ColoredRect>(storm::Color::from_hex(m_dwShadowColor));
+    m_shadow = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwShadowColor));
     m_shadow->set_screen_rect(m_screen_rect);
 
     // get offset button image in case pressed button

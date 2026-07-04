@@ -1,12 +1,10 @@
-#include "colored_rect.h"
+#include "rectangle.h"
 
 #include <cassert>
 
-#include <libs/asset_server/asset_server.h>
 #include <libs/core/core.h>
 #include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
 #include <libs/renderer_next/impl_sdl/gpu_index_buffer.h>
-#include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/pipeline_names.h>
@@ -14,20 +12,21 @@
 using namespace storm;
 using namespace hlslpp;
 
-using Vertex = shaders::colored_rect::VertexInput;
+using Vertex = shaders::rectangle::VertexInput;
 
 namespace
 {
 
-auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
+auto const SQUARE_TRIANGLES_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
+auto const SQUARE_LINES_INDICES     = std::vector<uint32_t> {0, 1, 1, 2, 2, 3, 3, 0};
 
 }  // namespace
 
-ColoredRect::ColoredRect(storm::Color const& color)
+Rectangle::Rectangle(storm::Color const& color, Fill fill /*= Fill::Color*/)
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline(COLORED_RECT_PIPELINE);
+    m_pipeline = renderer->create_pipeline(fill == Fill::Color ? FILL_RECTANGLE_PIPELINE : WIRE_RECTANGLE_PIPELINE);
 
     auto const [r, g, b, a] = color.normalize();
 
@@ -39,7 +38,7 @@ ColoredRect::ColoredRect(storm::Color const& color)
     };
 
     m_vertex_buffer = renderer->create_vertex_buffer(vertex_data);
-    m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
+    m_index_buffer  = renderer->create_index_buffer(fill == Fill::Color ? SQUARE_TRIANGLES_INDICES : SQUARE_LINES_INDICES);
 
     m_rect   = {0.0F, 0.0F, 1.0F, 1.0F};
     m_width  = 1;
@@ -48,23 +47,16 @@ ColoredRect::ColoredRect(storm::Color const& color)
     m_is_color_dirty = false;
 }
 
-ColoredRect::~ColoredRect() = default;
+Rectangle::~Rectangle() = default;
 
-void ColoredRect::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
+void Rectangle::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
 {
     if (m_is_color_dirty) {
-        auto const [r, g, b, a] = m_color.normalize();
-
-        std::vector const color_buffer = {
-            // left-top
-            decltype(Vertex::color)(r, g, b, a),
-            // right-top
-            decltype(Vertex::color)(r, g, b, a),
-            // right-bottom
-            decltype(Vertex::color)(r, g, b, a),
-            // left-bottom
-            decltype(Vertex::color)(r, g, b, a),
-        };
+        std::vector<decltype(Vertex::color)> color_buffer = {};
+        std::transform(m_color.begin(), m_color.end(), std::back_inserter(color_buffer), [](storm::Color const& color) {
+            auto const [r, g, b, a] = color.normalize();
+            return decltype(Vertex::color)(r, g, b, a);
+        });
 
         auto const progress_update_info =
             std::vector(4, BufferUpdateInfo {.offset = offsetof(Vertex, color), .size = sizeof(Vertex::color)});
@@ -74,7 +66,7 @@ void ColoredRect::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
     }
 }
 
-void ColoredRect::draw(GPURenderPass const& render_pass) const
+void Rectangle::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
@@ -84,8 +76,22 @@ void ColoredRect::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void ColoredRect::set_color(storm::Color const& color)
+void Rectangle::set_color(storm::Color const& color)
 {
-    m_color          = color;
+    for (size_t i = 0; i < m_color.size(); ++i) {
+        m_color[i] = color;
+    }
+
+    m_is_color_dirty = true;
+}
+
+void Rectangle::set_vertex_color(size_t index, storm::Color const& color)
+{
+    // Out of bounds
+    if (index >= m_color.size()) {
+        return;
+    }
+
+    m_color[index]   = color;
     m_is_color_dirty = true;
 }

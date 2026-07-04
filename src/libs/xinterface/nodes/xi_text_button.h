@@ -6,7 +6,7 @@ namespace storm
 {
 class Image2D;
 class Button;
-class ColoredRect;
+class Rectangle;
 class Font;
 }  // namespace storm
 
@@ -54,9 +54,9 @@ protected:
     std::unique_ptr<storm::Button> m_button;
     std::unique_ptr<storm::Button> m_button_selected;
 
-    std::unique_ptr<storm::Image2D>     m_shadow;
-    std::unique_ptr<storm::Image2D>     m_selection;
-    std::unique_ptr<storm::ColoredRect> m_back;
+    std::unique_ptr<storm::Image2D>   m_shadow;
+    std::unique_ptr<storm::Image2D>   m_selection;
+    std::unique_ptr<storm::Rectangle> m_back;
 
     storm::FRect m_rect_pressed;
     storm::FRect m_shadow_rect;

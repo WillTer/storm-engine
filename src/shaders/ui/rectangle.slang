@@ -1,4 +1,4 @@
-#include "colored_rect.h"
+#include "rectangle.h"
 #include "ubo_types.h"
 
 // Vertex shader sets

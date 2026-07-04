@@ -1,6 +1,7 @@
 #include "xi_rectangle.h"
 
 #include <libs/renderer_next/types.h>
+#include <libs/renderer_next/ui/rectangle.h>
 
 CXI_RECTANGLE::CXI_RECTANGLE()
 {
@@ -12,31 +13,32 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
     ReleaseAll();
 }
 
+void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+{
+    m_back->set_screen_rect(m_screen_rect);
+    m_back->update(copy_pass, delta_time);
+
+    if (m_border) {
+        m_border->set_screen_rect(m_screen_rect);
+        m_border->update(copy_pass, delta_time);
+    }
+}
+
 void CXI_RECTANGLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        // m_rs->TextureSet(0, 0);
-        // m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_NOTEX_FVF, 2, m_pVert, sizeof(XI_NOTEX_VERTEX), "iRectangle");
-        // if (m_bBorder) {
-        //     RS_LINE pLines[8];
-        //     for (auto i = 0; i < 8; i++) {
-        //         pLines[i].vPos.z  = 1.f;
-        //         pLines[i].dwColor = m_dwBorderColor;
-        //     }
-        //     pLines[0].vPos.x = pLines[1].vPos.x = pLines[2].vPos.x = pLines[7].vPos.x = static_cast<float>(m_rect.left);
-        //     pLines[1].vPos.y = pLines[2].vPos.y = pLines[3].vPos.y = pLines[4].vPos.y = static_cast<float>(m_rect.top);
-        //     pLines[3].vPos.x = pLines[4].vPos.x = pLines[5].vPos.x = pLines[6].vPos.x = static_cast<float>(m_rect.right);
-        //     pLines[0].vPos.y = pLines[5].vPos.y = pLines[6].vPos.y = pLines[7].vPos.y = static_cast<float>(m_rect.bottom);
-        //     m_rs->DrawLines(pLines, 4, "iRectangle");
-        // }
+        m_back->draw(render_pass);
+
+        if (m_border) {
+            m_border->draw(render_pass);
+        }
     }
 }
 
 bool CXI_RECTANGLE::Init(
     INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
-    return true;
+    return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
 void CXI_RECTANGLE::ReleaseAll() {}
@@ -48,18 +50,6 @@ int CXI_RECTANGLE::CommandExecute(int wActCode)
 
 void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2)
 {
-    // fill vertex positions
-    for (auto i = 0; i < 4; i++)
-        m_pVert[i].pos.z = 1.f;
-    m_pVert[0].pos.x = static_cast<float>(m_rect.left);
-    m_pVert[0].pos.y = static_cast<float>(m_rect.top);
-    m_pVert[1].pos.x = static_cast<float>(m_rect.left);
-    m_pVert[1].pos.y = static_cast<float>(m_rect.bottom);
-    m_pVert[2].pos.x = static_cast<float>(m_rect.right);
-    m_pVert[2].pos.y = static_cast<float>(m_rect.top);
-    m_pVert[3].pos.x = static_cast<float>(m_rect.right);
-    m_pVert[3].pos.y = static_cast<float>(m_rect.bottom);
-
     // Get rectangle left colors
     m_dwLeftColor = GetIniARGB(ini1, name1, ini2, name2, "leftColor", 0);
 
@@ -73,8 +63,12 @@ void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     m_dwBottomColor = GetIniARGB(ini1, name1, ini2, name2, "bottomColor", 0);
 
     // Get bounder parameters
-    m_dwBorderColor = GetIniARGB(ini1, name1, ini2, name2, "borderColor", 0);
-    m_bBorder       = ALPHA(m_dwBorderColor) != 0;
+    uint32_t const border_color = GetIniARGB(ini1, name1, ini2, name2, "borderColor", 0);
+    create_border(border_color);
+
+    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwLeftColor));
+    m_back->set_rect(m_rect);
+    m_back->set_screen_rect(m_screen_rect);
 
     UpdateColors();
 }
@@ -82,53 +76,67 @@ void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
 void CXI_RECTANGLE::UpdateColors()
 {
     // set left top vertex color
-    uint8_t alpha    = (ALPHA(m_dwLeftColor) * ALPHA(m_dwTopColor)) >> 8L;
-    uint8_t red      = (RED(m_dwLeftColor) * RED(m_dwTopColor)) >> 8L;
-    uint8_t green    = (GREEN(m_dwLeftColor) * GREEN(m_dwTopColor)) >> 8L;
-    uint8_t blue     = (BLUE(m_dwLeftColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_pVert[0].color = storm::Color {alpha, red, green, blue}.to_hex();
+    uint8_t alpha = (ALPHA(m_dwLeftColor) * ALPHA(m_dwTopColor)) >> 8L;
+    uint8_t red   = (RED(m_dwLeftColor) * RED(m_dwTopColor)) >> 8L;
+    uint8_t green = (GREEN(m_dwLeftColor) * GREEN(m_dwTopColor)) >> 8L;
+    uint8_t blue  = (BLUE(m_dwLeftColor) * BLUE(m_dwTopColor)) >> 8L;
+    m_back->set_vertex_color(0, {alpha, red, green, blue});
 
     // set left bottom vertex color
-    alpha            = (ALPHA(m_dwLeftColor) * ALPHA(m_dwBottomColor)) >> 8L;
-    red              = (RED(m_dwLeftColor) * RED(m_dwBottomColor)) >> 8L;
-    green            = (GREEN(m_dwLeftColor) * GREEN(m_dwBottomColor)) >> 8L;
-    blue             = (BLUE(m_dwLeftColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_pVert[1].color = storm::Color {alpha, red, green, blue}.to_hex();
+    alpha = (ALPHA(m_dwLeftColor) * ALPHA(m_dwBottomColor)) >> 8L;
+    red   = (RED(m_dwLeftColor) * RED(m_dwBottomColor)) >> 8L;
+    green = (GREEN(m_dwLeftColor) * GREEN(m_dwBottomColor)) >> 8L;
+    blue  = (BLUE(m_dwLeftColor) * BLUE(m_dwBottomColor)) >> 8L;
+    m_back->set_vertex_color(1, {alpha, red, green, blue});
 
     // set right top vertex color
-    alpha            = (ALPHA(m_dwRightColor) * ALPHA(m_dwTopColor)) >> 8L;
-    red              = (RED(m_dwRightColor) * RED(m_dwTopColor)) >> 8L;
-    green            = (GREEN(m_dwRightColor) * GREEN(m_dwTopColor)) >> 8L;
-    blue             = (BLUE(m_dwRightColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_pVert[2].color = storm::Color {alpha, red, green, blue}.to_hex();
+    alpha = (ALPHA(m_dwRightColor) * ALPHA(m_dwTopColor)) >> 8L;
+    red   = (RED(m_dwRightColor) * RED(m_dwTopColor)) >> 8L;
+    green = (GREEN(m_dwRightColor) * GREEN(m_dwTopColor)) >> 8L;
+    blue  = (BLUE(m_dwRightColor) * BLUE(m_dwTopColor)) >> 8L;
+    m_back->set_vertex_color(2, {alpha, red, green, blue});
 
     // set right bottom vertex color
-    alpha            = (ALPHA(m_dwRightColor) * ALPHA(m_dwBottomColor)) >> 8L;
-    red              = (RED(m_dwRightColor) * RED(m_dwBottomColor)) >> 8L;
-    green            = (GREEN(m_dwRightColor) * GREEN(m_dwBottomColor)) >> 8L;
-    blue             = (BLUE(m_dwRightColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_pVert[3].color = storm::Color {alpha, red, green, blue}.to_hex();
+    alpha = (ALPHA(m_dwRightColor) * ALPHA(m_dwBottomColor)) >> 8L;
+    red   = (RED(m_dwRightColor) * RED(m_dwBottomColor)) >> 8L;
+    green = (GREEN(m_dwRightColor) * GREEN(m_dwBottomColor)) >> 8L;
+    blue  = (BLUE(m_dwRightColor) * BLUE(m_dwBottomColor)) >> 8L;
+    m_back->set_vertex_color(3, {alpha, red, green, blue});
+}
+
+void CXI_RECTANGLE::create_border(uint32_t color)
+{
+    if (ALPHA(color) == 0) {
+        return;
+    }
+
+    if (m_border) {
+        m_border->set_color(storm::Color::from_hex(color));
+        return;
+    }
+
+    m_border = std::make_unique<storm::Rectangle>(storm::Color::from_hex(color), storm::Rectangle::Fill::None);
+    m_border->set_rect(m_rect);
+    m_border->set_screen_rect(m_screen_rect);
 }
 
 bool CXI_RECTANGLE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    if (!m_bClickable) return false;
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom) return true;
+    if (!m_bClickable) {
+        return false;
+    }
+
+    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom) {
+        return true;
+    }
+
     return false;
 }
 
 void CXI_RECTANGLE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
-
-    m_pVert[0].pos.x = static_cast<float>(m_rect.left);
-    m_pVert[0].pos.y = static_cast<float>(m_rect.top);
-    m_pVert[1].pos.x = static_cast<float>(m_rect.left);
-    m_pVert[1].pos.y = static_cast<float>(m_rect.bottom);
-    m_pVert[2].pos.x = static_cast<float>(m_rect.right);
-    m_pVert[2].pos.y = static_cast<float>(m_rect.top);
-    m_pVert[3].pos.x = static_cast<float>(m_rect.right);
-    m_pVert[3].pos.y = static_cast<float>(m_rect.bottom);
+    m_back->set_rect(m_rect);
 }
 
 void CXI_RECTANGLE::SaveParametersToIni()
@@ -151,19 +159,19 @@ uint32_t CXI_RECTANGLE::MessageProc(int32_t msgcode, MESSAGE& message)
     switch (msgcode) {
     case 0:  // Change the position of the rectangle
     {
-        XYRECT newRect;
-        newRect.left   = message.Long();
-        newRect.top    = message.Long();
-        newRect.right  = message.Long();
-        newRect.bottom = message.Long();
-        ChangePosition(newRect);
+        XYRECT new_rect = {};
+        new_rect.left   = message.Long();
+        new_rect.top    = message.Long();
+        new_rect.right  = message.Long();
+        new_rect.bottom = message.Long();
+        ChangePosition(new_rect);
     } break;
     case 1:  // Change rectangle and border color
     {
         m_dwTopColor = m_dwBottomColor = storm::Color {255, 255, 255, 255}.to_hex();
         m_dwLeftColor = m_dwRightColor = message.Long();
-        m_dwBorderColor                = message.Long();
-        m_bBorder                      = ALPHA(m_dwBorderColor) != 0;
+        uint32_t const border_color    = message.Long();
+        create_border(border_color);
         UpdateColors();
     } break;
     }

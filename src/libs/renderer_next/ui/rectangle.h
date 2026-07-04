@@ -4,7 +4,7 @@
 
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/types.h>
-#include <shaders/ui/colored_rect.h>
+#include <shaders/ui/rectangle.h>
 #include <shaders/ui/ubo_types.h>
 
 #include "image_2d_base.h"
@@ -19,20 +19,23 @@ class GPUIndexBuffer;
 class GPUCopyPass;
 class GPURenderPass;
 
-class ColoredRect final: public Image2DBase
+class Rectangle final: public Image2DBase
 {
 public:
-    ColoredRect(storm::Color const& color);
-    ~ColoredRect() override;
+    enum class Fill { None, Color };
+
+    Rectangle(storm::Color const& color, Fill fill = Fill::Color);
+    ~Rectangle() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;
 
     void set_color(storm::Color const& color);
+    void set_vertex_color(size_t index, storm::Color const& color);
 
 private:
-    storm::Color m_color;
-    bool         m_is_color_dirty;
+    std::array<storm::Color, 4> m_color;
+    bool                        m_is_color_dirty;
 
     std::shared_ptr<GraphicsPipeline> m_pipeline;
 

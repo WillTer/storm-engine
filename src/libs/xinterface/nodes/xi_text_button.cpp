@@ -2,9 +2,9 @@
 
 #include <libs/renderer_next/types.h>
 #include <libs/renderer_next/ui/button.h>
-#include <libs/renderer_next/ui/colored_rect.h>
 #include <libs/renderer_next/ui/font.h>
 #include <libs/renderer_next/ui/image_2d.h>
+#include <libs/renderer_next/ui/rectangle.h>
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
@@ -63,7 +63,9 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
 {
     if (m_bUse) {
         // show shadow
-        if (m_shadow) { m_shadow->draw(render_pass); }
+        if (m_shadow) {
+            m_shadow->draw(render_pass);
+        }
 
         if (m_bVideoToBack) {
             // show midle video fragment
@@ -82,10 +84,14 @@ void CXI_TEXTBUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelecte
         }
 
         if (!m_bVideoToBack) {
-            if (bSelected && m_selection) { m_selection->draw(render_pass); }
+            if (bSelected && m_selection) {
+                m_selection->draw(render_pass);
+            }
         }
 
-        if (m_text) { m_text->draw(render_pass); }
+        if (m_text) {
+            m_text->draw(render_pass);
+        }
     }
 }
 
@@ -97,36 +103,58 @@ bool CXI_TEXTBUTTON::Init(
 
 void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
-    if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) { m_nPressedDelay--; }
+    if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) {
+        m_nPressedDelay--;
+    }
 
     ChangePosition(m_rect);
     if (m_nPressedDelay > 0) {
         m_back->set_rect(m_rect_pressed);
         m_button->set_rect(m_rect_pressed);
         m_button_selected->set_rect(m_rect_pressed);
-        if (m_shadow) { m_shadow->set_rect(m_shadow_rect_pressed); }
-        if (m_selection) { m_selection->set_rect(m_rect_pressed); }
-        if (m_text) { m_text->set_rect(m_rect_pressed); }
+        if (m_shadow) {
+            m_shadow->set_rect(m_shadow_rect_pressed);
+        }
+        if (m_selection) {
+            m_selection->set_rect(m_rect_pressed);
+        }
+        if (m_text) {
+            m_text->set_rect(m_rect_pressed);
+        }
     } else {
         m_back->set_rect(m_rect);
         m_button->set_rect(m_rect);
         m_button_selected->set_rect(m_rect);
-        if (m_shadow) { m_shadow->set_rect(m_shadow_rect); }
-        if (m_selection) { m_selection->set_rect(m_rect); }
-        if (m_text) { m_text->set_rect(m_rect); }
+        if (m_shadow) {
+            m_shadow->set_rect(m_shadow_rect);
+        }
+        if (m_selection) {
+            m_selection->set_rect(m_rect);
+        }
+        if (m_text) {
+            m_text->set_rect(m_rect);
+        }
     }
 
     m_back->update(copy_pass, delta_time);
     m_button->update(copy_pass, delta_time);
     m_button_selected->update(copy_pass, delta_time);
-    if (m_shadow) { m_shadow->update(copy_pass, delta_time); }
-    if (m_selection) { m_selection->update(copy_pass, delta_time); }
-    if (m_text) { m_text->update(copy_pass, delta_time); }
+    if (m_shadow) {
+        m_shadow->update(copy_pass, delta_time);
+    }
+    if (m_selection) {
+        m_selection->update(copy_pass, delta_time);
+    }
+    if (m_text) {
+        m_text->update(copy_pass, delta_time);
+    }
 
     if (m_nPressedDelay > 0) {
         m_button->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
         m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
-        if (m_text) { m_text->set_diffuse_color(storm::Color::from_hex(m_dwPressedFontColor)); }
+        if (m_text) {
+            m_text->set_diffuse_color(storm::Color::from_hex(m_dwPressedFontColor));
+        }
     } else {
         m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
         m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
@@ -186,7 +214,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         button_texture = pPictureService->get_texture(m_sGroupName);
     }
 
-    m_back = std::make_unique<storm::ColoredRect>(storm::Color::from_hex(m_dwBackColor));
+    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwBackColor));
     m_back->set_screen_rect(m_screen_rect);
 
     m_idShadowTex = -1;
@@ -217,13 +245,17 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_nMaxDelay = GetIniLong(ini1, name1, ini2, name2, "pressDelay", 20);
 
     // get string parameters
-    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) { m_font_name = param; }
+    if (ReadIniString(ini1, name1, ini2, name2, "font", param, sizeof(param), "")) {
+        m_font_name = param;
+    }
     assert(pStringService->get_font(m_font_name));  // Load font to cache and check success
 
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
     m_idString = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "string", param, sizeof(param), "")) { m_idString = pStringService->GetStringNum(param); }
+    if (ReadIniString(ini1, name1, ini2, name2, "string", param, sizeof(param), "")) {
+        m_idString = pStringService->GetStringNum(param);
+    }
 
     m_fShadowScale = GetIniFloat(ini1, name1, ini2, name2, "shadowScale", 1.F);
 
@@ -386,12 +418,16 @@ uint32_t CXI_TEXTBUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
         if (param[0] == '#') {
             {
                 auto const len = param.size();
-                if ((m_sString = new char[len]) == nullptr) { throw std::runtime_error("allocate memory error"); }
+                if ((m_sString = new char[len]) == nullptr) {
+                    throw std::runtime_error("allocate memory error");
+                }
                 memcpy(m_sString, param.c_str() + 1, len);
             }
         } else if (core->GetTargetEngineVersion() <= storm::ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN) {
             auto const len = param.size();
-            if ((m_sString = new char[len + 1]) == nullptr) { throw std::runtime_error("allocate memory error"); }
+            if ((m_sString = new char[len + 1]) == nullptr) {
+                throw std::runtime_error("allocate memory error");
+            }
             memcpy(m_sString, param.c_str(), len + 1);
         } else {
             m_idString = pStringService->GetStringNum(param.c_str());

@@ -6,7 +6,7 @@
 #include "../hlslpp.h"
 #include "../info.h"
 #include "../vertex.h"
-namespace storm::shaders::colored_rect
+namespace storm::shaders::rectangle
 {
 
 struct StageInfo {
@@ -28,8 +28,8 @@ struct StageInfo {
 
 struct VertexInput {
 #ifndef __cplusplus
-    float2 position: TEXCOORD0;
-    float4 color: TEXCOORD1;
+    float2 position : TEXCOORD0;
+    float4 color : TEXCOORD1;
 #else
     float2 position;
     float4 color;
@@ -53,11 +53,11 @@ struct VertexInput {
 
 #ifndef __cplusplus
 struct VertexOutput {
-    float4 color: TEXCOORD0;
-    float4 position: SV_Position;
+    float4 color : TEXCOORD0;
+    float4 position : SV_Position;
 };
 #endif
 
 #ifdef __cplusplus
-}  // namespace storm::shaders::colored_rect
+}  // namespace storm::shaders::rectangle
 #endif
