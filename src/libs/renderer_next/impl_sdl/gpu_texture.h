@@ -14,9 +14,17 @@ struct ColorTargetInfo;
 class GPUTexture final
 {
 public:
-    GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TextureAsset const& asset);
+    enum class AddressMode { Repeat, MirroredRepeat, Clamp };
+
+    GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TextureAsset const& asset, AddressMode address_mode = AddressMode::Repeat);
     GPUTexture(
-        std::shared_ptr<SDL_GPUDevice> const& device, uint32_t width, uint32_t height, uint32_t mip_levels, int32_t format, uint32_t usage);
+        std::shared_ptr<SDL_GPUDevice> const& device,
+        uint32_t                              width,
+        uint32_t                              height,
+        uint32_t                              mip_levels,
+        int32_t                               format,
+        uint32_t                              usage,
+        AddressMode                           address_mode = AddressMode::Repeat);
     ~GPUTexture();
 
     void set_as_target(ColorTargetInfo& target_info);

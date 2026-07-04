@@ -9,6 +9,7 @@
 
 #include "concepts.h"
 #include "gpu_render_pass.h"
+#include "gpu_texture.h"
 #include "graphics_pipeline.h"
 #include "sdl_fwd.h"
 
@@ -42,7 +43,8 @@ public:
         return create_vertex_buffer(buffer.data(), buffer.size(), sizeof(buffer[0]));
     }
 
-    [[nodiscard]] auto create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture(std::string const& file, GPUTexture::AddressMode address_mode = GPUTexture::AddressMode::Repeat)
+        -> std::shared_ptr<GPUTexture>;
     [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
     [[nodiscard]] auto create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>;

@@ -39,14 +39,16 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 
 }  // namespace
 
-GPUTexture::GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TextureAsset const& asset)
+GPUTexture::GPUTexture(
+    std::shared_ptr<SDL_GPUDevice> const& device, TextureAsset const& asset, AddressMode address_mode /*= AddressMode::Repeat*/)
     : GPUTexture(
           device,
           asset.header.width,
           asset.header.height,
           asset.header.mip_levels,
           convert_tx_format(asset.header.format),
-          SDL_GPU_TEXTUREUSAGE_SAMPLER)
+          SDL_GPU_TEXTUREUSAGE_SAMPLER,
+          address_mode)
 {
     auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
     texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -55,7 +57,9 @@ GPUTexture::GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, TextureAsse
     m_transfer_buffer = std::shared_ptr<SDL_GPUTransferBuffer>(
         SDL_CreateGPUTransferBuffer(device.get(), &texture_transfer_buffer_create_info),
         [device](SDL_GPUTransferBuffer* p) { SDL_ReleaseGPUTransferBuffer(device.get(), p); });
-    if (!m_transfer_buffer) { throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError())); }
+    if (!m_transfer_buffer) {
+        throw std::runtime_error(std::format("Failed to create transfer buffer for texture: {}", SDL_GetError()));
+    }
 
     char* const transfer_data = static_cast<char*>(SDL_MapGPUTransferBuffer(device.get(), m_transfer_buffer.get(), false));
     std::memcpy(transfer_data, asset.data.data(), asset.data.size());
@@ -68,7 +72,8 @@ GPUTexture::GPUTexture(
     uint32_t const                        height,
     uint32_t const                        mip_levels,
     int32_t const                         format,
-    uint32_t const                        usage)
+    uint32_t const                        usage,
+    AddressMode                           address_mode /*= AddressMode::Repeat*/)
     : m_width(width)
     , m_height(height)
 {
@@ -76,16 +81,26 @@ GPUTexture::GPUTexture(
     sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
     sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
     sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    sampler_create_info.address_mode_u    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-    sampler_create_info.address_mode_v    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-    sampler_create_info.address_mode_w    = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
     sampler_create_info.enable_anisotropy = true;   // FIXME: configurable
     sampler_create_info.max_anisotropy    = 16.0F;  // FIXME: configurable
+
+    SDL_GPUSamplerAddressMode sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+    switch (address_mode) {
+    case AddressMode::Repeat: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT; break;
+    case AddressMode::MirroredRepeat: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT; break;
+    case AddressMode::Clamp: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE; break;
+    }
+
+    sampler_create_info.address_mode_u = sampler_address_mode;
+    sampler_create_info.address_mode_v = sampler_address_mode;
+    sampler_create_info.address_mode_w = sampler_address_mode;
 
     m_sampler = std::shared_ptr<SDL_GPUSampler>(
         SDL_CreateGPUSampler(device.get(), &sampler_create_info), [device](SDL_GPUSampler* p) { SDL_ReleaseGPUSampler(device.get(), p); });
 
-    if (!m_sampler) { throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError())); }
+    if (!m_sampler) {
+        throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError()));
+    }
 
     auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
     texture_create_info.type                 = SDL_GPU_TEXTURETYPE_2D;
@@ -98,7 +113,9 @@ GPUTexture::GPUTexture(
 
     m_texture = std::shared_ptr<SDL_GPUTexture>(
         SDL_CreateGPUTexture(device.get(), &texture_create_info), [device](SDL_GPUTexture* p) { SDL_ReleaseGPUTexture(device.get(), p); });
-    if (!m_texture) { throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError())); }
+    if (!m_texture) {
+        throw std::runtime_error(std::format("Failed to create texture: {}", SDL_GetError()));
+    }
 }
 
 GPUTexture::~GPUTexture() = default;
@@ -127,7 +144,9 @@ std::pair<uint32_t, uint32_t> GPUTexture::get_dimensions() const
 
 void GPUTexture::upload(std::shared_ptr<SDL_GPUCopyPass> const& copy_pass)
 {
-    if (!m_transfer_buffer) { return; }
+    if (!m_transfer_buffer) {
+        return;
+    }
 
     auto const tex_transfer_location = SDL_GPUTextureTransferInfo {
         .transfer_buffer = m_transfer_buffer.get(),

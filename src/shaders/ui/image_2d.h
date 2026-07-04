@@ -28,14 +28,17 @@ struct StageInfo {
 
 struct VertexInput {
 #ifndef __cplusplus
-    float4 position_uv: TEXCOORD0;  // x,y - vertex position; z,w - texture coords
+    float2 position : TEXCOORD0;
+    float2 uv : TEXCOORD1;
 #else
-    float4 position_uv;
+    float2 position;
+    float2 uv;
 
     static std::vector<VertexAttribute> attributes()
     {
         return {
-            VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexInput, position_uv)},
+            VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, position)},
+            VertexAttribute {.location = 1, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, uv)},
         };
     }
 
@@ -50,8 +53,8 @@ struct VertexInput {
 
 #ifndef __cplusplus
 struct VertexOutput {
-    float2 tex_coord: TEXCOORD0;
-    float4 position: SV_Position;
+    float2 tex_coord : TEXCOORD0;
+    float4 position : SV_Position;
 };
 #endif
 

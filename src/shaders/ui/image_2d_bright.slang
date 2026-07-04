@@ -24,5 +24,9 @@ VertexOutput main_vs(VertexInput input)
 [shader("fragment")]
 float4 main_fs(float2 tex_coord: TEXCOORD0) : SV_Target0
 {
-    return fs_ubo.color * Texture.Sample(tex_coord);
+    float4 tex_color = Texture.Sample(tex_coord);
+    // Same as modulate2x from fx
+    float3 final_color = fs_ubo.color.rgb * tex_color.rgb * 2;
+    float  final_alpha = fs_ubo.color.a * tex_color.a;
+    return float4(final_color, final_alpha);
 }

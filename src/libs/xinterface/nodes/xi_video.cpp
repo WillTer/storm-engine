@@ -1,5 +1,6 @@
 #include "xi_video.h"
 
+#include <libs/renderer_next/pipeline_names.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
@@ -23,7 +24,9 @@ void CXI_VIDEO::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 
 void CXI_VIDEO::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
-    if (m_bUse && m_video) { m_video->draw(render_pass); }
+    if (m_bUse && m_video) {
+        m_video->draw(render_pass);
+    }
 }
 
 bool CXI_VIDEO::Init(
@@ -42,9 +45,11 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
     char param[255];
     if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) {
-        m_video = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), m_rectTex);
+        m_video = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
+        m_video->set_uv(m_rectTex);
         m_video->set_screen_rect(m_screen_rect);
-        m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor) * 2);
+        m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor));
+        m_video->set_pipeline(storm::IMAGE_2D_BRIGHT_PIPELINE);
     }
 }
 

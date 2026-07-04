@@ -162,15 +162,16 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
     if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) {
         auto const len = strlen(param) + 1;
         m_sGroupName   = new char[len];
-        if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
+        if (m_sGroupName == nullptr) {
+            throw std::runtime_error("allocate memory error");
+        }
         memcpy(m_sGroupName, param, len);
         auto const texture = pPictureService->get_texture(m_sGroupName);
 
+        m_picture = std::make_unique<storm::Image2D>(texture);
         // get button picture name
         if (ReadIniString(ini1, name1, ini2, name2, "picture", param, sizeof(param), "")) {
-            m_picture = std::make_unique<storm::Image2D>(texture, pPictureService->get_texture_uv(m_sGroupName, param));
-        } else {
-            m_picture = std::make_unique<storm::Image2D>(texture);
+            m_picture->set_uv(pPictureService->get_texture_uv(m_sGroupName, param));
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) {
         m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
@@ -321,8 +322,8 @@ uint32_t CXI_BUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
 
         std::string const& param2 = message.String();
 
-        m_picture = std::make_unique<storm::Image2D>(
-            pPictureService->get_texture(m_sGroupName), pPictureService->get_texture_uv(m_sGroupName, param2));
+        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_sGroupName));
+        m_picture->set_uv(pPictureService->get_texture_uv(m_sGroupName, param2));
     } break;
     }
 

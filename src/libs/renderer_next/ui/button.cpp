@@ -44,26 +44,26 @@ Button::Button(
 
     // Left part - from 0 to left_width
     auto const vertex_data_left = std::vector<ImageVertex> {
-        ImageVertex {{0.0F, 0.0F, tex_rect_left.left, tex_rect_left.top}},
-        ImageVertex {{left_width, 0.0F, tex_rect_left.right, tex_rect_left.top}},
-        ImageVertex {{left_width, 1.0F, tex_rect_left.right, tex_rect_left.bottom}},
-        ImageVertex {{0.0F, 1.0F, tex_rect_left.left, tex_rect_left.bottom}},
+        ImageVertex {{0.0F, 0.0F}, {tex_rect_left.left, tex_rect_left.top}},
+        ImageVertex {{left_width, 0.0F}, {tex_rect_left.right, tex_rect_left.top}},
+        ImageVertex {{left_width, 1.0F}, {tex_rect_left.right, tex_rect_left.bottom}},
+        ImageVertex {{0.0F, 1.0F}, {tex_rect_left.left, tex_rect_left.bottom}},
     };
 
     // Middle part - from left_width to 1 - right_width
     auto const vertex_data_middle = std::vector<ImageVertex> {
-        ImageVertex {{left_width, 0.0F, tex_rect_middle.left, tex_rect_middle.top}},
-        ImageVertex {{1.0F - right_width, 0.0F, tex_rect_middle.right, tex_rect_middle.top}},
-        ImageVertex {{1.0F - right_width, 1.0F, tex_rect_middle.right, tex_rect_middle.bottom}},
-        ImageVertex {{left_width, 1.0F, tex_rect_middle.left, tex_rect_middle.bottom}},
+        ImageVertex {{left_width, 0.0F}, {tex_rect_middle.left, tex_rect_middle.top}},
+        ImageVertex {{1.0F - right_width, 0.0F}, {tex_rect_middle.right, tex_rect_middle.top}},
+        ImageVertex {{1.0F - right_width, 1.0F}, {tex_rect_middle.right, tex_rect_middle.bottom}},
+        ImageVertex {{left_width, 1.0F}, {tex_rect_middle.left, tex_rect_middle.bottom}},
     };
 
     // Right part - from 1 - right_width to 1
     auto const vertex_data_right = std::vector<ImageVertex> {
-        ImageVertex {{1.0F - right_width, 0.0F, tex_rect_right.left, tex_rect_right.top}},
-        ImageVertex {{1.0F, 0.0F, tex_rect_right.right, tex_rect_right.top}},
-        ImageVertex {{1.0F, 1.0F, tex_rect_right.right, tex_rect_right.bottom}},
-        ImageVertex {{1.0F - right_width, 1.0F, tex_rect_right.left, tex_rect_right.bottom}},
+        ImageVertex {{1.0F - right_width, 0.0F}, {tex_rect_right.left, tex_rect_right.top}},
+        ImageVertex {{1.0F, 0.0F}, {tex_rect_right.right, tex_rect_right.top}},
+        ImageVertex {{1.0F, 1.0F}, {tex_rect_right.right, tex_rect_right.bottom}},
+        ImageVertex {{1.0F - right_width, 1.0F}, {tex_rect_right.left, tex_rect_right.bottom}},
     };
 
     m_vertex_buffer_left   = renderer->create_vertex_buffer(vertex_data_left);

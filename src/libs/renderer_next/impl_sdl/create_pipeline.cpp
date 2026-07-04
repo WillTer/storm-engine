@@ -72,6 +72,9 @@ auto create_by_name(
     case FONT_NORMAL_PIPELINE.value():
         return create_pipeline<shaders::font_normal::VertexInput, shaders::font_normal::StageInfo>(
             device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
+    case IMAGE_2D_BRIGHT_PIPELINE.value():
+        return create_pipeline<shaders::image_2d::VertexInput, shaders::image_2d::StageInfo>(
+            device, window, asset_server, ui_vertex_shader, ui_fragment_shader);
 
     // Special pipelines
     case WIRE_RECTANGLE_PIPELINE.value():

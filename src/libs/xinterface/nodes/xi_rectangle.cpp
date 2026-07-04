@@ -41,7 +41,11 @@ bool CXI_RECTANGLE::Init(
     return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
-void CXI_RECTANGLE::ReleaseAll() {}
+void CXI_RECTANGLE::ReleaseAll()
+{
+    m_back.reset();
+    m_border.reset();
+}
 
 int CXI_RECTANGLE::CommandExecute(int wActCode)
 {

@@ -69,7 +69,9 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_tim
         ChangeColor(ptrOwner->GetBlendColor(m_dwBlindMin, m_dwBlindMax, m_fCurBlindTime));
     }
 
-    if (m_picture) { m_picture->update(copy_pass, delta_time); }
+    if (m_picture) {
+        m_picture->update(copy_pass, delta_time);
+    }
 
     ChangePosition(m_rect);
 }
@@ -85,14 +87,15 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         memcpy(m_pcGroupName, param, len);
         auto const texture = pPictureService->get_texture(m_pcGroupName);
 
+        m_picture = std::make_unique<storm::Image2D>(texture);
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
-            m_picture = std::make_unique<storm::Image2D>(texture, pPictureService->get_texture_uv(m_pcGroupName, param));
-        } else {
-            m_picture = std::make_unique<storm::Image2D>(texture);
+            m_picture->set_uv(pPictureService->get_texture_uv(m_pcGroupName, param));
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
+        m_picture = std::make_unique<storm::Image2D>(param);
+
         auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.F, 0.F, 1.F, 1.F));
-        m_picture           = std::make_unique<storm::Image2D>(param, tex_rect);
+        m_picture->set_uv(tex_rect);
     } else if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) {
         m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
     }
@@ -174,7 +177,9 @@ void CXI_PICTURE::SetNewPictureFromDir(char const* dirName)
         int  findQ = rand() % vFilenames.size();
         sprintf(param, "%s/%s", dirName, vFilenames[findQ].c_str());
         int const paramlen = strlen(param);
-        if (paramlen < sizeof(param) && paramlen >= 3) { param[paramlen - 3] = 0; }
+        if (paramlen < sizeof(param) && paramlen >= 3) {
+            param[paramlen - 3] = 0;
+        }
         SetNewPicture(false, param);
     }
 }
@@ -191,8 +196,8 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
         }
     }
 
-    m_picture = std::make_unique<storm::Image2D>(
-        pPictureService->get_texture(m_pcGroupName), pPictureService->get_texture_uv(m_pcGroupName, picName));
+    m_picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_pcGroupName));
+    m_picture->set_uv(pPictureService->get_texture_uv(m_pcGroupName, picName));
 }
 
 uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)

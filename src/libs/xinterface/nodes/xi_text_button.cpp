@@ -221,7 +221,8 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
 
-        m_shadow = std::make_unique<storm::Image2D>(param, shadow_uv);
+        m_shadow = std::make_unique<storm::Image2D>(param);
+        m_shadow->set_uv(shadow_uv);
         m_shadow->set_screen_rect(m_screen_rect);
         m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
     }

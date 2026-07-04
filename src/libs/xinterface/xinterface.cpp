@@ -2309,9 +2309,8 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->picture = std::make_unique<storm::Image2D>(
-                pPictureService->get_texture(pImList->sImageListName),
-                pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture ? pImList->sPicture : ""));
+            pImList->picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(pImList->sImageListName));
+            pImList->picture->set_uv(pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture ? pImList->sPicture : ""));
             pImList->picture->set_screen_rect(m_screen_rect);
             pImList->picture->set_rect(pImList->position);
 

@@ -1,5 +1,6 @@
 #include "image_2d.h"
 
+#include <algorithm>
 #include <cassert>
 
 #include <libs/asset_server/asset_server.h>
@@ -24,23 +25,50 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-Image2D::Image2D(std::filesystem::path const& texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
+Image2D::Image2D(std::filesystem::path const& texture, GPUTexture::AddressMode address_mode /*= GPUTexture::AddressMode::Repeat*/)
 {
     auto const& renderer = core->get<RendererService>();
-    m_texture            = renderer->create_texture(texture.string());
+    m_texture            = renderer->create_texture(texture.string(), address_mode);
 
-    initialize(texture_rect);
+    initialize();
 }
 
-Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture, storm::FRect const& texture_rect /*= default_texture_rect()*/)
-    : m_texture(external_texture)
+Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture) : m_texture(external_texture)
 {
-    initialize(texture_rect);
+    initialize();
 }
 
 Image2D::~Image2D() = default;
 
-void Image2D::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delta_time*/) {}
+void Image2D::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
+{
+    if (m_is_dirty) {
+        auto const update_info = std::vector(4, BufferUpdateInfo {.offset = offsetof(ImageVertex, uv), .size = sizeof(ImageVertex::uv)});
+        copy_pass.update_buffer(*m_vertex_buffer, update_info, m_texture_uv, sizeof(ImageVertex));
+
+        if (m_texture) {
+            auto const [width, height] = m_texture->get_dimensions();
+
+            float min_x = std::numeric_limits<float>::max();
+            float max_x = std::numeric_limits<float>::min();
+            float min_y = std::numeric_limits<float>::max();
+            float max_y = std::numeric_limits<float>::min();
+
+            for (size_t i = 0; i < m_texture_uv.size(); ++i) {
+                min_x = std::min<float>(m_texture_uv[i].x, min_x);
+                max_x = std::max<float>(m_texture_uv[i].x, max_x);
+                min_y = std::min<float>(m_texture_uv[i].y, min_y);
+                max_y = std::max<float>(m_texture_uv[i].y, max_y);
+            }
+
+            m_rect   = {0.0F, 0.0F, width * (max_x - min_x), height * (max_y - min_y)};
+            m_width  = static_cast<uint32_t>(m_rect.width());
+            m_height = static_cast<uint32_t>(m_rect.height());
+        }
+
+        m_is_dirty = false;
+    }
+}
 
 void Image2D::draw(GPURenderPass const& render_pass) const
 {
@@ -58,35 +86,53 @@ void Image2D::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Image2D::initialize(storm::FRect const& texture_rect)
+void Image2D::set_pipeline(entt::hashed_string const& name)
+{
+    auto const& renderer = core->get<RendererService>();
+
+    m_pipeline = renderer->create_pipeline(name);
+}
+
+void Image2D::initialize()
 {
     auto const& renderer = core->get<RendererService>();
 
     m_pipeline = renderer->create_pipeline(IMAGE_2D_PIPELINE);
 
     auto const vertex_data = std::vector<ImageVertex> {
-        ImageVertex {{0.0F, 0.0F, texture_rect.left, texture_rect.top}},
-        ImageVertex {{1.0F, 0.0F, texture_rect.right, texture_rect.top}},
-        ImageVertex {{1.0F, 1.0F, texture_rect.right, texture_rect.bottom}},
-        ImageVertex {{0.0F, 1.0F, texture_rect.left, texture_rect.bottom}},
+        ImageVertex {{0.0F, 0.0F}, {0.0F, 0.0F}},
+        ImageVertex {{1.0F, 0.0F}, {1.0F, 0.0F}},
+        ImageVertex {{1.0F, 1.0F}, {1.0F, 1.0F}},
+        ImageVertex {{0.0F, 1.0F}, {0.0F, 1.0F}},
     };
 
     m_vertex_buffer = renderer->create_vertex_buffer(vertex_data);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
 
     m_fragment_ubo.color = float4(1.0F);
-
-    if (m_texture) {
-        auto const [width, height] = m_texture->get_dimensions();
-
-        m_rect   = {0.0F, 0.0F, width * std::fabs(texture_rect.width()), height * std::fabs(texture_rect.height())};
-        m_width  = static_cast<uint32_t>(m_rect.width());
-        m_height = static_cast<uint32_t>(m_rect.height());
-    }
 }
 
 void Image2D::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
     m_fragment_ubo.color    = float4(r, g, b, a);
+}
+
+void Image2D::set_uv(storm::FRect const& texture_uv)
+{
+    m_texture_uv = {
+        {texture_uv.left, texture_uv.top},
+        {texture_uv.right, texture_uv.top},
+        {texture_uv.right, texture_uv.bottom},
+        {texture_uv.left, texture_uv.bottom},
+    };
+
+    m_is_dirty = true;
+}
+
+void Image2D::set_uv_full(std::array<float2, 4> const& texture_uv)
+{
+    m_texture_uv.clear();
+    m_texture_uv.insert(m_texture_uv.end(), texture_uv.begin(), texture_uv.end());
+    m_is_dirty = true;
 }

@@ -102,11 +102,11 @@ struct RendererService::Impl {
         m_window = nullptr;
     }
 
-    [[nodiscard]] auto create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>
+    [[nodiscard]] auto create_texture(std::string const& file, GPUTexture::AddressMode address_mode) -> std::shared_ptr<GPUTexture>
     {
         auto const name = entt::hashed_string(file.c_str());
         if (!m_cache.contains<GPUTexture>(name)) {
-            auto const texture = std::make_shared<GPUTexture>(m_device, m_asset_server->load_texture_file(file));
+            auto const texture = std::make_shared<GPUTexture>(m_device, m_asset_server->load_texture_file(file), address_mode);
             m_textures_wait_upload.push_back(texture);
             m_cache.add(name, texture);
         }
@@ -218,9 +218,11 @@ auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::s
     return m_impl->create_pipeline(name);
 }
 
-[[nodiscard]] auto RendererService::create_texture(std::string const& file) -> std::shared_ptr<GPUTexture>
+[[nodiscard]] auto
+RendererService::create_texture(std::string const& file, GPUTexture::AddressMode address_mode /*= GPUTexture::AddressMode::Repeat*/)
+    -> std::shared_ptr<GPUTexture>
 {
-    return m_impl->create_texture(file);
+    return m_impl->create_texture(file, address_mode);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)

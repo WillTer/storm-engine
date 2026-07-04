@@ -1,14 +1,15 @@
 #include "xi_slide_picture.h"
 
-#include <stdio.h>
+#include <libs/renderer_next/pipeline_names.h>
+#include <libs/renderer_next/ui/image_2d.h>
 
-void SetTextureCoordinate(XI_ONETEX_VERTEX v[4], FXYRECT tr, float angle)
+namespace
+{
+
+void set_texture_coordinate(storm::Image2D& image, FXYRECT tr, float angle)
 {
     if (angle == 0) {
-        v[0].tu = v[1].tu = tr.left;
-        v[2].tu = v[3].tu = tr.right;
-        v[0].tv = v[2].tv = tr.top;
-        v[1].tv = v[3].tv = tr.bottom;
+        image.set_uv(tr);
     } else {
         auto const x      = (tr.left + tr.right) * .5f;
         auto const y      = (tr.top + tr.bottom) * .5f;
@@ -20,21 +21,20 @@ void SetTextureCoordinate(XI_ONETEX_VERTEX v[4], FXYRECT tr, float angle)
         auto const wsa    = width / 2 * sa;
         auto const hca    = height / 2 * ca;
         auto const hsa    = height / 2 * sa;
-        v[0].tu           = x + (-wca + hsa);
-        v[0].tv           = y + (-wsa - hca);
-        v[1].tu           = x + (-wca - hsa);
-        v[1].tv           = y + (-wsa + hca);
-        v[2].tu           = x + (wca + hsa);
-        v[2].tv           = y + (wsa - hca);
-        v[3].tu           = x + (wca - hsa);
-        v[3].tv           = y + (wsa + hca);
+        image.set_uv_full({
+            hlslpp::float2 {x + (-wca + hsa), y + (-wsa - hca)},
+            hlslpp::float2 {x + (-wca - hsa), y + (-wsa + hca)},
+            hlslpp::float2 {x + (wca + hsa), y + (wsa - hca)},
+            hlslpp::float2 {x + (wca - hsa), y + (wsa + hca)},
+        });
     }
 }
 
-CXI_SLIDEPICTURE::CXI_SLIDEPICTURE() : m_v {}, minRotate(0), deltaRotate(0), curRotate(0), curAngle(0), nCurSlide(0)
+}  // namespace
+
+CXI_SLIDEPICTURE::CXI_SLIDEPICTURE() : minRotate(0), deltaRotate(0), curRotate(0), curAngle(0), nCurSlide(0)
 {
     nLifeTime        = 0;
-    m_idTex          = -1L;
     m_nNodeType      = NODETYPE_SLIDEPICTURE;
     pSlideSpeedList  = nullptr;
     nSlideListSize   = 0;
@@ -46,10 +46,58 @@ CXI_SLIDEPICTURE::~CXI_SLIDEPICTURE()
     ReleaseAll();
 }
 
+void CXI_SLIDEPICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+{
+    if (nCurSlide >= nSlideListSize) {
+        return;
+    }
+
+    nLifeTime -= delta_time;
+    if (nLifeTime < 0) {
+        // changing speed
+        nCurSlide++;
+        if (nCurSlide >= nSlideListSize) {
+            nCurSlide = 0;
+        }
+        nLifeTime = pSlideSpeedList[nCurSlide].time;
+        curRotate = minRotate + (rand() * deltaRotate / RAND_MAX);
+    }
+
+    auto const xadd = pSlideSpeedList[nCurSlide].xspeed * (delta_time / 1000.f);
+    auto const yadd = pSlideSpeedList[nCurSlide].yspeed * (delta_time / 1000.f);
+
+    curAngle += curRotate * delta_time / 1000.F;
+
+    m_texRect.left += xadd;
+    m_texRect.right += xadd;
+    m_texRect.top += yadd;
+    m_texRect.bottom += yadd;
+
+    while (m_texRect.left < -10) {
+        m_texRect.left += 10;
+        m_texRect.right += 10;
+    }
+    while (m_texRect.right > 10) {
+        m_texRect.left -= 10;
+        m_texRect.right -= 10;
+    }
+    while (m_texRect.top < -10) {
+        m_texRect.top += 10;
+        m_texRect.bottom += 10;
+    }
+    while (m_texRect.top > 10) {
+        m_texRect.top -= 10;
+        m_texRect.bottom -= 10;
+    }
+
+    set_texture_coordinate(*m_image, m_texRect, curAngle);
+    m_image->update(copy_pass, delta_time);
+}
+
 void CXI_SLIDEPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
-        Update(Delta_Time);
+        m_image->draw(render_pass);
         // m_rs->TextureSet(0, m_idTex);
         // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
         // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
@@ -63,7 +111,10 @@ void CXI_SLIDEPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelec
 bool CXI_SLIDEPICTURE::Init(
     INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
+    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) {
+        return false;
+    }
+
     SetGlowCursor(false);
     return true;
 }
@@ -79,37 +130,19 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
         auto const len = strlen(param) + 1;
         if (strlen(param) > 1) {
             strTechniqueName = new char[len];
-            if (strTechniqueName == nullptr) { throw std::runtime_error("allocate memory error"); }
+            if (strTechniqueName == nullptr) {
+                throw std::runtime_error("allocate memory error");
+            }
             memcpy(strTechniqueName, param, len);
         }
     }
 
-    m_idTex = -1;
-    // if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) m_idTex = m_rs->TextureCreate(param);
-
     m_texRect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.f, 0.f, 1.f, 1.f));
 
-    auto const color = GetIniARGB(ini1, name1, ini2, name2, "color", 0xFFFFFFFF);
+    m_color = GetIniARGB(ini1, name1, ini2, name2, "color", 0xFFFFFFFF);
 
-    // Create rectangle
-    m_v[0].pos.x = static_cast<float>(m_rect.left);
-    m_v[0].pos.y = static_cast<float>(m_rect.top);
-    m_v[0].tu    = m_texRect.left;
-    m_v[0].tv    = m_texRect.top;
-    m_v[1].pos.x = static_cast<float>(m_rect.left);
-    m_v[1].pos.y = static_cast<float>(m_rect.bottom);
-    m_v[1].tu    = m_texRect.left;
-    m_v[1].tv    = m_texRect.bottom;
-    m_v[2].pos.x = static_cast<float>(m_rect.right);
-    m_v[2].pos.y = static_cast<float>(m_rect.top);
-    m_v[2].tu    = m_texRect.right;
-    m_v[2].tv    = m_texRect.top;
-    m_v[3].pos.x = static_cast<float>(m_rect.right), m_v[3].pos.y = static_cast<float>(m_rect.bottom);
-    m_v[3].tu = m_texRect.right;
-    m_v[3].tv = m_texRect.bottom;
-    for (i = 0; i < 4; i++) {
-        m_v[i].color = color;
-        m_v[i].pos.z = 1.f;
+    if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
+        SetNewPicture(param);
     }
 
     curAngle    = 0.f;
@@ -140,7 +173,9 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
     if (nSlideListSize > 0) {
         pSlideSpeedList = new SLIDE_SPEED[nSlideListSize];
-        if (pSlideSpeedList == nullptr) { throw std::runtime_error("allocate memory error"); }
+        if (pSlideSpeedList == nullptr) {
+            throw std::runtime_error("allocate memory error");
+        }
     }
 
     // fill in the speed table
@@ -167,7 +202,7 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
 
 void CXI_SLIDEPICTURE::ReleaseAll()
 {
-    // TEXTURE_RELEASE(m_rs, m_idTex);
+    m_image.reset();
     STORM_DELETE(pSlideSpeedList);
     STORM_DELETE(strTechniqueName);
     nSlideListSize = 0;
@@ -185,14 +220,10 @@ bool CXI_SLIDEPICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 
 void CXI_SLIDEPICTURE::ChangePosition(XYRECT& rNewPos)
 {
-    m_rect       = rNewPos;
-    m_v[0].pos.x = static_cast<float>(m_rect.left);
-    m_v[0].pos.y = static_cast<float>(m_rect.top);
-    m_v[1].pos.x = static_cast<float>(m_rect.left);
-    m_v[1].pos.y = static_cast<float>(m_rect.bottom);
-    m_v[2].pos.x = static_cast<float>(m_rect.right);
-    m_v[2].pos.y = static_cast<float>(m_rect.top);
-    m_v[3].pos.x = static_cast<float>(m_rect.right), m_v[3].pos.y = static_cast<float>(m_rect.bottom);
+    m_rect = rNewPos;
+    if (m_image) {
+        m_image->set_rect(m_rect);
+    }
 }
 
 void CXI_SLIDEPICTURE::SaveParametersToIni()
@@ -212,49 +243,20 @@ void CXI_SLIDEPICTURE::SaveParametersToIni()
 
 void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
 {
-    // if (m_idTex != -1L) m_rs->TextureRelease(m_idTex);
-    // m_idTex = m_rs->TextureCreate(sNewTexName);
-}
-
-void CXI_SLIDEPICTURE::Update(uint32_t Delta_Time)
-{
-    if (nCurSlide >= nSlideListSize) return;
-
-    nLifeTime -= Delta_Time;
-    if (nLifeTime < 0) {
-        // changing speed
-        nCurSlide++;
-        if (nCurSlide >= nSlideListSize) nCurSlide = 0;
-        nLifeTime = pSlideSpeedList[nCurSlide].time;
-        curRotate = minRotate + rand() * deltaRotate / RAND_MAX;
+    if (m_image) {
+        m_image.reset();
     }
 
-    auto const xadd = pSlideSpeedList[nCurSlide].xspeed * (Delta_Time / 1000.f);
-    auto const yadd = pSlideSpeedList[nCurSlide].yspeed * (Delta_Time / 1000.f);
-
-    curAngle += curRotate * Delta_Time / 1000.f;
-
-    m_texRect.left += xadd;
-    m_texRect.right += xadd;
-    m_texRect.top += yadd;
-    m_texRect.bottom += yadd;
-
-    while (m_texRect.left < -10) {
-        m_texRect.left += 10;
-        m_texRect.right += 10;
-    }
-    while (m_texRect.right > 10) {
-        m_texRect.left -= 10;
-        m_texRect.right -= 10;
-    }
-    while (m_texRect.top < -10) {
-        m_texRect.top += 10;
-        m_texRect.bottom += 10;
-    }
-    while (m_texRect.top > 10) {
-        m_texRect.top -= 10;
-        m_texRect.bottom -= 10;
+    storm::GPUTexture::AddressMode address_mode = storm::GPUTexture::AddressMode::Repeat;
+    // FIXME: hardcode
+    if (strTechniqueName != nullptr && strcmp(strTechniqueName, "iRotate") == 0) {
+        address_mode = storm::GPUTexture::AddressMode::Clamp;
     }
 
-    SetTextureCoordinate(m_v, m_texRect, curAngle);
+    m_image = std::make_unique<storm::Image2D>(sNewTexName, address_mode);
+    m_image->set_uv(m_texRect);
+    m_image->set_rect(m_rect);
+    m_image->set_screen_rect(m_screen_rect);
+    m_image->set_diffuse_color(storm::Color::from_hex(m_color));
+    m_image->set_pipeline(storm::IMAGE_2D_BRIGHT_PIPELINE);  // TODO: set in ini instead of technique name
 }
