@@ -5,7 +5,8 @@
 namespace storm
 {
 class Image2D;
-}
+class GPUSampler;
+}  // namespace storm
 
 // video
 class CXI_SLIDEPICTURE: public CINODE
@@ -53,6 +54,7 @@ protected:
 
     char* strTechniqueName;
 
-    uint32_t                        m_color;
-    std::unique_ptr<storm::Image2D> m_image;
+    uint32_t                           m_color;
+    std::unique_ptr<storm::Image2D>    m_image;
+    std::shared_ptr<storm::GPUSampler> m_sampler;
 };

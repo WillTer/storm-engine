@@ -1,5 +1,6 @@
 #include "xi_slide_picture.h"
 
+#include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/pipeline_names.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
@@ -247,13 +248,22 @@ void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
         m_image.reset();
     }
 
-    storm::GPUTexture::AddressMode address_mode = storm::GPUTexture::AddressMode::Repeat;
     // FIXME: hardcode
     if (strTechniqueName != nullptr && strcmp(strTechniqueName, "iRotate") == 0) {
-        address_mode = storm::GPUTexture::AddressMode::Clamp;
+        auto const& renderer = core->get<storm::RendererService>();
+
+        using Filter = storm::GPUSampler::Filter;
+        m_sampler    = renderer->create_texture_sampler(
+            storm::GPUSampler::Info {
+                .min_filter     = Filter::Linear,
+                .mag_filter     = Filter::Linear,
+                .mipmap_filter  = Filter::Linear,
+                .address_mode   = storm::GPUSampler::AddressMode::Clamp,
+                .max_anisotropy = std::nullopt,
+            });
     }
 
-    m_image = std::make_unique<storm::Image2D>(sNewTexName, address_mode);
+    m_image = std::make_unique<storm::Image2D>(sNewTexName, m_sampler);
     m_image->set_uv(m_texRect);
     m_image->set_rect(m_rect);
     m_image->set_screen_rect(m_screen_rect);

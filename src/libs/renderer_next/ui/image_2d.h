@@ -26,7 +26,7 @@ class GPURenderPass;
 class Image2D final: public Image2DBase
 {
 public:
-    Image2D(std::filesystem::path const& texture, GPUTexture::AddressMode address_mode = GPUTexture::AddressMode::Repeat);
+    Image2D(std::filesystem::path const& texture, std::shared_ptr<GPUSampler> const& sampler = nullptr);
     Image2D(std::shared_ptr<GPUTexture> const& external_texture);
 
     ~Image2D() override;

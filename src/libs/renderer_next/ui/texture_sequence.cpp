@@ -65,7 +65,9 @@ void TextureSequence::update(GPUCopyPass const& /*copy_pass*/, uint64_t const de
     while (m_delta_time > m_time_delay) {
         m_delta_time -= m_time_delay;
         ++m_vertex_ubo.frame;
-        if (m_vertex_ubo.frame >= m_vertex_ubo.v_frames_count * m_vertex_ubo.h_frames_count) { m_vertex_ubo.frame = 0; }
+        if (m_vertex_ubo.frame >= m_vertex_ubo.v_frames_count * m_vertex_ubo.h_frames_count) {
+            m_vertex_ubo.frame = 0;
+        }
     }
 }
 

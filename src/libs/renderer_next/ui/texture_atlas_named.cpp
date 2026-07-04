@@ -38,7 +38,9 @@ void TextureAtlasNamed::add_picture(std::string const& name, storm::FRect const&
 
 auto TextureAtlasNamed::get_tex_coords(std::string const& name) const -> storm::FRect
 {
-    if (!m_pictures.contains(name)) { return {}; }
+    if (!m_pictures.contains(name)) {
+        return {};
+    }
 
     return m_pictures.at(name);
 }

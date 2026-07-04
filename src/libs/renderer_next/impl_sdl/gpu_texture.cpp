@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 
 #include "gpu_render_pass.h"
+#include "gpu_sampler.h"
 
 using namespace storm;
 
@@ -39,16 +40,15 @@ SDL_GPUTextureFormat convert_tx_format(TxFormat const format)
 
 }  // namespace
 
-GPUTexture::GPUTexture(
-    std::shared_ptr<SDL_GPUDevice> const& device, TextureAsset const& asset, AddressMode address_mode /*= AddressMode::Repeat*/)
+GPUTexture::GPUTexture(std::shared_ptr<SDL_GPUDevice> const& device, std::shared_ptr<GPUSampler> const& sampler, TextureAsset const& asset)
     : GPUTexture(
           device,
+          sampler,
           asset.header.width,
           asset.header.height,
           asset.header.mip_levels,
           convert_tx_format(asset.header.format),
-          SDL_GPU_TEXTUREUSAGE_SAMPLER,
-          address_mode)
+          SDL_GPU_TEXTUREUSAGE_SAMPLER)
 {
     auto texture_transfer_buffer_create_info  = SDL_GPUTransferBufferCreateInfo {};
     texture_transfer_buffer_create_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -68,38 +68,27 @@ GPUTexture::GPUTexture(
 
 GPUTexture::GPUTexture(
     std::shared_ptr<SDL_GPUDevice> const& device,
+    std::shared_ptr<GPUSampler> const&    sampler,
     uint32_t const                        width,
     uint32_t const                        height,
     uint32_t const                        mip_levels,
     int32_t const                         format,
-    uint32_t const                        usage,
-    AddressMode                           address_mode /*= AddressMode::Repeat*/)
-    : m_width(width)
+    uint32_t const                        usage)
+    : m_sampler(sampler)
+    , m_width(width)
     , m_height(height)
 {
-    auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
-    sampler_create_info.min_filter        = SDL_GPU_FILTER_LINEAR;
-    sampler_create_info.mag_filter        = SDL_GPU_FILTER_LINEAR;
-    sampler_create_info.mipmap_mode       = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;
-    sampler_create_info.enable_anisotropy = true;   // FIXME: configurable
-    sampler_create_info.max_anisotropy    = 16.0F;  // FIXME: configurable
-
-    SDL_GPUSamplerAddressMode sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-    switch (address_mode) {
-    case AddressMode::Repeat: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT; break;
-    case AddressMode::MirroredRepeat: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT; break;
-    case AddressMode::Clamp: sampler_address_mode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE; break;
-    }
-
-    sampler_create_info.address_mode_u = sampler_address_mode;
-    sampler_create_info.address_mode_v = sampler_address_mode;
-    sampler_create_info.address_mode_w = sampler_address_mode;
-
-    m_sampler = std::shared_ptr<SDL_GPUSampler>(
-        SDL_CreateGPUSampler(device.get(), &sampler_create_info), [device](SDL_GPUSampler* p) { SDL_ReleaseGPUSampler(device.get(), p); });
-
+    // Create default one, if not presented
     if (!m_sampler) {
-        throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError()));
+        m_sampler = std::make_shared<GPUSampler>(
+            device,
+            GPUSampler::Info {
+                .min_filter     = GPUSampler::Filter::Linear,
+                .mag_filter     = GPUSampler::Filter::Linear,
+                .mipmap_filter  = GPUSampler::Filter::Linear,
+                .address_mode   = GPUSampler::AddressMode::Repeat,
+                .max_anisotropy = std::nullopt,
+            });
     }
 
     auto texture_create_info                 = SDL_GPUTextureCreateInfo {};
@@ -131,7 +120,7 @@ void GPUTexture::bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& r
 
     auto const texture_binding = SDL_GPUTextureSamplerBinding {
         .texture = m_texture.get(),
-        .sampler = m_sampler.get(),
+        .sampler = *m_sampler,
     };
 
     SDL_BindGPUFragmentSamplers(render_pass.get(), 0, &texture_binding, 1);

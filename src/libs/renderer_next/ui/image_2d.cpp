@@ -25,10 +25,10 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-Image2D::Image2D(std::filesystem::path const& texture, GPUTexture::AddressMode address_mode /*= GPUTexture::AddressMode::Repeat*/)
+Image2D::Image2D(std::filesystem::path const& texture, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)
 {
     auto const& renderer = core->get<RendererService>();
-    m_texture            = renderer->create_texture(texture.string(), address_mode);
+    m_texture            = renderer->create_texture(texture.string(), sampler);
 
     initialize();
 }

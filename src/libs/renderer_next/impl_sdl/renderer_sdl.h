@@ -4,6 +4,7 @@
 #include <string>
 
 #include <entt/core/fwd.hpp>
+#include <libs/renderer_next/impl_sdl/gpu_sampler.h>
 #include <libs/renderer_next/types.h>
 #include <shaders/info.h>
 
@@ -43,8 +44,9 @@ public:
         return create_vertex_buffer(buffer.data(), buffer.size(), sizeof(buffer[0]));
     }
 
-    [[nodiscard]] auto create_texture(std::string const& file, GPUTexture::AddressMode address_mode = GPUTexture::AddressMode::Repeat)
+    [[nodiscard]] auto create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler = nullptr)
         -> std::shared_ptr<GPUTexture>;
+    [[nodiscard]] auto create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>;
     [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
     [[nodiscard]] auto create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>;

@@ -102,16 +102,22 @@ struct RendererService::Impl {
         m_window = nullptr;
     }
 
-    [[nodiscard]] auto create_texture(std::string const& file, GPUTexture::AddressMode address_mode) -> std::shared_ptr<GPUTexture>
+    [[nodiscard]] auto create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler) -> std::shared_ptr<GPUTexture>
     {
         auto const name = entt::hashed_string(file.c_str());
         if (!m_cache.contains<GPUTexture>(name)) {
-            auto const texture = std::make_shared<GPUTexture>(m_device, m_asset_server->load_texture_file(file), address_mode);
+            auto const texture = std::make_shared<GPUTexture>(m_device, sampler, m_asset_server->load_texture_file(file));
             m_textures_wait_upload.push_back(texture);
             m_cache.add(name, texture);
         }
 
         return m_cache.get<GPUTexture>(name);
+    }
+
+    [[nodiscard]] auto create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>
+    {
+        // TODO: add to cache
+        return std::make_shared<GPUSampler>(m_device, info);
     }
 
     [[nodiscard]] auto create_texture_target(uint32_t const width, uint32_t const height) -> std::unique_ptr<GPUTexture>
@@ -121,6 +127,7 @@ struct RendererService::Impl {
         SDL_GetWindowSize(m_window.get(), &window_width, &window_height);
         return std::make_unique<GPUTexture>(
             m_device,
+            nullptr,
             width > 0 ? width : window_width,
             height > 0 ? height : window_height,
             1,
@@ -218,11 +225,15 @@ auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::s
     return m_impl->create_pipeline(name);
 }
 
-[[nodiscard]] auto
-RendererService::create_texture(std::string const& file, GPUTexture::AddressMode address_mode /*= GPUTexture::AddressMode::Repeat*/)
+[[nodiscard]] auto RendererService::create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)
     -> std::shared_ptr<GPUTexture>
 {
-    return m_impl->create_texture(file, address_mode);
+    return m_impl->create_texture(file, sampler);
+}
+
+[[nodiscard]] auto RendererService::create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>
+{
+    return m_impl->create_texture_sampler(info);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)
