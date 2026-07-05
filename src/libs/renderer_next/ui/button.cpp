@@ -28,12 +28,17 @@ Button::Button(
     storm::FRect const&                tex_rect_left,
     storm::FRect const&                tex_rect_middle,
     storm::FRect const&                tex_rect_right,
-    storm::FRect const&                button_rect)
+    storm::FRect const&                button_rect,
+    std::optional<std::string> const&  technique /*= std::nullopt*/)
     : m_texture(texture)
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
+    if (technique.has_value()) {
+        m_pipeline = renderer->create_pipeline_from_technique<ImageVertex>("ui/image_2d", technique.value());
+    } else {
+        m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
+    }
 
     auto const [width, height] = m_texture->get_dimensions();
 

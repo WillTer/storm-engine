@@ -40,7 +40,11 @@ Font::Font(std::string const& font_name)
     m_info    = storm::font::info(*config_loader, window_info.font_config, font_name);
     m_texture = renderer->create_texture(m_info.texture);
 
-    m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/tex_ubo_diffuse");
+    if (m_info.technique.empty()) {
+        m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/tex_ubo_diffuse");
+    } else {
+        m_pipeline = renderer->create_pipeline_from_technique<Vertex>("ui/font_normal", m_info.technique);
+    }
 
     m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);

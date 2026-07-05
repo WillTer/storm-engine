@@ -1,4 +1,4 @@
-#include "rectangle.h"
+#include "border.h"
 
 #include <cassert>
 
@@ -16,11 +16,11 @@ using Vertex = shaders::rectangle::VertexInput;
 namespace
 {
 
-auto const SQUARE_TRIANGLES_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
+auto const SQUARE_LINES_INDICES = std::vector<uint32_t> {0, 1, 1, 2, 2, 3, 3, 0};
 
 }  // namespace
 
-Rectangle::Rectangle(storm::Color const& color, std::optional<std::string> const& technique /*= std::nullopt*/)
+Border::Border(storm::Color const& color, std::optional<std::string> const& technique /*= std::nullopt*/)
 {
     auto const& renderer = core->get<RendererService>();
 
@@ -40,7 +40,7 @@ Rectangle::Rectangle(storm::Color const& color, std::optional<std::string> const
     };
 
     m_vertex_buffer = renderer->create_vertex_buffer(vertex_data);
-    m_index_buffer  = renderer->create_index_buffer(SQUARE_TRIANGLES_INDICES);
+    m_index_buffer  = renderer->create_index_buffer(SQUARE_LINES_INDICES);
 
     m_rect   = {0.0F, 0.0F, 1.0F, 1.0F};
     m_width  = 1;
@@ -49,9 +49,9 @@ Rectangle::Rectangle(storm::Color const& color, std::optional<std::string> const
     m_is_color_dirty = false;
 }
 
-Rectangle::~Rectangle() = default;
+Border::~Border() = default;
 
-void Rectangle::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
+void Border::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
 {
     if (m_is_color_dirty) {
         std::vector<decltype(Vertex::color)> color_buffer = {};
@@ -68,7 +68,7 @@ void Rectangle::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
     }
 }
 
-void Rectangle::draw(GPURenderPass const& render_pass) const
+void Border::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
@@ -78,7 +78,7 @@ void Rectangle::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Rectangle::set_color(storm::Color const& color)
+void Border::set_color(storm::Color const& color)
 {
     for (size_t i = 0; i < m_color.size(); ++i) {
         m_color[i] = color;
@@ -87,7 +87,7 @@ void Rectangle::set_color(storm::Color const& color)
     m_is_color_dirty = true;
 }
 
-void Rectangle::set_vertex_color(size_t index, storm::Color const& color)
+void Border::set_vertex_color(size_t index, storm::Color const& color)
 {
     // Out of bounds
     if (index >= m_color.size()) {

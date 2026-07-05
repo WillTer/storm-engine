@@ -27,7 +27,8 @@ public:
         storm::FRect const&                tex_rect_left,
         storm::FRect const&                tex_rect_middle,
         storm::FRect const&                tex_rect_right,
-        storm::FRect const&                button_rect);
+        storm::FRect const&                button_rect,
+        std::optional<std::string> const&  technique = std::nullopt);
     ~Button() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;

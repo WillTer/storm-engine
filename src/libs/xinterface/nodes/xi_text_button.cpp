@@ -6,11 +6,15 @@
 #include <libs/renderer_next/ui/image_2d.h>
 #include <libs/renderer_next/ui/rectangle.h>
 
+namespace
+{
+std::string const TECHNIQUE_NAME = "iVideo";
+}
+
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
-    m_sGroupName  = nullptr;
-    m_idTex       = -1;
-    m_idShadowTex = -1;
+    m_sGroupName = nullptr;
+    m_idTex      = -1;
 
     m_fXShadow = 0.f;
     m_fYShadow = 0.f;
@@ -217,11 +221,10 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwBackColor));
     m_back->set_screen_rect(m_screen_rect);
 
-    m_idShadowTex = -1;
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
 
-        m_shadow = std::make_unique<storm::Image2D>(param);
+        m_shadow = std::make_unique<storm::Image2D>(param, TECHNIQUE_NAME);
         m_shadow->set_uv(shadow_uv);
         m_shadow->set_screen_rect(m_screen_rect);
         m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
@@ -262,9 +265,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     // get video fragment parameters
     if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) {
-        m_selection = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
+        m_selection = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), TECHNIQUE_NAME);
         m_selection->set_screen_rect(m_screen_rect);
-        m_selection->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor) * 2);
+        m_selection->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
     }
 
     // fill left side of button
@@ -303,7 +306,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         };
     }
 
-    m_button = std::make_unique<storm::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect);
+    m_button = std::make_unique<storm::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect, TECHNIQUE_NAME);
     m_button->set_screen_rect(m_screen_rect);
     m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
 
@@ -312,7 +315,8 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         !left_uv_selected.is_empty() ? left_uv_selected : left_uv,
         !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv,
         !right_uv_selected.is_empty() ? right_uv_selected : right_uv,
-        m_rect);
+        m_rect,
+        TECHNIQUE_NAME);
 
     m_button_selected->set_screen_rect(m_screen_rect);
     m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
@@ -357,9 +361,7 @@ int CXI_TEXTBUTTON::CommandExecute(int wActCode)
 
 bool CXI_TEXTBUTTON::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bUse) return true;
-
-    return false;
+    return xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bUse;
 }
 
 void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)

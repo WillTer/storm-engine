@@ -26,14 +26,13 @@ class Image2D final: public Image2DBase
 {
 public:
     Image2D(std::filesystem::path const& texture, std::optional<std::string> const& technique = std::nullopt);
-    Image2D(std::shared_ptr<GPUTexture> const& external_texture);
+    Image2D(std::shared_ptr<GPUTexture> const& external_texture, std::optional<std::string> const& technique = std::nullopt);
 
     ~Image2D() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;
 
-    void set_pipeline(std::string const& fragment_shader);
     void set_diffuse_color(storm::Color const& color);
     void set_uv(storm::FRect const& texture_uv);
     void set_uv_full(std::array<float2, 4> const& texture_uv);

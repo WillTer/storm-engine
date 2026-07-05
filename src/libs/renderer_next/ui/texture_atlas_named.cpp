@@ -12,6 +12,12 @@
 
 using namespace storm;
 
+namespace
+{
+constexpr float X_ADD = 0.5F;
+constexpr float Y_ADD = 0.5F;
+}  // namespace
+
 TextureAtlasNamed::TextureAtlasNamed(std::filesystem::path const& texture)
 {
     auto const& renderer = core->get<RendererService>();
@@ -27,10 +33,10 @@ void TextureAtlasNamed::update(GPUCopyPass const& /*copy_pass*/, uint64_t /*delt
 void TextureAtlasNamed::add_picture(std::string const& name, storm::FRect const& texture_pos_rect)
 {
     storm::FRect const texture_uv_rect = {
-        .left   = static_cast<float>(texture_pos_rect.left) / m_width,
-        .top    = static_cast<float>(texture_pos_rect.top) / m_height,
-        .right  = static_cast<float>(texture_pos_rect.right) / m_width,
-        .bottom = static_cast<float>(texture_pos_rect.bottom) / m_height,
+        .left   = static_cast<float>(texture_pos_rect.left + X_ADD) / m_width,
+        .top    = static_cast<float>(texture_pos_rect.top + Y_ADD) / m_height,
+        .right  = static_cast<float>(texture_pos_rect.right - X_ADD) / m_width,
+        .bottom = static_cast<float>(texture_pos_rect.bottom - Y_ADD) / m_height,
     };
 
     m_pictures.emplace(name, texture_uv_rect);

@@ -91,6 +91,7 @@ void CXI_SLIDEPICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delt
     }
 
     set_texture_coordinate(*m_image, m_texRect, curAngle);
+    m_image->set_rect(m_rect);
     m_image->update(copy_pass, delta_time);
 }
 

@@ -1,7 +1,14 @@
 #include "xi_rectangle.h"
 
 #include <libs/renderer_next/types.h>
+#include <libs/renderer_next/ui/border.h>
 #include <libs/renderer_next/ui/rectangle.h>
+
+namespace
+{
+std::string const TECHNIQUE_NAME        = "iRectangle";
+std::string const BORDER_TECHNIQUE_NAME = "iRectangleBorder";
+}  // namespace
 
 CXI_RECTANGLE::CXI_RECTANGLE()
 {
@@ -15,13 +22,17 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
 
 void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
 {
+    m_back->set_rect(m_rect);
     m_back->set_screen_rect(m_screen_rect);
     m_back->update(copy_pass, delta_time);
 
     if (m_border) {
+        m_border->set_rect(m_rect);
         m_border->set_screen_rect(m_screen_rect);
         m_border->update(copy_pass, delta_time);
     }
+
+    UpdateColors();
 }
 
 void CXI_RECTANGLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
@@ -70,7 +81,7 @@ void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     uint32_t const border_color = GetIniARGB(ini1, name1, ini2, name2, "borderColor", 0);
     create_border(border_color);
 
-    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwLeftColor));
+    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(0), TECHNIQUE_NAME);
     m_back->set_rect(m_rect);
     m_back->set_screen_rect(m_screen_rect);
 
@@ -119,7 +130,7 @@ void CXI_RECTANGLE::create_border(uint32_t color)
         return;
     }
 
-    m_border = std::make_unique<storm::Rectangle>(storm::Color::from_hex(color), storm::Rectangle::Fill::None);
+    m_border = std::make_unique<storm::Border>(storm::Color::from_hex(color), BORDER_TECHNIQUE_NAME);
     m_border->set_rect(m_rect);
     m_border->set_screen_rect(m_screen_rect);
 }

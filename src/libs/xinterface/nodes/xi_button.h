@@ -5,7 +5,6 @@
 namespace storm
 {
 class Image2D;
-class Rectangle;
 }  // namespace storm
 
 // picture
@@ -43,8 +42,8 @@ protected:
     void LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2) override;
 
 protected:
-    std::unique_ptr<storm::Image2D>   m_picture;
-    std::unique_ptr<storm::Rectangle> m_shadow;
+    std::unique_ptr<storm::Image2D> m_picture;
+    std::unique_ptr<storm::Image2D> m_shadow;
 
     storm::FRect m_rect_pressed;
     storm::FRect m_shadow_rect;

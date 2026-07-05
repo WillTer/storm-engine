@@ -33,9 +33,10 @@ Image2D::Image2D(std::filesystem::path const& texture, std::optional<std::string
     initialize(technique);
 }
 
-Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture) : m_texture(external_texture)
+Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture, std::optional<std::string> const& technique /*= std::nullopt*/)
+    : m_texture(external_texture)
 {
-    initialize(std::nullopt);
+    initialize(technique);
 }
 
 Image2D::~Image2D() = default;
@@ -84,13 +85,6 @@ void Image2D::draw(GPURenderPass const& render_pass) const
     render_pass.push_fragment_uniform_data(0, m_fragment_ubo);
     render_pass.bind(*m_texture);
     render_pass.draw(*m_index_buffer);
-}
-
-void Image2D::set_pipeline(std::string const& fragment_shader)
-{
-    auto const& renderer = core->get<RendererService>();
-
-    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", fragment_shader);
 }
 
 void Image2D::initialize(std::optional<std::string> const& technique)

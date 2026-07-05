@@ -2,6 +2,11 @@
 
 #include <libs/renderer_next/ui/image_2d.h>
 
+namespace
+{
+std::string const TECHNIQUE_NAME = "iVideo";
+}
+
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
 {
     m_nNodeType = NODETYPE_VIDEO;
@@ -44,11 +49,10 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
     char param[255];
     if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) {
-        m_video = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
+        m_video = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), TECHNIQUE_NAME);
         m_video->set_uv(m_rectTex);
         m_video->set_screen_rect(m_screen_rect);
         m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor));
-        m_video->set_pipeline("ui/tex_ubo_diffuse_rgbx2");
     }
 }
 

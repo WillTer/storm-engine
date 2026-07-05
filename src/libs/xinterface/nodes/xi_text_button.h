@@ -48,8 +48,7 @@ protected:
 
 protected:
     char*   m_sGroupName;
-    int32_t m_idTex;        // texture identity
-    int32_t m_idShadowTex;  // shadow texture
+    int32_t m_idTex;  // texture identity
 
     std::unique_ptr<storm::Button> m_button;
     std::unique_ptr<storm::Button> m_button_selected;

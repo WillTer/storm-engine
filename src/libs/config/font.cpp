@@ -46,22 +46,30 @@ struct storm::read_to<storm::FontInfo> {
                 key = std::format("char_{}", unicode_sym);
             }
 
-            if (!ini.contains(section, key)) { continue; }
+            if (!ini.contains(section, key)) {
+                continue;
+            }
             auto const value = ini.find<std::string>(section, key);
             auto       rect  = storm::FRect {};
 
             auto const left_end = value.find_first_of(',');
-            if (left_end == std::string::npos) { throw std::runtime_error("invalid font record"); }
+            if (left_end == std::string::npos) {
+                throw std::runtime_error("invalid font record");
+            }
             rect.left = (std::stof(value.substr(0, left_end)) + 0.5F) / static_cast<float>(info.texture_width);
 
             auto const top_end = value.find_first_of(',', left_end + 1);
-            if (top_end == std::string::npos) { throw std::runtime_error("invalid font record"); }
+            if (top_end == std::string::npos) {
+                throw std::runtime_error("invalid font record");
+            }
             rect.top = (std::stof(value.substr(left_end + 1, top_end)) + 0.5F) / static_cast<float>(info.texture_height);
 
             auto const width_end = value.find_first_of(',', top_end + 1);
-            if (width_end == std::string::npos) { throw std::runtime_error("invalid font record"); }
-            rect.right  = rect.left + (std::stof(value.substr(top_end + 1, width_end)) - 1.0F) / static_cast<float>(info.texture_width);
-            rect.bottom = rect.top + (std::stof(value.substr(width_end + 1)) - 1.0F) / static_cast<float>(info.texture_height);
+            if (width_end == std::string::npos) {
+                throw std::runtime_error("invalid font record");
+            }
+            rect.right  = rect.left + ((std::stof(value.substr(top_end + 1, width_end)) - 1.0F) / static_cast<float>(info.texture_width));
+            rect.bottom = rect.top + ((std::stof(value.substr(width_end + 1)) - 1.0F) / static_cast<float>(info.texture_height));
 
             info.symbols.emplace(codepoint, rect);
         }

@@ -726,8 +726,6 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
                 pImg->argbBlindMin = message.Long();
                 pImg->argbBlindMax = message.Long();
                 pImg->picture->set_diffuse_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
-            } else {
-                pImg->picture->set_diffuse_color(storm::Color::from_hex(0xFFFFFFFF));
             }
         }
     } break;

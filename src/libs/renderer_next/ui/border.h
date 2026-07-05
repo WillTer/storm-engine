@@ -19,13 +19,11 @@ class GPUIndexBuffer;
 class GPUCopyPass;
 class GPURenderPass;
 
-class Rectangle final: public Image2DBase
+class Border final: public Image2DBase
 {
 public:
-    enum class Fill { None, Color };
-
-    Rectangle(storm::Color const& color, std::optional<std::string> const& technique = std::nullopt);
-    ~Rectangle() override;
+    Border(storm::Color const& color, std::optional<std::string> const& technique = std::nullopt);
+    ~Border() override;
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;

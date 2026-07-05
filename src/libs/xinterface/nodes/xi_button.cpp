@@ -5,6 +5,12 @@
 #include <libs/renderer_next/ui/rectangle.h>
 #include <libs/util/string_compare.hpp>
 
+namespace
+{
+std::string const SHADOW_TECHNIQUE_NAME = "iShadow";
+std::string const BUTTON_TECHNIQUE_NAME = "iButton";
+}  // namespace
+
 CXI_BUTTON::CXI_BUTTON()
 {
     m_sGroupName = nullptr;
@@ -32,6 +38,31 @@ CXI_BUTTON::~CXI_BUTTON()
 void CXI_BUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
+        auto face_color = m_dwFaceColor;
+        if (bSelected && m_fBlindSpeed > 0.F) {
+            face_color = ColorInterpolate(m_dwDarkColor, m_dwLightColor, m_fCurBlind);
+            if (m_bUpBlind) {
+                m_fCurBlind += m_fBlindSpeed * Delta_Time;
+            } else {
+                m_fCurBlind -= m_fBlindSpeed * Delta_Time;
+            }
+
+            if (m_fCurBlind < 0.F) {
+                m_fCurBlind = 0.F;
+                m_bUpBlind  = true;
+            }
+            if (m_fCurBlind > 1.F) {
+                m_fCurBlind = 1.F;
+                m_bUpBlind  = false;
+            }
+        }
+
+        if (m_bClickable && m_bSelected) {
+            m_picture->set_diffuse_color(storm::Color::from_hex(face_color));
+        } else {
+            m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor));
+        }
+
         m_shadow->draw(render_pass);
         m_picture->draw(render_pass);
 
@@ -71,8 +102,7 @@ void CXI_BUTTON::Draw(storm::GPURenderPass const& render_pass, bool bSelected, u
 bool CXI_BUTTON::Init(
     INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
-    return true;
+    return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
 void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
@@ -90,31 +120,6 @@ void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time
     } else {
         m_picture->set_rect(m_rect);
         m_shadow->set_rect(m_shadow_rect);
-    }
-
-    auto face_color = m_dwFaceColor;
-    if (m_bSelected && m_fBlindSpeed > 0.F) {
-        face_color = ColorInterpolate(m_dwDarkColor, m_dwLightColor, m_fCurBlind);
-        if (m_bUpBlind) {
-            m_fCurBlind += m_fBlindSpeed * delta_time;
-        } else {
-            m_fCurBlind -= m_fBlindSpeed * delta_time;
-        }
-
-        if (m_fCurBlind < 0.F) {
-            m_fCurBlind = 0.F;
-            m_bUpBlind  = true;
-        }
-        if (m_fCurBlind > 1.F) {
-            m_fCurBlind = 1.F;
-            m_bUpBlind  = false;
-        }
-    }
-
-    if (!m_bClickable || !m_bSelected) {
-        m_picture->set_diffuse_color(storm::Color::from_hex(m_argbDisableColor));
-    } else {
-        m_picture->set_diffuse_color(storm::Color::from_hex(face_color));
     }
 
     m_picture->update(copy_pass, delta_time);
@@ -142,11 +147,12 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
 
     // blinking speed
     m_fBlindSpeed = GetIniFloat(ini1, name1, ini2, name2, "blindTimeSec", -1.f);
-    if (m_fBlindSpeed <= 0.f)
-        m_fBlindSpeed = 1.f;
-    else
+    if (m_fBlindSpeed <= 0.F) {
+        m_fBlindSpeed = 1.F;
+    } else {
         m_fBlindSpeed = .001f / m_fBlindSpeed;
-    m_fCurBlind = 1.f;
+    }
+    m_fCurBlind = 1.F;
     m_bUpBlind  = false;
 
     // get disable color
@@ -168,20 +174,22 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
         memcpy(m_sGroupName, param, len);
         auto const texture = pPictureService->get_texture(m_sGroupName);
 
-        m_picture = std::make_unique<storm::Image2D>(texture);
+        m_picture = std::make_unique<storm::Image2D>(texture, BUTTON_TECHNIQUE_NAME);
+        m_shadow  = std::make_unique<storm::Image2D>(texture, SHADOW_TECHNIQUE_NAME);
         // get button picture name
         if (ReadIniString(ini1, name1, ini2, name2, "picture", param, sizeof(param), "")) {
             m_picture->set_uv(pPictureService->get_texture_uv(m_sGroupName, param));
+            m_shadow->set_uv(pPictureService->get_texture_uv(m_sGroupName, param));
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "videoTexture", param, sizeof(param), "")) {
-        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param));
+        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), BUTTON_TECHNIQUE_NAME);
+        m_shadow  = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), SHADOW_TECHNIQUE_NAME);
     }
 
-    assert(m_picture);
+    assert(m_picture && m_shadow);
     m_picture->set_screen_rect(m_screen_rect);
-
-    m_shadow = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwShadowColor));
     m_shadow->set_screen_rect(m_screen_rect);
+    m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
 
     // get offset button image in case pressed button
     tmpLPnt      = GetIniLongPoint(ini1, name1, ini2, name2, "pressPictureOffset", XYPOINT(0, 0));
@@ -204,7 +212,9 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
     m_dwStrOffset = GetIniLong(ini1, name1, ini2, name2, "strOffset", 0);
 
     m_idString = -1;
-    if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) m_idString = pStringService->GetStringNum(param);
+    if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) {
+        m_idString = pStringService->GetStringNum(param);
+    }
 }
 
 void CXI_BUTTON::ReleaseAll()
@@ -223,7 +233,9 @@ int CXI_BUTTON::CommandExecute(int wActCode)
             break;
             // case ACTION_MOUSEDBLCLICK:
         case ACTION_MOUSECLICK:
-            if (m_bClickable && m_bSelected) nPressedDelay = nMaxDelay;
+            if (m_bClickable && m_bSelected) {
+                nPressedDelay = nMaxDelay;
+            }
             break;
         }
     }
@@ -232,10 +244,8 @@ int CXI_BUTTON::CommandExecute(int wActCode)
 
 bool CXI_BUTTON::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 {
-    if (xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bSelected && m_bUse)
-        return true;
-
-    return false;
+    return xPos >= m_rect.left && xPos <= m_rect.right && yPos >= m_rect.top && yPos <= m_rect.bottom && m_bClickable && m_bSelected
+        && m_bUse;
 }
 
 void CXI_BUTTON::ChangePosition(XYRECT& rNewPos)
@@ -309,21 +319,30 @@ uint32_t CXI_BUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
     {
         std::string const& param = message.String();
         auto const         len   = param.size() + 1;
-        if (len == 1) break;
+        if (len == 1) {
+            break;
+        }
 
         if (m_sGroupName == nullptr || !storm::iEquals(m_sGroupName, param)) {
             PICTURE_TEXTURE_RELEASE(pPictureService, m_sGroupName, m_idTex);
             STORM_DELETE(m_sGroupName);
 
             m_sGroupName = new char[len];
-            if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
+            if (m_sGroupName == nullptr) {
+                throw std::runtime_error("allocate memory error");
+            }
             memcpy(m_sGroupName, param.c_str(), len);
         }
 
         std::string const& param2 = message.String();
 
-        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_sGroupName));
+        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_sGroupName), BUTTON_TECHNIQUE_NAME);
+        m_shadow  = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_sGroupName), SHADOW_TECHNIQUE_NAME);
+        m_picture->set_screen_rect(m_screen_rect);
+        m_shadow->set_screen_rect(m_screen_rect);
         m_picture->set_uv(pPictureService->get_texture_uv(m_sGroupName, param2));
+        m_shadow->set_uv(pPictureService->get_texture_uv(m_sGroupName, param2));
+        m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
     } break;
     }
 

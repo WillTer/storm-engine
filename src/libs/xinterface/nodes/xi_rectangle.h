@@ -5,6 +5,7 @@
 namespace storm
 {
 class Rectangle;
+class Border;
 }  // namespace storm
 
 class CXI_RECTANGLE: public CINODE
@@ -46,5 +47,5 @@ protected:
     uint32_t m_dwBorderColor;
 
     std::unique_ptr<storm::Rectangle> m_back;
-    std::unique_ptr<storm::Rectangle> m_border;
+    std::unique_ptr<storm::Border>    m_border;
 };
