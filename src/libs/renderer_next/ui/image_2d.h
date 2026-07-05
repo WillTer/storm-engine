@@ -3,12 +3,11 @@
 #include <filesystem>
 #include <memory>
 
-#include <entt/core/fwd.hpp>
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/types.h>
+#include <shaders/ubo_types.h>
 #include <shaders/ui/image_2d.h>
-#include <shaders/ui/ubo_types.h>
 
 #include "image_2d_base.h"
 
@@ -34,7 +33,7 @@ public:
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;
 
-    void set_pipeline(entt::hashed_string const& name);
+    void set_pipeline(std::string const& fragment_shader);
     void set_diffuse_color(storm::Color const& color);
     void set_uv(storm::FRect const& texture_uv);
     void set_uv_full(std::array<float2, 4> const& texture_uv);

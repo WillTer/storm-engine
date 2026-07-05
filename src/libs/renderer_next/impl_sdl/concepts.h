@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <shaders/vertex.h>
+#include <shaders/cpp/vertex.h>
 
 #include "sdl_fwd.h"
 

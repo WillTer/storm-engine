@@ -3,8 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include <shaders/info.h>
-#include <shaders/vertex.h>
+#include <shaders/cpp/vertex.h>
 
 #include "sdl_fwd.h"
 
@@ -12,6 +11,7 @@ namespace storm
 {
 
 struct ShaderAsset;
+struct IniFile;
 
 class GraphicsPipeline final
 {
@@ -24,9 +24,9 @@ public:
         std::vector<shaders::VertexAttribute> const&   vertex_attributes,
         std::vector<shaders::VertexDescription> const& vertex_descriptions,
         ShaderAsset const&                             vertex_shader_asset,
-        shaders::Info const&                           vertex_shader_info,
+        IniFile const&                                 vertex_shader_meta,
         ShaderAsset const&                             fragment_shader_asset,
-        shaders::Info const&                           fragment_shader_info,
+        IniFile const&                                 fragment_shader_meta,
         PrimitiveType                                  primitive_type);
 
     ~GraphicsPipeline();

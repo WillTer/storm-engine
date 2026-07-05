@@ -1,16 +1,8 @@
-#include "texture_sequence.h"
+#include "ui/texture_sequence.h"
 #include "ubo_types.h"
 
-// Vertex shader sets
 [[vk::binding(0, 1)]]
 ConstantBuffer<AnimationUBOVertex> ubo: register(b0, space1);
-
-// Fragment shader sets
-[[vk::binding(0, 2)]]
-Sampler2D Texture: register(t0, space2) : register(s0, space2);
-
-[[vk::binding(0, 3)]]
-ConstantBuffer<UBOFragment> fs_ubo: register(b0, space3);
 
 float2 get_tex_coords(int32_t frame, uint index)
 {
@@ -41,21 +33,11 @@ float2 get_tex_coords(int32_t frame, uint index)
 }
 
 [shader("vertex")]
-VertexOutput main_vs(VertexInput input)
+VertexOutput main(VertexInput input)
 {
     VertexOutput output;
     output.tex_coord      = get_tex_coords(ubo.frame, input.index);
     output.tex_coord_next = get_tex_coords(ubo.frame + 1, input.index);
     output.position       = input.position;
     return output;
-}
-
-[shader("fragment")]
-float4 main_fs(float2 tex_coord: TEXCOORD0, float2 tex_coord_next: TEXCOORD1) : SV_Target0
-{
-    float4 tex1  = Texture.Sample(tex_coord);
-    float4 tex2  = Texture.Sample(tex_coord_next);
-    float4 color = (1 - fs_ubo.color.w) * tex1 + fs_ubo.color.w * tex2;
-    color.w      = 1.0F;
-    return color;
 }

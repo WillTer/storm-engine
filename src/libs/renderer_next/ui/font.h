@@ -3,7 +3,7 @@
 #include <memory>
 
 #include <libs/config/font.h>
-#include <shaders/ui/ubo_types.h>
+#include <shaders/ubo_types.h>
 
 namespace storm
 {

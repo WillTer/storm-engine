@@ -10,7 +10,6 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/image_2d.h>
 
 using namespace storm;
@@ -86,18 +85,18 @@ void Image2D::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Image2D::set_pipeline(entt::hashed_string const& name)
+void Image2D::set_pipeline(std::string const& fragment_shader)
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline(name);
+    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", fragment_shader);
 }
 
 void Image2D::initialize()
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline(IMAGE_2D_PIPELINE);
+    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
 
     auto const vertex_data = std::vector<ImageVertex> {
         ImageVertex {{0.0F, 0.0F}, {0.0F, 0.0F}},
@@ -109,13 +108,13 @@ void Image2D::initialize()
     m_vertex_buffer = renderer->create_vertex_buffer(vertex_data);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
 
-    m_fragment_ubo.color = float4(1.0F);
+    m_fragment_ubo.diffuse = float4(1.0F);
 }
 
 void Image2D::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
-    m_fragment_ubo.color    = float4(r, g, b, a);
+    m_fragment_ubo.diffuse  = float4(r, g, b, a);
 }
 
 void Image2D::set_uv(storm::FRect const& texture_uv)

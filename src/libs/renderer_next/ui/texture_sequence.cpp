@@ -10,7 +10,6 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/texture_sequence.h>
 
 using namespace storm;
@@ -42,7 +41,7 @@ TextureSequence::TextureSequence(std::string const& name)
     m_texture = renderer->create_texture(info.texture_file);
     m_target  = renderer->create_texture_target(info.width, info.height);
 
-    m_pipeline = renderer->create_pipeline(TEXTURE_SEQUENCE_PIPELINE);
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/texture_sequence", "ui/tex_sequence_ubo_diffuse");
 
     m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);

@@ -1,6 +1,5 @@
 #include "xi_video.h"
 
-#include <libs/renderer_next/pipeline_names.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
 CXI_VIDEO::CXI_VIDEO() : m_dwColor(0)
@@ -49,7 +48,7 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
         m_video->set_uv(m_rectTex);
         m_video->set_screen_rect(m_screen_rect);
         m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor));
-        m_video->set_pipeline(storm::IMAGE_2D_BRIGHT_PIPELINE);
+        m_video->set_pipeline("ui/tex_ubo_diffuse_rgbx2");
     }
 }
 

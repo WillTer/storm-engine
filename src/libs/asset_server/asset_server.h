@@ -32,7 +32,9 @@ public:
             auto const asset_type = entt::type_id<Asset>().index();
             auto const file_path  = use_asset_dir && m_asset_dirs.contains(asset_type) ? m_asset_dirs.at(asset_type) / path : path;
 
-            if (!m_assets.contains(asset_type)) { m_assets.emplace(asset_type, std::unordered_map<std::string, std::any> {}); }
+            if (!m_assets.contains(asset_type)) {
+                m_assets.emplace(asset_type, std::unordered_map<std::string, std::any> {});
+            }
             auto& assets_by_type = m_assets.at(asset_type);
 
             auto const& ext = add_extension.empty() && m_asset_ext.contains(asset_type) ? m_asset_ext.at(asset_type) : add_extension;
@@ -68,6 +70,13 @@ public:
         m_asset_ext.emplace(entt::type_id<Asset>().index(), extension);
     }
 
+    template <typename Asset>
+    std::filesystem::path get_asset_dir() const
+    {
+        auto const asset_type = entt::type_id<Asset>().index();
+        return m_asset_dirs.contains(asset_type) ? m_asset_dirs.at(asset_type) : std::filesystem::path {};
+    }
+
     TextureAsset  load_texture_file(std::filesystem::path const& path, bool use_asset_dir = true);
     ShaderAsset   load_shader_file(std::filesystem::path const& path, bool use_asset_dir = true);
     TextFileAsset load_text_file(std::filesystem::path const& path, bool use_asset_dir = true);
@@ -79,12 +88,18 @@ private:
     load_asset(IFileService const& file_service, std::filesystem::path const& path, std::string_view const& add_extension)
     {
         auto file_path = file_service.transform_path(path);
-        if (!add_extension.empty()) { file_path.replace_extension(std::format("{}.{}", file_path.extension().string(), add_extension)); }
+        if (!add_extension.empty()) {
+            file_path.replace_extension(std::format("{}.{}", file_path.extension().string(), add_extension));
+        }
 
-        if (!std::filesystem::exists(file_path)) { raise_loader_error(asset_loader::Error::FileNotFound, file_path); }
+        if (!std::filesystem::exists(file_path)) {
+            raise_loader_error(asset_loader::Error::FileNotFound, file_path);
+        }
 
         auto const asset = asset_loader::from_file<Asset>(file_path);
-        if (!asset.has_value()) { raise_loader_error(asset.error(), file_path); }
+        if (!asset.has_value()) {
+            raise_loader_error(asset.error(), file_path);
+        }
 
         return asset.value();
     }

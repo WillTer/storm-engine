@@ -1,7 +1,9 @@
 #pragma once
 
 #ifdef __cplusplus
-#include "../hlslpp.h"
+
+#include "cpp/hlslpp.h"
+
 namespace storm::shaders
 {
 #define ALIGN16 alignas(16)
@@ -15,7 +17,7 @@ struct ALIGN16 UBOVertex {
 };
 
 struct ALIGN16 UBOFragment {
-    float4 color;
+    float4 diffuse;
 };
 
 struct ALIGN16 AnimationUBOVertex {

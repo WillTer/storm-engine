@@ -8,6 +8,7 @@ storm_lib(
         SDL3-storm
         spdlog::spdlog
         Zlib-storm
+        shader_headers
 
         $<$<PLATFORM_ID:Windows>:comctl32>
     HEADERS_DEPS

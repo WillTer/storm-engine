@@ -6,7 +6,6 @@
 #include <entt/core/fwd.hpp>
 #include <libs/renderer_next/impl_sdl/gpu_sampler.h>
 #include <libs/renderer_next/types.h>
-#include <shaders/info.h>
 
 #include "concepts.h"
 #include "gpu_render_pass.h"
@@ -35,7 +34,18 @@ public:
     void bind_window(std::shared_ptr<SDL_Window> const& raw_window);
     void unbind_window(std::shared_ptr<SDL_Window> const& raw_window);
 
-    [[nodiscard]] auto create_pipeline(entt::hashed_string const& name) -> std::shared_ptr<GraphicsPipeline>;
+    template <typename VertexInput>
+    [[nodiscard]] auto create_pipeline(std::string const& vertex_shader, std::string const& fragment_shader)
+        -> std::shared_ptr<GraphicsPipeline>
+    {
+        return create_pipeline(VertexInput::attributes(), VertexInput::descriptions(), vertex_shader, fragment_shader);
+    }
+
+    [[nodiscard]] auto create_pipeline(
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        std::string const&                             vertex_shader,
+        std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>;
 
     template <typename T>
         requires has_shader_layout<T>

@@ -1,7 +1,11 @@
 #include "graphics_pipeline.h"
 
+#include <format>
+
 #include <SDL3/SDL_gpu.h>
 #include <libs/asset_server/shader_asset.h>
+#include <libs/asset_server/text_file_asset.h>
+#include <libs/config/ini_file.h>
 #include <libs/core/core.h>
 #include <spdlog/spdlog.h>
 
@@ -13,7 +17,7 @@ namespace
 {
 
 std::shared_ptr<SDL_GPUShader> compile_shader(
-    std::shared_ptr<SDL_GPUDevice> const& device, ShaderAsset const& asset, shaders::Info const& info, SDL_GPUShaderStage const stage)
+    std::shared_ptr<SDL_GPUDevice> const& device, ShaderAsset const& asset, IniFile const& shader_meta, SDL_GPUShaderStage const stage)
 {
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
     if (asset.type == ShaderAssetType::SPIRV) {
@@ -28,11 +32,12 @@ std::shared_ptr<SDL_GPUShader> compile_shader(
         .entrypoint   = "main", /**< A pointer to a null-terminated UTF-8 string specifying the entry point function name for the shader. */
         .format       = format, /**< The format of the shader code. */
         .stage        = stage,  /**< The stage the shader program corresponds to. */
-        .num_samplers = info.num_samplers,                 /**< The number of samplers defined in the shader. */
-        .num_storage_textures = info.num_storage_textures, /**< The number of storage textures defined in the shader. */
-        .num_storage_buffers  = info.num_storage_buffers,  /**< The number of storage buffers defined in the shader. */
-        .num_uniform_buffers  = info.num_uniform_buffers,  /**< The number of uniform buffers defined in the shader. */
-        .props                = 0,                         /**< A properties ID for extensions. Should be 0 if no extensions are needed. */
+        .num_samplers = shader_meta.find_or({}, "samplers", 0U), /**< The number of samplers defined in the shader. */
+        .num_storage_textures =
+            shader_meta.find_or({}, "storage_textures", 0U),                   /**< The number of storage textures defined in the shader. */
+        .num_storage_buffers = shader_meta.find_or({}, "storage_buffers", 0U), /**< The number of storage buffers defined in the shader. */
+        .num_uniform_buffers = shader_meta.find_or({}, "uniform_buffers", 0U), /**< The number of uniform buffers defined in the shader. */
+        .props               = 0, /**< A properties ID for extensions. Should be 0 if no extensions are needed. */
     };
 
     return std::shared_ptr<SDL_GPUShader>(
@@ -77,17 +82,17 @@ GraphicsPipeline::GraphicsPipeline(
     std::vector<shaders::VertexAttribute> const&   vertex_attributes,
     std::vector<shaders::VertexDescription> const& vertex_descriptions,
     ShaderAsset const&                             vertex_shader_asset,
-    shaders::Info const&                           vertex_shader_info,
+    IniFile const&                                 vertex_shader_meta,
     ShaderAsset const&                             fragment_shader_asset,
-    shaders::Info const&                           fragment_shader_info,
+    IniFile const&                                 fragment_shader_meta,
     PrimitiveType                                  primitive_type)
 {
-    auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_info, SDL_GPU_SHADERSTAGE_VERTEX);
+    auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_meta, SDL_GPU_SHADERSTAGE_VERTEX);
     if (!vertex_shader) {
         throw std::runtime_error(std::format("Failed to compile vertex shader: {}", SDL_GetError()));
     }
 
-    auto const fragment_shader = compile_shader(device, fragment_shader_asset, fragment_shader_info, SDL_GPU_SHADERSTAGE_FRAGMENT);
+    auto const fragment_shader = compile_shader(device, fragment_shader_asset, fragment_shader_meta, SDL_GPU_SHADERSTAGE_FRAGMENT);
     if (!fragment_shader) {
         throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError()));
     }

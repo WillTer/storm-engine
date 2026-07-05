@@ -9,7 +9,6 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/image_2d.h>
 
 using namespace storm;
@@ -34,7 +33,7 @@ Button::Button(
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline(IMAGE_2D_PIPELINE);
+    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
 
     auto const [width, height] = m_texture->get_dimensions();
 
@@ -71,7 +70,7 @@ Button::Button(
     m_vertex_buffer_right  = renderer->create_vertex_buffer(vertex_data_right);
     m_index_buffer         = renderer->create_index_buffer(SQUARE_INDICES);
 
-    m_fragment_ubo.color = float4(1.0F);
+    m_fragment_ubo.diffuse = float4(1.0F);
 
     m_rect   = button_rect;
     m_width  = static_cast<uint32_t>(m_rect.width());
@@ -110,7 +109,7 @@ void Button::draw(GPURenderPass const& render_pass) const
 void Button::set_diffuse_color(storm::Color const& color)
 {
     auto const [r, g, b, a] = color.normalize();
-    m_fragment_ubo.color    = float4(r, g, b, a);
+    m_fragment_ubo.diffuse  = float4(r, g, b, a);
 }
 
 auto Button::get_middle_rect() const -> storm::FRect

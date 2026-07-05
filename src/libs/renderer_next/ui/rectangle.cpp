@@ -7,7 +7,6 @@
 #include <libs/renderer_next/impl_sdl/gpu_index_buffer.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 
 using namespace storm;
 using namespace hlslpp;
@@ -26,7 +25,10 @@ Rectangle::Rectangle(storm::Color const& color, Fill fill /*= Fill::Color*/)
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline(fill == Fill::Color ? FILL_RECTANGLE_PIPELINE : WIRE_RECTANGLE_PIPELINE);
+    switch (fill) {
+    case Fill::Color: m_pipeline = renderer->create_pipeline<Vertex>("ui/rectangle", "ui/color_only"); break;
+    case Fill::None: m_pipeline = renderer->create_pipeline<Vertex>("ui/rectangle", "ui/color_only"); break;  // FIXME: wire
+    }
 
     auto const [r, g, b, a] = color.normalize();
 

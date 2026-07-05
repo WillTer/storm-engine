@@ -7,7 +7,6 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 #include <shaders/ui/font_normal.h>
 
 #include "libs/renderer_next/impl_sdl/gpu_command_buffer.h"
@@ -41,7 +40,7 @@ Font::Font(std::string const& font_name)
     m_info    = storm::font::info(*config_loader, window_info.font_config, font_name);
     m_texture = renderer->create_texture(m_info.texture);
 
-    m_pipeline = renderer->create_pipeline(FONT_NORMAL_PIPELINE);
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/tex_ubo_diffuse");
 
     m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
@@ -50,14 +49,16 @@ Font::Font(std::string const& font_name)
     m_vertex_ubo.view_proj  = float4x4::identity();
     m_vertex_ubo.tex_coords = float4(0.0F);
 
-    m_fragment_ubo.color = float4(1.0F);
+    m_fragment_ubo.diffuse = float4(1.0F);
 }
 
 Font::~Font() = default;
 
 float Font::get_string_width(std::string const& text, std::optional<float> scale_override) const
 {
-    if (text.empty()) { return 0; }
+    if (text.empty()) {
+        return 0;
+    }
 
     float       width = 0;
     float const scale = scale_override.value_or(1.0F) * m_info.pc_scale;
@@ -65,15 +66,17 @@ float Font::get_string_width(std::string const& text, std::optional<float> scale
     for (size_t i = 0; i < text.size(); i += utf8::u8_inc(text.data() + i)) {
         uint32_t codepoint = utf8::Utf8ToCodepoint(text.data() + i);
 
-        if (!m_info.symbols.contains(codepoint)) { codepoint = ' '; }
+        if (!m_info.symbols.contains(codepoint)) {
+            codepoint = ' ';
+        }
 
         if (codepoint == ' ') {
-            width += m_info.spacebar * scale + m_info.symbol_interval * scale;
+            width += (m_info.spacebar * scale) + (m_info.symbol_interval * scale);
             continue;
         }
 
         auto const& rect = m_info.symbols.at(codepoint);
-        width += rect.width() * m_info.texture_width * scale + m_info.symbol_interval * scale;
+        width += (rect.width() * m_info.texture_width * scale) + (m_info.symbol_interval * scale);
     }
 
     return width;
@@ -129,10 +132,12 @@ auto Font::print(
     for (size_t i = 0; i < text.size(); i += utf8::u8_inc(text.data() + i)) {
         uint32_t codepoint = utf8::Utf8ToCodepoint(text.data() + i);
 
-        if (!m_info.symbols.contains(codepoint)) { codepoint = ' '; }
+        if (!m_info.symbols.contains(codepoint)) {
+            codepoint = ' ';
+        }
 
         if (codepoint == ' ') {
-            offset_x += m_info.spacebar * total_scale + m_info.symbol_interval * total_scale;
+            offset_x += (m_info.spacebar * total_scale) + (m_info.symbol_interval * total_scale);
             continue;
         }
 
@@ -146,21 +151,21 @@ auto Font::print(
         if (draw_shadow) {
             m_vertex_ubo.model =
                 mul(scaling_mat, float4x4::translation(offset_x + m_info.shadow_offset_x, offset_y + m_info.shadow_offset_y, 0.0F));
-            m_fragment_ubo.color = shadow_color;
+            m_fragment_ubo.diffuse = shadow_color;
 
             render_pass->push_vertex_uniform_data(0, m_vertex_ubo);
             render_pass->push_fragment_uniform_data(0, m_fragment_ubo);
             render_pass->draw(*m_index_buffer);
         }
 
-        m_vertex_ubo.model   = mul(scaling_mat, translation_mat);
-        m_fragment_ubo.color = fg_color;
+        m_vertex_ubo.model     = mul(scaling_mat, translation_mat);
+        m_fragment_ubo.diffuse = fg_color;
 
         render_pass->push_vertex_uniform_data(0, m_vertex_ubo);
         render_pass->push_fragment_uniform_data(0, m_fragment_ubo);
         render_pass->draw(*m_index_buffer);
 
-        offset_x += rect.width() * m_info.texture_width * total_scale + m_info.symbol_interval * total_scale;
+        offset_x += (rect.width() * m_info.texture_width * total_scale) + (m_info.symbol_interval * total_scale);
     }
 
     return target_texture;

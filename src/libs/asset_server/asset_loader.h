@@ -3,6 +3,7 @@
 #include <expected>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 namespace storm::asset_loader
 {

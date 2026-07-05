@@ -3,7 +3,7 @@
 #include <libs/renderer_next/hlslpp.h>
 #include <libs/renderer_next/i_drawable.h>
 #include <libs/renderer_next/types.h>
-#include <shaders/ui/ubo_types.h>
+#include <shaders/ubo_types.h>
 
 namespace storm
 {

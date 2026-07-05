@@ -3,34 +3,17 @@
 #ifdef __cplusplus
 #include <vector>
 
-#include "../hlslpp.h"
-#include "../info.h"
-#include "../vertex.h"
+#include "../cpp/hlslpp.h"
+#include "../cpp/vertex.h"
+
 namespace storm::shaders::texture_sequence
 {
-
-struct StageInfo {
-    constexpr static auto VERTEX = Info {
-        .num_samplers         = 0,
-        .num_storage_textures = 0,
-        .num_storage_buffers  = 0,
-        .num_uniform_buffers  = 1,
-    };
-
-    constexpr static auto FRAGMENT = Info {
-        .num_samplers         = 1,
-        .num_storage_textures = 0,
-        .num_storage_buffers  = 0,
-        .num_uniform_buffers  = 1,
-    };
-};
-
 #endif
 
 struct VertexInput {
 #ifndef __cplusplus
-    float4 position: TEXCOORD0;
-    uint   index: SV_VertexID;
+    float4 position : TEXCOORD0;
+    uint   index : SV_VertexID;
 #else
     float4 position;
 
@@ -50,14 +33,12 @@ struct VertexInput {
 #endif
 };
 
-#ifndef __cplusplus
-struct VertexOutput {
-    float2 tex_coord: TEXCOORD0;
-    float2 tex_coord_next: TEXCOORD1;
-    float4 position: SV_Position;
-};
-#endif
-
 #ifdef __cplusplus
 }  // namespace storm::shaders::texture_sequence
+#else
+struct VertexOutput {
+    float2 tex_coord : TEXCOORD0;
+    float2 tex_coord_next : TEXCOORD1;
+    float4 position : SV_Position;
+};
 #endif

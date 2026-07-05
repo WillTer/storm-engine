@@ -47,11 +47,12 @@ auto const                 BACKEND_SHADER_EXT = std::unordered_map<std::string, 
 struct RendererService::Impl {
     Impl(std::shared_ptr<AssetServer> const& asset_server, std::shared_ptr<IConfigLoader> const& config_loader)
         : m_asset_server(asset_server)
+        , m_config_loader(config_loader)
     {
         assert(m_asset_server);
-        assert(config_loader);
+        assert(m_config_loader);
 
-        auto const device_info = main_config::device_info(*config_loader);
+        auto const device_info = main_config::device_info(*m_config_loader);
 
         auto backend = device_info.backend;
         if (!BACKEND_SHADER_EXT.contains(backend)) {
@@ -178,10 +179,27 @@ struct RendererService::Impl {
         };
     }
 
-    [[nodiscard]] auto create_pipeline(entt::hashed_string const& name) -> std::shared_ptr<GraphicsPipeline>
+    [[nodiscard]] auto create_pipeline(
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        std::string const&                             vertex_shader,
+        std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>
     {
+        std::string pipeline_name = vertex_shader + "+" + fragment_shader;
+        auto const  name          = entt::hashed_string(pipeline_name.c_str());
+
         if (!m_cache.contains<GraphicsPipeline>(name)) {
-            m_cache.add(name, pipeline::create_by_name(m_device, m_window, m_asset_server, name));
+            m_cache.add(
+                name,
+                pipeline::create(
+                    m_device,
+                    m_window,
+                    m_asset_server,
+                    m_config_loader,
+                    vertex_attributes,
+                    vertex_descriptions,
+                    vertex_shader,
+                    fragment_shader));
         }
 
         return m_cache.get<GraphicsPipeline>(name);
@@ -190,7 +208,8 @@ struct RendererService::Impl {
 private:
     SDL_GPUViewport m_viewport = {};
 
-    std::shared_ptr<AssetServer> m_asset_server;
+    std::shared_ptr<AssetServer>   m_asset_server;
+    std::shared_ptr<IConfigLoader> m_config_loader;
 
     std::shared_ptr<SDL_Window>    m_window = nullptr;
     std::shared_ptr<SDL_GPUDevice> m_device = nullptr;
@@ -220,9 +239,13 @@ void RendererService::unbind_window(std::shared_ptr<SDL_Window> const& raw_windo
     m_impl->unbind_window(raw_window);
 }
 
-auto RendererService::create_pipeline(entt::hashed_string const& name) -> std::shared_ptr<GraphicsPipeline>
+auto RendererService::create_pipeline(
+    std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+    std::vector<shaders::VertexDescription> const& vertex_descriptions,
+    std::string const&                             vertex_shader,
+    std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>
 {
-    return m_impl->create_pipeline(name);
+    return m_impl->create_pipeline(vertex_attributes, vertex_descriptions, vertex_shader, fragment_shader);
 }
 
 [[nodiscard]] auto RendererService::create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)

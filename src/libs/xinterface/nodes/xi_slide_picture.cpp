@@ -1,7 +1,6 @@
 #include "xi_slide_picture.h"
 
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
-#include <libs/renderer_next/pipeline_names.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
 namespace
@@ -268,5 +267,5 @@ void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
     m_image->set_rect(m_rect);
     m_image->set_screen_rect(m_screen_rect);
     m_image->set_diffuse_color(storm::Color::from_hex(m_color));
-    m_image->set_pipeline(storm::IMAGE_2D_BRIGHT_PIPELINE);  // TODO: set in ini instead of technique name
+    m_image->set_pipeline("ui/tex_ubo_diffuse_rgbx2");  // TODO: technique
 }

@@ -12,8 +12,6 @@
 #include "impl_sdl/gpu_vertex_buffer.h"
 #include "impl_sdl/renderer_sdl.h"
 
-#include "pipeline_names.h"
-
 using namespace storm;
 using namespace hlslpp;
 
@@ -64,7 +62,9 @@ ProgressImageScene::ProgressImageScene(
         auto copy_pass      = command_buffer->start_copy_pass();
 
         m_progress = renderer->create_texture(PROGRESS_TEX);
-        if (m_progress_info.frame) { m_frame = renderer->create_texture(BORDER_TEX); }
+        if (m_progress_info.frame) {
+            m_frame = renderer->create_texture(BORDER_TEX);
+        }
 
         m_vertex_buffer_back     = renderer->create_vertex_buffer(SQUARE_VERTICES);
         m_vertex_buffer_progress = renderer->create_vertex_buffer(SQUARE_VERTICES);
@@ -73,7 +73,7 @@ ProgressImageScene::ProgressImageScene(
         renderer->upload_pending_data(*copy_pass);
     }
 
-    m_pipeline = renderer->create_pipeline(COMMON_UI_PIPELINE);
+    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/common_ui", "ui/tex_diffuse");
 
     auto const viewport = renderer->get_viewport();
     auto const proj_mat =
@@ -166,7 +166,9 @@ void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
     copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, progress_tex_buffer, sizeof(ImageVertex));
 
     ++m_current_frame;
-    if (m_current_frame >= x_count * y_count) { m_current_frame = 0; }
+    if (m_current_frame >= x_count * y_count) {
+        m_current_frame = 0;
+    }
 }
 
 void ProgressImageScene::update_picture_matrices()
