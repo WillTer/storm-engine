@@ -82,12 +82,13 @@ GPUTexture::GPUTexture(
     if (!m_sampler) {
         m_sampler = std::make_shared<GPUSampler>(
             device,
-            GPUSampler::Info {
-                .min_filter     = GPUSampler::Filter::Linear,
-                .mag_filter     = GPUSampler::Filter::Linear,
-                .mipmap_filter  = GPUSampler::Filter::Linear,
-                .address_mode   = GPUSampler::AddressMode::Repeat,
-                .max_anisotropy = std::nullopt,
+            SamplerInfo {
+                .min_filter     = technique::Filter::Linear,
+                .mag_filter     = technique::Filter::Linear,
+                .mipmap_mode    = technique::Filter::Linear,
+                .address_mode_u = technique::AddressMode::Repeat,
+                .address_mode_v = technique::AddressMode::Repeat,
+                .address_mode_w = technique::AddressMode::Repeat,
             });
     }
 

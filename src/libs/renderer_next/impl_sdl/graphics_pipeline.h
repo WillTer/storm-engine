@@ -1,8 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
+#include <libs/config/technique.h>
 #include <shaders/cpp/vertex.h>
 
 #include "sdl_fwd.h"
@@ -27,7 +29,7 @@ public:
         IniFile const&                                 vertex_shader_meta,
         ShaderAsset const&                             fragment_shader_asset,
         IniFile const&                                 fragment_shader_meta,
-        PrimitiveType                                  primitive_type);
+        std::optional<PipelineInfo> const&             info);
 
     ~GraphicsPipeline();
 

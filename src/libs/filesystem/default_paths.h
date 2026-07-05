@@ -22,4 +22,6 @@ static inline auto const SHADERS_DIR_DEFAULT    = RESOURCE_DIR_DEFAULT / "shader
 
 static inline auto const MAIN_CONFIG_PATH = std::filesystem::path() / "engine.ini";
 
+static inline auto const TECHNIQUES_FILE = "techniques.ini";
+
 }  // namespace storm::fs

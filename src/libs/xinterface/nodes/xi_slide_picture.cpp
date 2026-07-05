@@ -38,7 +38,7 @@ CXI_SLIDEPICTURE::CXI_SLIDEPICTURE() : minRotate(0), deltaRotate(0), curRotate(0
     m_nNodeType      = NODETYPE_SLIDEPICTURE;
     pSlideSpeedList  = nullptr;
     nSlideListSize   = 0;
-    strTechniqueName = nullptr;
+    m_technique_name = "iVideo";
 }
 
 CXI_SLIDEPICTURE::~CXI_SLIDEPICTURE()
@@ -98,13 +98,6 @@ void CXI_SLIDEPICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelec
 {
     if (m_bUse) {
         m_image->draw(render_pass);
-        // m_rs->TextureSet(0, m_idTex);
-        // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-        // m_rs->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-        // if (strTechniqueName == nullptr)
-        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), "iVideo");
-        // else
-        //     m_rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_ONETEX_FVF, 2, m_v, sizeof(XI_ONETEX_VERTEX), strTechniqueName);
     }
 }
 
@@ -125,16 +118,8 @@ void CXI_SLIDEPICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, 
     char     param[255];
     FXYPOINT fPos;
 
-    STORM_DELETE(strTechniqueName);
     if (ReadIniString(ini1, name1, ini2, name2, "techniqueName", param, sizeof(param), "")) {
-        auto const len = strlen(param) + 1;
-        if (strlen(param) > 1) {
-            strTechniqueName = new char[len];
-            if (strTechniqueName == nullptr) {
-                throw std::runtime_error("allocate memory error");
-            }
-            memcpy(strTechniqueName, param, len);
-        }
+        m_technique_name = std::string(param);
     }
 
     m_texRect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.f, 0.f, 1.f, 1.f));
@@ -204,7 +189,6 @@ void CXI_SLIDEPICTURE::ReleaseAll()
 {
     m_image.reset();
     STORM_DELETE(pSlideSpeedList);
-    STORM_DELETE(strTechniqueName);
     nSlideListSize = 0;
 }
 
@@ -247,25 +231,9 @@ void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
         m_image.reset();
     }
 
-    // FIXME: hardcode
-    if (strTechniqueName != nullptr && strcmp(strTechniqueName, "iRotate") == 0) {
-        auto const& renderer = core->get<storm::RendererService>();
-
-        using Filter = storm::GPUSampler::Filter;
-        m_sampler    = renderer->create_texture_sampler(
-            storm::GPUSampler::Info {
-                .min_filter     = Filter::Linear,
-                .mag_filter     = Filter::Linear,
-                .mipmap_filter  = Filter::Linear,
-                .address_mode   = storm::GPUSampler::AddressMode::Clamp,
-                .max_anisotropy = std::nullopt,
-            });
-    }
-
-    m_image = std::make_unique<storm::Image2D>(sNewTexName, m_sampler);
+    m_image = std::make_unique<storm::Image2D>(sNewTexName, m_technique_name);
     m_image->set_uv(m_texRect);
     m_image->set_rect(m_rect);
     m_image->set_screen_rect(m_screen_rect);
     m_image->set_diffuse_color(storm::Color::from_hex(m_color));
-    m_image->set_pipeline("ui/tex_ubo_diffuse_rgbx2");  // TODO: technique
 }

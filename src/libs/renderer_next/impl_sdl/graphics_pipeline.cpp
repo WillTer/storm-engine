@@ -74,6 +74,81 @@ std::vector<SDL_GPUVertexBufferDescription> convert_descriptions(std::vector<sha
     return result;
 }
 
+SDL_GPUColorTargetBlendState get_blend_state_from_info(PipelineInfo const& info)
+{
+    auto const convert_blend_factor = [](technique::BlendFactor factor) {
+        switch (factor) {
+        case technique::BlendFactor::One: return SDL_GPU_BLENDFACTOR_ONE;
+        case technique::BlendFactor::Zero: return SDL_GPU_BLENDFACTOR_ZERO;
+        case technique::BlendFactor::SrcColor: return SDL_GPU_BLENDFACTOR_SRC_COLOR;
+        case technique::BlendFactor::OneMinusSrcColor: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
+        case technique::BlendFactor::DstColor: return SDL_GPU_BLENDFACTOR_DST_COLOR;
+        case technique::BlendFactor::OneMinusDstColor: return SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR;
+        case technique::BlendFactor::SrcAlpha: return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+        case technique::BlendFactor::OneMinusSrcAlpha: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+        case technique::BlendFactor::DstAlpha: return SDL_GPU_BLENDFACTOR_DST_ALPHA;
+        case technique::BlendFactor::OneMinusDstAlpha: return SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA;
+        case technique::BlendFactor::Constant: return SDL_GPU_BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR;
+        case technique::BlendFactor::OneMinusConstantColor: return SDL_GPU_BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR;
+        case technique::BlendFactor::SrcAlphaSaturate: return SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE;
+        }
+        return SDL_GPU_BLENDFACTOR_ONE;
+    };
+
+    auto const convert_blend_op = [](technique::BlendOp op) {
+        switch (op) {
+        case technique::BlendOp::Add: return SDL_GPU_BLENDOP_ADD;
+        case technique::BlendOp::Subtract: return SDL_GPU_BLENDOP_SUBTRACT;
+        case technique::BlendOp::ReverseSubtract: return SDL_GPU_BLENDOP_REVERSE_SUBTRACT;
+        case technique::BlendOp::Min: return SDL_GPU_BLENDOP_MIN;
+        case technique::BlendOp::Max: return SDL_GPU_BLENDOP_MAX;
+        }
+        return SDL_GPU_BLENDOP_ADD;
+    };
+
+    SDL_GPUColorTargetBlendState blend_state = {};
+    blend_state.src_color_blendfactor        = convert_blend_factor(info.src_color);
+    blend_state.dst_color_blendfactor        = convert_blend_factor(info.dst_color);
+    blend_state.color_blend_op               = convert_blend_op(info.color_blend_op);
+    blend_state.src_alpha_blendfactor        = convert_blend_factor(info.src_alpha);
+    blend_state.dst_alpha_blendfactor        = convert_blend_factor(info.dst_alpha);
+    blend_state.alpha_blend_op               = convert_blend_op(info.alpha_blend_op);
+    blend_state.enable_blend                 = true;
+
+    return blend_state;
+}
+
+SDL_GPUColorTargetBlendState default_blend_state()
+{
+    SDL_GPUColorTargetBlendState blend_state = {};
+    blend_state.src_color_blendfactor        = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+    blend_state.dst_color_blendfactor        = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    blend_state.color_blend_op               = SDL_GPU_BLENDOP_ADD;
+    blend_state.src_alpha_blendfactor        = SDL_GPU_BLENDFACTOR_ONE;
+    blend_state.dst_alpha_blendfactor        = SDL_GPU_BLENDFACTOR_ONE;
+    blend_state.alpha_blend_op               = SDL_GPU_BLENDOP_ADD;
+    blend_state.enable_blend                 = true;
+    return blend_state;
+}
+
+SDL_GPUFillMode get_fill_mode_from_info(PipelineInfo const& info)
+{
+    switch (info.fill_mode) {
+    case technique::FillMode::Fill: return SDL_GPU_FILLMODE_FILL;
+    case technique::FillMode::Line: return SDL_GPU_FILLMODE_LINE;
+    }
+    return SDL_GPU_FILLMODE_FILL;
+}
+
+SDL_GPUPrimitiveType get_primitive_type_from_info(PipelineInfo const& info)
+{
+    switch (info.primitive_type) {
+    case technique::PrimitiveType::Triangles: return SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+    case technique::PrimitiveType::Lines: return SDL_GPU_PRIMITIVETYPE_LINELIST;
+    }
+    return SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+}
+
 }  // namespace
 
 GraphicsPipeline::GraphicsPipeline(
@@ -85,7 +160,7 @@ GraphicsPipeline::GraphicsPipeline(
     IniFile const&                                 vertex_shader_meta,
     ShaderAsset const&                             fragment_shader_asset,
     IniFile const&                                 fragment_shader_meta,
-    PrimitiveType                                  primitive_type)
+    std::optional<PipelineInfo> const&             info)
 {
     auto const vertex_shader = compile_shader(device, vertex_shader_asset, vertex_shader_meta, SDL_GPU_SHADERSTAGE_VERTEX);
     if (!vertex_shader) {
@@ -97,14 +172,7 @@ GraphicsPipeline::GraphicsPipeline(
         throw std::runtime_error(std::format("Failed to compile fragment (pixel) shader: {}", SDL_GetError()));
     }
 
-    auto blend_state                  = SDL_GPUColorTargetBlendState {};
-    blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-    blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-    blend_state.color_blend_op        = SDL_GPU_BLENDOP_ADD;
-    blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-    blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-    blend_state.alpha_blend_op        = SDL_GPU_BLENDOP_ADD;
-    blend_state.enable_blend          = true;
+    auto const blend_state = info.has_value() ? get_blend_state_from_info(info.value()) : default_blend_state();
 
     std::array const color_descriptions = {
         SDL_GPUColorTargetDescription {
@@ -127,16 +195,17 @@ GraphicsPipeline::GraphicsPipeline(
         .num_vertex_attributes      = static_cast<Uint32>(attributes.size()),
     };
 
-    auto pipeline_create_info                       = SDL_GPUGraphicsPipelineCreateInfo {};
-    pipeline_create_info.target_info                = target_info;
-    pipeline_create_info.vertex_input_state         = vertex_input_state;
-    pipeline_create_info.vertex_shader              = vertex_shader.get();
-    pipeline_create_info.fragment_shader            = fragment_shader.get();
-    pipeline_create_info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-
-    switch (primitive_type) {
-    case PrimitiveType::TriangleList: pipeline_create_info.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST; break;
-    case PrimitiveType::LineList: pipeline_create_info.primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST; break;
+    auto pipeline_create_info               = SDL_GPUGraphicsPipelineCreateInfo {};
+    pipeline_create_info.target_info        = target_info;
+    pipeline_create_info.vertex_input_state = vertex_input_state;
+    pipeline_create_info.vertex_shader      = vertex_shader.get();
+    pipeline_create_info.fragment_shader    = fragment_shader.get();
+    if (info.has_value()) {
+        pipeline_create_info.rasterizer_state.fill_mode = get_fill_mode_from_info(info.value());
+        pipeline_create_info.primitive_type             = get_primitive_type_from_info(info.value());
+    } else {
+        pipeline_create_info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+        pipeline_create_info.primitive_type             = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
     }
 
     m_pipeline = std::shared_ptr<SDL_GPUGraphicsPipeline>(

@@ -47,6 +47,19 @@ public:
         std::string const&                             vertex_shader,
         std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>;
 
+    template <typename VertexInput>
+    [[nodiscard]] auto create_pipeline_from_technique(std::string const& vertex_shader, std::string const& technique)
+        -> std::shared_ptr<GraphicsPipeline>
+    {
+        return create_pipeline_from_technique(VertexInput::attributes(), VertexInput::descriptions(), vertex_shader, technique);
+    }
+
+    [[nodiscard]] auto create_pipeline_from_technique(
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        std::string const&                             vertex_shader,
+        std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>;
+
     template <typename T>
         requires has_shader_layout<T>
     [[nodiscard]] auto create_vertex_buffer(std::vector<T> const& buffer) -> std::shared_ptr<GPUVertexBuffer>
@@ -56,7 +69,8 @@ public:
 
     [[nodiscard]] auto create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler = nullptr)
         -> std::shared_ptr<GPUTexture>;
-    [[nodiscard]] auto create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>;
+    [[nodiscard]] auto create_texture_sampler(SamplerInfo const& info) -> std::shared_ptr<GPUSampler>;
+    [[nodiscard]] auto create_texture_sampler_from_technique(std::string const& technique) -> std::shared_ptr<GPUSampler>;
     [[nodiscard]] auto create_texture_target(uint32_t width = 0, uint32_t height = 0) -> std::unique_ptr<GPUTexture>;
 
     [[nodiscard]] auto create_index_buffer(std::vector<uint32_t> const& indices) -> std::shared_ptr<GPUIndexBuffer>;

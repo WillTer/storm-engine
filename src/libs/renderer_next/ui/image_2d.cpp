@@ -24,17 +24,18 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-Image2D::Image2D(std::filesystem::path const& texture, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)
+Image2D::Image2D(std::filesystem::path const& texture, std::optional<std::string> const& technique /*= std::nullopt*/)
 {
     auto const& renderer = core->get<RendererService>();
-    m_texture            = renderer->create_texture(texture.string(), sampler);
+    m_texture            = renderer->create_texture(
+        texture.string(), technique.has_value() ? renderer->create_texture_sampler_from_technique(technique.value()) : nullptr);
 
-    initialize();
+    initialize(technique);
 }
 
 Image2D::Image2D(std::shared_ptr<GPUTexture> const& external_texture) : m_texture(external_texture)
 {
-    initialize();
+    initialize(std::nullopt);
 }
 
 Image2D::~Image2D() = default;
@@ -48,19 +49,19 @@ void Image2D::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
         if (m_texture) {
             auto const [width, height] = m_texture->get_dimensions();
 
-            float min_x = std::numeric_limits<float>::max();
-            float max_x = std::numeric_limits<float>::min();
-            float min_y = std::numeric_limits<float>::max();
-            float max_y = std::numeric_limits<float>::min();
+            float min_x = m_texture_uv[0].x;
+            float max_x = m_texture_uv[0].x;
+            float min_y = m_texture_uv[0].y;
+            float max_y = m_texture_uv[0].y;
 
-            for (size_t i = 0; i < m_texture_uv.size(); ++i) {
+            for (size_t i = 1; i < m_texture_uv.size(); ++i) {
                 min_x = std::min<float>(m_texture_uv[i].x, min_x);
                 max_x = std::max<float>(m_texture_uv[i].x, max_x);
                 min_y = std::min<float>(m_texture_uv[i].y, min_y);
                 max_y = std::max<float>(m_texture_uv[i].y, max_y);
             }
 
-            m_rect   = {0.0F, 0.0F, width * (max_x - min_x), height * (max_y - min_y)};
+            m_rect   = {width * min_x, height * min_y, width * max_x, height * max_y};
             m_width  = static_cast<uint32_t>(m_rect.width());
             m_height = static_cast<uint32_t>(m_rect.height());
         }
@@ -92,11 +93,15 @@ void Image2D::set_pipeline(std::string const& fragment_shader)
     m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", fragment_shader);
 }
 
-void Image2D::initialize()
+void Image2D::initialize(std::optional<std::string> const& technique)
 {
     auto const& renderer = core->get<RendererService>();
 
-    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
+    if (technique.has_value()) {
+        m_pipeline = renderer->create_pipeline_from_technique<ImageVertex>("ui/image_2d", technique.value());
+    } else {
+        m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
+    }
 
     auto const vertex_data = std::vector<ImageVertex> {
         ImageVertex {{0.0F, 0.0F}, {0.0F, 0.0F}},

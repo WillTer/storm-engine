@@ -26,8 +26,17 @@ auto create(
     std::vector<shaders::VertexAttribute> const&   vertex_attributes,
     std::vector<shaders::VertexDescription> const& vertex_descriptions,
     std::string const&                             vertex_shader,
-    std::string const&                             fragment_shader,
-    GraphicsPipeline::PrimitiveType primitive_type = GraphicsPipeline::PrimitiveType::TriangleList) -> std::shared_ptr<GraphicsPipeline>;
+    std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>;
+
+auto create_from_technique(
+    std::shared_ptr<SDL_GPUDevice> const&          device,
+    std::shared_ptr<SDL_Window> const&             window,
+    std::shared_ptr<AssetServer> const&            asset_server,
+    std::shared_ptr<IConfigLoader> const&          config_loader,
+    std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+    std::vector<shaders::VertexDescription> const& vertex_descriptions,
+    std::string const&                             vertex_shader,
+    std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>;
 
 template <typename VertexInput>
 auto create(
@@ -36,8 +45,7 @@ auto create(
     std::shared_ptr<AssetServer> const&   asset_server,
     std::shared_ptr<IConfigLoader> const& config_loader,
     std::string const&                    vertex_shader,
-    std::string const&                    fragment_shader,
-    GraphicsPipeline::PrimitiveType primitive_type = GraphicsPipeline::PrimitiveType::TriangleList) -> std::shared_ptr<GraphicsPipeline>
+    std::string const&                    fragment_shader) -> std::shared_ptr<GraphicsPipeline>
 {
     return create(
         device,
@@ -47,8 +55,20 @@ auto create(
         VertexInput::attributes(),
         VertexInput::descriptions(),
         vertex_shader,
-        fragment_shader,
-        primitive_type);
+        fragment_shader);
+}
+
+template <typename VertexInput>
+auto create_from_technique(
+    std::shared_ptr<SDL_GPUDevice> const& device,
+    std::shared_ptr<SDL_Window> const&    window,
+    std::shared_ptr<AssetServer> const&   asset_server,
+    std::shared_ptr<IConfigLoader> const& config_loader,
+    std::string const&                    vertex_shader,
+    std::string const&                    technique) -> std::shared_ptr<GraphicsPipeline>
+{
+    return create_from_technique(
+        device, window, asset_server, config_loader, VertexInput::attributes(), VertexInput::descriptions(), vertex_shader, technique);
 }
 
 }  // namespace storm::pipeline

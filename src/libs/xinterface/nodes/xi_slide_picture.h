@@ -52,7 +52,7 @@ protected:
 
     int32_t nSlideListSize;
 
-    char* strTechniqueName;
+    std::optional<std::string> m_technique_name;
 
     uint32_t                           m_color;
     std::unique_ptr<storm::Image2D>    m_image;

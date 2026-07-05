@@ -25,7 +25,7 @@ class GPURenderPass;
 class Image2D final: public Image2DBase
 {
 public:
-    Image2D(std::filesystem::path const& texture, std::shared_ptr<GPUSampler> const& sampler = nullptr);
+    Image2D(std::filesystem::path const& texture, std::optional<std::string> const& technique = std::nullopt);
     Image2D(std::shared_ptr<GPUTexture> const& external_texture);
 
     ~Image2D() override;
@@ -39,7 +39,7 @@ public:
     void set_uv_full(std::array<float2, 4> const& texture_uv);
 
 private:
-    void initialize();
+    void initialize(std::optional<std::string> const& technique);
 
     shaders::UBOFragment m_fragment_ubo;
 

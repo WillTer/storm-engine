@@ -115,10 +115,22 @@ struct RendererService::Impl {
         return m_cache.get<GPUTexture>(name);
     }
 
-    [[nodiscard]] auto create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>
+    [[nodiscard]] auto create_texture_sampler(SamplerInfo const& info) -> std::shared_ptr<GPUSampler>
     {
         // TODO: add to cache
         return std::make_shared<GPUSampler>(m_device, info);
+    }
+
+    [[nodiscard]] auto create_texture_sampler_from_technique(std::string const& technique) -> std::shared_ptr<GPUSampler>
+    {
+        std::string const sampler_name = std::format("sampler;technique:{}", technique);
+        auto const        name         = entt::hashed_string(sampler_name.c_str());
+
+        if (!m_cache.contains<GPUSampler>(name)) {
+            m_cache.add(name, std::make_shared<GPUSampler>(m_device, m_asset_server, m_config_loader, technique));
+        }
+
+        return m_cache.get<GPUSampler>(name);
     }
 
     [[nodiscard]] auto create_texture_target(uint32_t const width, uint32_t const height) -> std::unique_ptr<GPUTexture>
@@ -185,8 +197,8 @@ struct RendererService::Impl {
         std::string const&                             vertex_shader,
         std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>
     {
-        std::string pipeline_name = vertex_shader + "+" + fragment_shader;
-        auto const  name          = entt::hashed_string(pipeline_name.c_str());
+        std::string const pipeline_name = std::format("pipeline;vs:{}+fs:{}", vertex_shader, fragment_shader);
+        auto const        name          = entt::hashed_string(pipeline_name.c_str());
 
         if (!m_cache.contains<GraphicsPipeline>(name)) {
             m_cache.add(
@@ -200,6 +212,25 @@ struct RendererService::Impl {
                     vertex_descriptions,
                     vertex_shader,
                     fragment_shader));
+        }
+
+        return m_cache.get<GraphicsPipeline>(name);
+    }
+
+    [[nodiscard]] auto create_pipeline_from_technique(
+        std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+        std::vector<shaders::VertexDescription> const& vertex_descriptions,
+        std::string const&                             vertex_shader,
+        std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>
+    {
+        std::string const pipeline_name = std::format("pipeline;vs:{}+techique:{}", vertex_shader, technique);
+        auto const        name          = entt::hashed_string(pipeline_name.c_str());
+
+        if (!m_cache.contains<GraphicsPipeline>(name)) {
+            m_cache.add(
+                name,
+                pipeline::create_from_technique(
+                    m_device, m_window, m_asset_server, m_config_loader, vertex_attributes, vertex_descriptions, vertex_shader, technique));
         }
 
         return m_cache.get<GraphicsPipeline>(name);
@@ -248,15 +279,29 @@ auto RendererService::create_pipeline(
     return m_impl->create_pipeline(vertex_attributes, vertex_descriptions, vertex_shader, fragment_shader);
 }
 
+[[nodiscard]] auto RendererService::create_pipeline_from_technique(
+    std::vector<shaders::VertexAttribute> const&   vertex_attributes,
+    std::vector<shaders::VertexDescription> const& vertex_descriptions,
+    std::string const&                             vertex_shader,
+    std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>
+{
+    return m_impl->create_pipeline_from_technique(vertex_attributes, vertex_descriptions, vertex_shader, technique);
+}
+
 [[nodiscard]] auto RendererService::create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)
     -> std::shared_ptr<GPUTexture>
 {
     return m_impl->create_texture(file, sampler);
 }
 
-[[nodiscard]] auto RendererService::create_texture_sampler(GPUSampler::Info const& info) -> std::shared_ptr<GPUSampler>
+[[nodiscard]] auto RendererService::create_texture_sampler(SamplerInfo const& info) -> std::shared_ptr<GPUSampler>
 {
     return m_impl->create_texture_sampler(info);
+}
+
+[[nodiscard]] auto RendererService::create_texture_sampler_from_technique(std::string const& technique) -> std::shared_ptr<GPUSampler>
+{
+    return m_impl->create_texture_sampler_from_technique(technique);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)

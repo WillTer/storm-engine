@@ -10,6 +10,13 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E make_directory "${SHADERS_OUTPUT_DIR}"
 )
 
+set(TECHNIQUES_OUTPUT_PATH ${SHADERS_OUTPUT_DIR}/techniques.ini)
+add_custom_command(
+    OUTPUT ${TECHNIQUES_OUTPUT_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/techniques.ini ${TECHNIQUES_OUTPUT_PATH}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/techniques.ini
+)
+
 set(SHADER_META_FILES)
 set(SHADER_BINARY_FILES)
 
@@ -77,5 +84,5 @@ storm_headers(
 )
 
 add_custom_target(shaders ALL
-    DEPENDS vs_shaders fs_shaders shader_headers
+    DEPENDS ${TECHNIQUES_OUTPUT_PATH} vs_shaders fs_shaders shader_headers
 )
