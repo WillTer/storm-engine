@@ -23,9 +23,9 @@ void set_texture_coordinate(storm::Image2D& image, FXYRECT tr, float angle)
         auto const hsa    = height / 2 * sa;
         image.set_uv_full({
             hlslpp::float2 {x + (-wca + hsa), y + (-wsa - hca)},
-            hlslpp::float2 {x + (-wca - hsa), y + (-wsa + hca)},
             hlslpp::float2 {x + (wca + hsa), y + (wsa - hca)},
             hlslpp::float2 {x + (wca - hsa), y + (wsa + hca)},
+            hlslpp::float2 {x + (-wca - hsa), y + (-wsa + hca)},
         });
     }
 }
@@ -60,13 +60,13 @@ void CXI_SLIDEPICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delt
             nCurSlide = 0;
         }
         nLifeTime = pSlideSpeedList[nCurSlide].time;
-        curRotate = minRotate + (rand() * deltaRotate / RAND_MAX);
+        curRotate = minRotate + ((static_cast<float>(rand()) / RAND_MAX) * deltaRotate);
     }
 
-    auto const xadd = pSlideSpeedList[nCurSlide].xspeed * (delta_time / 1000.f);
-    auto const yadd = pSlideSpeedList[nCurSlide].yspeed * (delta_time / 1000.f);
+    auto const xadd = pSlideSpeedList[nCurSlide].xspeed * (delta_time / 1000.F);
+    auto const yadd = pSlideSpeedList[nCurSlide].yspeed * (delta_time / 1000.F);
 
-    curAngle += curRotate * delta_time / 1000.F;
+    curAngle += curRotate * (delta_time / 1000.F);
 
     m_texRect.left += xadd;
     m_texRect.right += xadd;
