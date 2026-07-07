@@ -36,7 +36,6 @@ CXI_PICTURE::~CXI_PICTURE()
 void CXI_PICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse && m_picture) {
-        m_picture->set_rect(m_rect);
         m_picture->set_screen_rect(m_screen_rect);
         m_picture->draw(render_pass);
     }
@@ -150,6 +149,7 @@ bool CXI_PICTURE::IsClick(int buttonID, int32_t xPos, int32_t yPos)
 void CXI_PICTURE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
+    m_picture->set_rect(m_rect);
 }
 
 void CXI_PICTURE::SaveParametersToIni()

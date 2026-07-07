@@ -23,13 +23,9 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
 
 void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
-    m_back->set_rect(m_rect);
-    m_back->set_screen_rect(m_screen_rect);
     m_back->update(copy_pass, delta_time);
 
     if (m_border) {
-        m_border->set_rect(m_rect);
-        m_border->set_screen_rect(m_screen_rect);
         m_border->update(copy_pass, delta_time);
     }
 }
@@ -152,6 +148,7 @@ void CXI_RECTANGLE::ChangePosition(XYRECT& rNewPos)
 {
     m_rect = rNewPos;
     m_back->set_rect(m_rect);
+    m_border->set_rect(m_rect);
 }
 
 void CXI_RECTANGLE::SaveParametersToIni()

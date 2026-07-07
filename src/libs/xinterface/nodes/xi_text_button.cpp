@@ -63,6 +63,7 @@ void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_
             static_cast<float>(m_rect.bottom - m_rect.top),
             m_idString != -1 ? pStringService->GetString(m_idString) : m_sString));
         m_text->set_screen_rect(m_screen_rect);
+        m_text->set_rect(m_rect);
     }
 }
 
@@ -114,7 +115,7 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, bool is_selecte
         m_nPressedDelay--;
     }
 
-    ChangePosition(m_rect);
+    // ChangePosition(m_rect);
     if (m_nPressedDelay > 0) {
         m_back->set_rect(m_rect_pressed);
         m_button->set_rect(m_rect_pressed);
@@ -223,9 +224,8 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         button_texture = pPictureService->get_texture(m_sGroupName);
     }
 
-    m_back = std::make_unique<ui::Rectangle>(storm::Color::from_hex(m_dwBackColor));
+    m_back = std::make_unique<ui::Rectangle>(storm::Color::from_hex(m_dwBackColor), BACK_TECHNIQUE_NAME);
     m_back->set_screen_rect(m_screen_rect);
-    m_back->set_technique(BACK_TECHNIQUE_NAME);
 
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
@@ -325,6 +325,8 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     m_button_selected->set_screen_rect(m_screen_rect);
     m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+
+    ChangePosition(m_rect);
 }
 
 void CXI_TEXTBUTTON::ReleaseAll()
@@ -380,6 +382,18 @@ void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)
         .bottom = m_rect.bottom + m_fYDeltaPress,
     };
 
+    m_back->set_rect(m_rect);
+    m_button->set_rect(m_rect);
+    m_button_selected->set_rect(m_rect);
+
+    if (m_selection) {
+        m_selection->set_rect(m_rect);
+    }
+
+    if (m_text) {
+        m_text->set_rect(m_rect);
+    }
+
     if (m_shadow) {
         auto const shadow_h_offset = (m_rect.right - m_rect.left) * (m_fShadowScale - 1.F) * .5f;
         auto const shadow_v_offset = (m_rect.bottom - m_rect.top) * (m_fShadowScale - 1.F) * .5f;
@@ -397,6 +411,8 @@ void CXI_TEXTBUTTON::ChangePosition(XYRECT& rNewPos)
             .right  = m_shadow_rect.right + m_fXDeltaPress,
             .bottom = m_shadow_rect.bottom + m_fYDeltaPress,
         };
+
+        m_shadow->set_rect(m_shadow_rect);
     }
 }
 
