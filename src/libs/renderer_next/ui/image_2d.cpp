@@ -87,7 +87,7 @@ void Image2D::set_ubo_color(storm::Color const& color)
 void Image2D::create_default_pipeline(std::string const& fragment_shader /*= {}*/)
 {
     auto const& renderer = core->get<RendererService>();
-    m_pipeline = renderer->create_pipeline<Vertex>("ui/image_2d", fragment_shader.empty() ? "ui/tex_ubo_diffuse" : fragment_shader);
+    m_pipeline           = renderer->create_pipeline<Vertex>("ui/image_2d", fragment_shader.empty() ? "ui/picture" : fragment_shader);
 }
 
 void Image2D::set_technique(std::string const& technique, std::string const& vertex_shader /*= {}*/)

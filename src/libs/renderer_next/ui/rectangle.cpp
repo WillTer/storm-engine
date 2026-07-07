@@ -65,7 +65,7 @@ void Rectangle::set_vertices_color(storm::Color const& color)
 void Rectangle::create_default_pipeline(std::string const& fragment_shader /*= {}*/)
 {
     auto const& renderer = core->get<RendererService>();
-    m_pipeline = renderer->create_pipeline<Vertex>("ui/rectangle", fragment_shader.empty() ? "ui/per_vertex_diffuse" : fragment_shader);
+    m_pipeline           = renderer->create_pipeline<Vertex>("ui/rectangle", fragment_shader.empty() ? "ui/rectangle" : fragment_shader);
 }
 
 void Rectangle::set_technique(std::string const& technique, std::string const& vertex_shader /*= {}*/)

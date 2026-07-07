@@ -25,13 +25,13 @@ auto create(
     std::string const&                             vertex_shader,
     std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>
 {
-    auto const vertex_shader_asset   = asset_server->load_shader_file(vertex_shader);
-    auto const fragment_shader_asset = asset_server->load_shader_file(fragment_shader);
+    auto const vertex_shader_asset   = asset_server->load_shader_file(std::format("vs/{}", vertex_shader));
+    auto const fragment_shader_asset = asset_server->load_shader_file(std::format("fs/{}", fragment_shader));
 
     auto const& vertex_shader_meta =
-        config_loader->open_config_cached(asset_server->get_asset_dir<ShaderAsset>() / std::format("{}_meta.ini", vertex_shader), false);
-    auto const& fragment_shader_meta =
-        config_loader->open_config_cached(asset_server->get_asset_dir<ShaderAsset>() / std::format("{}_meta.ini", fragment_shader), false);
+        config_loader->open_config_cached(asset_server->get_asset_dir<ShaderAsset>() / std::format("vs/{}_meta.ini", vertex_shader), false);
+    auto const& fragment_shader_meta = config_loader->open_config_cached(
+        asset_server->get_asset_dir<ShaderAsset>() / std::format("fs/{}_meta.ini", fragment_shader), false);
 
     return std::make_shared<GraphicsPipeline>(
         device,
@@ -55,13 +55,13 @@ auto create(
     std::string const&                             vertex_shader,
     PipelineInfo const&                            info) -> std::shared_ptr<GraphicsPipeline>
 {
-    auto const vertex_shader_asset   = asset_server->load_shader_file(vertex_shader);
-    auto const fragment_shader_asset = asset_server->load_shader_file(info.fragment_shader);
+    auto const vertex_shader_asset   = asset_server->load_shader_file(std::format("vs/{}", vertex_shader));
+    auto const fragment_shader_asset = asset_server->load_shader_file(std::format("fs/{}", info.fragment_shader));
 
     auto const& vertex_shader_meta =
-        config_loader->open_config_cached(asset_server->get_asset_dir<ShaderAsset>() / std::format("{}_meta.ini", vertex_shader), false);
+        config_loader->open_config_cached(asset_server->get_asset_dir<ShaderAsset>() / std::format("vs/{}_meta.ini", vertex_shader), false);
     auto const& fragment_shader_meta = config_loader->open_config_cached(
-        asset_server->get_asset_dir<ShaderAsset>() / std::format("{}_meta.ini", info.fragment_shader), false);
+        asset_server->get_asset_dir<ShaderAsset>() / std::format("fs/{}_meta.ini", info.fragment_shader), false);
 
     return std::make_shared<GraphicsPipeline>(
         device,

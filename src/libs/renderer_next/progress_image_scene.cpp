@@ -73,7 +73,7 @@ ProgressImageScene::ProgressImageScene(
         renderer->upload_pending_data(*copy_pass);
     }
 
-    m_pipeline = renderer->create_pipeline<Vertex>("ui/image_2d", "ui/tex_ubo_diffuse");
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/image_2d", "ui/picture");
 
     auto const viewport = renderer->get_viewport();
     auto const proj_mat =

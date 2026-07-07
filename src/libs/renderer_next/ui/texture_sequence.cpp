@@ -41,7 +41,7 @@ TextureSequence::TextureSequence(std::string const& name)
     m_texture = renderer->create_texture(info.texture_file);
     m_target  = renderer->create_texture_target(info.width, info.height);
 
-    m_pipeline = renderer->create_pipeline<Vertex>("ui/texture_sequence", "ui/tex_sequence_ubo_diffuse");
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/texture_sequence", "ui/texture_sequence");
 
     m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
     m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);

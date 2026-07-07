@@ -41,7 +41,7 @@ Font::Font(std::string const& font_name)
     m_texture = renderer->create_texture(m_info.texture);
 
     if (m_info.technique.empty()) {
-        m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/tex_ubo_diffuse");
+        m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/picture");
     } else {
         auto const technique = renderer->get_technique_info(m_info.technique);
         m_pipeline           = renderer->create_pipeline<Vertex>("ui/font_normal", technique);
