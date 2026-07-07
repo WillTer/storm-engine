@@ -119,9 +119,9 @@ void CXI_BUTTON::update(storm::GPUCopyPass const& copy_pass, bool is_selected, u
     }
 
     if (m_bClickable && m_bSelected) {
-        m_picture->set_ubo_color(storm::Color::from_hex(face_color));
+        m_picture->set_ubo_color(face_color);
     } else {
-        m_picture->set_ubo_color(storm::Color::from_hex(m_argbDisableColor));
+        m_picture->set_ubo_color(m_argbDisableColor);
     }
 
     m_picture->update(copy_pass, delta_time);
@@ -192,7 +192,7 @@ void CXI_BUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char c
     assert(m_picture && m_shadow);
     m_picture->set_screen_rect(m_screen_rect);
     m_shadow->set_screen_rect(m_screen_rect);
-    m_shadow->set_ubo_color(storm::Color::from_hex(m_dwShadowColor));
+    m_shadow->set_ubo_color(m_dwShadowColor);
 
     // get offset button image in case pressed button
     tmpLPnt      = GetIniLongPoint(ini1, name1, ini2, name2, "pressPictureOffset", XYPOINT(0, 0));
@@ -345,7 +345,7 @@ uint32_t CXI_BUTTON::MessageProc(int32_t msgcode, MESSAGE& message)
             pPictureService->get_texture(m_sGroupName), pPictureService->get_texture_uv(m_sGroupName, param2), SHADOW_TECHNIQUE_NAME);
         m_picture->set_screen_rect(m_screen_rect);
         m_shadow->set_screen_rect(m_screen_rect);
-        m_shadow->set_ubo_color(storm::Color::from_hex(m_dwShadowColor));
+        m_shadow->set_ubo_color(m_dwShadowColor);
     } break;
     }
 

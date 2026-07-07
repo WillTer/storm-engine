@@ -84,6 +84,11 @@ void Image2D::set_ubo_color(storm::Color const& color)
     m_fragment_ubo.diffuse = color.to_float4();
 }
 
+void Image2D::set_ubo_color(uint32_t const& color)
+{
+    m_fragment_ubo.diffuse = Color::from_hex(color).to_float4();
+}
+
 void Image2D::create_default_pipeline(std::string const& fragment_shader /*= {}*/)
 {
     auto const& renderer = core->get<RendererService>();

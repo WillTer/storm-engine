@@ -51,7 +51,7 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
         m_video = std::make_unique<storm::renderer::ui::Image2D>(pPictureService->get_video_texture(param), m_rectTex, TECHNIQUE_NAME);
         m_video->set_rect(m_rect);
         m_video->set_screen_rect(m_screen_rect);
-        m_video->set_ubo_color(storm::Color::from_hex(m_dwColor));
+        m_video->set_ubo_color(m_dwColor);
     }
 }
 

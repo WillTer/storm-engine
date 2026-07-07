@@ -36,6 +36,17 @@ public:
         float                   height,
         std::string const&      text) -> std::shared_ptr<GPUTexture>;
 
+    auto print(
+        GPUCommandBuffer const& cmd_buffer,
+        uint32_t                fg,
+        uint32_t                bg,
+        Alignment               align,
+        bool                    draw_shadow,
+        float                   scale,
+        float                   width,
+        float                   height,
+        std::string const&      text) -> std::shared_ptr<GPUTexture>;
+
 private:
     FontInfo m_info;
 

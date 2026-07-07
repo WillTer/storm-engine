@@ -54,8 +54,8 @@ void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_
         auto const font = pStringService->get_font(m_font_name);
         m_text          = std::make_unique<ui::Image2D>(font->print(
             cmd_buffer,
-            storm::Color::from_hex(0xFFFFFFFF),
-            storm::Color::from_hex(0),
+            0xFFFFFFFF,  // fg - white
+            0,           // bg - black
             storm::Font::Alignment::Center,
             true,  // draw_shadow
             m_fFontScale,
@@ -145,20 +145,20 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, bool is_selecte
     }
 
     if (m_nPressedDelay > 0) {
-        m_button->set_ubo_color(storm::Color::from_hex(m_dwPressedFaceColor));
-        m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwPressedFaceColor));
+        m_button->set_ubo_color(m_dwPressedFaceColor);
+        m_button_selected->set_ubo_color(m_dwPressedFaceColor);
         if (m_text) {
-            m_text->set_ubo_color(storm::Color::from_hex(m_dwPressedFontColor));
+            m_text->set_ubo_color(m_dwPressedFontColor);
         }
     } else {
-        m_button->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
-        m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+        m_button->set_ubo_color(m_dwFaceColor);
+        m_button_selected->set_ubo_color(m_dwFaceColor);
 
         if (m_text) {
             if (m_bSelected) {
-                m_text->set_ubo_color(storm::Color::from_hex(m_dwFontColor));
+                m_text->set_ubo_color(m_dwFontColor);
             } else {
-                m_text->set_ubo_color(storm::Color::from_hex(m_dwUnselFontColor));
+                m_text->set_ubo_color(m_dwUnselFontColor);
             }
         }
     }
@@ -224,7 +224,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         button_texture = pPictureService->get_texture(m_sGroupName);
     }
 
-    m_back = std::make_unique<ui::Rectangle>(storm::Color::from_hex(m_dwBackColor), BACK_TECHNIQUE_NAME);
+    m_back = std::make_unique<ui::Rectangle>(m_dwBackColor, BACK_TECHNIQUE_NAME);
     m_back->set_screen_rect(m_screen_rect);
 
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
@@ -232,7 +232,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
         m_shadow = std::make_unique<ui::Image2D>(param, shadow_uv, TECHNIQUE_NAME);
         m_shadow->set_screen_rect(m_screen_rect);
-        m_shadow->set_ubo_color(storm::Color::from_hex(m_dwShadowColor));
+        m_shadow->set_ubo_color(m_dwShadowColor);
     }
 
     // get offset button image in case pressed button
@@ -272,7 +272,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) {
         m_selection = std::make_unique<ui::Image2D>(pPictureService->get_video_texture(param), storm::FRect {}, TECHNIQUE_NAME);
         m_selection->set_screen_rect(m_screen_rect);
-        m_selection->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+        m_selection->set_ubo_color(m_dwFaceColor);
     }
 
     // fill left side of button
@@ -313,7 +313,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     m_button = std::make_unique<ui::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect, TECHNIQUE_NAME);
     m_button->set_screen_rect(m_screen_rect);
-    m_button->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+    m_button->set_ubo_color(m_dwFaceColor);
 
     m_button_selected = std::make_unique<ui::Button>(
         button_texture,
@@ -324,7 +324,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         TECHNIQUE_NAME);
 
     m_button_selected->set_screen_rect(m_screen_rect);
-    m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+    m_button_selected->set_ubo_color(m_dwFaceColor);
 
     ChangePosition(m_rect);
 }

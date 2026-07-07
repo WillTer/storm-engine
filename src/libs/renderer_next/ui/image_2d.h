@@ -29,6 +29,7 @@ public:
     virtual void set_uv_rect(storm::FRect const& uv);
     virtual void set_uv(std::array<float2, 4> const& uv);
     virtual void set_ubo_color(storm::Color const& color);
+    virtual void set_ubo_color(uint32_t const& color);
 
     // Base
     void create_default_pipeline(std::string const& fragment_shader = {}) override;

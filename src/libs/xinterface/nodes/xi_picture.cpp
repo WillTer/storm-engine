@@ -106,8 +106,7 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
 
     assert(m_picture);
 
-    auto const picture_color =
-        storm::Color::from_hex(GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex()));
+    auto const picture_color = GetIniARGB(ini1, name1, ini2, name2, "color", storm::Color {255, 128, 128, 128}.to_hex());
     ChangeColor(picture_color);
 
     // Create rectangle
@@ -314,9 +313,9 @@ void CXI_PICTURE::ChangeUV(FXYRECT& frNewUV)
     assert(false);
 }
 
-void CXI_PICTURE::ChangeColor(uint32_t dwColor)
+void CXI_PICTURE::ChangeColor(uint32_t color)
 {
-    ChangeColor(storm::Color::from_hex(dwColor));
+    ChangeColor(storm::Color::from_hex(color));
 }
 
 void CXI_PICTURE::ChangeColor(storm::Color const& color)

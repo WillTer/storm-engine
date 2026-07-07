@@ -237,5 +237,5 @@ void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
     m_image = std::make_unique<ui::Image2D>(sNewTexName, m_texRect, m_technique_name);
     m_image->set_rect(m_rect);
     m_image->set_screen_rect(m_screen_rect);
-    m_image->set_ubo_color(storm::Color::from_hex(m_color));
+    m_image->set_ubo_color(m_color);
 }

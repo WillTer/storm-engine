@@ -122,11 +122,11 @@ void CXI_RECTANGLE::create_border(uint32_t color)
     }
 
     if (m_border) {
-        m_border->set_vertices_color(storm::Color::from_hex(color));
+        m_border->set_vertices_color(color);
         return;
     }
 
-    m_border = std::make_unique<ui::Rectangle>(storm::Color::from_hex(color), BORDER_TECHNIQUE_NAME);
+    m_border = std::make_unique<ui::Rectangle>(color, BORDER_TECHNIQUE_NAME);
     m_border->set_rect(m_rect);
     m_border->set_screen_rect(m_screen_rect);
 }

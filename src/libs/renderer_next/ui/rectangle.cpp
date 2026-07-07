@@ -36,10 +36,24 @@ Rectangle::Rectangle(storm::Color const& color, std::optional<std::string> const
     initialize(technique);
 }
 
+Rectangle::Rectangle(uint32_t const& color, std::optional<std::string> const& technique /*= std::nullopt*/)
+    : Rectangle(Color::from_hex(color), technique)
+{
+}
+
 Rectangle::Rectangle(std::array<storm::Color, 4> const& colors, std::optional<std::string> const& technique /*= std::nullopt*/)
 {
     m_colors.clear();
     std::transform(colors.begin(), colors.end(), std::back_inserter(m_colors), [](storm::Color const& c) { return c.to_float4(); });
+
+    initialize(technique);
+}
+
+Rectangle::Rectangle(std::array<uint32_t, 4> const& colors, std::optional<std::string> const& technique /*= std::nullopt*/)
+{
+    m_colors.clear();
+    std::transform(
+        colors.begin(), colors.end(), std::back_inserter(m_colors), [](uint32_t const& c) { return Color::from_hex(c).to_float4(); });
 
     initialize(technique);
 }
@@ -54,12 +68,26 @@ void Rectangle::set_vertices_colors(std::array<storm::Color, 4> const& colors)
     m_need_update = true;
 }
 
+void Rectangle::set_vertices_colors(std::array<uint32_t, 4> const& colors)
+{
+    m_colors.clear();
+    std::transform(
+        colors.begin(), colors.end(), std::back_inserter(m_colors), [](uint32_t const& c) { return Color::from_hex(c).to_float4(); });
+
+    m_need_update = true;
+}
+
 void Rectangle::set_vertices_color(storm::Color const& color)
 {
     m_colors.resize(4);
     std::fill(m_colors.begin(), m_colors.end(), color.to_float4());
 
     m_need_update = true;
+}
+
+void Rectangle::set_vertices_color(uint32_t const& color)
+{
+    set_vertices_color(Color::from_hex(color));
 }
 
 void Rectangle::create_default_pipeline(std::string const& fragment_shader /*= {}*/)

@@ -17,12 +17,16 @@ class Rectangle: public Base
 {
 public:
     Rectangle(storm::Color const& color, std::optional<std::string> const& technique = std::nullopt);
+    Rectangle(uint32_t const& color, std::optional<std::string> const& technique = std::nullopt);
     Rectangle(std::array<storm::Color, 4> const& colors, std::optional<std::string> const& technique = std::nullopt);
+    Rectangle(std::array<uint32_t, 4> const& colors, std::optional<std::string> const& technique = std::nullopt);
 
     virtual ~Rectangle();
 
     virtual void set_vertices_colors(std::array<storm::Color, 4> const& colors);
+    virtual void set_vertices_colors(std::array<uint32_t, 4> const& colors);
     virtual void set_vertices_color(storm::Color const& color);
+    virtual void set_vertices_color(uint32_t const& color);
 
     // Base
     void create_default_pipeline(std::string const& fragment_shader = {}) override;

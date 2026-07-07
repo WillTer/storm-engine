@@ -89,8 +89,22 @@ float Font::get_string_width(std::string const& text, std::optional<float> scale
 
 auto Font::print(
     GPUCommandBuffer const& cmd_buffer,
-    storm::Color            fg,
-    storm::Color            bg,
+    uint32_t                fg,
+    uint32_t                bg,
+    Alignment               align,
+    bool                    draw_shadow,
+    float                   scale,
+    float                   width,
+    float                   height,
+    std::string const&      text) -> std::shared_ptr<GPUTexture>
+{
+    return print(cmd_buffer, Color::from_hex(fg), Color::from_hex(bg), align, draw_shadow, scale, width, height, text);
+}
+
+auto Font::print(
+    GPUCommandBuffer const& cmd_buffer,
+    Color                   fg,
+    Color                   bg,
     Alignment               align,
     bool                    draw_shadow,
     float                   scale,
