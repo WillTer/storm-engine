@@ -4,4 +4,7 @@ storm_lib(
         asset_server
         core
         spdlog::spdlog
+    HEADERS_DEPS
+        hlslpp
+        shader_headers
 )

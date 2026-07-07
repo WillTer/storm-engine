@@ -98,7 +98,9 @@ void CINODE::FrameProcess(uint32_t DeltaTime)
     }
 
     // tooltip update
-    if (m_pToolTip && m_bUse) { m_pToolTip->Draw(); }
+    if (m_pToolTip && m_bUse) {
+        m_pToolTip->Draw();
+    }
 }
 
 CINODE* CINODE::DoAction(int wActCode, bool& bBreakPress, bool bFirstPress)
@@ -447,7 +449,9 @@ bool CINODE::Init(
     if (ReadIniString(ini1, name1, ini2, name2, "HelpTextureFile", param, sizeof(param) - 1, "")) {
         auto const len       = strlen(param) + 1;
         m_strHelpTextureFile = new char[len];
-        if (m_strHelpTextureFile != nullptr) { memcpy(m_strHelpTextureFile, param, len); }
+        if (m_strHelpTextureFile != nullptr) {
+            memcpy(m_strHelpTextureFile, param, len);
+        }
     }
     m_frectHelpTextureUV = GetIniFloatRect(ini1, name1, ini2, name2, "HelpTextureUV", FXYRECT(0.0, 0.0, 1.0, 1.0));
 
@@ -480,7 +484,7 @@ bool CINODE::Init(
     return true;
 }
 
-void CINODE::update(storm::GPUCopyPass const& /*copy_pass*/, uint32_t /*delta_time*/) {}
+void CINODE::update(storm::GPUCopyPass const& /*copy_pass*/, bool /*is_selected*/, uint32_t /*delta_time*/) {}
 void CINODE::pre_draw(storm::GPUCommandBuffer const& /*cmd_buffer*/, uint32_t /*delta_time*/) {}
 
 float CINODE::GetIniFloat(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, char const* keyName, float fDefault)
@@ -490,7 +494,9 @@ float CINODE::GetIniFloat(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
     if (ini1 && name1 && ini1->ReadString(name1, keyName, param, sizeof(param), "")) bYes = true;
     if (!bYes)
         if (ini2 && name2 && ini2->ReadString(name2, keyName, param, sizeof(param), "")) bYes = true;
-    if (bYes) { fDefault = static_cast<float>(atof(param)); }
+    if (bYes) {
+        fDefault = static_cast<float>(atof(param));
+    }
     return fDefault;
 }
 
@@ -501,7 +507,9 @@ int32_t CINODE::GetIniLong(INIFILE* ini1, char const* name1, INIFILE* ini2, char
     if (ini1 && name1 && ini1->ReadString(name1, keyName, param, sizeof(param), "")) bYes = true;
     if (!bYes)
         if (ini2 && name2 && ini2->ReadString(name2, keyName, param, sizeof(param), "")) bYes = true;
-    if (bYes) { iDefault = atol(param); }
+    if (bYes) {
+        iDefault = atol(param);
+    }
     return iDefault;
 }
 
@@ -557,7 +565,9 @@ CINODE::GetIniLongPoint(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 {
     char param[256];
     auto outPnt = pntDefault;
-    if (ReadIniString(ini1, name1, ini2, name2, keyName, param, sizeof(param))) { GetDataStr(param, "ll", &outPnt.x, &outPnt.y); }
+    if (ReadIniString(ini1, name1, ini2, name2, keyName, param, sizeof(param))) {
+        GetDataStr(param, "ll", &outPnt.x, &outPnt.y);
+    }
     return outPnt;
 }
 
@@ -566,7 +576,9 @@ FXYPOINT CINODE::GetIniFloatPoint(
 {
     char param[256];
     auto outPnt = pntDefault;
-    if (ReadIniString(ini1, name1, ini2, name2, keyName, param, sizeof(param))) { GetDataStr(param, "ff", &outPnt.x, &outPnt.y); }
+    if (ReadIniString(ini1, name1, ini2, name2, keyName, param, sizeof(param))) {
+        GetDataStr(param, "ff", &outPnt.x, &outPnt.y);
+    }
     return outPnt;
 }
 

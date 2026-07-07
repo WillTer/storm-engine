@@ -5,11 +5,9 @@
 class INIFILE;
 class XInterface;
 
-namespace storm
+namespace storm::renderer::ui
 {
-
 class Image2D;
-
 }
 
 // video
@@ -29,7 +27,7 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize) override;
-    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
+    void update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time) override;
 
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
@@ -55,8 +53,8 @@ protected:
 
     char* m_pcGroupName;
 
-    std::unique_ptr<storm::Image2D> m_picture;
-    storm::Color                    m_picture_color;
+    std::unique_ptr<storm::renderer::ui::Image2D> m_picture;
+    storm::Color                                  m_picture_color;
 
     bool     m_bMakeBlind;
     float    m_fCurBlindTime;

@@ -1,8 +1,9 @@
 #include "xi_rectangle.h"
 
 #include <libs/renderer_next/types.h>
-#include <libs/renderer_next/ui/border.h>
 #include <libs/renderer_next/ui/rectangle.h>
+
+using namespace storm::renderer;
 
 namespace
 {
@@ -20,7 +21,7 @@ CXI_RECTANGLE::~CXI_RECTANGLE()
     ReleaseAll();
 }
 
-void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
     m_back->set_rect(m_rect);
     m_back->set_screen_rect(m_screen_rect);
@@ -31,8 +32,6 @@ void CXI_RECTANGLE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_t
         m_border->set_screen_rect(m_screen_rect);
         m_border->update(copy_pass, delta_time);
     }
-
-    UpdateColors();
 }
 
 void CXI_RECTANGLE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
@@ -81,42 +80,43 @@ void CXI_RECTANGLE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, cha
     uint32_t const border_color = GetIniARGB(ini1, name1, ini2, name2, "borderColor", 0);
     create_border(border_color);
 
-    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(0), TECHNIQUE_NAME);
+    m_back = std::make_unique<ui::Rectangle>(get_colors(), TECHNIQUE_NAME);
     m_back->set_rect(m_rect);
     m_back->set_screen_rect(m_screen_rect);
-
-    UpdateColors();
 }
 
-void CXI_RECTANGLE::UpdateColors()
+auto CXI_RECTANGLE::get_colors() const -> std::array<storm::Color, 4>
 {
+    std::array<storm::Color, 4> colors = {};
     // set left top vertex color
     uint8_t alpha = (ALPHA(m_dwLeftColor) * ALPHA(m_dwTopColor)) >> 8L;
     uint8_t red   = (RED(m_dwLeftColor) * RED(m_dwTopColor)) >> 8L;
     uint8_t green = (GREEN(m_dwLeftColor) * GREEN(m_dwTopColor)) >> 8L;
     uint8_t blue  = (BLUE(m_dwLeftColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_back->set_vertex_color(0, {alpha, red, green, blue});
+    colors[0]     = {alpha, red, green, blue};
 
     // set left bottom vertex color
-    alpha = (ALPHA(m_dwLeftColor) * ALPHA(m_dwBottomColor)) >> 8L;
-    red   = (RED(m_dwLeftColor) * RED(m_dwBottomColor)) >> 8L;
-    green = (GREEN(m_dwLeftColor) * GREEN(m_dwBottomColor)) >> 8L;
-    blue  = (BLUE(m_dwLeftColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_back->set_vertex_color(1, {alpha, red, green, blue});
+    alpha     = (ALPHA(m_dwLeftColor) * ALPHA(m_dwBottomColor)) >> 8L;
+    red       = (RED(m_dwLeftColor) * RED(m_dwBottomColor)) >> 8L;
+    green     = (GREEN(m_dwLeftColor) * GREEN(m_dwBottomColor)) >> 8L;
+    blue      = (BLUE(m_dwLeftColor) * BLUE(m_dwBottomColor)) >> 8L;
+    colors[1] = {alpha, red, green, blue};
 
     // set right top vertex color
-    alpha = (ALPHA(m_dwRightColor) * ALPHA(m_dwTopColor)) >> 8L;
-    red   = (RED(m_dwRightColor) * RED(m_dwTopColor)) >> 8L;
-    green = (GREEN(m_dwRightColor) * GREEN(m_dwTopColor)) >> 8L;
-    blue  = (BLUE(m_dwRightColor) * BLUE(m_dwTopColor)) >> 8L;
-    m_back->set_vertex_color(2, {alpha, red, green, blue});
+    alpha     = (ALPHA(m_dwRightColor) * ALPHA(m_dwTopColor)) >> 8L;
+    red       = (RED(m_dwRightColor) * RED(m_dwTopColor)) >> 8L;
+    green     = (GREEN(m_dwRightColor) * GREEN(m_dwTopColor)) >> 8L;
+    blue      = (BLUE(m_dwRightColor) * BLUE(m_dwTopColor)) >> 8L;
+    colors[2] = {alpha, red, green, blue};
 
     // set right bottom vertex color
-    alpha = (ALPHA(m_dwRightColor) * ALPHA(m_dwBottomColor)) >> 8L;
-    red   = (RED(m_dwRightColor) * RED(m_dwBottomColor)) >> 8L;
-    green = (GREEN(m_dwRightColor) * GREEN(m_dwBottomColor)) >> 8L;
-    blue  = (BLUE(m_dwRightColor) * BLUE(m_dwBottomColor)) >> 8L;
-    m_back->set_vertex_color(3, {alpha, red, green, blue});
+    alpha     = (ALPHA(m_dwRightColor) * ALPHA(m_dwBottomColor)) >> 8L;
+    red       = (RED(m_dwRightColor) * RED(m_dwBottomColor)) >> 8L;
+    green     = (GREEN(m_dwRightColor) * GREEN(m_dwBottomColor)) >> 8L;
+    blue      = (BLUE(m_dwRightColor) * BLUE(m_dwBottomColor)) >> 8L;
+    colors[3] = {alpha, red, green, blue};
+
+    return colors;
 }
 
 void CXI_RECTANGLE::create_border(uint32_t color)
@@ -126,11 +126,11 @@ void CXI_RECTANGLE::create_border(uint32_t color)
     }
 
     if (m_border) {
-        m_border->set_color(storm::Color::from_hex(color));
+        m_border->set_vertices_color(storm::Color::from_hex(color));
         return;
     }
 
-    m_border = std::make_unique<storm::Border>(storm::Color::from_hex(color), BORDER_TECHNIQUE_NAME);
+    m_border = std::make_unique<ui::Rectangle>(storm::Color::from_hex(color), BORDER_TECHNIQUE_NAME);
     m_border->set_rect(m_rect);
     m_border->set_screen_rect(m_screen_rect);
 }
@@ -187,7 +187,7 @@ uint32_t CXI_RECTANGLE::MessageProc(int32_t msgcode, MESSAGE& message)
         m_dwLeftColor = m_dwRightColor = message.Long();
         uint32_t const border_color    = message.Long();
         create_border(border_color);
-        UpdateColors();
+        m_back->set_vertices_colors(get_colors());
     } break;
     }
 

@@ -57,6 +57,7 @@ struct SamplerInfo {
 };
 
 struct TechniqueInfo {
+    std::string  name;
     PipelineInfo pipeline;
     SamplerInfo  sampler;
 };

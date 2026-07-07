@@ -21,6 +21,6 @@ VertexOutput main(VertexInput input)
 {
     VertexOutput output;
     output.tex_coord = get_tex_coords(input.index);
-    output.position  = mul(mul(ubo.view_proj, ubo.model), input.position);
+    output.position  = mul(mul(ubo.view_proj, ubo.model), float4(input.position, 0.0, 1.0));
     return output;
 }

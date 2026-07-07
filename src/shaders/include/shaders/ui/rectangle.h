@@ -6,23 +6,23 @@
 #include "../cpp/hlslpp.h"
 #include "../cpp/vertex.h"
 
-namespace storm::shaders::rectangle
+namespace storm::shaders::ui::rectangle
 {
 #endif
 
 struct VertexInput {
 #ifndef __cplusplus
     float2 position : TEXCOORD0;
-    float4 color : TEXCOORD1;
+    float4 diffuse : TEXCOORD1;
 #else
     float2 position;
-    float4 color;
+    float4 diffuse;
 
     static std::vector<VertexAttribute> attributes()
     {
         return {
             VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, position)},
-            VertexAttribute {.location = 1, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexInput, color)},
+            VertexAttribute {.location = 1, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexInput, diffuse)},
         };
     }
 
@@ -36,10 +36,10 @@ struct VertexInput {
 };
 
 #ifdef __cplusplus
-}  // namespace storm::shaders::rectangle
+}  // namespace storm::shaders::ui::rectangle
 #else
 struct VertexOutput {
-    float4 color : TEXCOORD0;
+    float4 diffuse : TEXCOORD1;
     float4 position : SV_Position;
 };
 #endif

@@ -51,30 +51,6 @@ SDL_GPUSamplerAddressMode convert_address_mode(technique::AddressMode address_mo
 
 GPUSampler::GPUSampler(std::shared_ptr<SDL_GPUDevice> const& device, SamplerInfo const& info)
 {
-    initialize(device, info);
-}
-
-GPUSampler::GPUSampler(
-    std::shared_ptr<SDL_GPUDevice> const& device,
-    std::shared_ptr<AssetServer> const&   asset_server,
-    std::shared_ptr<IConfigLoader> const& config_loader,
-    std::string const&                    technique)
-{
-    auto const& technique_info =
-        technique::info(*config_loader, asset_server->get_asset_dir<ShaderAsset>() / fs::TECHNIQUES_FILE, technique);
-
-    initialize(device, technique_info.sampler);
-}
-
-GPUSampler::~GPUSampler() = default;
-
-GPUSampler::operator SDL_GPUSampler*() const
-{
-    return m_sampler.get();
-}
-
-void GPUSampler::initialize(std::shared_ptr<SDL_GPUDevice> const& device, SamplerInfo const& info)
-{
     auto sampler_create_info              = SDL_GPUSamplerCreateInfo {};
     sampler_create_info.min_filter        = convert_gpu_filter(info.min_filter);
     sampler_create_info.mag_filter        = convert_gpu_filter(info.mag_filter);
@@ -92,4 +68,11 @@ void GPUSampler::initialize(std::shared_ptr<SDL_GPUDevice> const& device, Sample
     if (!m_sampler) {
         throw std::runtime_error(std::format("Failed to create GPU Sampler: {}", SDL_GetError()));
     }
+}
+
+GPUSampler::~GPUSampler() = default;
+
+GPUSampler::operator SDL_GPUSampler*() const
+{
+    return m_sampler.get();
 }

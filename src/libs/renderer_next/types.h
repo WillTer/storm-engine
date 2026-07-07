@@ -3,10 +3,11 @@
 #include <algorithm>
 #include <array>
 #include <bit>
-#include <cmath>
 #include <cstdint>
 #include <tuple>
 #include <utility>
+
+#include "hlslpp.h"
 
 namespace storm
 {
@@ -189,7 +190,9 @@ struct Color {
     constexpr uint32_t to_hex() const
     {
         auto hex_bytes = std::bit_cast<std::array<uint8_t, 4>>(*this);
-        if constexpr (std::endian::native == std::endian::little) { std::ranges::reverse(hex_bytes); }
+        if constexpr (std::endian::native == std::endian::little) {
+            std::ranges::reverse(hex_bytes);
+        }
 
         return std::bit_cast<uint32_t>(hex_bytes);
     }
@@ -197,9 +200,17 @@ struct Color {
     constexpr static Color from_hex(uint32_t const hex)
     {
         auto hex_bytes = std::bit_cast<std::array<uint8_t, 4>>(hex);
-        if constexpr (std::endian::native == std::endian::little) { std::ranges::reverse(hex_bytes); }
+        if constexpr (std::endian::native == std::endian::little) {
+            std::ranges::reverse(hex_bytes);
+        }
 
         return std::bit_cast<Color>(hex_bytes);
+    }
+
+    constexpr hlslpp::float4 to_float4() const
+    {
+        auto [rn, gn, bn, an] = normalize();
+        return hlslpp::float4 {rn, gn, bn, an};
     }
 
     constexpr Color operator*(float factor) const

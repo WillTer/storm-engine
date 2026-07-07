@@ -1,99 +1,123 @@
 #include "rectangle.h"
 
-#include <cassert>
-
 #include <libs/core/core.h>
-#include <libs/renderer_next/impl_sdl/gpu_command_buffer.h>
+#include <libs/renderer_next/impl_sdl/gpu_copy_pass.h>
 #include <libs/renderer_next/impl_sdl/gpu_index_buffer.h>
+#include <libs/renderer_next/impl_sdl/gpu_render_pass.h>
 #include <libs/renderer_next/impl_sdl/gpu_vertex_buffer.h>
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
+#include <shaders/ui/rectangle.h>
 
 using namespace storm;
+using namespace storm::renderer::ui;
 using namespace hlslpp;
 
-using Vertex = shaders::rectangle::VertexInput;
+using Vertex = shaders::ui::rectangle::VertexInput;
 
 namespace
 {
 
-auto const SQUARE_TRIANGLES_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
+auto const SQUARE_INDICES      = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
+auto const SQUARE_LINE_INDICES = std::vector<uint32_t> {0, 1, 1, 2, 2, 3, 3, 0};
+auto const SQUARE_VERTICES     = std::vector<Vertex> {
+    Vertex {{0.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    Vertex {{1.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    Vertex {{1.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    Vertex {{0.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+};
 
 }  // namespace
 
 Rectangle::Rectangle(storm::Color const& color, std::optional<std::string> const& technique /*= std::nullopt*/)
 {
-    auto const& renderer = core->get<RendererService>();
+    m_colors.resize(4);
+    std::fill(m_colors.begin(), m_colors.end(), color.to_float4());
 
-    if (technique.has_value()) {
-        m_pipeline = renderer->create_pipeline_from_technique<Vertex>("ui/rectangle", technique.value());
-    } else {
-        m_pipeline = renderer->create_pipeline<Vertex>("ui/rectangle", "ui/color_only");
-    }
+    initialize(technique);
+}
 
-    auto const [r, g, b, a] = color.normalize();
+Rectangle::Rectangle(std::array<storm::Color, 4> const& colors, std::optional<std::string> const& technique /*= std::nullopt*/)
+{
+    m_colors.clear();
+    std::transform(colors.begin(), colors.end(), std::back_inserter(m_colors), [](storm::Color const& c) { return c.to_float4(); });
 
-    auto const vertex_data = std::vector<Vertex> {
-        Vertex {{0.0F, 0.0F}, float4 {r, g, b, a}},
-        Vertex {{1.0F, 0.0F}, float4 {r, g, b, a}},
-        Vertex {{1.0F, 1.0F}, float4 {r, g, b, a}},
-        Vertex {{0.0F, 1.0F}, float4 {r, g, b, a}},
-    };
-
-    m_vertex_buffer = renderer->create_vertex_buffer(vertex_data);
-    m_index_buffer  = renderer->create_index_buffer(SQUARE_TRIANGLES_INDICES);
-
-    m_rect   = {0.0F, 0.0F, 1.0F, 1.0F};
-    m_width  = 1;
-    m_height = 1;
-
-    m_is_color_dirty = false;
+    initialize(technique);
 }
 
 Rectangle::~Rectangle() = default;
 
+void Rectangle::set_vertices_colors(std::array<storm::Color, 4> const& colors)
+{
+    m_colors.clear();
+    std::transform(colors.begin(), colors.end(), std::back_inserter(m_colors), [](storm::Color const& c) { return c.to_float4(); });
+
+    m_need_update = true;
+}
+
+void Rectangle::set_vertices_color(storm::Color const& color)
+{
+    m_colors.resize(4);
+    std::fill(m_colors.begin(), m_colors.end(), color.to_float4());
+
+    m_need_update = true;
+}
+
+void Rectangle::create_default_pipeline(std::string const& fragment_shader /*= {}*/)
+{
+    auto const& renderer = core->get<RendererService>();
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/rectangle", fragment_shader.empty() ? "ui/per_vertex_diffuse" : fragment_shader);
+}
+
+void Rectangle::set_technique(std::string const& technique, std::string const& vertex_shader /*= {}*/)
+{
+    auto const& renderer = core->get<RendererService>();
+    auto const  info     = renderer->get_technique_info(technique);
+    m_pipeline           = renderer->create_pipeline<Vertex>(vertex_shader.empty() ? "ui/rectangle" : vertex_shader, info);
+
+    // Recreate index buffer using indices compatible with technique
+    m_index_buffer =
+        renderer->create_index_buffer(info.pipeline.fill_mode == technique::FillMode::Line ? SQUARE_LINE_INDICES : SQUARE_INDICES);
+}
+
 void Rectangle::update(GPUCopyPass const& copy_pass, uint64_t /*delta_time*/)
 {
-    if (m_is_color_dirty) {
-        std::vector<decltype(Vertex::color)> color_buffer = {};
-        std::transform(m_color.begin(), m_color.end(), std::back_inserter(color_buffer), [](storm::Color const& color) {
-            auto const [r, g, b, a] = color.normalize();
-            return decltype(Vertex::color)(r, g, b, a);
-        });
+    if (m_need_update) {
+        auto const update_info = std::vector(4, BufferUpdateInfo {.offset = offsetof(Vertex, diffuse), .size = sizeof(Vertex::diffuse)});
+        copy_pass.update_buffer(*m_vertex_buffer, update_info, m_colors, sizeof(Vertex));
 
-        auto const progress_update_info =
-            std::vector(4, BufferUpdateInfo {.offset = offsetof(Vertex, color), .size = sizeof(Vertex::color)});
-        copy_pass.update_buffer(*m_vertex_buffer, progress_update_info, color_buffer, sizeof(Vertex));
-
-        m_is_color_dirty = false;
+        m_need_update = false;
     }
 }
 
 void Rectangle::draw(GPURenderPass const& render_pass) const
 {
+    if (!m_pipeline) {
+        return;
+    }
+
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
     render_pass.bind(*m_vertex_buffer);
 
     render_pass.push_vertex_uniform_data(0, m_vertex_ubo);
+
     render_pass.draw(*m_index_buffer);
 }
 
-void Rectangle::set_color(storm::Color const& color)
+void Rectangle::initialize(std::optional<std::string> const& technique)
 {
-    for (size_t i = 0; i < m_color.size(); ++i) {
-        m_color[i] = color;
+    std::vector vertices = SQUARE_VERTICES;
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        vertices[i].diffuse = m_colors[i];
     }
 
-    m_is_color_dirty = true;
-}
+    auto const& renderer = core->get<RendererService>();
+    m_vertex_buffer      = renderer->create_vertex_buffer(vertices);
 
-void Rectangle::set_vertex_color(size_t index, storm::Color const& color)
-{
-    // Out of bounds
-    if (index >= m_color.size()) {
-        return;
+    if (technique.has_value()) {
+        set_technique(technique.value());
+    } else {
+        m_index_buffer = renderer->create_index_buffer(SQUARE_INDICES);
+        create_default_pipeline();
     }
-
-    m_color[index]   = color;
-    m_is_color_dirty = true;
 }

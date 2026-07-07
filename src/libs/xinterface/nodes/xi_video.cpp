@@ -18,11 +18,11 @@ CXI_VIDEO::~CXI_VIDEO()
     ReleaseAll();
 }
 
-void CXI_VIDEO::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+void CXI_VIDEO::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
     if (m_video) {
-        m_video->update(copy_pass, delta_time);
         m_video->set_rect(m_rect);
+        m_video->update(copy_pass, delta_time);
     }
 }
 
@@ -49,10 +49,9 @@ void CXI_VIDEO::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char co
 
     char param[255];
     if (ReadIniString(ini1, name1, ini2, name2, "sTexture", param, sizeof(param), "")) {
-        m_video = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), TECHNIQUE_NAME);
-        m_video->set_uv(m_rectTex);
+        m_video = std::make_unique<storm::renderer::ui::Image2D>(pPictureService->get_video_texture(param), m_rectTex, TECHNIQUE_NAME);
         m_video->set_screen_rect(m_screen_rect);
-        m_video->set_diffuse_color(storm::Color::from_hex(m_dwColor));
+        m_video->set_ubo_color(storm::Color::from_hex(m_dwColor));
     }
 }
 

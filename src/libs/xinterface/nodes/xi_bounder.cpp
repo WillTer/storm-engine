@@ -2,7 +2,11 @@
 
 #include <libs/core/core.h>
 #include <libs/filesystem/v_file_service.h>
-#include <stdio.h>
+
+namespace
+{
+std::string const TECHNIQUE_NAME = "iVideo";
+}  // namespace
 
 CXI_BOUNDER::CXI_BOUNDER()
 {
@@ -28,6 +32,8 @@ int CXI_BOUNDER::CommandExecute(int wActCode)
     return -1;
 }
 
+void CXI_BOUNDER::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time) {}
+
 void CXI_BOUNDER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time)
 {
     if (m_bUse) {
@@ -39,8 +45,7 @@ void CXI_BOUNDER::Draw(storm::GPURenderPass const& render_pass, bool bSelected, 
 bool CXI_BOUNDER::Init(
     INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
 {
-    if (!CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize)) return false;
-    return true;
+    return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
 void CXI_BOUNDER::ReleaseAll()

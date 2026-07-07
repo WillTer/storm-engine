@@ -136,6 +136,7 @@ struct storm::read_to<storm::TechniqueInfo> {
     static TechniqueInfo from_ini(IniFile const& ini, std::string const& section)
     {
         auto info = TechniqueInfo {
+            .name = section,
             .pipeline =
                 {
                     .fragment_shader = ini.find_or<std::string>(section, "fragment_shader", {}),
@@ -168,10 +169,10 @@ namespace storm::technique
 
 TechniqueInfo info(IConfigLoader& config_loader, std::filesystem::path const& config_file, std::string const& name)
 {
-    auto const& config    = config_loader.open_config_cached(config_file, false);
-    auto        font_info = read_to<TechniqueInfo>::from_ini(config, name);
+    auto const& config      = config_loader.open_config_cached(config_file, false);
+    auto const  parsed_data = read_to<TechniqueInfo>::from_ini(config, name);
 
-    return font_info;
+    return parsed_data;
 }
 
 }  // namespace storm::technique

@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <libs/core/core.h>
-#include <shaders/ui/common_ui.h>
+#include <shaders/ui/image_2d.h>
 
 #include "impl_sdl/gpu_command_buffer.h"
 #include "impl_sdl/gpu_index_buffer.h"
@@ -15,16 +15,16 @@
 using namespace storm;
 using namespace hlslpp;
 
-using ImageVertex = shaders::common_ui::VertexInput;
+using Vertex = shaders::ui::image_2d::VertexInput;
 
 namespace
 {
 
 std::vector const SQUARE_VERTICES = {
-    ImageVertex {{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    ImageVertex {{1.0F, 0.0F, 0.0F}, {1.0F, 0.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    ImageVertex {{1.0F, 1.0F, 0.0F}, {1.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
-    ImageVertex {{0.0F, 1.0F, 0.0F}, {0.0F, 1.0F}, {1.0F, 1.0F, 1.0F, 1.0F}},
+    Vertex {{0.0F, 0.0F}, {0.0F, 0.0F}},
+    Vertex {{1.0F, 0.0F}, {1.0F, 0.0F}},
+    Vertex {{1.0F, 1.0F}, {1.0F, 1.0F}},
+    Vertex {{0.0F, 1.0F}, {0.0F, 1.0F}},
 };
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
@@ -39,12 +39,12 @@ constexpr auto ASPECT_RATIO = 4.0F / 3.0F;
 std::pair<float, float> get_loading_picture_offset(FRect const& viewport, float const aspect_ratio)
 {
     float dy = 0.0F;
-    float dx = (viewport.width() - aspect_ratio * viewport.height()) / 2.0F;
+    float dx = (viewport.width() - (aspect_ratio * viewport.height())) / 2.0F;
     if (dx < 10.0F) {
         dx = 0.0F;
     } else {
         dy = 25.0F;
-        dx = (viewport.width() - aspect_ratio * (viewport.height() - 2.0F * dy)) / 2.0F;
+        dx = (viewport.width() - (aspect_ratio * (viewport.height() - (2.0F * dy)))) / 2.0F;
     }
 
     return std::make_pair(dx, dy);
@@ -73,7 +73,7 @@ ProgressImageScene::ProgressImageScene(
         renderer->upload_pending_data(*copy_pass);
     }
 
-    m_pipeline = renderer->create_pipeline<ImageVertex>("ui/common_ui", "ui/tex_diffuse");
+    m_pipeline = renderer->create_pipeline<Vertex>("ui/image_2d", "ui/tex_ubo_diffuse");
 
     auto const viewport = renderer->get_viewport();
     auto const proj_mat =
@@ -86,6 +86,8 @@ ProgressImageScene::ProgressImageScene(
     // Background always scaled to entire screen
     m_background_ubo.model     = float4x4::scale(viewport.right - viewport.left, viewport.bottom - viewport.top, 1.0F);
     m_background_ubo.view_proj = proj_mat;
+
+    m_fragment_ubo.diffuse = float4(1.0F);
 }
 
 void ProgressImageScene::update(GPUCopyPass const& copy_pass, uint64_t const /*delta_time*/)
@@ -102,6 +104,7 @@ void ProgressImageScene::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
+    render_pass.push_fragment_uniform_data(0, m_fragment_ubo);
 
     if (m_background) {
         render_pass.push_vertex_uniform_data(0, m_background_ubo);
@@ -152,18 +155,18 @@ void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
 
     std::vector const progress_tex_buffer = {
         // left-top
-        decltype(ImageVertex::tex_coord)(fx / x_count, fy / y_count),
+        decltype(Vertex::tex_coord)(fx / x_count, fy / y_count),
         // right-top
-        decltype(ImageVertex::tex_coord)((fx + 1) / x_count, fy / y_count),
+        decltype(Vertex::tex_coord)((fx + 1) / x_count, fy / y_count),
         // right-bottom
-        decltype(ImageVertex::tex_coord)((fx + 1) / x_count, (fy + 1) / y_count),
+        decltype(Vertex::tex_coord)((fx + 1) / x_count, (fy + 1) / y_count),
         // left-bottom
-        decltype(ImageVertex::tex_coord)(fx / x_count, (fy + 1) / y_count),
+        decltype(Vertex::tex_coord)(fx / x_count, (fy + 1) / y_count),
     };
 
     auto const progress_update_info =
-        std::vector(4, BufferUpdateInfo {.offset = offsetof(ImageVertex, tex_coord), .size = sizeof(ImageVertex::tex_coord)});
-    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, progress_tex_buffer, sizeof(ImageVertex));
+        std::vector(4, BufferUpdateInfo {.offset = offsetof(Vertex, tex_coord), .size = sizeof(Vertex::tex_coord)});
+    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, progress_tex_buffer, sizeof(Vertex));
 
     ++m_current_frame;
     if (m_current_frame >= x_count * y_count) {

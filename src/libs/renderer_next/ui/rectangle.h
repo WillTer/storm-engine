@@ -1,46 +1,43 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <libs/renderer_next/hlslpp.h>
+#include <libs/renderer_next/i_drawable.h>
 #include <libs/renderer_next/types.h>
 #include <shaders/ubo_types.h>
-#include <shaders/ui/rectangle.h>
 
-#include "image_2d_base.h"
+#include "base.h"
 
-namespace storm
+namespace storm::renderer::ui
 {
 
-class GraphicsPipeline;
-
-class GPUVertexBuffer;
-class GPUIndexBuffer;
-class GPUCopyPass;
-class GPURenderPass;
-
-class Rectangle final: public Image2DBase
+class Rectangle: public Base
 {
 public:
-    enum class Fill { None, Color };
-
     Rectangle(storm::Color const& color, std::optional<std::string> const& technique = std::nullopt);
-    ~Rectangle() override;
+    Rectangle(std::array<storm::Color, 4> const& colors, std::optional<std::string> const& technique = std::nullopt);
 
+    virtual ~Rectangle();
+
+    virtual void set_vertices_colors(std::array<storm::Color, 4> const& colors);
+    virtual void set_vertices_color(storm::Color const& color);
+
+    // Base
+    void create_default_pipeline(std::string const& fragment_shader = {}) override;
+    void set_technique(std::string const& technique, std::string const& vertex_shader = {}) override;
+
+    // IDrawable
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;
 
-    void set_color(storm::Color const& color);
-    void set_vertex_color(size_t index, storm::Color const& color);
-
 private:
-    std::array<storm::Color, 4> m_color;
-    bool                        m_is_color_dirty;
+    void initialize(std::optional<std::string> const& technique);
 
-    std::shared_ptr<GraphicsPipeline> m_pipeline;
+    bool m_need_update = false;
 
-    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer;
-    std::shared_ptr<GPUIndexBuffer>  m_index_buffer;
+    std::vector<float4> m_colors;
 };
 
-}  // namespace storm
+}  // namespace storm::renderer::ui

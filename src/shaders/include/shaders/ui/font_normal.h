@@ -12,15 +12,15 @@ namespace storm::shaders::font_normal
 
 struct VertexInput {
 #ifndef __cplusplus
-    float4 position : TEXCOORD0;
+    float2 position : TEXCOORD0;
     uint   index : SV_VertexID;
 #else
-    float4 position;
+    float2 position;
 
     static std::vector<VertexAttribute> attributes()
     {
         return {
-            VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float4, .offset = offsetof(VertexInput, position)},
+            VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, position)},
         };
     }
 

@@ -38,6 +38,6 @@ VertexOutput main(VertexInput input)
     VertexOutput output;
     output.tex_coord      = get_tex_coords(ubo.frame, input.index);
     output.tex_coord_next = get_tex_coords(ubo.frame + 1, input.index);
-    output.position       = input.position;
+    output.position       = float4(input.position, 0.0, 1.0);
     return output;
 }

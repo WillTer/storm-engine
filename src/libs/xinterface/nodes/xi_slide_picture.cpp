@@ -3,13 +3,15 @@
 #include <libs/renderer_next/impl_sdl/renderer_sdl.h>
 #include <libs/renderer_next/ui/image_2d.h>
 
+using namespace storm::renderer;
+
 namespace
 {
 
-void set_texture_coordinate(storm::Image2D& image, FXYRECT tr, float angle)
+void set_texture_coordinate(ui::Image2D& image, FXYRECT tr, float angle)
 {
     if (angle == 0) {
-        image.set_uv(tr);
+        image.set_uv_rect(tr);
     } else {
         auto const x      = (tr.left + tr.right) * .5f;
         auto const y      = (tr.top + tr.bottom) * .5f;
@@ -21,7 +23,7 @@ void set_texture_coordinate(storm::Image2D& image, FXYRECT tr, float angle)
         auto const wsa    = width / 2 * sa;
         auto const hca    = height / 2 * ca;
         auto const hsa    = height / 2 * sa;
-        image.set_uv_full({
+        image.set_uv({
             hlslpp::float2 {x + (-wca + hsa), y + (-wsa - hca)},
             hlslpp::float2 {x + (wca + hsa), y + (wsa - hca)},
             hlslpp::float2 {x + (wca - hsa), y + (wsa + hca)},
@@ -46,7 +48,7 @@ CXI_SLIDEPICTURE::~CXI_SLIDEPICTURE()
     ReleaseAll();
 }
 
-void CXI_SLIDEPICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+void CXI_SLIDEPICTURE::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
     if (nCurSlide >= nSlideListSize) {
         return;
@@ -232,9 +234,8 @@ void CXI_SLIDEPICTURE::SetNewPicture(char* sNewTexName)
         m_image.reset();
     }
 
-    m_image = std::make_unique<storm::Image2D>(sNewTexName, m_technique_name);
-    m_image->set_uv(m_texRect);
+    m_image = std::make_unique<ui::Image2D>(sNewTexName, m_texRect, m_technique_name);
     m_image->set_rect(m_rect);
     m_image->set_screen_rect(m_screen_rect);
-    m_image->set_diffuse_color(storm::Color::from_hex(m_color));
+    m_image->set_ubo_color(storm::Color::from_hex(m_color));
 }

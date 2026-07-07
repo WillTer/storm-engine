@@ -4,9 +4,12 @@
 
 namespace storm
 {
+namespace renderer::ui
+{
+class Rectangle;
 class Image2D;
 class Button;
-class Rectangle;
+}  // namespace renderer::ui
 class Font;
 }  // namespace storm
 
@@ -24,7 +27,7 @@ public:
     bool
     Init(INIFILE* ini1, char const* name1, INIFILE* ini2, char const* name2, /*VDX9RENDER*/ void* rs, XYRECT& hostRect, XYPOINT& ScreenSize)
         override;
-    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
+    void update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time) override;
     void ReleaseAll() override;
     int  CommandExecute(int wActCode) override;
     bool IsClick(int buttonID, int32_t xPos, int32_t yPos) override;
@@ -50,19 +53,19 @@ protected:
     char*   m_sGroupName;
     int32_t m_idTex;  // texture identity
 
-    std::unique_ptr<storm::Button> m_button;
-    std::unique_ptr<storm::Button> m_button_selected;
+    std::unique_ptr<storm::renderer::ui::Button> m_button;
+    std::unique_ptr<storm::renderer::ui::Button> m_button_selected;
 
-    std::unique_ptr<storm::Image2D>   m_shadow;
-    std::unique_ptr<storm::Image2D>   m_selection;
-    std::unique_ptr<storm::Rectangle> m_back;
+    std::unique_ptr<storm::renderer::ui::Image2D>   m_shadow;
+    std::unique_ptr<storm::renderer::ui::Image2D>   m_selection;
+    std::unique_ptr<storm::renderer::ui::Rectangle> m_back;
 
     storm::FRect m_rect_pressed;
     storm::FRect m_shadow_rect;
     storm::FRect m_shadow_rect_pressed;
 
-    std::string                     m_font_name;
-    std::unique_ptr<storm::Image2D> m_text;
+    std::string                                   m_font_name;
+    std::unique_ptr<storm::renderer::ui::Image2D> m_text;
 
     uint32_t m_dwShadowColor;        // shadow color
     uint32_t m_dwFaceColor;          // unpressed key color

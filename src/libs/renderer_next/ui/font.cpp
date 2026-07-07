@@ -20,10 +20,10 @@ namespace
 {
 
 auto const SQUARE_VERTICES = std::vector<Vertex> {
-    Vertex {{0.0F, 0.0F, 0.0F, 1.0F}},
-    Vertex {{1.0F, 0.0F, 0.0F, 1.0F}},
-    Vertex {{1.0F, 1.0F, 0.0F, 1.0F}},
-    Vertex {{0.0F, 1.0F, 0.0F, 1.0F}},
+    Vertex {{0.0F, 0.0F}},
+    Vertex {{1.0F, 0.0F}},
+    Vertex {{1.0F, 1.0F}},
+    Vertex {{0.0F, 1.0F}},
 };
 
 auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
@@ -43,7 +43,8 @@ Font::Font(std::string const& font_name)
     if (m_info.technique.empty()) {
         m_pipeline = renderer->create_pipeline<Vertex>("ui/font_normal", "ui/tex_ubo_diffuse");
     } else {
-        m_pipeline = renderer->create_pipeline_from_technique<Vertex>("ui/font_normal", m_info.technique);
+        auto const technique = renderer->get_technique_info(m_info.technique);
+        m_pipeline           = renderer->create_pipeline<Vertex>("ui/font_normal", technique);
     }
 
     m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);

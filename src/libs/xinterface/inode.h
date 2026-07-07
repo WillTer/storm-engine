@@ -95,21 +95,21 @@ public:
     virtual void*                   GetCurrentNode()  = 0;
     virtual FXYPOINT                GetMousePoint()   = 0;
     virtual int32_t                 PrintIntoWindow(
-                        int32_t     wl,
-                        int32_t     wr,
-                        int32_t     idFont,
-                        uint32_t    dwFCol,
-                        uint32_t    dwBCol,
-                        int32_t     align,
-                        bool        shadow,
-                        float       scale,
-                        int32_t     sxs,
-                        int32_t     sys,
-                        int32_t     left,
-                        int32_t     top,
-                        char const* str,
-                        int         nWidthForScaleCorrecting = -1,
-                        int         nSplit                   = 0) = 0;
+        int32_t     wl,
+        int32_t     wr,
+        int32_t     idFont,
+        uint32_t    dwFCol,
+        uint32_t    dwBCol,
+        int32_t     align,
+        bool        shadow,
+        float       scale,
+        int32_t     sxs,
+        int32_t     sys,
+        int32_t     left,
+        int32_t     top,
+        char const* str,
+        int         nWidthForScaleCorrecting = -1,
+        int         nSplit                   = 0) = 0;
 
     virtual CINODE* FindNode(char const* sNodeName, CINODE* findRoot)                 = 0;
     virtual void    ShowWindow(char const* pcWindowName, bool bShow)                  = 0;
@@ -196,7 +196,7 @@ public:
         /*VDX9RENDER*/ void* rs,
         XYRECT&              hostRect,
         XYPOINT&             ScreenSize);
-    virtual void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time);
+    virtual void update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time);
     virtual void pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_t delta_time);
 
     virtual void   ReleaseAll() = 0;

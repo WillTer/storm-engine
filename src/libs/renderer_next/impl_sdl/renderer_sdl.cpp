@@ -9,6 +9,7 @@
 #include <libs/asset_server/shader_asset.h>
 #include <libs/config/main_config.h>
 #include <libs/core/core.h>
+#include <libs/filesystem/default_paths.h>
 #include <libs/renderer_next/cache.h>
 #include <libs/window/sdl_window.hpp>
 #include <spdlog/spdlog.h>
@@ -115,19 +116,13 @@ struct RendererService::Impl {
         return m_cache.get<GPUTexture>(name);
     }
 
-    [[nodiscard]] auto create_texture_sampler(SamplerInfo const& info) -> std::shared_ptr<GPUSampler>
+    [[nodiscard]] auto create_texture_sampler(TechniqueInfo const& info) -> std::shared_ptr<GPUSampler>
     {
-        // TODO: add to cache
-        return std::make_shared<GPUSampler>(m_device, info);
-    }
-
-    [[nodiscard]] auto create_texture_sampler_from_technique(std::string const& technique) -> std::shared_ptr<GPUSampler>
-    {
-        std::string const sampler_name = std::format("sampler;technique:{}", technique);
+        std::string const sampler_name = std::format("sampler;technique:{}", info.name);
         auto const        name         = entt::hashed_string(sampler_name.c_str());
 
         if (!m_cache.contains<GPUSampler>(name)) {
-            m_cache.add(name, std::make_shared<GPUSampler>(m_device, m_asset_server, m_config_loader, technique));
+            m_cache.add(name, std::make_shared<GPUSampler>(m_device, info.sampler));
         }
 
         return m_cache.get<GPUSampler>(name);
@@ -161,6 +156,11 @@ struct RendererService::Impl {
         auto buffer = std::make_shared<GPUVertexBuffer>(m_device, data, static_cast<uint32_t>(vertex_count * vertex_type_size));
         m_buffers_wait_upload.push_back(buffer);
         return buffer;
+    }
+
+    [[nodiscard]] auto get_technique_info(std::string const& technique) const -> TechniqueInfo
+    {
+        return technique::info(*m_config_loader, m_asset_server->get_asset_dir<ShaderAsset>() / fs::TECHNIQUES_FILE, technique);
     }
 
     void upload_pending_data(storm::GPUCopyPass const& copy_pass)
@@ -217,20 +217,27 @@ struct RendererService::Impl {
         return m_cache.get<GraphicsPipeline>(name);
     }
 
-    [[nodiscard]] auto create_pipeline_from_technique(
+    [[nodiscard]] auto create_pipeline(
         std::vector<shaders::VertexAttribute> const&   vertex_attributes,
         std::vector<shaders::VertexDescription> const& vertex_descriptions,
         std::string const&                             vertex_shader,
-        std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>
+        TechniqueInfo const&                           info) -> std::shared_ptr<GraphicsPipeline>
     {
-        std::string const pipeline_name = std::format("pipeline;vs:{}+techique:{}", vertex_shader, technique);
+        std::string const pipeline_name = std::format("pipeline;vs:{}+techique:{}", vertex_shader, info.name);
         auto const        name          = entt::hashed_string(pipeline_name.c_str());
 
         if (!m_cache.contains<GraphicsPipeline>(name)) {
             m_cache.add(
                 name,
-                pipeline::create_from_technique(
-                    m_device, m_window, m_asset_server, m_config_loader, vertex_attributes, vertex_descriptions, vertex_shader, technique));
+                pipeline::create(
+                    m_device,
+                    m_window,
+                    m_asset_server,
+                    m_config_loader,
+                    vertex_attributes,
+                    vertex_descriptions,
+                    vertex_shader,
+                    info.pipeline));
         }
 
         return m_cache.get<GraphicsPipeline>(name);
@@ -279,13 +286,13 @@ auto RendererService::create_pipeline(
     return m_impl->create_pipeline(vertex_attributes, vertex_descriptions, vertex_shader, fragment_shader);
 }
 
-[[nodiscard]] auto RendererService::create_pipeline_from_technique(
+[[nodiscard]] auto RendererService::create_pipeline(
     std::vector<shaders::VertexAttribute> const&   vertex_attributes,
     std::vector<shaders::VertexDescription> const& vertex_descriptions,
     std::string const&                             vertex_shader,
-    std::string const&                             technique) -> std::shared_ptr<GraphicsPipeline>
+    TechniqueInfo const&                           info) -> std::shared_ptr<GraphicsPipeline>
 {
-    return m_impl->create_pipeline_from_technique(vertex_attributes, vertex_descriptions, vertex_shader, technique);
+    return m_impl->create_pipeline(vertex_attributes, vertex_descriptions, vertex_shader, info);
 }
 
 [[nodiscard]] auto RendererService::create_texture(std::string const& file, std::shared_ptr<GPUSampler> const& sampler /*= nullptr*/)
@@ -294,14 +301,9 @@ auto RendererService::create_pipeline(
     return m_impl->create_texture(file, sampler);
 }
 
-[[nodiscard]] auto RendererService::create_texture_sampler(SamplerInfo const& info) -> std::shared_ptr<GPUSampler>
+[[nodiscard]] auto RendererService::create_texture_sampler(TechniqueInfo const& info) -> std::shared_ptr<GPUSampler>
 {
     return m_impl->create_texture_sampler(info);
-}
-
-[[nodiscard]] auto RendererService::create_texture_sampler_from_technique(std::string const& technique) -> std::shared_ptr<GPUSampler>
-{
-    return m_impl->create_texture_sampler_from_technique(technique);
 }
 
 [[nodiscard]] auto RendererService::create_texture_target(uint32_t const width /*= 0*/, uint32_t const height /*= 0*/)
@@ -319,6 +321,11 @@ auto RendererService::create_vertex_buffer(void const* const data, size_t const 
     -> std::shared_ptr<GPUVertexBuffer>
 {
     return m_impl->create_vertex_buffer(data, vertex_count, vertex_type_size);
+}
+
+[[nodiscard]] auto RendererService::get_technique_info(std::string const& technique) const -> TechniqueInfo
+{
+    return m_impl->get_technique_info(technique);
 }
 
 void RendererService::upload_pending_data(storm::GPUCopyPass const& copy_pass)

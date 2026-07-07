@@ -4,7 +4,10 @@
 
 namespace storm
 {
+namespace renderer::ui
+{
 class Image2D;
+}
 class GPUSampler;
 }  // namespace storm
 
@@ -15,7 +18,7 @@ public:
     CXI_SLIDEPICTURE();
     ~CXI_SLIDEPICTURE() override;
 
-    void update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time) override;
+    void update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time) override;
     void Draw(storm::GPURenderPass const& render_pass, bool bSelected, uint32_t Delta_Time) override;
 
     bool
@@ -54,7 +57,7 @@ protected:
 
     std::optional<std::string> m_technique_name;
 
-    uint32_t                           m_color;
-    std::unique_ptr<storm::Image2D>    m_image;
-    std::shared_ptr<storm::GPUSampler> m_sampler;
+    uint32_t                                      m_color;
+    std::unique_ptr<storm::renderer::ui::Image2D> m_image;
+    std::shared_ptr<storm::GPUSampler>            m_sampler;
 };

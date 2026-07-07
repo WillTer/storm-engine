@@ -127,6 +127,12 @@ void GPUTexture::bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& r
     SDL_BindGPUFragmentSamplers(render_pass.get(), 0, &texture_binding, 1);
 }
 
+void GPUTexture::set_sampler(std::shared_ptr<GPUSampler> const& sampler)
+{
+    assert(sampler);
+    m_sampler = sampler;
+}
+
 std::pair<uint32_t, uint32_t> GPUTexture::get_dimensions() const
 {
     return std::make_pair(m_width, m_height);

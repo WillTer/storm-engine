@@ -6,23 +6,23 @@
 #include "../cpp/hlslpp.h"
 #include "../cpp/vertex.h"
 
-namespace storm::shaders::image_2d
+namespace storm::shaders::ui::image_2d
 {
 #endif
 
 struct VertexInput {
 #ifndef __cplusplus
     float2 position : TEXCOORD0;
-    float2 uv : TEXCOORD1;
+    float2 tex_coord : TEXCOORD1;
 #else
     float2 position;
-    float2 uv;
+    float2 tex_coord;
 
     static std::vector<VertexAttribute> attributes()
     {
         return {
             VertexAttribute {.location = 0, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, position)},
-            VertexAttribute {.location = 1, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, uv)},
+            VertexAttribute {.location = 1, .slot = 0, .format = VertexElementFormat::Float2, .offset = offsetof(VertexInput, tex_coord)},
         };
     }
 
@@ -36,7 +36,7 @@ struct VertexInput {
 };
 
 #ifdef __cplusplus
-}  // namespace storm::shaders::image_2d
+}  // namespace storm::shaders::ui::image_2d
 #else
 struct VertexOutput {
     float2 tex_coord : TEXCOORD0;

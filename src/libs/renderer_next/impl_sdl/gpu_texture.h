@@ -38,6 +38,8 @@ public:
 
     void bind_to_render_pass(std::shared_ptr<SDL_GPURenderPass> const& render_pass) const;
 
+    void set_sampler(std::shared_ptr<GPUSampler> const& sampler);
+
     std::pair<uint32_t, uint32_t> get_dimensions() const;
 
 private:

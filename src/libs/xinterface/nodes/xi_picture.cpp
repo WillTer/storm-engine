@@ -7,6 +7,8 @@
 #include <libs/util/storm_assert.h>
 #include <libs/util/string_compare.hpp>
 
+using namespace storm::renderer;
+
 namespace
 {
 std::string const TECHNIQUE_NAME = "iVideo";
@@ -36,7 +38,6 @@ void CXI_PICTURE::Draw(storm::GPURenderPass const& render_pass, bool bSelected, 
     if (m_bUse && m_picture) {
         m_picture->set_rect(m_rect);
         m_picture->set_screen_rect(m_screen_rect);
-        m_picture->set_diffuse_color(m_picture_color);
         m_picture->draw(render_pass);
     }
 }
@@ -53,7 +54,7 @@ bool CXI_PICTURE::Init(
     return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
-void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
     if (m_bMakeBlind) {
         if (m_bBlindUp) {
@@ -74,6 +75,7 @@ void CXI_PICTURE::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_tim
     }
 
     if (m_picture) {
+        m_picture->set_ubo_color(m_picture_color);
         m_picture->update(copy_pass, delta_time);
     }
 
@@ -91,17 +93,16 @@ void CXI_PICTURE::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, char 
         memcpy(m_pcGroupName, param, len);
         auto const texture = pPictureService->get_texture(m_pcGroupName);
 
-        m_picture = std::make_unique<storm::Image2D>(texture, TECHNIQUE_NAME);
         if (ReadIniString(ini1, name1, ini2, name2, "picName", param, sizeof(param), "")) {
-            m_picture->set_uv(pPictureService->get_texture_uv(m_pcGroupName, param));
+            m_picture = std::make_unique<ui::Image2D>(texture, pPictureService->get_texture_uv(m_pcGroupName, param), TECHNIQUE_NAME);
+        } else {
+            m_picture = std::make_unique<ui::Image2D>(texture, storm::FRect {}, TECHNIQUE_NAME);
         }
     } else if (ReadIniString(ini1, name1, ini2, name2, "textureName", param, sizeof(param), "")) {
-        m_picture = std::make_unique<storm::Image2D>(param, TECHNIQUE_NAME);
-
         auto const tex_rect = GetIniFloatRect(ini1, name1, ini2, name2, "textureRect", FXYRECT(0.F, 0.F, 1.F, 1.F));
-        m_picture->set_uv(tex_rect);
+        m_picture           = std::make_unique<ui::Image2D>(param, tex_rect, TECHNIQUE_NAME);
     } else if (ReadIniString(ini1, name1, ini2, name2, "videoName", param, sizeof(param), "")) {
-        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), TECHNIQUE_NAME);
+        m_picture = std::make_unique<ui::Image2D>(pPictureService->get_video_texture(param), storm::FRect {}, TECHNIQUE_NAME);
     }
 
     assert(m_picture);
@@ -170,9 +171,9 @@ void CXI_PICTURE::SetNewPicture(bool video, char const* sNewTexName)
 {
     ReleasePicture();
     if (video) {
-        m_picture = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(sNewTexName), TECHNIQUE_NAME);
+        m_picture = std::make_unique<ui::Image2D>(pPictureService->get_video_texture(sNewTexName), storm::FRect {}, TECHNIQUE_NAME);
     } else {
-        m_picture = std::make_unique<storm::Image2D>(sNewTexName, TECHNIQUE_NAME);
+        m_picture = std::make_unique<ui::Image2D>(sNewTexName, storm::FRect {}, TECHNIQUE_NAME);
     }
 }
 
@@ -204,8 +205,8 @@ void CXI_PICTURE::SetNewPictureByGroup(char const* groupName, char const* picNam
         }
     }
 
-    m_picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(m_pcGroupName), TECHNIQUE_NAME);
-    m_picture->set_uv(pPictureService->get_texture_uv(m_pcGroupName, picName));
+    m_picture = std::make_unique<ui::Image2D>(
+        pPictureService->get_texture(m_pcGroupName), pPictureService->get_texture_uv(m_pcGroupName, picName), TECHNIQUE_NAME);
 }
 
 uint32_t CXI_PICTURE::MessageProc(int32_t msgcode, MESSAGE& message)

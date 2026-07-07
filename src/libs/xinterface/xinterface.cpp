@@ -725,7 +725,7 @@ uint64_t XInterface::ProcessMessage(MESSAGE& message)
             if (do_blind) {
                 pImg->argbBlindMin = message.Long();
                 pImg->argbBlindMax = message.Long();
-                pImg->picture->set_diffuse_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
+                pImg->picture->set_ubo_color(GetBlendColor(pImg->argbBlindMin, pImg->argbBlindMax, m_fBlindFactor));
             }
         }
     } break;
@@ -952,7 +952,7 @@ void XInterface::LoadIni()
     char param2[256];
     sscanf(param, "%[^,],%d,size:(%d,%d),pos:(%d,%d)", param2, &m_lMouseSensitive, &MouseSize.x, &MouseSize.y, &m_lXMouse, &m_lYMouse);
 
-    m_mouse_cursor = std::make_shared<storm::Image2D>(param2);
+    m_mouse_cursor = std::make_shared<storm::renderer::ui::Image2D>(param2);
     m_mouse_cursor->set_screen_rect(m_screen_rect);
 
     window->WarpMouseInWindow(windowSize.width / 2, windowSize.height / 2);
@@ -1685,7 +1685,7 @@ void XInterface::RestoreNodeLocks(int32_t nStoreCode)
 void XInterface::nodes_update(storm::GPUCopyPass const& copy_pass, CINODE* nod, uint32_t delta_time) const
 {
     for (; nod != nullptr; nod = nod->m_next) {
-        nod->update(copy_pass, delta_time);
+        nod->update(copy_pass, nod == m_pCurNode, delta_time);
     }
 }
 
@@ -1707,12 +1707,13 @@ void XInterface::DrawNode(
                 nod->Draw(render_pass, false, 0);
                 continue;
             }
-            if (nod == m_pCurNode) {
-                if (m_pGlowCursorNode && m_pGlowCursorNode->m_bUse) m_pGlowCursorNode->Draw(render_pass, false, Delta_Time);
+            if (nod == m_pCurNode && (m_pGlowCursorNode != nullptr) && m_pGlowCursorNode->m_bUse) {
+                m_pGlowCursorNode->Draw(render_pass, false, Delta_Time);
             }
             nod->Draw(render_pass, nod == m_pCurNode, Delta_Time);
-        } else
+        } else {
             nod->NotUsingTime(Delta_Time);
+        }
         DrawNode(render_pass, nod->m_list, Delta_Time);
     }
 }
@@ -2307,8 +2308,9 @@ uint32_t XInterface::AttributeChanged(ATTRIBUTES* patr)
                 }
                 memcpy(pImList->sImageListName, patr->GetThisAttr(), len);
             }
-            pImList->picture = std::make_unique<storm::Image2D>(pPictureService->get_texture(pImList->sImageListName));
-            pImList->picture->set_uv(pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture ? pImList->sPicture : ""));
+            pImList->picture = std::make_unique<storm::renderer::ui::Image2D>(pPictureService->get_texture(pImList->sImageListName));
+            pImList->picture->set_uv_rect(
+                pPictureService->get_texture_uv(pImList->sImageListName, pImList->sPicture ? pImList->sPicture : ""));
             pImList->picture->set_screen_rect(m_screen_rect);
             pImList->picture->set_rect(pImList->position);
 

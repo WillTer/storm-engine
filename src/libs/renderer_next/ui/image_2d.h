@@ -7,49 +7,46 @@
 #include <libs/renderer_next/impl_sdl/gpu_texture.h>
 #include <libs/renderer_next/types.h>
 #include <shaders/ubo_types.h>
-#include <shaders/ui/image_2d.h>
 
-#include "image_2d_base.h"
+#include "base.h"
 
-namespace storm
+namespace storm::renderer::ui
 {
 
-class GraphicsPipeline;
-
-class GPUVertexBuffer;
-class GPUIndexBuffer;
-class GPUTexture;
-class GPUCopyPass;
-class GPURenderPass;
-
-class Image2D final: public Image2DBase
+class Image2D: public Base
 {
 public:
-    Image2D(std::filesystem::path const& texture, std::optional<std::string> const& technique = std::nullopt);
-    Image2D(std::shared_ptr<GPUTexture> const& external_texture, std::optional<std::string> const& technique = std::nullopt);
+    Image2D(std::filesystem::path const& texture, storm::FRect const& uv = {}, std::optional<std::string> const& technique = std::nullopt);
+    Image2D(
+        std::shared_ptr<GPUTexture> const& external_texture,
+        storm::FRect const&                uv        = {},
+        std::optional<std::string> const&  technique = std::nullopt);
 
     ~Image2D() override;
 
+    virtual auto get_uv() const -> std::vector<float2> const&;
+
+    virtual void set_uv_rect(storm::FRect const& uv);
+    virtual void set_uv(std::array<float2, 4> const& uv);
+    virtual void set_ubo_color(storm::Color const& color);
+
+    // Base
+    void create_default_pipeline(std::string const& fragment_shader = {}) override;
+    void set_technique(std::string const& technique, std::string const& vertex_shader = {}) override;
+
+    // IDrawable
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time) override;
     void draw(GPURenderPass const& render_pass) const override;
 
-    void set_diffuse_color(storm::Color const& color);
-    void set_uv(storm::FRect const& texture_uv);
-    void set_uv_full(std::array<float2, 4> const& texture_uv);
+protected:
+    std::shared_ptr<GPUTexture> m_texture;
+    std::vector<float2>         m_texture_uv;
 
 private:
-    void initialize(std::optional<std::string> const& technique);
+    void initialize(storm::FRect const& uv, std::optional<std::string> const& technique);
+    void update_rect();
 
-    shaders::UBOFragment m_fragment_ubo;
-
-    std::shared_ptr<GraphicsPipeline> m_pipeline;
-
-    std::shared_ptr<GPUTexture>      m_texture;
-    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer;
-    std::shared_ptr<GPUIndexBuffer>  m_index_buffer;
-
-    std::vector<float2> m_texture_uv;
-    bool                m_is_dirty {false};
+    bool m_need_update = false;
 };
 
-}  // namespace storm
+}  // namespace storm::renderer::ui

@@ -12,9 +12,10 @@
 #include <shaders/ui/image_2d.h>
 
 using namespace storm;
+using namespace storm::renderer::ui;
 using namespace hlslpp;
 
-using ImageVertex = shaders::image_2d::VertexInput;
+using Vertex = shaders::ui::image_2d::VertexInput;
 
 namespace
 {
@@ -30,15 +31,9 @@ Button::Button(
     storm::FRect const&                tex_rect_right,
     storm::FRect const&                button_rect,
     std::optional<std::string> const&  technique /*= std::nullopt*/)
-    : m_texture(texture)
+    : Image2D(texture, tex_rect_middle, technique)
 {
     auto const& renderer = core->get<RendererService>();
-
-    if (technique.has_value()) {
-        m_pipeline = renderer->create_pipeline_from_technique<ImageVertex>("ui/image_2d", technique.value());
-    } else {
-        m_pipeline = renderer->create_pipeline<ImageVertex>("ui/image_2d", "ui/tex_ubo_diffuse");
-    }
 
     auto const [width, height] = m_texture->get_dimensions();
 
@@ -47,27 +42,27 @@ Button::Button(
     auto const right_width = std::fabs((tex_rect_right.width() * width) / button_rect.width());
 
     // Left part - from 0 to left_width
-    auto const vertex_data_left = std::vector<ImageVertex> {
-        ImageVertex {{0.0F, 0.0F}, {tex_rect_left.left, tex_rect_left.top}},
-        ImageVertex {{left_width, 0.0F}, {tex_rect_left.right, tex_rect_left.top}},
-        ImageVertex {{left_width, 1.0F}, {tex_rect_left.right, tex_rect_left.bottom}},
-        ImageVertex {{0.0F, 1.0F}, {tex_rect_left.left, tex_rect_left.bottom}},
+    auto const vertex_data_left = std::vector<Vertex> {
+        Vertex {{0.0F, 0.0F}, {tex_rect_left.left, tex_rect_left.top}},
+        Vertex {{left_width, 0.0F}, {tex_rect_left.right, tex_rect_left.top}},
+        Vertex {{left_width, 1.0F}, {tex_rect_left.right, tex_rect_left.bottom}},
+        Vertex {{0.0F, 1.0F}, {tex_rect_left.left, tex_rect_left.bottom}},
     };
 
     // Middle part - from left_width to 1 - right_width
-    auto const vertex_data_middle = std::vector<ImageVertex> {
-        ImageVertex {{left_width, 0.0F}, {tex_rect_middle.left, tex_rect_middle.top}},
-        ImageVertex {{1.0F - right_width, 0.0F}, {tex_rect_middle.right, tex_rect_middle.top}},
-        ImageVertex {{1.0F - right_width, 1.0F}, {tex_rect_middle.right, tex_rect_middle.bottom}},
-        ImageVertex {{left_width, 1.0F}, {tex_rect_middle.left, tex_rect_middle.bottom}},
+    auto const vertex_data_middle = std::vector<Vertex> {
+        Vertex {{left_width, 0.0F}, {tex_rect_middle.left, tex_rect_middle.top}},
+        Vertex {{1.0F - right_width, 0.0F}, {tex_rect_middle.right, tex_rect_middle.top}},
+        Vertex {{1.0F - right_width, 1.0F}, {tex_rect_middle.right, tex_rect_middle.bottom}},
+        Vertex {{left_width, 1.0F}, {tex_rect_middle.left, tex_rect_middle.bottom}},
     };
 
     // Right part - from 1 - right_width to 1
-    auto const vertex_data_right = std::vector<ImageVertex> {
-        ImageVertex {{1.0F - right_width, 0.0F}, {tex_rect_right.left, tex_rect_right.top}},
-        ImageVertex {{1.0F, 0.0F}, {tex_rect_right.right, tex_rect_right.top}},
-        ImageVertex {{1.0F, 1.0F}, {tex_rect_right.right, tex_rect_right.bottom}},
-        ImageVertex {{1.0F - right_width, 1.0F}, {tex_rect_right.left, tex_rect_right.bottom}},
+    auto const vertex_data_right = std::vector<Vertex> {
+        Vertex {{1.0F - right_width, 0.0F}, {tex_rect_right.left, tex_rect_right.top}},
+        Vertex {{1.0F, 0.0F}, {tex_rect_right.right, tex_rect_right.top}},
+        Vertex {{1.0F, 1.0F}, {tex_rect_right.right, tex_rect_right.bottom}},
+        Vertex {{1.0F - right_width, 1.0F}, {tex_rect_right.left, tex_rect_right.bottom}},
     };
 
     m_vertex_buffer_left   = renderer->create_vertex_buffer(vertex_data_left);
@@ -75,11 +70,7 @@ Button::Button(
     m_vertex_buffer_right  = renderer->create_vertex_buffer(vertex_data_right);
     m_index_buffer         = renderer->create_index_buffer(SQUARE_INDICES);
 
-    m_fragment_ubo.diffuse = float4(1.0F);
-
-    m_rect   = button_rect;
-    m_width  = static_cast<uint32_t>(m_rect.width());
-    m_height = static_cast<uint32_t>(m_rect.height());
+    set_rect(button_rect);
 
     m_middle_rect = {
         .left   = button_rect.left + (tex_rect_left.width() * width),
@@ -95,11 +86,16 @@ void Button::update(GPUCopyPass const& /*copy_pass*/, uint64_t const /*delta_tim
 
 void Button::draw(GPURenderPass const& render_pass) const
 {
+    if (!m_pipeline || !m_texture) {
+        return;
+    }
+
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
-    render_pass.bind(*m_texture);
     render_pass.push_vertex_uniform_data(0, m_vertex_ubo);
     render_pass.push_fragment_uniform_data(0, m_fragment_ubo);
+
+    render_pass.bind(*m_texture);
 
     render_pass.bind(*m_vertex_buffer_middle);
     render_pass.draw(*m_index_buffer);
@@ -111,13 +107,7 @@ void Button::draw(GPURenderPass const& render_pass) const
     render_pass.draw(*m_index_buffer);
 }
 
-void Button::set_diffuse_color(storm::Color const& color)
-{
-    auto const [r, g, b, a] = color.normalize();
-    m_fragment_ubo.diffuse  = float4(r, g, b, a);
-}
-
-auto Button::get_middle_rect() const -> storm::FRect
+auto Button::get_middle_rect() const -> storm::FRect const&
 {
     return m_middle_rect;
 }

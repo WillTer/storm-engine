@@ -50,6 +50,8 @@ private:
     shaders::UBOVertex m_picture_ubo;
     shaders::UBOVertex m_background_ubo;
 
+    shaders::UBOFragment m_fragment_ubo;
+
     ProgressImageInfo m_progress_info;
 
     uint32_t m_current_frame = 0;

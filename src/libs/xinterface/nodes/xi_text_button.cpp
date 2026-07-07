@@ -8,8 +8,11 @@
 
 namespace
 {
-std::string const TECHNIQUE_NAME = "iVideo";
-}
+std::string const TECHNIQUE_NAME      = "iVideo";
+std::string const BACK_TECHNIQUE_NAME = "iRectangle";
+}  // namespace
+
+using namespace storm::renderer;
 
 CXI_TEXTBUTTON::CXI_TEXTBUTTON()
 {
@@ -49,7 +52,7 @@ void CXI_TEXTBUTTON::pre_draw(storm::GPUCommandBuffer const& cmd_buffer, uint32_
 {
     if (!m_text && (m_idString != -1 || m_sString != nullptr)) {
         auto const font = pStringService->get_font(m_font_name);
-        m_text          = std::make_unique<storm::Image2D>(font->print(
+        m_text          = std::make_unique<ui::Image2D>(font->print(
             cmd_buffer,
             storm::Color::from_hex(0xFFFFFFFF),
             storm::Color::from_hex(0),
@@ -105,7 +108,7 @@ bool CXI_TEXTBUTTON::Init(
     return CINODE::Init(ini1, name1, ini2, name2, rs, hostRect, ScreenSize);
 }
 
-void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_time)
+void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, bool is_selected, uint32_t delta_time)
 {
     if (!m_bMakeActionInDeclick && m_nPressedDelay > 0) {
         m_nPressedDelay--;
@@ -140,6 +143,25 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_
         }
     }
 
+    if (m_nPressedDelay > 0) {
+        m_button->set_ubo_color(storm::Color::from_hex(m_dwPressedFaceColor));
+        m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwPressedFaceColor));
+        if (m_text) {
+            m_text->set_ubo_color(storm::Color::from_hex(m_dwPressedFontColor));
+        }
+    } else {
+        m_button->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+        m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
+
+        if (m_text) {
+            if (m_bSelected) {
+                m_text->set_ubo_color(storm::Color::from_hex(m_dwFontColor));
+            } else {
+                m_text->set_ubo_color(storm::Color::from_hex(m_dwUnselFontColor));
+            }
+        }
+    }
+
     m_back->update(copy_pass, delta_time);
     m_button->update(copy_pass, delta_time);
     m_button_selected->update(copy_pass, delta_time);
@@ -151,25 +173,6 @@ void CXI_TEXTBUTTON::update(storm::GPUCopyPass const& copy_pass, uint32_t delta_
     }
     if (m_text) {
         m_text->update(copy_pass, delta_time);
-    }
-
-    if (m_nPressedDelay > 0) {
-        m_button->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
-        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwPressedFaceColor));
-        if (m_text) {
-            m_text->set_diffuse_color(storm::Color::from_hex(m_dwPressedFontColor));
-        }
-    } else {
-        m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
-        m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
-
-        if (m_text) {
-            if (m_bSelected) {
-                m_text->set_diffuse_color(storm::Color::from_hex(m_dwFontColor));
-            } else {
-                m_text->set_diffuse_color(storm::Color::from_hex(m_dwUnselFontColor));
-            }
-        }
     }
 }
 
@@ -213,21 +216,23 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
     if (ReadIniString(ini1, name1, ini2, name2, "group", param, sizeof(param), "")) {
         auto const len = strlen(param) + 1;
         m_sGroupName   = new char[len];
-        if (m_sGroupName == nullptr) throw std::runtime_error("allocate memory error");
+        if (m_sGroupName == nullptr) {
+            throw std::runtime_error("allocate memory error");
+        }
         memcpy(m_sGroupName, param, len);
         button_texture = pPictureService->get_texture(m_sGroupName);
     }
 
-    m_back = std::make_unique<storm::Rectangle>(storm::Color::from_hex(m_dwBackColor));
+    m_back = std::make_unique<ui::Rectangle>(storm::Color::from_hex(m_dwBackColor));
     m_back->set_screen_rect(m_screen_rect);
+    m_back->set_technique(BACK_TECHNIQUE_NAME);
 
     if (ReadIniString(ini1, name1, ini2, name2, "ShadowTexture", param, sizeof(param), "")) {
         auto const shadow_uv = GetIniFloatRect(ini1, name1, ini2, name2, "ShadowUV", FXYRECT(0.F, 0.F, 1.F, 1.F));
 
-        m_shadow = std::make_unique<storm::Image2D>(param, TECHNIQUE_NAME);
-        m_shadow->set_uv(shadow_uv);
+        m_shadow = std::make_unique<ui::Image2D>(param, shadow_uv, TECHNIQUE_NAME);
         m_shadow->set_screen_rect(m_screen_rect);
-        m_shadow->set_diffuse_color(storm::Color::from_hex(m_dwShadowColor));
+        m_shadow->set_ubo_color(storm::Color::from_hex(m_dwShadowColor));
     }
 
     // get offset button image in case pressed button
@@ -265,9 +270,9 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
 
     // get video fragment parameters
     if (ReadIniString(ini1, name1, ini2, name2, "midVideo", param, sizeof(param), "")) {
-        m_selection = std::make_unique<storm::Image2D>(pPictureService->get_video_texture(param), TECHNIQUE_NAME);
+        m_selection = std::make_unique<ui::Image2D>(pPictureService->get_video_texture(param), storm::FRect {}, TECHNIQUE_NAME);
         m_selection->set_screen_rect(m_screen_rect);
-        m_selection->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+        m_selection->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
     }
 
     // fill left side of button
@@ -306,11 +311,11 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         };
     }
 
-    m_button = std::make_unique<storm::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect, TECHNIQUE_NAME);
+    m_button = std::make_unique<ui::Button>(button_texture, left_uv, middle_uv, right_uv, m_rect, TECHNIQUE_NAME);
     m_button->set_screen_rect(m_screen_rect);
-    m_button->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+    m_button->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
 
-    m_button_selected = std::make_unique<storm::Button>(
+    m_button_selected = std::make_unique<ui::Button>(
         button_texture,
         !left_uv_selected.is_empty() ? left_uv_selected : left_uv,
         !middle_uv_selected.is_empty() ? middle_uv_selected : middle_uv,
@@ -319,7 +324,7 @@ void CXI_TEXTBUTTON::LoadIni(INIFILE* ini1, char const* name1, INIFILE* ini2, ch
         TECHNIQUE_NAME);
 
     m_button_selected->set_screen_rect(m_screen_rect);
-    m_button_selected->set_diffuse_color(storm::Color::from_hex(m_dwFaceColor));
+    m_button_selected->set_ubo_color(storm::Color::from_hex(m_dwFaceColor));
 }
 
 void CXI_TEXTBUTTON::ReleaseAll()

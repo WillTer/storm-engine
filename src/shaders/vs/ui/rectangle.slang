@@ -8,7 +8,7 @@ ConstantBuffer<UBOVertex> ubo: register(b0, space1);
 VertexOutput main(VertexInput input)
 {
     VertexOutput output;
-    output.color    = input.color;
+    output.diffuse  = input.diffuse;
     output.position = mul(mul(ubo.view_proj, ubo.model), float4(input.position, 0.0, 1.0));
     return output;
 }
