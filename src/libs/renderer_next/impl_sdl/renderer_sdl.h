@@ -47,10 +47,11 @@ public:
         std::string const&                             vertex_shader,
         std::string const&                             fragment_shader) -> std::shared_ptr<GraphicsPipeline>;
 
-    template <typename VertexInput>
+    template <typename T>
+        requires has_shader_layout<T>
     [[nodiscard]] auto create_pipeline(std::string const& vertex_shader, TechniqueInfo const& info) -> std::shared_ptr<GraphicsPipeline>
     {
-        return create_pipeline(VertexInput::attributes(), VertexInput::descriptions(), vertex_shader, info);
+        return create_pipeline(T::attributes(), T::descriptions(), vertex_shader, info);
     }
 
     [[nodiscard]] auto create_pipeline(
