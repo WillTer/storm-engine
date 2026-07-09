@@ -11,6 +11,7 @@
 #include "impl_sdl/gpu_texture.h"
 #include "impl_sdl/gpu_vertex_buffer.h"
 #include "impl_sdl/renderer_sdl.h"
+#include "ui/texture_sequence.h"
 
 using namespace storm;
 using namespace hlslpp;
@@ -61,14 +62,24 @@ ProgressImageScene::ProgressImageScene(
         auto command_buffer = renderer->acquire_command_buffer();
         auto copy_pass      = command_buffer->start_copy_pass();
 
-        m_progress = renderer->create_texture(PROGRESS_TEX);
+        TextureSequenceInfo const info = {
+            .texture_file   = PROGRESS_TEX,
+            .flip_h         = false,
+            .flip_v         = true,
+            .time_delay     = 0,
+            .width          = 512,
+            .height         = 512,
+            .h_frames_count = m_progress_info.h_frames_count,
+            .v_frames_count = m_progress_info.v_frames_count,
+        };
+
+        m_progress = std::make_shared<TextureSequence>(renderer, info);
         if (m_progress_info.frame) {
             m_frame = renderer->create_texture(BORDER_TEX);
         }
 
-        m_vertex_buffer_back     = renderer->create_vertex_buffer(SQUARE_VERTICES);
-        m_vertex_buffer_progress = renderer->create_vertex_buffer(SQUARE_VERTICES);
-        m_index_buffer           = renderer->create_index_buffer(SQUARE_INDICES);
+        m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
+        m_index_buffer  = renderer->create_index_buffer(SQUARE_INDICES);
 
         renderer->upload_pending_data(*copy_pass);
     }
@@ -90,10 +101,10 @@ ProgressImageScene::ProgressImageScene(
     m_fragment_ubo.diffuse = float4(1.0F);
 }
 
-void ProgressImageScene::update(GPUCopyPass const& copy_pass, uint64_t const /*delta_time*/)
+void ProgressImageScene::update(GPUCopyPass const& /*copy_pass*/, uint64_t const /*delta_time*/)
 {
     // Animated texture
-    process_progress(copy_pass);
+    m_progress->next_frame();
 
     // Recalculate texture positions
     update_picture_matrices();
@@ -104,18 +115,17 @@ void ProgressImageScene::draw(GPURenderPass const& render_pass) const
 {
     render_pass.bind(*m_pipeline);
     render_pass.bind(*m_index_buffer);
+    render_pass.bind(*m_vertex_buffer);
     render_pass.push_fragment_uniform_data(0, m_fragment_ubo);
 
     if (m_background) {
         render_pass.push_vertex_uniform_data(0, m_background_ubo);
-        render_pass.bind(*m_vertex_buffer_back);
         render_pass.bind(*m_background);
         render_pass.draw(*m_index_buffer);
     }
 
     if (m_picture) {
         render_pass.push_vertex_uniform_data(0, m_picture_ubo);
-        render_pass.bind(*m_vertex_buffer_back);
         render_pass.bind(*m_picture);
         render_pass.draw(*m_index_buffer);
 
@@ -126,9 +136,13 @@ void ProgressImageScene::draw(GPURenderPass const& render_pass) const
     }
 
     render_pass.push_vertex_uniform_data(0, m_progress_ubo);
-    render_pass.bind(*m_vertex_buffer_progress);
-    render_pass.bind(*m_progress);
+    render_pass.bind(*m_progress->get_target_texture());
     render_pass.draw(*m_index_buffer);
+}
+
+void ProgressImageScene::pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t delta_time) const
+{
+    m_progress->pre_draw(cmd_buffer, delta_time);
 }
 
 void ProgressImageScene::set_picture(std::shared_ptr<GPUTexture> const& image)
@@ -141,37 +155,6 @@ void ProgressImageScene::set_background(std::shared_ptr<GPUTexture> const& image
 {
     assert(image);
     m_background = image;
-}
-
-void ProgressImageScene::process_progress(GPUCopyPass const& copy_pass)
-{
-    // Position of the current frame
-    int32_t const fx = m_current_frame % m_progress_info.h_frames_count;
-    int32_t const fy = m_current_frame / m_progress_info.h_frames_count;
-
-    // Frame grid size
-    auto const x_count = static_cast<float>(m_progress_info.h_frames_count);
-    auto const y_count = static_cast<float>(m_progress_info.v_frames_count);
-
-    std::vector const progress_tex_buffer = {
-        // left-top
-        decltype(Vertex::tex_coord)(fx / x_count, fy / y_count),
-        // right-top
-        decltype(Vertex::tex_coord)((fx + 1) / x_count, fy / y_count),
-        // right-bottom
-        decltype(Vertex::tex_coord)((fx + 1) / x_count, (fy + 1) / y_count),
-        // left-bottom
-        decltype(Vertex::tex_coord)(fx / x_count, (fy + 1) / y_count),
-    };
-
-    auto const progress_update_info =
-        std::vector(4, BufferUpdateInfo {.offset = offsetof(Vertex, tex_coord), .size = sizeof(Vertex::tex_coord)});
-    copy_pass.update_buffer(*m_vertex_buffer_progress, progress_update_info, progress_tex_buffer, sizeof(Vertex));
-
-    ++m_current_frame;
-    if (m_current_frame >= x_count * y_count) {
-        m_current_frame = 0;
-    }
 }
 
 void ProgressImageScene::update_picture_matrices()

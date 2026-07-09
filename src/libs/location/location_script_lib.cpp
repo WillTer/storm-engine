@@ -68,7 +68,9 @@ inline bool CheckID(VDATA* vd, char const* id, bool& res)
     if (!a) return false;
     a = a->GetAttributeClass("id");
     if (!a) return true;
-    if (!a->HasValue()) { return true; }
+    if (!a->HasValue()) {
+        return true;
+    }
     res = storm::iEquals(to_string(a->GetThisAttr()), id);
     return true;
 }
@@ -221,6 +223,8 @@ uint32_t slNativeReloadProgressUpdate(VS_STACK* pS)
         auto copy_pass = cmd_buffer->start_copy_pass();
         progress_image->update(*copy_pass, core->GetDeltaTime());
     }
+
+    progress_image->pre_draw(*cmd_buffer, core->GetDeltaTime());
 
     auto render_pass = cmd_buffer->start_render_pass({cmd_buffer->get_default_target()}, renderer->get_viewport());
     progress_image->draw(*render_pass);

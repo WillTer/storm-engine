@@ -22,7 +22,7 @@ std::vector<SDL_GPUColorTargetInfo> convert_color_target_info(std::vector<ColorT
             .resolve_texture       = nullptr,  // TODO: No multisampling resolve for now
             .resolve_mip_level     = 0,
             .resolve_layer         = 0,
-            .cycle                 = 0,
+            .cycle                 = true,
             .cycle_resolve_texture = 0,
             .padding1              = 0,
             .padding2              = 0,

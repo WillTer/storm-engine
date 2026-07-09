@@ -31,13 +31,8 @@ auto const SQUARE_INDICES = std::vector<uint32_t> {0, 1, 2, 0, 2, 3};
 
 }  // namespace
 
-TextureSequence::TextureSequence(std::string const& name)
+TextureSequence::TextureSequence(std::shared_ptr<RendererService> const& renderer, TextureSequenceInfo const& info)
 {
-    auto const& renderer      = core->get<RendererService>();
-    auto const& config_loader = core->get<IConfigLoader>();
-
-    auto const info = storm::texture_sequence::info(*config_loader, name);
-
     m_texture = renderer->create_texture(info.texture_file);
     m_target  = renderer->create_texture_target(info.width, info.height);
 
@@ -63,10 +58,7 @@ void TextureSequence::update(GPUCopyPass const& /*copy_pass*/, uint64_t const de
     m_delta_time += delta_time;
     while (m_delta_time > m_time_delay) {
         m_delta_time -= m_time_delay;
-        ++m_vertex_ubo.frame;
-        if (m_vertex_ubo.frame >= m_vertex_ubo.v_frames_count * m_vertex_ubo.h_frames_count) {
-            m_vertex_ubo.frame = 0;
-        }
+        next_frame();
     }
 }
 
@@ -83,11 +75,19 @@ void TextureSequence::pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t cons
 
     render_pass->push_vertex_uniform_data(0, m_vertex_ubo);
 
-    auto const blend_factor = static_cast<float>(m_delta_time) / m_time_delay;
+    auto const blend_factor = m_time_delay > 0 ? static_cast<float>(m_delta_time) / m_time_delay : 1.0F;
     auto const color        = float4(1.0F, 1.0F, 1.0F, blend_factor);
     render_pass->push_fragment_uniform_data(0, color);
 
     render_pass->draw(*m_index_buffer);
+}
+
+void TextureSequence::next_frame()
+{
+    ++m_vertex_ubo.frame;
+    if (m_vertex_ubo.frame >= m_vertex_ubo.v_frames_count * m_vertex_ubo.h_frames_count) {
+        m_vertex_ubo.frame = 0;
+    }
 }
 
 auto TextureSequence::get_target_texture() const -> std::shared_ptr<GPUTexture>

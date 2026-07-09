@@ -89,13 +89,13 @@ struct PathsInfo {
 };
 
 struct ProgressImageInfo {
-    bool  frame;
-    float relative_x;
-    float relative_y;
-    float relative_width;
-    float relative_height;
-    int   h_frames_count;
-    int   v_frames_count;
+    bool     frame;
+    float    relative_x;
+    float    relative_y;
+    float    relative_width;
+    float    relative_height;
+    uint32_t h_frames_count;
+    uint32_t v_frames_count;
 };
 
 namespace main_config

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <libs/config/main_config.h>
+#include <libs/renderer_next/i_pre_drawable.h>
 #include <shaders/ubo_types.h>
 
 namespace storm
@@ -18,6 +19,8 @@ class GPUTexture;
 class GPURenderPass;
 class GPUCopyPass;
 
+class TextureSequence;
+
 class ProgressImageScene final
 {
 public:
@@ -25,26 +28,25 @@ public:
 
     void update(GPUCopyPass const& copy_pass, uint64_t delta_time);
     void draw(GPURenderPass const& render_pass) const;
+    void pre_draw(GPUCommandBuffer const& cmd_buffer, uint64_t delta_time) const;
 
     void set_picture(std::shared_ptr<GPUTexture> const& image);
     void set_background(std::shared_ptr<GPUTexture> const& image);
 
 private:
-    void process_progress(GPUCopyPass const& copy_pass);
-
     void update_picture_matrices();
     void update_progress_matrices();
 
     std::shared_ptr<GraphicsPipeline> m_pipeline = nullptr;
 
-    std::shared_ptr<GPUTexture> m_progress   = nullptr;
+    std::shared_ptr<TextureSequence> m_progress = nullptr;
+
     std::shared_ptr<GPUTexture> m_picture    = nullptr;
     std::shared_ptr<GPUTexture> m_frame      = nullptr;
     std::shared_ptr<GPUTexture> m_background = nullptr;
 
-    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_back     = nullptr;
-    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer_progress = nullptr;
-    std::shared_ptr<GPUIndexBuffer>  m_index_buffer           = nullptr;
+    std::shared_ptr<GPUVertexBuffer> m_vertex_buffer = nullptr;
+    std::shared_ptr<GPUIndexBuffer>  m_index_buffer  = nullptr;
 
     shaders::UBOVertex m_progress_ubo;
     shaders::UBOVertex m_picture_ubo;
