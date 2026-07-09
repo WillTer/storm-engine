@@ -91,32 +91,51 @@ PathsInfo const DEFAULT_PATHS_INFO = {
     .shaders    = fs::SHADERS_DIR_DEFAULT,
 };
 
-constexpr ProgressImageInfo DEFAULT_PROGRESS_IMAGE_INFO = {
-    .frame           = false,
-    .relative_x      = 0.85F,
-    .relative_y      = 0.8F,
-    .relative_width  = 0.0625F,
-    .relative_height = 0.0625F,
-    .h_frames_count  = 8,
-    .v_frames_count  = 8,
+ProgressImageInfo const DEFAULT_PROGRESS_IMAGE_INFO = {
+    .frame            = false,
+    .relative_x       = 0.85F,
+    .relative_y       = 0.8F,
+    .relative_width   = 0.0625F,
+    .relative_height  = 0.0625F,
+    .h_frames_count   = 8,
+    .v_frames_count   = 8,
+    .aspect_ratio     = 1.33,
+    .progress_texture = "loading/progress.tga",
+    .border_texture   = "loading/int_border.tga",
 };
 
 ENGINE_VERSION get_engine_version_from_string(std::string const& version)
 {
-    if (version == "sd") { return ENGINE_VERSION::SEA_DOGS; }
-    if (version == "potc") { return ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN; }
-    if (version == "ct") { return ENGINE_VERSION::CARIBBEAN_TALES; }
-    if (version == "coas") { return ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS; }
-    if (version == "teho") { return ENGINE_VERSION::TO_EACH_HIS_OWN; }
-    if (version == "latest") { return ENGINE_VERSION::LATEST; }
+    if (version == "sd") {
+        return ENGINE_VERSION::SEA_DOGS;
+    }
+    if (version == "potc") {
+        return ENGINE_VERSION::PIRATES_OF_THE_CARIBBEAN;
+    }
+    if (version == "ct") {
+        return ENGINE_VERSION::CARIBBEAN_TALES;
+    }
+    if (version == "coas") {
+        return ENGINE_VERSION::CITY_OF_ABANDONED_SHIPS;
+    }
+    if (version == "teho") {
+        return ENGINE_VERSION::TO_EACH_HIS_OWN;
+    }
+    if (version == "latest") {
+        return ENGINE_VERSION::LATEST;
+    }
 
     return ENGINE_VERSION::UNKNOWN;
 }
 
 int get_cache_mode_from_string(std::string const& mode)
 {
-    if (mode == "enabled") { return 1; }
-    if (mode == "no_runtime_check") { return 2; }
+    if (mode == "enabled") {
+        return 1;
+    }
+    if (mode == "no_runtime_check") {
+        return 2;
+    }
 
     return 0;
 }
@@ -264,13 +283,16 @@ struct storm::read_to<ProgressImageInfo> {
     static ProgressImageInfo from_ini(IniFile const& ini, std::string const& section)
     {
         return {
-            .frame           = ini.find_or(section, "frame", DEFAULT_PROGRESS_IMAGE_INFO.frame),
-            .relative_x      = ini.find_or(section, "relative_x", DEFAULT_PROGRESS_IMAGE_INFO.relative_x),
-            .relative_y      = ini.find_or(section, "relative_y", DEFAULT_PROGRESS_IMAGE_INFO.relative_y),
-            .relative_width  = ini.find_or(section, "relative_width", DEFAULT_PROGRESS_IMAGE_INFO.relative_width),
-            .relative_height = ini.find_or(section, "relative_height", DEFAULT_PROGRESS_IMAGE_INFO.relative_height),
-            .h_frames_count  = ini.find_or(section, "h_frames_count", DEFAULT_PROGRESS_IMAGE_INFO.h_frames_count),
-            .v_frames_count  = ini.find_or(section, "v_frames_count", DEFAULT_PROGRESS_IMAGE_INFO.v_frames_count),
+            .frame            = ini.find_or(section, "frame", DEFAULT_PROGRESS_IMAGE_INFO.frame),
+            .relative_x       = ini.find_or(section, "relative_x", DEFAULT_PROGRESS_IMAGE_INFO.relative_x),
+            .relative_y       = ini.find_or(section, "relative_y", DEFAULT_PROGRESS_IMAGE_INFO.relative_y),
+            .relative_width   = ini.find_or(section, "relative_width", DEFAULT_PROGRESS_IMAGE_INFO.relative_width),
+            .relative_height  = ini.find_or(section, "relative_height", DEFAULT_PROGRESS_IMAGE_INFO.relative_height),
+            .h_frames_count   = ini.find_or(section, "h_frames_count", DEFAULT_PROGRESS_IMAGE_INFO.h_frames_count),
+            .v_frames_count   = ini.find_or(section, "v_frames_count", DEFAULT_PROGRESS_IMAGE_INFO.v_frames_count),
+            .aspect_ratio     = ini.find_or(section, "aspect_ratio", DEFAULT_PROGRESS_IMAGE_INFO.aspect_ratio),
+            .progress_texture = ini.find_or(section, "progress_texture", DEFAULT_PROGRESS_IMAGE_INFO.progress_texture),
+            .border_texture   = ini.find_or(section, "border_texture", DEFAULT_PROGRESS_IMAGE_INFO.border_texture),
         };
     }
 };

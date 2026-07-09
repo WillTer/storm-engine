@@ -96,6 +96,10 @@ struct ProgressImageInfo {
     float    relative_height;
     uint32_t h_frames_count;
     uint32_t v_frames_count;
+
+    float       aspect_ratio;
+    std::string progress_texture;
+    std::string border_texture;
 };
 
 namespace main_config

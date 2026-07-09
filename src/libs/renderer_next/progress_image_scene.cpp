@@ -30,13 +30,6 @@ std::vector const SQUARE_VERTICES = {
 
 std::vector<uint32_t> const SQUARE_INDICES = {0, 1, 2, 0, 2, 3};
 
-constexpr char const PROGRESS_TEX[] = "loading/progress.tga";
-constexpr char const BORDER_TEX[]   = "loading/int_border.tga";
-
-// Loading screen textures are made for 4:3 screens
-// TODO: maybe need to set up this in configuration files
-constexpr auto ASPECT_RATIO = 4.0F / 3.0F;
-
 std::pair<float, float> get_loading_picture_offset(FRect const& viewport, float const aspect_ratio)
 {
     float dy = 0.0F;
@@ -63,7 +56,7 @@ ProgressImageScene::ProgressImageScene(
         auto copy_pass      = command_buffer->start_copy_pass();
 
         TextureSequenceInfo const info = {
-            .texture_file   = PROGRESS_TEX,
+            .texture_file   = m_progress_info.progress_texture,
             .flip_h         = false,
             .flip_v         = true,
             .time_delay     = 0,
@@ -75,7 +68,7 @@ ProgressImageScene::ProgressImageScene(
 
         m_progress = std::make_shared<TextureSequence>(renderer, info);
         if (m_progress_info.frame) {
-            m_frame = renderer->create_texture(BORDER_TEX);
+            m_frame = renderer->create_texture(m_progress_info.border_texture);
         }
 
         m_vertex_buffer = renderer->create_vertex_buffer(SQUARE_VERTICES);
@@ -162,7 +155,7 @@ void ProgressImageScene::update_picture_matrices()
     auto const& renderer = core->get<RendererService>();
     auto const  viewport = renderer->get_viewport();
 
-    auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, ASPECT_RATIO);
+    auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, m_progress_info.aspect_ratio);
 
     auto const picture_width  = viewport.width() - (offset_x * 2);
     auto const picture_height = viewport.height() - (offset_y * 2);
@@ -179,8 +172,7 @@ void ProgressImageScene::update_progress_matrices()
     auto const& renderer = core->get<RendererService>();
     auto const  viewport = renderer->get_viewport();
 
-    // Loading screen textures are made for 4:3 screens
-    auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, ASPECT_RATIO);
+    auto const [offset_x, offset_y] = get_loading_picture_offset(viewport, m_progress_info.aspect_ratio);
 
     auto const picture_width  = viewport.width() - (offset_x * 2);
     auto const picture_height = viewport.height() - (offset_y * 2);
@@ -190,7 +182,9 @@ void ProgressImageScene::update_progress_matrices()
         (picture_width * m_progress_info.relative_x) + offset_x, (picture_height * m_progress_info.relative_y) + offset_y, 0.0F);
 
     auto const scale_mat = float4x4::scale(
-        picture_width * m_progress_info.relative_width, picture_height * m_progress_info.relative_height * ASPECT_RATIO, 1.0F);
+        picture_width * m_progress_info.relative_width,
+        picture_height * m_progress_info.relative_height * m_progress_info.aspect_ratio,
+        1.0F);
 
     m_progress_ubo.model = mul(scale_mat, translation_mat);
 }

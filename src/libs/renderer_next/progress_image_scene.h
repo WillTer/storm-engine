@@ -3,7 +3,6 @@
 #include <memory>
 
 #include <libs/config/main_config.h>
-#include <libs/renderer_next/i_pre_drawable.h>
 #include <shaders/ubo_types.h>
 
 namespace storm
@@ -17,6 +16,7 @@ class GPUVertexBuffer;
 class GPUIndexBuffer;
 class GPUTexture;
 class GPURenderPass;
+class GPUCommandBuffer;
 class GPUCopyPass;
 
 class TextureSequence;
