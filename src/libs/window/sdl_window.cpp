@@ -4,97 +4,93 @@
 
 namespace storm
 {
-SDLWindow::SDLWindow(
-    std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+SDLWindow::SDLWindow(std::shared_ptr<RendererService> const& renderer, WindowInfo const& info)
     : m_renderer(renderer)
-    , fullscreen_(fullscreen)
+    , m_fullscreen(info.full_screen)
 {
     auto const props = SDL_CreateProperties();
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display));
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(preferred_display));
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
-    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, fullscreen);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(info.preferred_display));
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(info.preferred_display));
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, info.width);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, info.height);
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, m_fullscreen);
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true);
 
-    window_ = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
+    m_handle = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
         SDL_CreateWindowWithProperties(props), [](SDL_Window* w) { SDL_DestroyWindow(w); });
 
     SDL_DestroyProperties(props);
 
-    sdlID_ = SDL_GetWindowID(window_.get());
-    SDL_SetWindowBordered(window_.get(), bordered);
+    m_window_id = SDL_GetWindowID(m_handle.get());
+    SDL_SetWindowBordered(m_handle.get(), info.show_borders);
     SDL_AddEventWatch(&SDLEventHandler, this);
 
-    m_renderer->bind_window(window_);
+    m_renderer->bind_window(m_handle);
 }
 
 SDLWindow::~SDLWindow()
 {
-    m_renderer->unbind_window(window_);
+    m_renderer->unbind_window(m_handle);
     SDL_RemoveEventWatch(&SDLEventHandler, this);
 }
 
 void SDLWindow::Show()
 {
-    SDL_ShowWindow(window_.get());
+    SDL_ShowWindow(m_handle.get());
 }
 
 void SDLWindow::Hide()
 {
-    SDL_HideWindow(window_.get());
+    SDL_HideWindow(m_handle.get());
 }
 
 void SDLWindow::Focus()
 {
-    SDL_RaiseWindow(window_.get());
+    SDL_RaiseWindow(m_handle.get());
 }
 
 int SDLWindow::Width() const
 {
-    int w, h;
-    SDL_GetWindowSize(window_.get(), &w, &h);
-    return w;
+    return GetWindowSize().width;
 }
 
 int SDLWindow::Height() const
 {
-    int w, h;
-    SDL_GetWindowSize(window_.get(), &w, &h);
-    return h;
+    return GetWindowSize().height;
 }
 
 WindowSize SDLWindow::GetWindowSize() const
 {
-    int w, h;
-    SDL_GetWindowSize(window_.get(), &w, &h);
+    int w = 0;
+    int h = 0;
+    SDL_GetWindowSize(m_handle.get(), &w, &h);
     return {w, h};
 }
 
 bool SDLWindow::Fullscreen() const
 {
-    return fullscreen_;
+    return m_fullscreen;
 }
 
 std::string SDLWindow::Title() const
 {
-    return std::string(SDL_GetWindowTitle(window_.get()));
+    return std::string(SDL_GetWindowTitle(m_handle.get()));
 }
 
 void SDLWindow::SetFullscreen(bool fullscreen)
 {
-    fullscreen_ = fullscreen;
-    SDL_SetWindowFullscreen(window_.get(), fullscreen_ ? SDL_WINDOW_FULLSCREEN : 0);
+    m_fullscreen = fullscreen;
+    SDL_SetWindowFullscreen(m_handle.get(), m_fullscreen);
 }
 
 void SDLWindow::Resize(int width, int height)
 {
-    SDL_SetWindowSize(window_.get(), width, height);
+    SDL_SetWindowSize(m_handle.get(), width, height);
 }
 
 void SDLWindow::WarpMouseInWindow(int x, int y)
 {
-    SDL_WarpMouseInWindow(window_.get(), static_cast<float>(x), static_cast<float>(y));
+    SDL_WarpMouseInWindow(m_handle.get(), static_cast<float>(x), static_cast<float>(y));
 }
 
 auto SDLWindow::get_mouse_pos() const -> std::pair<int, int>
@@ -116,7 +112,7 @@ void SDLWindow::show_cursor(bool is_shown)
 
 void SDLWindow::SetTitle(std::string const& title)
 {
-    SDL_SetWindowTitle(window_.get(), title.c_str());
+    SDL_SetWindowTitle(m_handle.get(), title.c_str());
 }
 
 void SDLWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256], uint16_t const (&blue)[256])
@@ -128,63 +124,55 @@ void SDLWindow::SetGamma(uint16_t const (&red)[256], uint16_t const (&green)[256
 int SDLWindow::Subscribe(EventHandler const& handler)
 {
     int id = 1;
-    if (!handlers_.empty()) id = (--handlers_.end())->first + 1;
-    handlers_[id] = handler;
+    if (!m_handlers.empty()) {
+        id = (--m_handlers.end())->first + 1;
+    }
+    m_handlers[id] = handler;
     return id;
 }
 
 void SDLWindow::Unsubscribe(int id)
 {
-    auto it = handlers_.find(id);
-    if (it != handlers_.end()) handlers_.erase(it);
+    if (auto it = m_handlers.find(id); it != m_handlers.end()) {
+        m_handlers.erase(it);
+    }
 }
 
-// TODO: X/Wayland/MacOS
-void* SDLWindow::OSHandle()
+void* SDLWindow::RawHandle()
 {
-    if (!window_) return nullptr;
-
-#ifdef _WIN32
-    return SDL_GetPointerProperty(SDL_GetWindowProperties(window_.get()), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-#else
-    // dxvk-native uses HWND as SDL2 window handle, so this is allowed
-    return window_.get();
-#endif
-}
-
-SDL_Window* SDLWindow::SDLHandle() const
-{
-    return window_.get();
+    return m_handle.get();
 }
 
 void SDLWindow::ProcessEvent(SDL_WindowEvent const& evt) const
 {
-    Event winEvent;
+    Event win_event = {};
     switch (evt.type) {
-    case SDL_EVENT_WINDOW_FOCUS_GAINED: winEvent = FocusGained; break;
+    case SDL_EVENT_WINDOW_FOCUS_GAINED: win_event = FocusGained; break;
 
-    case SDL_EVENT_WINDOW_FOCUS_LOST: winEvent = FocusLost; break;
+    case SDL_EVENT_WINDOW_FOCUS_LOST: win_event = FocusLost; break;
 
-    case SDL_EVENT_WINDOW_CLOSE_REQUESTED: winEvent = Closed; break;
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED: win_event = Closed; break;
 
     default: return;
     }
 
-    for (auto handler: handlers_)
-        handler.second(winEvent);
+    for (auto handler: m_handlers) {
+        handler.second(win_event);
+    }
 }
 
-std::shared_ptr<IWindow> IWindow::Create(
-    std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered)
+std::shared_ptr<IWindow> IWindow::Create(std::shared_ptr<RendererService> const& renderer, WindowInfo const& info)
 {
-    return std::make_shared<SDLWindow>(renderer, width, height, preferred_display, fullscreen, bordered);
+    return std::make_shared<SDLWindow>(renderer, info);
 }
 
 bool SDLWindow::SDLEventHandler(void* userdata, SDL_Event* evt)
 {
     auto const* const w = static_cast<SDLWindow*>(userdata);
 
-    if (evt->type < SDL_EVENT_WINDOW_FIRST || evt->type > SDL_EVENT_WINDOW_LAST || evt->window.windowID != w->sdlID_) return false;
+    if (evt->type < SDL_EVENT_WINDOW_FIRST || evt->type > SDL_EVENT_WINDOW_LAST || evt->window.windowID != w->m_window_id) {
+        return false;
+    }
 
     w->ProcessEvent(evt->window);
 

@@ -66,7 +66,9 @@ void handle_window_event(storm::IWindow::Event const& event)
 {
     if (event == storm::IWindow::Closed) {
         should_close = true;
-        if (core_internal && core_internal->initialized()) { core_internal->Event("DestroyWindow"); }
+        if (core_internal && core_internal->initialized()) {
+            core_internal->Event("DestroyWindow");
+        }
     } else if (event == storm::IWindow::FocusGained) {
         is_active = true;
         if (core_internal && core_internal->initialized()) {
@@ -151,8 +153,7 @@ try {
     auto const window_info = storm::main_config::window_info(*config_loader);
 
     // Create window
-    auto window = storm::IWindow::Create(
-        renderer, window_info.width, window_info.height, window_info.preferred_display, window_info.full_screen, window_info.show_borders);
+    auto window = storm::IWindow::Create(renderer, window_info);
     window->SetTitle("Sea Dogs");
     window->Subscribe(handle_window_event);
     window->Show();
@@ -187,7 +188,9 @@ try {
             if (window_info.max_fps != 0U) {
                 auto const ms       = 1000U / window_info.max_fps;
                 auto const new_time = SDL_GetTicks();
-                if (new_time - old_time < ms) { continue; }
+                if (new_time - old_time < ms) {
+                    continue;
+                }
                 old_time = new_time;
             }
 

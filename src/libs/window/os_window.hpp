@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 
+#include <libs/config/main_config.h>
+
 namespace storm
 {
 struct WindowSize {
@@ -76,10 +78,9 @@ public:
     virtual void Unsubscribe(int id) = 0;
 
     //! Os-depended window handler (i.e. HWND on Windows)
-    virtual void* OSHandle() = 0;
+    virtual void* RawHandle() = 0;
 
     //! Create new window
-    static std::shared_ptr<IWindow>
-    Create(std::shared_ptr<RendererService> const& renderer, int width, int height, int preferred_display, bool fullscreen, bool bordered);
+    static std::shared_ptr<IWindow> Create(std::shared_ptr<RendererService> const& renderer, WindowInfo const& info);
 };
 }  // namespace storm
